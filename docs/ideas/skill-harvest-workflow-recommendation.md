@@ -1,6 +1,6 @@
 # Skill Harvest Workflow Recommendation
 
-Status: user-originated concept.
+Status: implemented in `tmcp_recommend_workflows` as of TMCP `0.2.2`.
 
 This note captures the idea that a TMCP skill harvest can reveal a person's or team's coding-quality priorities, and that TMCP should use those signals to recommend custom expert workflows.
 
@@ -90,7 +90,7 @@ Candidate MCP output shape:
 
 ## Proposed MCP Tool
 
-Future tool:
+Implemented tool:
 
 ```text
 tmcp_recommend_workflows
@@ -152,4 +152,3 @@ Starter prompt: Use TMCP to audit security and privacy risks in this project.
 - How many workflows should be recommended by default?
 - What confidence threshold should separate recommended, exploratory, and not-recommended workflows?
 - Should recommended workflows be generated dynamically or selected from a curated catalog?
-

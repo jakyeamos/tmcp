@@ -25,6 +25,7 @@ When the TMCP MCP tools are available, use:
 - `tmcp_status` to check whether standalone TMCP and the optional AIOS adapter are available.
 - `tmcp_explain` to compile and inspect the task-specific TMCP packet.
 - `tmcp_harvest_skills` to turn local skills/docs into TMCP source nodes and a reusable packet seed.
+- `tmcp_recommend_workflows` to infer priority signals from a skill harvest and recommend custom expert workflows.
 - `expert_rubric_review_plan` for the expert rubric remediation workflow.
 
 The MCP tools run standalone. When AIOS is available, they may use the AIOS adapter for richer graph traversal, persisted receipts, and workflow artifacts.
@@ -42,6 +43,7 @@ TMCP is not only a UI audit path. Use the same packet model for:
 - Developer onboarding audits: harvest README, contribution, command, and CI docs; route to the developer-experience rubric.
 - Security/privacy harvest audits: keep redaction enabled, inspect redaction summaries, and route to the security/privacy rubric.
 - Release readiness planning: compile a planning packet, name evidence gaps, and produce ordered remediation slices before implementation.
+- Skill-harvest workflow recommendation: infer coding-quality priorities from harvested skills and recommend UI, security, testing, release, DX, maintainability, performance, or data-integrity workflows.
 
 When MCP tools are unavailable but AIOS exists, use the AIOS CLI directly:
 

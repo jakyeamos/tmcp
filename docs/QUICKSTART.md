@@ -80,9 +80,25 @@ Expected result:
 
 ## 6. Run A Non-UI Workflow
 
+Call `tmcp_recommend_workflows` when you want TMCP to infer which expert workflows fit a harvested skill corpus:
+
+```json
+{
+  "source_path": ".",
+  "objective": "Recommend custom TMCP workflows from this project's skill signals",
+  "limit": 40
+}
+```
+
+Expected result:
+
+- `priority_profile.primary_signals` names the strongest coding-quality priorities.
+- `recommended_workflows` includes evidence-backed workflow recommendations.
+- `starter_prompt` gives the prompt to run the selected workflow.
+
 Use one of the examples in [examples/workflows](../examples/workflows):
 
 - [Developer onboarding audit](../examples/workflows/developer-onboarding-audit.md)
 - [Security and privacy harvest audit](../examples/workflows/security-privacy-harvest-audit.md)
 - [Release readiness planning](../examples/workflows/release-readiness-planning.md)
-
+- [Skill harvest workflow recommendation](../examples/workflows/skill-harvest-workflow-recommendation.md)

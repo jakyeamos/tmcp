@@ -25,4 +25,4 @@ Every install path should pass the same sequence:
 2. `tmcp_status`
 3. `tmcp_explain` with a simple objective
 4. `tmcp_harvest_skills` against a small local repo
-
+5. `tmcp_recommend_workflows` against the same harvested repo

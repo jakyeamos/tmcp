@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2 - 2026-06-26
+
+- Added `tmcp_recommend_workflows` to infer coding-quality priority signals from harvested skill sources and recommend custom expert workflows with evidence.
+- Added workflow recommendation examples and updated quickstart/docs.
+
 ## 0.2.1 - 2026-06-26
 
 - Added `tmcp_doctor` for first-run readiness checks across Codex, Claude Code, Claude Desktop, and plain MCP clients.

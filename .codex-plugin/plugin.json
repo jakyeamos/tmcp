@@ -1,7 +1,7 @@
 {
   "name": "tmcp",
-  "version": "0.2.1+codex.20260626185000",
-  "description": "Expose standalone TMCP skill-packet workflows, skill harvesting, and expert rubric remediation to Codex.",
+  "version": "0.2.2+codex.20260626193000",
+  "description": "Expose standalone TMCP skill-packet workflows, skill harvesting, workflow recommendations, and expert rubric remediation to Codex.",
   "author": {
     "name": "Jakye Amos"
   },
@@ -12,13 +12,14 @@
     "mcp",
     "rubric",
     "workflow",
-    "harvest"
+    "harvest",
+    "recommendation"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "TMCP",
     "shortDescription": "Route work through TMCP skill packets and expert rubrics.",
-    "longDescription": "TMCP exposes task-specific skill packet compilation, local skill harvesting, and expert rubric remediation workflows for UI, evidence, security, developer-experience, and general audits. It runs standalone and can use AIOS as an optional acceleration and persistence adapter when available.",
+    "longDescription": "TMCP exposes task-specific skill packet compilation, local skill harvesting, harvest-driven workflow recommendations, and expert rubric remediation workflows for UI, evidence, security, developer-experience, and general audits. It runs standalone and can use AIOS as an optional acceleration and persistence adapter when available.",
     "developerName": "Jakye Amos",
     "category": "Productivity",
     "capabilities": [
@@ -35,7 +36,8 @@
       "Use the TMCP expert UI rubric on this project.",
       "Explain the TMCP packet for this task.",
       "Run tmcp_doctor and verify this install.",
-      "Harvest this repo into a TMCP packet."
+      "Harvest this repo into a TMCP packet.",
+      "Recommend TMCP workflows from this repo's skill signals."
     ]
   },
   "mcpServers": "./.mcp.json"

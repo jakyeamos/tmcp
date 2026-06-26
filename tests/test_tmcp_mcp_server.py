@@ -176,6 +176,66 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertIn("[REDACTED:", serialized)
         self.assertGreater(sum(result["redaction_summary"].values()), 0)
 
+    def test_recommend_workflows_uses_harvested_priority_signals(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: frontend-ui-review",
+                        "---",
+                        "# UI Review",
+                        "Use screenshots, responsive layout checks, design-system fit, visual polish, and component state evidence.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (root / "AGENTS.md").write_text(
+                "# Agent Rules\n\nVerify UI states with evidence before implementation.\n",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {"source_path": str(root), "limit": 10},
+            )
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["schema"], "tmcp-workflow-recommendation-v1")
+        self.assertIn("ui_quality", result["priority_profile"]["primary_signals"])
+        self.assertEqual(result["recommended_workflows"][0]["id"], "expert_ui_rubric_workflow")
+        self.assertTrue(result["recommended_workflows"][0]["evidence"])
+        self.assertIn("starter_prompt", result["recommended_workflows"][0])
+
+    def test_recommend_workflows_filters_candidates_and_writes_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output_dir = root / "recommendations"
+            (root / "SECURITY.md").write_text(
+                "# Security\n\nRedact secrets, review permissions, audit auth tokens, and inspect data flow privacy.\n",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {
+                    "source_path": str(root),
+                    "candidate_workflows": ["security_privacy_review_workflow"],
+                    "write_artifacts": True,
+                    "output_dir": str(output_dir),
+                },
+            )
+
+            self.assertEqual(
+                [item["id"] for item in result["recommended_workflows"]],
+                ["security_privacy_review_workflow"],
+            )
+            self.assertEqual(result["not_recommended"], [])
+            paths = result["artifact_paths"]
+            self.assertTrue(Path(paths["recommendation_json"]).exists())
+            self.assertTrue(Path(paths["recommendation_markdown"]).exists())
+
     def test_review_plan_writes_expected_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "review"
@@ -238,6 +298,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "tmcp_doctor",
                 "tmcp_explain",
                 "tmcp_harvest_skills",
+                "tmcp_recommend_workflows",
                 "tmcp_status",
             },
         )

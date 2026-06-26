@@ -2,7 +2,7 @@
 
 Date: 2026-06-26
 
-Plugin version: `0.2.1+codex.20260626185000`
+Plugin version: `0.2.2+codex.20260626193000`
 
 ## Commands
 
@@ -13,7 +13,27 @@ python3 -m unittest discover -s tests
 python3 scripts/check_install.py .
 python3 scripts/check_release_package.py .
 pre-cr run --json --workspace /Users/jakyeamos/plugins/tmcp
-gh run view 28258956509 --repo jakyeamos/tmcp --json status,conclusion,jobs
+python3 - <<'PY'
+import json
+import os
+import subprocess
+from pathlib import Path
+from scripts.tmcp_mcp_framing import encode_message
+request = {
+    'jsonrpc': '2.0',
+    'id': 1,
+    'method': 'tools/call',
+    'params': {
+        'name': 'tmcp_recommend_workflows',
+        'arguments': {'source_path': '.', 'candidate_workflows': ['developer_experience_workflow'], 'limit': 8},
+    },
+}
+env = os.environ.copy()
+env['AIOS_ROOT'] = '/tmp/tmcp-aios-missing'
+completed = subprocess.run(['node', 'scripts/tmcp_launcher.mjs'], input=encode_message(request), cwd=Path.cwd(), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+assert completed.returncode == 0
+PY
+gh run view <pending-0.2.2-run-id> --repo jakyeamos/tmcp --json status,conclusion,jobs
 claude plugin validate .
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py /Users/jakyeamos/plugins/tmcp
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/jakyeamos/plugins/tmcp/skills/tmcp
@@ -33,7 +53,7 @@ PY
 - Install shape check: pass.
 - Release package check: pass.
 - Pre-CR commit readiness: pass with repo-local unittest adapter and threshold `0`.
-- Unit and MCP protocol tests: pass, 16 tests.
+- Unit and MCP protocol tests: pass, 18 tests.
 - Claude Code marketplace validation: pass.
 - Claude Code plugin manifest validation: pass with a temporary plugin-only copy.
 - Plugin JSON syntax: pass.
@@ -50,18 +70,20 @@ PY
 - `.pre-cr.json` is present for local source-commit readiness.
 - `.quality-gate-exceptions` documents the current monolithic MCP server size exception.
 - Quickstart, marketplace matrix, packet stability policy, and non-UI workflow examples are present.
+- Workflow recommendation example and `tmcp_recommend_workflows` docs are present.
 
 ## Covered Behavior
 
 - Expert UI rubric requests route to an `audit` packet and `visual_polish` rubric profile.
 - `tmcp_doctor` reports first-run readiness and shared smoke-test guidance.
+- `tmcp_recommend_workflows` infers priority signals from harvested sources, recommends workflows with evidence, filters candidate workflows, and writes artifacts.
 - Machine-readable packet schema required fields match the compiled standalone packet.
 - Portable harvest works on a synthetic non-AIOS, non-Codex project shape.
 - Harvest prunes dependency directories.
 - Harvest reports missing roots as warnings.
 - Harvest redacts common sensitive values before output.
 - Review plan writes expected artifacts.
-- MCP `tools/list` and `tmcp_status` work through `Content-Length` framing.
+- MCP `tools/list`, `tmcp_status`, and `tmcp_recommend_workflows` work through `Content-Length` framing.
 - MCP protocol tests launch through `node scripts/tmcp_launcher.mjs`.
 - MCP rejects non-object tool arguments.
 - Launcher selection covers explicit `TMCP_PYTHON` and Windows `py -3` preference.
@@ -71,7 +93,7 @@ PY
 - Clean-copy install check passes from a copied plugin directory.
 - Release tarball check passes after unpacking into a temporary directory.
 - Redaction and MCP framing are separated into dedicated modules.
-- Public GitHub Actions verification with release-package gate: pass on run `28258956509` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.1`.
+- Public GitHub Actions verification with release-package gate: pending for `0.2.2`.
 - License and marketplace example are present.
 - AIOS adapter absent and present behavior is covered with deterministic fixtures.
 

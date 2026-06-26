@@ -293,6 +293,227 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
     ],
 }
 
+WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
+    {
+        "signal_family": "ui_quality",
+        "workflow_id": "expert_ui_rubric_workflow",
+        "name": "Expert UI Rubric Workflow",
+        "keywords": (
+            "ui",
+            "ux",
+            "frontend",
+            "visual",
+            "polish",
+            "design",
+            "design-system",
+            "responsive",
+            "screen",
+            "screenshot",
+            "layout",
+            "component",
+            "state",
+            "interaction",
+        ),
+        "behavior_atoms": ("evidence-backed-claims", "concrete-citations", "artifact-contract"),
+        "profile": "visual_polish",
+        "starter_prompt": "Use the TMCP expert UI rubric on this project.",
+        "expected_artifacts": (
+            "expertise packet",
+            "scored visual rubric",
+            "evidence-backed UI audit",
+            "ordered remediation plan",
+        ),
+    },
+    {
+        "signal_family": "security_privacy",
+        "workflow_id": "security_privacy_review_workflow",
+        "name": "Security And Privacy Review Workflow",
+        "keywords": (
+            "security",
+            "privacy",
+            "redact",
+            "redaction",
+            "secret",
+            "permission",
+            "auth",
+            "token",
+            "credential",
+            "data flow",
+            "audit log",
+            "retention",
+        ),
+        "behavior_atoms": ("bounded-tool-side-effects", "approval-before-implementation"),
+        "profile": "security_privacy",
+        "starter_prompt": "Use TMCP to audit security and privacy risks in this project.",
+        "expected_artifacts": (
+            "expertise packet",
+            "scored security/privacy rubric",
+            "evidence-backed risk audit",
+            "ordered remediation plan",
+        ),
+    },
+    {
+        "signal_family": "testing_quality",
+        "workflow_id": "test_strategy_and_regression_workflow",
+        "name": "Test Strategy And Regression Workflow",
+        "keywords": (
+            "test",
+            "testing",
+            "tdd",
+            "regression",
+            "coverage",
+            "quality gate",
+            "vitest",
+            "jest",
+            "pytest",
+            "unit test",
+            "integration",
+            "e2e",
+        ),
+        "behavior_atoms": ("behavior-verification", "quality-gate-disclosure"),
+        "profile": "general_review",
+        "starter_prompt": "Use TMCP to review test strategy and regression risk in this project.",
+        "expected_artifacts": (
+            "expertise packet",
+            "test strategy rubric",
+            "coverage and regression audit",
+            "verification-focused remediation plan",
+        ),
+    },
+    {
+        "signal_family": "release_readiness",
+        "workflow_id": "release_readiness_workflow",
+        "name": "Release Readiness Workflow",
+        "keywords": (
+            "release",
+            "ship",
+            "deploy",
+            "deployment",
+            "ci",
+            "cd",
+            "checklist",
+            "package",
+            "version",
+            "changelog",
+            "tag",
+            "verification",
+        ),
+        "behavior_atoms": ("quality-gate-disclosure", "ordered-next-actions", "artifact-contract"),
+        "profile": "general_review",
+        "starter_prompt": "Use TMCP to plan release readiness for this project.",
+        "expected_artifacts": (
+            "expertise packet",
+            "release readiness rubric",
+            "evidence gap audit",
+            "ordered release remediation plan",
+        ),
+    },
+    {
+        "signal_family": "developer_experience",
+        "workflow_id": "developer_experience_workflow",
+        "name": "Developer Experience Workflow",
+        "keywords": (
+            "developer",
+            "dx",
+            "onboarding",
+            "setup",
+            "install",
+            "command",
+            "cli",
+            "readme",
+            "docs",
+            "troubleshooting",
+        ),
+        "behavior_atoms": ("local-context-first", "source-traceability", "artifact-contract"),
+        "profile": "developer_experience",
+        "starter_prompt": "Use TMCP to review developer onboarding commands and CLI docs.",
+        "expected_artifacts": (
+            "expertise packet",
+            "developer-experience rubric",
+            "command and docs audit",
+            "onboarding remediation plan",
+        ),
+    },
+    {
+        "signal_family": "maintainability",
+        "workflow_id": "maintainability_workflow",
+        "name": "Maintainability Workflow",
+        "keywords": (
+            "maintainability",
+            "refactor",
+            "architecture",
+            "modular",
+            "boundary",
+            "dead code",
+            "duplication",
+            "complexity",
+            "abstraction",
+            "cleanup",
+        ),
+        "behavior_atoms": ("smallest-effective-change", "avoid-speculative-abstractions"),
+        "profile": "general_review",
+        "starter_prompt": "Use TMCP to review maintainability, boundaries, and dead-code risk.",
+        "expected_artifacts": (
+            "expertise packet",
+            "maintainability rubric",
+            "codebase structure audit",
+            "scoped refactor plan",
+        ),
+    },
+    {
+        "signal_family": "performance",
+        "workflow_id": "performance_review_workflow",
+        "name": "Performance Review Workflow",
+        "keywords": (
+            "performance",
+            "latency",
+            "profiling",
+            "profile",
+            "bundle",
+            "runtime",
+            "load test",
+            "speed",
+            "memory",
+            "optimize",
+        ),
+        "behavior_atoms": ("evidence-backed-claims", "behavior-verification"),
+        "profile": "general_review",
+        "starter_prompt": "Use TMCP to review performance risks and verification signals.",
+        "expected_artifacts": (
+            "expertise packet",
+            "performance rubric",
+            "evidence-backed performance audit",
+            "measurement-first remediation plan",
+        ),
+    },
+    {
+        "signal_family": "data_correctness",
+        "workflow_id": "data_integrity_workflow",
+        "name": "Data Integrity Workflow",
+        "keywords": (
+            "data",
+            "schema",
+            "migration",
+            "validation",
+            "invariant",
+            "pipeline",
+            "etl",
+            "backfill",
+            "database",
+            "integrity",
+        ),
+        "behavior_atoms": ("source-traceability", "behavior-verification", "explicit-evidence-gaps"),
+        "profile": "general_review",
+        "starter_prompt": "Use TMCP to review data integrity, migrations, and pipeline correctness.",
+        "expected_artifacts": (
+            "expertise packet",
+            "data integrity rubric",
+            "schema and pipeline audit",
+            "verification-first remediation plan",
+        ),
+    },
+)
+
 TOOLS: dict[str, dict[str, Any]] = {
     "tmcp_doctor": {
         "description": (
@@ -371,6 +592,42 @@ TOOLS: dict[str, dict[str, Any]] = {
                 "max_excerpt_chars": {"type": "integer", "default": 1200},
                 "follow_symlinks": {"type": "boolean", "default": False},
                 "redact_sensitive": {"type": "boolean", "default": True},
+                "write_artifacts": {"type": "boolean", "default": False},
+                "output_dir": {"type": "string"},
+            },
+        },
+    },
+    "tmcp_recommend_workflows": {
+        "description": (
+            "Harvest local skill and instruction sources, infer coding-quality priority signals, "
+            "and recommend custom TMCP expert workflows with evidence."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "source_path": {"type": "string", "default": "."},
+                "source_paths": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional list of roots to harvest. Overrides source_path when provided.",
+                },
+                "objective": {
+                    "type": "string",
+                    "default": "Recommend custom TMCP workflows from harvested skill signals.",
+                },
+                "include_globs": {"type": "array", "items": {"type": "string"}},
+                "exclude_globs": {"type": "array", "items": {"type": "string"}},
+                "limit": {"type": "integer", "default": 40},
+                "max_file_bytes": {"type": "integer", "default": 262144},
+                "max_excerpt_chars": {"type": "integer", "default": 1200},
+                "follow_symlinks": {"type": "boolean", "default": False},
+                "redact_sensitive": {"type": "boolean", "default": True},
+                "candidate_workflows": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional workflow ids or signal families to score.",
+                },
+                "min_confidence": {"type": "number", "default": 0.25},
                 "write_artifacts": {"type": "boolean", "default": False},
                 "output_dir": {"type": "string"},
             },
@@ -1407,6 +1664,288 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _node_signal_text(node: dict[str, Any]) -> str:
+    frontmatter_values = " ".join(str(value) for value in dict(node.get("frontmatter") or {}).values())
+    return " ".join(
+        [
+            str(node.get("title") or ""),
+            str(node.get("relative_path") or ""),
+            str(node.get("source_type") or ""),
+            " ".join(_string_list(node.get("behavior_atoms"))),
+            " ".join(_string_list(node.get("keywords"))),
+            frontmatter_values,
+            str(node.get("excerpt") or ""),
+        ]
+    ).lower()
+
+
+def _source_scope_for(path: str) -> str:
+    lower = path.lower()
+    if any(marker in lower for marker in ("/.agents/", "/.codex/", "/.claude/", "/aios/")):
+        return "user_or_agent_skill"
+    return "repo_or_project_local"
+
+
+def _workflow_catalog(arguments: dict[str, Any]) -> list[dict[str, Any]]:
+    requested = {
+        str(item)
+        for item in _json_list(arguments.get("candidate_workflows"))
+        if str(item).strip()
+    }
+    if not requested:
+        return [dict(item) for item in WORKFLOW_SIGNAL_CATALOG]
+    return [
+        dict(item)
+        for item in WORKFLOW_SIGNAL_CATALOG
+        if item["workflow_id"] in requested or item["signal_family"] in requested
+    ]
+
+
+def _score_workflow_signal(
+    workflow: dict[str, Any],
+    source_nodes: list[dict[str, Any]],
+) -> dict[str, Any]:
+    keywords = tuple(str(item).lower() for item in workflow.get("keywords", ()))
+    expected_atoms = set(_string_list(workflow.get("behavior_atoms")))
+    score = 0.0
+    evidence: list[dict[str, Any]] = []
+    for node in source_nodes:
+        text = _node_signal_text(node)
+        matched_terms = [keyword for keyword in keywords if keyword in text]
+        matched_atoms = sorted(expected_atoms.intersection(_string_list(node.get("behavior_atoms"))))
+        node_score = float(len(matched_terms)) + (1.5 * len(matched_atoms))
+        if not node_score:
+            continue
+        score += node_score
+        if len(evidence) < 6:
+            evidence.append(
+                {
+                    "source_path": node.get("path"),
+                    "relative_path": node.get("relative_path"),
+                    "title": node.get("title"),
+                    "source_type": node.get("source_type"),
+                    "source_scope": _source_scope_for(str(node.get("path") or "")),
+                    "matched_terms": matched_terms[:8],
+                    "matched_behavior_atoms": matched_atoms,
+                    "excerpt": str(node.get("excerpt") or "")[:360],
+                }
+            )
+    confidence = round(min(0.99, score / (score + 6.0)), 2) if score else 0.0
+    return {
+        "signal_family": workflow["signal_family"],
+        "workflow_id": workflow["workflow_id"],
+        "name": workflow["name"],
+        "score": round(score, 2),
+        "confidence": confidence,
+        "evidence": evidence,
+    }
+
+
+def _recommendation_reason(score: dict[str, Any]) -> str:
+    evidence = _json_list(score.get("evidence"))
+    if not evidence:
+        return "No meaningful harvested evidence matched this workflow's signal family."
+    terms = sorted(
+        {
+            term
+            for item in evidence
+            if isinstance(item, dict)
+            for term in _string_list(item.get("matched_terms"))
+        }
+    )
+    if terms:
+        return f"Harvest matched {', '.join(terms[:8])} signals across {len(evidence)} source nodes."
+    return f"Harvest matched behavior atoms across {len(evidence)} source nodes."
+
+
+def _workflow_rubric_seed(workflow: dict[str, Any], objective: str) -> dict[str, Any]:
+    profile = str(workflow.get("profile") or "general_review")
+    dimensions = PROFILE_DIMENSIONS.get(profile, PROFILE_DIMENSIONS["general_review"])
+    return {
+        "workflow_id": workflow["workflow_id"],
+        "profile": profile,
+        "objective": objective,
+        "starter_prompt": workflow["starter_prompt"],
+        "dimension_seeds": [
+            {
+                "id": dimension["id"],
+                "name": dimension["name"],
+                "weight": dimension["weight"],
+                "evidence_expectations": dimension["expectations"],
+            }
+            for dimension in dimensions
+        ],
+    }
+
+
+def _markdown_recommendations(result: dict[str, Any]) -> str:
+    lines = ["# TMCP Workflow Recommendations", ""]
+    profile = result.get("priority_profile", {})
+    lines.extend(
+        [
+            f"- Primary signals: {', '.join(_string_list(profile.get('primary_signals'))) or 'none'}",
+            f"- Secondary signals: {', '.join(_string_list(profile.get('secondary_signals'))) or 'none'}",
+            f"- Weak signals: {', '.join(_string_list(profile.get('weak_signals'))) or 'none'}",
+            "",
+            "## Recommended Workflows",
+        ]
+    )
+    recommendations = _json_list(result.get("recommended_workflows"))
+    if not recommendations:
+        lines.append("- No workflows met the recommendation threshold.")
+    for item in recommendations:
+        if not isinstance(item, dict):
+            continue
+        lines.extend(
+            [
+                f"### {item['id']}",
+                "",
+                f"- Confidence: {item['confidence']}",
+                f"- Signal family: `{item['signal_family']}`",
+                f"- Why: {item['why']}",
+                f"- Starter prompt: {item['starter_prompt']}",
+                "",
+            ]
+        )
+    lines.extend(["## Not Recommended", ""])
+    for item in _json_list(result.get("not_recommended")):
+        if isinstance(item, dict):
+            lines.append(f"- `{item['id']}`: {item['reason']}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _write_workflow_recommendation_artifacts(output_dir: Path, result: dict[str, Any]) -> dict[str, str]:
+    paths = {
+        "recommendation_json": output_dir / "workflow-recommendations.json",
+        "recommendation_markdown": output_dir / "workflow-recommendations.md",
+        "priority_profile_json": output_dir / "priority-profile.json",
+    }
+    _write_json(paths["recommendation_json"], result)
+    paths["recommendation_markdown"].parent.mkdir(parents=True, exist_ok=True)
+    paths["recommendation_markdown"].write_text(_markdown_recommendations(result), encoding="utf-8")
+    profile = result.get("priority_profile")
+    if isinstance(profile, dict):
+        _write_json(paths["priority_profile_json"], profile)
+    return {key: str(path) for key, path in paths.items() if path.exists()}
+
+
+def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
+    objective = str(
+        arguments.get("objective") or "Recommend custom TMCP workflows from harvested skill signals."
+    )
+    harvest_args = dict(arguments)
+    harvest_args["objective"] = objective
+    harvest_args["write_artifacts"] = False
+    harvest = _harvest_skills(harvest_args)
+    source_nodes = [
+        item for item in _json_list(harvest.get("source_nodes")) if isinstance(item, dict)
+    ]
+    catalog = _workflow_catalog(arguments)
+    min_confidence = float(arguments.get("min_confidence") or 0.25)
+    scores = sorted(
+        (_score_workflow_signal(workflow, source_nodes) for workflow in catalog),
+        key=lambda item: (float(item["confidence"]), float(item["score"]), str(item["workflow_id"])),
+        reverse=True,
+    )
+    workflows_by_id = {str(item["workflow_id"]): item for item in catalog}
+    recommended: list[dict[str, Any]] = []
+    not_recommended: list[dict[str, Any]] = []
+    for score in scores:
+        workflow = workflows_by_id[str(score["workflow_id"])]
+        if score["confidence"] >= min_confidence and score["evidence"]:
+            recommended.append(
+                {
+                    "id": workflow["workflow_id"],
+                    "name": workflow["name"],
+                    "signal_family": workflow["signal_family"],
+                    "confidence": score["confidence"],
+                    "score": score["score"],
+                    "why": _recommendation_reason(score),
+                    "evidence": score["evidence"],
+                    "starter_prompt": workflow["starter_prompt"],
+                    "expected_artifacts": list(workflow["expected_artifacts"]),
+                    "rubric_seed": _workflow_rubric_seed(workflow, objective),
+                }
+            )
+        else:
+            not_recommended.append(
+                {
+                    "id": workflow["workflow_id"],
+                    "signal_family": workflow["signal_family"],
+                    "confidence": score["confidence"],
+                    "reason": _recommendation_reason(score),
+                }
+            )
+    primary = [item["signal_family"] for item in recommended[:2]]
+    secondary = [
+        item["signal_family"]
+        for item in recommended[2:]
+        if item["signal_family"] not in primary
+    ]
+    weak = [
+        item["signal_family"]
+        for item in scores
+        if 0 < float(item["confidence"]) < min_confidence
+        and item["signal_family"] not in primary
+        and item["signal_family"] not in secondary
+    ]
+    profile_evidence = [
+        {
+            "signal_family": item["signal_family"],
+            "workflow_id": item["workflow_id"],
+            "confidence": item["confidence"],
+            "evidence": item["evidence"][:3],
+        }
+        for item in scores
+        if item["evidence"]
+    ][:6]
+    result: dict[str, Any] = {
+        "ok": True,
+        "adapter": "standalone",
+        "schema": "tmcp-workflow-recommendation-v1",
+        "source_harvest": {
+            "schema": harvest.get("schema"),
+            "source_paths": harvest.get("source_paths", []),
+            "source_count": harvest.get("source_count", 0),
+            "matched_source_count": harvest.get("matched_source_count", 0),
+            "redaction_summary": harvest.get("redaction_summary", {}),
+            "warnings": harvest.get("warnings", []),
+        },
+        "priority_profile": {
+            "primary_signals": primary,
+            "secondary_signals": secondary,
+            "weak_signals": sorted(set(weak)),
+            "evidence": profile_evidence,
+        },
+        "signal_scores": scores,
+        "recommended_workflows": recommended,
+        "not_recommended": not_recommended,
+        "quality_rules": [
+            "Recommendations cite harvested evidence.",
+            "Weak signals are not promoted above the confidence threshold.",
+            "Privacy redaction remains enabled by default.",
+            "Recommendations are advisory until the user selects a workflow.",
+            "Implementation remains approval-gated.",
+        ],
+    }
+    if bool(arguments.get("write_artifacts", False)):
+        project_path = (
+            str(Path(str(harvest["source_paths"][0])).expanduser())
+            if harvest.get("source_paths")
+            else str(Path(".").resolve())
+        )
+        output_dir = Path(
+            str(
+                arguments.get("output_dir")
+                or Path(project_path) / ".tmcp" / f"workflow-recommendations-{uuid.uuid4().hex[:8]}"
+            )
+        ).expanduser()
+        result["artifact_paths"] = _write_workflow_recommendation_artifacts(output_dir, result)
+    else:
+        result["artifact_paths"] = {}
+    return result
+
+
 def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "tmcp_doctor":
         client = str(arguments.get("client") or "auto")
@@ -1479,6 +2018,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                     "portable_skill_harvest",
                     "multi_root_harvest",
                     "source_type_classification",
+                    "workflow_recommendation",
                     "expert_rubric_review_plan",
                     "artifact_write",
                 ],
@@ -1521,6 +2061,8 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         }
     if name == "tmcp_harvest_skills":
         return _harvest_skills(arguments)
+    if name == "tmcp_recommend_workflows":
+        return _recommend_workflows(arguments)
     if name == "expert_rubric_review_plan":
         adapter = str(arguments.get("adapter") or "auto")
         if _should_use_aios(adapter):
@@ -1574,7 +2116,7 @@ def _handle(request: dict[str, Any]) -> None:
             request_id,
             {
                 "protocolVersion": params.get("protocolVersion", "2024-11-05"),
-                "serverInfo": {"name": "tmcp", "version": "0.2.1"},
+                "serverInfo": {"name": "tmcp", "version": "0.2.2"},
                 "capabilities": {"tools": {}},
             },
         )

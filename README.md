@@ -12,7 +12,8 @@ Start with [docs/QUICKSTART.md](docs/QUICKSTART.md). The shortest first-run path
 2. Run `tmcp_doctor`.
 3. Run `tmcp_status`.
 4. Run `tmcp_explain` with your objective.
-5. Use one of the example workflows in [examples](examples).
+5. Run `tmcp_recommend_workflows` to infer which expert workflows fit your harvested skill signals.
+6. Use one of the example workflows in [examples](examples).
 
 ## Install
 
@@ -31,6 +32,7 @@ See [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md), [docs/MARKETPLACE_MATRIX.md](d
 - `tmcp_status`: reports standalone capability and optional AIOS adapter availability.
 - `tmcp_explain`: compiles a task-specific TMCP packet.
 - `tmcp_harvest_skills`: harvests local skills, agent instructions, editor rules, repository process docs, and workflow docs into source nodes.
+- `tmcp_recommend_workflows`: harvests skill sources, infers priority signals, and recommends custom expert workflows with evidence.
 - `expert_rubric_review_plan`: creates an expertise packet, scored rubric, audit report, remediation plan, and approval-gated implementation handoff.
 
 ## Skill Harvest
@@ -65,6 +67,7 @@ TMCP is not limited to UI audits. The repository includes examples for:
 - [Developer onboarding audit](examples/workflows/developer-onboarding-audit.md)
 - [Security and privacy harvest audit](examples/workflows/security-privacy-harvest-audit.md)
 - [Release readiness planning](examples/workflows/release-readiness-planning.md)
+- [Skill harvest workflow recommendation](examples/workflows/skill-harvest-workflow-recommendation.md)
 
 ## Local Verification
 
