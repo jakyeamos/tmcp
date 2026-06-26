@@ -13,8 +13,8 @@
 Current verification:
 
 - macOS: tested locally with Node and Python 3.
-- Linux: CI recipe is included for `ubuntu-latest` with Node 20 and Python 3.10/3.13. The code uses only standard libraries and relative plugin-root paths.
-- Windows: CI recipe is included for `windows-latest` with Node 20 and Python 3.10/3.13. The launcher prefers the Windows `py -3` launcher before falling back to `python` and `python3`.
+- Linux: hosted GitHub Actions pass on `ubuntu-latest` with Node 20 and Python 3.10/3.13.
+- Windows: hosted GitHub Actions pass on `windows-latest` with Node 20 and Python 3.10/3.13. The launcher prefers the Windows `py -3` launcher before falling back to `python` and `python3`.
 
 ## Filesystem Assumptions
 
@@ -27,5 +27,4 @@ Current verification:
 
 ## Known Gaps
 
-- CI workflow is present for macOS, Linux, and Windows, but has not been observed running from a hosted remote in this local workspace.
-- Windows support is launcher-ready and CI-declared, but still needs a hosted or manual Windows run before it can be called field-proven.
+- Windows support has hosted CI coverage; manual end-user installation on a real Windows workstation is still recommended before treating it as field-proven.

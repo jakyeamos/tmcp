@@ -30,10 +30,12 @@ jobs:
         with:
           node-version: "20"
       - name: Compile
-        run: python -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
+        run: python -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
       - name: Launcher syntax
         run: node --check scripts/tmcp_launcher.mjs
       - name: Tests
         run: python -m unittest discover -s tests
       - name: Install shape
         run: python scripts/check_install.py .
+      - name: Release package
+        run: python scripts/check_release_package.py .

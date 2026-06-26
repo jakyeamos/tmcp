@@ -2,7 +2,7 @@
 
 Tier One means the plugin is safe, portable, explainable, and useful for someone who does not share the original author's machine, AIOS install, Codex cache, operating system, or project conventions.
 
-Release scope for this rubric: Codex plugin environments with Node.js and Python 3 available. The MCP command is a Node launcher that discovers Python through `TMCP_PYTHON`, `py -3`, `python`, or `python3`, depending on platform. macOS behavior is locally verified; Linux and Windows behavior are CI-declared and package-checked locally.
+Release scope for this rubric: Codex plugin environments with Node.js and Python 3 available. The MCP command is a Node launcher that discovers Python through `TMCP_PYTHON`, `py -3`, `python`, or `python3`, depending on platform. macOS behavior is locally verified; Linux and Windows behavior are hosted-CI verified through GitHub Actions.
 
 ## Release Gate
 
@@ -130,7 +130,7 @@ Pass criteria:
 - Tests run with only Python standard library.
 - MCP launch goes through a cross-platform Node launcher.
 - Tests cover macOS/Linux and Windows launcher selection semantics where possible.
-- CI recipe covers macOS, Linux, and Windows even if CI is not yet hosted.
+- CI covers macOS, Linux, and Windows.
 
 Required evidence:
 
@@ -199,9 +199,8 @@ Required evidence:
 
 ## Work Order
 
-1. Publish to the public GitHub repository and observe hosted CI.
-2. Submit to Claude community marketplace after the GitHub repo is live.
-3. Review and submit MCP Registry metadata against the current official schema.
-4. Observe a hosted or manual Windows run and record results.
-5. Expand semantic extraction beyond keyword heuristics.
-6. Split packet compiler, harvester, and rubric workflow into separate modules if growth continues.
+1. Submit to Claude community marketplace after the GitHub repo is live.
+2. Review and submit MCP Registry metadata against the current official schema.
+3. Run a manual Windows end-user install and record results.
+4. Expand semantic extraction beyond keyword heuristics.
+5. Split packet compiler, harvester, and rubric workflow into separate modules if growth continues.

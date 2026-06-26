@@ -55,11 +55,11 @@ def check_package(package_path: Path) -> dict[str, Any]:
         with tarfile.open(package_path, "r:gz") as archive:
             archive.extractall(tmp_path, filter="data")
         plugin_root = tmp_path / "tmcp"
-        install_ok, install_output = run(["python3", "scripts/check_install.py", "."], plugin_root)
-        tests_ok, tests_output = run(["python3", "-m", "unittest", "discover", "-s", "tests"], plugin_root)
+        install_ok, install_output = run([sys.executable, "scripts/check_install.py", "."], plugin_root)
+        tests_ok, tests_output = run([sys.executable, "-m", "unittest", "discover", "-s", "tests"], plugin_root)
         compile_ok, compile_output = run(
             [
-                "python3",
+                sys.executable,
                 "-m",
                 "py_compile",
                 "scripts/tmcp_mcp_server.py",

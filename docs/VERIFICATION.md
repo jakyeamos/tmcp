@@ -13,6 +13,7 @@ python3 -m unittest discover -s tests
 python3 scripts/check_install.py .
 python3 scripts/check_release_package.py .
 pre-cr run --json --workspace /Users/jakyeamos/plugins/tmcp
+gh run view 28258044970 --repo jakyeamos/tmcp --json status,conclusion,jobs
 claude plugin validate .
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py /Users/jakyeamos/plugins/tmcp
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/jakyeamos/plugins/tmcp/skills/tmcp
@@ -60,13 +61,12 @@ claude plugin validate .
 - Clean-copy install check passes from a copied plugin directory.
 - Release tarball check passes after unpacking into a temporary directory.
 - Redaction and MCP framing are separated into dedicated modules.
-- CI workflow is present for macOS, Linux, and Windows.
+- Public GitHub Actions verification: pass on run `28258044970` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13.
 - License and marketplace example are present.
 - AIOS adapter absent and present behavior is covered with deterministic fixtures.
 
 ## Residual Risk
 
-- Hosted Linux and Windows CI have not been observed running from a remote repository.
-- Windows support is launcher-ready and CI-declared, but still needs hosted or manual Windows execution evidence.
+- Windows support is hosted-CI observed, but still needs manual end-user install evidence before it can be called field-proven.
 - Claude community marketplace submission has not been sent.
 - MCP Registry draft has not been accepted by the official registry.
