@@ -13,7 +13,7 @@ python3 -m unittest discover -s tests
 python3 scripts/check_install.py .
 python3 scripts/check_release_package.py .
 pre-cr run --json --workspace /Users/jakyeamos/plugins/tmcp
-gh run view 28258044970 --repo jakyeamos/tmcp --json status,conclusion,jobs
+gh run view 28258329884 --repo jakyeamos/tmcp --json status,conclusion,jobs
 claude plugin validate .
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py /Users/jakyeamos/plugins/tmcp
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/jakyeamos/plugins/tmcp/skills/tmcp
@@ -61,7 +61,7 @@ claude plugin validate .
 - Clean-copy install check passes from a copied plugin directory.
 - Release tarball check passes after unpacking into a temporary directory.
 - Redaction and MCP framing are separated into dedicated modules.
-- Public GitHub Actions verification: pass on run `28258044970` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13.
+- Public GitHub Actions verification with release-package gate: pass on run `28258329884` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13.
 - License and marketplace example are present.
 - AIOS adapter absent and present behavior is covered with deterministic fixtures.
 
