@@ -1,0 +1,17 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+dist/
+build/
+coverage/
+*.tar.gz
+*.zip
+.env
+.env.*
+!.env.example
+.pre-cr/
+.aios/

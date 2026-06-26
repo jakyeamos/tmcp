@@ -1,0 +1,22 @@
+{
+  "name": "tmcp",
+  "displayName": "TMCP",
+  "description": "Standalone TMCP skill-packet workflows, skill harvesting, and expert rubric remediation for Claude Code.",
+  "version": "0.2.0",
+  "author": {
+    "name": "Jakye Amos"
+  },
+  "homepage": "https://github.com/jakyeamos/tmcp#readme",
+  "repository": "https://github.com/jakyeamos/tmcp",
+  "license": "MIT",
+  "keywords": [
+    "tmcp",
+    "skills",
+    "mcp",
+    "rubric",
+    "workflow",
+    "harvest"
+  ],
+  "skills": "./skills",
+  "mcpServers": "./.claude-plugin/mcp.json"
+}

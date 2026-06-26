@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "testCommand": "python3 scripts/pre_cr_coverage.py",
+  "coveragePaths": [
+    ".pre-cr/coverage.lcov"
+  ],
+  "coverageFormat": "lcov",
+  "threshold": 0,
+  "surfaces": {
+    "covered": [
+      "scripts/**",
+      "skills/**",
+      "tests/**"
+    ],
+    "ignored": [
+      ".claude-plugin/**",
+      ".codex-plugin/**",
+      ".github/**",
+      "assets/**",
+      "docs/**",
+      "mcp-registry/**",
+      "*.md",
+      "*.json",
+      ".pre-cr/**"
+    ],
+    "unsupported": []
+  },
+  "checks": {
+    "coverage": true,
+    "security": true,
+    "checklist": true
+  }
+}

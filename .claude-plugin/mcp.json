@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "tmcp": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/scripts/tmcp_launcher.mjs"
+      ],
+      "cwd": "${CLAUDE_PLUGIN_ROOT}"
+    }
+  }
+}

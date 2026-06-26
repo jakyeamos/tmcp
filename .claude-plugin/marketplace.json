@@ -1,0 +1,42 @@
+{
+  "name": "tmcp",
+  "owner": {
+    "name": "Jakye Amos"
+  },
+  "description": "TMCP skill-packet workflow plugins for Claude Code.",
+  "version": "0.2.0",
+  "plugins": [
+    {
+      "name": "tmcp",
+      "displayName": "TMCP",
+      "source": {
+        "source": "github",
+        "repo": "jakyeamos/tmcp",
+        "ref": "main"
+      },
+      "description": "Standalone TMCP skill-packet workflows, skill harvesting, and expert rubric remediation.",
+      "version": "0.2.0",
+      "author": {
+        "name": "Jakye Amos"
+      },
+      "homepage": "https://github.com/jakyeamos/tmcp#readme",
+      "repository": "https://github.com/jakyeamos/tmcp",
+      "license": "MIT",
+      "keywords": [
+        "tmcp",
+        "skills",
+        "mcp",
+        "rubric",
+        "workflow",
+        "harvest"
+      ],
+      "category": "Productivity",
+      "tags": [
+        "mcp",
+        "skills",
+        "audit",
+        "workflow"
+      ]
+    }
+  ]
+}

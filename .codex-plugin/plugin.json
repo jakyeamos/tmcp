@@ -1,0 +1,41 @@
+{
+  "name": "tmcp",
+  "version": "0.2.0+codex.20260626183129",
+  "description": "Expose standalone TMCP skill-packet workflows, skill harvesting, and expert rubric remediation to Codex.",
+  "author": {
+    "name": "Jakye Amos"
+  },
+  "license": "MIT",
+  "keywords": [
+    "tmcp",
+    "skills",
+    "mcp",
+    "rubric",
+    "workflow",
+    "harvest"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "TMCP",
+    "shortDescription": "Route work through TMCP skill packets and expert rubrics.",
+    "longDescription": "TMCP exposes task-specific skill packet compilation, local skill harvesting, and expert rubric remediation workflows for UI, evidence, security, developer-experience, and general audits. It runs standalone and can use AIOS as an optional acceleration and persistence adapter when available.",
+    "developerName": "Jakye Amos",
+    "category": "Productivity",
+    "capabilities": [
+      "Local",
+      "MCP",
+      "Skill Harvest",
+      "Workflow"
+    ],
+    "brandColor": "#16866B",
+    "composerIcon": "./assets/logo.svg",
+    "logo": "./assets/logo.svg",
+    "logoDark": "./assets/logo-dark.svg",
+    "defaultPrompt": [
+      "Use the TMCP expert UI rubric on this project.",
+      "Explain the TMCP packet for this task.",
+      "Harvest this repo into a TMCP packet."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}

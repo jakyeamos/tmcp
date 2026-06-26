@@ -1,0 +1,39 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        python-version:
+          - "3.10"
+          - "3.13"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Compile
+        run: python -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
+      - name: Launcher syntax
+        run: node --check scripts/tmcp_launcher.mjs
+      - name: Tests
+        run: python -m unittest discover -s tests
+      - name: Install shape
+        run: python scripts/check_install.py .

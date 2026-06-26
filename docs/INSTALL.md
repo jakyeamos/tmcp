@@ -1,0 +1,78 @@
+# Install And Package Check
+
+TMCP should work from a source checkout or installed plugin cache without user-specific paths.
+
+For distribution-specific install instructions, see:
+
+- [DISTRIBUTION.md](DISTRIBUTION.md)
+- [CLAUDE_CODE.md](CLAUDE_CODE.md)
+- [CLAUDE_DESKTOP.md](CLAUDE_DESKTOP.md)
+
+## Local Source Check
+
+From the plugin root:
+
+```bash
+python3 scripts/check_install.py .
+```
+
+Expected result:
+
+- `.codex-plugin/plugin.json` exists and points to `./.mcp.json`.
+- `.mcp.json` launches `node scripts/tmcp_launcher.mjs` with `cwd` set to `.`.
+- MCP `tools/list` succeeds with `AIOS_ROOT` pointed at a missing path.
+
+## Codex Plugin Shape
+
+Required files:
+
+- `.codex-plugin/plugin.json`
+- `.mcp.json`
+- `scripts/tmcp_launcher.mjs`
+- `scripts/tmcp_mcp_server.py`
+- `skills/tmcp/SKILL.md`
+
+The MCP launcher and server paths must remain relative to the plugin root. Do not hardcode a user home directory or AIOS checkout path.
+
+## Claude Code Plugin Shape
+
+Claude Code uses its own plugin manifest:
+
+- `.claude-plugin/plugin.json`
+- `.claude-plugin/mcp.json`
+- `.claude-plugin/marketplace.json`
+
+The Claude MCP config uses `${CLAUDE_PLUGIN_ROOT}` because Claude copies plugins into a versioned cache before launching bundled MCP servers.
+
+## Python Discovery
+
+Codex launches TMCP through Node so the plugin has one stable MCP command across operating systems. The launcher then finds Python:
+
+- `TMCP_PYTHON`, when explicitly set.
+- Windows: `py -3`, then `python`, then `python3`.
+- macOS/Linux: `python3`, then `python`.
+
+If Python is installed somewhere unusual, set `TMCP_PYTHON` to that executable path in the MCP server environment.
+
+## Marketplace Example
+
+`marketplace.example.json` shows the expected local marketplace entry shape. In a real marketplace root, the plugin source path should point from the marketplace root to the plugin directory:
+
+```json
+{
+  "name": "tmcp",
+  "source": {
+    "source": "local",
+    "path": "./plugins/tmcp"
+  },
+  "policy": {
+    "installation": "AVAILABLE",
+    "authentication": "ON_INSTALL"
+  },
+  "category": "Productivity"
+}
+```
+
+## AIOS Adapter
+
+AIOS is optional. If `AIOS_ROOT` points to an AIOS checkout, `adapter: "auto"` may use AIOS for richer packet compilation. If AIOS is missing, `adapter: "auto"` must fall back to standalone behavior. `adapter: "aios"` should return a clear error when AIOS is unavailable.
