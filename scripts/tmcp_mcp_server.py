@@ -6,10 +6,11 @@ import fnmatch
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,7 @@ from tmcp_mcp_framing import read_message, write_message  # noqa: E402
 from tmcp_redaction import merge_redactions, redact_sensitive_text  # noqa: E402
 
 AIOS_ROOT = Path(os.environ.get("AIOS_ROOT", "~/AIOS")).expanduser()
+UTC = timezone.utc
 
 TMCP_PACKET_SCHEMA = "tmcp-skill-packet-v0.2"
 TMCP_RECEIPT_SCHEMA = "tmcp-traversal-receipt-v0.2"
@@ -432,7 +434,11 @@ def _run_aios(args: list[str]) -> dict[str, Any]:
             "error": "AIOS adapter requested but AIOS_ROOT/bin/aios.py was not found.",
             "aios_root": str(AIOS_ROOT),
         }
-    command = ["uv", "run", "python", "bin/aios.py", *args]
+    command = (
+        ["uv", "run", "python", "bin/aios.py", *args]
+        if shutil.which("uv")
+        else [sys.executable, "bin/aios.py", *args]
+    )
     completed = subprocess.run(
         command,
         cwd=AIOS_ROOT,
