@@ -1,0 +1,88 @@
+# TMCP Quickstart
+
+TMCP should prove itself in the first five minutes. Start with the path that matches your client, then run the same smoke test everywhere.
+
+## 1. Pick An Install Path
+
+| Client | Use This | Best For |
+| --- | --- | --- |
+| Codex | Codex plugin store or personal marketplace | Codex skills plus bundled MCP tools |
+| Claude Code | `claude plugin marketplace add jakyeamos/tmcp` | Claude Code slash command and plugin MCP tools |
+| Claude Desktop | Local stdio MCP config | Desktop chat with local MCP tools |
+| Plain MCP client | `node scripts/tmcp_launcher.mjs` | Any MCP host that can launch stdio servers |
+
+More detail: [DISTRIBUTION.md](DISTRIBUTION.md).
+
+## 2. Run The Doctor
+
+Call the `tmcp_doctor` MCP tool.
+
+Expected result:
+
+```json
+{
+  "ok": true,
+  "schema": "tmcp-doctor-v0.1",
+  "smoke_test": {
+    "tool": "tmcp_status",
+    "expected": "structuredContent.standalone.available == true"
+  }
+}
+```
+
+If Python discovery fails, set `TMCP_PYTHON` to the Python 3.10+ executable path.
+
+## 3. Verify Standalone Mode
+
+Call `tmcp_status`.
+
+Expected result:
+
+- `standalone.available` is `true`.
+- `aios_adapter.available` may be `false`; AIOS is optional.
+
+## 4. Compile A Packet
+
+Call `tmcp_explain`:
+
+```json
+{
+  "objective": "Review developer onboarding commands and CLI docs",
+  "project_path": ".",
+  "adapter": "standalone"
+}
+```
+
+Expected result:
+
+- `packet.schema` is `tmcp-skill-packet-v0.2`.
+- `packet.selected_nodes` contains the task route and supporting behavior modules.
+- `packet.output_contract` states what the agent must preserve.
+
+## 5. Harvest Local Skills
+
+Call `tmcp_harvest_skills`:
+
+```json
+{
+  "source_path": ".",
+  "objective": "Harvest reusable project workflow behavior",
+  "limit": 20
+}
+```
+
+Expected result:
+
+- `source_nodes` contains local instruction and workflow documents.
+- `warnings` names skipped or missing surfaces without failing the run.
+- `redaction_summary` reports secret redaction activity.
+- `packet_seed` is ready to feed into later TMCP workflows.
+
+## 6. Run A Non-UI Workflow
+
+Use one of the examples in [examples/workflows](../examples/workflows):
+
+- [Developer onboarding audit](../examples/workflows/developer-onboarding-audit.md)
+- [Security and privacy harvest audit](../examples/workflows/security-privacy-harvest-audit.md)
+- [Release readiness planning](../examples/workflows/release-readiness-planning.md)
+

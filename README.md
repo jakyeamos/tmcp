@@ -4,6 +4,16 @@ TMCP is a standalone skill-packet workflow plugin. It compiles task-specific pac
 
 AIOS is optional. When `AIOS_ROOT` points to an AIOS checkout, the plugin can use AIOS for richer graph traversal and persistence. Without AIOS, the MCP server still supports packet compilation, skill harvest, expert rubric planning, and artifact writing.
 
+## Quickstart
+
+Start with [docs/QUICKSTART.md](docs/QUICKSTART.md). The shortest first-run path is:
+
+1. Install TMCP through your client: Codex plugin, Claude Code plugin, Claude Desktop MCP config, or plain MCP stdio command.
+2. Run `tmcp_doctor`.
+3. Run `tmcp_status`.
+4. Run `tmcp_explain` with your objective.
+5. Use one of the example workflows in [examples](examples).
+
 ## Install
 
 TMCP is packaged for multiple runtimes:
@@ -11,12 +21,13 @@ TMCP is packaged for multiple runtimes:
 - Codex plugin: install from the Codex plugin store or local personal marketplace.
 - Claude Code plugin: install from the GitHub-hosted Claude marketplace once the repository is public.
 - Claude Desktop: add TMCP as a local stdio MCP server.
-- Raw MCP server: run `node scripts/tmcp_launcher.mjs` from a local checkout.
+- Plain MCP server: run `node scripts/tmcp_launcher.mjs` from a local checkout.
 
-See [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md), [docs/CLAUDE_CODE.md](docs/CLAUDE_CODE.md), and [docs/CLAUDE_DESKTOP.md](docs/CLAUDE_DESKTOP.md).
+See [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md), [docs/MARKETPLACE_MATRIX.md](docs/MARKETPLACE_MATRIX.md), [docs/CLAUDE_CODE.md](docs/CLAUDE_CODE.md), and [docs/CLAUDE_DESKTOP.md](docs/CLAUDE_DESKTOP.md).
 
 ## Tools
 
+- `tmcp_doctor`: checks first-run readiness and points each client type at the right install path.
 - `tmcp_status`: reports standalone capability and optional AIOS adapter availability.
 - `tmcp_explain`: compiles a task-specific TMCP packet.
 - `tmcp_harvest_skills`: harvests local skills, agent instructions, editor rules, repository process docs, and workflow docs into source nodes.
@@ -42,6 +53,18 @@ Default harvest inputs include:
 Default exclusions include dependency, build, cache, VCS, coverage, and generated plugin-cache directories.
 
 Sensitive-looking values are redacted by default before excerpts, frontmatter, keywords, or artifact output are returned. Redaction covers common API keys, bearer tokens, GitHub tokens, AWS access keys, private key blocks, secret assignments, and long high-entropy strings.
+
+## Packet Stability
+
+The current packet schema is `tmcp-skill-packet-v0.2`. The stability policy is documented in [docs/PACKET_STABILITY.md](docs/PACKET_STABILITY.md), and the machine-readable schema lives at [schemas/tmcp-skill-packet-v0.2.schema.json](schemas/tmcp-skill-packet-v0.2.schema.json).
+
+## Example Workflows
+
+TMCP is not limited to UI audits. The repository includes examples for:
+
+- [Developer onboarding audit](examples/workflows/developer-onboarding-audit.md)
+- [Security and privacy harvest audit](examples/workflows/security-privacy-harvest-audit.md)
+- [Release readiness planning](examples/workflows/release-readiness-planning.md)
 
 ## Local Verification
 

@@ -21,6 +21,7 @@ TMCP is a skill-packet and skill-usage model. AIOS is an optional adapter and re
 
 When the TMCP MCP tools are available, use:
 
+- `tmcp_doctor` to check first-run readiness and client-specific install guidance.
 - `tmcp_status` to check whether standalone TMCP and the optional AIOS adapter are available.
 - `tmcp_explain` to compile and inspect the task-specific TMCP packet.
 - `tmcp_harvest_skills` to turn local skills/docs into TMCP source nodes and a reusable packet seed.
@@ -33,6 +34,14 @@ The MCP tools run standalone. When AIOS is available, they may use the AIOS adap
 `tmcp_harvest_skills` is portable. It accepts one `source_path` or many `source_paths`, optional `include_globs` and `exclude_globs`, file-size and excerpt limits, and optional artifact writing. The default harvest includes common skill and instruction surfaces such as `SKILL.md`, `AGENTS.md`, `CLAUDE.md`, `README.md`, `.cursor/rules`, `.github`, `docs`, `planning`, `workflows`, and markdown files. It prunes dependency, build, cache, VCS, and generated plugin-cache directories by default.
 
 Harvest output should include source paths, source types, source tiers, frontmatter when present, behavior atoms, excerpts, warnings for skipped or missing inputs, and a `packet_seed`. Treat warnings as part of the packet evidence, not as fatal errors unless no usable sources were found.
+
+## Example Workflows
+
+TMCP is not only a UI audit path. Use the same packet model for:
+
+- Developer onboarding audits: harvest README, contribution, command, and CI docs; route to the developer-experience rubric.
+- Security/privacy harvest audits: keep redaction enabled, inspect redaction summaries, and route to the security/privacy rubric.
+- Release readiness planning: compile a planning packet, name evidence gaps, and produce ordered remediation slices before implementation.
 
 When MCP tools are unavailable but AIOS exists, use the AIOS CLI directly:
 

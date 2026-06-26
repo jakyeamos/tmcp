@@ -22,6 +22,17 @@ Expected result:
 - `.mcp.json` launches `node scripts/tmcp_launcher.mjs` with `cwd` set to `.`.
 - MCP `tools/list` succeeds with `AIOS_ROOT` pointed at a missing path.
 
+## First-Run Smoke Test
+
+After install, call `tmcp_doctor` in your MCP client. It should report:
+
+- `ok: true`
+- `node_launcher: pass`
+- `python_server: pass`
+- `python_runtime: pass`
+
+Then call `tmcp_status`. Standalone mode should be available even when the AIOS adapter is absent.
+
 ## Codex Plugin Shape
 
 Required files:

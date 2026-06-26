@@ -14,6 +14,7 @@ SERVER_PATH = Path(__file__).resolve().parents[1] / "scripts" / "tmcp_mcp_server
 PLUGIN_ROOT = SERVER_PATH.parents[1]
 LAUNCHER_PATH = PLUGIN_ROOT / "scripts" / "tmcp_launcher.mjs"
 GOLDEN_PACKETS_PATH = PLUGIN_ROOT / "tests" / "fixtures" / "golden_packets.json"
+PACKET_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-skill-packet-v0.2.schema.json"
 
 
 def load_server_module():
@@ -234,6 +235,7 @@ class TmcpMcpServerTests(unittest.TestCase):
             tool_names,
             {
                 "expert_rubric_review_plan",
+                "tmcp_doctor",
                 "tmcp_explain",
                 "tmcp_harvest_skills",
                 "tmcp_status",
@@ -243,6 +245,28 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertIsInstance(status_result, dict)
         structured = status_result["structuredContent"]  # type: ignore[index]
         self.assertTrue(structured["standalone"]["available"])  # type: ignore[index]
+
+    def test_doctor_reports_first_run_readiness(self) -> None:
+        result = self.server._call_tool("tmcp_doctor", {"client": "plain_mcp"})
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["schema"], "tmcp-doctor-v0.1")
+        check_ids = {check["id"] for check in result["checks"]}
+        self.assertIn("node_launcher", check_ids)
+        self.assertIn("node_runtime", check_ids)
+        self.assertIn("python_server", check_ids)
+        self.assertEqual(result["smoke_test"]["tool"], "tmcp_status")
+
+    def test_packet_schema_required_fields_match_compiled_packet(self) -> None:
+        schema = json.loads(PACKET_SCHEMA_PATH.read_text(encoding="utf-8"))
+        packet = self.server._compile_standalone_packet(
+            objective="Plan a release readiness roadmap for the plugin",
+            project_path="/tmp/project",
+        )
+
+        self.assertEqual(schema["properties"]["schema"]["const"], packet["schema"])
+        missing = [field for field in schema["required"] if field not in packet]
+        self.assertEqual(missing, [])
 
     def test_clean_copy_install_check_passes_without_aios(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -41,6 +41,7 @@ Pass criteria:
 - No user-specific absolute paths are required.
 - MCP launch works from installed plugin cache and source checkout.
 - README explains install, update, uninstall, and troubleshooting.
+- First-run doctor gives client-specific install and smoke-test guidance.
 - License and marketplace metadata are present.
 
 Required evidence:
@@ -54,6 +55,7 @@ Required evidence:
 Pass criteria:
 
 - Packet schema is documented and stable enough for external tools.
+- A machine-readable packet schema and stability policy exist.
 - Packet includes selected nodes, skipped nodes, source tiers, behavior atoms, traversal trace, output contract, token estimates, and shortcut governance.
 - Packet compilation works without AIOS.
 - AIOS enriches but does not define core behavior.
@@ -143,7 +145,9 @@ Pass criteria:
 
 - README explains what TMCP is, what the plugin does, and what AIOS adds.
 - Distribution docs cover GitHub, Codex, Claude Code, Claude Desktop, and MCP Registry paths.
+- Distribution docs include a decision matrix across client surfaces.
 - Quickstart includes standalone harvest, packet explain, and expert rubric examples.
+- Example workflows prove developer-experience, security/privacy, and release-planning use cases beyond UI review.
 - Docs include packet schema and harvest output shape.
 - Security/privacy behavior is documented.
 

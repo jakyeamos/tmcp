@@ -4,6 +4,8 @@ Schema: `tmcp-skill-packet-v0.2`
 
 A TMCP packet is the smallest task-specific skill bundle that preserves required behavior for the current objective. It is not a transcript and not a generic skill dump.
 
+The compatibility policy is documented in [PACKET_STABILITY.md](PACKET_STABILITY.md). The JSON Schema draft lives at [schemas/tmcp-skill-packet-v0.2.schema.json](../schemas/tmcp-skill-packet-v0.2.schema.json).
+
 ## Required Fields
 
 | Field | Meaning |
@@ -56,4 +58,3 @@ Harvest output is redacted by default. Consumers should treat `redaction_summary
 ## AIOS Adapter
 
 AIOS can return a richer packet with persisted traversal receipts, graph overlays, and learning hooks. Consumers should still rely on the common packet concepts above and not require AIOS-specific fields.
-

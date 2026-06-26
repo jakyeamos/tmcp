@@ -1,6 +1,6 @@
 {
   "name": "tmcp",
-  "version": "0.2.0+codex.20260626183129",
+  "version": "0.2.1+codex.20260626185000",
   "description": "Expose standalone TMCP skill-packet workflows, skill harvesting, and expert rubric remediation to Codex.",
   "author": {
     "name": "Jakye Amos"
@@ -34,6 +34,7 @@
     "defaultPrompt": [
       "Use the TMCP expert UI rubric on this project.",
       "Explain the TMCP packet for this task.",
+      "Run tmcp_doctor and verify this install.",
       "Harvest this repo into a TMCP packet."
     ]
   },

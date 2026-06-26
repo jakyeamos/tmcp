@@ -2,7 +2,7 @@
 
 Date: 2026-06-26
 
-Plugin version: `0.2.0+codex.20260626183129`
+Plugin version: `0.2.1+codex.20260626185000`
 
 ## Commands
 
@@ -18,6 +18,12 @@ claude plugin validate .
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py /Users/jakyeamos/plugins/tmcp
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/jakyeamos/plugins/tmcp/skills/tmcp
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/jakyeamos/.agents/skills/tmcp
+python3 - <<'PY'
+import json
+from pathlib import Path
+for name in ['.codex-plugin/plugin.json', '.claude-plugin/plugin.json', '.claude-plugin/marketplace.json', '.mcp.json', 'mcp-registry/draft-server.json', 'schemas/tmcp-skill-packet-v0.2.schema.json', 'tests/fixtures/golden_packets.json']:
+    json.loads(Path(name).read_text(encoding='utf-8'))
+PY
 ```
 
 ## Results
@@ -27,12 +33,13 @@ claude plugin validate .
 - Install shape check: pass.
 - Release package check: pass.
 - Pre-CR commit readiness: pass with repo-local unittest adapter and threshold `0`.
-- Unit and MCP protocol tests: pass, 14 tests.
+- Unit and MCP protocol tests: pass, 16 tests.
 - Claude Code marketplace validation: pass.
 - Claude Code plugin manifest validation: pass with a temporary plugin-only copy.
 - Plugin JSON syntax: pass.
 - MCP JSON syntax: pass.
 - Marketplace example JSON syntax: pass.
+- Packet JSON Schema syntax: pass.
 - Official plugin validator: pass in a temporary validator venv with `PyYAML`.
 - Official plugin skill validator: pass in a temporary validator venv with `PyYAML`.
 - Official global skill validator: pass in a temporary validator venv with `PyYAML`.
@@ -42,10 +49,13 @@ claude plugin validate .
 - MCP Registry draft metadata is present and marked as draft.
 - `.pre-cr.json` is present for local source-commit readiness.
 - `.quality-gate-exceptions` documents the current monolithic MCP server size exception.
+- Quickstart, marketplace matrix, packet stability policy, and non-UI workflow examples are present.
 
 ## Covered Behavior
 
 - Expert UI rubric requests route to an `audit` packet and `visual_polish` rubric profile.
+- `tmcp_doctor` reports first-run readiness and shared smoke-test guidance.
+- Machine-readable packet schema required fields match the compiled standalone packet.
 - Portable harvest works on a synthetic non-AIOS, non-Codex project shape.
 - Harvest prunes dependency directories.
 - Harvest reports missing roots as warnings.
@@ -61,7 +71,7 @@ claude plugin validate .
 - Clean-copy install check passes from a copied plugin directory.
 - Release tarball check passes after unpacking into a temporary directory.
 - Redaction and MCP framing are separated into dedicated modules.
-- Public GitHub Actions verification with release-package gate: pass on run `28258329884` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13.
+- Public GitHub Actions verification with release-package gate: pass on run `28258329884` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.0`; `0.2.1` hosted verification is pending push.
 - License and marketplace example are present.
 - AIOS adapter absent and present behavior is covered with deterministic fixtures.
 

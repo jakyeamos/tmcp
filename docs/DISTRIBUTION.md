@@ -2,6 +2,8 @@
 
 TMCP ships through five surfaces.
 
+If you are choosing between them, use [MARKETPLACE_MATRIX.md](MARKETPLACE_MATRIX.md).
+
 ## 1. GitHub Source Repository
 
 Canonical repository:
@@ -11,6 +13,13 @@ https://github.com/jakyeamos/tmcp
 ```
 
 The repository contains source, docs, license, CI, Codex plugin metadata, Claude Code plugin metadata, and release checks.
+
+Shared first-run check after any install:
+
+```text
+tmcp_doctor
+tmcp_status
+```
 
 ## 2. Codex Plugin
 
@@ -53,3 +62,13 @@ Submit only after:
 - A release tag exists.
 - The registry's current server schema is confirmed.
 - The install command is tested from a clean clone.
+
+## Shared Runtime Contract
+
+Every distribution path launches the same MCP server through:
+
+```bash
+node scripts/tmcp_launcher.mjs
+```
+
+The launcher discovers Python through `TMCP_PYTHON`, `py -3`, `python`, or `python3`, depending on platform.

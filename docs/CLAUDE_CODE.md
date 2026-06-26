@@ -28,6 +28,12 @@ Plugin-provided MCP tools appear under Claude Code's plugin MCP naming, for exam
 mcp__plugin_tmcp_tmcp__tmcp_status
 ```
 
+Run the first-run check:
+
+```text
+mcp__plugin_tmcp_tmcp__tmcp_doctor
+```
+
 ## Marketplace Install
 
 After this repository is public, add it as a Claude Code marketplace:

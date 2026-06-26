@@ -294,6 +294,23 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
 }
 
 TOOLS: dict[str, dict[str, Any]] = {
+    "tmcp_doctor": {
+        "description": (
+            "Run a first-run readiness check for TMCP across Codex, Claude Code, "
+            "Claude Desktop, and plain MCP client usage."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "client": {
+                    "type": "string",
+                    "enum": ["auto", "codex", "claude_code", "claude_desktop", "plain_mcp"],
+                    "default": "auto",
+                },
+                "project_path": {"type": "string", "default": "."},
+            },
+        },
+    },
     "tmcp_status": {
         "description": "Report standalone TMCP capability and optional AIOS adapter availability.",
         "inputSchema": {"type": "object", "properties": {}},
@@ -1391,6 +1408,65 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    if name == "tmcp_doctor":
+        client = str(arguments.get("client") or "auto")
+        plugin_root = PLUGIN_ROOT
+        checks = [
+            {
+                "id": "plugin_root",
+                "status": "pass" if plugin_root.exists() else "fail",
+                "detail": str(plugin_root),
+            },
+            {
+                "id": "node_launcher",
+                "status": "pass" if (plugin_root / "scripts" / "tmcp_launcher.mjs").exists() else "fail",
+                "detail": "scripts/tmcp_launcher.mjs",
+            },
+            {
+                "id": "node_runtime",
+                "status": "pass" if shutil.which("node") else "fail",
+                "detail": "Install Node.js 20+ if the MCP host cannot launch node.",
+            },
+            {
+                "id": "python_server",
+                "status": "pass" if (plugin_root / "scripts" / "tmcp_mcp_server.py").exists() else "fail",
+                "detail": "scripts/tmcp_mcp_server.py",
+            },
+            {
+                "id": "python_runtime",
+                "status": "pass" if (shutil.which("python3") or shutil.which("python") or shutil.which("py")) else "fail",
+                "detail": "Set TMCP_PYTHON if automatic Python discovery fails.",
+            },
+            {
+                "id": "aios_adapter",
+                "status": "pass" if _aios_available() else "optional",
+                "detail": f"AIOS_ROOT={AIOS_ROOT}",
+            },
+        ]
+        failed = [check for check in checks if check["status"] == "fail"]
+        install_paths = {
+            "codex": "Install from the Codex plugin store or a personal marketplace entry.",
+            "claude_code": "Run: claude plugin marketplace add jakyeamos/tmcp && claude plugin install tmcp@tmcp",
+            "claude_desktop": "Add the node launcher as a local stdio MCP server in claude_desktop_config.json.",
+            "plain_mcp": "Use command node with args [scripts/tmcp_launcher.mjs] and cwd set to the TMCP repo.",
+        }
+        return {
+            "ok": not failed,
+            "schema": "tmcp-doctor-v0.1",
+            "client": client,
+            "plugin_root": str(plugin_root),
+            "checks": checks,
+            "recommended_install_paths": install_paths,
+            "smoke_test": {
+                "tool": "tmcp_status",
+                "expected": "structuredContent.standalone.available == true",
+            },
+            "next_action": (
+                "Run tmcp_status, then tmcp_explain with your objective."
+                if not failed
+                else "Fix failing checks, then rerun tmcp_doctor."
+            ),
+        }
     if name == "tmcp_status":
         return {
             "ok": True,
@@ -1498,7 +1574,7 @@ def _handle(request: dict[str, Any]) -> None:
             request_id,
             {
                 "protocolVersion": params.get("protocolVersion", "2024-11-05"),
-                "serverInfo": {"name": "tmcp", "version": "0.2.0"},
+                "serverInfo": {"name": "tmcp", "version": "0.2.1"},
                 "capabilities": {"tools": {}},
             },
         )

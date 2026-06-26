@@ -56,3 +56,12 @@ If Python is installed in a non-standard location, set `TMCP_PYTHON`:
 ```
 
 Restart Claude Desktop after editing the config.
+
+## Smoke Test
+
+After restart, call the `tmcp_doctor` MCP tool. Then call `tmcp_status`.
+
+Expected result:
+
+- `standalone.available` is `true`.
+- `aios_adapter.available` may be `false`; AIOS is optional.
