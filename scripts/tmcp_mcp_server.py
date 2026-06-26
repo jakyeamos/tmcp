@@ -97,7 +97,9 @@ DEFAULT_HARVEST_INCLUDE_GLOBS = (
 
 DEFAULT_HARVEST_EXCLUDE_DIR_NAMES = {
     ".DS_Store",
+    ".aios",
     ".cache",
+    ".pre-cr",
     ".git",
     ".hg",
     ".mypy_cache",
@@ -105,6 +107,7 @@ DEFAULT_HARVEST_EXCLUDE_DIR_NAMES = {
     ".pytest_cache",
     ".ruff_cache",
     ".svn",
+    ".tmcp",
     ".tox",
     ".turbo",
     ".venv",
@@ -120,7 +123,10 @@ DEFAULT_HARVEST_EXCLUDE_DIR_NAMES = {
 DEFAULT_HARVEST_EXCLUDE_GLOBS = (
     "**/.codex/plugins/cache/**",
     "**/.agents/plugins/cache/**",
+    "**/.aios/**",
     "**/.git/**",
+    "**/.pre-cr/**",
+    "**/.tmcp/**",
     "**/node_modules/**",
     "**/dist/**",
     "**/build/**",
@@ -660,6 +666,30 @@ TOOLS: dict[str, dict[str, Any]] = {
             "required": ["objective"],
         },
     },
+}
+
+CLI_TOOL_ALIASES = {
+    "doctor": "tmcp_doctor",
+    "tmcp-doctor": "tmcp_doctor",
+    "tmcp_doctor": "tmcp_doctor",
+    "status": "tmcp_status",
+    "tmcp-status": "tmcp_status",
+    "tmcp_status": "tmcp_status",
+    "explain": "tmcp_explain",
+    "tmcp-explain": "tmcp_explain",
+    "tmcp_explain": "tmcp_explain",
+    "harvest": "tmcp_harvest_skills",
+    "harvest-skills": "tmcp_harvest_skills",
+    "tmcp-harvest-skills": "tmcp_harvest_skills",
+    "tmcp_harvest_skills": "tmcp_harvest_skills",
+    "recommend": "tmcp_recommend_workflows",
+    "recommend-workflows": "tmcp_recommend_workflows",
+    "tmcp-recommend-workflows": "tmcp_recommend_workflows",
+    "tmcp_recommend_workflows": "tmcp_recommend_workflows",
+    "review-plan": "expert_rubric_review_plan",
+    "expert-rubric": "expert_rubric_review_plan",
+    "expert-rubric-review-plan": "expert_rubric_review_plan",
+    "expert_rubric_review_plan": "expert_rubric_review_plan",
 }
 
 
@@ -2150,12 +2180,163 @@ def _handle(request: dict[str, Any]) -> None:
         _error(request_id, -32601, f"Unsupported method: {method}")
 
 
-def main() -> None:
+def _run_mcp_stdio() -> None:
     while True:
         message = read_message(sys.stdin.buffer)
         if message is None:
             break
         _handle(message)
+
+
+def _cli_usage() -> str:
+    return """TMCP command surface
+
+Usage:
+  node scripts/tmcp_launcher.mjs                         # start MCP stdio server
+  node scripts/tmcp_launcher.mjs list-tools
+  node scripts/tmcp_launcher.mjs doctor [--client codex]
+  node scripts/tmcp_launcher.mjs status
+  node scripts/tmcp_launcher.mjs explain "<objective>" [--project-path .] [--adapter auto]
+  node scripts/tmcp_launcher.mjs harvest [source_path] [--objective "..."] [--write-artifacts --output-dir .tmcp/harvest]
+  node scripts/tmcp_launcher.mjs recommend [source_path] [--candidate-workflows ui_quality] [--write-artifacts]
+  node scripts/tmcp_launcher.mjs review-plan "<objective>" [--project-path .] [--evidence-json '[]']
+
+Options:
+  --key value             Set a tool argument. Kebab-case maps to snake_case.
+  --flag                  Set a boolean true argument.
+  --no-flag               Set a boolean false argument.
+  --compact               Print compact JSON.
+  --help                  Show this help.
+
+Argument values that look like JSON objects, arrays, numbers, true, false, or null are decoded.
+Repeat an option to send a list, for example --include-globs "**/SKILL.md" --include-globs "**/AGENTS.md".
+"""
+
+
+def _decode_cli_value(value: str) -> Any:
+    stripped = value.strip()
+    if stripped in {"true", "false", "null"}:
+        return json.loads(stripped)
+    if stripped.startswith(("{", "[")):
+        return json.loads(stripped)
+    if re.fullmatch(r"-?\d+", stripped):
+        return int(stripped)
+    if re.fullmatch(r"-?\d+\.\d+", stripped):
+        return float(stripped)
+    return value
+
+
+def _set_cli_argument(arguments: dict[str, Any], key: str, value: Any) -> None:
+    normalized = key.replace("-", "_")
+    if normalized in arguments:
+        existing = arguments[normalized]
+        if isinstance(existing, list):
+            existing.append(value)
+        else:
+            arguments[normalized] = [existing, value]
+        return
+    arguments[normalized] = value
+
+
+def _parse_cli_arguments(argv: list[str]) -> tuple[str, dict[str, Any], bool]:
+    if not argv or argv[0] in {"-h", "--help", "help"}:
+        return "help", {}, False
+    if argv[0] in {"list-tools", "tools", "tools-list"}:
+        return "list-tools", {}, False
+
+    command = argv[0]
+    tool_name = CLI_TOOL_ALIASES.get(command)
+    if not tool_name:
+        raise ValueError(f"Unknown TMCP command: {command}")
+
+    compact = False
+    positionals: list[str] = []
+    arguments: dict[str, Any] = {}
+    index = 1
+    while index < len(argv):
+        token = argv[index]
+        if token == "--compact":
+            compact = True
+            index += 1
+            continue
+        if token in {"-h", "--help"}:
+            return "help", {}, compact
+        if token.startswith("--no-"):
+            _set_cli_argument(arguments, token[5:], False)
+            index += 1
+            continue
+        if token.startswith("--"):
+            key = token[2:]
+            next_index = index + 1
+            if next_index >= len(argv) or argv[next_index].startswith("--"):
+                _set_cli_argument(arguments, key, True)
+                index += 1
+                continue
+            _set_cli_argument(arguments, key, _decode_cli_value(argv[next_index]))
+            index += 2
+            continue
+        positionals.append(token)
+        index += 1
+
+    if positionals:
+        if tool_name in {"tmcp_explain", "expert_rubric_review_plan"}:
+            arguments.setdefault("objective", positionals[0])
+        elif tool_name in {"tmcp_harvest_skills", "tmcp_recommend_workflows"}:
+            arguments.setdefault("source_path", positionals[0])
+            if len(positionals) > 1:
+                arguments.setdefault("objective", positionals[1])
+        elif tool_name == "tmcp_doctor":
+            arguments.setdefault("client", positionals[0])
+
+    _normalize_cli_arguments(tool_name, arguments)
+    return tool_name, arguments, compact
+
+
+def _normalize_cli_arguments(tool_name: str, arguments: dict[str, Any]) -> None:
+    schema = TOOLS.get(tool_name, {}).get("inputSchema", {})
+    properties = schema.get("properties", {}) if isinstance(schema, dict) else {}
+    if not isinstance(properties, dict):
+        return
+    for key, value in list(arguments.items()):
+        property_schema = properties.get(key)
+        if not isinstance(property_schema, dict):
+            continue
+        if property_schema.get("type") == "array" and not isinstance(value, list):
+            arguments[key] = [value]
+
+
+def _run_cli(argv: list[str]) -> int:
+    try:
+        command, arguments, compact = _parse_cli_arguments(argv)
+        if command == "help":
+            print(_cli_usage())
+            return 0
+        if command == "list-tools":
+            payload: dict[str, Any] = {
+                "ok": True,
+                "schema": "tmcp-cli-tools-v0.1",
+                "tools": [{"name": name, **definition} for name, definition in sorted(TOOLS.items())],
+            }
+        else:
+            payload = _call_tool(command, arguments)
+        print(
+            json.dumps(
+                payload,
+                separators=(",", ":") if compact else None,
+                indent=None if compact else 2,
+                sort_keys=True,
+            )
+        )
+        return 0 if bool(payload.get("ok", True)) else 1
+    except Exception as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, indent=2, sort_keys=True), file=sys.stderr)
+        return 2
+
+
+def main() -> None:
+    if len(sys.argv) > 1:
+        raise SystemExit(_run_cli(sys.argv[1:]))
+    _run_mcp_stdio()
 
 
 if __name__ == "__main__":

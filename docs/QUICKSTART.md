@@ -10,8 +10,17 @@ TMCP should prove itself in the first five minutes. Start with the path that mat
 | Claude Code | `claude plugin marketplace add jakyeamos/tmcp` | Claude Code slash command and plugin MCP tools |
 | Claude Desktop | Local stdio MCP config | Desktop chat with local MCP tools |
 | Plain MCP client | `node scripts/tmcp_launcher.mjs` | Any MCP host that can launch stdio servers |
+| Direct CLI | `node scripts/tmcp_launcher.mjs <command>` | Shell smoke tests, CI, and MCP fallback |
 
 More detail: [DISTRIBUTION.md](DISTRIBUTION.md).
+
+If a host cannot discover MCP tools, use [CLI.md](CLI.md). The command names mirror the MCP tools:
+
+```bash
+node scripts/tmcp_launcher.mjs doctor
+node scripts/tmcp_launcher.mjs status
+node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands and CLI docs" --project-path .
+```
 
 ## 2. Run The Doctor
 
@@ -102,3 +111,36 @@ Use one of the examples in [examples/workflows](../examples/workflows):
 - [Security and privacy harvest audit](../examples/workflows/security-privacy-harvest-audit.md)
 - [Release readiness planning](../examples/workflows/release-readiness-planning.md)
 - [Skill harvest workflow recommendation](../examples/workflows/skill-harvest-workflow-recommendation.md)
+
+CLI equivalent:
+
+```bash
+node scripts/tmcp_launcher.mjs recommend . \
+  --objective "Recommend custom TMCP workflows from this project's skill signals" \
+  --limit 40 \
+  --write-artifacts \
+  --output-dir .tmcp/workflow-recommendations
+```
+
+## 7. Run The Expert Rubric Workflow
+
+For phrases like "TMCP expert UI rubric" or "expert rubric workflow", use `expert_rubric_review_plan` after gathering concrete evidence:
+
+```json
+{
+  "objective": "Use the TMCP expert UI rubric on Hoopscout",
+  "project_path": ".",
+  "evidence_json": "[]",
+  "write_artifacts": true
+}
+```
+
+CLI equivalent:
+
+```bash
+node scripts/tmcp_launcher.mjs review-plan "Use the TMCP expert UI rubric on Hoopscout" \
+  --project-path . \
+  --evidence-json '[]' \
+  --write-artifacts \
+  --output-dir .tmcp/expert-ui-review
+```

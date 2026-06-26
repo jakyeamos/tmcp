@@ -96,6 +96,8 @@ class TmcpMcpServerTests(unittest.TestCase):
             (root / ".github").mkdir()
             (root / ".cursor" / "rules").mkdir(parents=True)
             (root / "node_modules" / "ignored").mkdir(parents=True)
+            (root / ".aios" / "audit").mkdir(parents=True)
+            (root / ".tmcp" / "harvest").mkdir(parents=True)
             (root / "AGENTS.md").write_text(
                 "# Agent Contract\n\nRead before modifying. Verify with tests.\n",
                 encoding="utf-8",
@@ -116,6 +118,14 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "# Ignore me\n",
                 encoding="utf-8",
             )
+            (root / ".aios" / "audit" / "gate-summary.md").write_text(
+                "# Generated gate output\n",
+                encoding="utf-8",
+            )
+            (root / ".tmcp" / "harvest" / "packet.md").write_text(
+                "# Generated TMCP output\n",
+                encoding="utf-8",
+            )
 
             result = self.server._harvest_skills(
                 {
@@ -130,6 +140,8 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertIn("AGENTS.md", rel_paths)
         self.assertIn(".cursor/rules/ui.md", rel_paths)
         self.assertNotIn("node_modules/ignored/README.md", rel_paths)
+        self.assertNotIn(".aios/audit/gate-summary.md", rel_paths)
+        self.assertNotIn(".tmcp/harvest/packet.md", rel_paths)
         source_types = {node["source_type"] for node in result["source_nodes"]}
         self.assertIn("agent_operating_contract", source_types)
         self.assertIn("cursor_rule", source_types)
@@ -141,11 +153,12 @@ class TmcpMcpServerTests(unittest.TestCase):
             secret = "sk-" + "A" * 40
             github_token = "ghp_" + "b" * 36
             aws_key = "AKIA" + "C" * 16
-            high_entropy = "D" * 48
+            high_entropy = "A9b8C7d6E5f4G3h2I1j0K9l8M7n6O5p4Q3r2S1t0"
             (root / "AGENTS.md").write_text(
                 "\n".join(
                     [
                         "# Agent Contract",
+                        "Keep docs/security-privacy-harvest-audit.md readable.",
                         f"OPENAI_API_KEY={secret}",
                         "Authorization: Bearer abcdefghijklmnopqrstuvwxyz123456",
                         f"GITHUB_TOKEN={github_token}",
@@ -174,6 +187,7 @@ class TmcpMcpServerTests(unittest.TestCase):
         ):
             self.assertNotIn(sensitive_value, serialized)
         self.assertIn("[REDACTED:", serialized)
+        self.assertIn("docs/security-privacy-harvest-audit.md", serialized)
         self.assertGreater(sum(result["redaction_summary"].values()), 0)
 
     def test_recommend_workflows_uses_harvested_priority_signals(self) -> None:
@@ -396,6 +410,76 @@ class TmcpMcpServerTests(unittest.TestCase):
         candidates = json.loads(completed.stdout)
         self.assertEqual(candidates[0]["command"], "/opt/Python 3/python.exe")
         self.assertEqual(candidates[0]["source"], "TMCP_PYTHON")
+
+    def test_launcher_cli_status_calls_tool_directly(self) -> None:
+        completed = subprocess.run(
+            ["node", str(LAUNCHER_PATH), "status"],
+            cwd=PLUGIN_ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertTrue(payload["standalone"]["available"])
+        self.assertIn("workflow_recommendation", payload["standalone"]["capabilities"])
+
+    def test_launcher_cli_explain_accepts_positional_objective(self) -> None:
+        completed = subprocess.run(
+            [
+                "node",
+                str(LAUNCHER_PATH),
+                "explain",
+                "Use the TMCP expert UI rubric on Hoopscout",
+                "--project-path",
+                "/tmp/hoopscout",
+                "--adapter",
+                "standalone",
+            ],
+            cwd=PLUGIN_ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["adapter"], "standalone")
+        self.assertEqual(payload["packet"]["task_id"], "audit")
+
+    def test_cli_parser_repeated_flags_become_lists(self) -> None:
+        tool_name, arguments, compact = self.server._parse_cli_arguments(
+            [
+                "harvest",
+                ".",
+                "--include-globs",
+                "**/SKILL.md",
+                "--include-globs",
+                "**/AGENTS.md",
+                "--write-artifacts",
+                "--no-redact-sensitive",
+                "--compact",
+            ]
+        )
+
+        self.assertEqual(tool_name, "tmcp_harvest_skills")
+        self.assertTrue(compact)
+        self.assertEqual(arguments["source_path"], ".")
+        self.assertEqual(arguments["include_globs"], ["**/SKILL.md", "**/AGENTS.md"])
+        self.assertTrue(arguments["write_artifacts"])
+        self.assertFalse(arguments["redact_sensitive"])
+
+    def test_cli_parser_schema_array_flags_accept_single_value(self) -> None:
+        tool_name, arguments, compact = self.server._parse_cli_arguments(
+            ["recommend", ".", "--candidate-workflows", "ui_quality"]
+        )
+
+        self.assertEqual(tool_name, "tmcp_recommend_workflows")
+        self.assertFalse(compact)
+        self.assertEqual(arguments["candidate_workflows"], ["ui_quality"])
 
     def test_mcp_protocol_rejects_invalid_arguments(self) -> None:
         responses = run_mcp_requests(

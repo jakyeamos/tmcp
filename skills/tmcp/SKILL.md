@@ -30,9 +30,27 @@ When the TMCP MCP tools are available, use:
 
 The MCP tools run standalone. When AIOS is available, they may use the AIOS adapter for richer graph traversal, persisted receipts, and workflow artifacts.
 
+## CLI Fallback
+
+When MCP tools are not exposed in the current agent host, use the bundled CLI. It calls the same tool implementations and prints JSON:
+
+```bash
+cd "<plugin-root>"
+node scripts/tmcp_launcher.mjs doctor
+node scripts/tmcp_launcher.mjs status
+node scripts/tmcp_launcher.mjs explain "<objective>" --project-path "<project-path>" --adapter standalone
+node scripts/tmcp_launcher.mjs harvest "<source-path>" --objective "Harvest reusable skill behavior" --write-artifacts
+node scripts/tmcp_launcher.mjs recommend "<source-path>" --objective "Recommend custom TMCP workflows from harvested skill signals" --write-artifacts
+node scripts/tmcp_launcher.mjs review-plan "<objective>" --project-path "<project-path>" --evidence-json '[]' --write-artifacts
+```
+
+With no arguments, `node scripts/tmcp_launcher.mjs` starts the MCP stdio server.
+
+CLI flag rules: kebab-case maps to snake_case, repeated flags become arrays, `--flag` means true, `--no-flag` means false, and JSON-looking values are decoded.
+
 ## Skill Harvest
 
-`tmcp_harvest_skills` is portable. It accepts one `source_path` or many `source_paths`, optional `include_globs` and `exclude_globs`, file-size and excerpt limits, and optional artifact writing. The default harvest includes common skill and instruction surfaces such as `SKILL.md`, `AGENTS.md`, `CLAUDE.md`, `README.md`, `.cursor/rules`, `.github`, `docs`, `planning`, `workflows`, and markdown files. It prunes dependency, build, cache, VCS, and generated plugin-cache directories by default.
+`tmcp_harvest_skills` is portable. It accepts one `source_path` or many `source_paths`, optional `include_globs` and `exclude_globs`, file-size and excerpt limits, and optional artifact writing. The default harvest includes common skill and instruction surfaces such as `SKILL.md`, `AGENTS.md`, `CLAUDE.md`, `README.md`, `.cursor/rules`, `.github`, `docs`, `planning`, `workflows`, and markdown files. It prunes dependency, build, cache, VCS, generated plugin-cache directories, and generated `.aios` / `.tmcp` run artifacts by default.
 
 Harvest output should include source paths, source types, source tiers, frontmatter when present, behavior atoms, excerpts, warnings for skipped or missing inputs, and a `packet_seed`. Treat warnings as part of the packet evidence, not as fatal errors unless no usable sources were found.
 
@@ -66,5 +84,14 @@ For expert rubric work, produce or cite:
 - evidence-backed audit findings or explicit evidence gaps
 - ordered remediation plan with verification expectations
 - implementation handoff only after explicit user approval
+
+For workflow recommendation work, produce or cite:
+
+- harvest source paths and warnings
+- redaction summary
+- primary and secondary priority signals
+- evidence-backed recommended workflows
+- not-recommended workflows when relevant
+- selected next workflow and whether implementation is approved
 
 When neither MCP nor AIOS is available, still follow the same structure manually: task-specific packet, behavior atoms, selected/skipped nodes, scored rubric, evidence-backed audit or explicit evidence gaps, remediation slices, and approval-gated handoff.

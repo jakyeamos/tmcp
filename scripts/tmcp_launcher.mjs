@@ -70,7 +70,7 @@ function main() {
     process.exit(1);
   }
 
-  const child = spawn(server.command, server.args, {
+  const child = spawn(server.command, [...server.args, ...process.argv.slice(2)], {
     cwd: pluginRoot,
     env: process.env,
     stdio: "inherit",

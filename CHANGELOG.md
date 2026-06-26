@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Added a direct CLI surface through `node scripts/tmcp_launcher.mjs <command>` for doctor, status, explain, harvest, recommend, and review-plan workflows.
+- Improved CLI argument handling so schema array flags accept both single and repeated values.
+- Pruned generated `.aios` and `.tmcp` run artifacts from default skill harvests.
+- Narrowed high-entropy redaction to avoid corrupting normal markdown workflow links.
+- Expanded agent-facing CLI and TMCP routing instructions.
+
 ## 0.2.2 - 2026-06-26
 
 - Added `tmcp_recommend_workflows` to infer coding-quality priority signals from harvested skill sources and recommend custom expert workflows with evidence.

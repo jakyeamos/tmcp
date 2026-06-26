@@ -15,6 +15,17 @@ Start with [docs/QUICKSTART.md](docs/QUICKSTART.md). The shortest first-run path
 5. Run `tmcp_recommend_workflows` to infer which expert workflows fit your harvested skill signals.
 6. Use one of the example workflows in [examples](examples).
 
+If your MCP host does not expose tools cleanly, use the same surface through the direct CLI:
+
+```bash
+node scripts/tmcp_launcher.mjs doctor
+node scripts/tmcp_launcher.mjs status
+node scripts/tmcp_launcher.mjs explain "Use the TMCP expert UI rubric on Hoopscout" --project-path .
+node scripts/tmcp_launcher.mjs recommend . --write-artifacts
+```
+
+See [docs/CLI.md](docs/CLI.md).
+
 ## Install
 
 TMCP is packaged for multiple runtimes:
@@ -23,6 +34,7 @@ TMCP is packaged for multiple runtimes:
 - Claude Code plugin: install from the GitHub-hosted Claude marketplace once the repository is public.
 - Claude Desktop: add TMCP as a local stdio MCP server.
 - Plain MCP server: run `node scripts/tmcp_launcher.mjs` from a local checkout.
+- Direct CLI: run `node scripts/tmcp_launcher.mjs <command>` from a local checkout.
 
 See [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md), [docs/MARKETPLACE_MATRIX.md](docs/MARKETPLACE_MATRIX.md), [docs/CLAUDE_CODE.md](docs/CLAUDE_CODE.md), and [docs/CLAUDE_DESKTOP.md](docs/CLAUDE_DESKTOP.md).
 
@@ -52,7 +64,7 @@ Default harvest inputs include:
 - `workflows`
 - markdown process docs
 
-Default exclusions include dependency, build, cache, VCS, coverage, and generated plugin-cache directories.
+Default exclusions include dependency, build, cache, VCS, coverage, generated plugin-cache directories, and generated `.aios` / `.tmcp` run artifacts.
 
 Sensitive-looking values are redacted by default before excerpts, frontmatter, keywords, or artifact output are returned. Redaction covers common API keys, bearer tokens, GitHub tokens, AWS access keys, private key blocks, secret assignments, and long high-entropy strings.
 
@@ -107,6 +119,15 @@ The MCP entrypoint is `node scripts/tmcp_launcher.mjs`. The launcher selects Pyt
 - `TMCP_PYTHON`, when explicitly set.
 - Windows: `py -3`, then `python`, then `python3`.
 - macOS/Linux: `python3`, then `python`.
+
+The launcher also exposes direct commands for debugging, CI, and agents without usable MCP tool discovery:
+
+```bash
+node scripts/tmcp_launcher.mjs list-tools
+node scripts/tmcp_launcher.mjs harvest . --limit 40
+node scripts/tmcp_launcher.mjs recommend . --candidate-workflows ui_quality
+node scripts/tmcp_launcher.mjs review-plan "Review release readiness" --project-path . --evidence-json '[]'
+```
 
 ## Release Rubric
 

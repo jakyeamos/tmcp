@@ -27,6 +27,16 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 )
 
 
+def _looks_high_entropy(value: str) -> bool:
+    if len(set(value)) < 8:
+        return False
+    if not re.search(r"[0-9+/=_-]", value):
+        return False
+    if re.fullmatch(r"[a-z]+(?:[/-][a-z]+)+", value):
+        return False
+    return True
+
+
 def redact_sensitive_text(text: str, *, enabled: bool = True) -> tuple[str, dict[str, int]]:
     if not enabled:
         return text, {}
@@ -35,6 +45,8 @@ def redact_sensitive_text(text: str, *, enabled: bool = True) -> tuple[str, dict
     for label, pattern in SECRET_PATTERNS:
 
         def replace(match: re.Match[str], redaction_label: str = label) -> str:
+            if redaction_label == "long_high_entropy" and not _looks_high_entropy(match.group(0)):
+                return match.group(0)
             redactions[redaction_label] = redactions.get(redaction_label, 0) + 1
             if redaction_label == "secret_assignment" and len(match.groups()) >= 2:
                 return f"{match.group(1)}{match.group(2)}[REDACTED:{redaction_label}]"

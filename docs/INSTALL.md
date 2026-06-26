@@ -33,6 +33,15 @@ After install, call `tmcp_doctor` in your MCP client. It should report:
 
 Then call `tmcp_status`. Standalone mode should be available even when the AIOS adapter is absent.
 
+Direct CLI equivalent:
+
+```bash
+node scripts/tmcp_launcher.mjs doctor
+node scripts/tmcp_launcher.mjs status
+```
+
+The CLI uses the same tool implementations as MCP. See [CLI.md](CLI.md).
+
 ## Codex Plugin Shape
 
 Required files:
@@ -64,6 +73,20 @@ Codex launches TMCP through Node so the plugin has one stable MCP command across
 - macOS/Linux: `python3`, then `python`.
 
 If Python is installed somewhere unusual, set `TMCP_PYTHON` to that executable path in the MCP server environment.
+
+## Direct CLI
+
+Use the direct CLI when an agent needs to test or invoke TMCP without MCP tool discovery:
+
+```bash
+node scripts/tmcp_launcher.mjs list-tools
+node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path .
+node scripts/tmcp_launcher.mjs harvest . --write-artifacts --output-dir .tmcp/harvest
+node scripts/tmcp_launcher.mjs recommend . --candidate-workflows security_privacy
+node scripts/tmcp_launcher.mjs review-plan "Use the TMCP expert UI rubric on Hoopscout" --project-path . --evidence-json '[]'
+```
+
+With no arguments, `node scripts/tmcp_launcher.mjs` remains the MCP stdio entrypoint.
 
 ## Marketplace Example
 
