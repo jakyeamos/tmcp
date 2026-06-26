@@ -28,6 +28,8 @@ def create_package(plugin_root: Path, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with tarfile.open(output_path, "w:gz") as archive:
         for path in sorted(plugin_root.rglob("*")):
+            if path.is_symlink():
+                continue
             if not path.is_file():
                 continue
             relative = path.relative_to(plugin_root)
@@ -49,11 +51,25 @@ def run(command: list[str], cwd: Path) -> tuple[bool, str]:
     return completed.returncode == 0, completed.stdout + completed.stderr
 
 
+def safe_extractall(archive: tarfile.TarFile, target: Path) -> None:
+    target_root = target.resolve()
+    for member in archive.getmembers():
+        member_path = (target / member.name).resolve()
+        if member_path != target_root and target_root not in member_path.parents:
+            raise ValueError(f"Unsafe tar path: {member.name}")
+        if member.issym() or member.islnk():
+            raise ValueError(f"Refusing link in tar package: {member.name}")
+    try:
+        archive.extractall(target, filter="data")
+    except TypeError:
+        archive.extractall(target)
+
+
 def check_package(package_path: Path) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="tmcp-package-check-") as tmp:
         tmp_path = Path(tmp)
         with tarfile.open(package_path, "r:gz") as archive:
-            archive.extractall(tmp_path, filter="data")
+            safe_extractall(archive, tmp_path)
         plugin_root = tmp_path / "tmcp"
         install_ok, install_output = run([sys.executable, "scripts/check_install.py", "."], plugin_root)
         tests_ok, tests_output = run([sys.executable, "-m", "unittest", "discover", "-s", "tests"], plugin_root)
