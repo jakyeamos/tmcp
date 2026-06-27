@@ -1,7 +1,7 @@
 {
   "name": "tmcp",
-  "version": "0.2.2+codex.20260626193000",
-  "description": "Expose standalone TMCP skill-packet workflows, skill harvesting, workflow recommendations, and expert rubric remediation to Codex.",
+  "version": "0.2.3+codex.20260627100000",
+  "description": "Expose standalone TMCP skill-packet workflows, skill harvesting, workflow recommendations, and expert UI rubric remediation to Codex.",
   "author": {
     "name": "Jakye Amos"
   },

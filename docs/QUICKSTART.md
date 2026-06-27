@@ -144,3 +144,15 @@ node scripts/tmcp_launcher.mjs review-plan "Use the TMCP expert UI rubric on Hoo
   --write-artifacts \
   --output-dir .tmcp/expert-ui-review
 ```
+
+Short fallback alias for the exact same workflow:
+
+```bash
+node scripts/tmcp_launcher.mjs expert-ui-rubric \
+  --project-path . \
+  --evidence-json '[]' \
+  --write-artifacts \
+  --output-dir .tmcp/expert-ui-review
+```
+
+If MCP tool discovery does not show TMCP tools, use this CLI alias instead of downgrading the request to a generic rendered UI audit.

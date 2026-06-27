@@ -15,6 +15,7 @@ TMCP is a skill-packet and skill-usage model. AIOS is an optional adapter and re
 - This is an audit-and-plan workflow: compile a TMCP expertise packet, synthesize a scored rubric, audit concrete evidence, and produce an ordered remediation plan.
 - Do not treat expert-rubric requests as generic UI reviews, Browser-only visual checks, or immediate implementation requests unless the user explicitly asks for edits.
 - If rendered UI evidence is needed, use the available Browser path for screenshots/runtime inspection, but keep TMCP as the governing workflow and record when rendered evidence was unavailable.
+- If MCP/tool discovery does not expose TMCP tools, do not conclude that TMCP is unavailable and do not downgrade to another workflow. Use the direct CLI fallback from the plugin root.
 - When the user asks to harvest skills, gather local skill definitions, agent instruction files, editor rules, repository process docs, and markdown workflow docs into source nodes, classify behavior atoms, and compile the smallest useful packet. Do not assume AIOS, Codex, Claude, or any one directory layout exists.
 
 ## Preferred Tools
@@ -42,6 +43,7 @@ node scripts/tmcp_launcher.mjs explain "<objective>" --project-path "<project-pa
 node scripts/tmcp_launcher.mjs harvest "<source-path>" --objective "Harvest reusable skill behavior" --write-artifacts
 node scripts/tmcp_launcher.mjs recommend "<source-path>" --objective "Recommend custom TMCP workflows from harvested skill signals" --write-artifacts
 node scripts/tmcp_launcher.mjs review-plan "<objective>" --project-path "<project-path>" --evidence-json '[]' --write-artifacts
+node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path "<project-path>" --evidence-json '[]' --write-artifacts
 ```
 
 With no arguments, `node scripts/tmcp_launcher.mjs` starts the MCP stdio server.

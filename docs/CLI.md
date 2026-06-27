@@ -20,6 +20,7 @@ node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --
 node scripts/tmcp_launcher.mjs harvest . --objective "Harvest reusable project workflow behavior" --limit 40
 node scripts/tmcp_launcher.mjs recommend . --objective "Recommend custom TMCP workflows from this project's skill signals" --limit 40
 node scripts/tmcp_launcher.mjs review-plan "Use the TMCP expert UI rubric on Hoopscout" --project-path . --evidence-json '[]'
+node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path . --evidence-json '[]'
 ```
 
 ## Argument Rules
@@ -78,6 +79,18 @@ For expert rubric work, the expected sequence is:
 4. gather concrete evidence
 5. `review-plan`
 6. ask for approval before implementation
+
+For the common prompt "use the TMCP expert UI rubric workflow", the direct fallback command is:
+
+```bash
+node scripts/tmcp_launcher.mjs expert-ui-rubric \
+  --project-path . \
+  --evidence-json '[]' \
+  --write-artifacts \
+  --output-dir .tmcp/expert-ui-review
+```
+
+This command is intentionally equivalent to `expert_rubric_review_plan` with the objective `Use the TMCP expert UI rubric on this project.` Use it when MCP tool discovery fails or when another agent host says TMCP is not exposed as a callable tool.
 
 For skill-harvest workflow recommendation, the expected sequence is:
 

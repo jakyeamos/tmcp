@@ -481,6 +481,27 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertFalse(compact)
         self.assertEqual(arguments["candidate_workflows"], ["ui_quality"])
 
+    def test_cli_expert_ui_rubric_alias_defaults_to_tmcp_workflow(self) -> None:
+        tool_name, arguments, compact = self.server._parse_cli_arguments(
+            ["expert-ui-rubric", "--project-path", "/tmp/fantasy", "--evidence-json", "[]"]
+        )
+
+        self.assertEqual(tool_name, "expert_rubric_review_plan")
+        self.assertFalse(compact)
+        self.assertEqual(arguments["objective"], "Use the TMCP expert UI rubric on this project.")
+        self.assertEqual(arguments["adapter"], "standalone")
+        self.assertEqual(arguments["project_path"], "/tmp/fantasy")
+
+    def test_cli_expert_ui_rubric_alias_accepts_objective_override(self) -> None:
+        tool_name, arguments, compact = self.server._parse_cli_arguments(
+            ["tmcp-expert-ui-rubric", "Use the TMCP expert UI rubric workflow on Fantasy"]
+        )
+
+        self.assertEqual(tool_name, "expert_rubric_review_plan")
+        self.assertFalse(compact)
+        self.assertEqual(arguments["objective"], "Use the TMCP expert UI rubric workflow on Fantasy")
+        self.assertEqual(arguments["adapter"], "standalone")
+
     def test_mcp_protocol_rejects_invalid_arguments(self) -> None:
         responses = run_mcp_requests(
             [

@@ -2,11 +2,14 @@
 
 ## Unreleased
 
+## 0.2.3 - 2026-06-27
+
 - Added a direct CLI surface through `node scripts/tmcp_launcher.mjs <command>` for doctor, status, explain, harvest, recommend, and review-plan workflows.
+- Added `expert-ui-rubric`, `tmcp-expert-ui-rubric`, `expert-ui-review`, `tmcp-ui-rubric`, and `ui-rubric` CLI aliases for the TMCP expert UI rubric workflow.
 - Improved CLI argument handling so schema array flags accept both single and repeated values.
 - Pruned generated `.aios` and `.tmcp` run artifacts from default skill harvests.
 - Narrowed high-entropy redaction to avoid corrupting normal markdown workflow links.
-- Expanded agent-facing CLI and TMCP routing instructions.
+- Expanded agent-facing CLI and TMCP routing instructions so missing MCP tool exposure does not downgrade TMCP requests to generic UI audits.
 
 ## 0.2.2 - 2026-06-26
 

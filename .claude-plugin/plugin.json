@@ -1,8 +1,8 @@
 {
   "name": "tmcp",
   "displayName": "TMCP",
-  "description": "Standalone TMCP skill-packet workflows, first-run checks, skill harvesting, workflow recommendations, and expert rubric remediation for Claude Code.",
-  "version": "0.2.2",
+  "description": "Standalone TMCP skill-packet workflows, first-run checks, skill harvesting, workflow recommendations, and expert UI rubric remediation for Claude Code.",
+  "version": "0.2.3",
   "author": {
     "name": "Jakye Amos"
   },

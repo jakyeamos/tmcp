@@ -21,6 +21,7 @@ If your MCP host does not expose tools cleanly, use the same surface through the
 node scripts/tmcp_launcher.mjs doctor
 node scripts/tmcp_launcher.mjs status
 node scripts/tmcp_launcher.mjs explain "Use the TMCP expert UI rubric on Hoopscout" --project-path .
+node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path . --evidence-json '[]'
 node scripts/tmcp_launcher.mjs recommend . --write-artifacts
 ```
 
@@ -126,6 +127,7 @@ The launcher also exposes direct commands for debugging, CI, and agents without 
 node scripts/tmcp_launcher.mjs list-tools
 node scripts/tmcp_launcher.mjs harvest . --limit 40
 node scripts/tmcp_launcher.mjs recommend . --candidate-workflows ui_quality
+node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path . --evidence-json '[]'
 node scripts/tmcp_launcher.mjs review-plan "Review release readiness" --project-path . --evidence-json '[]'
 ```
 

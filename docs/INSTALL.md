@@ -84,6 +84,7 @@ node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --
 node scripts/tmcp_launcher.mjs harvest . --write-artifacts --output-dir .tmcp/harvest
 node scripts/tmcp_launcher.mjs recommend . --candidate-workflows security_privacy
 node scripts/tmcp_launcher.mjs review-plan "Use the TMCP expert UI rubric on Hoopscout" --project-path . --evidence-json '[]'
+node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path . --evidence-json '[]'
 ```
 
 With no arguments, `node scripts/tmcp_launcher.mjs` remains the MCP stdio entrypoint.

@@ -689,7 +689,35 @@ CLI_TOOL_ALIASES = {
     "review-plan": "expert_rubric_review_plan",
     "expert-rubric": "expert_rubric_review_plan",
     "expert-rubric-review-plan": "expert_rubric_review_plan",
+    "expert-ui-rubric": "expert_rubric_review_plan",
+    "expert-ui-review": "expert_rubric_review_plan",
     "expert_rubric_review_plan": "expert_rubric_review_plan",
+    "tmcp-expert-ui-rubric": "expert_rubric_review_plan",
+    "tmcp-ui-rubric": "expert_rubric_review_plan",
+    "ui-rubric": "expert_rubric_review_plan",
+}
+
+CLI_COMMAND_DEFAULT_ARGUMENTS = {
+    "expert-ui-rubric": {
+        "objective": "Use the TMCP expert UI rubric on this project.",
+        "adapter": "standalone",
+    },
+    "expert-ui-review": {
+        "objective": "Use the TMCP expert UI rubric on this project.",
+        "adapter": "standalone",
+    },
+    "tmcp-expert-ui-rubric": {
+        "objective": "Use the TMCP expert UI rubric on this project.",
+        "adapter": "standalone",
+    },
+    "tmcp-ui-rubric": {
+        "objective": "Use the TMCP expert UI rubric on this project.",
+        "adapter": "standalone",
+    },
+    "ui-rubric": {
+        "objective": "Use the TMCP expert UI rubric on this project.",
+        "adapter": "standalone",
+    },
 }
 
 
@@ -2146,7 +2174,7 @@ def _handle(request: dict[str, Any]) -> None:
             request_id,
             {
                 "protocolVersion": params.get("protocolVersion", "2024-11-05"),
-                "serverInfo": {"name": "tmcp", "version": "0.2.2"},
+                "serverInfo": {"name": "tmcp", "version": "0.2.3"},
                 "capabilities": {"tools": {}},
             },
         )
@@ -2200,6 +2228,7 @@ Usage:
   node scripts/tmcp_launcher.mjs harvest [source_path] [--objective "..."] [--write-artifacts --output-dir .tmcp/harvest]
   node scripts/tmcp_launcher.mjs recommend [source_path] [--candidate-workflows ui_quality] [--write-artifacts]
   node scripts/tmcp_launcher.mjs review-plan "<objective>" [--project-path .] [--evidence-json '[]']
+  node scripts/tmcp_launcher.mjs expert-ui-rubric [--project-path .] [--evidence-json '[]']
 
 Options:
   --key value             Set a tool argument. Kebab-case maps to snake_case.
@@ -2287,6 +2316,9 @@ def _parse_cli_arguments(argv: list[str]) -> tuple[str, dict[str, Any], bool]:
                 arguments.setdefault("objective", positionals[1])
         elif tool_name == "tmcp_doctor":
             arguments.setdefault("client", positionals[0])
+
+    for key, value in CLI_COMMAND_DEFAULT_ARGUMENTS.get(command, {}).items():
+        arguments.setdefault(key, value)
 
     _normalize_cli_arguments(tool_name, arguments)
     return tool_name, arguments, compact
