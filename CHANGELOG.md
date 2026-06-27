@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Generalized profile coverage requirements beyond UI reviews so security/privacy, public-sector, developer-experience, and general reviews can reject off-profile evidence and request a profile-coverage evidence slice.
+
 ## 0.2.4 - 2026-06-27
 
 - Added packet substance checks that distinguish process-only TMCP scaffolding from source-backed domain playbooks.

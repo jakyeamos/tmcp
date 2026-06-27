@@ -287,7 +287,7 @@ class TmcpMcpServerTests(unittest.TestCase):
             self.assertEqual(result["rubric"]["profile"], "visual_polish")
             self.assertTrue(result["artifact_paths"])
             self.assertTrue(
-                any("product-quality" in item["id"] for item in result["remediation_slices"])
+                any("profile-coverage" in item["id"] for item in result["remediation_slices"])
             )
             expected = {
                 "expertise-packet.json",
@@ -337,13 +337,64 @@ class TmcpMcpServerTests(unittest.TestCase):
         )
         self.assertTrue(result["audit_report"]["coverage_gaps"])
         self.assertTrue(
-            any("product-quality" in item["id"] for item in result["remediation_slices"])
+            any("profile-coverage" in item["id"] for item in result["remediation_slices"])
         )
         gap_slice = next(
-            item for item in result["remediation_slices"] if "product-quality" in item["id"]
+            item for item in result["remediation_slices"] if "profile-coverage" in item["id"]
         )
-        self.assertIn("typography", gap_slice["expected_impact"].lower())
-        self.assertIn("spacing", gap_slice["expected_impact"].lower())
+        self.assertIn("typography", " ".join(gap_slice["scope"]).lower())
+        self.assertIn("spacing", " ".join(gap_slice["scope"]).lower())
+
+    def test_profile_coverage_is_enforced_for_non_visual_reviews(self) -> None:
+        result = self.server._standalone_review_plan(
+            {
+                "objective": "Use TMCP to audit security and privacy risks in this project",
+                "project_path": "/tmp/product",
+                "write_artifacts": False,
+                "evidence_json": json.dumps(
+                    [
+                        {
+                            "dimension_id": "secret_exposure",
+                            "severity": "observation",
+                            "summary": "The reviewed page renders without errors.",
+                            "evidence": ["Browser route loaded successfully."],
+                            "recommended_fix": "Keep the route rendering.",
+                        },
+                        {
+                            "dimension_id": "permission_boundary",
+                            "severity": "observation",
+                            "summary": "The reviewed page renders without errors.",
+                            "evidence": ["Browser route loaded successfully."],
+                            "recommended_fix": "Keep the route rendering.",
+                        },
+                        {
+                            "dimension_id": "data_flow_privacy",
+                            "severity": "observation",
+                            "summary": "The reviewed page renders without errors.",
+                            "evidence": ["Browser route loaded successfully."],
+                            "recommended_fix": "Keep the route rendering.",
+                        },
+                        {
+                            "dimension_id": "supply_chain",
+                            "severity": "observation",
+                            "summary": "The reviewed page renders without errors.",
+                            "evidence": ["Browser route loaded successfully."],
+                            "recommended_fix": "Keep the route rendering.",
+                        },
+                    ]
+                ),
+            }
+        )
+
+        validations = {item["validation_key"]: item for item in result["validations"]}
+        coverage_validation = validations["profile_evidence_coverage"]
+        self.assertFalse(coverage_validation["passed"])
+        self.assertTrue(
+            any("security" in issue.lower() and "privacy" in issue.lower() for issue in coverage_validation["issues"])
+        )
+        self.assertTrue(
+            any("profile-coverage" in item["id"] for item in result["remediation_slices"])
+        )
 
     def test_review_plan_harvests_project_sources_for_public_sector_substance(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

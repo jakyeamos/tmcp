@@ -451,6 +451,31 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
 }
 
 PROFILE_COVERAGE_REQUIREMENTS: dict[str, tuple[dict[str, object], ...]] = {
+    "public_sector_readiness": (
+        {
+            "id": "public_governance_coverage",
+            "label": "public-sector governance coverage",
+            "terms": (
+                "accessibility",
+                "audit",
+                "calculation",
+                "compliance",
+                "governance",
+                "legal",
+                "policy",
+                "privacy",
+                "readiness",
+                "release",
+                "security",
+                "tenant",
+            ),
+            "issue": (
+                "Public-sector readiness coverage is missing: include evidence about governance, "
+                "security/privacy controls, auditability, legal calculation safety, release readiness, "
+                "and accessibility."
+            ),
+        },
+    ),
     "visual_polish": (
         {
             "id": "visual_product_quality",
@@ -494,7 +519,82 @@ PROFILE_COVERAGE_REQUIREMENTS: dict[str, tuple[dict[str, object], ...]] = {
                 "compare, prioritize, inspect, or complete the core workflow."
             ),
         },
-    )
+    ),
+    "security_privacy": (
+        {
+            "id": "security_privacy_coverage",
+            "label": "security/privacy coverage",
+            "terms": (
+                "auth",
+                "credential",
+                "data flow",
+                "dependency",
+                "lockfile",
+                "permission",
+                "privacy",
+                "redact",
+                "retention",
+                "secret",
+                "security",
+                "sensitive",
+                "supply chain",
+                "token",
+            ),
+            "issue": (
+                "Security/privacy coverage is missing: include evidence about secrets, credentials, "
+                "auth, permission boundaries, sensitive data flow, retention, redaction, and supply chain risk."
+            ),
+        },
+    ),
+    "developer_experience": (
+        {
+            "id": "developer_experience_coverage",
+            "label": "developer-experience coverage",
+            "terms": (
+                "build",
+                "cli",
+                "command",
+                "docs",
+                "error",
+                "example",
+                "install",
+                "lint",
+                "onboarding",
+                "readme",
+                "script",
+                "setup",
+                "test",
+                "typecheck",
+                "validation",
+            ),
+            "issue": (
+                "Developer-experience coverage is missing: include evidence about setup, commands, "
+                "documentation, validation loops, interfaces, examples, and actionable errors."
+            ),
+        },
+    ),
+    "general_review": (
+        {
+            "id": "general_review_coverage",
+            "label": "general review coverage",
+            "terms": (
+                "blocker",
+                "command",
+                "evidence",
+                "gap",
+                "risk",
+                "scope",
+                "source",
+                "test",
+                "verify",
+                "warning",
+            ),
+            "issue": (
+                "General review coverage is missing: include evidence about source grounding, risk priority, "
+                "verification readiness, and reviewed/deferred scope."
+            ),
+        },
+    ),
 }
 
 WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
@@ -1577,11 +1677,8 @@ def _build_remediation_plan(audit_report: dict[str, Any], run_id: str) -> dict[s
             }
         )
     coverage_gaps = [item for item in _json_list(audit_report.get("coverage_gaps")) if isinstance(item, dict)]
-    if (
-        coverage_gaps
-        and _json_list(audit_report.get("findings"))
-        and str(audit_report.get("profile")) == "visual_polish"
-    ):
+    if coverage_gaps and _json_list(audit_report.get("findings")):
+        profile = str(audit_report.get("profile") or "general_review")
         missing_dimensions = [
             str(item.get("dimension_name") or item.get("dimension_id") or item.get("label") or item.get("coverage_id"))
             for item in coverage_gaps
@@ -1590,17 +1687,17 @@ def _build_remediation_plan(audit_report: dict[str, Any], run_id: str) -> dict[s
         gap_details = [gap for item in coverage_gaps for gap in _string_list(item.get("gaps"))]
         slices.append(
             {
-                "id": f"slice-{len(slices) + 1}-product-quality-coverage",
-                "title": "Capture missing product-quality coverage",
+                "id": f"slice-{len(slices) + 1}-profile-coverage",
+                "title": "Capture missing profile evidence coverage",
                 "scope": [*missing_dimensions, *gap_details],
-                "rationale": "The rubric has dimensions without evidence, so the audit is only partially grounded.",
+                "rationale": f"The `{profile}` rubric has required coverage without evidence, so the audit is only partially grounded.",
                 "expected_impact": (
-                    "Completes product-quality evidence across hierarchy, typography, spacing, data realism, "
-                    "state handling, and design-system fit before remediation is prioritized."
+                    "Completes profile-specific evidence coverage before remediation is prioritized, so TMCP cannot "
+                    "present generic findings as a complete expert review."
                 ),
-                "risk": "Do not over-rank visual fixes from partial evidence.",
+                "risk": "Do not over-rank remediation from partial or off-profile evidence.",
                 "verification": [
-                    "Capture rendered evidence for every uncovered rubric dimension.",
+                    "Capture concrete evidence for every uncovered rubric dimension and profile coverage requirement.",
                     "Re-run the expert rubric review and confirm profile evidence coverage passes.",
                 ],
                 "follow_up_workflow": "expert-rubric-evidence-audit",

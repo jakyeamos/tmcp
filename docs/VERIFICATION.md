@@ -56,7 +56,7 @@ PY
 - Install shape check: pass.
 - Release package check: pass.
 - Pre-CR commit readiness: pass with repo-local unittest adapter and threshold `0`.
-- Unit and MCP protocol tests: pass, 27 tests.
+- Unit and MCP protocol tests: pass, 28 tests.
 - Direct expert UI rubric CLI alias smoke: pass, routes to standalone `expert_rubric_review_plan` with no artifact writes when `--no-write-artifacts` is set.
 - Direct government-readiness review smoke: pass, selects `public_sector_readiness` while reporting `thin_domain_signals` when no source-backed government playbook is present.
 - Claude Code marketplace validation: pass.
@@ -82,7 +82,7 @@ PY
 
 - Expert UI rubric requests route to an `audit` packet and `visual_polish` rubric profile.
 - Expert UI rubric CLI aliases default to the standalone TMCP expert rubric workflow instead of requiring MCP tool discovery.
-- Visual expert rubric reviews fail profile coverage validation when product-quality dimensions lack evidence and add a product-quality coverage remediation slice.
+- Expert rubric reviews fail profile coverage validation when the selected profile lacks profile-specific evidence and add a profile-coverage remediation slice.
 - Packet `substance_check` distinguishes process-only, thin-domain, and source-backed playbook packets.
 - Review plans harvest target project sources by default before synthesizing rubrics.
 - Government/compliance/readiness audits route to the public-sector readiness rubric profile.
