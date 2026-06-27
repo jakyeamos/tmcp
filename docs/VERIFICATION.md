@@ -2,7 +2,7 @@
 
 Date: 2026-06-27
 
-Plugin version: `0.2.4+codex.20260627191000`
+Plugin version: `0.2.5+codex.20260627193822`
 
 ## Commands
 
@@ -104,7 +104,7 @@ PY
 - Clean-copy install check passes from a copied plugin directory.
 - Release tarball check passes after unpacking into a temporary directory.
 - Redaction and MCP framing are separated into dedicated modules.
-- Public GitHub Actions verification with release-package gate: pass on run `28304950178` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.4`.
+- Public GitHub Actions verification with release-package gate: pending for `0.2.5`.
 - License and marketplace example are present.
 - AIOS adapter absent and present behavior is covered with deterministic fixtures.
 

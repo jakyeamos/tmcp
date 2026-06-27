@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.5 - 2026-06-27
 
 - Generalized profile coverage requirements beyond UI reviews so security/privacy, public-sector, developer-experience, and general reviews can reject off-profile evidence and request a profile-coverage evidence slice.
 
