@@ -35,7 +35,7 @@ env['AIOS_ROOT'] = '/tmp/tmcp-aios-missing'
 completed = subprocess.run(['node', 'scripts/tmcp_launcher.mjs'], input=encode_message(request), cwd=Path.cwd(), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
 assert completed.returncode == 0
 PY
-gh run view 28304805793 --repo jakyeamos/tmcp --json status,conclusion,jobs
+gh run view 28304950178 --repo jakyeamos/tmcp --json status,conclusion,jobs
 claude plugin validate .
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py /Users/jakyeamos/plugins/tmcp
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/jakyeamos/plugins/tmcp/skills/tmcp
@@ -104,7 +104,7 @@ PY
 - Clean-copy install check passes from a copied plugin directory.
 - Release tarball check passes after unpacking into a temporary directory.
 - Redaction and MCP framing are separated into dedicated modules.
-- Public GitHub Actions verification with release-package gate: pass on run `28304805793` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.4`.
+- Public GitHub Actions verification with release-package gate: pass on run `28304950178` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.4`.
 - License and marketplace example are present.
 - AIOS adapter absent and present behavior is covered with deterministic fixtures.
 
