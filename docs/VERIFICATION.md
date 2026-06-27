@@ -35,7 +35,7 @@ env['AIOS_ROOT'] = '/tmp/tmcp-aios-missing'
 completed = subprocess.run(['node', 'scripts/tmcp_launcher.mjs'], input=encode_message(request), cwd=Path.cwd(), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
 assert completed.returncode == 0
 PY
-gh run view <pending-0.2.4-run-id> --repo jakyeamos/tmcp --json status,conclusion,jobs
+gh run view 28304805793 --repo jakyeamos/tmcp --json status,conclusion,jobs
 claude plugin validate .
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py /Users/jakyeamos/plugins/tmcp
 /private/tmp/tmcp-validator-venv/bin/python /Users/jakyeamos/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/jakyeamos/plugins/tmcp/skills/tmcp
@@ -56,7 +56,7 @@ PY
 - Install shape check: pass.
 - Release package check: pass.
 - Pre-CR commit readiness: pass with repo-local unittest adapter and threshold `0`.
-- Unit and MCP protocol tests: pass, 26 tests.
+- Unit and MCP protocol tests: pass, 27 tests.
 - Direct expert UI rubric CLI alias smoke: pass, routes to standalone `expert_rubric_review_plan` with no artifact writes when `--no-write-artifacts` is set.
 - Direct government-readiness review smoke: pass, selects `public_sector_readiness` while reporting `thin_domain_signals` when no source-backed government playbook is present.
 - Claude Code marketplace validation: pass.
@@ -82,6 +82,7 @@ PY
 
 - Expert UI rubric requests route to an `audit` packet and `visual_polish` rubric profile.
 - Expert UI rubric CLI aliases default to the standalone TMCP expert rubric workflow instead of requiring MCP tool discovery.
+- Visual expert rubric reviews fail profile coverage validation when product-quality dimensions lack evidence and add a product-quality coverage remediation slice.
 - Packet `substance_check` distinguishes process-only, thin-domain, and source-backed playbook packets.
 - Review plans harvest target project sources by default before synthesizing rubrics.
 - Government/compliance/readiness audits route to the public-sector readiness rubric profile.
@@ -103,7 +104,7 @@ PY
 - Clean-copy install check passes from a copied plugin directory.
 - Release tarball check passes after unpacking into a temporary directory.
 - Redaction and MCP framing are separated into dedicated modules.
-- Public GitHub Actions verification with release-package gate: pending for `0.2.4`.
+- Public GitHub Actions verification with release-package gate: pass on run `28304805793` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.4`.
 - License and marketplace example are present.
 - AIOS adapter absent and present behavior is covered with deterministic fixtures.
 

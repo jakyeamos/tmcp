@@ -301,11 +301,13 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
             "name": "Surface Hierarchy",
             "weight": 4,
             "expectations": [
-                "Screen, file, or screenshot evidence showing primary and supporting regions."
+                "Screen, file, or screenshot evidence showing primary and supporting regions.",
+                "Evidence for scan order, density, grouping, visual rhythm, and whether the most valuable workflow is visually dominant.",
             ],
             "questions": [
                 "Is there one dominant work region?",
                 "Are cards used only where they frame real repeated objects?",
+                "Does the page visually communicate what matters first without relying on explanatory text?",
             ],
         },
         {
@@ -318,6 +320,7 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
             "questions": [
                 "Does the container match the task?",
                 "Are states decision-useful instead of decorative?",
+                "Are actions, affordances, and feedback placed where the user naturally acts next?",
             ],
         },
         {
@@ -330,6 +333,7 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
             "questions": [
                 "Are metrics credible?",
                 "Are visuals driven by real state rather than decoration?",
+                "Does data presentation help comparison, triage, or decision-making?",
             ],
         },
         {
@@ -337,11 +341,13 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
             "name": "Product Evidence",
             "weight": 3,
             "expectations": [
-                "Evidence that the first screen reveals the actual product, object, or state."
+                "Evidence that the first screen reveals the actual product, object, or state.",
+                "Evidence that the surface demonstrates the product's value through real objects, ranked work, or inspectable outcomes.",
             ],
             "questions": [
                 "Can a viewer understand the product from the first screen?",
                 "Is decoration replacing product proof?",
+                "Does the first settled viewport show useful work rather than merely proving the route renders?",
             ],
         },
         {
@@ -349,11 +355,13 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
             "name": "Design System Fit",
             "weight": 3,
             "expectations": [
-                "Evidence for tokens, component conventions, typography, spacing, and states."
+                "Evidence for tokens, component conventions, typography, spacing, color, contrast, and states.",
+                "Evidence that visual styling feels intentional, polished, and consistent across desktop and mobile breakpoints.",
             ],
             "questions": [
                 "Does the surface follow local tokens?",
                 "Are generic utility colors or defaults leaking through?",
+                "Do typography, spacing, contrast, and component affordances improve comprehension and trust?",
             ],
         },
     ],
@@ -440,6 +448,53 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
             "questions": ["Is the reviewed surface bounded?", "Are unreviewed areas named?"],
         },
     ],
+}
+
+PROFILE_COVERAGE_REQUIREMENTS: dict[str, tuple[dict[str, object], ...]] = {
+    "visual_polish": (
+        {
+            "id": "visual_product_quality",
+            "label": "visual product-quality coverage",
+            "terms": (
+                "affordance",
+                "alignment",
+                "color",
+                "contrast",
+                "density",
+                "hierarchy",
+                "layout",
+                "polish",
+                "rhythm",
+                "spacing",
+                "typography",
+                "visual",
+            ),
+            "issue": (
+                "Visual product-quality coverage is missing: include evidence about typography, spacing, "
+                "layout hierarchy, density, color/contrast, affordances, and responsive polish."
+            ),
+        },
+        {
+            "id": "whole_product_value",
+            "label": "whole-product value coverage",
+            "terms": (
+                "compare",
+                "decision",
+                "inspect",
+                "outcome",
+                "prioritize",
+                "product",
+                "rank",
+                "scan",
+                "triage",
+                "workflow",
+            ),
+            "issue": (
+                "Whole-product value coverage is missing: include evidence that the UI helps users scan, "
+                "compare, prioritize, inspect, or complete the core workflow."
+            ),
+        },
+    )
 }
 
 WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
@@ -1354,6 +1409,7 @@ def _synthesize_rubric(packet: dict[str, Any], run_id: str, objective: str) -> d
         "source_packet": "expertise-packet.json",
         "profile": profile,
         "substance_check": packet.get("substance_check", {}),
+        "coverage_requirements": list(PROFILE_COVERAGE_REQUIREMENTS.get(profile, ())),
         "selected_nodes": source_nodes,
         "skipped_nodes": packet.get("skipped_nodes", []),
         "dimensions": [
@@ -1369,6 +1425,44 @@ def _severity_rank(severity: str) -> int:
 
 def _severity_score(severity: str) -> int:
     return {"blocker": 1, "warning": 2, "observation": 3}.get(severity, 2)
+
+
+def _profile_coverage_gaps(
+    rubric: dict[str, Any],
+    findings: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    requirements = [
+        item for item in _json_list(rubric.get("coverage_requirements")) if isinstance(item, dict)
+    ]
+    if not requirements:
+        return []
+    text_parts: list[str] = []
+    for finding in findings:
+        text_parts.extend(
+            [
+                str(finding.get("summary", "")),
+                str(finding.get("recommended_fix", "")),
+                " ".join(_string_list(finding.get("evidence"))),
+            ]
+        )
+    finding_text = " ".join(text_parts).lower()
+    gaps: list[dict[str, Any]] = []
+    for requirement in requirements:
+        terms = [term.lower() for term in _string_list(requirement.get("terms"))]
+        if not any(term in finding_text for term in terms):
+            issue = str(
+                requirement.get("issue")
+                or requirement.get("label")
+                or "Profile evidence coverage is missing."
+            )
+            gaps.append(
+                {
+                    "coverage_id": str(requirement.get("id") or "profile_coverage"),
+                    "label": str(requirement.get("label") or requirement.get("id") or "profile coverage"),
+                    "gaps": [issue],
+                }
+            )
+    return gaps
 
 
 def _known_dimension_id(candidate: object, dimensions: list[dict[str, Any]]) -> str:
@@ -1408,6 +1502,7 @@ def _build_audit_report(
             }
         )
     scores: list[dict[str, Any]] = []
+    coverage_gaps: list[dict[str, Any]] = []
     for dimension in dimensions:
         dimension_id = str(dimension["id"])
         matching = [finding for finding in findings if finding["dimension_id"] == dimension_id]
@@ -1429,17 +1524,34 @@ def _build_audit_report(
                 "gaps": gaps,
             }
         )
+        if gaps:
+            coverage_gaps.append(
+                {
+                    "dimension_id": dimension_id,
+                    "dimension_name": str(dimension.get("name", dimension_id)),
+                    "gaps": gaps,
+                }
+            )
     substance = rubric.get("substance_check") if isinstance(rubric.get("substance_check"), dict) else {}
-    deferred_scope = [gap for score in scores for gap in _string_list(score.get("gaps"))]
+    deferred_items = [gap for score in scores for gap in _string_list(score.get("gaps"))]
     if substance and not bool(substance.get("has_domain_playbook")):
-        deferred_scope.extend(_string_list(substance.get("issues")))
+        deferred_items.extend(_string_list(substance.get("issues")))
+    coverage_gaps.extend(_profile_coverage_gaps(rubric, findings))
+    for item in coverage_gaps:
+        deferred_items.extend(_string_list(item.get("gaps")))
+    deferred_scope: list[str] = []
+    for item in deferred_items:
+        if item not in deferred_scope:
+            deferred_scope.append(item)
     return {
         "schema": AUDIT_REPORT_SCHEMA,
         "run_id": run_id,
         "rubric": "rubric.json",
+        "profile": str(rubric.get("profile") or "general_review"),
         "substance_check": substance,
         "scores": scores,
         "findings": findings,
+        "coverage_gaps": coverage_gaps,
         "deferred_scope": deferred_scope,
     }
 
@@ -1464,6 +1576,37 @@ def _build_remediation_plan(audit_report: dict[str, Any], run_id: str) -> dict[s
                 "source_findings": [finding_id],
             }
         )
+    coverage_gaps = [item for item in _json_list(audit_report.get("coverage_gaps")) if isinstance(item, dict)]
+    if (
+        coverage_gaps
+        and _json_list(audit_report.get("findings"))
+        and str(audit_report.get("profile")) == "visual_polish"
+    ):
+        missing_dimensions = [
+            str(item.get("dimension_name") or item.get("dimension_id") or item.get("label") or item.get("coverage_id"))
+            for item in coverage_gaps
+            if item.get("dimension_name") or item.get("dimension_id") or item.get("label") or item.get("coverage_id")
+        ]
+        gap_details = [gap for item in coverage_gaps for gap in _string_list(item.get("gaps"))]
+        slices.append(
+            {
+                "id": f"slice-{len(slices) + 1}-product-quality-coverage",
+                "title": "Capture missing product-quality coverage",
+                "scope": [*missing_dimensions, *gap_details],
+                "rationale": "The rubric has dimensions without evidence, so the audit is only partially grounded.",
+                "expected_impact": (
+                    "Completes product-quality evidence across hierarchy, typography, spacing, data realism, "
+                    "state handling, and design-system fit before remediation is prioritized."
+                ),
+                "risk": "Do not over-rank visual fixes from partial evidence.",
+                "verification": [
+                    "Capture rendered evidence for every uncovered rubric dimension.",
+                    "Re-run the expert rubric review and confirm profile evidence coverage passes.",
+                ],
+                "follow_up_workflow": "expert-rubric-evidence-audit",
+                "source_findings": [],
+            }
+        )
     if not slices and audit_report.get("deferred_scope"):
         slices.append(
             {
@@ -1484,6 +1627,7 @@ def _build_remediation_plan(audit_report: dict[str, Any], run_id: str) -> dict[s
         "schema": REMEDIATION_PLAN_SCHEMA,
         "run_id": run_id,
         "slices": slices,
+        "coverage_gaps": coverage_gaps,
         "deferred_scope": _string_list(audit_report.get("deferred_scope")),
     }
 
@@ -1524,6 +1668,12 @@ def _validations(
     audit_report: dict[str, Any],
     remediation_plan: dict[str, Any],
 ) -> list[dict[str, Any]]:
+    coverage_gaps = [item for item in _json_list(audit_report.get("coverage_gaps")) if isinstance(item, dict)]
+    profile = str(rubric.get("profile") or "general_review")
+    coverage_issues = [
+        f"{profile} coverage missing for {item.get('dimension_name') or item.get('dimension_id') or item.get('label') or item.get('coverage_id')}: {'; '.join(_string_list(item.get('gaps')))}"
+        for item in coverage_gaps
+    ]
     return [
         {
             "validation_key": "tmcp_packet_compiled",
@@ -1546,6 +1696,11 @@ def _validations(
             "validation_key": "rubric_dimensions_present",
             "passed": bool(rubric.get("dimensions")),
             "issues": [] if rubric.get("dimensions") else ["Rubric has no dimensions."],
+        },
+        {
+            "validation_key": "profile_evidence_coverage",
+            "passed": not coverage_gaps,
+            "issues": coverage_issues,
         },
         {
             "validation_key": "findings_have_evidence",

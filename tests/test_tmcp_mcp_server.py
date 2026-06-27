@@ -285,7 +285,10 @@ class TmcpMcpServerTests(unittest.TestCase):
             )
 
             self.assertEqual(result["rubric"]["profile"], "visual_polish")
-            self.assertEqual(len(result["remediation_slices"]), 1)
+            self.assertTrue(result["artifact_paths"])
+            self.assertTrue(
+                any("product-quality" in item["id"] for item in result["remediation_slices"])
+            )
             expected = {
                 "expertise-packet.json",
                 "rubric.json",
@@ -297,6 +300,50 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "implementation-handoff.json",
             }
             self.assertEqual({path.name for path in output_dir.iterdir()}, expected)
+
+    def test_visual_review_requires_product_quality_coverage(self) -> None:
+        result = self.server._standalone_review_plan(
+            {
+                "objective": "Use the TMCP expert UI rubric on this product",
+                "project_path": "/tmp/product",
+                "write_artifacts": False,
+                "evidence_json": json.dumps(
+                    [
+                        {
+                            "dimension_id": "interaction_architecture",
+                            "severity": "blocker",
+                            "summary": "Feed remains in loading state after the route is opened.",
+                            "evidence": ["Browser route stayed on skeleton cards for 12 seconds."],
+                            "recommended_fix": "Bound computation and show error or empty state.",
+                        },
+                        {
+                            "dimension_id": "data_realism",
+                            "severity": "warning",
+                            "summary": "Dashboard data resolves but the feed does not.",
+                            "evidence": ["Dashboard count renders; feed stays unresolved."],
+                            "recommended_fix": "Make each feed resolve to data, empty, or failure state.",
+                        },
+                    ]
+                ),
+            }
+        )
+
+        validations = {item["validation_key"]: item for item in result["validations"]}
+        self.assertIn("profile_evidence_coverage", validations)
+        coverage_validation = validations["profile_evidence_coverage"]
+        self.assertFalse(coverage_validation["passed"])
+        self.assertTrue(
+            any("visual" in issue.lower() and "coverage" in issue.lower() for issue in coverage_validation["issues"])
+        )
+        self.assertTrue(result["audit_report"]["coverage_gaps"])
+        self.assertTrue(
+            any("product-quality" in item["id"] for item in result["remediation_slices"])
+        )
+        gap_slice = next(
+            item for item in result["remediation_slices"] if "product-quality" in item["id"]
+        )
+        self.assertIn("typography", gap_slice["expected_impact"].lower())
+        self.assertIn("spacing", gap_slice["expected_impact"].lower())
 
     def test_review_plan_harvests_project_sources_for_public_sector_substance(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
