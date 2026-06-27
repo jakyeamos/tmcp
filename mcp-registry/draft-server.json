@@ -2,11 +2,11 @@
   "schema": "tmcp-mcp-registry-draft-v0.1",
   "name": "io.github.jakyeamos.tmcp",
   "display_name": "TMCP",
-  "description": "Standalone TMCP skill-packet workflows, skill harvesting, workflow recommendations, and expert UI rubric remediation over MCP.",
+  "description": "Standalone TMCP skill-packet workflows, skill harvesting, workflow recommendations, packet substance checks, and expert rubric remediation over MCP.",
   "repository": "https://github.com/jakyeamos/tmcp",
   "homepage": "https://github.com/jakyeamos/tmcp#readme",
   "license": "MIT",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "transport": {
     "type": "stdio",
     "command": "node",

@@ -23,6 +23,7 @@ The compatibility policy is documented in [PACKET_STABILITY.md](PACKET_STABILITY
 | `skipped_nodes` | Plausible nodes skipped because they did not add useful behavior. |
 | `selected_branches` | Active branch decisions and reasons. |
 | `source_skill_nodes` | Harvested or selected source nodes. |
+| `substance_check` | Assessment of whether selected nodes contain concrete playbook guidance or only broad process scaffolding. |
 | `behavior_atoms` | Small behavior units preserved by the packet. |
 | `shortcut_candidate` | Shortcut status and fallback. |
 | `transition_trace` | Router transitions and reasons. |
@@ -50,6 +51,17 @@ Harvested source nodes include:
 - `redactions`
 
 Source types are descriptive, not vendor-specific. Examples include `skill_definition`, `agent_operating_contract`, `cursor_rule`, `github_process`, `workflow_prompt`, `project_documentation`, and `markdown_process_doc`.
+
+## Substance Check
+
+`substance_check` prevents TMCP from overstating what it knows. It reports:
+
+- `level`: `process_only`, `thin_domain_signals`, or `source_backed_playbook`
+- `has_domain_playbook`: whether harvested sources contain actionable task guidance
+- `issues`: why the packet is thin
+- `fallback_policy`: how the agent should proceed
+
+When a packet is `process_only` or `thin_domain_signals`, TMCP should keep the routing, evidence, and output-contract behavior, but derive rubric substance from target repo evidence.
 
 ## Privacy
 

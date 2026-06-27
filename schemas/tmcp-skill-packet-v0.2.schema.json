@@ -84,6 +84,24 @@
         "type": "object"
       }
     },
+    "substance_check": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "const": "tmcp-packet-substance-v0.1"
+        },
+        "level": {
+          "enum": ["process_only", "thin_domain_signals", "source_backed_playbook"]
+        },
+        "has_domain_playbook": {
+          "type": "boolean"
+        },
+        "fallback_policy": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
     "behavior_atoms": {
       "type": "array",
       "items": {
@@ -136,4 +154,3 @@
   },
   "additionalProperties": true
 }
-

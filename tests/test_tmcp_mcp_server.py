@@ -89,6 +89,18 @@ class TmcpMcpServerTests(unittest.TestCase):
         rubric = self.server._synthesize_rubric(packet, "run-test", packet["objective"])
         self.assertEqual(rubric["profile"], "visual_polish")
 
+    def test_packet_substance_check_flags_process_only_packets(self) -> None:
+        packet = self.server._compile_standalone_packet(
+            objective="Use TMCP to audit government readiness for CrimClock",
+            project_path="/tmp/crimclock",
+        )
+
+        substance = packet["substance_check"]
+        self.assertEqual(substance["level"], "process_only")
+        self.assertFalse(substance["has_domain_playbook"])
+        self.assertIn("derive rubric substance from target repo docs", substance["fallback_policy"])
+        self.assertTrue(substance["issues"])
+
     def test_harvest_is_portable_and_prunes_dependency_dirs(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -285,6 +297,52 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "implementation-handoff.json",
             }
             self.assertEqual({path.name for path in output_dir.iterdir()}, expected)
+
+    def test_review_plan_harvests_project_sources_for_public_sector_substance(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "government-readiness.md").write_text(
+                "\n".join(
+                    [
+                        "# Government Readiness Audit",
+                        "A government readiness audit must inspect security controls, tenant isolation,",
+                        "audit logs, source provenance, legal calculation safety, release blockers,",
+                        "deployment rollback, UAT evidence, accessibility, and risk register gates.",
+                        "Score blocker, warning, and observation findings with cited evidence.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = self.server._standalone_review_plan(
+                {
+                    "objective": "Use TMCP to audit government readiness for CrimClock",
+                    "project_path": str(root),
+                    "write_artifacts": False,
+                    "evidence_json": json.dumps(
+                        [
+                            {
+                                "dimension_id": "governance_policy_fit",
+                                "severity": "warning",
+                                "summary": "Readiness gate needs owner evidence.",
+                                "evidence": ["docs/government-readiness.md"],
+                                "recommended_fix": "Attach owner and acceptance evidence to the gate.",
+                            }
+                        ]
+                    ),
+                }
+            )
+
+        self.assertEqual(result["rubric"]["profile"], "public_sector_readiness")
+        substance = result["expertise_packet"]["substance_check"]
+        self.assertEqual(substance["level"], "source_backed_playbook")
+        self.assertTrue(substance["has_domain_playbook"])
+        self.assertGreaterEqual(substance["substantive_source_count"], 1)
+        self.assertIn("government", substance["matched_domain_terms"])
+        self.assertEqual(result["artifact_paths"], {})
+        self.assertTrue(any(node["relative_path"] == "docs/government-readiness.md" for node in result["expertise_packet"]["source_skill_nodes"]))
 
     def test_mcp_protocol_lists_and_calls_tools(self) -> None:
         responses = run_mcp_requests(

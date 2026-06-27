@@ -82,6 +82,7 @@ uv run python bin/aios.py tmcp review-plan "<objective>" --project-path "<projec
 For expert rubric work, produce or cite:
 
 - TMCP expertise packet or `tmcp explain` output
+- packet `substance_check`; if it is `process_only` or `thin_domain_signals`, say TMCP lacks a substantive domain playbook and derive rubric substance from target repo evidence
 - scored rubric
 - evidence-backed audit findings or explicit evidence gaps
 - ordered remediation plan with verification expectations

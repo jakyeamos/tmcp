@@ -67,6 +67,7 @@ Expected result:
 - `packet.schema` is `tmcp-skill-packet-v0.2`.
 - `packet.selected_nodes` contains the task route and supporting behavior modules.
 - `packet.output_contract` states what the agent must preserve.
+- `packet.substance_check.level` states whether the packet is `process_only`, `thin_domain_signals`, or `source_backed_playbook`.
 
 ## 5. Harvest Local Skills
 
@@ -156,3 +157,5 @@ node scripts/tmcp_launcher.mjs expert-ui-rubric \
 ```
 
 If MCP tool discovery does not show TMCP tools, use this CLI alias instead of downgrading the request to a generic rendered UI audit.
+
+For non-UI audits, `expert_rubric_review_plan` harvests target project sources by default. If the resulting `substance_check` is `process_only` or `thin_domain_signals`, treat TMCP as the process wrapper and derive the actual rubric from target repo artifacts.

@@ -48,6 +48,16 @@ See [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md), [docs/MARKETPLACE_MATRIX.md](d
 - `tmcp_recommend_workflows`: harvests skill sources, infers priority signals, and recommends custom expert workflows with evidence.
 - `expert_rubric_review_plan`: creates an expertise packet, scored rubric, audit report, remediation plan, and approval-gated implementation handoff.
 
+## Packet Substance
+
+Every compiled packet includes a `substance_check`. This separates broad TMCP process scaffolding from concrete source-backed playbook content.
+
+- `process_only`: TMCP has routing/process guidance, but no useful domain playbook.
+- `thin_domain_signals`: TMCP found related terms, but not enough actionable source material.
+- `source_backed_playbook`: harvested sources contain concrete task guidance that can shape the rubric.
+
+When a packet is process-only or thin, TMCP should say so and derive rubric substance from the target repo's docs, code, tests, risk registers, and readiness gates.
+
 ## Skill Harvest
 
 Harvest is setup-agnostic. It does not assume Codex, Claude, AIOS, or a specific home directory layout.

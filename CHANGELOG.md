@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.2.4 - 2026-06-27
+
+- Added packet substance checks that distinguish process-only TMCP scaffolding from source-backed domain playbooks.
+- Review plans now harvest target project sources by default before synthesizing rubrics.
+- Added a public-sector readiness rubric profile for government/compliance/readiness audits.
+- Review outputs now surface fallback policy when TMCP lacks substantive domain guidance and should derive rubric content from target repo evidence.
+
 ## 0.2.3 - 2026-06-27
 
 - Added a direct CLI surface through `node scripts/tmcp_launcher.mjs <command>` for doctor, status, explain, harvest, recommend, and review-plan workflows.

@@ -78,6 +78,75 @@ MODULE_BEHAVIOR_ATOMS: dict[str, tuple[str, ...]] = {
     "user_approval_gate": ("approval-before-implementation", "audit-plan-before-edit"),
 }
 
+PROCESS_ONLY_MODULES = {
+    "context_gathering",
+    "evidence_first",
+    "output_contract",
+    "provenance_policy",
+    "test_gate",
+    "tool_use_policy",
+    "user_approval_gate",
+}
+
+PLAYBOOK_ACTION_TERMS = (
+    "audit",
+    "blocker",
+    "check",
+    "criterion",
+    "criteria",
+    "evidence",
+    "gate",
+    "inspect",
+    "must",
+    "readiness",
+    "require",
+    "review",
+    "risk",
+    "score",
+    "validate",
+    "verify",
+)
+
+DOMAIN_PLAYBOOK_TERMS = (
+    "accessibility",
+    "audit log",
+    "auditability",
+    "auth",
+    "calculation",
+    "compliance",
+    "deployment",
+    "evidence gate",
+    "government",
+    "legal",
+    "migration",
+    "observability",
+    "permission",
+    "privacy",
+    "public sector",
+    "readiness",
+    "release blocker",
+    "retention",
+    "rollback",
+    "security",
+    "tenant",
+    "uat",
+)
+
+SUBSTANTIVE_SOURCE_TYPES = {
+    "agent_operating_contract",
+    "cursor_rule",
+    "github_process",
+    "project_documentation",
+    "skill_definition",
+    "workflow_prompt",
+}
+
+NON_SUBSTANTIVE_SOURCE_NAME_TERMS = (
+    "changelog",
+    "release_checklist",
+    "verification",
+)
+
 DEFAULT_HARVEST_INCLUDE_GLOBS = (
     "**/SKILL.md",
     "**/AGENTS.md",
@@ -152,6 +221,80 @@ HARVEST_SOURCE_TYPE_ATOMS: dict[str, tuple[str, ...]] = {
 }
 
 PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
+    "public_sector_readiness": [
+        {
+            "id": "governance_policy_fit",
+            "name": "Governance And Policy Fit",
+            "weight": 4,
+            "expectations": [
+                "Evidence for policy, rule ownership, authority boundaries, and acceptance criteria."
+            ],
+            "questions": [
+                "Are governing rules and decision owners explicit?",
+                "Can a reviewer trace readiness claims to source artifacts?",
+            ],
+        },
+        {
+            "id": "security_privacy_controls",
+            "name": "Security And Privacy Controls",
+            "weight": 4,
+            "expectations": [
+                "Evidence for auth, permissions, tenant boundaries, sensitive data handling, and retention."
+            ],
+            "questions": [
+                "Can protected data cross an unauthorized boundary?",
+                "Are privacy and permission risks release-gated?",
+            ],
+        },
+        {
+            "id": "auditability_provenance",
+            "name": "Auditability And Provenance",
+            "weight": 4,
+            "expectations": [
+                "Evidence for audit logs, source provenance, reproducible decisions, and review trails."
+            ],
+            "questions": [
+                "Can important outputs be explained from source evidence?",
+                "Are operational actions attributable and reviewable?",
+            ],
+        },
+        {
+            "id": "legal_calculation_safety",
+            "name": "Legal Calculation Safety",
+            "weight": 4,
+            "expectations": [
+                "Evidence for calculation rules, edge cases, tests, fixtures, and legal-domain assumptions."
+            ],
+            "questions": [
+                "Are calculations protected by domain fixtures or examples?",
+                "Are ambiguous legal assumptions surfaced instead of hidden?",
+            ],
+        },
+        {
+            "id": "operational_release_readiness",
+            "name": "Operational Release Readiness",
+            "weight": 3,
+            "expectations": [
+                "Evidence for CI, deployment, rollback, monitoring, support, and release blockers."
+            ],
+            "questions": [
+                "Are blockers separated from follow-up improvements?",
+                "Can the team verify readiness before launch?",
+            ],
+        },
+        {
+            "id": "accessibility_public_use",
+            "name": "Accessibility And Public Use",
+            "weight": 3,
+            "expectations": [
+                "Evidence for accessibility, user-facing language, error states, and public-service usability."
+            ],
+            "questions": [
+                "Can target users complete critical paths accessibly?",
+                "Are failure states understandable and recoverable?",
+            ],
+        },
+    ],
     "visual_polish": [
         {
             "id": "surface_hierarchy",
@@ -655,6 +798,12 @@ TOOLS: dict[str, dict[str, Any]] = {
                     "type": "string",
                     "default": "[]",
                 },
+                "harvest_sources": {
+                    "description": "Harvest target project docs/process files for packet substance before synthesizing the rubric.",
+                    "type": "boolean",
+                    "default": True,
+                },
+                "source_limit": {"type": "integer", "default": 24},
                 "selected_slice_id": {"type": "string"},
                 "adapter": {
                     "type": "string",
@@ -836,6 +985,25 @@ def _select_profile(objective: str, packet: dict[str, Any]) -> str:
     ).lower()
     if any(term in haystack for term in ("ui", "ux", "frontend", "visual", "screen", "design")):
         return "visual_polish"
+    if any(
+        term in haystack
+        for term in (
+            "government",
+            "public sector",
+            "public-sector",
+            "compliance",
+            "tenant",
+            "auditability",
+            "legal",
+            "calculation",
+            "uat",
+            "release blocker",
+        )
+    ) or (
+        "readiness" in haystack
+        and any(term in haystack for term in ("government", "public sector", "public-sector", "compliance"))
+    ):
+        return "public_sector_readiness"
     if any(term in haystack for term in ("security", "privacy", "secret", "permission")):
         return "security_privacy"
     if any(term in haystack for term in ("developer", "docs", "cli", "command", "onboarding")):
@@ -865,6 +1033,7 @@ def _packet_markdown(packet: dict[str, Any]) -> str:
         f"- Selected nodes: {', '.join(packet['selected_nodes'])}",
         f"- Skipped nodes: {', '.join(packet['skipped_nodes'])}",
         f"- Behavior atoms: {', '.join(packet['behavior_atoms'])}",
+        f"- Substance: `{packet.get('substance_check', {}).get('level', 'unknown')}`",
         "",
         "## Traversal",
     ]
@@ -875,7 +1044,139 @@ def _packet_markdown(packet: dict[str, Any]) -> str:
     lines.extend(["", "## Output Contract"])
     for item in packet["output_contract"]:
         lines.append(f"- {item}")
+    substance = packet.get("substance_check")
+    if isinstance(substance, dict):
+        lines.extend(["", "## Substance Check"])
+        lines.append(f"- Level: `{substance.get('level', 'unknown')}`")
+        lines.append(f"- Score: {substance.get('score', 0)}/4")
+        lines.append(f"- Fallback policy: {substance.get('fallback_policy', '')}")
+        for issue in _string_list(substance.get("issues")):
+            lines.append(f"- Issue: {issue}")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def _source_node_for_packet(node: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": f"@source:{node['id']}",
+        "path": node.get("path"),
+        "relative_path": node.get("relative_path"),
+        "title": node.get("title"),
+        "source_type": node.get("source_type"),
+        "source_tier": node.get("source_tier"),
+        "behavior_atoms": node.get("behavior_atoms", []),
+        "keywords": _string_list(node.get("keywords"))[:20],
+        "excerpt": str(node.get("excerpt", ""))[:800],
+    }
+
+
+def _packet_substance_check(
+    *,
+    objective: str,
+    task_id: str,
+    modules: list[str],
+    source_nodes: list[dict[str, Any]],
+) -> dict[str, Any]:
+    source_texts = [
+        " ".join(
+            [
+                str(node.get("title", "")),
+                str(node.get("source_type", "")),
+                " ".join(_string_list(node.get("keywords"))),
+                str(node.get("excerpt", "")),
+            ]
+        ).lower()
+        for node in source_nodes
+    ]
+    source_combined = " ".join(source_texts)
+    objective_lower = objective.lower()
+    requested_anchor_terms = sorted(
+        {
+            term
+            for term in ("government", "public sector", "public-sector", "compliance", "legal", "calculation")
+            if term in objective_lower
+        }
+    )
+    matched_domain_terms = sorted({term for term in DOMAIN_PLAYBOOK_TERMS if term in source_combined})
+    matched_action_terms = sorted({term for term in PLAYBOOK_ACTION_TERMS if term in source_combined})
+    substantive_nodes: list[dict[str, Any]] = []
+    for node, text in zip(source_nodes, source_texts):
+        domain_hits = [term for term in DOMAIN_PLAYBOOK_TERMS if term in text]
+        action_hits = [term for term in PLAYBOOK_ACTION_TERMS if term in text]
+        has_required_anchor = not requested_anchor_terms or any(term in text for term in requested_anchor_terms)
+        has_substantive_type = str(node.get("source_type", "")) in SUBSTANTIVE_SOURCE_TYPES
+        name_scope = " ".join(
+            [
+                str(node.get("path", "")),
+                str(node.get("relative_path", "")),
+                str(node.get("title", "")),
+            ]
+        ).lower()
+        is_non_substantive = any(term in name_scope for term in NON_SUBSTANTIVE_SOURCE_NAME_TERMS)
+        if (
+            has_substantive_type
+            and not is_non_substantive
+            and has_required_anchor
+            and len(domain_hits) >= 2
+            and len(action_hits) >= 2
+        ):
+            substantive_nodes.append(
+                {
+                    "id": node.get("id"),
+                    "path": node.get("path"),
+                    "title": node.get("title"),
+                    "matched_domain_terms": sorted(set(domain_hits))[:8],
+                    "matched_action_terms": sorted(set(action_hits))[:8],
+                }
+            )
+    process_modules = [module for module in modules if module in PROCESS_ONLY_MODULES]
+    score = 0
+    if source_nodes:
+        score += 1
+    if matched_action_terms:
+        score += 1
+    if len(matched_domain_terms) >= 2:
+        score += 1
+    if substantive_nodes:
+        score += 1
+    score = min(score, 4)
+    if score >= 3 and substantive_nodes:
+        level = "source_backed_playbook"
+    elif score >= 2:
+        level = "thin_domain_signals"
+    else:
+        level = "process_only"
+    issues: list[str] = []
+    if not source_nodes:
+        issues.append("No harvested source nodes were available for task-specific playbook content.")
+    if not substantive_nodes:
+        issues.append("Selected TMCP modules are mostly process scaffolding, not a concrete domain playbook.")
+    if task_id == "audit" and level != "source_backed_playbook":
+        issues.append("Audit rubric substance should be derived from target repo evidence and cited artifacts.")
+    fallback_policy = (
+        "Use TMCP for routing, evidence discipline, and output contract; derive rubric substance from target repo docs, code, tests, risk registers, and readiness gates."
+        if level != "source_backed_playbook"
+        else "Use harvested source nodes as substantive rubric guidance, then verify every finding against target evidence."
+    )
+    return {
+        "schema": "tmcp-packet-substance-v0.1",
+        "level": level,
+        "score": score,
+        "has_domain_playbook": level == "source_backed_playbook",
+        "source_node_count": len(source_nodes),
+        "substantive_source_count": len(substantive_nodes),
+        "process_only_modules": process_modules,
+        "matched_domain_terms": matched_domain_terms[:12],
+        "matched_action_terms": matched_action_terms[:12],
+        "requested_anchor_terms": requested_anchor_terms,
+        "substantive_source_nodes": substantive_nodes[:5],
+        "issues": issues,
+        "fallback_policy": fallback_policy,
+        "recommended_next_step": (
+            "Harvest the completed review into a reusable TMCP skill after the audit."
+            if level != "source_backed_playbook"
+            else "Run the review with evidence-backed scoring and preserve source citations."
+        ),
+    }
 
 
 def _compile_standalone_packet(
@@ -891,15 +1192,7 @@ def _compile_standalone_packet(
     if "tmcp" in objective.lower() and "provenance_policy" not in modules:
         modules.append("provenance_policy")
     branch_id, branch_reason = _select_branch(objective, task_id)
-    source_nodes = [
-        {
-            "id": f"@source:{node['id']}",
-            "path": node.get("path"),
-            "title": node.get("title"),
-            "behavior_atoms": node.get("behavior_atoms", []),
-        }
-        for node in (harvested_nodes or [])[:8]
-    ]
+    source_nodes = [_source_node_for_packet(node) for node in (harvested_nodes or [])[:8]]
     selected_nodes = [
         f"@task:{task_id}",
         *(f"@module:{module}" for module in modules),
@@ -937,6 +1230,12 @@ def _compile_standalone_packet(
         json.dumps({"tasks": TASK_KEYWORDS, "modules": TASK_MODULES}, sort_keys=True).encode()
     ).hexdigest()
     fingerprint = hashlib.sha256(fingerprint_source.encode()).hexdigest()
+    substance_check = _packet_substance_check(
+        objective=objective,
+        task_id=task_id,
+        modules=modules,
+        source_nodes=source_nodes,
+    )
     packet: dict[str, Any] = {
         "schema": TMCP_PACKET_SCHEMA,
         "receipt_schema": TMCP_RECEIPT_SCHEMA,
@@ -954,6 +1253,7 @@ def _compile_standalone_packet(
         "selected_branches": [{"branch": f"@branch:{branch_id}", "reason": branch_reason}],
         "candidate_scores": {"tasks": task_scores},
         "source_skill_nodes": source_nodes,
+        "substance_check": substance_check,
         "behavior_atoms": atoms,
         "shortcut_candidate": {
             "node": "@shortcut:candidate",
@@ -997,6 +1297,7 @@ def _compile_standalone_packet(
             "Cite concrete evidence or explicitly name evidence gaps.",
             "Preserve conflicting branches instead of flattening them into one rule.",
             "For expert rubric work, stop at audit and remediation plan unless edits are explicitly requested.",
+            "If the packet is process-only, say so and derive rubric substance from target repo evidence.",
         ],
         "created_at": _now_iso(),
     }
@@ -1052,6 +1353,7 @@ def _synthesize_rubric(packet: dict[str, Any], run_id: str, objective: str) -> d
         "objective": objective,
         "source_packet": "expertise-packet.json",
         "profile": profile,
+        "substance_check": packet.get("substance_check", {}),
         "selected_nodes": source_nodes,
         "skipped_nodes": packet.get("skipped_nodes", []),
         "dimensions": [
@@ -1127,15 +1429,18 @@ def _build_audit_report(
                 "gaps": gaps,
             }
         )
+    substance = rubric.get("substance_check") if isinstance(rubric.get("substance_check"), dict) else {}
+    deferred_scope = [gap for score in scores for gap in _string_list(score.get("gaps"))]
+    if substance and not bool(substance.get("has_domain_playbook")):
+        deferred_scope.extend(_string_list(substance.get("issues")))
     return {
         "schema": AUDIT_REPORT_SCHEMA,
         "run_id": run_id,
         "rubric": "rubric.json",
+        "substance_check": substance,
         "scores": scores,
         "findings": findings,
-        "deferred_scope": [
-            gap for score in scores for gap in _string_list(score.get("gaps"))
-        ],
+        "deferred_scope": deferred_scope,
     }
 
 
@@ -1226,6 +1531,18 @@ def _validations(
             "issues": [],
         },
         {
+            "validation_key": "domain_playbook_available",
+            "passed": bool(
+                isinstance(packet.get("substance_check"), dict)
+                and packet["substance_check"].get("has_domain_playbook")
+            ),
+            "issues": _string_list(
+                packet.get("substance_check", {}).get("issues")
+                if isinstance(packet.get("substance_check"), dict)
+                else ["Packet substance check missing."]
+            ),
+        },
+        {
             "validation_key": "rubric_dimensions_present",
             "passed": bool(rubric.get("dimensions")),
             "issues": [] if rubric.get("dimensions") else ["Rubric has no dimensions."],
@@ -1253,6 +1570,17 @@ def _validations(
 
 def _markdown_rubric(rubric: dict[str, Any]) -> str:
     lines = [f"# Expert Rubric: {rubric['objective']}", "", f"Profile: `{rubric['profile']}`", ""]
+    substance = rubric.get("substance_check")
+    if isinstance(substance, dict):
+        lines.extend(
+            [
+                "## Packet Substance",
+                "",
+                f"- Level: `{substance.get('level', 'unknown')}`",
+                f"- Fallback policy: {substance.get('fallback_policy', '')}",
+                "",
+            ]
+        )
     for dimension in rubric["dimensions"]:
         lines.extend(
             [
@@ -1285,6 +1613,11 @@ def _markdown_audit(report: dict[str, Any]) -> str:
         lines.extend(["", "## Deferred Scope"])
         for item in report["deferred_scope"]:
             lines.append(f"- {item}")
+    substance = report.get("substance_check")
+    if isinstance(substance, dict):
+        lines.extend(["", "## TMCP Substance Check"])
+        lines.append(f"- Level: `{substance.get('level', 'unknown')}`")
+        lines.append(f"- Fallback policy: {substance.get('fallback_policy', '')}")
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -1346,15 +1679,36 @@ def _default_output_dir(project_path: str) -> str:
     return str(root / ".aios" / "reviews" / f"tmcp-mcp-{uuid.uuid4().hex[:8]}")
 
 
+def _harvest_review_sources(project_path: str, objective: str, source_limit: int) -> tuple[list[dict[str, Any]], list[str]]:
+    harvest = _harvest_skills(
+        {
+            "source_path": project_path,
+            "objective": f"Harvest source material for review: {objective}",
+            "limit": max(1, source_limit),
+            "write_artifacts": False,
+        }
+    )
+    return _json_list(harvest.get("source_nodes")), _string_list(harvest.get("warnings"))
+
+
 def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     objective = str(arguments["objective"])
     project_path = str(arguments.get("project_path") or ".")
     run_id = f"tmcp-review-plan-{uuid.uuid4().hex[:8]}"
     evidence_items = _parse_evidence(arguments.get("evidence_json") or "[]")
+    harvested_nodes: list[dict[str, Any]] = []
+    harvest_warnings: list[str] = []
+    if bool(arguments.get("harvest_sources", True)):
+        harvested_nodes, harvest_warnings = _harvest_review_sources(
+            str(Path(project_path).expanduser()),
+            objective,
+            int(arguments.get("source_limit") or 24),
+        )
     packet = _compile_standalone_packet(
         objective=objective,
         project_path=str(Path(project_path).expanduser()),
         phase="planning",
+        harvested_nodes=harvested_nodes,
     )
     rubric = _synthesize_rubric(packet, run_id, objective)
     audit_report = _build_audit_report(rubric, evidence_items, run_id)
@@ -1382,6 +1736,7 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         "run_id": run_id,
         "status": "completed",
         "validations": _validations(packet, rubric, audit_report, remediation_plan),
+        "harvest_warnings": harvest_warnings,
         "expertise_packet": packet,
         "rubric": rubric,
         "audit_report": audit_report,
@@ -2174,7 +2529,7 @@ def _handle(request: dict[str, Any]) -> None:
             request_id,
             {
                 "protocolVersion": params.get("protocolVersion", "2024-11-05"),
-                "serverInfo": {"name": "tmcp", "version": "0.2.3"},
+                "serverInfo": {"name": "tmcp", "version": "0.2.4"},
                 "capabilities": {"tools": {}},
             },
         )
