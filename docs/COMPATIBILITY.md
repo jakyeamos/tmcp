@@ -19,6 +19,7 @@ Current verification:
 ## Filesystem Assumptions
 
 - Plugin launch `cwd` is the plugin root.
+- Codex MCP config declares `"type": "stdio"` and then launches the bundled Node entrypoint.
 - MCP launcher path is relative: `scripts/tmcp_launcher.mjs`.
 - Python server path is relative from the launcher: `scripts/tmcp_mcp_server.py`.
 - Harvest roots may be files or directories.

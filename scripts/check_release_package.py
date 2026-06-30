@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 import sys
 import tarfile
@@ -12,7 +11,14 @@ from pathlib import Path
 from typing import Any
 
 
-EXCLUDE_DIRS = {"__pycache__", ".git", ".pre-cr", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
+EXCLUDE_DIRS = {
+    "__pycache__",
+    ".git",
+    ".pre-cr",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+}
 EXCLUDE_SUFFIXES = {".pyc", ".pyo"}
 
 
@@ -71,8 +77,12 @@ def check_package(package_path: Path) -> dict[str, Any]:
         with tarfile.open(package_path, "r:gz") as archive:
             safe_extractall(archive, tmp_path)
         plugin_root = tmp_path / "tmcp"
-        install_ok, install_output = run([sys.executable, "scripts/check_install.py", "."], plugin_root)
-        tests_ok, tests_output = run([sys.executable, "-m", "unittest", "discover", "-s", "tests"], plugin_root)
+        install_ok, install_output = run(
+            [sys.executable, "scripts/check_install.py", "."], plugin_root
+        )
+        tests_ok, tests_output = run(
+            [sys.executable, "-m", "unittest", "discover", "-s", "tests"], plugin_root
+        )
         compile_ok, compile_output = run(
             [
                 sys.executable,
@@ -87,7 +97,9 @@ def check_package(package_path: Path) -> dict[str, Any]:
             ],
             plugin_root,
         )
-        launcher_ok, launcher_output = run(["node", "--check", "scripts/tmcp_launcher.mjs"], plugin_root)
+        launcher_ok, launcher_output = run(
+            ["node", "--check", "scripts/tmcp_launcher.mjs"], plugin_root
+        )
     return {
         "install_check": "pass" if install_ok else "fail",
         "tests": "pass" if tests_ok else "fail",
@@ -103,8 +115,12 @@ def check_package(package_path: Path) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Create and verify a TMCP release package.")
-    parser.add_argument("plugin_root", nargs="?", default=".", help="Path to plugin root")
+    parser = argparse.ArgumentParser(
+        description="Create and verify a TMCP release package."
+    )
+    parser.add_argument(
+        "plugin_root", nargs="?", default=".", help="Path to plugin root"
+    )
     parser.add_argument("--output", help="Optional package output path")
     args = parser.parse_args()
 

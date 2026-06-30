@@ -1,6 +1,7 @@
 {
   "mcpServers": {
     "tmcp": {
+      "type": "stdio",
       "command": "node",
       "args": [
         "scripts/tmcp_launcher.mjs"

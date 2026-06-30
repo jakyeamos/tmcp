@@ -19,7 +19,7 @@ python3 scripts/check_install.py .
 Expected result:
 
 - `.codex-plugin/plugin.json` exists and points to `./.mcp.json`.
-- `.mcp.json` launches `node scripts/tmcp_launcher.mjs` with `cwd` set to `.`.
+- `.mcp.json` declares a stdio MCP server and launches `node scripts/tmcp_launcher.mjs` with `cwd` set to `.`.
 - MCP `tools/list` succeeds with `AIOS_ROOT` pointed at a missing path.
 
 ## First-Run Smoke Test
@@ -51,8 +51,9 @@ Required files:
 - `scripts/tmcp_launcher.mjs`
 - `scripts/tmcp_mcp_server.py`
 - `skills/tmcp/SKILL.md`
+- focused Codex router skills for UI rubric, release readiness, skill harvest, workflow recommendation, DX audit, and security/privacy audit
 
-The MCP launcher and server paths must remain relative to the plugin root. Do not hardcode a user home directory or AIOS checkout path.
+The MCP launcher and server paths must remain relative to the plugin root. Do not hardcode a user home directory or AIOS checkout path. The Codex MCP server declaration should include `"type": "stdio"` so hosts that require explicit stdio discovery do not skip the bundled server.
 
 ## Claude Code Plugin Shape
 

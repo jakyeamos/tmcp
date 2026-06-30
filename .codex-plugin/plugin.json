@@ -1,7 +1,7 @@
 {
   "name": "tmcp",
   "version": "0.2.5+codex.20260627193822",
-  "description": "Expose standalone TMCP skill-packet workflows, skill harvesting, workflow recommendations, packet substance checks, and expert rubric remediation to Codex.",
+  "description": "Expose standalone TMCP skill-packet workflows, focused audit routers, skill harvesting, workflow recommendations, packet substance checks, and expert rubric remediation to Codex.",
   "author": {
     "name": "Jakye Amos"
   },
@@ -11,6 +11,12 @@
     "skills",
     "mcp",
     "rubric",
+    "audit",
+    "readiness",
+    "security",
+    "privacy",
+    "developer-experience",
+    "ui",
     "workflow",
     "harvest",
     "recommendation"
@@ -18,8 +24,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "TMCP",
-    "shortDescription": "Route work through TMCP skill packets and expert rubrics.",
-    "longDescription": "TMCP exposes task-specific skill packet compilation, local skill harvesting, harvest-driven workflow recommendations, and expert rubric remediation workflows for UI, evidence, security, developer-experience, and general audits. It runs standalone and can use AIOS as an optional acceleration and persistence adapter when available.",
+    "shortDescription": "Route audits and planning work through TMCP skill packets and expert rubrics.",
+    "longDescription": "TMCP exposes task-specific skill packet compilation, focused Codex routing skills, local skill harvesting, harvest-driven workflow recommendations, and expert rubric remediation workflows for UI quality, release readiness, security/privacy, developer experience, and general audits. It runs standalone and can use AIOS as an optional acceleration and persistence adapter when available.",
     "developerName": "Jakye Amos",
     "category": "Productivity",
     "capabilities": [
@@ -34,6 +40,9 @@
     "logoDark": "./assets/logo-dark.svg",
     "defaultPrompt": [
       "Use the TMCP expert UI rubric on this project.",
+      "Review release readiness with TMCP.",
+      "Audit developer onboarding with TMCP.",
+      "Run a TMCP security and privacy process audit.",
       "Explain the TMCP packet for this task.",
       "Run tmcp_doctor and verify this install.",
       "Harvest this repo into a TMCP packet.",
