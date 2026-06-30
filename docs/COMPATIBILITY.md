@@ -25,6 +25,7 @@ Current verification:
 - Harvest roots may be files or directories.
 - Symlink traversal is disabled by default.
 - Dependency, build, cache, VCS, coverage, and generated plugin-cache directories are pruned by default.
+- Adaptive workflow recommendations are derived from harvested text, frontmatter, paths, source types, keywords, and behavior atoms. They are advisory until the user selects a workflow.
 
 ## Known Gaps
 

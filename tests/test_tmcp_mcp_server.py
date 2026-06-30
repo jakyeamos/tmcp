@@ -15,6 +15,7 @@ from typing import cast
 SERVER_PATH = Path(__file__).resolve().parents[1] / "scripts" / "tmcp_mcp_server.py"
 PLUGIN_ROOT = SERVER_PATH.parents[1]
 LAUNCHER_PATH = PLUGIN_ROOT / "scripts" / "tmcp_launcher.mjs"
+CHECK_INSTALL_PATH = PLUGIN_ROOT / "scripts" / "check_install.py"
 GOLDEN_PACKETS_PATH = PLUGIN_ROOT / "tests" / "fixtures" / "golden_packets.json"
 PACKET_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-skill-packet-v0.2.schema.json"
 
@@ -33,6 +34,15 @@ def load_framing_module():
     spec = importlib.util.spec_from_file_location("tmcp_mcp_framing", path)
     if spec is None or spec.loader is None:
         raise RuntimeError("Could not load tmcp_mcp_framing module")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_check_install_module():
+    spec = importlib.util.spec_from_file_location("check_install", CHECK_INSTALL_PATH)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("Could not load check_install module")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -270,6 +280,94 @@ class TmcpMcpServerTests(unittest.TestCase):
             paths = result["artifact_paths"]
             self.assertTrue(Path(paths["recommendation_json"]).exists())
             self.assertTrue(Path(paths["recommendation_markdown"]).exists())
+
+    def test_recommend_workflows_includes_adaptive_default_templates(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "workflows.md").write_text(
+                "\n".join(
+                    [
+                        "# Operating Workflows",
+                        "Run incident postmortem and regression analysis after outages.",
+                        "Write ADR architecture decision records with alternatives and tradeoffs.",
+                        "Plan migrations, upgrades, deprecation cleanup, and rollback validation.",
+                        "Create handoff and continuity packets for agents before pausing work.",
+                        "Review PR risk, pull request diffs, changed contracts, and merge safety.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {
+                    "source_path": str(root),
+                    "candidate_workflows": [
+                        "incident_postmortem_workflow",
+                        "architecture_decision_workflow",
+                        "migration_readiness_workflow",
+                        "agent_handoff_workflow",
+                        "pr_risk_review_workflow",
+                    ],
+                    "min_confidence": 0.1,
+                },
+            )
+
+        recommended_ids = {item["id"] for item in result["recommended_workflows"]}
+        self.assertEqual(
+            recommended_ids,
+            {
+                "incident_postmortem_workflow",
+                "architecture_decision_workflow",
+                "migration_readiness_workflow",
+                "agent_handoff_workflow",
+                "pr_risk_review_workflow",
+            },
+        )
+
+    def test_recommend_workflows_filters_expanded_signal_families(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "AGENTS.md").write_text(
+                "# Agent Rules\n\nPrepare handoff continuity packets with state, blockers, next commands, and open questions.\n",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {
+                    "source_path": str(root),
+                    "candidate_workflows": ["agent_handoff"],
+                    "min_confidence": 0.1,
+                },
+            )
+
+        self.assertEqual(
+            [item["id"] for item in result["recommended_workflows"]],
+            ["agent_handoff_workflow"],
+        )
+        self.assertEqual(result["not_recommended"], [])
+
+    def test_install_check_requires_adaptive_router_skills(self) -> None:
+        check_install = load_check_install_module()
+        required_files = set(check_install.REQUIRED_FILES)
+
+        self.assertTrue(
+            {
+                "skills/tmcp-incident-postmortem/SKILL.md",
+                "skills/tmcp-architecture-decision/SKILL.md",
+                "skills/tmcp-test-strategy/SKILL.md",
+                "skills/tmcp-migration-readiness/SKILL.md",
+                "skills/tmcp-data-integrity-audit/SKILL.md",
+                "skills/tmcp-agent-handoff/SKILL.md",
+                "skills/tmcp-pr-risk-review/SKILL.md",
+                "skills/tmcp-performance-readiness/SKILL.md",
+                "skills/tmcp-adaptive-workflow-pack/SKILL.md",
+                "skills/tmcp-custom-rubric-generator/SKILL.md",
+                "skills/tmcp-routing-policy-generator/SKILL.md",
+                "skills/tmcp-skill-gap-analysis/SKILL.md",
+            }.issubset(required_files)
+        )
 
     def test_review_plan_writes_expected_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

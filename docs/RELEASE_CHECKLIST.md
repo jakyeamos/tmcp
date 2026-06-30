@@ -10,7 +10,7 @@ Use this checklist before claiming a Tier One release.
 - [ ] `.claude-plugin/plugin.json` has current version.
 - [ ] `.claude-plugin/marketplace.json` points at the public GitHub repository.
 - [ ] `.mcp.json` declares stdio and launches the Node launcher with relative plugin-root paths.
-- [ ] Focused Codex router skills exist for UI rubric, release readiness, skill harvest, workflow recommendation, DX audit, and security/privacy audit.
+- [ ] Focused Codex router skills exist for default workflow templates and adaptive workflow-pack generation.
 - [ ] `python3 scripts/check_install.py .` passes.
 - [ ] Clean-copy install check passes.
 

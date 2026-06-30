@@ -18,7 +18,7 @@ node scripts/tmcp_launcher.mjs doctor --client codex
 node scripts/tmcp_launcher.mjs status
 node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --adapter standalone
 node scripts/tmcp_launcher.mjs harvest . --objective "Harvest reusable project workflow behavior" --limit 40
-node scripts/tmcp_launcher.mjs recommend . --objective "Recommend custom TMCP workflows from this project's skill signals" --limit 40
+node scripts/tmcp_launcher.mjs recommend . --objective "Build an adaptive TMCP workflow pack from this project's skill signals" --limit 40
 node scripts/tmcp_launcher.mjs review-plan "Use the TMCP expert UI rubric on Hoopscout" --project-path . --evidence-json '[]'
 node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path . --evidence-json '[]'
 ```
@@ -48,6 +48,7 @@ node scripts/tmcp_launcher.mjs harvest . \
 node scripts/tmcp_launcher.mjs recommend . \
   --candidate-workflows ui_quality \
   --candidate-workflows security_privacy \
+  --candidate-workflows agent_handoff \
   --min-confidence 0.3 \
   --write-artifacts \
   --output-dir .tmcp/workflow-recommendations
@@ -92,11 +93,12 @@ node scripts/tmcp_launcher.mjs expert-ui-rubric \
 
 This command is intentionally equivalent to `expert_rubric_review_plan` with the objective `Use the TMCP expert UI rubric on this project.` Use it when MCP tool discovery fails or when another agent host says TMCP is not exposed as a callable tool.
 
-For skill-harvest workflow recommendation, the expected sequence is:
+For adaptive workflow-pack recommendation, the expected sequence is:
 
 1. `harvest`
 2. inspect warnings and redaction summary
 3. `recommend`
-4. run the recommended workflow selected by the user
+4. identify recommended default workflows, custom workflow ideas, routing triggers, and documented process gaps
+5. run the workflow selected by the user
 
 AIOS remains optional. `--adapter auto` may use AIOS when `AIOS_ROOT` points to an available checkout; `--adapter standalone` keeps execution inside this plugin.

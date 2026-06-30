@@ -88,9 +88,9 @@ Expected result:
 - `redaction_summary` reports secret redaction activity.
 - `packet_seed` is ready to feed into later TMCP workflows.
 
-## 6. Run A Non-UI Workflow
+## 6. Build An Adaptive Workflow Pack
 
-Call `tmcp_recommend_workflows` when you want TMCP to infer which expert workflows fit a harvested skill corpus:
+Call `tmcp_recommend_workflows` when you want TMCP to infer which expert workflows fit a harvested skill corpus. Fixed workflows are default templates; harvested user, team, or repo signals can also shape custom workflow-pack ideas.
 
 ```json
 {
@@ -105,6 +105,7 @@ Expected result:
 - `priority_profile.primary_signals` names the strongest coding-quality priorities.
 - `recommended_workflows` includes evidence-backed workflow recommendations.
 - `starter_prompt` gives the prompt to run the selected workflow.
+- weak or absent signals identify skill, routing, or process documentation gaps.
 
 Use one of the examples in [examples/workflows](../examples/workflows):
 
@@ -112,12 +113,20 @@ Use one of the examples in [examples/workflows](../examples/workflows):
 - [Security and privacy harvest audit](../examples/workflows/security-privacy-harvest-audit.md)
 - [Release readiness planning](../examples/workflows/release-readiness-planning.md)
 - [Skill harvest workflow recommendation](../examples/workflows/skill-harvest-workflow-recommendation.md)
+- [Adaptive workflow pack](../examples/workflows/adaptive-workflow-pack.md)
+- [Incident postmortem packet](../examples/workflows/incident-postmortem-packet.md)
+- [Architecture decision review](../examples/workflows/architecture-decision-review.md)
+- [Migration readiness](../examples/workflows/migration-readiness.md)
+- [Agent handoff packet](../examples/workflows/agent-handoff-packet.md)
+- [PR risk review](../examples/workflows/pr-risk-review.md)
+- [Performance readiness](../examples/workflows/performance-readiness.md)
+- [Data integrity audit](../examples/workflows/data-integrity-audit.md)
 
 CLI equivalent:
 
 ```bash
 node scripts/tmcp_launcher.mjs recommend . \
-  --objective "Recommend custom TMCP workflows from this project's skill signals" \
+  --objective "Build an adaptive TMCP workflow pack from this project's skill signals" \
   --limit 40 \
   --write-artifacts \
   --output-dir .tmcp/workflow-recommendations

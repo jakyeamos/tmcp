@@ -1,6 +1,6 @@
 # TMCP
 
-TMCP is a standalone skill-packet workflow plugin. It compiles task-specific packets from local instructions and evidence, harvests reusable skill behavior from arbitrary repositories, and produces expert rubric remediation plans.
+TMCP is a standalone adaptive skill-packet workflow plugin. It compiles task-specific packets from local instructions and evidence, harvests reusable skill behavior from arbitrary repositories, recommends default and custom workflows from harvested signals, and produces expert rubric remediation plans.
 
 AIOS is optional. When `AIOS_ROOT` points to an AIOS checkout, the plugin can use AIOS for richer graph traversal and persistence. Without AIOS, the MCP server still supports packet compilation, skill harvest, expert rubric planning, and artifact writing.
 
@@ -13,7 +13,7 @@ Start with [docs/QUICKSTART.md](docs/QUICKSTART.md). The shortest first-run path
 3. Run `tmcp_status`.
 4. Run `tmcp_explain` with your objective.
 5. Run `tmcp_recommend_workflows` to infer which expert workflows fit your harvested skill signals.
-6. Use one of the example workflows in [examples](examples).
+6. Use one of the default workflow templates or generate a custom workflow pack from [examples](examples).
 
 If your MCP host does not expose tools cleanly, use the same surface through the direct CLI:
 
@@ -45,7 +45,7 @@ See [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md), [docs/MARKETPLACE_MATRIX.md](d
 - `tmcp_status`: reports standalone capability and optional AIOS adapter availability.
 - `tmcp_explain`: compiles a task-specific TMCP packet.
 - `tmcp_harvest_skills`: harvests local skills, agent instructions, editor rules, repository process docs, and workflow docs into source nodes.
-- `tmcp_recommend_workflows`: harvests skill sources, infers priority signals, and recommends custom expert workflows with evidence.
+- `tmcp_recommend_workflows`: harvests skill sources, infers priority signals, and recommends default workflow templates or custom workflow-pack directions with evidence.
 - `expert_rubric_review_plan`: creates an expertise packet, scored rubric, audit report, remediation plan, and approval-gated implementation handoff.
 
 ## Packet Substance
@@ -83,10 +83,25 @@ Sensitive-looking values are redacted by default before excerpts, frontmatter, k
 
 The current packet schema is `tmcp-skill-packet-v0.2`. The stability policy is documented in [docs/PACKET_STABILITY.md](docs/PACKET_STABILITY.md), and the machine-readable schema lives at [schemas/tmcp-skill-packet-v0.2.schema.json](schemas/tmcp-skill-packet-v0.2.schema.json).
 
+## Adaptive Workflow Model
+
+TMCP treats fixed workflows as default templates, not limits. A skill harvest can reveal a user, team, or repo operating profile, then recommend the right workflow family or a custom workflow-pack direction.
+
+Current default workflow families include UI quality, security/privacy, test strategy, release readiness, developer experience, maintainability, performance, data integrity, incident postmortems, architecture decisions, migration readiness, agent handoff, and PR risk review.
+
 ## Example Workflows
 
 TMCP is not limited to UI audits. The repository includes examples for:
 
+- [Adaptive workflow pack](examples/workflows/adaptive-workflow-pack.md)
+- [Architecture decision review](examples/workflows/architecture-decision-review.md)
+- [Incident postmortem packet](examples/workflows/incident-postmortem-packet.md)
+- [Test strategy audit](examples/workflows/test-strategy-audit.md)
+- [Migration readiness](examples/workflows/migration-readiness.md)
+- [Agent handoff packet](examples/workflows/agent-handoff-packet.md)
+- [PR risk review](examples/workflows/pr-risk-review.md)
+- [Performance readiness](examples/workflows/performance-readiness.md)
+- [Data integrity audit](examples/workflows/data-integrity-audit.md)
 - [Developer onboarding audit](examples/workflows/developer-onboarding-audit.md)
 - [Security and privacy harvest audit](examples/workflows/security-privacy-harvest-audit.md)
 - [Release readiness planning](examples/workflows/release-readiness-planning.md)
@@ -136,7 +151,7 @@ The launcher also exposes direct commands for debugging, CI, and agents without 
 ```bash
 node scripts/tmcp_launcher.mjs list-tools
 node scripts/tmcp_launcher.mjs harvest . --limit 40
-node scripts/tmcp_launcher.mjs recommend . --candidate-workflows ui_quality
+node scripts/tmcp_launcher.mjs recommend . --candidate-workflows agent_handoff
 node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path . --evidence-json '[]'
 node scripts/tmcp_launcher.mjs review-plan "Review release readiness" --project-path . --evidence-json '[]'
 ```
