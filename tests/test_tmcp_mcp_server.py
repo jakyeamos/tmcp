@@ -18,6 +18,9 @@ LAUNCHER_PATH = PLUGIN_ROOT / "scripts" / "tmcp_launcher.mjs"
 CHECK_INSTALL_PATH = PLUGIN_ROOT / "scripts" / "check_install.py"
 GOLDEN_PACKETS_PATH = PLUGIN_ROOT / "tests" / "fixtures" / "golden_packets.json"
 PACKET_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-skill-packet-v0.2.schema.json"
+ADAPTIVE_PACK_SCHEMA_PATH = (
+    PLUGIN_ROOT / "schemas" / "tmcp-adaptive-workflow-pack-v0.1.schema.json"
+)
 
 
 def load_server_module():
@@ -252,6 +255,96 @@ class TmcpMcpServerTests(unittest.TestCase):
         )
         self.assertTrue(result["recommended_workflows"][0]["evidence"])
         self.assertIn("starter_prompt", result["recommended_workflows"][0])
+
+    def test_recommend_workflows_returns_adaptive_pack_and_custom_ideas(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output_dir = root / "recommendations"
+            (root / "AGENTS.md").write_text(
+                "\n".join(
+                    [
+                        "# Agent Rules",
+                        "Keep command discovery, onboarding, setup docs, and release handoff evidence current.",
+                        "Preserve source traceability, quality gates, and ordered next actions in every workflow.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {
+                    "source_path": str(root),
+                    "write_artifacts": True,
+                    "output_dir": str(output_dir),
+                    "min_confidence": 0.1,
+                },
+            )
+
+            pack = result["adaptive_workflow_pack"]
+            self.assertEqual(pack["schema"], "tmcp-adaptive-workflow-pack-v0.1")
+            self.assertEqual(pack["artifact_type"], "adaptive_workflow_pack")
+            self.assertTrue(pack["harvested_source_map"])
+            self.assertTrue(pack["operating_profile"]["source_scope_counts"])
+            self.assertTrue(pack["strongest_behavior_signals"])
+            self.assertTrue(pack["recommended_default_templates"])
+            self.assertTrue(pack["generated_custom_workflow_ideas"])
+            self.assertEqual(
+                result["custom_workflow_ideas"],
+                pack["generated_custom_workflow_ideas"],
+            )
+            self.assertTrue(pack["suggested_routing_triggers"])
+            self.assertTrue(pack["documented_process_gaps"])
+            self.assertEqual(pack["next_workflow_selection"]["approval_required"], True)
+            self.assertTrue(
+                Path(result["artifact_paths"]["adaptive_pack_json"]).exists()
+            )
+
+    def test_recommended_workflows_separate_template_and_instance(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "SKILL.md").write_text(
+                "# UI Audit\n\nUse screenshots, visual polish, responsive checks, and design-system evidence.",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {"source_path": str(root), "min_confidence": 0.1},
+            )
+
+        recommendation = result["recommended_workflows"][0]
+        self.assertEqual(recommendation["template"]["id"], recommendation["id"])
+        self.assertEqual(recommendation["template"]["kind"], "default_template")
+        self.assertEqual(
+            recommendation["workflow_instance"]["template_id"], recommendation["id"]
+        )
+        self.assertEqual(recommendation["workflow_instance"]["status"], "candidate")
+        self.assertTrue(recommendation["workflow_instance"]["adapted_from"])
+        self.assertTrue(recommendation["workflow_instance"]["generated_rubric"])
+        self.assertTrue(recommendation["workflow_instance"]["required_evidence"])
+        self.assertTrue(recommendation["workflow_instance"]["routing_trigger"])
+        self.assertEqual(
+            recommendation["workflow_instance"]["next_step"],
+            "Ask the user to approve this workflow before running expert_rubric_review_plan.",
+        )
+
+    def test_adaptive_workflow_pack_schema_required_fields_match_output(self) -> None:
+        self.assertTrue(ADAPTIVE_PACK_SCHEMA_PATH.exists())
+        schema = json.loads(ADAPTIVE_PACK_SCHEMA_PATH.read_text(encoding="utf-8"))
+        result = self.server._call_tool(
+            "tmcp_recommend_workflows",
+            {
+                "source_path": str(PLUGIN_ROOT / "examples" / "workflows"),
+                "limit": 5,
+                "min_confidence": 0.1,
+            },
+        )
+
+        pack = result["adaptive_workflow_pack"]
+        self.assertEqual(schema["properties"]["schema"]["const"], pack["schema"])
+        missing = [field for field in schema["required"] if field not in pack]
+        self.assertEqual(missing, [])
 
     def test_recommend_workflows_filters_candidates_and_writes_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

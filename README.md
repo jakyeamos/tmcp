@@ -45,7 +45,7 @@ See [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md), [docs/MARKETPLACE_MATRIX.md](d
 - `tmcp_status`: reports standalone capability and optional AIOS adapter availability.
 - `tmcp_explain`: compiles a task-specific TMCP packet.
 - `tmcp_harvest_skills`: harvests local skills, agent instructions, editor rules, repository process docs, and workflow docs into source nodes.
-- `tmcp_recommend_workflows`: harvests skill sources, infers priority signals, and recommends default workflow templates or custom workflow-pack directions with evidence.
+- `tmcp_recommend_workflows`: harvests skill sources, infers priority signals, emits an `adaptive_workflow_pack`, and recommends default workflow templates plus custom workflow ideas with evidence.
 - `expert_rubric_review_plan`: creates an expertise packet, scored rubric, audit report, remediation plan, and approval-gated implementation handoff.
 
 ## Packet Substance
@@ -86,6 +86,10 @@ The current packet schema is `tmcp-skill-packet-v0.2`. The stability policy is d
 ## Adaptive Workflow Model
 
 TMCP treats fixed workflows as default templates, not limits. A skill harvest can reveal a user, team, or repo operating profile, then recommend the right workflow family or a custom workflow-pack direction.
+
+`tmcp_recommend_workflows` now returns a first-class `adaptive_workflow_pack` artifact. The pack includes a harvested source map, operating profile, strongest behavior signals, recommended default templates, generated custom workflow ideas, suggested routing triggers, documented process gaps, and an approval-gated next workflow selection.
+
+Each recommended default workflow separates the reusable `template` from a candidate `workflow_instance`. The template describes the fixed workflow family; the instance adapts that template to the harvested sources with a generated rubric seed, required evidence checklist, routing trigger, and approval gate.
 
 Current default workflow families include UI quality, security/privacy, test strategy, release readiness, developer experience, maintainability, performance, data integrity, incident postmortems, architecture decisions, migration readiness, agent handoff, and PR risk review.
 

@@ -98,7 +98,8 @@ For adaptive workflow-pack recommendation, the expected sequence is:
 1. `harvest`
 2. inspect warnings and redaction summary
 3. `recommend`
-4. identify recommended default workflows, custom workflow ideas, routing triggers, and documented process gaps
-5. run the workflow selected by the user
+4. inspect `adaptive_workflow_pack`, `custom_workflow_ideas`, and each recommendation's `template` / `workflow_instance`
+5. identify recommended default workflows, custom workflow ideas, routing triggers, and documented process gaps
+6. run the workflow selected by the user
 
 AIOS remains optional. `--adapter auto` may use AIOS when `AIOS_ROOT` points to an available checkout; `--adapter standalone` keeps execution inside this plugin.

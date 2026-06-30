@@ -1,6 +1,6 @@
 # Packet Stability
 
-TMCP packets are intended to be stable enough for other tools to consume. The current public packet schema is `tmcp-skill-packet-v0.2`.
+TMCP packets are intended to be stable enough for other tools to consume. The current public packet schema is `tmcp-skill-packet-v0.2`. Adaptive workflow-pack artifacts use `tmcp-adaptive-workflow-pack-v0.1`.
 
 ## Compatibility Promise
 
@@ -39,7 +39,7 @@ External tools can rely on these fields for `tmcp-skill-packet-v0.2`:
 
 ## Machine-Readable Schema
 
-The JSON Schema draft lives at [schemas/tmcp-skill-packet-v0.2.schema.json](../schemas/tmcp-skill-packet-v0.2.schema.json). It is intentionally strict about required fields and permissive about additive fields.
+The packet JSON Schema draft lives at [schemas/tmcp-skill-packet-v0.2.schema.json](../schemas/tmcp-skill-packet-v0.2.schema.json). The adaptive workflow-pack schema lives at [schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json](../schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json). Both are intentionally strict about required fields and permissive about additive fields.
 
 ## Migration Rules
 
@@ -49,4 +49,3 @@ When the packet schema changes:
 - Add a migration note to this file.
 - Add or update golden packet fixtures.
 - Keep MCP tool responses explicit about the packet schema they return.
-

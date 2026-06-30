@@ -20,6 +20,7 @@ from scripts.tmcp_mcp_framing import encode_message  # noqa: E402
 REQUIRED_FILES = (
     ".codex-plugin/plugin.json",
     ".mcp.json",
+    "schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json",
     "scripts/tmcp_launcher.mjs",
     "scripts/tmcp_mcp_server.py",
     "skills/tmcp-adaptive-workflow-pack/SKILL.md",

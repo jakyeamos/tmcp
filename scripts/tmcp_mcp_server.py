@@ -2849,6 +2849,330 @@ def _workflow_rubric_seed(workflow: dict[str, Any], objective: str) -> dict[str,
     }
 
 
+def _workflow_template(workflow: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": workflow["workflow_id"],
+        "kind": "default_template",
+        "name": workflow["name"],
+        "signal_family": workflow["signal_family"],
+        "profile": workflow.get("profile", "general_review"),
+        "starter_prompt": workflow["starter_prompt"],
+        "expected_artifacts": list(workflow["expected_artifacts"]),
+    }
+
+
+def _required_evidence_for_workflow(workflow: dict[str, Any]) -> list[str]:
+    signal_family = str(workflow.get("signal_family") or "")
+    evidence_by_family = {
+        "ui_quality": [
+            "Rendered UI evidence such as screenshots or browser inspection.",
+            "Relevant component/source paths.",
+            "Responsive and state coverage expectations.",
+        ],
+        "security_privacy": [
+            "Security/privacy docs, auth/data-flow boundaries, and redacted secrets handling.",
+            "Permission, token, and sensitive-data evidence.",
+            "Known compliance or policy constraints.",
+        ],
+        "testing_quality": [
+            "Public contracts and high-risk behavior paths.",
+            "Current tests, CI checks, and coverage or quality-gate output.",
+            "Recent regressions or known untested edge cases.",
+        ],
+        "release_readiness": [
+            "Release checklist, CI/build/package output, and deployment constraints.",
+            "Known blockers, warnings, changelog/version evidence, and rollback expectations.",
+            "Final verification commands.",
+        ],
+        "developer_experience": [
+            "README, setup docs, contribution flow, and command discovery evidence.",
+            "Fresh-clone or onboarding failure points.",
+            "Maintainer handoff expectations.",
+        ],
+        "incident_postmortem": [
+            "Incident timeline, observed impact, logs, commits, and rollback notes.",
+            "Reproduction or verification evidence.",
+            "Follow-up constraints and owner expectations.",
+        ],
+        "architecture_decision": [
+            "Current architecture, decision constraints, and alternatives.",
+            "Migration cost and compatibility evidence.",
+            "Verification expectations for the chosen direction.",
+        ],
+        "migration_readiness": [
+            "Current and target states, affected surfaces, and compatibility constraints.",
+            "Rollback/cutover and data/backfill requirements.",
+            "Sequenced validation gates.",
+        ],
+        "agent_handoff": [
+            "Current state, touched files, decisions, and commands already run.",
+            "Blockers, open questions, and next commands.",
+            "Verification status and remaining risk.",
+        ],
+        "pr_risk_review": [
+            "Diff summary, touched contracts, CI status, and test/doc changes.",
+            "Regression and release constraints.",
+            "Merge blockers and required follow-up.",
+        ],
+        "performance": [
+            "Profiling data, hot paths, runtime metrics, and load expectations.",
+            "Measurement gaps and cache/query/bundle evidence.",
+            "Acceptance thresholds.",
+        ],
+        "data_correctness": [
+            "Schemas, migrations, invariants, pipelines, and reconciliation checks.",
+            "Backfill/idempotency and data-loss risk evidence.",
+            "Verification queries or fixtures.",
+        ],
+    }
+    return evidence_by_family.get(
+        signal_family,
+        [
+            "Relevant source evidence from the harvested skill corpus.",
+            "Current project state and known constraints.",
+            "Verification commands or acceptance gates.",
+        ],
+    )
+
+
+def _routing_trigger_for_workflow(workflow: dict[str, Any]) -> str:
+    signal_family = str(workflow.get("signal_family") or "workflow")
+    name = str(workflow.get("name") or "TMCP workflow").replace(" Workflow", "")
+    return (
+        f"Prefer TMCP {name.lower()} when harvested `{signal_family}` signals are strong "
+        "and the user asks for a packet, rubric, audit, or remediation plan."
+    )
+
+
+def _workflow_instance(
+    *,
+    workflow: dict[str, Any],
+    objective: str,
+    harvest: dict[str, Any],
+    score: dict[str, Any],
+) -> dict[str, Any]:
+    source_paths = _string_list(harvest.get("source_paths"))
+    identity = hashlib.sha256(
+        "|".join([str(workflow["workflow_id"]), objective, *source_paths]).encode()
+    ).hexdigest()[:10]
+    evidence = [
+        {
+            "relative_path": item.get("relative_path"),
+            "source_type": item.get("source_type"),
+            "matched_terms": item.get("matched_terms", []),
+            "matched_behavior_atoms": item.get("matched_behavior_atoms", []),
+        }
+        for item in _json_list(score.get("evidence"))[:4]
+        if isinstance(item, dict)
+    ]
+    return {
+        "id": f"{workflow['workflow_id']}.{identity}",
+        "status": "candidate",
+        "template_id": workflow["workflow_id"],
+        "adapted_from": {
+            "source_paths": source_paths,
+            "source_count": harvest.get("source_count", 0),
+            "matched_source_count": harvest.get("matched_source_count", 0),
+            "evidence": evidence,
+        },
+        "generated_rubric": _workflow_rubric_seed(workflow, objective),
+        "required_evidence": _required_evidence_for_workflow(workflow),
+        "routing_trigger": _routing_trigger_for_workflow(workflow),
+        "approval_required": True,
+        "next_step": "Ask the user to approve this workflow before running expert_rubric_review_plan.",
+    }
+
+
+def _count_strings(values: list[str]) -> list[dict[str, Any]]:
+    counts: dict[str, int] = {}
+    for value in values:
+        counts[value] = counts.get(value, 0) + 1
+    return [
+        {"id": key, "count": count}
+        for key, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    ]
+
+
+def _custom_workflow_ideas(
+    source_nodes: list[dict[str, Any]], recommended: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    atoms = [
+        atom
+        for node in source_nodes
+        for atom in _string_list(node.get("behavior_atoms"))
+    ]
+    recommended_families = {
+        str(item.get("signal_family"))
+        for item in recommended
+        if item.get("signal_family")
+    }
+    ideas: list[dict[str, Any]] = []
+    for atom_count in _count_strings(atoms)[:4]:
+        atom = str(atom_count["id"])
+        if len(ideas) >= 3:
+            break
+        source_evidence = [
+            {
+                "relative_path": node.get("relative_path"),
+                "source_type": node.get("source_type"),
+                "title": node.get("title"),
+            }
+            for node in source_nodes
+            if atom in _string_list(node.get("behavior_atoms"))
+        ][:3]
+        if not source_evidence:
+            continue
+        idea_id = f"custom_{_slug(atom)}_workflow"
+        ideas.append(
+            {
+                "id": idea_id,
+                "name": f"Custom {atom.replace('-', ' ').title()} Workflow",
+                "basis": "harvested_behavior_atom",
+                "behavior_atom": atom,
+                "source_count": atom_count["count"],
+                "why": (
+                    f"Harvested sources repeatedly emphasize `{atom}`; generate a workflow "
+                    "around that local operating habit if no default template is specific enough."
+                ),
+                "source_evidence": source_evidence,
+                "suggested_artifacts": [
+                    "custom TMCP packet",
+                    "source-backed rubric dimensions",
+                    "routing trigger",
+                    "approval-gated next workflow selection",
+                ],
+                "routing_trigger": (
+                    f"Use TMCP `{idea_id}` when the task depends on harvested `{atom}` behavior "
+                    "more than a fixed default workflow."
+                ),
+                "approval_required": True,
+                "related_default_signal_families": sorted(recommended_families),
+            }
+        )
+    return ideas
+
+
+def _documented_process_gaps(
+    *,
+    source_nodes: list[dict[str, Any]],
+    recommended: list[dict[str, Any]],
+    not_recommended: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    gaps: list[dict[str, Any]] = []
+    if not source_nodes:
+        gaps.append(
+            {
+                "id": "no_harvested_sources",
+                "severity": "high",
+                "message": "No source documents were harvested, so TMCP cannot adapt workflows to local behavior.",
+            }
+        )
+    if not recommended:
+        gaps.append(
+            {
+                "id": "no_default_template_above_threshold",
+                "severity": "medium",
+                "message": "No default workflow template met the confidence threshold.",
+            }
+        )
+    for item in not_recommended[:4]:
+        if not isinstance(item, dict):
+            continue
+        confidence = float(item.get("confidence") or 0.0)
+        if confidence == 0.0:
+            gaps.append(
+                {
+                    "id": f"missing_{item.get('signal_family')}_signals",
+                    "severity": "low",
+                    "message": f"No meaningful evidence found for `{item.get('signal_family')}`.",
+                }
+            )
+    if not gaps:
+        gaps.append(
+            {
+                "id": "selection_required",
+                "severity": "info",
+                "message": "Signals are sufficient for recommendations; user approval is still required before applying a workflow.",
+            }
+        )
+    return gaps
+
+
+def _adaptive_workflow_pack(
+    *,
+    harvest: dict[str, Any],
+    source_nodes: list[dict[str, Any]],
+    priority_profile: dict[str, Any],
+    recommended: list[dict[str, Any]],
+    not_recommended: list[dict[str, Any]],
+    custom_workflow_ideas: list[dict[str, Any]],
+) -> dict[str, Any]:
+    scopes = _count_strings(
+        [_source_scope_for(str(node.get("path") or "")) for node in source_nodes]
+    )
+    source_types = _count_strings(
+        [str(node.get("source_type") or "unknown") for node in source_nodes]
+    )
+    atoms = _count_strings(
+        [
+            atom
+            for node in source_nodes
+            for atom in _string_list(node.get("behavior_atoms"))
+        ]
+    )
+    source_map = [
+        {
+            "relative_path": node.get("relative_path"),
+            "source_type": node.get("source_type"),
+            "source_scope": _source_scope_for(str(node.get("path") or "")),
+            "behavior_atoms": node.get("behavior_atoms", []),
+            "keywords": _string_list(node.get("keywords"))[:8],
+        }
+        for node in source_nodes[:12]
+    ]
+    return {
+        "schema": "tmcp-adaptive-workflow-pack-v0.1",
+        "artifact_type": "adaptive_workflow_pack",
+        "harvested_source_map": source_map,
+        "operating_profile": {
+            "source_paths": harvest.get("source_paths", []),
+            "source_count": harvest.get("source_count", 0),
+            "matched_source_count": harvest.get("matched_source_count", 0),
+            "source_scope_counts": scopes,
+            "source_type_counts": source_types,
+            "primary_signals": priority_profile.get("primary_signals", []),
+            "secondary_signals": priority_profile.get("secondary_signals", []),
+            "weak_signals": priority_profile.get("weak_signals", []),
+        },
+        "strongest_behavior_signals": atoms[:8],
+        "recommended_default_templates": [
+            item["template"]
+            for item in recommended
+            if isinstance(item.get("template"), dict)
+        ],
+        "generated_custom_workflow_ideas": custom_workflow_ideas,
+        "suggested_routing_triggers": [
+            item["workflow_instance"]["routing_trigger"]
+            for item in recommended
+            if isinstance(item.get("workflow_instance"), dict)
+        ]
+        + [item["routing_trigger"] for item in custom_workflow_ideas],
+        "documented_process_gaps": _documented_process_gaps(
+            source_nodes=source_nodes,
+            recommended=recommended,
+            not_recommended=not_recommended,
+        ),
+        "next_workflow_selection": {
+            "approval_required": True,
+            "instruction": "Select one default template or custom workflow idea before running expert_rubric_review_plan.",
+            "candidate_template_ids": [item["id"] for item in recommended],
+            "candidate_custom_workflow_ids": [
+                item["id"] for item in custom_workflow_ideas
+            ],
+        },
+    }
+
+
 def _markdown_recommendations(result: dict[str, Any]) -> str:
     lines = ["# TMCP Workflow Recommendations", ""]
     profile = result.get("priority_profile", {})
@@ -2875,9 +3199,17 @@ def _markdown_recommendations(result: dict[str, Any]) -> str:
                 f"- Signal family: `{item['signal_family']}`",
                 f"- Why: {item['why']}",
                 f"- Starter prompt: {item['starter_prompt']}",
+                f"- Workflow instance: `{item.get('workflow_instance', {}).get('id', 'pending')}`",
                 "",
             ]
         )
+    lines.extend(["## Custom Workflow Ideas", ""])
+    custom_ideas = _json_list(result.get("custom_workflow_ideas"))
+    if not custom_ideas:
+        lines.append("- No custom workflow ideas were generated.")
+    for item in custom_ideas:
+        if isinstance(item, dict):
+            lines.append(f"- `{item['id']}`: {item['why']}")
     lines.extend(["## Not Recommended", ""])
     for item in _json_list(result.get("not_recommended")):
         if isinstance(item, dict):
@@ -2892,6 +3224,7 @@ def _write_workflow_recommendation_artifacts(
         "recommendation_json": output_dir / "workflow-recommendations.json",
         "recommendation_markdown": output_dir / "workflow-recommendations.md",
         "priority_profile_json": output_dir / "priority-profile.json",
+        "adaptive_pack_json": output_dir / "adaptive-workflow-pack.json",
     }
     _write_json(paths["recommendation_json"], result)
     paths["recommendation_markdown"].parent.mkdir(parents=True, exist_ok=True)
@@ -2901,6 +3234,9 @@ def _write_workflow_recommendation_artifacts(
     profile = result.get("priority_profile")
     if isinstance(profile, dict):
         _write_json(paths["priority_profile_json"], profile)
+    adaptive_pack = result.get("adaptive_workflow_pack")
+    if isinstance(adaptive_pack, dict):
+        _write_json(paths["adaptive_pack_json"], adaptive_pack)
     return {key: str(path) for key, path in paths.items() if path.exists()}
 
 
@@ -2935,6 +3271,7 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
     for score in scores:
         workflow = workflows_by_id[str(score["workflow_id"])]
         if score["confidence"] >= min_confidence and score["evidence"]:
+            template = _workflow_template(workflow)
             recommended.append(
                 {
                     "id": workflow["workflow_id"],
@@ -2946,6 +3283,13 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
                     "evidence": score["evidence"],
                     "starter_prompt": workflow["starter_prompt"],
                     "expected_artifacts": list(workflow["expected_artifacts"]),
+                    "template": template,
+                    "workflow_instance": _workflow_instance(
+                        workflow=workflow,
+                        objective=objective,
+                        harvest=harvest,
+                        score=score,
+                    ),
                     "rubric_seed": _workflow_rubric_seed(workflow, objective),
                 }
             )
@@ -2981,6 +3325,21 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
         for item in scores
         if item["evidence"]
     ][:6]
+    priority_profile = {
+        "primary_signals": primary,
+        "secondary_signals": secondary,
+        "weak_signals": sorted(set(weak)),
+        "evidence": profile_evidence,
+    }
+    custom_workflow_ideas = _custom_workflow_ideas(source_nodes, recommended)
+    adaptive_workflow_pack = _adaptive_workflow_pack(
+        harvest=harvest,
+        source_nodes=source_nodes,
+        priority_profile=priority_profile,
+        recommended=recommended,
+        not_recommended=not_recommended,
+        custom_workflow_ideas=custom_workflow_ideas,
+    )
     result: dict[str, Any] = {
         "ok": True,
         "adapter": "standalone",
@@ -2993,14 +3352,11 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
             "redaction_summary": harvest.get("redaction_summary", {}),
             "warnings": harvest.get("warnings", []),
         },
-        "priority_profile": {
-            "primary_signals": primary,
-            "secondary_signals": secondary,
-            "weak_signals": sorted(set(weak)),
-            "evidence": profile_evidence,
-        },
+        "priority_profile": priority_profile,
         "signal_scores": scores,
         "recommended_workflows": recommended,
+        "custom_workflow_ideas": custom_workflow_ideas,
+        "adaptive_workflow_pack": adaptive_workflow_pack,
         "not_recommended": not_recommended,
         "quality_rules": [
             "Recommendations cite harvested evidence.",

@@ -104,6 +104,9 @@ Expected result:
 
 - `priority_profile.primary_signals` names the strongest coding-quality priorities.
 - `recommended_workflows` includes evidence-backed workflow recommendations.
+- each recommended workflow includes a reusable `template` and candidate `workflow_instance`.
+- `adaptive_workflow_pack` is the first-class artifact for harvested source map, operating profile, custom workflow ideas, routing triggers, and process gaps.
+- `custom_workflow_ideas` lists source-backed workflows TMCP can generate when fixed templates are not specific enough.
 - `starter_prompt` gives the prompt to run the selected workflow.
 - weak or absent signals identify skill, routing, or process documentation gaps.
 

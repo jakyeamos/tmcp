@@ -71,6 +71,15 @@ Candidate MCP output shape:
       "confidence": 0.91,
       "why": "Harvest contains repeated visual polish, frontend, screenshot, and design-system rules.",
       "starter_prompt": "Use the TMCP expert UI rubric on this project.",
+      "template": {
+        "id": "expert_ui_rubric_workflow",
+        "kind": "default_template"
+      },
+      "workflow_instance": {
+        "status": "candidate",
+        "template_id": "expert_ui_rubric_workflow",
+        "approval_required": true
+      },
       "expected_artifacts": [
         "expertise packet",
         "scored rubric",
@@ -79,6 +88,21 @@ Candidate MCP output shape:
       ]
     }
   ],
+  "custom_workflow_ideas": [],
+  "adaptive_workflow_pack": {
+    "schema": "tmcp-adaptive-workflow-pack-v0.1",
+    "artifact_type": "adaptive_workflow_pack",
+    "harvested_source_map": [],
+    "operating_profile": {},
+    "strongest_behavior_signals": [],
+    "recommended_default_templates": [],
+    "generated_custom_workflow_ideas": [],
+    "suggested_routing_triggers": [],
+    "documented_process_gaps": [],
+    "next_workflow_selection": {
+      "approval_required": true
+    }
+  },
   "not_recommended": [
     {
       "id": "security_privacy_review_workflow",
@@ -117,6 +141,9 @@ Outputs:
 - not-recommended workflows with reasons
 - starter prompts
 - workflow-specific rubric seeds
+- an `adaptive_workflow_pack` artifact
+- custom workflow ideas derived from harvested behavior atoms
+- template/instance separation for each recommended default workflow
 
 ## Quality Rules
 

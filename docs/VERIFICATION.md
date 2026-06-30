@@ -87,7 +87,7 @@ PY
 - Review plans harvest target project sources by default before synthesizing rubrics.
 - Government/compliance/readiness audits route to the public-sector readiness rubric profile.
 - `tmcp_doctor` reports first-run readiness and shared smoke-test guidance.
-- `tmcp_recommend_workflows` infers priority signals from harvested sources, recommends workflows with evidence, filters candidate workflows, and writes artifacts.
+- `tmcp_recommend_workflows` infers priority signals from harvested sources, recommends workflows with evidence, emits adaptive workflow packs and custom workflow ideas, separates workflow templates from candidate instances, filters candidate workflows, and writes artifacts.
 - Machine-readable packet schema required fields match the compiled standalone packet.
 - Portable harvest works on a synthetic non-AIOS, non-Codex project shape.
 - Harvest prunes dependency directories.
