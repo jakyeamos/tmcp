@@ -1,14 +1,18 @@
 # Verification Record
 
-Date: 2026-06-27
+Date: 2026-06-29
 
-Plugin version: `0.2.5+codex.20260627193822`
+Plugin version: `0.3.0+codex.20260629213530`
 
 ## Commands
 
 ```bash
 python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
 node --check scripts/tmcp_launcher.mjs
+ruff check .
+ruff format --check .
+basedpyright
+vulture . --min-confidence 70
 python3 -m unittest discover -s tests
 python3 scripts/check_install.py .
 python3 scripts/check_release_package.py .
@@ -44,7 +48,7 @@ claude plugin validate .
 python3 - <<'PY'
 import json
 from pathlib import Path
-for name in ['.codex-plugin/plugin.json', '.claude-plugin/plugin.json', '.claude-plugin/marketplace.json', '.mcp.json', 'mcp-registry/draft-server.json', 'schemas/tmcp-skill-packet-v0.2.schema.json', 'tests/fixtures/golden_packets.json']:
+for name in ['.codex-plugin/plugin.json', '.claude-plugin/plugin.json', '.claude-plugin/marketplace.json', '.mcp.json', 'mcp-registry/draft-server.json', 'schemas/tmcp-skill-packet-v0.2.schema.json', 'schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json', 'tests/fixtures/golden_packets.json']:
     json.loads(Path(name).read_text(encoding='utf-8'))
 PY
 ```
@@ -53,10 +57,14 @@ PY
 
 - Python compile: pass.
 - Node launcher syntax: pass.
+- Ruff lint: pass.
+- Ruff format check: pass.
+- Basedpyright: pass.
+- Vulture dead-code scan: pass.
 - Install shape check: pass.
 - Release package check: pass.
 - Pre-CR commit readiness: pass with repo-local unittest adapter and threshold `0`.
-- Unit and MCP protocol tests: pass, 28 tests.
+- Unit and MCP protocol tests: pass, 34 tests.
 - Direct expert UI rubric CLI alias smoke: pass, routes to standalone `expert_rubric_review_plan` with no artifact writes when `--no-write-artifacts` is set.
 - Direct government-readiness review smoke: pass, selects `public_sector_readiness` while reporting `thin_domain_signals` when no source-backed government playbook is present.
 - Claude Code marketplace validation: pass.
@@ -77,6 +85,7 @@ PY
 - `.quality-gate-exceptions` documents the current monolithic MCP server size exception.
 - Quickstart, marketplace matrix, packet stability policy, and non-UI workflow examples are present.
 - Workflow recommendation example and `tmcp_recommend_workflows` docs are present.
+- Adaptive workflow-pack schema, examples, router skills, and docs are present.
 
 ## Covered Behavior
 
@@ -104,7 +113,7 @@ PY
 - Clean-copy install check passes from a copied plugin directory.
 - Release tarball check passes after unpacking into a temporary directory.
 - Redaction and MCP framing are separated into dedicated modules.
-- Public GitHub Actions verification with release-package gate: pass on run `28305312874` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.5`.
+- Public GitHub Actions verification with release-package gate: last observed pass on run `28305312874` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.5`; `0.3.0` still needs hosted CI after tag/push.
 - License and marketplace example are present.
 - AIOS adapter absent and present behavior is covered with deterministic fixtures.
 

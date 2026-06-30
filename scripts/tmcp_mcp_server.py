@@ -3578,7 +3578,7 @@ def _handle(request: dict[str, Any]) -> None:
             request_id,
             {
                 "protocolVersion": params.get("protocolVersion", "2024-11-05"),
-                "serverInfo": {"name": "tmcp", "version": "0.2.5"},
+                "serverInfo": {"name": "tmcp", "version": "0.3.0"},
                 "capabilities": {"tools": {}},
             },
         )

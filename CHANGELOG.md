@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 - 2026-06-29
+
+- Added the adaptive workflow expansion: eight default workflow router skills for incidents, architecture decisions, test strategy, migrations, data integrity, agent handoffs, PR risk, and performance readiness.
+- Added adaptive/meta router skills for workflow packs, custom rubric generation, routing-policy generation, and skill-gap analysis.
+- Expanded `tmcp_recommend_workflows` to emit a first-class `adaptive_workflow_pack` artifact with schema `tmcp-adaptive-workflow-pack-v0.1`.
+- Added additive recommendation fields for `custom_workflow_ideas`, default workflow `template`, and candidate `workflow_instance`.
+- Added source-backed custom workflow ideas, routing triggers, required evidence lists, documented process gaps, and approval-gated next workflow selection.
+- Updated docs, examples, install checks, and release-package validation for the adaptive workflow-pack surface.
+
 ## 0.2.5 - 2026-06-27
 
 - Generalized profile coverage requirements beyond UI reviews so security/privacy, public-sector, developer-experience, and general reviews can reject off-profile evidence and request a profile-coverage evidence slice.
