@@ -7,7 +7,9 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from collections.abc import Mapping
 from pathlib import Path
+from typing import cast
 
 
 SERVER_PATH = Path(__file__).resolve().parents[1] / "scripts" / "tmcp_mcp_server.py"
@@ -98,7 +100,10 @@ class TmcpMcpServerTests(unittest.TestCase):
         substance = packet["substance_check"]
         self.assertEqual(substance["level"], "process_only")
         self.assertFalse(substance["has_domain_playbook"])
-        self.assertIn("derive rubric substance from target repo docs", substance["fallback_policy"])
+        self.assertIn(
+            "derive rubric substance from target repo docs",
+            substance["fallback_policy"],
+        )
         self.assertTrue(substance["issues"])
 
     def test_harvest_is_portable_and_prunes_dependency_dirs(self) -> None:
@@ -185,7 +190,9 @@ class TmcpMcpServerTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            result = self.server._harvest_skills({"source_path": str(root), "limit": 10})
+            result = self.server._harvest_skills(
+                {"source_path": str(root), "limit": 10}
+            )
 
         serialized = json.dumps(result)
         for sensitive_value in (
@@ -230,7 +237,9 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertTrue(result["ok"])
         self.assertEqual(result["schema"], "tmcp-workflow-recommendation-v1")
         self.assertIn("ui_quality", result["priority_profile"]["primary_signals"])
-        self.assertEqual(result["recommended_workflows"][0]["id"], "expert_ui_rubric_workflow")
+        self.assertEqual(
+            result["recommended_workflows"][0]["id"], "expert_ui_rubric_workflow"
+        )
         self.assertTrue(result["recommended_workflows"][0]["evidence"])
         self.assertIn("starter_prompt", result["recommended_workflows"][0])
 
@@ -287,7 +296,10 @@ class TmcpMcpServerTests(unittest.TestCase):
             self.assertEqual(result["rubric"]["profile"], "visual_polish")
             self.assertTrue(result["artifact_paths"])
             self.assertTrue(
-                any("profile-coverage" in item["id"] for item in result["remediation_slices"])
+                any(
+                    "profile-coverage" in item["id"]
+                    for item in result["remediation_slices"]
+                )
             )
             expected = {
                 "expertise-packet.json",
@@ -313,14 +325,18 @@ class TmcpMcpServerTests(unittest.TestCase):
                             "dimension_id": "interaction_architecture",
                             "severity": "blocker",
                             "summary": "Feed remains in loading state after the route is opened.",
-                            "evidence": ["Browser route stayed on skeleton cards for 12 seconds."],
+                            "evidence": [
+                                "Browser route stayed on skeleton cards for 12 seconds."
+                            ],
                             "recommended_fix": "Bound computation and show error or empty state.",
                         },
                         {
                             "dimension_id": "data_realism",
                             "severity": "warning",
                             "summary": "Dashboard data resolves but the feed does not.",
-                            "evidence": ["Dashboard count renders; feed stays unresolved."],
+                            "evidence": [
+                                "Dashboard count renders; feed stays unresolved."
+                            ],
                             "recommended_fix": "Make each feed resolve to data, empty, or failure state.",
                         },
                     ]
@@ -333,14 +349,22 @@ class TmcpMcpServerTests(unittest.TestCase):
         coverage_validation = validations["profile_evidence_coverage"]
         self.assertFalse(coverage_validation["passed"])
         self.assertTrue(
-            any("visual" in issue.lower() and "coverage" in issue.lower() for issue in coverage_validation["issues"])
+            any(
+                "visual" in issue.lower() and "coverage" in issue.lower()
+                for issue in coverage_validation["issues"]
+            )
         )
         self.assertTrue(result["audit_report"]["coverage_gaps"])
         self.assertTrue(
-            any("profile-coverage" in item["id"] for item in result["remediation_slices"])
+            any(
+                "profile-coverage" in item["id"]
+                for item in result["remediation_slices"]
+            )
         )
         gap_slice = next(
-            item for item in result["remediation_slices"] if "profile-coverage" in item["id"]
+            item
+            for item in result["remediation_slices"]
+            if "profile-coverage" in item["id"]
         )
         self.assertIn("typography", " ".join(gap_slice["scope"]).lower())
         self.assertIn("spacing", " ".join(gap_slice["scope"]).lower())
@@ -390,13 +414,21 @@ class TmcpMcpServerTests(unittest.TestCase):
         coverage_validation = validations["profile_evidence_coverage"]
         self.assertFalse(coverage_validation["passed"])
         self.assertTrue(
-            any("security" in issue.lower() and "privacy" in issue.lower() for issue in coverage_validation["issues"])
+            any(
+                "security" in issue.lower() and "privacy" in issue.lower()
+                for issue in coverage_validation["issues"]
+            )
         )
         self.assertTrue(
-            any("profile-coverage" in item["id"] for item in result["remediation_slices"])
+            any(
+                "profile-coverage" in item["id"]
+                for item in result["remediation_slices"]
+            )
         )
 
-    def test_review_plan_harvests_project_sources_for_public_sector_substance(self) -> None:
+    def test_review_plan_harvests_project_sources_for_public_sector_substance(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             docs = root / "docs"
@@ -440,7 +472,12 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertGreaterEqual(substance["substantive_source_count"], 1)
         self.assertIn("government", substance["matched_domain_terms"])
         self.assertEqual(result["artifact_paths"], {})
-        self.assertTrue(any(node["relative_path"] == "docs/government-readiness.md" for node in result["expertise_packet"]["source_skill_nodes"]))
+        self.assertTrue(
+            any(
+                node["relative_path"] == "docs/government-readiness.md"
+                for node in result["expertise_packet"]["source_skill_nodes"]
+            )
+        )
 
     def test_mcp_protocol_lists_and_calls_tools(self) -> None:
         responses = run_mcp_requests(
@@ -457,10 +494,9 @@ class TmcpMcpServerTests(unittest.TestCase):
 
         tools_result = responses[0]["result"]
         self.assertIsInstance(tools_result, dict)
-        tool_names = {
-            tool["name"]
-            for tool in tools_result["tools"]  # type: ignore[index]
-        }
+        tools_result_map = cast(Mapping[str, object], tools_result)
+        tools = cast(list[Mapping[str, object]], tools_result_map["tools"])
+        tool_names = {tool["name"] for tool in tools}
         self.assertEqual(
             tool_names,
             {
@@ -474,8 +510,11 @@ class TmcpMcpServerTests(unittest.TestCase):
         )
         status_result = responses[1]["result"]
         self.assertIsInstance(status_result, dict)
-        structured = status_result["structuredContent"]  # type: ignore[index]
-        self.assertTrue(structured["standalone"]["available"])  # type: ignore[index]
+        status_result_map = cast(Mapping[str, object], status_result)
+        structured = cast(
+            Mapping[str, Mapping[str, object]], status_result_map["structuredContent"]
+        )
+        self.assertTrue(structured["standalone"]["available"])
 
     def test_doctor_reports_first_run_readiness(self) -> None:
         result = self.server._call_tool("tmcp_doctor", {"client": "plain_mcp"})
@@ -639,23 +678,36 @@ class TmcpMcpServerTests(unittest.TestCase):
 
     def test_cli_expert_ui_rubric_alias_defaults_to_tmcp_workflow(self) -> None:
         tool_name, arguments, compact = self.server._parse_cli_arguments(
-            ["expert-ui-rubric", "--project-path", "/tmp/fantasy", "--evidence-json", "[]"]
+            [
+                "expert-ui-rubric",
+                "--project-path",
+                "/tmp/fantasy",
+                "--evidence-json",
+                "[]",
+            ]
         )
 
         self.assertEqual(tool_name, "expert_rubric_review_plan")
         self.assertFalse(compact)
-        self.assertEqual(arguments["objective"], "Use the TMCP expert UI rubric on this project.")
+        self.assertEqual(
+            arguments["objective"], "Use the TMCP expert UI rubric on this project."
+        )
         self.assertEqual(arguments["adapter"], "standalone")
         self.assertEqual(arguments["project_path"], "/tmp/fantasy")
 
     def test_cli_expert_ui_rubric_alias_accepts_objective_override(self) -> None:
         tool_name, arguments, compact = self.server._parse_cli_arguments(
-            ["tmcp-expert-ui-rubric", "Use the TMCP expert UI rubric workflow on Fantasy"]
+            [
+                "tmcp-expert-ui-rubric",
+                "Use the TMCP expert UI rubric workflow on Fantasy",
+            ]
         )
 
         self.assertEqual(tool_name, "expert_rubric_review_plan")
         self.assertFalse(compact)
-        self.assertEqual(arguments["objective"], "Use the TMCP expert UI rubric workflow on Fantasy")
+        self.assertEqual(
+            arguments["objective"], "Use the TMCP expert UI rubric workflow on Fantasy"
+        )
         self.assertEqual(arguments["adapter"], "standalone")
 
     def test_mcp_protocol_rejects_invalid_arguments(self) -> None:
@@ -676,8 +728,10 @@ class TmcpMcpServerTests(unittest.TestCase):
             ]
         )
 
-        self.assertEqual(responses[0]["error"]["code"], -32602)  # type: ignore[index]
-        self.assertEqual(responses[1]["error"]["code"], -32000)  # type: ignore[index]
+        first_error = cast(Mapping[str, object], responses[0]["error"])
+        second_error = cast(Mapping[str, object], responses[1]["error"])
+        self.assertEqual(first_error["code"], -32602)
+        self.assertEqual(second_error["code"], -32000)
 
     def test_golden_packet_routes_and_profiles(self) -> None:
         cases = json.loads(GOLDEN_PACKETS_PATH.read_text(encoding="utf-8"))
@@ -710,11 +764,13 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertEqual(result["rubric"]["profile"], "developer_experience")
         self.assertTrue(result["audit_report"]["deferred_scope"])
         self.assertEqual(result["remediation_slices"][0]["id"], "slice-1")
-        self.assertIn("Collect missing evidence", result["remediation_slices"][0]["title"])
+        self.assertIn(
+            "Collect missing evidence", result["remediation_slices"][0]["title"]
+        )
 
     def test_aios_adapter_explicit_missing_returns_clear_error(self) -> None:
-        original_root = self.server.AIOS_ROOT
-        self.server.AIOS_ROOT = Path("/tmp/tmcp-aios-definitely-missing")
+        original_root = getattr(self.server, "AIOS_ROOT")
+        setattr(self.server, "AIOS_ROOT", Path("/tmp/tmcp-aios-definitely-missing"))
         try:
             result = self.server._call_tool(
                 "tmcp_explain",
@@ -725,15 +781,15 @@ class TmcpMcpServerTests(unittest.TestCase):
                 },
             )
         finally:
-            self.server.AIOS_ROOT = original_root
+            setattr(self.server, "AIOS_ROOT", original_root)
 
         self.assertFalse(result["ok"])
         self.assertEqual(result["adapter"], "aios")
         self.assertIn("AIOS_ROOT", result["error"])
 
     def test_aios_auto_missing_falls_back_to_standalone(self) -> None:
-        original_root = self.server.AIOS_ROOT
-        self.server.AIOS_ROOT = Path("/tmp/tmcp-aios-definitely-missing")
+        original_root = getattr(self.server, "AIOS_ROOT")
+        setattr(self.server, "AIOS_ROOT", Path("/tmp/tmcp-aios-definitely-missing"))
         try:
             result = self.server._call_tool(
                 "tmcp_explain",
@@ -744,7 +800,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 },
             )
         finally:
-            self.server.AIOS_ROOT = original_root
+            setattr(self.server, "AIOS_ROOT", original_root)
 
         self.assertTrue(result["ok"])
         self.assertEqual(result["adapter"], "standalone")
@@ -759,8 +815,8 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "print(json.dumps({'ok': True, 'adapter': 'fake-aios', 'task_id': 'audit'}))\n",
                 encoding="utf-8",
             )
-            original_root = self.server.AIOS_ROOT
-            self.server.AIOS_ROOT = fake_aios
+            original_root = getattr(self.server, "AIOS_ROOT")
+            setattr(self.server, "AIOS_ROOT", fake_aios)
             try:
                 result = self.server._call_tool(
                     "tmcp_explain",
@@ -771,7 +827,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                     },
                 )
             finally:
-                self.server.AIOS_ROOT = original_root
+                setattr(self.server, "AIOS_ROOT", original_root)
 
         self.assertTrue(result["ok"])
         self.assertEqual(result["adapter"], "fake-aios")

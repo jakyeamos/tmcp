@@ -10,10 +10,11 @@ from pathlib import Path
 from typing import Any
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
+PLUGIN_ROOT = SCRIPT_DIR.parent
+if str(PLUGIN_ROOT) not in sys.path:
+    sys.path.insert(0, str(PLUGIN_ROOT))
 
-from tmcp_mcp_framing import encode_message  # noqa: E402
+from scripts.tmcp_mcp_framing import encode_message  # noqa: E402
 
 
 REQUIRED_FILES = (

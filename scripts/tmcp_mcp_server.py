@@ -12,15 +12,15 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = Path(__file__).resolve().parent
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
+if str(PLUGIN_ROOT) not in sys.path:
+    sys.path.insert(0, str(PLUGIN_ROOT))
 
-from tmcp_mcp_framing import read_message, write_message  # noqa: E402
-from tmcp_redaction import merge_redactions, redact_sensitive_text  # noqa: E402
+from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
+from scripts.tmcp_redaction import merge_redactions, redact_sensitive_text  # noqa: E402
 
 AIOS_ROOT = Path(os.environ.get("AIOS_ROOT", "~/AIOS")).expanduser()
 UTC = timezone.utc
@@ -54,8 +54,18 @@ TASK_MODULES: dict[str, tuple[str, ...]] = {
         "test_gate",
         "user_approval_gate",
     ),
-    "planning": ("context_gathering", "evidence_first", "output_contract", "user_approval_gate"),
-    "research": ("context_gathering", "evidence_first", "provenance_policy", "output_contract"),
+    "planning": (
+        "context_gathering",
+        "evidence_first",
+        "output_contract",
+        "user_approval_gate",
+    ),
+    "research": (
+        "context_gathering",
+        "evidence_first",
+        "provenance_policy",
+        "output_contract",
+    ),
     "testing": ("evidence_first", "test_gate", "output_contract"),
     "agent_workflow": (
         "context_gathering",
@@ -67,10 +77,25 @@ TASK_MODULES: dict[str, tuple[str, ...]] = {
 }
 
 MODULE_BEHAVIOR_ATOMS: dict[str, tuple[str, ...]] = {
-    "context_gathering": ("read-before-modifying", "scope-discovery", "local-context-first"),
-    "evidence_first": ("evidence-backed-claims", "explicit-evidence-gaps", "concrete-citations"),
-    "minimal_patch_policy": ("smallest-effective-change", "avoid-speculative-abstractions"),
-    "output_contract": ("findings-before-summary", "ordered-next-actions", "artifact-contract"),
+    "context_gathering": (
+        "read-before-modifying",
+        "scope-discovery",
+        "local-context-first",
+    ),
+    "evidence_first": (
+        "evidence-backed-claims",
+        "explicit-evidence-gaps",
+        "concrete-citations",
+    ),
+    "minimal_patch_policy": (
+        "smallest-effective-change",
+        "avoid-speculative-abstractions",
+    ),
+    "output_contract": (
+        "findings-before-summary",
+        "ordered-next-actions",
+        "artifact-contract",
+    ),
     "provenance_policy": ("source-traceability", "conflict-preservation"),
     "reproduce_first": ("reproduce-before-fix", "observed-failure-first"),
     "test_gate": ("behavior-verification", "quality-gate-disclosure"),
@@ -207,7 +232,11 @@ DEFAULT_HARVEST_EXCLUDE_GLOBS = (
 )
 
 HARVEST_SOURCE_TYPE_ATOMS: dict[str, tuple[str, ...]] = {
-    "skill_definition": ("skill-routing", "behavior-preservation", "source-traceability"),
+    "skill_definition": (
+        "skill-routing",
+        "behavior-preservation",
+        "source-traceability",
+    ),
     "agent_operating_contract": (
         "agent-operating-contract",
         "instruction-precedence",
@@ -370,29 +399,49 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
             "id": "secret_exposure",
             "name": "Secret Exposure",
             "weight": 4,
-            "expectations": ["Evidence for env, logs, fixtures, configs, and generated artifacts."],
-            "questions": ["Can credentials leak through logs?", "Are sensitive values redacted?"],
+            "expectations": [
+                "Evidence for env, logs, fixtures, configs, and generated artifacts."
+            ],
+            "questions": [
+                "Can credentials leak through logs?",
+                "Are sensitive values redacted?",
+            ],
         },
         {
             "id": "permission_boundary",
             "name": "Permission Boundary",
             "weight": 4,
-            "expectations": ["Evidence for file, network, auth, database, and tool side effects."],
-            "questions": ["Are mutations explicit?", "Are privileged operations approval-gated?"],
+            "expectations": [
+                "Evidence for file, network, auth, database, and tool side effects."
+            ],
+            "questions": [
+                "Are mutations explicit?",
+                "Are privileged operations approval-gated?",
+            ],
         },
         {
             "id": "data_flow_privacy",
             "name": "Data Flow Privacy",
             "weight": 4,
-            "expectations": ["Evidence for inputs, persistence, retention, and outbound data flow."],
-            "questions": ["Is sensitive data minimized?", "Can retained data be audited?"],
+            "expectations": [
+                "Evidence for inputs, persistence, retention, and outbound data flow."
+            ],
+            "questions": [
+                "Is sensitive data minimized?",
+                "Can retained data be audited?",
+            ],
         },
         {
             "id": "supply_chain",
             "name": "Supply Chain",
             "weight": 3,
-            "expectations": ["Evidence for dependency changes, lockfiles, and provenance."],
-            "questions": ["Are dependencies justified?", "Do lockfiles match repo policy?"],
+            "expectations": [
+                "Evidence for dependency changes, lockfiles, and provenance."
+            ],
+            "questions": [
+                "Are dependencies justified?",
+                "Do lockfiles match repo policy?",
+            ],
         },
     ],
     "developer_experience": [
@@ -400,14 +449,21 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
             "id": "command_discoverability",
             "name": "Command Discoverability",
             "weight": 4,
-            "expectations": ["Evidence for setup, test, lint, typecheck, build, and run commands."],
-            "questions": ["Can a developer find the right commands?", "Do docs match scripts?"],
+            "expectations": [
+                "Evidence for setup, test, lint, typecheck, build, and run commands."
+            ],
+            "questions": [
+                "Can a developer find the right commands?",
+                "Do docs match scripts?",
+            ],
         },
         {
             "id": "validation_loop",
             "name": "Validation Loop",
             "weight": 4,
-            "expectations": ["Evidence for fast targeted checks and complete release checks."],
+            "expectations": [
+                "Evidence for fast targeted checks and complete release checks."
+            ],
             "questions": ["Is the inner loop fast?", "Are failures actionable?"],
         },
         {
@@ -415,7 +471,10 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
             "name": "Interface Clarity",
             "weight": 3,
             "expectations": ["Evidence for API, CLI, schema, errors, and examples."],
-            "questions": ["Are public interfaces predictable?", "Can errors guide next action?"],
+            "questions": [
+                "Are public interfaces predictable?",
+                "Can errors guide next action?",
+            ],
         },
     ],
     "general_review": [
@@ -423,29 +482,43 @@ PROFILE_DIMENSIONS: dict[str, list[dict[str, Any]]] = {
             "id": "source_grounding",
             "name": "Source Grounding",
             "weight": 4,
-            "expectations": ["Evidence that findings cite concrete local or user-provided sources."],
+            "expectations": [
+                "Evidence that findings cite concrete local or user-provided sources."
+            ],
             "questions": ["Is each claim grounded?", "Are skipped scopes explicit?"],
         },
         {
             "id": "risk_priority",
             "name": "Risk Priority",
             "weight": 4,
-            "expectations": ["Evidence that blockers, warnings, and observations are separated."],
-            "questions": ["Are correctness risks first?", "Are preferences separate from defects?"],
+            "expectations": [
+                "Evidence that blockers, warnings, and observations are separated."
+            ],
+            "questions": [
+                "Are correctness risks first?",
+                "Are preferences separate from defects?",
+            ],
         },
         {
             "id": "verification_readiness",
             "name": "Verification Readiness",
             "weight": 4,
-            "expectations": ["Evidence that remediation can be verified by commands or checks."],
+            "expectations": [
+                "Evidence that remediation can be verified by commands or checks."
+            ],
             "questions": ["Can the next worker know when a slice is done?"],
         },
         {
             "id": "scope_control",
             "name": "Scope Control",
             "weight": 3,
-            "expectations": ["Evidence for reviewed scope, deferred scope, and explicit gaps."],
-            "questions": ["Is the reviewed surface bounded?", "Are unreviewed areas named?"],
+            "expectations": [
+                "Evidence for reviewed scope, deferred scope, and explicit gaps."
+            ],
+            "questions": [
+                "Is the reviewed surface bounded?",
+                "Are unreviewed areas named?",
+            ],
         },
     ],
 }
@@ -618,7 +691,11 @@ WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
             "state",
             "interaction",
         ),
-        "behavior_atoms": ("evidence-backed-claims", "concrete-citations", "artifact-contract"),
+        "behavior_atoms": (
+            "evidence-backed-claims",
+            "concrete-citations",
+            "artifact-contract",
+        ),
         "profile": "visual_polish",
         "starter_prompt": "Use the TMCP expert UI rubric on this project.",
         "expected_artifacts": (
@@ -646,7 +723,10 @@ WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
             "audit log",
             "retention",
         ),
-        "behavior_atoms": ("bounded-tool-side-effects", "approval-before-implementation"),
+        "behavior_atoms": (
+            "bounded-tool-side-effects",
+            "approval-before-implementation",
+        ),
         "profile": "security_privacy",
         "starter_prompt": "Use TMCP to audit security and privacy risks in this project.",
         "expected_artifacts": (
@@ -702,7 +782,11 @@ WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
             "tag",
             "verification",
         ),
-        "behavior_atoms": ("quality-gate-disclosure", "ordered-next-actions", "artifact-contract"),
+        "behavior_atoms": (
+            "quality-gate-disclosure",
+            "ordered-next-actions",
+            "artifact-contract",
+        ),
         "profile": "general_review",
         "starter_prompt": "Use TMCP to plan release readiness for this project.",
         "expected_artifacts": (
@@ -728,7 +812,11 @@ WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
             "docs",
             "troubleshooting",
         ),
-        "behavior_atoms": ("local-context-first", "source-traceability", "artifact-contract"),
+        "behavior_atoms": (
+            "local-context-first",
+            "source-traceability",
+            "artifact-contract",
+        ),
         "profile": "developer_experience",
         "starter_prompt": "Use TMCP to review developer onboarding commands and CLI docs.",
         "expected_artifacts": (
@@ -754,7 +842,10 @@ WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
             "abstraction",
             "cleanup",
         ),
-        "behavior_atoms": ("smallest-effective-change", "avoid-speculative-abstractions"),
+        "behavior_atoms": (
+            "smallest-effective-change",
+            "avoid-speculative-abstractions",
+        ),
         "profile": "general_review",
         "starter_prompt": "Use TMCP to review maintainability, boundaries, and dead-code risk.",
         "expected_artifacts": (
@@ -806,7 +897,11 @@ WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
             "database",
             "integrity",
         ),
-        "behavior_atoms": ("source-traceability", "behavior-verification", "explicit-evidence-gaps"),
+        "behavior_atoms": (
+            "source-traceability",
+            "behavior-verification",
+            "explicit-evidence-gaps",
+        ),
         "profile": "general_review",
         "starter_prompt": "Use TMCP to review data integrity, migrations, and pipeline correctness.",
         "expected_artifacts": (
@@ -829,7 +924,13 @@ TOOLS: dict[str, dict[str, Any]] = {
             "properties": {
                 "client": {
                     "type": "string",
-                    "enum": ["auto", "codex", "claude_code", "claude_desktop", "plain_mcp"],
+                    "enum": [
+                        "auto",
+                        "codex",
+                        "claude_code",
+                        "claude_desktop",
+                        "plain_mcp",
+                    ],
                     "default": "auto",
                 },
                 "project_path": {"type": "string", "default": "."},
@@ -875,7 +976,10 @@ TOOLS: dict[str, dict[str, Any]] = {
                     "items": {"type": "string"},
                     "description": "Optional list of roots to harvest. Overrides source_path when provided.",
                 },
-                "objective": {"type": "string", "default": "Harvest reusable skill behavior"},
+                "objective": {
+                    "type": "string",
+                    "default": "Harvest reusable skill behavior",
+                },
                 "glob": {
                     "type": "string",
                     "description": "Backward-compatible single include glob.",
@@ -1097,9 +1201,10 @@ def _run_aios(args: list[str]) -> dict[str, Any]:
     except json.JSONDecodeError:
         payload = {"stdout": completed.stdout, "stderr": completed.stderr}
     if isinstance(payload, dict):
-        payload.setdefault("ok", True)
-        payload.setdefault("adapter", "aios")
-        return payload
+        response = cast(dict[str, object], payload)
+        response.setdefault("ok", True)
+        response.setdefault("adapter", "aios")
+        return response
     return {"ok": True, "adapter": "aios", "data": payload}
 
 
@@ -1111,7 +1216,10 @@ def _select_task(objective: str) -> tuple[str, dict[str, int]]:
     }
     if any(term in text for term in ("rubric", "audit", "review", "judge", "evaluate")):
         scores["audit"] += 2
-    if any(term in text for term in ("harvest", "skill packet", "skill-packet", "tmcp packet")):
+    if any(
+        term in text
+        for term in ("harvest", "skill packet", "skill-packet", "tmcp packet")
+    ):
         scores["agent_workflow"] += 2
     task_priority = {
         "audit": 8,
@@ -1138,7 +1246,10 @@ def _select_profile(objective: str, packet: dict[str, Any]) -> str:
             " ".join(_string_list(packet.get("behavior_atoms"))),
         ]
     ).lower()
-    if any(term in haystack for term in ("ui", "ux", "frontend", "visual", "screen", "design")):
+    if any(
+        term in haystack
+        for term in ("ui", "ux", "frontend", "visual", "screen", "design")
+    ):
         return "visual_polish"
     if any(
         term in haystack
@@ -1156,12 +1267,20 @@ def _select_profile(objective: str, packet: dict[str, Any]) -> str:
         )
     ) or (
         "readiness" in haystack
-        and any(term in haystack for term in ("government", "public sector", "public-sector", "compliance"))
+        and any(
+            term in haystack
+            for term in ("government", "public sector", "public-sector", "compliance")
+        )
     ):
         return "public_sector_readiness"
-    if any(term in haystack for term in ("security", "privacy", "secret", "permission")):
+    if any(
+        term in haystack for term in ("security", "privacy", "secret", "permission")
+    ):
         return "security_privacy"
-    if any(term in haystack for term in ("developer", "docs", "cli", "command", "onboarding")):
+    if any(
+        term in haystack
+        for term in ("developer", "docs", "cli", "command", "onboarding")
+    ):
         return "developer_experience"
     return "general_review"
 
@@ -1169,12 +1288,21 @@ def _select_profile(objective: str, packet: dict[str, Any]) -> str:
 def _select_branch(objective: str, task_id: str) -> tuple[str, str]:
     text = objective.lower()
     if any(term in text for term in ("implement", "edit", "fix", "patch")):
-        return "approval_before_edit", "Implementation language present; audit workflows still require approval before edits."
+        return (
+            "approval_before_edit",
+            "Implementation language present; audit workflows still require approval before edits.",
+        )
     if any(term in text for term in ("maybe", "possibly", "not sure", "unclear")):
-        return "ambiguous_task_resolution", "Ambiguity language present; preserve uncertainty and ask only when necessary."
+        return (
+            "ambiguous_task_resolution",
+            "Ambiguity language present; preserve uncertainty and ask only when necessary.",
+        )
     if task_id == "implementation":
         return "direct_implementation", "Implementation is the selected task path."
-    return "evidence_first_review", "Default branch keeps TMCP as an audit-and-plan workflow."
+    return (
+        "evidence_first_review",
+        "Default branch keeps TMCP as an audit-and-plan workflow.",
+    )
 
 
 def _packet_markdown(packet: dict[str, Any]) -> str:
@@ -1247,18 +1375,33 @@ def _packet_substance_check(
     requested_anchor_terms = sorted(
         {
             term
-            for term in ("government", "public sector", "public-sector", "compliance", "legal", "calculation")
+            for term in (
+                "government",
+                "public sector",
+                "public-sector",
+                "compliance",
+                "legal",
+                "calculation",
+            )
             if term in objective_lower
         }
     )
-    matched_domain_terms = sorted({term for term in DOMAIN_PLAYBOOK_TERMS if term in source_combined})
-    matched_action_terms = sorted({term for term in PLAYBOOK_ACTION_TERMS if term in source_combined})
+    matched_domain_terms = sorted(
+        {term for term in DOMAIN_PLAYBOOK_TERMS if term in source_combined}
+    )
+    matched_action_terms = sorted(
+        {term for term in PLAYBOOK_ACTION_TERMS if term in source_combined}
+    )
     substantive_nodes: list[dict[str, Any]] = []
     for node, text in zip(source_nodes, source_texts):
         domain_hits = [term for term in DOMAIN_PLAYBOOK_TERMS if term in text]
         action_hits = [term for term in PLAYBOOK_ACTION_TERMS if term in text]
-        has_required_anchor = not requested_anchor_terms or any(term in text for term in requested_anchor_terms)
-        has_substantive_type = str(node.get("source_type", "")) in SUBSTANTIVE_SOURCE_TYPES
+        has_required_anchor = not requested_anchor_terms or any(
+            term in text for term in requested_anchor_terms
+        )
+        has_substantive_type = (
+            str(node.get("source_type", "")) in SUBSTANTIVE_SOURCE_TYPES
+        )
         name_scope = " ".join(
             [
                 str(node.get("path", "")),
@@ -1266,7 +1409,9 @@ def _packet_substance_check(
                 str(node.get("title", "")),
             ]
         ).lower()
-        is_non_substantive = any(term in name_scope for term in NON_SUBSTANTIVE_SOURCE_NAME_TERMS)
+        is_non_substantive = any(
+            term in name_scope for term in NON_SUBSTANTIVE_SOURCE_NAME_TERMS
+        )
         if (
             has_substantive_type
             and not is_non_substantive
@@ -1302,11 +1447,17 @@ def _packet_substance_check(
         level = "process_only"
     issues: list[str] = []
     if not source_nodes:
-        issues.append("No harvested source nodes were available for task-specific playbook content.")
+        issues.append(
+            "No harvested source nodes were available for task-specific playbook content."
+        )
     if not substantive_nodes:
-        issues.append("Selected TMCP modules are mostly process scaffolding, not a concrete domain playbook.")
+        issues.append(
+            "Selected TMCP modules are mostly process scaffolding, not a concrete domain playbook."
+        )
     if task_id == "audit" and level != "source_backed_playbook":
-        issues.append("Audit rubric substance should be derived from target repo evidence and cited artifacts.")
+        issues.append(
+            "Audit rubric substance should be derived from target repo evidence and cited artifacts."
+        )
     fallback_policy = (
         "Use TMCP for routing, evidence discipline, and output contract; derive rubric substance from target repo docs, code, tests, risk registers, and readiness gates."
         if level != "source_backed_playbook"
@@ -1347,7 +1498,9 @@ def _compile_standalone_packet(
     if "tmcp" in objective.lower() and "provenance_policy" not in modules:
         modules.append("provenance_policy")
     branch_id, branch_reason = _select_branch(objective, task_id)
-    source_nodes = [_source_node_for_packet(node) for node in (harvested_nodes or [])[:8]]
+    source_nodes = [
+        _source_node_for_packet(node) for node in (harvested_nodes or [])[:8]
+    ]
     selected_nodes = [
         f"@task:{task_id}",
         *(f"@module:{module}" for module in modules),
@@ -1355,11 +1508,7 @@ def _compile_standalone_packet(
         f"@branch:{branch_id}",
     ]
     atoms = sorted(
-        {
-            atom
-            for module in modules
-            for atom in MODULE_BEHAVIOR_ATOMS.get(module, ())
-        }
+        {atom for module in modules for atom in MODULE_BEHAVIOR_ATOMS.get(module, ())}
         | {
             atom
             for node in source_nodes
@@ -1382,7 +1531,9 @@ def _compile_standalone_packet(
         sort_keys=True,
     )
     graph_version = hashlib.sha256(
-        json.dumps({"tasks": TASK_KEYWORDS, "modules": TASK_MODULES}, sort_keys=True).encode()
+        json.dumps(
+            {"tasks": TASK_KEYWORDS, "modules": TASK_MODULES}, sort_keys=True
+        ).encode()
     ).hexdigest()
     fingerprint = hashlib.sha256(fingerprint_source.encode()).hexdigest()
     substance_check = _packet_substance_check(
@@ -1405,7 +1556,9 @@ def _compile_standalone_packet(
         "entry_node": f"@task:{task_id}",
         "selected_nodes": selected_nodes,
         "skipped_nodes": skipped_nodes,
-        "selected_branches": [{"branch": f"@branch:{branch_id}", "reason": branch_reason}],
+        "selected_branches": [
+            {"branch": f"@branch:{branch_id}", "reason": branch_reason}
+        ],
         "candidate_scores": {"tasks": task_scores},
         "source_skill_nodes": source_nodes,
         "substance_check": substance_check,
@@ -1459,7 +1612,10 @@ def _compile_standalone_packet(
     packet["packet_markdown"] = _packet_markdown(packet)
     packet["token_estimates"] = {
         "custom_skill_tokens": _estimate_tokens(packet["packet_markdown"]),
-        "baseline_skill_tokens": _estimate_tokens(json.dumps(TASK_MODULES, sort_keys=True)) * 4,
+        "baseline_skill_tokens": _estimate_tokens(
+            json.dumps(TASK_MODULES, sort_keys=True)
+        )
+        * 4,
     }
     packet["token_estimates"]["estimated_token_delta"] = (
         packet["token_estimates"]["baseline_skill_tokens"]
@@ -1499,7 +1655,9 @@ def _dimension(
     }
 
 
-def _synthesize_rubric(packet: dict[str, Any], run_id: str, objective: str) -> dict[str, Any]:
+def _synthesize_rubric(
+    packet: dict[str, Any], run_id: str, objective: str
+) -> dict[str, Any]:
     source_nodes = _string_list(packet.get("selected_nodes"))
     profile = _select_profile(objective, packet)
     return {
@@ -1532,7 +1690,9 @@ def _profile_coverage_gaps(
     findings: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     requirements = [
-        item for item in _json_list(rubric.get("coverage_requirements")) if isinstance(item, dict)
+        item
+        for item in _json_list(rubric.get("coverage_requirements"))
+        if isinstance(item, dict)
     ]
     if not requirements:
         return []
@@ -1558,7 +1718,11 @@ def _profile_coverage_gaps(
             gaps.append(
                 {
                     "coverage_id": str(requirement.get("id") or "profile_coverage"),
-                    "label": str(requirement.get("label") or requirement.get("id") or "profile coverage"),
+                    "label": str(
+                        requirement.get("label")
+                        or requirement.get("id")
+                        or "profile coverage"
+                    ),
                     "gaps": [issue],
                 }
             )
@@ -1578,7 +1742,9 @@ def _build_audit_report(
     evidence_items: list[dict[str, Any]],
     run_id: str,
 ) -> dict[str, Any]:
-    dimensions = [item for item in _json_list(rubric.get("dimensions")) if isinstance(item, dict)]
+    dimensions = [
+        item for item in _json_list(rubric.get("dimensions")) if isinstance(item, dict)
+    ]
     findings: list[dict[str, Any]] = []
     evidence_by_dimension: dict[str, list[str]] = {}
     for index, item in sorted(
@@ -1598,17 +1764,23 @@ def _build_audit_report(
                 "dimension_id": dimension_id,
                 "summary": str(item.get("summary", "Evidence item requires review.")),
                 "evidence": evidence,
-                "recommended_fix": str(item.get("recommended_fix", "Remediate the cited evidence.")),
+                "recommended_fix": str(
+                    item.get("recommended_fix", "Remediate the cited evidence.")
+                ),
             }
         )
     scores: list[dict[str, Any]] = []
     coverage_gaps: list[dict[str, Any]] = []
     for dimension in dimensions:
         dimension_id = str(dimension["id"])
-        matching = [finding for finding in findings if finding["dimension_id"] == dimension_id]
+        matching = [
+            finding for finding in findings if finding["dimension_id"] == dimension_id
+        ]
         evidence = evidence_by_dimension.get(dimension_id, [])
         if matching:
-            score = min(_severity_score(str(finding["severity"])) for finding in matching)
+            score = min(
+                _severity_score(str(finding["severity"])) for finding in matching
+            )
             gaps: list[str] = []
             confidence = "high" if evidence else "low"
         else:
@@ -1632,8 +1804,14 @@ def _build_audit_report(
                     "gaps": gaps,
                 }
             )
-    substance = rubric.get("substance_check") if isinstance(rubric.get("substance_check"), dict) else {}
-    deferred_items = [gap for score in scores for gap in _string_list(score.get("gaps"))]
+    substance = (
+        rubric.get("substance_check")
+        if isinstance(rubric.get("substance_check"), dict)
+        else {}
+    )
+    deferred_items = [
+        gap for score in scores for gap in _string_list(score.get("gaps"))
+    ]
     if substance and not bool(substance.get("has_domain_playbook")):
         deferred_items.extend(_string_list(substance.get("issues")))
     coverage_gaps.extend(_profile_coverage_gaps(rubric, findings))
@@ -1656,7 +1834,9 @@ def _build_audit_report(
     }
 
 
-def _build_remediation_plan(audit_report: dict[str, Any], run_id: str) -> dict[str, Any]:
+def _build_remediation_plan(
+    audit_report: dict[str, Any], run_id: str
+) -> dict[str, Any]:
     slices: list[dict[str, Any]] = []
     for index, finding in enumerate(_json_list(audit_report.get("findings")), start=1):
         if not isinstance(finding, dict):
@@ -1676,15 +1856,29 @@ def _build_remediation_plan(audit_report: dict[str, Any], run_id: str) -> dict[s
                 "source_findings": [finding_id],
             }
         )
-    coverage_gaps = [item for item in _json_list(audit_report.get("coverage_gaps")) if isinstance(item, dict)]
+    coverage_gaps = [
+        item
+        for item in _json_list(audit_report.get("coverage_gaps"))
+        if isinstance(item, dict)
+    ]
     if coverage_gaps and _json_list(audit_report.get("findings")):
         profile = str(audit_report.get("profile") or "general_review")
         missing_dimensions = [
-            str(item.get("dimension_name") or item.get("dimension_id") or item.get("label") or item.get("coverage_id"))
+            str(
+                item.get("dimension_name")
+                or item.get("dimension_id")
+                or item.get("label")
+                or item.get("coverage_id")
+            )
             for item in coverage_gaps
-            if item.get("dimension_name") or item.get("dimension_id") or item.get("label") or item.get("coverage_id")
+            if item.get("dimension_name")
+            or item.get("dimension_id")
+            or item.get("label")
+            or item.get("coverage_id")
         ]
-        gap_details = [gap for item in coverage_gaps for gap in _string_list(item.get("gaps"))]
+        gap_details = [
+            gap for item in coverage_gaps for gap in _string_list(item.get("gaps"))
+        ]
         slices.append(
             {
                 "id": f"slice-{len(slices) + 1}-profile-coverage",
@@ -1734,9 +1928,17 @@ def _build_implementation_handoff(
     run_id: str,
     selected_slice_id: str | None,
 ) -> dict[str, Any]:
-    slices = [item for item in _json_list(remediation_plan.get("slices")) if isinstance(item, dict)]
+    slices = [
+        item
+        for item in _json_list(remediation_plan.get("slices"))
+        if isinstance(item, dict)
+    ]
     selected = next(
-        (item for item in slices if selected_slice_id and item.get("id") == selected_slice_id),
+        (
+            item
+            for item in slices
+            if selected_slice_id and item.get("id") == selected_slice_id
+        ),
         slices[0] if slices else {},
     )
     return {
@@ -1754,8 +1956,12 @@ def _build_implementation_handoff(
             "remediation-plan.json",
         ],
         "target_files": _string_list(selected.get("scope")) if selected else [],
-        "acceptance_criteria": _string_list(selected.get("verification")) if selected else [],
-        "known_risks": [str(selected.get("risk"))] if selected and selected.get("risk") else [],
+        "acceptance_criteria": _string_list(selected.get("verification"))
+        if selected
+        else [],
+        "known_risks": [str(selected.get("risk"))]
+        if selected and selected.get("risk")
+        else [],
     }
 
 
@@ -1765,7 +1971,11 @@ def _validations(
     audit_report: dict[str, Any],
     remediation_plan: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    coverage_gaps = [item for item in _json_list(audit_report.get("coverage_gaps")) if isinstance(item, dict)]
+    coverage_gaps = [
+        item
+        for item in _json_list(audit_report.get("coverage_gaps"))
+        if isinstance(item, dict)
+    ]
     profile = str(rubric.get("profile") or "general_review")
     coverage_issues = [
         f"{profile} coverage missing for {item.get('dimension_name') or item.get('dimension_id') or item.get('label') or item.get('coverage_id')}: {'; '.join(_string_list(item.get('gaps')))}"
@@ -1774,7 +1984,8 @@ def _validations(
     return [
         {
             "validation_key": "tmcp_packet_compiled",
-            "passed": packet.get("schema") == TMCP_PACKET_SCHEMA and bool(packet.get("selected_nodes")),
+            "passed": packet.get("schema") == TMCP_PACKET_SCHEMA
+            and bool(packet.get("selected_nodes")),
             "issues": [],
         },
         {
@@ -1801,7 +2012,10 @@ def _validations(
         },
         {
             "validation_key": "findings_have_evidence",
-            "passed": all(_string_list(item.get("evidence")) for item in _json_list(audit_report.get("findings"))),
+            "passed": all(
+                _string_list(item.get("evidence"))
+                for item in _json_list(audit_report.get("findings"))
+            ),
             "issues": [
                 str(item.get("id", "finding"))
                 for item in _json_list(audit_report.get("findings"))
@@ -1821,7 +2035,12 @@ def _validations(
 
 
 def _markdown_rubric(rubric: dict[str, Any]) -> str:
-    lines = [f"# Expert Rubric: {rubric['objective']}", "", f"Profile: `{rubric['profile']}`", ""]
+    lines = [
+        f"# Expert Rubric: {rubric['objective']}",
+        "",
+        f"Profile: `{rubric['profile']}`",
+        "",
+    ]
     substance = rubric.get("substance_check")
     if isinstance(substance, dict):
         lines.extend(
@@ -1894,7 +2113,9 @@ def _markdown_plan(plan: dict[str, Any]) -> str:
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def _write_review_artifacts(
@@ -1919,9 +2140,13 @@ def _write_review_artifacts(
     _write_json(paths["rubric_json"], rubric)
     paths["rubric_markdown"].write_text(_markdown_rubric(rubric), encoding="utf-8")
     _write_json(paths["audit_report_json"], audit_report)
-    paths["audit_report_markdown"].write_text(_markdown_audit(audit_report), encoding="utf-8")
+    paths["audit_report_markdown"].write_text(
+        _markdown_audit(audit_report), encoding="utf-8"
+    )
     _write_json(paths["remediation_plan_json"], remediation_plan)
-    paths["remediation_plan_markdown"].write_text(_markdown_plan(remediation_plan), encoding="utf-8")
+    paths["remediation_plan_markdown"].write_text(
+        _markdown_plan(remediation_plan), encoding="utf-8"
+    )
     _write_json(paths["implementation_handoff_json"], handoff)
     return {key: str(path) for key, path in paths.items()}
 
@@ -1931,7 +2156,9 @@ def _default_output_dir(project_path: str) -> str:
     return str(root / ".aios" / "reviews" / f"tmcp-mcp-{uuid.uuid4().hex[:8]}")
 
 
-def _harvest_review_sources(project_path: str, objective: str, source_limit: int) -> tuple[list[dict[str, Any]], list[str]]:
+def _harvest_review_sources(
+    project_path: str, objective: str, source_limit: int
+) -> tuple[list[dict[str, Any]], list[str]]:
     harvest = _harvest_skills(
         {
             "source_path": project_path,
@@ -1940,7 +2167,9 @@ def _harvest_review_sources(project_path: str, objective: str, source_limit: int
             "write_artifacts": False,
         }
     )
-    return _json_list(harvest.get("source_nodes")), _string_list(harvest.get("warnings"))
+    return _json_list(harvest.get("source_nodes")), _string_list(
+        harvest.get("warnings")
+    )
 
 
 def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -1973,7 +2202,9 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     artifact_paths: dict[str, str] = {}
     if bool(arguments.get("write_artifacts", True)):
         artifact_paths = _write_review_artifacts(
-            Path(str(arguments.get("output_dir") or _default_output_dir(project_path))).expanduser(),
+            Path(
+                str(arguments.get("output_dir") or _default_output_dir(project_path))
+            ).expanduser(),
             packet,
             rubric,
             audit_report,
@@ -1999,7 +2230,9 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _normalize_string_list(value: object, fallback: tuple[str, ...] | list[str]) -> list[str]:
+def _normalize_string_list(
+    value: object, fallback: tuple[str, ...] | list[str]
+) -> list[str]:
     if isinstance(value, list):
         items = [str(item).strip() for item in value if str(item).strip()]
         return items or list(fallback)
@@ -2168,7 +2401,9 @@ def _classify_atoms(text: str, source_type: str = "") -> list[str]:
         atoms.update(MODULE_BEHAVIOR_ATOMS["tool_use_policy"])
     if any(term in lower for term in ("conflict", "precedence", "override", "branch")):
         atoms.add("conflict-preservation")
-    if any(term in lower for term in ("artifact", "output contract", "schema", "handoff")):
+    if any(
+        term in lower for term in ("artifact", "output contract", "schema", "handoff")
+    ):
         atoms.add("artifact-contract")
     return sorted(atoms)[:10]
 
@@ -2204,7 +2439,9 @@ def _frontmatter_for(text: str) -> dict[str, str]:
     return frontmatter
 
 
-def _read_text_limited(path: Path, max_file_bytes: int) -> tuple[str | None, str | None]:
+def _read_text_limited(
+    path: Path, max_file_bytes: int
+) -> tuple[str | None, str | None]:
     try:
         size = path.stat().st_size
     except OSError as exc:
@@ -2220,7 +2457,9 @@ def _read_text_limited(path: Path, max_file_bytes: int) -> tuple[str | None, str
     return data.decode("utf-8", errors="replace"), None
 
 
-def _write_harvest_artifacts(output_dir: Path, result: dict[str, Any]) -> dict[str, str]:
+def _write_harvest_artifacts(
+    output_dir: Path, result: dict[str, Any]
+) -> dict[str, str]:
     paths = {
         "harvest_result": output_dir / "tmcp-harvest-result.json",
         "packet_seed": output_dir / "tmcp-packet-seed.json",
@@ -2245,7 +2484,9 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
         DEFAULT_HARVEST_INCLUDE_GLOBS,
     )
     if "glob" in arguments and not arguments.get("include_globs"):
-        include_globs = _normalize_string_list(arguments.get("glob"), DEFAULT_HARVEST_INCLUDE_GLOBS)
+        include_globs = _normalize_string_list(
+            arguments.get("glob"), DEFAULT_HARVEST_INCLUDE_GLOBS
+        )
     exclude_globs = _normalize_string_list(
         arguments.get("exclude_globs"),
         DEFAULT_HARVEST_EXCLUDE_GLOBS,
@@ -2271,7 +2512,9 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
         merge_redactions(redaction_totals, redactions)
         source_type = _source_type_for(path, rel_path, text)
         tokens = sorted(_text_tokens(safe_text))
-        node_id = hashlib.sha256(f"{path}:{hashlib.sha256(text.encode()).hexdigest()}".encode()).hexdigest()[:12]
+        node_id = hashlib.sha256(
+            f"{path}:{hashlib.sha256(text.encode()).hexdigest()}".encode()
+        ).hexdigest()[:12]
         frontmatter = _frontmatter_for(safe_text)
         nodes.append(
             {
@@ -2290,9 +2533,17 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
                 "redactions": redactions,
             }
         )
-    nodes.sort(key=lambda node: _harvest_priority(Path(str(node["path"])), str(node["relative_path"]), str(node["source_type"])))
+    nodes.sort(
+        key=lambda node: _harvest_priority(
+            Path(str(node["path"])),
+            str(node["relative_path"]),
+            str(node["source_type"]),
+        )
+    )
     if len(nodes) > limit:
-        warnings.append(f"Harvest limit reached: kept {limit} of {len(nodes)} matched source files.")
+        warnings.append(
+            f"Harvest limit reached: kept {limit} of {len(nodes)} matched source files."
+        )
         nodes = nodes[:limit]
     project_path = str(source_roots[0]) if source_roots else str(Path(".").resolve())
     packet = _compile_standalone_packet(
@@ -2323,14 +2574,19 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
     }
     if bool(arguments.get("write_artifacts", False)):
         output_dir = Path(
-            str(arguments.get("output_dir") or Path(project_path) / ".tmcp" / f"harvest-{uuid.uuid4().hex[:8]}")
+            str(
+                arguments.get("output_dir")
+                or Path(project_path) / ".tmcp" / f"harvest-{uuid.uuid4().hex[:8]}"
+            )
         ).expanduser()
         result["artifact_paths"] = _write_harvest_artifacts(output_dir, result)
     return result
 
 
 def _node_signal_text(node: dict[str, Any]) -> str:
-    frontmatter_values = " ".join(str(value) for value in dict(node.get("frontmatter") or {}).values())
+    frontmatter_values = " ".join(
+        str(value) for value in dict(node.get("frontmatter") or {}).values()
+    )
     return " ".join(
         [
             str(node.get("title") or ""),
@@ -2346,7 +2602,9 @@ def _node_signal_text(node: dict[str, Any]) -> str:
 
 def _source_scope_for(path: str) -> str:
     lower = path.lower()
-    if any(marker in lower for marker in ("/.agents/", "/.codex/", "/.claude/", "/aios/")):
+    if any(
+        marker in lower for marker in ("/.agents/", "/.codex/", "/.claude/", "/aios/")
+    ):
         return "user_or_agent_skill"
     return "repo_or_project_local"
 
@@ -2377,7 +2635,9 @@ def _score_workflow_signal(
     for node in source_nodes:
         text = _node_signal_text(node)
         matched_terms = [keyword for keyword in keywords if keyword in text]
-        matched_atoms = sorted(expected_atoms.intersection(_string_list(node.get("behavior_atoms"))))
+        matched_atoms = sorted(
+            expected_atoms.intersection(_string_list(node.get("behavior_atoms")))
+        )
         node_score = float(len(matched_terms)) + (1.5 * len(matched_atoms))
         if not node_score:
             continue
@@ -2479,7 +2739,9 @@ def _markdown_recommendations(result: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def _write_workflow_recommendation_artifacts(output_dir: Path, result: dict[str, Any]) -> dict[str, str]:
+def _write_workflow_recommendation_artifacts(
+    output_dir: Path, result: dict[str, Any]
+) -> dict[str, str]:
     paths = {
         "recommendation_json": output_dir / "workflow-recommendations.json",
         "recommendation_markdown": output_dir / "workflow-recommendations.md",
@@ -2487,7 +2749,9 @@ def _write_workflow_recommendation_artifacts(output_dir: Path, result: dict[str,
     }
     _write_json(paths["recommendation_json"], result)
     paths["recommendation_markdown"].parent.mkdir(parents=True, exist_ok=True)
-    paths["recommendation_markdown"].write_text(_markdown_recommendations(result), encoding="utf-8")
+    paths["recommendation_markdown"].write_text(
+        _markdown_recommendations(result), encoding="utf-8"
+    )
     profile = result.get("priority_profile")
     if isinstance(profile, dict):
         _write_json(paths["priority_profile_json"], profile)
@@ -2496,20 +2760,27 @@ def _write_workflow_recommendation_artifacts(output_dir: Path, result: dict[str,
 
 def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
     objective = str(
-        arguments.get("objective") or "Recommend custom TMCP workflows from harvested skill signals."
+        arguments.get("objective")
+        or "Recommend custom TMCP workflows from harvested skill signals."
     )
     harvest_args = dict(arguments)
     harvest_args["objective"] = objective
     harvest_args["write_artifacts"] = False
     harvest = _harvest_skills(harvest_args)
     source_nodes = [
-        item for item in _json_list(harvest.get("source_nodes")) if isinstance(item, dict)
+        item
+        for item in _json_list(harvest.get("source_nodes"))
+        if isinstance(item, dict)
     ]
     catalog = _workflow_catalog(arguments)
     min_confidence = float(arguments.get("min_confidence") or 0.25)
     scores = sorted(
         (_score_workflow_signal(workflow, source_nodes) for workflow in catalog),
-        key=lambda item: (float(item["confidence"]), float(item["score"]), str(item["workflow_id"])),
+        key=lambda item: (
+            float(item["confidence"]),
+            float(item["score"]),
+            str(item["workflow_id"]),
+        ),
         reverse=True,
     )
     workflows_by_id = {str(item["workflow_id"]): item for item in catalog}
@@ -2602,10 +2873,14 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
         output_dir = Path(
             str(
                 arguments.get("output_dir")
-                or Path(project_path) / ".tmcp" / f"workflow-recommendations-{uuid.uuid4().hex[:8]}"
+                or Path(project_path)
+                / ".tmcp"
+                / f"workflow-recommendations-{uuid.uuid4().hex[:8]}"
             )
         ).expanduser()
-        result["artifact_paths"] = _write_workflow_recommendation_artifacts(output_dir, result)
+        result["artifact_paths"] = _write_workflow_recommendation_artifacts(
+            output_dir, result
+        )
     else:
         result["artifact_paths"] = {}
     return result
@@ -2623,7 +2898,9 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             },
             {
                 "id": "node_launcher",
-                "status": "pass" if (plugin_root / "scripts" / "tmcp_launcher.mjs").exists() else "fail",
+                "status": "pass"
+                if (plugin_root / "scripts" / "tmcp_launcher.mjs").exists()
+                else "fail",
                 "detail": "scripts/tmcp_launcher.mjs",
             },
             {
@@ -2633,12 +2910,20 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             },
             {
                 "id": "python_server",
-                "status": "pass" if (plugin_root / "scripts" / "tmcp_mcp_server.py").exists() else "fail",
+                "status": "pass"
+                if (plugin_root / "scripts" / "tmcp_mcp_server.py").exists()
+                else "fail",
                 "detail": "scripts/tmcp_mcp_server.py",
             },
             {
                 "id": "python_runtime",
-                "status": "pass" if (shutil.which("python3") or shutil.which("python") or shutil.which("py")) else "fail",
+                "status": "pass"
+                if (
+                    shutil.which("python3")
+                    or shutil.which("python")
+                    or shutil.which("py")
+                )
+                else "fail",
                 "detail": "Set TMCP_PYTHON if automatic Python discovery fails.",
             },
             {
@@ -2745,7 +3030,9 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                 "--json",
             ]
             if arguments.get("selected_slice_id"):
-                args.extend(["--selected-slice-id", str(arguments["selected_slice_id"])])
+                args.extend(
+                    ["--selected-slice-id", str(arguments["selected_slice_id"])]
+                )
             payload = _run_aios(args)
             if payload.get("ok") or adapter == "aios":
                 return payload
@@ -2754,19 +3041,27 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _result(request_id: Any, result: dict[str, Any]) -> None:
-    write_message(sys.stdout.buffer, {"jsonrpc": "2.0", "id": request_id, "result": result})
+    write_message(
+        sys.stdout.buffer, {"jsonrpc": "2.0", "id": request_id, "result": result}
+    )
 
 
 def _error(request_id: Any, code: int, message: str) -> None:
     write_message(
         sys.stdout.buffer,
-        {"jsonrpc": "2.0", "id": request_id, "error": {"code": code, "message": message}},
+        {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "error": {"code": code, "message": message},
+        },
     )
 
 
 def _tool_result(payload: dict[str, Any]) -> dict[str, Any]:
     return {
-        "content": [{"type": "text", "text": json.dumps(payload, indent=2, sort_keys=True)}],
+        "content": [
+            {"type": "text", "text": json.dumps(payload, indent=2, sort_keys=True)}
+        ],
         "structuredContent": payload,
         "isError": not bool(payload.get("ok", True)),
     }
@@ -2789,7 +3084,12 @@ def _handle(request: dict[str, Any]) -> None:
     if method == "tools/list":
         _result(
             request_id,
-            {"tools": [{"name": name, **definition} for name, definition in sorted(TOOLS.items())]},
+            {
+                "tools": [
+                    {"name": name, **definition}
+                    for name, definition in sorted(TOOLS.items())
+                ]
+            },
         )
         return
     if method == "tools/call":
@@ -2954,7 +3254,10 @@ def _run_cli(argv: list[str]) -> int:
             payload: dict[str, Any] = {
                 "ok": True,
                 "schema": "tmcp-cli-tools-v0.1",
-                "tools": [{"name": name, **definition} for name, definition in sorted(TOOLS.items())],
+                "tools": [
+                    {"name": name, **definition}
+                    for name, definition in sorted(TOOLS.items())
+                ],
             }
         else:
             payload = _call_tool(command, arguments)
@@ -2968,7 +3271,10 @@ def _run_cli(argv: list[str]) -> int:
         )
         return 0 if bool(payload.get("ok", True)) else 1
     except Exception as exc:
-        print(json.dumps({"ok": False, "error": str(exc)}, indent=2, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps({"ok": False, "error": str(exc)}, indent=2, sort_keys=True),
+            file=sys.stderr,
+        )
         return 2
 
 
