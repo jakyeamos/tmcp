@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added `evidence_contract` and `evidence_diagnostics` to expert rubric review results so coarse `evidence_json` records are reported before they produce uncited, low-value findings.
+
 ## 0.3.0 - 2026-06-29
 
 - Added the adaptive workflow expansion: eight default workflow router skills for incidents, architecture decisions, test strategy, migrations, data integrity, agent handoffs, PR risk, and performance readiness.

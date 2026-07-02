@@ -1239,7 +1239,12 @@ TOOLS: dict[str, dict[str, Any]] = {
                 "project_path": {"type": "string", "default": "."},
                 "output_dir": {"type": "string"},
                 "evidence_json": {
-                    "description": "JSON object or array of evidence objects.",
+                    "description": (
+                        "JSON object or array of evidence objects. Each actionable item should include "
+                        "dimension_id, severity, summary, non-empty evidence citations, and optional "
+                        "recommended_fix. Generic kind/status records are accepted as JSON but reported "
+                        "as diagnostics until mapped to rubric dimensions."
+                    ),
                     "type": "string",
                     "default": "[]",
                 },
@@ -1824,6 +1829,90 @@ def _parse_evidence(raw: object) -> list[dict[str, Any]]:
     raise ValueError("evidence_json must be a JSON object or array of objects.")
 
 
+def _evidence_contract(rubric: dict[str, Any]) -> dict[str, Any]:
+    dimensions = [
+        item for item in _json_list(rubric.get("dimensions")) if isinstance(item, dict)
+    ]
+    dimension_ids = [str(item.get("id")) for item in dimensions if item.get("id")]
+    return {
+        "schema": "tmcp-evidence-contract-v0.1",
+        "required_fields": ["dimension_id", "severity", "summary", "evidence"],
+        "optional_fields": ["recommended_fix"],
+        "severity_values": ["blocker", "warning", "observation"],
+        "dimension_ids": dimension_ids,
+        "evidence_requirement": (
+            "`evidence` must contain concrete citations such as file paths, artifact paths, "
+            "command outputs, screenshots, or named local facts. Empty arrays produce "
+            "uncited findings."
+        ),
+        "example": {
+            "dimension_id": dimension_ids[0] if dimension_ids else "source_grounding",
+            "severity": "warning",
+            "summary": "Release verification has not been fully cited.",
+            "evidence": [
+                "pytest: 162 passed",
+                "ruff format --check: failed on generated artifacts",
+            ],
+            "recommended_fix": "Capture the failing format paths and rerun the release gate.",
+        },
+    }
+
+
+def _evidence_diagnostics(
+    rubric: dict[str, Any],
+    evidence_items: list[dict[str, Any]],
+) -> dict[str, Any]:
+    dimensions = [
+        item for item in _json_list(rubric.get("dimensions")) if isinstance(item, dict)
+    ]
+    dimension_ids = {str(item.get("id")) for item in dimensions if item.get("id")}
+    item_issues: list[dict[str, Any]] = []
+    mapped_dimension_ids: set[str] = set()
+    for index, item in enumerate(evidence_items, start=1):
+        issues: list[str] = []
+        dimension_id = str(item.get("dimension_id") or "")
+        if not dimension_id:
+            issues.append(
+                "Missing `dimension_id`; the item will map to the first rubric dimension."
+            )
+        elif dimension_id not in dimension_ids:
+            issues.append(f"Unknown `dimension_id` `{dimension_id}`.")
+        else:
+            mapped_dimension_ids.add(dimension_id)
+        severity = str(item.get("severity") or "")
+        if severity and severity not in {"blocker", "warning", "observation"}:
+            issues.append(
+                f"Unknown `severity` `{severity}`; use blocker, warning, or observation."
+            )
+        if not str(item.get("summary") or "").strip():
+            issues.append("Missing `summary`; the audit will use a generic placeholder.")
+        if not _string_list(item.get("evidence")):
+            issues.append("Missing non-empty `evidence`; findings will not be traceable.")
+        if item.get("kind") and not dimension_id:
+            issues.append(
+                "`kind` is caller metadata only; use `dimension_id` to map evidence to the rubric."
+            )
+        if issues:
+            item_issues.append({"index": index, "issues": issues})
+    missing_dimensions = [
+        str(item.get("id"))
+        for item in dimensions
+        if item.get("id") and str(item.get("id")) not in mapped_dimension_ids
+    ]
+    return {
+        "schema": "tmcp-evidence-diagnostics-v0.1",
+        "actionable": not item_issues,
+        "item_issues": item_issues,
+        "missing_dimensions": missing_dimensions,
+        "guidance": (
+            "Supply one or more evidence objects per relevant rubric dimension. "
+            "Generic records such as `{kind: checks, pytest: ...}` are accepted as JSON "
+            "but are not enough for scored, cited findings unless they include "
+            "`dimension_id`, `summary`, and non-empty `evidence`."
+        ),
+    }
+
+
 def _dimension(
     *,
     dimension: dict[str, Any],
@@ -2156,6 +2245,7 @@ def _validations(
     rubric: dict[str, Any],
     audit_report: dict[str, Any],
     remediation_plan: dict[str, Any],
+    evidence_diagnostics: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     coverage_gaps = [
         item
@@ -2190,6 +2280,21 @@ def _validations(
             "validation_key": "rubric_dimensions_present",
             "passed": bool(rubric.get("dimensions")),
             "issues": [] if rubric.get("dimensions") else ["Rubric has no dimensions."],
+        },
+        {
+            "validation_key": "evidence_json_actionable",
+            "passed": bool(
+                not evidence_diagnostics
+                or evidence_diagnostics.get("actionable")
+                or not audit_report.get("findings")
+            ),
+            "issues": [
+                f"evidence[{item.get('index')}]: {'; '.join(_string_list(item.get('issues')))}"
+                for item in _json_list(
+                    (evidence_diagnostics or {}).get("item_issues")
+                )
+                if isinstance(item, dict)
+            ],
         },
         {
             "validation_key": "profile_evidence_coverage",
@@ -2378,6 +2483,8 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         harvested_nodes=harvested_nodes,
     )
     rubric = _synthesize_rubric(packet, run_id, objective)
+    evidence_contract = _evidence_contract(rubric)
+    evidence_diagnostics = _evidence_diagnostics(rubric, evidence_items)
     audit_report = _build_audit_report(rubric, evidence_items, run_id)
     remediation_plan = _build_remediation_plan(audit_report, run_id)
     handoff = _build_implementation_handoff(
@@ -2404,8 +2511,16 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         "workflow_key": "expert_rubric_remediation_v1",
         "run_id": run_id,
         "status": "completed",
-        "validations": _validations(packet, rubric, audit_report, remediation_plan),
+        "validations": _validations(
+            packet,
+            rubric,
+            audit_report,
+            remediation_plan,
+            evidence_diagnostics,
+        ),
         "harvest_warnings": harvest_warnings,
+        "evidence_contract": evidence_contract,
+        "evidence_diagnostics": evidence_diagnostics,
         "expertise_packet": packet,
         "rubric": rubric,
         "audit_report": audit_report,

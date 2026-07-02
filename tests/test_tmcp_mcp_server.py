@@ -285,6 +285,80 @@ class TmcpMcpServerTests(unittest.TestCase):
             }
             self.assertEqual({path.name for path in output_dir.iterdir()}, expected)
 
+    def test_review_plan_reports_generic_evidence_shape_diagnostics(self) -> None:
+        result = self.server._standalone_review_plan(
+            {
+                "objective": "Review release readiness for quality-runner current working tree",
+                "project_path": "/tmp/project",
+                "write_artifacts": False,
+                "evidence_json": json.dumps(
+                    [
+                        {"kind": "git", "status": "modified files present"},
+                        {
+                            "kind": "checks",
+                            "pytest": "162 passed",
+                            "ruff_format": "failed on generated artifacts",
+                        },
+                    ]
+                ),
+            }
+        )
+
+        validations = {item["validation_key"]: item for item in result["validations"]}
+        self.assertFalse(validations["evidence_json_actionable"]["passed"])
+        self.assertTrue(validations["evidence_json_actionable"]["issues"])
+        diagnostics = result["evidence_diagnostics"]
+        self.assertFalse(diagnostics["actionable"])
+        self.assertEqual(len(diagnostics["item_issues"]), 2)
+        self.assertTrue(
+            any(
+                "`kind` is caller metadata only" in issue
+                for item in diagnostics["item_issues"]
+                for issue in item["issues"]
+            )
+        )
+        contract = result["evidence_contract"]
+        self.assertIn("risk_priority", contract["dimension_ids"])
+        self.assertIn("verification_readiness", contract["dimension_ids"])
+        self.assertIn("scope_control", contract["dimension_ids"])
+        self.assertIn("source_grounding", contract["dimension_ids"])
+
+    def test_review_plan_accepts_dimension_mapped_evidence_without_shape_warning(
+        self,
+    ) -> None:
+        result = self.server._standalone_review_plan(
+            {
+                "objective": "Review release readiness for quality-runner current working tree",
+                "project_path": "/tmp/project",
+                "write_artifacts": False,
+                "evidence_json": json.dumps(
+                    [
+                        {
+                            "dimension_id": "risk_priority",
+                            "severity": "warning",
+                            "summary": "Format failure is a release warning after tests pass.",
+                            "evidence": [
+                                "pytest: 162 passed",
+                                "ruff format --check: failed",
+                            ],
+                            "recommended_fix": "Fix formatting before release.",
+                        },
+                        {
+                            "dimension_id": "verification_readiness",
+                            "severity": "warning",
+                            "summary": "Release verification has a failing command.",
+                            "evidence": ["ruff format --check: failed"],
+                            "recommended_fix": "Rerun the release gate after formatting.",
+                        },
+                    ]
+                ),
+            }
+        )
+
+        validations = {item["validation_key"]: item for item in result["validations"]}
+        self.assertTrue(validations["evidence_json_actionable"]["passed"])
+        self.assertEqual(result["evidence_diagnostics"]["item_issues"], [])
+
     def test_visual_review_requires_product_quality_coverage(self) -> None:
         result = self.server._standalone_review_plan(
             {

@@ -57,10 +57,16 @@ node scripts/tmcp_launcher.mjs recommend . \
 ```bash
 node scripts/tmcp_launcher.mjs review-plan "Review release readiness for this repo" \
   --project-path . \
-  --evidence-json '[{"dimension_id":"verification_readiness","severity":"warning","summary":"CI evidence is missing","evidence":[".github/workflows"],"recommended_fix":"Run and cite release verification."}]' \
+  --evidence-json '[{"dimension_id":"risk_priority","severity":"warning","summary":"A release gate is failing after tests pass.","evidence":["pytest: 162 passed","ruff format --check: failed"],"recommended_fix":"Fix the failed gate before release."},{"dimension_id":"verification_readiness","severity":"warning","summary":"Release verification is not green.","evidence":["ruff format --check: failed"],"recommended_fix":"Rerun and cite the full release gate after the fix."},{"dimension_id":"scope_control","severity":"observation","summary":"Review scope is limited to the current working tree and release docs.","evidence":["git status --short","docs/RELEASE_CHECKLIST.md"],"recommended_fix":"Name any deferred release surfaces explicitly."},{"dimension_id":"source_grounding","severity":"observation","summary":"Release claims cite local commands and docs.","evidence":["pytest output","docs/RELEASE_CHECKLIST.md"],"recommended_fix":"Keep command outputs attached to the review artifacts."}]' \
   --write-artifacts \
   --output-dir .tmcp/release-review
 ```
+
+`evidence_json` accepts any JSON object or array, but only dimension-mapped
+records produce scored, cited findings. Each actionable item should include:
+`dimension_id`, `severity`, `summary`, non-empty `evidence`, and optional
+`recommended_fix`. Generic records such as `{"kind":"checks","pytest":"passed"}`
+are reported in `evidence_diagnostics` until mapped to rubric dimensions.
 
 ## Agent Routing
 
