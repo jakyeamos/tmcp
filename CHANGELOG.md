@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.1 - 2026-07-02
 
 - Excluded local `.aios/`, `.codex/`, and `.quality-runner/` artifact directories from generated release packages.
 - Removed the environment-sensitive fake-AIOS adapter unit test and ignored local Codex/Quality Runner artifact directories.

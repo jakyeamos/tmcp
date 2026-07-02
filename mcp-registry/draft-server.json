@@ -6,7 +6,7 @@
   "repository": "https://github.com/jakyeamos/tmcp",
   "homepage": "https://github.com/jakyeamos/tmcp#readme",
   "license": "MIT",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "transport": {
     "type": "stdio",
     "command": "node",

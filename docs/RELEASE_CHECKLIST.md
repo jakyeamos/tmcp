@@ -37,6 +37,6 @@ Use this checklist before claiming a Tier One release.
 
 - [ ] `docs/VERIFICATION.md` updated.
 - [ ] `docs/TIER_ONE_RELEASE_RUBRIC.md` score updated.
-- [ ] GitHub remote exists and CI has run for the release PR or `0.3.0`/`v0.3.0` tag.
+- [ ] GitHub remote exists and CI has run for the release PR or `0.3.1`/`v0.3.1` tag.
 - [ ] MCP Registry draft reviewed against the current official registry schema.
 - [ ] Residual risks are explicit.

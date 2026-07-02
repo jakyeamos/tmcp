@@ -1,8 +1,8 @@
 # Verification Record
 
-Date: 2026-06-29
+Date: 2026-07-02
 
-Plugin version: `0.3.0+codex.20260629213530`
+Plugin version: `0.3.1+codex.20260702173313`
 
 ## 2026-07-02 Release Path Hardening
 
@@ -26,19 +26,19 @@ git diff --check
 
 Results:
 
-- Release path hardening unit tests: pass, 37 tests.
-- Full unit and MCP protocol suite: pass, 37 tests.
+- Release path hardening unit tests: pass, 39 tests.
+- Full unit and MCP protocol suite: pass, 39 tests.
 - Python compile and Node launcher syntax checks: pass.
 - Ruff lint and format checks: pass.
 - Basedpyright: pass.
 - Vulture dead-code scan: pass.
 - Install shape check: pass; MCP `tools/list` now must include `tmcp_recommend_workflows`.
-- Release package check: pass; the extracted package now runs the adaptive workflow-pack smoke through `tmcp_recommend_workflows`.
+- Release package check: pass; the extracted package now runs the adaptive workflow-pack smoke through `tmcp_recommend_workflows` and excludes local `.aios/`, `.codex/`, and `.quality-runner/` artifact directories.
 - Direct workflow recommendation CLI smoke: pass; output includes `adaptive_workflow_pack.schema == tmcp-adaptive-workflow-pack-v0.1`.
 - Pre-CR coverage adapter: pass with normal filesystem access to the existing `uv` cache.
 - `git diff --check`: pass.
 - The sandboxed runs of unittest/package/pre-CR hit the existing AIOS adapter fixture's `uv` cache permission issue; reruns with normal local filesystem access passed.
-- Hosted GitHub Actions verification now triggers on pull requests, `main`, and `0.3.0`/`v0.3.0` tags. The 0.3.0 PR/tag hosted run remains external-only until pushed.
+- Hosted GitHub Actions verification now triggers on pull requests, `main`, and `0.3.1`/`v0.3.1` tags. The 0.3.1 PR/tag hosted run remains external-only until pushed.
 
 ## 2026-07-02 Public-Sector Readiness Recommendation Update
 
@@ -178,7 +178,7 @@ PY
 - Clean-copy install check passes from a copied plugin directory.
 - Release tarball check passes after unpacking into a temporary directory.
 - Redaction and MCP framing are separated into dedicated modules.
-- Public GitHub Actions verification with release-package and adaptive workflow-pack gates runs on pull requests, `main`, and `0.3.0`/`v0.3.0` tags. Last observed pass remains run `28305312874` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.5`; `0.3.0` still needs hosted CI after release PR or tag push.
+- Public GitHub Actions verification with release-package and adaptive workflow-pack gates runs on pull requests, `main`, and `0.3.1`/`v0.3.1` tags. Last observed pass remains run `28305312874` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.5`; `0.3.1` still needs hosted CI after release PR or tag push.
 - License and marketplace example are present.
 - AIOS adapter absent and present behavior is covered with deterministic fixtures.
 
