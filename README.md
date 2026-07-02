@@ -1,8 +1,35 @@
-# TMCP
+<div align="center">
+  <img src="assets/logo.svg" alt="TMCP logo" width="96" height="96" />
+  <h1>TMCP</h1>
+  <p><strong>Adaptive skill-packet workflows for MCP agents.</strong></p>
+  <p>
+    Compile task-specific agent context, harvest reusable workflow behavior,
+    recommend expert workflows, and produce evidence-backed rubric remediation plans.
+  </p>
+  <p>
+    <a href="https://github.com/jakyeamos/tmcp/actions/workflows/verify.yml">
+      <img alt="Verify" src="https://github.com/jakyeamos/tmcp/actions/workflows/verify.yml/badge.svg" />
+    </a>
+    <a href="LICENSE">
+      <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2f6f5e" />
+    </a>
+    <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-345995" />
+    <img alt="MCP server" src="https://img.shields.io/badge/MCP-server-5d4e7b" />
+  </p>
+</div>
 
-TMCP is a standalone adaptive skill-packet workflow plugin. It compiles task-specific packets from local instructions and evidence, harvests reusable skill behavior from arbitrary repositories, recommends default and custom workflows from harvested signals, and produces expert rubric remediation plans.
+TMCP is a standalone MCP plugin for agents that need more than a generic prompt. It turns local project instructions, repository docs, skill files, and evidence into structured packets an agent can actually follow. From that harvested context, TMCP can recommend default workflow templates, generate custom workflow-pack directions, and create expert rubric review plans with remediation handoffs.
 
-AIOS is optional. When `AIOS_ROOT` points to an AIOS checkout, the plugin can use AIOS for richer graph traversal and persistence. Without AIOS, the MCP server still supports packet compilation, skill harvest, expert rubric planning, and artifact writing.
+AIOS is optional. When `AIOS_ROOT` points to an AIOS checkout, TMCP can use AIOS for richer graph traversal and persistence. Without AIOS, the MCP server still supports packet compilation, skill harvest, workflow recommendation, expert rubric planning, and artifact writing.
+
+## What You Get
+
+- `tmcp_explain`: compile a task-specific packet from local instructions and evidence.
+- `tmcp_harvest_skills`: harvest reusable behavior from skills, agent instructions, docs, and workflow files.
+- `tmcp_recommend_workflows`: infer operating priorities and emit an adaptive workflow pack with evidence.
+- `expert_rubric_review_plan`: produce a scored expert rubric, audit report, remediation plan, and approval-gated implementation handoff.
+
+Use TMCP when an agent should preserve local working rules, route through the right workflow family, or turn scattered project guidance into a concrete review plan.
 
 ## Quickstart
 
@@ -13,7 +40,7 @@ Start with [docs/QUICKSTART.md](docs/QUICKSTART.md). The shortest first-run path
 3. Run `tmcp_status`.
 4. Run `tmcp_explain` with your objective.
 5. Run `tmcp_recommend_workflows` to infer which expert workflows fit your harvested skill signals.
-6. Use one of the default workflow templates or generate a custom workflow pack from [examples](examples).
+6. Use a default workflow template or generate a custom workflow pack from [examples](examples).
 
 If your MCP host does not expose tools cleanly, use the same surface through the direct CLI:
 
@@ -32,7 +59,7 @@ See [docs/CLI.md](docs/CLI.md).
 TMCP is packaged for multiple runtimes:
 
 - Codex plugin: install from the Codex plugin store or local personal marketplace.
-- Claude Code plugin: install from the GitHub-hosted Claude marketplace once the repository is public.
+- Claude Code plugin: install from the GitHub-hosted Claude marketplace for this public repository.
 - Claude Desktop: add TMCP as a local stdio MCP server.
 - Plain MCP server: run `node scripts/tmcp_launcher.mjs` from a local checkout.
 - Direct CLI: run `node scripts/tmcp_launcher.mjs <command>` from a local checkout.
@@ -41,12 +68,14 @@ See [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md), [docs/MARKETPLACE_MATRIX.md](d
 
 ## Tools
 
-- `tmcp_doctor`: checks first-run readiness and points each client type at the right install path.
-- `tmcp_status`: reports standalone capability and optional AIOS adapter availability.
-- `tmcp_explain`: compiles a task-specific TMCP packet.
-- `tmcp_harvest_skills`: harvests local skills, agent instructions, editor rules, repository process docs, and workflow docs into source nodes.
-- `tmcp_recommend_workflows`: harvests skill sources, infers priority signals, emits an `adaptive_workflow_pack`, and recommends default workflow templates plus custom workflow ideas with evidence.
-- `expert_rubric_review_plan`: creates an expertise packet, scored rubric, audit report, remediation plan, and approval-gated implementation handoff.
+| Tool | Purpose |
+| --- | --- |
+| `tmcp_doctor` | Check first-run readiness and point each client type at the right install path. |
+| `tmcp_status` | Report standalone capability and optional AIOS adapter availability. |
+| `tmcp_explain` | Compile a task-specific TMCP packet. |
+| `tmcp_harvest_skills` | Harvest local skills, agent instructions, editor rules, repository process docs, and workflow docs into source nodes. |
+| `tmcp_recommend_workflows` | Infer priority signals, emit an `adaptive_workflow_pack`, and recommend default workflow templates plus custom workflow ideas with evidence. |
+| `expert_rubric_review_plan` | Create an expertise packet, scored rubric, audit report, remediation plan, and approval-gated implementation handoff. |
 
 ## Packet Substance
 
@@ -93,9 +122,19 @@ Each recommended default workflow separates the reusable `template` from a candi
 
 Current default workflow families include UI quality, security/privacy, public-sector readiness, test strategy, release readiness, developer experience, maintainability, performance, data integrity, incident postmortems, architecture decisions, migration readiness, agent handoff, and PR risk review.
 
+An adaptive workflow pack includes:
+
+- harvested source map
+- operating profile and strongest behavior signals
+- recommended default templates
+- generated custom workflow ideas
+- suggested routing triggers
+- documented process gaps
+- approval-gated next workflow selection
+
 ## Example Workflows
 
-TMCP is not limited to UI audits. The repository includes examples for:
+TMCP is not limited to UI audits. The repository includes ready-to-adapt examples for:
 
 - [Adaptive workflow pack](examples/workflows/adaptive-workflow-pack.md)
 - [Architecture decision review](examples/workflows/architecture-decision-review.md)
