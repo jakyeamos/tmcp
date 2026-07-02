@@ -91,7 +91,7 @@ TMCP treats fixed workflows as default templates, not limits. A skill harvest ca
 
 Each recommended default workflow separates the reusable `template` from a candidate `workflow_instance`. The template describes the fixed workflow family; the instance adapts that template to the harvested sources with a generated rubric seed, required evidence checklist, routing trigger, and approval gate.
 
-Current default workflow families include UI quality, security/privacy, test strategy, release readiness, developer experience, maintainability, performance, data integrity, incident postmortems, architecture decisions, migration readiness, agent handoff, and PR risk review.
+Current default workflow families include UI quality, security/privacy, public-sector readiness, test strategy, release readiness, developer experience, maintainability, performance, data integrity, incident postmortems, architecture decisions, migration readiness, agent handoff, and PR risk review.
 
 ## Example Workflows
 
@@ -101,6 +101,7 @@ TMCP is not limited to UI audits. The repository includes examples for:
 - [Architecture decision review](examples/workflows/architecture-decision-review.md)
 - [Incident postmortem packet](examples/workflows/incident-postmortem-packet.md)
 - [Test strategy audit](examples/workflows/test-strategy-audit.md)
+- [Public-sector readiness review](examples/workflows/public-sector-readiness.md)
 - [Migration readiness](examples/workflows/migration-readiness.md)
 - [Agent handoff packet](examples/workflows/agent-handoff-packet.md)
 - [PR risk review](examples/workflows/pr-risk-review.md)

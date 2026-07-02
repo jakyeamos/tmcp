@@ -96,6 +96,76 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
                 Path(result["artifact_paths"]["adaptive_pack_json"]).exists()
             )
 
+    def test_recommend_workflows_promotes_public_sector_readiness(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "crimclock-readiness.md").write_text(
+                "\n".join(
+                    [
+                        "# CrimClock Public Sector Readiness",
+                        "A government launch gate must cite compliance policy, governance owners,",
+                        "UAT signoff, accessibility and WCAG evidence, auditability, tenant boundaries,",
+                        "legal calculation fixtures, risk register entries, acceptance criteria, and release blockers.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {"source_path": str(root), "limit": 10, "min_confidence": 0.1},
+            )
+
+        recommendation = result["recommended_workflows"][0]
+        self.assertEqual(recommendation["id"], "public_sector_readiness_workflow")
+        self.assertEqual(recommendation["signal_family"], "public_sector_readiness")
+        self.assertIn(
+            "public_sector_readiness", result["priority_profile"]["primary_signals"]
+        )
+        self.assertEqual(
+            recommendation["template"]["profile"], "public_sector_readiness"
+        )
+        self.assertEqual(
+            recommendation["rubric_seed"]["profile"], "public_sector_readiness"
+        )
+        dimension_ids = {
+            item["id"] for item in recommendation["rubric_seed"]["dimension_seeds"]
+        }
+        self.assertIn("governance_policy_fit", dimension_ids)
+        self.assertIn("legal_calculation_safety", dimension_ids)
+        self.assertIn("accessibility_public_use", dimension_ids)
+        required_evidence = " ".join(
+            recommendation["workflow_instance"]["required_evidence"]
+        ).lower()
+        self.assertIn("uat", required_evidence)
+        self.assertIn("accessibility", required_evidence)
+        self.assertIn("compliance", required_evidence)
+
+    def test_recommend_workflows_filters_public_sector_signal_family(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "public-sector-uat.md").write_text(
+                "# UAT Gate\n\nTrack government compliance, public-sector accessibility, and policy acceptance criteria.",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {
+                    "source_path": str(root),
+                    "candidate_workflows": ["public_sector_readiness"],
+                    "min_confidence": 0.1,
+                },
+            )
+
+        self.assertEqual(
+            [item["id"] for item in result["recommended_workflows"]],
+            ["public_sector_readiness_workflow"],
+        )
+        self.assertEqual(result["not_recommended"], [])
+
     def test_recommended_workflows_separate_template_and_instance(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

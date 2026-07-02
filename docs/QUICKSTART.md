@@ -119,6 +119,7 @@ Use one of the examples in [examples/workflows](../examples/workflows):
 - [Adaptive workflow pack](../examples/workflows/adaptive-workflow-pack.md)
 - [Incident postmortem packet](../examples/workflows/incident-postmortem-packet.md)
 - [Architecture decision review](../examples/workflows/architecture-decision-review.md)
+- [Public-sector readiness review](../examples/workflows/public-sector-readiness.md)
 - [Migration readiness](../examples/workflows/migration-readiness.md)
 - [Agent handoff packet](../examples/workflows/agent-handoff-packet.md)
 - [PR risk review](../examples/workflows/pr-risk-review.md)

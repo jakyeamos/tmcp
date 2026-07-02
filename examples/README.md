@@ -6,6 +6,7 @@ These examples show TMCP as a general skill-packet workflow system, not only a U
 - [Architecture decision review](workflows/architecture-decision-review.md)
 - [Incident postmortem packet](workflows/incident-postmortem-packet.md)
 - [Test strategy audit](workflows/test-strategy-audit.md)
+- [Public-sector readiness review](workflows/public-sector-readiness.md)
 - [Migration readiness](workflows/migration-readiness.md)
 - [Agent handoff packet](workflows/agent-handoff-packet.md)
 - [PR risk review](workflows/pr-risk-review.md)

@@ -4,6 +4,33 @@ Date: 2026-06-29
 
 Plugin version: `0.3.0+codex.20260629213530`
 
+## 2026-07-02 Public-Sector Readiness Recommendation Update
+
+Commands run for this change:
+
+```bash
+python3 -m unittest tests.test_tmcp_workflow_recommendation
+python3 -m unittest discover -s tests
+python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
+node --check scripts/tmcp_launcher.mjs
+ruff check .
+ruff format tests/test_tmcp_workflow_recommendation.py
+ruff format --check scripts/tmcp_mcp_server.py tests/test_tmcp_workflow_recommendation.py
+ruff check scripts/tmcp_mcp_server.py tests/test_tmcp_workflow_recommendation.py
+git diff --check
+```
+
+Results:
+
+- Public-sector readiness recommendation tests: pass, 9 tests.
+- Full unit and MCP protocol suite: pass, 36 tests. The full suite requires normal access to the existing `uv` cache because the AIOS adapter fixture invokes `uv`.
+- Python compile and Node launcher syntax checks: pass.
+- Ruff lint: pass.
+- Changed-file Ruff format check: pass.
+- Repo-wide `ruff format --check .` still reports pre-existing formatting drift in `scripts/check_release_package.py`; this change did not modify that file.
+- `tmcp_recommend_workflows` now recognizes government, compliance, UAT, and accessibility signals as `public_sector_readiness`, emits `public_sector_readiness_workflow`, and reuses the existing `public_sector_readiness` rubric profile.
+- CrimClock-style public-sector readiness example: present in `examples/workflows/public-sector-readiness.md`.
+
 ## Commands
 
 ```bash
