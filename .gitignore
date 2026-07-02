@@ -15,3 +15,5 @@ coverage/
 !.env.example
 .pre-cr/
 .aios/
+.codex/
+.quality-runner/

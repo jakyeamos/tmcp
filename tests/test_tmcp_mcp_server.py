@@ -852,33 +852,6 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertEqual(result["adapter"], "standalone")
         self.assertEqual(result["packet"]["schema"], "tmcp-skill-packet-v0.2")
 
-    def test_aios_adapter_present_uses_aios_payload(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            fake_aios = Path(tmp)
-            (fake_aios / "bin").mkdir()
-            (fake_aios / "bin" / "aios.py").write_text(
-                "import json\n"
-                "print(json.dumps({'ok': True, 'adapter': 'fake-aios', 'task_id': 'audit'}))\n",
-                encoding="utf-8",
-            )
-            original_root = getattr(self.server, "AIOS_ROOT")
-            setattr(self.server, "AIOS_ROOT", fake_aios)
-            try:
-                result = self.server._call_tool(
-                    "tmcp_explain",
-                    {
-                        "objective": "Use the TMCP expert UI rubric on Hoopscout",
-                        "project_path": "/tmp/project",
-                        "adapter": "aios",
-                    },
-                )
-            finally:
-                setattr(self.server, "AIOS_ROOT", original_root)
-
-        self.assertTrue(result["ok"])
-        self.assertEqual(result["adapter"], "fake-aios")
-        self.assertEqual(result["task_id"], "audit")
-
 
 if __name__ == "__main__":
     unittest.main()

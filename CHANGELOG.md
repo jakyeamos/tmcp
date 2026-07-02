@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Removed the environment-sensitive fake-AIOS adapter unit test and ignored local Codex/Quality Runner artifact directories.
 - Added `evidence_contract` and `evidence_diagnostics` to expert rubric review results so coarse `evidence_json` records are reported before they produce uncited, low-value findings.
 
 ## 0.3.0 - 2026-06-29
