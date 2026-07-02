@@ -11,6 +11,7 @@ Use this checklist before claiming a Tier One release.
 - [ ] `.claude-plugin/marketplace.json` points at the public GitHub repository.
 - [ ] `.mcp.json` declares stdio and launches the Node launcher with relative plugin-root paths.
 - [ ] Focused Codex router skills exist for default workflow templates and adaptive workflow-pack generation.
+- [ ] MCP `tools/list` includes `tmcp_recommend_workflows`.
 - [ ] `python3 scripts/check_install.py .` passes.
 - [ ] Clean-copy install check passes.
 
@@ -20,7 +21,7 @@ Use this checklist before claiming a Tier One release.
 - [ ] `node --check scripts/tmcp_launcher.mjs` passes.
 - [ ] `python3 -m unittest discover -s tests` passes.
 - [ ] JSON syntax check passes for plugin, MCP, marketplace, and fixtures.
-- [ ] `python3 scripts/check_release_package.py .` passes.
+- [ ] `python3 scripts/check_release_package.py .` passes, including the packaged `tmcp_recommend_workflows` adaptive workflow-pack smoke.
 - [ ] `claude plugin validate .` passes for the marketplace.
 - [ ] `claude plugin validate <plugin-only-copy>` passes for the plugin manifest.
 - [ ] Official Codex plugin validator passes, or the validator runtime blocker is recorded.
@@ -36,6 +37,6 @@ Use this checklist before claiming a Tier One release.
 
 - [ ] `docs/VERIFICATION.md` updated.
 - [ ] `docs/TIER_ONE_RELEASE_RUBRIC.md` score updated.
-- [ ] GitHub remote exists and CI has run.
+- [ ] GitHub remote exists and CI has run for the release PR or `0.3.0`/`v0.3.0` tag.
 - [ ] MCP Registry draft reviewed against the current official registry schema.
 - [ ] Residual risks are explicit.

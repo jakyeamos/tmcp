@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import tempfile
 import unittest
@@ -306,3 +307,18 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
             ["agent_handoff_workflow"],
         )
         self.assertEqual(result["not_recommended"], [])
+
+    def test_release_package_check_smokes_adaptive_surface(self) -> None:
+        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
+        spec = importlib.util.spec_from_file_location("check_release_package", path)
+        if spec is None or spec.loader is None:
+            raise RuntimeError("Could not load check_release_package module")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            ok, output = module.check_adaptive_workflow_surface(
+                helpers.PLUGIN_ROOT, Path(tmp)
+            )
+
+        self.assertTrue(ok, output)

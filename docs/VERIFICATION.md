@@ -4,6 +4,42 @@ Date: 2026-06-29
 
 Plugin version: `0.3.0+codex.20260629213530`
 
+## 2026-07-02 Release Path Hardening
+
+Commands run for this change:
+
+```bash
+python3 -m unittest tests.test_tmcp_mcp_server tests.test_tmcp_workflow_recommendation
+python3 -m unittest discover -s tests
+python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
+node --check scripts/tmcp_launcher.mjs
+ruff check .
+ruff format --check .
+basedpyright
+vulture . --min-confidence 70
+python3 scripts/check_install.py .
+python3 scripts/check_release_package.py .
+node scripts/tmcp_launcher.mjs recommend . --candidate-workflows release_readiness --min-confidence 0.1 --no-write-artifacts --compact
+python3 scripts/pre_cr_coverage.py
+git diff --check
+```
+
+Results:
+
+- Release path hardening unit tests: pass, 37 tests.
+- Full unit and MCP protocol suite: pass, 37 tests.
+- Python compile and Node launcher syntax checks: pass.
+- Ruff lint and format checks: pass.
+- Basedpyright: pass.
+- Vulture dead-code scan: pass.
+- Install shape check: pass; MCP `tools/list` now must include `tmcp_recommend_workflows`.
+- Release package check: pass; the extracted package now runs the adaptive workflow-pack smoke through `tmcp_recommend_workflows`.
+- Direct workflow recommendation CLI smoke: pass; output includes `adaptive_workflow_pack.schema == tmcp-adaptive-workflow-pack-v0.1`.
+- Pre-CR coverage adapter: pass with normal filesystem access to the existing `uv` cache.
+- `git diff --check`: pass.
+- The sandboxed runs of unittest/package/pre-CR hit the existing AIOS adapter fixture's `uv` cache permission issue; reruns with normal local filesystem access passed.
+- Hosted GitHub Actions verification now triggers on pull requests, `main`, and `0.3.0`/`v0.3.0` tags. The 0.3.0 PR/tag hosted run remains external-only until pushed.
+
 ## 2026-07-02 Public-Sector Readiness Recommendation Update
 
 Commands run for this change:
@@ -43,6 +79,7 @@ vulture . --min-confidence 70
 python3 -m unittest discover -s tests
 python3 scripts/check_install.py .
 python3 scripts/check_release_package.py .
+node scripts/tmcp_launcher.mjs recommend . --candidate-workflows release_readiness --min-confidence 0.1 --no-write-artifacts --compact
 node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path . --evidence-json '[]' --no-write-artifacts --compact
 node scripts/tmcp_launcher.mjs review-plan "Use TMCP to audit government readiness for this repo" --project-path . --evidence-json '[]' --no-write-artifacts --adapter standalone --compact
 pre-cr run --json --workspace /Users/jakyeamos/plugins/tmcp
@@ -90,6 +127,7 @@ PY
 - Vulture dead-code scan: pass.
 - Install shape check: pass.
 - Release package check: pass.
+- Release package adaptive workflow surface smoke: pass; the packaged CLI must expose `tmcp_recommend_workflows` and emit `adaptive_workflow_pack.schema == tmcp-adaptive-workflow-pack-v0.1`.
 - Pre-CR commit readiness: pass with repo-local unittest adapter and threshold `0`.
 - Unit and MCP protocol tests: pass, 34 tests.
 - Direct expert UI rubric CLI alias smoke: pass, routes to standalone `expert_rubric_review_plan` with no artifact writes when `--no-write-artifacts` is set.
@@ -130,7 +168,7 @@ PY
 - Harvest reports missing roots as warnings.
 - Harvest redacts common sensitive values before output.
 - Review plan writes expected artifacts.
-- MCP `tools/list`, `tmcp_status`, and `tmcp_recommend_workflows` work through `Content-Length` framing.
+- MCP `tools/list`, `tmcp_status`, and `tmcp_recommend_workflows` work through `Content-Length` framing; install checks fail when `tmcp_recommend_workflows` is absent from `tools/list`.
 - MCP protocol tests launch through `node scripts/tmcp_launcher.mjs`.
 - MCP rejects non-object tool arguments.
 - Launcher selection covers explicit `TMCP_PYTHON` and Windows `py -3` preference.
@@ -140,7 +178,7 @@ PY
 - Clean-copy install check passes from a copied plugin directory.
 - Release tarball check passes after unpacking into a temporary directory.
 - Redaction and MCP framing are separated into dedicated modules.
-- Public GitHub Actions verification with release-package gate: last observed pass on run `28305312874` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.5`; `0.3.0` still needs hosted CI after tag/push.
+- Public GitHub Actions verification with release-package and adaptive workflow-pack gates runs on pull requests, `main`, and `0.3.0`/`v0.3.0` tags. Last observed pass remains run `28305312874` for macOS, Ubuntu, and Windows across Python 3.10 and 3.13 for `0.2.5`; `0.3.0` still needs hosted CI after release PR or tag push.
 - License and marketplace example are present.
 - AIOS adapter absent and present behavior is covered with deterministic fixtures.
 

@@ -20,6 +20,7 @@ from scripts.tmcp_mcp_framing import encode_message  # noqa: E402
 REQUIRED_FILES = (
     ".codex-plugin/plugin.json",
     ".mcp.json",
+    "examples/workflows/adaptive-workflow-pack.md",
     "schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json",
     "scripts/tmcp_launcher.mjs",
     "scripts/tmcp_mcp_server.py",
@@ -43,6 +44,15 @@ REQUIRED_FILES = (
     "skills/tmcp-workflow-recommendation/SKILL.md",
     "skills/tmcp/SKILL.md",
 )
+
+EXPECTED_MCP_TOOLS = {
+    "expert_rubric_review_plan",
+    "tmcp_doctor",
+    "tmcp_explain",
+    "tmcp_harvest_skills",
+    "tmcp_recommend_workflows",
+    "tmcp_status",
+}
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -153,13 +163,7 @@ def check_mcp_launch(plugin_root: Path) -> tuple[bool, str]:
     if not isinstance(tools, list):
         return False, f"MCP tools/list missing tools array: {response}"
     tool_names = {str(tool.get("name")) for tool in tools if isinstance(tool, dict)}
-    expected = {
-        "tmcp_status",
-        "tmcp_explain",
-        "tmcp_harvest_skills",
-        "expert_rubric_review_plan",
-    }
-    missing = expected - tool_names
+    missing = EXPECTED_MCP_TOOLS - tool_names
     if missing:
         return False, f"MCP tools/list missing tools: {sorted(missing)}"
     return True, "MCP tools/list passed without AIOS"

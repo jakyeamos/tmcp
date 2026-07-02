@@ -225,6 +225,8 @@ class TmcpMcpServerTests(unittest.TestCase):
 
         self.assertTrue(
             {
+                "examples/workflows/adaptive-workflow-pack.md",
+                "schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json",
                 "skills/tmcp-incident-postmortem/SKILL.md",
                 "skills/tmcp-architecture-decision/SKILL.md",
                 "skills/tmcp-test-strategy/SKILL.md",
@@ -239,6 +241,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "skills/tmcp-skill-gap-analysis/SKILL.md",
             }.issubset(required_files)
         )
+        self.assertIn("tmcp_recommend_workflows", check_install.EXPECTED_MCP_TOOLS)
 
     def test_review_plan_writes_expected_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

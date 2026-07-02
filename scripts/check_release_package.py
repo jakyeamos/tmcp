@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import tarfile
@@ -57,6 +58,89 @@ def run(command: list[str], cwd: Path) -> tuple[bool, str]:
     return completed.returncode == 0, completed.stdout + completed.stderr
 
 
+def run_json(command: list[str], cwd: Path) -> tuple[bool, str, dict[str, Any] | None]:
+    env = os.environ.copy()
+    env["AIOS_ROOT"] = "/tmp/tmcp-aios-missing"
+    completed = subprocess.run(
+        command,
+        cwd=cwd,
+        env=env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+        timeout=60,
+    )
+    output = completed.stdout + completed.stderr
+    if completed.returncode != 0:
+        return False, output, None
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        return False, f"could not parse JSON output: {exc}\n{output}", None
+    if not isinstance(payload, dict):
+        return False, f"JSON output must be an object\n{output}", None
+    return True, output, payload
+
+
+def check_adaptive_workflow_surface(
+    plugin_root: Path, scratch_root: Path
+) -> tuple[bool, str]:
+    source_root = scratch_root / "adaptive-release-surface"
+    source_root.mkdir(parents=True, exist_ok=True)
+    (source_root / "AGENTS.md").write_text(
+        "\n".join(
+            [
+                "# Release Surface",
+                "Release readiness requires CI verification, package checks, version evidence, changelog updates, and tag review.",
+                "Keep ordered next actions and artifact contracts visible before ship decisions.",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    ok, output, payload = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "recommend",
+            str(source_root),
+            "--candidate-workflows",
+            "release_readiness",
+            "--min-confidence",
+            "0.1",
+            "--no-write-artifacts",
+            "--compact",
+        ],
+        plugin_root,
+    )
+    if not ok or payload is None:
+        return False, output
+    if payload.get("schema") != "tmcp-workflow-recommendation-v1":
+        return False, f"unexpected recommendation schema: {payload.get('schema')}"
+    recommended = payload.get("recommended_workflows")
+    if not isinstance(recommended, list) or not any(
+        isinstance(item, dict) and item.get("id") == "release_readiness_workflow"
+        for item in recommended
+    ):
+        return (
+            False,
+            "tmcp_recommend_workflows did not recommend release_readiness_workflow",
+        )
+    adaptive_pack = payload.get("adaptive_workflow_pack")
+    if not isinstance(adaptive_pack, dict):
+        return False, "tmcp_recommend_workflows output missing adaptive_workflow_pack"
+    if adaptive_pack.get("schema") != "tmcp-adaptive-workflow-pack-v0.1":
+        return False, "adaptive_workflow_pack schema mismatch"
+    if adaptive_pack.get("artifact_type") != "adaptive_workflow_pack":
+        return False, "adaptive_workflow_pack artifact_type mismatch"
+    templates = adaptive_pack.get("recommended_default_templates")
+    if not isinstance(templates, list) or not templates:
+        return False, "adaptive_workflow_pack missing recommended_default_templates"
+    if payload.get("artifact_paths") != {}:
+        return False, "recommend smoke should not write artifacts"
+    return True, output
+
+
 def safe_extractall(archive: tarfile.TarFile, target: Path) -> None:
     target_root = target.resolve()
     for member in archive.getmembers():
@@ -100,16 +184,21 @@ def check_package(package_path: Path) -> dict[str, Any]:
         launcher_ok, launcher_output = run(
             ["node", "--check", "scripts/tmcp_launcher.mjs"], plugin_root
         )
+        adaptive_ok, adaptive_output = check_adaptive_workflow_surface(
+            plugin_root, tmp_path
+        )
     return {
         "install_check": "pass" if install_ok else "fail",
         "tests": "pass" if tests_ok else "fail",
         "compile": "pass" if compile_ok else "fail",
         "launcher_syntax": "pass" if launcher_ok else "fail",
+        "adaptive_workflow_surface": "pass" if adaptive_ok else "fail",
         "output": {
             "install": install_output,
             "tests": tests_output,
             "compile": compile_output,
             "launcher_syntax": launcher_output,
+            "adaptive_workflow_surface": adaptive_output,
         },
     }
 
@@ -142,6 +231,7 @@ def main() -> int:
         and result["tests"] == "pass"
         and result["compile"] == "pass"
         and result["launcher_syntax"] == "pass"
+        and result["adaptive_workflow_surface"] == "pass"
     )
     if not args.output:
         try:
