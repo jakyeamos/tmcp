@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -322,3 +323,35 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
             )
 
         self.assertTrue(ok, output)
+
+    def test_release_package_excludes_local_artifact_directories(self) -> None:
+        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
+        spec = importlib.util.spec_from_file_location("check_release_package", path)
+        if spec is None or spec.loader is None:
+            raise RuntimeError("Could not load check_release_package module")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "plugin"
+            root.mkdir()
+            (root / "README.md").write_text("# Plugin\n", encoding="utf-8")
+            (root / ".codex").mkdir()
+            (root / ".codex" / "config.toml").write_text("", encoding="utf-8")
+            aios_audit = root / ".aios" / "audit"
+            aios_audit.mkdir(parents=True)
+            (aios_audit / "gate-events.jsonl").write_text("", encoding="utf-8")
+            quality_run = root / ".quality-runner" / "runs" / "local"
+            quality_run.mkdir(parents=True)
+            (quality_run / "audit.json").write_text("{}", encoding="utf-8")
+            output_path = Path(tmp) / "tmcp.tar.gz"
+
+            module.create_package(root, output_path)
+
+            with tarfile.open(output_path, "r:gz") as archive:
+                names = archive.getnames()
+
+        self.assertIn("tmcp/README.md", names)
+        self.assertNotIn("tmcp/.aios/audit/gate-events.jsonl", names)
+        self.assertNotIn("tmcp/.codex/config.toml", names)
+        self.assertNotIn("tmcp/.quality-runner/runs/local/audit.json", names)

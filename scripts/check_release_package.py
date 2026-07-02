@@ -14,9 +14,12 @@ from typing import Any
 
 EXCLUDE_DIRS = {
     "__pycache__",
+    ".aios",
+    ".codex",
     ".git",
     ".pre-cr",
     ".pytest_cache",
+    ".quality-runner",
     ".mypy_cache",
     ".ruff_cache",
 }
