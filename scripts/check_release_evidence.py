@@ -11,6 +11,7 @@ from pathlib import Path
 VERSION_RE = re.compile(r"^(\d+\.\d+\.\d+)")
 EVIDENCE_PATH = Path("docs") / "RELEASE_EVIDENCE.json"
 WORKFLOW_PATH = Path(".github") / "workflows" / "verify.yml"
+WORKFLOW_CONTRACT_PATH = ".github/workflows/verify.yml"
 VERSION_SOURCES = (
     Path(".codex-plugin") / "plugin.json",
     Path(".claude-plugin") / "plugin.json",
@@ -100,8 +101,8 @@ def validate_hosted_evidence(
             "docs/RELEASE_EVIDENCE.json hosted_verification must be an object"
         ]
 
-    if hosted.get("workflow") != str(WORKFLOW_PATH):
-        errors.append(f"hosted_verification.workflow must be {WORKFLOW_PATH}")
+    if hosted.get("workflow") != WORKFLOW_CONTRACT_PATH:
+        errors.append(f"hosted_verification.workflow must be {WORKFLOW_CONTRACT_PATH}")
     if hosted.get("status") != "completed":
         errors.append("hosted_verification.status must be completed")
     if hosted.get("conclusion") != "success":

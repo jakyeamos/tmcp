@@ -5,7 +5,7 @@ import json
 import shutil
 import tempfile
 import unittest
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -71,6 +71,41 @@ class ReleaseEvidenceTests(unittest.TestCase):
             )
 
             result = self.checker.check_release_evidence(root)
+
+        self.assertEqual(result["hosted_release_evidence"], "pass")
+        self.assertEqual(result["errors"], [])
+
+    def test_release_evidence_workflow_contract_is_posix_on_windows_paths(
+        self,
+    ) -> None:
+        original_workflow_path = self.checker.WORKFLOW_PATH
+        self.checker.WORKFLOW_PATH = PureWindowsPath(".github/workflows/verify.yml")
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                copy_release_evidence_fixture(root)
+                write_json(
+                    root / "docs" / "RELEASE_EVIDENCE.json",
+                    {
+                        "schema": "tmcp-release-evidence-v0.1",
+                        "version": "0.3.1",
+                        "hosted_verification": {
+                            "status": "completed",
+                            "conclusion": "success",
+                            "source": "tag",
+                            "ref": "v0.3.1",
+                            "pr_number": None,
+                            "workflow": ".github/workflows/verify.yml",
+                            "run_id": 123456,
+                            "url": "https://github.com/jakyeamos/tmcp/actions/runs/123456",
+                            "notes": "Hosted tag run.",
+                        },
+                    },
+                )
+
+                result = self.checker.check_release_evidence(root)
+        finally:
+            self.checker.WORKFLOW_PATH = original_workflow_path
 
         self.assertEqual(result["hosted_release_evidence"], "pass")
         self.assertEqual(result["errors"], [])
