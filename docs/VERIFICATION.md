@@ -27,9 +27,21 @@ gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch main --limit 10
 gh run watch 28711514414 --repo jakyeamos/tmcp --exit-status
 gh run view 28711514414 --repo jakyeamos/tmcp --json status,conclusion,url,headSha,updatedAt,createdAt,event,displayTitle
 gh run view 28711514414 --repo jakyeamos/tmcp --json jobs --jq '.jobs[] | [.name, .conclusion] | @tsv'
+gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch v0.3.3 --limit 10 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt
+gh run watch 28711603903 --repo jakyeamos/tmcp --exit-status
 python3 scripts/check_release_evidence.py .
 mcp-publisher validate mcp-registry/draft-server.json
 claude plugin validate --strict .
+gh release create v0.3.3 /private/tmp/tmcp-v0.3.3.tar.gz --repo jakyeamos/tmcp --title "TMCP 0.3.3" --notes "TMCP 0.3.3 promotes curated scoped packet seeds into first-class graph and recommendation nodes, adds scoped seed promotion-preview edges, tightens workflow selector overlap handling, fixes direct file-root harvest identity, and makes release packages deterministic with stable artifact hashes."
+gh release view v0.3.3 --repo jakyeamos/tmcp --json tagName,targetCommitish,isDraft,isPrerelease,name,url,createdAt,publishedAt,assets
+curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.3.3/tmcp-v0.3.3.tar.gz -o /private/tmp/tmcp-v0.3.3.release.tar.gz
+shasum -a 256 /private/tmp/tmcp-v0.3.3.release.tar.gz
+mkdir -p /private/tmp/tmcp-v0.3.3.release-smoke
+tar -xzf /private/tmp/tmcp-v0.3.3.release.tar.gz -C /private/tmp/tmcp-v0.3.3.release-smoke
+python3 /private/tmp/tmcp-v0.3.3.release-smoke/tmcp/scripts/check_install.py /private/tmp/tmcp-v0.3.3.release-smoke/tmcp
+node /private/tmp/tmcp-v0.3.3.release-smoke/tmcp/scripts/tmcp_launcher.mjs doctor --compact
+node /private/tmp/tmcp-v0.3.3.release-smoke/tmcp/scripts/tmcp_launcher.mjs status --compact
+node /private/tmp/tmcp-v0.3.3.release-smoke/tmcp/scripts/tmcp_launcher.mjs list-tools
 git diff --check
 ```
 
@@ -48,6 +60,11 @@ Results:
 - Hosted `main` verification run `28711514414` completed successfully at commit `09b74ef5ffd5b973247d3ed63c2eb9ff5a00285a`.
 - Matrix jobs passed on Ubuntu, macOS, and Windows for Python 3.10 and 3.13.
 - Release evidence checker: pass for active version `0.3.3`.
+- Tag verification run `28711603903` completed successfully for `v0.3.3` at commit `5e047206861cd120196f782ca11b235492eaa682`.
+- GitHub release published: `https://github.com/jakyeamos/tmcp/releases/tag/v0.3.3`.
+- GitHub release asset `tmcp-v0.3.3.tar.gz` uploaded with digest `sha256:f78fd2005470db8380b1f3f0badd7f1bc3fbe51a5b9c1e83cc291a7938c2af7e`.
+- Downloaded public release asset SHA-256 matched `f78fd2005470db8380b1f3f0badd7f1bc3fbe51a5b9c1e83cc291a7938c2af7e`.
+- Extracted public release asset smokes passed: install check, doctor, status, and tools list.
 
 ## 2026-07-04 Post-Publish Marketplace And Registry Smokes
 
