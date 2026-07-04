@@ -96,6 +96,7 @@ Candidate MCP output shape:
     "operating_profile": {},
     "strongest_behavior_signals": [],
     "recommended_default_templates": [],
+    "recommended_scoped_packet_seeds": [],
     "generated_custom_workflow_ideas": [],
     "suggested_routing_triggers": [],
     "documented_process_gaps": [],

@@ -182,6 +182,7 @@ DEFAULT_HARVEST_INCLUDE_GLOBS = (
     "**/SKILL.md",
     "**/AGENTS.md",
     "**/CLAUDE.md",
+    "**/scoped-packet-seeds.json",
     "**/README.md",
     "**/.cursorrules",
     "**/.cursor/rules/**/*.md",
@@ -1529,6 +1530,11 @@ TOOLS: dict[str, dict[str, Any]] = {
                     "type": "array",
                     "items": {"type": "string"},
                     "description": "Optional workflow ids or signal families to promote. Defaults to all recommended workflows.",
+                },
+                "selected_scoped_packet_seeds": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional scoped packet seed ids to promote. Defaults to all recommended scoped seeds when present.",
                 },
                 "candidate_workflows": {
                     "type": "array",
@@ -3364,6 +3370,7 @@ def _routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
 def _harvest_priority(path: Path, rel_path: str, source_type: str) -> tuple[int, str]:
     name = path.name.lower()
     type_score = {
+        "scoped_packet_seed": 0,
         "skill_definition": 0,
         "agent_operating_contract": 1,
         "cursor_rule": 2,
@@ -3375,6 +3382,19 @@ def _harvest_priority(path: Path, rel_path: str, source_type: str) -> tuple[int,
     if name in {"skill.md", "agents.md", "claude.md", "readme.md"}:
         type_score = min(type_score, 1)
     return type_score, rel_path
+
+
+def _node_harvest_sort_key(node: dict[str, Any]) -> tuple[int, int, str]:
+    rel_path = str(node.get("relative_path") or "")
+    source_type = str(node.get("source_type") or "")
+    type_score, fallback_path = _harvest_priority(
+        Path(str(node.get("path") or "")),
+        rel_path,
+        source_type,
+    )
+    if source_type == "scoped_packet_seed":
+        return type_score, int(node.get("seed_index") or 0), fallback_path
+    return type_score, 0, fallback_path
 
 
 def _path_suffix(path: Path, depth: int) -> str:
@@ -3691,6 +3711,75 @@ SOURCE_GUIDANCE_LABEL_RULES: tuple[dict[str, object], ...] = (
         ),
     },
     {
+        "id": "writing:explore-fragments",
+        "label": "Writing explore fragments",
+        "summary": "Source contributes fragment mining, raw-material capture, interview, or explore-phase writing guidance.",
+        "terms": (
+            "writing_explore_exploit_v1",
+            "explore fragments",
+            "explore.fragments",
+            "fragments",
+            "fragment mining",
+            "raw fragments",
+            "raw material",
+        ),
+    },
+    {
+        "id": "writing:exploit-shape",
+        "label": "Writing exploit shape",
+        "summary": "Source contributes article shaping, paragraph-by-paragraph drafting, or exploit-phase structure guidance.",
+        "terms": (
+            "writing_explore_exploit_v1",
+            "exploit shape",
+            "exploit.shape",
+            "shape article",
+            "paragraph by paragraph",
+            "article journey",
+        ),
+    },
+    {
+        "id": "writing:exploit-beats",
+        "label": "Writing exploit beats",
+        "summary": "Source contributes beat selection, candidate next moves, or one-beat-at-a-time writing guidance.",
+        "terms": (
+            "writing_explore_exploit_v1",
+            "exploit beats",
+            "exploit.beats",
+            "beat sequence",
+            "selected beat",
+            "candidate next moves",
+        ),
+    },
+    {
+        "id": "workflow:spec-grilling",
+        "label": "Workflow spec grilling",
+        "summary": "Source contributes recurring-loop discovery, implementable workflow specs, one-question interviews, or checkpoint brief guidance.",
+        "terms": (
+            "workflow_spec_grilling_v1",
+            "recurring loops",
+            "workflow specs",
+            "workflow spec",
+            "one question at a time",
+            "human checkpoints",
+            "implementer can build",
+        ),
+    },
+    {
+        "id": "wayfinding:map-ticket",
+        "label": "Wayfinding map and ticket",
+        "summary": "Source contributes large-work maps, fog clearing, child tickets, claimed-ticket work, or frontier-ticket resolution guidance.",
+        "terms": (
+            "large_work_wayfinding_v1",
+            "wayfinding",
+            "map and child tickets",
+            "child tickets",
+            "frontier ticket",
+            "claimed ticket",
+            "fog",
+            "ticket types",
+        ),
+    },
+    {
         "id": "ui:buttons-controls",
         "label": "Buttons and controls",
         "summary": "Source contains concrete guidance for buttons, controls, inputs, menus, toolbars, or tooltips.",
@@ -3936,6 +4025,112 @@ def _write_harvest_artifacts(
     return {key: str(path) for key, path in paths.items() if path.exists()}
 
 
+SCOPED_PACKET_SEEDS_SCHEMA = "tmcp-scoped-packet-seeds-v0.1"
+
+
+def _scoped_packet_seed_payload(text: str) -> dict[str, Any] | None:
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    if payload.get("schema") != SCOPED_PACKET_SEEDS_SCHEMA:
+        return None
+    return payload
+
+
+def _scoped_seed_signal_text(seed: dict[str, Any]) -> str:
+    pieces: list[str] = []
+    for key in (
+        "id",
+        "name",
+        "sources",
+        "use_when",
+        "modes",
+        "behavior_atoms",
+        "minimum_spec_fields",
+        "ticket_types",
+        "verification_expectations",
+    ):
+        value = seed.get(key)
+        if isinstance(value, list):
+            pieces.extend(str(item) for item in value if str(item))
+        elif value:
+            pieces.append(str(value))
+    return "\n".join(pieces)
+
+
+def _scoped_packet_seed_nodes(
+    *,
+    root: Path,
+    path: Path,
+    rel_path: str,
+    payload: dict[str, Any],
+    max_excerpt_chars: int,
+    redactions: dict[str, int],
+) -> list[dict[str, Any]]:
+    promotion = payload.get("promotion_recommendation")
+    promotion_map = promotion if isinstance(promotion, dict) else {}
+    receipt_map = promotion_map.get("required_receipts")
+    required_receipts = receipt_map if isinstance(receipt_map, dict) else {}
+    promotion_status = str(payload.get("status") or "proposal_not_promoted")
+    promote_as_single_global_graph = bool(
+        promotion_map.get("promote_as_single_global_graph", False)
+    )
+    nodes: list[dict[str, Any]] = []
+    for index, seed in enumerate(_json_list(payload.get("seeds"))):
+        if not isinstance(seed, dict):
+            continue
+        seed_id = str(seed.get("id") or "").strip()
+        if not seed_id:
+            continue
+        signal_text = _scoped_seed_signal_text(seed)
+        virtual_rel_path = f"{rel_path}#{seed_id}"
+        nodes.append(
+            {
+                "id": seed_id,
+                "root_path": str(root),
+                "path": str(path),
+                "relative_path": virtual_rel_path,
+                "title": str(seed.get("name") or seed_id),
+                "source_type": "scoped_packet_seed",
+                "source_tier": "scoped_packet_seed",
+                "frontmatter": {
+                    "schema": SCOPED_PACKET_SEEDS_SCHEMA,
+                    "status": promotion_status,
+                },
+                "token_estimate": _estimate_tokens(signal_text),
+                "behavior_atoms": _ordered_unique(
+                    _string_list(seed.get("behavior_atoms"))
+                )[:20],
+                "guidance_labels": _guidance_labels_for(virtual_rel_path, signal_text),
+                "keywords": sorted(_text_tokens(signal_text))[:20],
+                "routing_metadata": _routing_metadata_for(virtual_rel_path, signal_text),
+                "excerpt": signal_text[:max_excerpt_chars],
+                "signal_excerpt": signal_text[:max_excerpt_chars],
+                "redactions": redactions,
+                "trust": "untrusted_harvested_text",
+                "seed_index": index,
+                "seed_id": seed_id,
+                "canonical_source": rel_path,
+                "source_references": _string_list(seed.get("sources")),
+                "use_when": _string_list(seed.get("use_when")),
+                "modes": _string_list(seed.get("modes")),
+                "minimum_spec_fields": _string_list(seed.get("minimum_spec_fields")),
+                "ticket_types": _string_list(seed.get("ticket_types")),
+                "verification_expectations": _string_list(
+                    seed.get("verification_expectations")
+                ),
+                "promotion_status": promotion_status,
+                "promote_as_single_global_graph": promote_as_single_global_graph,
+                "required_receipts": _string_list(required_receipts.get(seed_id)),
+                "constraints": _string_list(payload.get("constraints")),
+            }
+        )
+    return nodes
+
+
 def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
     objective = str(arguments.get("objective") or "Harvest reusable skill behavior")
     limit = max(1, int(arguments.get("limit") or 40))
@@ -3965,7 +4160,18 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
     warnings.extend(traversal_warnings)
     nodes: list[dict[str, Any]] = []
     redaction_totals: dict[str, int] = {}
+    scoped_seed_json_paths = {
+        str(path.resolve(strict=False))
+        for _, path, _ in candidates
+        if path.name == "scoped-packet-seeds.json"
+    }
     for root, path, rel_path in candidates:
+        if (
+            path.name == "scoped-packet-seeds.md"
+            and str(path.with_suffix(".json").resolve(strict=False))
+            in scoped_seed_json_paths
+        ):
+            continue
         text, warning = _read_text_limited(path, max_file_bytes)
         if warning:
             if len(warnings) < 50:
@@ -3978,6 +4184,19 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
                 warnings.append(source_warning)
         safe_text, redactions = redact_sensitive_text(text, enabled=redact_sensitive)
         merge_redactions(redaction_totals, redactions)
+        scoped_seed_payload = _scoped_packet_seed_payload(safe_text)
+        if scoped_seed_payload is not None:
+            nodes.extend(
+                _scoped_packet_seed_nodes(
+                    root=root,
+                    path=path,
+                    rel_path=rel_path,
+                    payload=scoped_seed_payload,
+                    max_excerpt_chars=max_excerpt_chars,
+                    redactions=redactions,
+                )
+            )
+            continue
         source_type = _source_type_for(path, rel_path, text)
         signal_text = _positive_signal_text(safe_text)
         tokens = sorted(_text_tokens(signal_text))
@@ -4006,13 +4225,7 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
                 "trust": "untrusted_harvested_text",
             }
         )
-    nodes.sort(
-        key=lambda node: _harvest_priority(
-            Path(str(node["path"])),
-            str(node["relative_path"]),
-            str(node["source_type"]),
-        )
-    )
+    nodes.sort(key=_node_harvest_sort_key)
     if len(nodes) > limit:
         warnings.append(
             f"Harvest limit reached: kept {limit} of {len(nodes)} matched source files."
@@ -4372,6 +4585,62 @@ def _workflow_instance(
     }
 
 
+def _scoped_seed_routing_trigger(seed: dict[str, Any]) -> str:
+    seed_id = str(seed.get("id") or seed.get("seed_id") or "scoped_packet_seed")
+    return (
+        f"Use TMCP scoped packet seed `{seed_id}` when the task matches its curated "
+        "use_when conditions and the required receipt evidence exists."
+    )
+
+
+def _recommended_scoped_packet_seeds(
+    source_nodes: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    recommendations: list[dict[str, Any]] = []
+    for node in source_nodes:
+        if str(node.get("source_type") or "") != "scoped_packet_seed":
+            continue
+        seed_id = str(node.get("seed_id") or node.get("id") or "").strip()
+        if not seed_id:
+            continue
+        recommendations.append(
+            {
+                "id": seed_id,
+                "name": str(node.get("title") or seed_id),
+                "kind": "scoped_packet_seed",
+                "basis": "curated_scoped_packet_seed",
+                "confidence": 1.0,
+                "promotion_status": str(
+                    node.get("promotion_status") or "proposal_not_promoted"
+                ),
+                "promote_as_single_global_graph": bool(
+                    node.get("promote_as_single_global_graph", False)
+                ),
+                "relative_path": node.get("relative_path"),
+                "canonical_source": node.get("canonical_source"),
+                "source_references": _string_list(node.get("source_references")),
+                "use_when": _string_list(node.get("use_when")),
+                "modes": _string_list(node.get("modes")),
+                "minimum_spec_fields": _string_list(node.get("minimum_spec_fields")),
+                "ticket_types": _string_list(node.get("ticket_types")),
+                "behavior_atoms": _string_list(node.get("behavior_atoms")),
+                "verification_expectations": _string_list(
+                    node.get("verification_expectations")
+                ),
+                "required_receipts": _string_list(node.get("required_receipts")),
+                "guidance_labels": _json_list(node.get("guidance_labels")),
+                "routing_trigger": _scoped_seed_routing_trigger(node),
+                "approval_required": True,
+                "trust": "advisory_untrusted",
+                "why": (
+                    "Curated scoped packet seed from a constrained TMCP harvest; "
+                    "use as a scoped candidate, not as global default behavior."
+                ),
+            }
+        )
+    return recommendations
+
+
 def _count_strings(values: list[str]) -> list[dict[str, Any]]:
     counts: dict[str, int] = {}
     for value in values:
@@ -4505,6 +4774,7 @@ def _documented_process_gaps(
     *,
     source_nodes: list[dict[str, Any]],
     recommended: list[dict[str, Any]],
+    recommended_scoped_packet_seeds: list[dict[str, Any]],
     not_recommended: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     gaps: list[dict[str, Any]] = []
@@ -4516,7 +4786,7 @@ def _documented_process_gaps(
                 "message": "No source documents were harvested, so TMCP cannot adapt workflows to local behavior.",
             }
         )
-    if not recommended:
+    if not recommended and not recommended_scoped_packet_seeds:
         gaps.append(
             {
                 "id": "no_default_template_above_threshold",
@@ -4553,6 +4823,7 @@ def _adaptive_workflow_pack(
     source_nodes: list[dict[str, Any]],
     priority_profile: dict[str, Any],
     recommended: list[dict[str, Any]],
+    recommended_scoped_packet_seeds: list[dict[str, Any]],
     not_recommended: list[dict[str, Any]],
     custom_workflow_ideas: list[dict[str, Any]],
 ) -> dict[str, Any]:
@@ -4571,13 +4842,28 @@ def _adaptive_workflow_pack(
     )
     source_map = [
         {
+            "id": node.get("id"),
             "relative_path": node.get("relative_path"),
+            "title": node.get("title"),
             "source_type": node.get("source_type"),
             "source_scope": _source_scope_for(str(node.get("path") or "")),
             "behavior_atoms": node.get("behavior_atoms", []),
             "guidance_labels": node.get("guidance_labels", []),
             "keywords": _string_list(node.get("keywords"))[:8],
             "routing_metadata": node.get("routing_metadata", {}),
+            "source_references": node.get("source_references", []),
+            "use_when": node.get("use_when", []),
+            "modes": node.get("modes", []),
+            "minimum_spec_fields": node.get("minimum_spec_fields", []),
+            "ticket_types": node.get("ticket_types", []),
+            "verification_expectations": node.get(
+                "verification_expectations", []
+            ),
+            "promotion_status": node.get("promotion_status"),
+            "promote_as_single_global_graph": node.get(
+                "promote_as_single_global_graph"
+            ),
+            "required_receipts": node.get("required_receipts", []),
         }
         for node in source_nodes[:12]
     ]
@@ -4616,8 +4902,12 @@ def _adaptive_workflow_pack(
             for item in recommended
             if isinstance(item.get("template"), dict)
         ],
+        "recommended_scoped_packet_seeds": recommended_scoped_packet_seeds,
         "generated_custom_workflow_ideas": custom_workflow_ideas,
         "suggested_routing_triggers": [
+            item["routing_trigger"] for item in recommended_scoped_packet_seeds
+        ]
+        + [
             item["workflow_instance"]["routing_trigger"]
             for item in recommended
             if isinstance(item.get("workflow_instance"), dict)
@@ -4626,11 +4916,15 @@ def _adaptive_workflow_pack(
         "documented_process_gaps": _documented_process_gaps(
             source_nodes=source_nodes,
             recommended=recommended,
+            recommended_scoped_packet_seeds=recommended_scoped_packet_seeds,
             not_recommended=not_recommended,
         ),
         "next_workflow_selection": {
             "approval_required": True,
-            "instruction": "Select one default template or custom workflow idea before running expert_rubric_review_plan.",
+            "instruction": "Select one scoped packet seed, default template, or custom workflow idea before running expert_rubric_review_plan.",
+            "candidate_scoped_seed_ids": [
+                item["id"] for item in recommended_scoped_packet_seeds
+            ],
             "candidate_template_ids": [item["id"] for item in recommended],
             "candidate_custom_workflow_ids": [
                 item["id"] for item in custom_workflow_ideas
@@ -4670,6 +4964,15 @@ def _markdown_recommendations(result: dict[str, Any]) -> str:
                 "",
             ]
         )
+    scoped_seeds = _json_list(result.get("recommended_scoped_packet_seeds"))
+    if scoped_seeds:
+        lines.extend(["## Recommended Scoped Packet Seeds", ""])
+        for item in scoped_seeds:
+            if isinstance(item, dict):
+                lines.append(
+                    f"- `{item.get('id')}`: {item.get('promotion_status', 'proposal_not_promoted')}"
+                )
+        lines.append("")
     lines.extend(["## Custom Workflow Ideas", ""])
     custom_ideas = _json_list(result.get("custom_workflow_ideas"))
     if not custom_ideas:
@@ -4747,6 +5050,47 @@ def _selected_promotion_workflows(
     return selected, missing
 
 
+def _selected_promotion_scoped_packet_seeds(
+    recommendation: dict[str, Any], arguments: dict[str, Any]
+) -> tuple[list[dict[str, Any]], list[str]]:
+    requested = {
+        str(item)
+        for key in ("selected_scoped_packet_seeds", "selected_scoped_seeds")
+        for item in _json_list(arguments.get(key))
+        if str(item).strip()
+    }
+    recommended = [
+        item
+        for item in _json_list(recommendation.get("recommended_scoped_packet_seeds"))
+        if isinstance(item, dict)
+    ]
+    if not requested:
+        return recommended, []
+    selected: list[dict[str, Any]] = []
+    for item in recommended:
+        identifiers = {
+            str(item.get("id") or ""),
+            str(item.get("name") or ""),
+            str(item.get("relative_path") or ""),
+        }
+        if requested.intersection(identifiers):
+            selected.append(item)
+    missing = sorted(
+        requested.difference(
+            {
+                identifier
+                for item in selected
+                for identifier in (
+                    str(item.get("id") or ""),
+                    str(item.get("name") or ""),
+                    str(item.get("relative_path") or ""),
+                )
+            }
+        )
+    )
+    return selected, missing
+
+
 def _promotion_atom_nodes(
     source_map: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -4780,6 +5124,69 @@ def _promotion_atom_nodes(
         ),
         source_edges,
     )
+
+
+def _promotion_scoped_packet_seed_nodes(
+    selected_scoped_packet_seeds: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    seed_nodes: list[dict[str, Any]] = []
+    verification_nodes: list[dict[str, Any]] = []
+    edges: list[dict[str, Any]] = []
+    seen_edges: set[tuple[str, str, str]] = set()
+
+    def add_edge(from_id: str, to_id: str, relation: str) -> None:
+        key = (from_id, to_id, relation)
+        if key in seen_edges:
+            return
+        seen_edges.add(key)
+        edges.append({"from": from_id, "to": to_id, "relation": relation})
+
+    for seed in selected_scoped_packet_seeds:
+        seed_id = str(seed.get("id") or "").strip()
+        if not seed_id:
+            continue
+        seed_nodes.append(
+            {
+                "id": seed_id,
+                "name": seed.get("name"),
+                "kind": "scoped_packet_seed",
+                "promotion_status": seed.get("promotion_status"),
+                "promote_as_single_global_graph": bool(
+                    seed.get("promote_as_single_global_graph", False)
+                ),
+                "relative_path": seed.get("relative_path"),
+                "canonical_source": seed.get("canonical_source"),
+                "source_references": _string_list(seed.get("source_references")),
+                "use_when": _string_list(seed.get("use_when")),
+                "modes": _string_list(seed.get("modes")),
+                "minimum_spec_fields": _string_list(seed.get("minimum_spec_fields")),
+                "ticket_types": _string_list(seed.get("ticket_types")),
+                "behavior_atoms": _string_list(seed.get("behavior_atoms")),
+                "verification_expectations": _string_list(
+                    seed.get("verification_expectations")
+                ),
+                "required_receipts": _string_list(seed.get("required_receipts")),
+                "routing_trigger": seed.get("routing_trigger"),
+                "trust": "advisory_untrusted",
+            }
+        )
+        for source_ref in _string_list(seed.get("source_references")):
+            add_edge(source_ref, seed_id, "supports_scoped_packet_seed")
+        for atom in _string_list(seed.get("behavior_atoms")):
+            add_edge(seed_id, atom, "declares_behavior_atom")
+        for index, expectation in enumerate(
+            _string_list(seed.get("verification_expectations")), start=1
+        ):
+            expectation_id = f"verification:{seed_id}:{index}"
+            verification_nodes.append(
+                {
+                    "id": expectation_id,
+                    "seed_id": seed_id,
+                    "expectation": expectation,
+                }
+            )
+            add_edge(seed_id, expectation_id, "requires_verification")
+    return seed_nodes, verification_nodes, edges
 
 
 def _promotion_workflow_edges(
@@ -4866,10 +5273,12 @@ def _promotion_markdown(result: dict[str, Any]) -> str:
         f"- Status: `{result.get('status', 'unknown')}`",
         f"- Source count: {result.get('source_harvest', {}).get('source_count', 0)}",
         f"- Promoted workflows: {', '.join(_string_list(result.get('promoted_workflow_ids'))) or 'none'}",
+        f"- Promoted scoped packet seeds: {', '.join(_string_list(result.get('promoted_scoped_packet_seed_ids'))) or 'none'}",
         "",
         "## Graph",
         "",
         f"- Source nodes: {len(_json_list(graph.get('source_nodes')))}",
+        f"- Scoped packet seed nodes: {len(_json_list(graph.get('scoped_packet_seed_nodes')))}",
         f"- Behavior atoms: {len(_json_list(graph.get('behavior_atoms')))}",
         f"- Edges: {len(_json_list(graph.get('edges')))}",
         "",
@@ -4955,11 +5364,39 @@ def _normalized_global_graph(result: dict[str, Any]) -> dict[str, Any]:
                 "trust": "advisory_untrusted",
             }
         )
+    scoped_packet_seed_nodes: list[dict[str, Any]] = []
+    for node in _json_list(graph.get("scoped_packet_seed_nodes")):
+        if not isinstance(node, dict):
+            continue
+        scoped_packet_seed_nodes.append(
+            {
+                "id": node.get("id"),
+                "name": node.get("name"),
+                "kind": node.get("kind"),
+                "promotion_status": node.get("promotion_status"),
+                "promote_as_single_global_graph": bool(
+                    node.get("promote_as_single_global_graph", False)
+                ),
+                "relative_path": node.get("relative_path"),
+                "canonical_source": node.get("canonical_source"),
+                "source_references": _string_list(node.get("source_references")),
+                "behavior_atoms": _string_list(node.get("behavior_atoms")),
+                "verification_expectations": _string_list(
+                    node.get("verification_expectations")
+                ),
+                "required_receipts": _string_list(node.get("required_receipts")),
+                "trust": "advisory_untrusted",
+            }
+        )
     return {
         "schema": "tmcp-promoted-harvest-graph-v0.1",
         "promotion_name": result.get("promotion_name") or graph.get("promotion_name"),
         "created_at": graph.get("created_at") or _now_iso(),
         "source_nodes": source_nodes,
+        "scoped_packet_seed_nodes": scoped_packet_seed_nodes,
+        "verification_expectation_nodes": _json_list(
+            graph.get("verification_expectation_nodes")
+        ),
         "behavior_atoms": _json_list(graph.get("behavior_atoms")),
         "workflow_nodes": workflow_nodes,
         "edges": _json_list(graph.get("edges")),
@@ -4984,6 +5421,9 @@ def _write_global_promotion(
         "promotion_name": promotion_name,
         "created_at": _now_iso(),
         "promoted_workflow_ids": _string_list(result.get("promoted_workflow_ids")),
+        "promoted_scoped_packet_seed_ids": _string_list(
+            result.get("promoted_scoped_packet_seed_ids")
+        ),
         "promotion_graph": graph,
         "trust": "advisory_untrusted",
     }
@@ -5892,12 +6332,14 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
             ),
         },
     }
+    recommended_scoped_packet_seeds = _recommended_scoped_packet_seeds(source_nodes)
     custom_workflow_ideas = _custom_workflow_ideas(source_nodes, recommended)
     adaptive_workflow_pack = _adaptive_workflow_pack(
         harvest=harvest,
         source_nodes=source_nodes,
         priority_profile=priority_profile,
         recommended=recommended,
+        recommended_scoped_packet_seeds=recommended_scoped_packet_seeds,
         not_recommended=not_recommended,
         custom_workflow_ideas=custom_workflow_ideas,
     )
@@ -5925,6 +6367,7 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
         ],
         "priority_profile": priority_profile,
         "signal_scores": scores,
+        "recommended_scoped_packet_seeds": recommended_scoped_packet_seeds,
         "recommended_workflows": recommended,
         "custom_workflow_ideas": custom_workflow_ideas,
         "adaptive_workflow_pack": adaptive_workflow_pack,
@@ -5989,9 +6432,16 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
     recommendation_args["objective"] = objective
     recommendation_args["write_artifacts"] = False
     recommendation = _recommend_workflows(recommendation_args)
+    selected_scoped_packet_seeds, missing_scoped_packet_seeds = (
+        _selected_promotion_scoped_packet_seeds(recommendation, arguments)
+    )
     selected_workflows, missing = _selected_promotion_workflows(
         recommendation, arguments
     )
+    explicit_workflow_selection = bool(_json_list(arguments.get("selected_workflows")))
+    if selected_scoped_packet_seeds and not explicit_workflow_selection:
+        selected_workflows = []
+        missing = []
     adaptive_pack = dict(recommendation.get("adaptive_workflow_pack") or {})
     source_map = [
         item
@@ -6000,6 +6450,9 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
     ]
     behavior_atoms, source_edges = _promotion_atom_nodes(source_map)
     workflow_edges = _promotion_workflow_edges(selected_workflows, behavior_atoms)
+    scoped_seed_nodes, verification_nodes, scoped_seed_edges = (
+        _promotion_scoped_packet_seed_nodes(selected_scoped_packet_seeds)
+    )
     promotion_name = str(
         arguments.get("promotion_name")
         or _slug(objective).replace("_", "-")[:80]
@@ -6008,11 +6461,18 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
     promoted_workflow_ids = [
         str(item.get("id")) for item in selected_workflows if item.get("id")
     ]
+    promoted_scoped_packet_seed_ids = [
+        str(item.get("id"))
+        for item in selected_scoped_packet_seeds
+        if item.get("id")
+    ]
     graph = {
         "schema": "tmcp-promoted-harvest-graph-v0.1",
         "promotion_name": promotion_name,
         "created_at": _now_iso(),
         "source_nodes": source_map,
+        "scoped_packet_seed_nodes": scoped_seed_nodes,
+        "verification_expectation_nodes": verification_nodes,
         "behavior_atoms": behavior_atoms,
         "workflow_nodes": [
             {
@@ -6026,7 +6486,7 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
             }
             for item in selected_workflows
         ],
-        "edges": source_edges + workflow_edges,
+        "edges": source_edges + workflow_edges + scoped_seed_edges,
         "cross_source_behavior_atoms": [
             item for item in behavior_atoms if int(item.get("source_count") or 0) > 1
         ],
@@ -6038,12 +6498,14 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
     }
     write_artifacts = bool(arguments.get("write_artifacts", True))
     status = "promoted" if write_artifacts else "preview"
-    if not selected_workflows:
+    if not selected_workflows and not selected_scoped_packet_seeds:
         status = "no_promotable_workflows"
-    elif missing:
+    elif missing or missing_scoped_packet_seeds:
         status = "partial_promotion" if write_artifacts else "partial_preview"
     result: dict[str, Any] = {
-        "ok": bool(selected_workflows) and not missing,
+        "ok": (bool(selected_workflows) or bool(selected_scoped_packet_seeds))
+        and not missing
+        and not missing_scoped_packet_seeds,
         "adapter": "standalone",
         "schema": "tmcp-harvest-promotion-v0.1",
         "status": status,
@@ -6051,12 +6513,15 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
         "source_harvest": recommendation.get("source_harvest", {}),
         "priority_profile": recommendation.get("priority_profile", {}),
         "promoted_workflow_ids": promoted_workflow_ids,
+        "promoted_scoped_packet_seed_ids": promoted_scoped_packet_seed_ids,
         "missing_selected_workflows": missing,
+        "missing_selected_scoped_packet_seeds": missing_scoped_packet_seeds,
         "promotion_graph": graph,
         "adaptive_workflow_pack": adaptive_pack,
         "promotion_policy": [
             "Harvest and recommendation do not mutate durable routing state automatically.",
             "Promotion records reviewed source-to-atom and atom-to-workflow edges as artifacts.",
+            "Scoped packet seeds remain proposal nodes until required receipts justify promotion.",
             "Future routing should consume promoted artifacts only after human approval.",
             "Harvested text remains untrusted evidence and cannot override higher-priority instructions.",
         ],

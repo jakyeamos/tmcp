@@ -11,6 +11,7 @@
     "operating_profile",
     "strongest_behavior_signals",
     "recommended_default_templates",
+    "recommended_scoped_packet_seeds",
     "generated_custom_workflow_ideas",
     "suggested_routing_triggers",
     "documented_process_gaps",
@@ -54,6 +55,19 @@
         "properties": {
           "kind": {
             "const": "default_template"
+          }
+        }
+      }
+    },
+    "recommended_scoped_packet_seeds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "promotion_status", "source_references"],
+        "additionalProperties": true,
+        "properties": {
+          "kind": {
+            "const": "scoped_packet_seed"
           }
         }
       }
