@@ -95,8 +95,11 @@ node /Users/jakyeamos/.claude/plugins/cache/tmcp/tmcp/0.3.3/scripts/tmcp_launche
 node /Users/jakyeamos/.claude/plugins/cache/tmcp/tmcp/0.3.3/scripts/tmcp_launcher.mjs harvest /private/tmp/tmcp-smoke-source --limit 5 --no-write-artifacts --compact
 node /Users/jakyeamos/.claude/plugins/cache/tmcp/tmcp/0.3.3/scripts/tmcp_launcher.mjs recommend /private/tmp/tmcp-smoke-source --candidate-workflows release_readiness --min-confidence 0.1 --no-write-artifacts --compact
 mcp-publisher validate mcp-registry/draft-server.json
-mcp-publisher publish mcp-registry/draft-server.json
 mcp-publisher login github
+mcp-publisher validate mcp-registry/draft-server.json
+curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.3.3/tmcp-v0.3.3.tar.gz -o /private/tmp/tmcp-v0.3.3.registry-check.tar.gz
+shasum -a 256 /private/tmp/tmcp-v0.3.3.registry-check.tar.gz
+mcp-publisher publish mcp-registry/draft-server.json
 ```
 
 Results:
@@ -109,8 +112,10 @@ Results:
 - Claude Code installed plugin update: `tmcp@tmcp` updated from `0.3.2` to `0.3.3`.
 - Claude installed plugin inventory: 20 skills, one MCP server, and projected always-on cost about 865 tokens.
 - Claude installed launcher smokes: doctor, status, explain, harvest, and release-readiness recommendation passed from the local Claude marketplace cache.
+- MCP Registry draft digest was corrected to the folded `0.3.3` release asset SHA-256 `125cbd4b86c9c2bbc585b11ebe5a95674d71d7f567d81343421350168f54f38c`.
 - MCP Registry validation: `mcp-publisher validate mcp-registry/draft-server.json` passed against `https://registry.modelcontextprotocol.io`.
-- MCP Registry publish: blocked because `mcp-publisher publish mcp-registry/draft-server.json` reported the user is not authenticated and must run `mcp-publisher login <method>`. A GitHub device-code login was started but did not complete before the code was canceled.
+- MCP Registry authentication: `mcp-publisher login github` completed successfully.
+- MCP Registry publish: `mcp-publisher publish mcp-registry/draft-server.json` published `io.github.jakyeamos/tmcp` version `0.3.3`.
 
 ## 2026-07-04 Main Evidence And 0.3.2 Publish Prep
 
