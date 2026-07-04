@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use TMCP or its workflow examples, please cite it using the metadata in this file."
+title: "TMCP"
+version: "0.3.3"
+date-released: "2026-07-04"
+type: software
+authors:
+  - family-names: Amos
+    given-names: Jakye
+    affiliation: "Case Western Reserve University"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+repository-code: "https://github.com/jakyeamos/tmcp"
+url: "https://github.com/jakyeamos/tmcp"
+license: MIT
+keywords:
+  - MCP
+  - agent workflows
+  - skill packets
+  - workflow recommendation
+  - rubric review
+abstract: "A standalone skill-packet and workflow system for MCP agents that harvests skills, docs, rules, prompts, and project evidence; extracts behavior atoms; compiles task-specific packets; and exposes repeatable workflow recommendations and expert rubric review tools."

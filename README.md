@@ -120,10 +120,18 @@ python3 -m unittest discover -s tests
 python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
 node --check scripts/tmcp_launcher.mjs
 python3 scripts/check_install.py .
-python3 scripts/check_release_package.py .
 ```
 
 The release package check validates frontmatter, hardcoded local paths, private example names, links, extracted-package install shape, `doctor`, sample harvest, sample workflow recommendation, sample expert rubric planning, composition/runtime/receipt smoke coverage, and stable/experimental workflow labeling.
+It is a DOI blocker until existing absolute user paths in release evidence docs are redacted or normalized.
+
+## DOI-Ready Research Release
+
+TMCP is prepared as an independent software-methods artifact. See
+[RESEARCH_READY.md](RESEARCH_READY.md) and
+[docs/release-notes/v0.3.3-doi.md](docs/release-notes/v0.3.3-doi.md) for the
+citable artifact boundary, validation path, data-availability policy, and claim
+limits.
 
 ## References
 
