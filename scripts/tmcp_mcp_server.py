@@ -819,14 +819,19 @@ WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
             "frontend",
             "visual",
             "polish",
-            "design",
+            "visual design",
+            "ui design",
+            "interface design",
             "design-system",
             "responsive",
             "screen",
             "screenshot",
             "layout",
-            "component",
-            "state",
+            "ui component",
+            "frontend component",
+            "component state",
+            "visible state",
+            "interaction state",
             "interaction",
             "button",
             "buttons",
@@ -1685,6 +1690,23 @@ def _contains_signal_term(text: str, term: str) -> bool:
 
 def _matched_signal_terms(text: str, terms: tuple[str, ...] | list[str]) -> list[str]:
     return [term for term in terms if _contains_signal_term(text, str(term))]
+
+
+NEGATIVE_SIGNAL_LINE_MARKERS = (
+    "do not use",
+    "don't use",
+    "not for",
+    "outside scope",
+    "out of scope",
+)
+
+
+def _positive_signal_text(text: str) -> str:
+    return "\n".join(
+        line
+        for line in text.splitlines()
+        if not any(marker in line.lower() for marker in NEGATIVE_SIGNAL_LINE_MARKERS)
+    )
 
 
 COMPOSITION_GENERIC_TERMS = {
@@ -3756,8 +3778,33 @@ SOURCE_GUIDANCE_LABEL_RULES: tuple[dict[str, object], ...] = (
 )
 
 
+WORKFLOW_SIGNAL_GUIDANCE_LABEL_IDS: dict[str, tuple[str, ...]] = {
+    "ui_quality": (
+        "ui:buttons-controls",
+        "ui:layout-hierarchy",
+        "ui:design-system-fit",
+        "ui:responsive-accessibility",
+        "ui:browser-verification",
+        "ui:frontend-implementation",
+        "ui:general",
+    ),
+    "security_privacy": ("security:privacy",),
+    "testing_quality": ("testing:regression", "verification:gates"),
+    "release_readiness": ("release:readiness",),
+    "developer_experience": ("dx:onboarding",),
+    "performance": ("performance:readiness",),
+    "data_correctness": ("data:integrity",),
+    "architecture_decision": ("architecture:decision",),
+    "migration_readiness": ("migration:readiness",),
+    "agent_handoff": ("agent:handoff",),
+    "pr_risk_review": ("pr:risk",),
+    "repo_behavior_spec_loop": ("repo:behavior-spec",),
+}
+
+
 def _guidance_labels_for(rel_path: str, text: str) -> list[dict[str, Any]]:
-    haystack = f"{rel_path}\n{text}"
+    signal_text = _positive_signal_text(text)
+    haystack = f"{rel_path}\n{signal_text}"
     labels: list[dict[str, Any]] = []
     for rule in SOURCE_GUIDANCE_LABEL_RULES:
         terms = tuple(str(term) for term in rule.get("terms", ()))
@@ -3914,7 +3961,8 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
         safe_text, redactions = redact_sensitive_text(text, enabled=redact_sensitive)
         merge_redactions(redaction_totals, redactions)
         source_type = _source_type_for(path, rel_path, text)
-        tokens = sorted(_text_tokens(safe_text))
+        signal_text = _positive_signal_text(safe_text)
+        tokens = sorted(_text_tokens(signal_text))
         node_id = hashlib.sha256(
             f"{path}:{hashlib.sha256(text.encode()).hexdigest()}".encode()
         ).hexdigest()[:12]
@@ -3935,6 +3983,7 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
                 "keywords": tokens[:20],
                 "routing_metadata": _routing_metadata_for(rel_path, safe_text),
                 "excerpt": safe_text[:max_excerpt_chars],
+                "signal_excerpt": signal_text[:max_excerpt_chars],
                 "redactions": redactions,
                 "trust": "untrusted_harvested_text",
             }
@@ -4001,27 +4050,20 @@ def _node_signal_text(node: dict[str, Any]) -> str:
     frontmatter_values = " ".join(
         str(value) for value in dict(node.get("frontmatter") or {}).values()
     )
-    guidance_text = " ".join(
-        " ".join(
-            [
-                str(label.get("id") or ""),
-                str(label.get("label") or ""),
-                " ".join(_string_list(label.get("matched_terms"))),
-            ]
-        )
-        for label in _json_list(node.get("guidance_labels"))
-        if isinstance(label, dict)
+    signal_excerpt = str(
+        node.get("signal_excerpt")
+        or _positive_signal_text(str(node.get("excerpt") or ""))
     )
+    signal_frontmatter = _positive_signal_text(frontmatter_values)
     return " ".join(
         [
             str(node.get("title") or ""),
             str(node.get("relative_path") or ""),
             str(node.get("source_type") or ""),
             " ".join(_string_list(node.get("behavior_atoms"))),
-            guidance_text,
             " ".join(_string_list(node.get("keywords"))),
-            frontmatter_values,
-            str(node.get("excerpt") or ""),
+            signal_frontmatter,
+            signal_excerpt,
         ]
     ).lower()
 
@@ -4065,8 +4107,13 @@ def _score_workflow_signal(
 ) -> dict[str, Any]:
     keywords = tuple(str(item).lower() for item in workflow.get("keywords", ()))
     expected_atoms = set(_string_sequence(workflow.get("behavior_atoms")))
+    expected_label_ids = set(
+        WORKFLOW_SIGNAL_GUIDANCE_LABEL_IDS.get(
+            str(workflow.get("signal_family") or ""), ()
+        )
+    )
     score = 0.0
-    evidence: list[dict[str, Any]] = []
+    evidence_candidates: list[dict[str, Any]] = []
     for node in source_nodes:
         text = _node_signal_text(node)
         matched_terms = _matched_signal_terms(text, list(keywords))
@@ -4077,25 +4124,39 @@ def _score_workflow_signal(
             continue
         guidance_labels = _json_list(node.get("guidance_labels"))
         node_score = float(len(matched_terms)) + float(len(matched_atoms))
-        if workflow.get("signal_family") == "ui_quality":
-            node_score += min(2.0, 0.5 * len(guidance_labels))
+        matching_label_count = sum(
+            1
+            for label in guidance_labels
+            if str(label.get("id") or "") in expected_label_ids
+        )
+        node_score += min(2.0, float(matching_label_count))
         if not node_score:
             continue
         score += node_score
-        if len(evidence) < 6:
-            evidence.append(
-                {
-                    "source_path": node.get("path"),
-                    "relative_path": node.get("relative_path"),
-                    "title": node.get("title"),
-                    "source_type": node.get("source_type"),
-                    "source_scope": _source_scope_for(str(node.get("path") or "")),
-                    "matched_terms": matched_terms[:8],
-                    "matched_behavior_atoms": matched_atoms,
-                    "guidance_labels": guidance_labels,
-                    "excerpt": str(node.get("excerpt") or "")[:360],
-                }
-            )
+        evidence_candidates.append(
+            {
+                "_score": node_score,
+                "source_path": node.get("path"),
+                "relative_path": node.get("relative_path"),
+                "title": node.get("title"),
+                "source_type": node.get("source_type"),
+                "source_scope": _source_scope_for(str(node.get("path") or "")),
+                "matched_terms": matched_terms[:8],
+                "matched_behavior_atoms": matched_atoms,
+                "guidance_labels": guidance_labels,
+                "excerpt": str(node.get("excerpt") or "")[:360],
+            }
+        )
+    evidence: list[dict[str, Any]] = []
+    for item in sorted(
+        evidence_candidates,
+        key=lambda value: (
+            -float(value.get("_score") or 0.0),
+            str(value.get("relative_path") or ""),
+        ),
+    )[:6]:
+        item.pop("_score", None)
+        evidence.append(item)
     confidence = round(min(0.99, score / (score + 6.0)), 2) if score else 0.0
     return {
         "signal_family": workflow["signal_family"],
