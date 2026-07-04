@@ -41,6 +41,10 @@
         "additionalProperties": true
       }
     },
+    "overlap_analysis": {
+      "type": "object",
+      "additionalProperties": true
+    },
     "recommended_default_templates": {
       "type": "array",
       "items": {

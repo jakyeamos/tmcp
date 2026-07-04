@@ -3431,7 +3431,225 @@ def _classify_atoms(text: str, source_type: str = "") -> list[str]:
     return sorted(atoms)[:10]
 
 
-UI_GUIDANCE_LABEL_RULES: tuple[dict[str, object], ...] = (
+SOURCE_GUIDANCE_LABEL_RULES: tuple[dict[str, object], ...] = (
+    {
+        "id": "release:readiness",
+        "label": "Release readiness",
+        "summary": "Source contributes release, ship/no-ship, CI, package, changelog, version, rollback, or readiness guidance.",
+        "terms": (
+            "release readiness",
+            "release",
+            "ship",
+            "ship/no-ship",
+            "ci evidence",
+            "ci verification",
+            "package check",
+            "package checks",
+            "version evidence",
+            "changelog",
+            "rollback",
+        ),
+    },
+    {
+        "id": "security:privacy",
+        "label": "Security and privacy",
+        "summary": "Source contributes security, privacy, permission, auth, redaction, credential, token, or secret-handling guidance.",
+        "terms": (
+            "security",
+            "privacy",
+            "permission",
+            "permissions",
+            "auth",
+            "redact",
+            "redaction",
+            "credential",
+            "credentials",
+            "token",
+            "tokens",
+            "secret",
+            "secrets",
+        ),
+    },
+    {
+        "id": "data:integrity",
+        "label": "Data integrity",
+        "summary": "Source contributes schema, migration, invariant, pipeline, reconciliation, idempotency, backfill, or data-loss guidance.",
+        "terms": (
+            "data integrity",
+            "schema",
+            "schemas",
+            "migration",
+            "migrations",
+            "invariant",
+            "invariants",
+            "pipeline",
+            "pipelines",
+            "reconciliation",
+            "idempotency",
+            "backfill",
+            "backfills",
+            "data loss",
+        ),
+    },
+    {
+        "id": "performance:readiness",
+        "label": "Performance readiness",
+        "summary": "Source contributes latency, profiling, runtime, load, cache, query, bundle, scaling, or measurement guidance.",
+        "terms": (
+            "performance",
+            "latency",
+            "profiling",
+            "runtime",
+            "load test",
+            "load-test",
+            "cache",
+            "query",
+            "bundle",
+            "scaling",
+            "measurement",
+        ),
+    },
+    {
+        "id": "dx:onboarding",
+        "label": "Developer experience",
+        "summary": "Source contributes onboarding, setup, command discovery, README, contribution flow, CI clarity, or maintainer handoff guidance.",
+        "terms": (
+            "developer experience",
+            "onboarding",
+            "setup",
+            "command discovery",
+            "readme",
+            "contribution",
+            "ci clarity",
+            "maintainer handoff",
+        ),
+    },
+    {
+        "id": "architecture:decision",
+        "label": "Architecture decision",
+        "summary": "Source contributes architecture, ADR, boundary, tradeoff, alternative, constraint, platform, or design-decision guidance.",
+        "terms": (
+            "architecture",
+            "adr",
+            "design decision",
+            "boundary",
+            "tradeoff",
+            "alternative",
+            "alternatives",
+            "constraint",
+            "constraints",
+            "platform",
+        ),
+    },
+    {
+        "id": "testing:regression",
+        "label": "Testing and regression",
+        "summary": "Source contributes tests, regression coverage, verification commands, expected behavior, or acceptance checks.",
+        "terms": (
+            "test strategy",
+            "test",
+            "tests",
+            "regression",
+            "coverage",
+            "expected behavior",
+            "acceptance",
+            "fixtures",
+        ),
+    },
+    {
+        "id": "verification:gates",
+        "label": "Verification gates",
+        "summary": "Source contributes explicit verification gates, quality gates, evidence requirements, command checks, or pass/fail criteria.",
+        "terms": (
+            "verification gate",
+            "verification gates",
+            "quality gate",
+            "quality gates",
+            "verify",
+            "verification",
+            "evidence",
+            "command",
+            "commands",
+            "pass",
+            "fail",
+        ),
+    },
+    {
+        "id": "repo:behavior-spec",
+        "label": "Repo behavior spec",
+        "summary": "Source contributes feature inventory, canonical spreadsheet, Feature IDs, observed behavior, status machine, or last-tested guidance.",
+        "terms": (
+            "repo behavior",
+            "behavior spec",
+            "canonical spreadsheet",
+            "feature id",
+            "feature ids",
+            "observed behavior",
+            "status machine",
+            "last tested commit",
+        ),
+    },
+    {
+        "id": "agent:handoff",
+        "label": "Agent handoff",
+        "summary": "Source contributes handoff, continuity, current state, touched files, blockers, open questions, or next-command guidance.",
+        "terms": (
+            "handoff",
+            "continuity",
+            "current state",
+            "touched files",
+            "blockers",
+            "open questions",
+            "next commands",
+        ),
+    },
+    {
+        "id": "pr:risk",
+        "label": "PR risk",
+        "summary": "Source contributes changed-surface, merge-risk, diff, contract, blocker, CI, review, or regression-risk guidance.",
+        "terms": (
+            "pr risk",
+            "pull request risk",
+            "changed surface",
+            "changed-surface",
+            "merge risk",
+            "diff",
+            "touched contracts",
+            "changed contracts",
+            "contract change",
+            "contract changes",
+            "blocker",
+            "blockers",
+        ),
+    },
+    {
+        "id": "migration:readiness",
+        "label": "Migration readiness",
+        "summary": "Source contributes migration, upgrade, deprecation, compatibility, rollout, rollback, or sequenced refactor guidance.",
+        "terms": (
+            "migration readiness",
+            "migration",
+            "upgrade",
+            "deprecation",
+            "compatibility",
+            "rollout",
+            "sequenced refactor",
+        ),
+    },
+    {
+        "id": "routing:workflow-selection",
+        "label": "Workflow selection",
+        "summary": "Source contributes workflow routing, skill harvest, promotion, packet composition, or agent-tool selection guidance.",
+        "terms": (
+            "workflow recommendation",
+            "workflow routing",
+            "skill harvest",
+            "promote harvest",
+            "compose packet",
+            "runtime routing",
+            "agent routing",
+        ),
+    },
     {
         "id": "ui:buttons-controls",
         "label": "Buttons and controls",
@@ -3541,7 +3759,7 @@ UI_GUIDANCE_LABEL_RULES: tuple[dict[str, object], ...] = (
 def _guidance_labels_for(rel_path: str, text: str) -> list[dict[str, Any]]:
     haystack = f"{rel_path}\n{text}"
     labels: list[dict[str, Any]] = []
-    for rule in UI_GUIDANCE_LABEL_RULES:
+    for rule in SOURCE_GUIDANCE_LABEL_RULES:
         terms = tuple(str(term) for term in rule.get("terms", ()))
         matched_terms = _matched_signal_terms(haystack, terms)
         if not matched_terms:
@@ -4051,6 +4269,7 @@ def _workflow_instance(
             "source_type": item.get("source_type"),
             "matched_terms": item.get("matched_terms", []),
             "matched_behavior_atoms": item.get("matched_behavior_atoms", []),
+            "guidance_labels": item.get("guidance_labels", []),
         }
         for item in _json_list(score.get("evidence"))[:4]
         if isinstance(item, dict)
@@ -4143,6 +4362,64 @@ def _custom_workflow_ideas(
             }
         )
     return ideas
+
+
+def _source_overlap_analysis(source_nodes: list[dict[str, Any]]) -> dict[str, Any]:
+    clusters: list[dict[str, Any]] = []
+    labels_by_id: dict[str, dict[str, Any]] = {}
+    sources_by_label: dict[str, list[dict[str, Any]]] = {}
+    for node in source_nodes:
+        for label in _json_list(node.get("guidance_labels")):
+            if not isinstance(label, dict):
+                continue
+            label_id = str(label.get("id") or "")
+            if not label_id:
+                continue
+            labels_by_id.setdefault(label_id, label)
+            sources_by_label.setdefault(label_id, []).append(
+                {
+                    "relative_path": node.get("relative_path"),
+                    "source_type": node.get("source_type"),
+                    "source_scope": _source_scope_for(str(node.get("path") or "")),
+                    "title": node.get("title"),
+                    "matched_terms": _string_list(label.get("matched_terms"))[:8],
+                }
+            )
+    for label_id, sources in sorted(sources_by_label.items()):
+        unique_sources: list[dict[str, Any]] = []
+        seen_paths: set[str] = set()
+        for source in sources:
+            path = str(source.get("relative_path") or "")
+            if path in seen_paths:
+                continue
+            seen_paths.add(path)
+            unique_sources.append(source)
+        if len(unique_sources) < 2:
+            continue
+        label = labels_by_id[label_id]
+        clusters.append(
+            {
+                "label_id": label_id,
+                "label": label.get("label"),
+                "summary": label.get("summary"),
+                "source_count": len(unique_sources),
+                "sources": unique_sources[:6],
+                "recommended_action": "consolidate_or_rank",
+                "decision_rule": (
+                    "Prefer the highest-priority local source when labels duplicate; "
+                    "preserve distinct matched terms as supporting context."
+                ),
+            }
+        )
+    clusters.sort(key=lambda item: (-int(item["source_count"]), str(item["label_id"])))
+    return {
+        "policy": (
+            "Overlapping harvested sources are not activated as equal instructions. "
+            "TMCP labels what each source contributes, consolidates duplicate labels where practical, "
+            "and keeps distinct label coverage as supporting context."
+        ),
+        "clusters": clusters[:12],
+    }
 
 
 def _documented_process_gaps(
@@ -4240,6 +4517,7 @@ def _adaptive_workflow_pack(
             "weak_signals": priority_profile.get("weak_signals", []),
         },
         "strongest_behavior_signals": atoms[:8],
+        "overlap_analysis": _source_overlap_analysis(source_nodes),
         "workflow_stability": {
             "stable_public_workflows": [
                 item["id"] for item in recommended if item.get("stability") == "stable"

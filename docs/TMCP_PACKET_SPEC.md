@@ -48,6 +48,7 @@ Harvested source nodes include:
 - `frontmatter`
 - `token_estimate`
 - `behavior_atoms`
+- `guidance_labels`
 - `keywords`
 - `excerpt`
 - `redactions`
