@@ -61,6 +61,72 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         self.assertTrue(result["recommended_workflows"][0]["evidence"])
         self.assertIn("starter_prompt", result["recommended_workflows"][0])
 
+    def test_recommend_workflows_does_not_match_ui_inside_public(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "SECURITY.md").write_text(
+                "# Public Trust\n\nUse public-sector evidence, source citations, and artifact contracts.",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {
+                    "source_path": str(root),
+                    "candidate_workflows": ["ui_quality"],
+                    "min_confidence": 0.1,
+                },
+            )
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["recommended_workflows"], [])
+        self.assertEqual(
+            result["signal_scores"][0]["workflow_id"], "expert_ui_rubric_workflow"
+        )
+        self.assertEqual(result["signal_scores"][0]["confidence"], 0.0)
+
+    def test_recommend_workflows_labels_ui_guidance_sources(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: controls-review",
+                        "---",
+                        "# Controls Review",
+                        "Use icon buttons, tooltips, segmented controls, and toolbar actions for dense tools.",
+                        "Verify browser screenshots, responsive behavior, and contrast for visible states.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {
+                    "source_path": str(root),
+                    "candidate_workflows": ["ui_quality"],
+                    "min_confidence": 0.1,
+                },
+            )
+
+        self.assertTrue(result["ok"])
+        recommendation = result["recommended_workflows"][0]
+        guidance_label_ids = {
+            label["id"]
+            for evidence in recommendation["evidence"]
+            for label in evidence["guidance_labels"]
+        }
+        self.assertIn("ui:buttons-controls", guidance_label_ids)
+        self.assertIn("ui:browser-verification", guidance_label_ids)
+        source_map_label_ids = {
+            label["id"]
+            for node in result["adaptive_workflow_pack"]["harvested_source_map"]
+            for label in node["guidance_labels"]
+        }
+        self.assertIn("ui:buttons-controls", source_map_label_ids)
+
     def test_recommend_workflows_returns_adaptive_pack_and_custom_ideas(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

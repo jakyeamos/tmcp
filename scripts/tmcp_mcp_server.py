@@ -828,6 +828,12 @@ WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
             "component",
             "state",
             "interaction",
+            "button",
+            "buttons",
+            "controls",
+            "input",
+            "toolbar",
+            "tooltip",
         ),
         "behavior_atoms": (
             "evidence-backed-claims",
@@ -1659,6 +1665,26 @@ def _slug(value: str) -> str:
 
 def _text_tokens(value: str) -> set[str]:
     return set(re.findall(r"[a-z0-9_]{3,}", value.lower()))
+
+
+def _contains_signal_term(text: str, term: str) -> bool:
+    needle = term.lower().strip()
+    if not needle:
+        return False
+    pieces = [piece for piece in re.split(r"[\s_/-]+", needle) if piece]
+    if len(pieces) > 1:
+        pattern = (
+            r"(?<![a-z0-9])"
+            + r"[\s_/-]+".join(re.escape(piece) for piece in pieces)
+            + r"(?![a-z0-9])"
+        )
+    else:
+        pattern = rf"(?<![a-z0-9]){re.escape(needle)}(?![a-z0-9])"
+    return re.search(pattern, text.lower()) is not None
+
+
+def _matched_signal_terms(text: str, terms: tuple[str, ...] | list[str]) -> list[str]:
+    return [term for term in terms if _contains_signal_term(text, str(term))]
 
 
 COMPOSITION_GENERIC_TERMS = {
@@ -3405,6 +3431,165 @@ def _classify_atoms(text: str, source_type: str = "") -> list[str]:
     return sorted(atoms)[:10]
 
 
+UI_GUIDANCE_LABEL_RULES: tuple[dict[str, object], ...] = (
+    {
+        "id": "ui:buttons-controls",
+        "label": "Buttons and controls",
+        "summary": "Source contains concrete guidance for buttons, controls, inputs, menus, toolbars, or tooltips.",
+        "terms": (
+            "button",
+            "buttons",
+            "icon button",
+            "cta",
+            "controls",
+            "segmented control",
+            "toggle",
+            "checkbox",
+            "slider",
+            "stepper",
+            "input",
+            "menu",
+            "toolbar",
+            "tooltip",
+        ),
+    },
+    {
+        "id": "ui:layout-hierarchy",
+        "label": "Layout and hierarchy",
+        "summary": "Source helps with scan order, visual hierarchy, spacing, density, cards, layout, or first-screen structure.",
+        "terms": (
+            "layout",
+            "hierarchy",
+            "scan",
+            "spacing",
+            "density",
+            "grid",
+            "card",
+            "cards",
+            "hero",
+            "first viewport",
+        ),
+    },
+    {
+        "id": "ui:design-system-fit",
+        "label": "Design-system fit",
+        "summary": "Source helps choose or reuse design-system components, tokens, icons, badges, tables, modals, or shared UI patterns.",
+        "terms": (
+            "design system",
+            "design-system",
+            "tokens",
+            "component",
+            "components",
+            "shared ui",
+            "badge",
+            "status pill",
+            "table",
+            "modal",
+            "lucide",
+            "shadcn",
+        ),
+    },
+    {
+        "id": "ui:responsive-accessibility",
+        "label": "Responsive and accessibility",
+        "summary": "Source helps verify mobile behavior, viewport fit, contrast, focus, keyboard, reduced motion, or accessibility.",
+        "terms": (
+            "responsive",
+            "mobile",
+            "viewport",
+            "contrast",
+            "focus",
+            "keyboard",
+            "reduced motion",
+            "accessibility",
+            "wcag",
+        ),
+    },
+    {
+        "id": "ui:browser-verification",
+        "label": "Browser verification",
+        "summary": "Source calls for rendered browser, screenshot, DOM, Playwright, canvas, or pixel evidence.",
+        "terms": (
+            "browser",
+            "screenshot",
+            "rendered",
+            "dom",
+            "playwright",
+            "canvas",
+            "pixel",
+        ),
+    },
+    {
+        "id": "ui:frontend-implementation",
+        "label": "Frontend implementation",
+        "summary": "Source carries framework or implementation guidance for React, Next.js, TSX, JSX, CSS, or client/server boundaries.",
+        "terms": (
+            "frontend",
+            "front-end",
+            "react",
+            "next.js",
+            "tsx",
+            "jsx",
+            "css",
+            "server component",
+            "use client",
+        ),
+    },
+)
+
+
+def _guidance_labels_for(rel_path: str, text: str) -> list[dict[str, Any]]:
+    haystack = f"{rel_path}\n{text}"
+    labels: list[dict[str, Any]] = []
+    for rule in UI_GUIDANCE_LABEL_RULES:
+        terms = tuple(str(term) for term in rule.get("terms", ()))
+        matched_terms = _matched_signal_terms(haystack, terms)
+        if not matched_terms:
+            continue
+        labels.append(
+            {
+                "id": str(rule["id"]),
+                "label": str(rule["label"]),
+                "summary": str(rule["summary"]),
+                "matched_terms": matched_terms[:8],
+            }
+        )
+    fallback_terms = _matched_signal_terms(
+        haystack,
+        [
+            "ui",
+            "ux",
+            "frontend",
+            "front-end",
+            "visual",
+            "design",
+            "interface",
+        ],
+    )
+    path_terms = _matched_signal_terms(
+        rel_path,
+        [
+            "ui",
+            "ux",
+            "frontend",
+            "front-end",
+            "visual",
+            "design",
+            "interface",
+        ],
+    )
+    if not labels and (path_terms or len(fallback_terms) >= 2):
+        labels.append(
+            {
+                "id": "ui:general",
+                "label": "General UI guidance",
+                "summary": "Source is UI-related but does not map to a narrower UI guidance label yet.",
+                "matched_terms": fallback_terms[:8],
+            }
+        )
+    return labels[:6]
+
+
 def _title_for(path: Path, text: str) -> str:
     frontmatter = _frontmatter_for(text)
     for key in ("name", "title", "description"):
@@ -3528,6 +3713,7 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
                 "frontmatter": frontmatter,
                 "token_estimate": _estimate_tokens(safe_text),
                 "behavior_atoms": _classify_atoms(safe_text, source_type),
+                "guidance_labels": _guidance_labels_for(rel_path, safe_text),
                 "keywords": tokens[:20],
                 "routing_metadata": _routing_metadata_for(rel_path, safe_text),
                 "excerpt": safe_text[:max_excerpt_chars],
@@ -3597,12 +3783,24 @@ def _node_signal_text(node: dict[str, Any]) -> str:
     frontmatter_values = " ".join(
         str(value) for value in dict(node.get("frontmatter") or {}).values()
     )
+    guidance_text = " ".join(
+        " ".join(
+            [
+                str(label.get("id") or ""),
+                str(label.get("label") or ""),
+                " ".join(_string_list(label.get("matched_terms"))),
+            ]
+        )
+        for label in _json_list(node.get("guidance_labels"))
+        if isinstance(label, dict)
+    )
     return " ".join(
         [
             str(node.get("title") or ""),
             str(node.get("relative_path") or ""),
             str(node.get("source_type") or ""),
             " ".join(_string_list(node.get("behavior_atoms"))),
+            guidance_text,
             " ".join(_string_list(node.get("keywords"))),
             frontmatter_values,
             str(node.get("excerpt") or ""),
@@ -3653,11 +3851,16 @@ def _score_workflow_signal(
     evidence: list[dict[str, Any]] = []
     for node in source_nodes:
         text = _node_signal_text(node)
-        matched_terms = [keyword for keyword in keywords if keyword in text]
+        matched_terms = _matched_signal_terms(text, list(keywords))
         matched_atoms = sorted(
             expected_atoms.intersection(_string_list(node.get("behavior_atoms")))
         )
-        node_score = float(len(matched_terms)) + (1.5 * len(matched_atoms))
+        if not matched_terms:
+            continue
+        guidance_labels = _json_list(node.get("guidance_labels"))
+        node_score = float(len(matched_terms)) + float(len(matched_atoms))
+        if workflow.get("signal_family") == "ui_quality":
+            node_score += min(2.0, 0.5 * len(guidance_labels))
         if not node_score:
             continue
         score += node_score
@@ -3671,6 +3874,7 @@ def _score_workflow_signal(
                     "source_scope": _source_scope_for(str(node.get("path") or "")),
                     "matched_terms": matched_terms[:8],
                     "matched_behavior_atoms": matched_atoms,
+                    "guidance_labels": guidance_labels,
                     "excerpt": str(node.get("excerpt") or "")[:360],
                 }
             )
@@ -3903,6 +4107,7 @@ def _custom_workflow_ideas(
                 "relative_path": node.get("relative_path"),
                 "source_type": node.get("source_type"),
                 "title": node.get("title"),
+                "guidance_labels": node.get("guidance_labels", []),
             }
             for node in source_nodes
             if atom in _string_list(node.get("behavior_atoms"))
@@ -4014,6 +4219,7 @@ def _adaptive_workflow_pack(
             "source_type": node.get("source_type"),
             "source_scope": _source_scope_for(str(node.get("path") or "")),
             "behavior_atoms": node.get("behavior_atoms", []),
+            "guidance_labels": node.get("guidance_labels", []),
             "keywords": _string_list(node.get("keywords"))[:8],
             "routing_metadata": node.get("routing_metadata", {}),
         }
@@ -4371,6 +4577,7 @@ def _normalized_global_graph(result: dict[str, Any]) -> dict[str, Any]:
                 "source_type": node.get("source_type"),
                 "source_scope": node.get("source_scope"),
                 "behavior_atoms": _string_list(node.get("behavior_atoms")),
+                "guidance_labels": _json_list(node.get("guidance_labels")),
                 "keywords": _string_list(node.get("keywords"))[:12],
                 "routing_metadata": node.get("routing_metadata", {}),
                 "trust": "advisory_untrusted",
@@ -4520,24 +4727,29 @@ def _compose_context(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _is_uiish_text(value: str) -> bool:
-    lower = value.lower()
-    return any(
-        term in lower
-        for term in (
-            "ui",
-            "frontend",
-            "front-end",
-            "react",
-            "next.js",
-            "tsx",
-            "jsx",
-            "css",
-            "dashboard",
-            "landing page",
-            "design",
-            "browser",
-            "responsive",
-            "contrast",
+    return bool(
+        _matched_signal_terms(
+            value,
+            [
+                "ui",
+                "ux",
+                "frontend",
+                "front-end",
+                "react",
+                "next.js",
+                "tsx",
+                "jsx",
+                "css",
+                "dashboard",
+                "landing page",
+                "design",
+                "browser",
+                "responsive",
+                "contrast",
+                "button",
+                "buttons",
+                "controls",
+            ],
         )
     )
 
@@ -4778,15 +4990,17 @@ def _workflow_objective_score(workflow: dict[str, Any], objective: str) -> float
         return -1.0
     score = 0.0
     for keyword in _string_sequence(workflow.get("keywords")):
-        if keyword.lower() in objective_lower:
+        if _contains_signal_term(objective_lower, keyword):
             score += 2.0 if " " in keyword else 1.0
-    if signal_family.replace("_", " ") in objective_lower:
+    if _contains_signal_term(objective_lower, signal_family.replace("_", " ")):
         score += 3.0
     if (
-        str(workflow.get("workflow_id") or "")
-        .replace("_workflow", "")
-        .replace("_", " ")
-        in objective_lower
+        _contains_signal_term(
+            objective_lower,
+            str(workflow.get("workflow_id") or "")
+            .replace("_workflow", "")
+            .replace("_", " "),
+        )
     ):
         score += 2.0
     workflow_signal_text = " ".join(
