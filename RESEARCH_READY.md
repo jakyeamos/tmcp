@@ -43,6 +43,6 @@ evidence docs.
 
 ## DOI Gate
 
-Author metadata records ORCID `https://orcid.org/0009-0006-0905-9633`.
+Author ORCID is recorded in `CITATION.cff` and `.zenodo.json`.
 Before minting a DOI, confirm the release tag and archived artifact boundary
 match the release notes.
