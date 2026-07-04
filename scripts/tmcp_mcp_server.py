@@ -3377,6 +3377,23 @@ def _harvest_priority(path: Path, rel_path: str, source_type: str) -> tuple[int,
     return type_score, rel_path
 
 
+def _path_suffix(path: Path, depth: int) -> str:
+    parts = [part for part in path.parts if part and part != path.anchor]
+    return "/".join(parts[-depth:]) if parts else path.name
+
+
+def _file_root_relative_paths(roots: list[Path]) -> dict[Path, str]:
+    file_roots = [root for root in roots if root.is_file()]
+    if not file_roots:
+        return {}
+    max_depth = max(len(root.parts) for root in file_roots)
+    for depth in range(1, max_depth + 1):
+        labels = {root: _path_suffix(root, depth) for root in file_roots}
+        if len(set(labels.values())) == len(labels):
+            return labels
+    return {root: str(root) for root in file_roots}
+
+
 def _iter_harvest_candidates(
     roots: list[Path],
     include_globs: list[str],
@@ -3387,9 +3404,10 @@ def _iter_harvest_candidates(
     candidates: list[tuple[Path, Path, str]] = []
     warnings: list[str] = []
     seen: set[str] = set()
+    file_root_rel_paths = _file_root_relative_paths(roots)
     for root in roots:
         if root.is_file():
-            rel_path = root.name
+            rel_path = file_root_rel_paths.get(root, root.name)
             if _matches_any(rel_path, root, include_globs) and not _matches_any(
                 rel_path, root, exclude_globs
             ):
