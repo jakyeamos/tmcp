@@ -129,8 +129,13 @@ def validate_hosted_evidence(
             errors.append("pull request release evidence requires a non-empty ref")
         if not positive_int(hosted.get("pr_number")):
             errors.append("pull request release evidence requires a positive pr_number")
+    elif source == "main":
+        if ref != "main":
+            errors.append("main release evidence ref must be 'main'")
+        if hosted.get("pr_number") is not None:
+            errors.append("main release evidence must not set pr_number")
     else:
-        errors.append("hosted_verification.source must be tag or pull_request")
+        errors.append("hosted_verification.source must be tag, pull_request, or main")
 
     errors.extend(workflow_has_release_tags(plugin_root, version))
     return errors

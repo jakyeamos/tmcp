@@ -39,10 +39,10 @@ Use this checklist before claiming a Tier One release.
 ## Release Evidence
 
 - [ ] `docs/VERIFICATION.md` updated.
-- [ ] `docs/RELEASE_EVIDENCE.json` records a successful hosted `verify.yml` pull request or `0.3.1`/`v0.3.1` tag run for the active manifest version.
+- [ ] `docs/RELEASE_EVIDENCE.json` records a successful hosted `verify.yml` main, pull request, or release-tag run for the active manifest version.
 - [ ] `python3 scripts/check_release_evidence.py .` passes.
 - [ ] Worktree is clean or the release commit/changelog/truth-file plan explicitly accounts for every dirty path.
 - [ ] `docs/TIER_ONE_RELEASE_RUBRIC.md` score updated.
-- [ ] GitHub remote exists and CI has run for the release PR or `0.3.1`/`v0.3.1` tag.
+- [ ] GitHub remote exists and CI has run for `main`, the release PR, or the active release tag.
 - [ ] MCP Registry draft reviewed against the current official registry schema.
 - [ ] Residual risks are explicit.

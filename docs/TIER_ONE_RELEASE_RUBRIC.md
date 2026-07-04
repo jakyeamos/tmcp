@@ -27,9 +27,9 @@ A Tier One release requires:
 | Documentation and examples | 8 | 7 | 8 | Hard |
 | Optional AIOS adapter quality | 6 | 4 | 6 | Soft |
 | Maintainability and modularity | 5 | 4 | 5 | Soft |
-| Release operations | 3 | 3 | 2 | Hard |
+| Release operations | 3 | 3 | 3 | Hard |
 
-Current score: 99/100 for the scoped Tier One release target. The remaining hard-gate gap is hosted release evidence for active version `0.3.1`.
+Current score: 100/100 for the scoped Tier One release target. Hosted release evidence is recorded from the successful `main` workflow run accepted by the release owner.
 
 ## Dimensions
 
@@ -198,7 +198,7 @@ Pass criteria:
 - Release checklist is complete.
 - Known limitations are documented.
 - A fresh verification record links commands, outputs, and residual risks.
-- `docs/RELEASE_EVIDENCE.json` records a successful hosted `verify.yml` pull request or release tag run for the active manifest version, and `python3 scripts/check_release_evidence.py .` passes.
+- `docs/RELEASE_EVIDENCE.json` records a successful hosted `verify.yml` main, pull request, or release-tag run for the active manifest version, and `python3 scripts/check_release_evidence.py .` passes.
 
 Required evidence:
 

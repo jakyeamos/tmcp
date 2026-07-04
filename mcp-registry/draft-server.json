@@ -6,7 +6,7 @@
   "repository": "https://github.com/jakyeamos/tmcp",
   "homepage": "https://github.com/jakyeamos/tmcp#readme",
   "license": "MIT",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "transport": {
     "type": "stdio",
     "command": "node",
@@ -24,6 +24,10 @@
     "tmcp_explain",
     "tmcp_harvest_skills",
     "tmcp_recommend_workflows",
+    "tmcp_promote_harvest",
+    "tmcp_compose_packet",
+    "tmcp_runtime_next",
+    "tmcp_record_receipt",
     "expert_rubric_review_plan"
   ],
   "status": "draft",

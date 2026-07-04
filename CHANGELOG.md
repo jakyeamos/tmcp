@@ -1,13 +1,18 @@
 # Changelog
 
-## Unreleased
+## 0.3.2 - 2026-07-04
 
+- Added composable skill packets through `tmcp_compose_packet`, `tmcp_runtime_next`, `tmcp_record_receipt`, and `--compose` support on explain/recommend.
+- Added advisory global cache support for promoted harvest graphs and run receipts.
+- Added deterministic routing metadata extraction so harvested skills can contribute command references, triggers, phase hints, boundaries, stop conditions, and verification gates.
+- Added golden and release-package smoke coverage for composition, runtime adaptation, receipts, global cache behavior, and compatibility of legacy outputs.
 - Made TMCP packaging portable-first: generic MCP config no longer sets `AIOS_ROOT`, `tmcp_doctor` documents skill-only, repo checkout, Codex plugin cache, and AIOS-backed layouts, and public docs avoid personal-machine paths.
 - Split the main TMCP skill into a concise router plus progressive-disclosure references for concepts, CLI usage, workflows, and the optional AIOS adapter.
 - Preserved all existing workflows while labeling the stable public set and marking non-stable router skills as experimental.
 - Added workflow stability metadata to recommendations, templates, rubric seeds, workflow instances, adaptive packs, and custom workflow ideas.
 - Strengthened harvest safety with broader default exclusions, untrusted-source metadata, and warnings for harvested text that attempts to override higher-priority instructions.
 - Expanded release package validation to check frontmatter/status, hardcoded user paths, private example names, Markdown links, doctor, harvest, workflow recommendation, and expert rubric smoke runs.
+- Accepted the successful `main` workflow run as hosted release evidence for this release by explicit release-owner override.
 
 ## 0.3.1 - 2026-07-02
 

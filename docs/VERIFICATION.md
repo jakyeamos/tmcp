@@ -2,7 +2,44 @@
 
 Date: 2026-07-04
 
-Plugin version: `0.3.1+codex.20260702173313`
+Plugin version: `0.3.2+codex.20260704042711`
+
+## 2026-07-04 Main Evidence And 0.3.2 Publish Prep
+
+Commands run for this change:
+
+```bash
+gh run view 28694857109 --repo jakyeamos/tmcp --json status,conclusion,url,headSha,updatedAt
+gh run view 28694857109 --repo jakyeamos/tmcp --json jobs --jq '.jobs[] | [.name, .conclusion] | @tsv'
+git rev-list -n1 v0.3.1
+git ls-remote --tags origin 'v0.3.1*'
+gh release view v0.3.1 --repo jakyeamos/tmcp --json tagName,targetCommitish,isDraft,isPrerelease,name,url,createdAt,publishedAt,body
+python3 -m unittest tests.test_release_evidence
+python3 scripts/check_release_evidence.py .
+python3 -m unittest discover -s tests
+python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.3.2.tar.gz
+python3 scripts/check_install.py .
+python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
+node --check scripts/tmcp_launcher.mjs
+ruff check .
+ruff format --check .
+basedpyright
+claude plugin validate .
+git diff --check
+```
+
+Results:
+
+- Hosted `main` verification run `28694857109` completed successfully at commit `749cb9958d15e8e494df4a9bd90c98943203e39d`.
+- Matrix jobs passed on Ubuntu, macOS, and Windows for Python 3.10 and 3.13.
+- Existing `v0.3.1` GitHub release points at commit `321fee69b16544b05167e46ff77c5c089c9657f7`, which predates the composition release work.
+- Release-owner override accepts the successful `main` run as hosted release evidence, so the non-destructive publish path is a new `0.3.2` release rather than rewriting `v0.3.1`.
+- Release evidence checker: pass for active version `0.3.2`.
+- Release evidence unit tests: pass, 5 tests.
+- Full unit and MCP protocol suite: pass, 62 tests.
+- Release package check: pass, including extracted package install/test/smoke coverage; package artifact written to `/private/tmp/tmcp-v0.3.2.tar.gz`.
+- Install shape check: pass; MCP `tools/list` passes without AIOS.
+- Python compile, Node launcher syntax, Ruff lint, Ruff format, Basedpyright, Claude marketplace validation, and `git diff --check`: pass.
 
 ## 2026-07-04 Composition Release Hardening
 
