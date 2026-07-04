@@ -2,7 +2,46 @@
 
 Date: 2026-07-04
 
-Plugin version: `0.3.2+codex.20260704042711`
+Plugin version: `0.3.3+codex.20260704154108`
+
+## 2026-07-04 0.3.3 Release Candidate
+
+Commands run for this change:
+
+```bash
+python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
+node --check scripts/tmcp_launcher.mjs
+python3 -m json.tool .codex-plugin/plugin.json
+python3 -m json.tool .claude-plugin/plugin.json
+python3 -m json.tool .claude-plugin/marketplace.json
+python3 -m json.tool mcp-registry/draft-server.json
+python3 -m json.tool docs/RELEASE_EVIDENCE.json
+TMCP_HOME=/private/tmp/tmcp-release-test-home python3 -m unittest discover -s tests
+python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.3.3.tar.gz
+shasum -a 256 /private/tmp/tmcp-v0.3.3.tar.gz
+python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.3.3.second.tar.gz
+shasum -a 256 /private/tmp/tmcp-v0.3.3.second.tar.gz
+tar -tzf /private/tmp/tmcp-v0.3.3.tar.gz | rg '^tmcp/(mcp-registry|docs/VERIFICATION.md|docs/RELEASE_EVIDENCE.json)'
+tar -tzf /private/tmp/tmcp-v0.3.3.tar.gz | rg '^tmcp/(README.md|scripts/check_release_package.py|docs/DISTRIBUTION.md|docs/TIER_ONE_RELEASE_RUBRIC.md)$'
+python3 scripts/check_release_evidence.py .
+mcp-publisher validate mcp-registry/draft-server.json
+claude plugin validate --strict .
+git diff --check
+```
+
+Results:
+
+- Version metadata updated for `0.3.3` in the Codex plugin, Claude plugin, Claude marketplace, MCP Registry draft, and hosted verification tag filters.
+- Python compile, Node launcher syntax, JSON syntax checks, and `git diff --check`: pass.
+- Full unit and MCP protocol suite: pass, 74 tests, with `TMCP_HOME` isolated to `/private/tmp/tmcp-release-test-home`.
+- Release package check: pass, including extracted package install/test/smoke coverage, doctor, harvest, recommendation, expert-rubric, composition/runtime/receipt, frontmatter, link, hardcoded-path, and private-name gates.
+- Release package artifact: `/private/tmp/tmcp-v0.3.3.tar.gz`.
+- Release package SHA-256: `f78fd2005470db8380b1f3f0badd7f1bc3fbe51a5b9c1e83cc291a7938c2af7e`.
+- Deterministic package check: a second generated artifact at `/private/tmp/tmcp-v0.3.3.second.tar.gz` produced the same SHA-256.
+- Release package intentionally excludes `mcp-registry/`, `docs/VERIFICATION.md`, and `docs/RELEASE_EVIDENCE.json` so the registry draft and release evidence can record the package hash without self-reference; runtime package files such as `README.md`, `docs/DISTRIBUTION.md`, `docs/TIER_ONE_RELEASE_RUBRIC.md`, and `scripts/check_release_package.py` are present.
+- MCP Registry draft validation: pass against `https://registry.modelcontextprotocol.io`.
+- Claude Code marketplace validation: pass with `claude plugin validate --strict .`.
+- Release evidence checker: expected fail until hosted `verify.yml` evidence records a successful `main` or `v0.3.3` run for active version `0.3.3`.
 
 ## 2026-07-04 Post-Publish Marketplace And Registry Smokes
 

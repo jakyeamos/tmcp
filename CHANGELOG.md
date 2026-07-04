@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.3 - 2026-07-04
+
+- Added scoped packet seed parsing for `tmcp-scoped-packet-seeds-v0.1` artifacts so curated seeds become first-class virtual `scoped_packet_seed` source nodes.
+- Added `recommended_scoped_packet_seeds` to workflow recommendations and adaptive workflow packs so selectors can recommend exact curated seed IDs before falling back to generic workflow advice.
+- Added scoped seed promotion-preview graph output with raw-source, behavior-atom, and verification-expectation edges while preserving proposal-only promotion requirements.
+- Added domain labels for writing, spec-grilling, and wayfinding scoped seeds to make overlap analysis more explainable.
+- Fixed file-root harvest identity so multiple direct `SKILL.md` inputs no longer collapse into one relative-path source node.
+- Excluded source-repo release evidence and MCP Registry draft metadata from generated release packages so artifact hashes remain stable after evidence is finalized.
+- Tightened workflow selector evidence scoring and overlap diagnostics so generic UI/default workflow matches are secondary when stronger scoped evidence is present.
+- Added regression coverage for scoped seed harvesting, recommendation, promotion preview, raw skill evidence boundaries, workflow overlap reporting, selector scoring, and file-root identity.
+
 ## 0.3.2 - 2026-07-04
 
 - Added composable skill packets through `tmcp_compose_packet`, `tmcp_runtime_next`, `tmcp_record_receipt`, and `--compose` support on explain/recommend.

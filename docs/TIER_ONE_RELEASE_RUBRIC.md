@@ -29,7 +29,7 @@ A Tier One release requires:
 | Maintainability and modularity | 5 | 4 | 5 | Soft |
 | Release operations | 3 | 3 | 3 | Hard |
 
-Current score: 100/100 for the scoped Tier One release target. Hosted release evidence is recorded from the successful `main` workflow run accepted by the release owner.
+Current score: 100/100 for the scoped `0.3.3` release candidate on local package and test evidence. Hosted release evidence is pending until a successful `main` or `v0.3.3` `verify.yml` run is recorded.
 
 ## Dimensions
 

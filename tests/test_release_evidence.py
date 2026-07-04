@@ -10,6 +10,7 @@ from pathlib import Path, PureWindowsPath
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 CHECK_RELEASE_EVIDENCE_PATH = PLUGIN_ROOT / "scripts" / "check_release_evidence.py"
+ACTIVE_RELEASE_VERSION = "0.3.3"
 
 
 def load_check_release_evidence_module():
@@ -34,12 +35,18 @@ def copy_release_evidence_fixture(root: Path) -> None:
         ".claude-plugin/plugin.json",
         ".claude-plugin/marketplace.json",
         ".github/workflows/verify.yml",
-        "mcp-registry/draft-server.json",
     ):
         source = PLUGIN_ROOT / relative
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
+    write_json(
+        root / "mcp-registry" / "draft-server.json",
+        {
+            "name": "io.github.jakyeamos/tmcp",
+            "version": ACTIVE_RELEASE_VERSION,
+        },
+    )
 
 
 class ReleaseEvidenceTests(unittest.TestCase):
@@ -55,12 +62,12 @@ class ReleaseEvidenceTests(unittest.TestCase):
                 root / "docs" / "RELEASE_EVIDENCE.json",
                 {
                     "schema": "tmcp-release-evidence-v0.1",
-                    "version": "0.3.2",
+                    "version": ACTIVE_RELEASE_VERSION,
                     "hosted_verification": {
                         "status": "completed",
                         "conclusion": "success",
                         "source": "tag",
-                        "ref": "v0.3.2",
+                        "ref": f"v{ACTIVE_RELEASE_VERSION}",
                         "pr_number": None,
                         "workflow": ".github/workflows/verify.yml",
                         "run_id": 123456,
@@ -83,7 +90,7 @@ class ReleaseEvidenceTests(unittest.TestCase):
                 root / "docs" / "RELEASE_EVIDENCE.json",
                 {
                     "schema": "tmcp-release-evidence-v0.1",
-                    "version": "0.3.2",
+                    "version": ACTIVE_RELEASE_VERSION,
                     "hosted_verification": {
                         "status": "completed",
                         "conclusion": "success",
@@ -120,12 +127,12 @@ class ReleaseEvidenceTests(unittest.TestCase):
                     root / "docs" / "RELEASE_EVIDENCE.json",
                     {
                         "schema": "tmcp-release-evidence-v0.1",
-                        "version": "0.3.2",
+                        "version": ACTIVE_RELEASE_VERSION,
                         "hosted_verification": {
                             "status": "completed",
                             "conclusion": "success",
                             "source": "tag",
-                            "ref": "v0.3.2",
+                            "ref": f"v{ACTIVE_RELEASE_VERSION}",
                             "pr_number": None,
                             "workflow": ".github/workflows/verify.yml",
                             "run_id": 123456,
@@ -150,7 +157,7 @@ class ReleaseEvidenceTests(unittest.TestCase):
                 root / "docs" / "RELEASE_EVIDENCE.json",
                 {
                     "schema": "tmcp-release-evidence-v0.1",
-                    "version": "0.3.2",
+                    "version": ACTIVE_RELEASE_VERSION,
                     "hosted_verification": {
                         "status": "pending",
                         "conclusion": None,
@@ -200,7 +207,7 @@ class ReleaseEvidenceTests(unittest.TestCase):
 
         self.assertEqual(result["hosted_release_evidence"], "fail")
         self.assertIn(
-            "docs/RELEASE_EVIDENCE.json version must match active release 0.3.2",
+            f"docs/RELEASE_EVIDENCE.json version must match active release {ACTIVE_RELEASE_VERSION}",
             result["errors"],
         )
 

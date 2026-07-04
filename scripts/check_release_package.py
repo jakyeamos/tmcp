@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import os
 import re
@@ -23,6 +24,11 @@ EXCLUDE_DIRS = {
     ".pytest_cache",
     ".quality-runner",
     ".ruff_cache",
+    "mcp-registry",
+}
+EXCLUDE_PATHS = {
+    Path("docs") / "RELEASE_EVIDENCE.json",
+    Path("docs") / "VERIFICATION.md",
 }
 EXCLUDE_SUFFIXES = {".pyc", ".pyo"}
 HARDCODED_USER_PATH_PATTERNS = (
@@ -59,6 +65,8 @@ EXPERIMENTAL_SKILLS = {
 
 
 def should_include(path: Path) -> bool:
+    if path in EXCLUDE_PATHS:
+        return False
     if any(part in EXCLUDE_DIRS for part in path.parts):
         return False
     if path.suffix in EXCLUDE_SUFFIXES:
@@ -66,22 +74,46 @@ def should_include(path: Path) -> bool:
     return True
 
 
+def normalized_tarinfo(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo:
+    tarinfo.uid = 0
+    tarinfo.gid = 0
+    tarinfo.uname = ""
+    tarinfo.gname = ""
+    tarinfo.mtime = 0
+    return tarinfo
+
+
 def create_package(plugin_root: Path, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with tarfile.open(output_path, "w:gz") as archive:
-        for path in sorted(plugin_root.rglob("*")):
-            if path.is_symlink() or not path.is_file():
-                continue
-            relative = path.relative_to(plugin_root)
-            if not should_include(relative):
-                continue
-            archive.add(path, arcname=Path("tmcp") / relative)
+    with output_path.open("wb") as raw_output:
+        with gzip.GzipFile(
+            filename="", fileobj=raw_output, mode="wb", mtime=0
+        ) as gzip_output:
+            with tarfile.open(fileobj=gzip_output, mode="w") as archive:
+                for path in sorted(plugin_root.rglob("*")):
+                    if path.is_symlink() or not path.is_file():
+                        continue
+                    relative = path.relative_to(plugin_root)
+                    if not should_include(relative):
+                        continue
+                    archive.add(
+                        path,
+                        arcname=(Path("tmcp") / relative).as_posix(),
+                        filter=normalized_tarinfo,
+                    )
 
 
-def run(command: list[str], cwd: Path) -> tuple[bool, str]:
+def run(
+    command: list[str], cwd: Path, extra_env: dict[str, str] | None = None
+) -> tuple[bool, str]:
+    env = os.environ.copy()
+    env.pop("AIOS_ROOT", None)
+    if extra_env:
+        env.update(extra_env)
     completed = subprocess.run(
         command,
         cwd=cwd,
+        env=env,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -580,11 +612,16 @@ def check_package(package_path: Path) -> dict[str, Any]:
         with tarfile.open(package_path, "r:gz") as archive:
             safe_extractall(archive, tmp_path)
         plugin_root = tmp_path / "tmcp"
+        package_env = {"TMCP_HOME": str(tmp_path / "tmcp-home")}
         install_ok, install_output = run(
-            [sys.executable, "scripts/check_install.py", "."], plugin_root
+            [sys.executable, "scripts/check_install.py", "."],
+            plugin_root,
+            package_env,
         )
         tests_ok, tests_output = run(
-            [sys.executable, "-m", "unittest", "discover", "-s", "tests"], plugin_root
+            [sys.executable, "-m", "unittest", "discover", "-s", "tests"],
+            plugin_root,
+            package_env,
         )
         compile_ok, compile_output = run(
             [
@@ -600,9 +637,12 @@ def check_package(package_path: Path) -> dict[str, Any]:
                 "scripts/tmcp_redaction.py",
             ],
             plugin_root,
+            package_env,
         )
         launcher_ok, launcher_output = run(
-            ["node", "--check", "scripts/tmcp_launcher.mjs"], plugin_root
+            ["node", "--check", "scripts/tmcp_launcher.mjs"],
+            plugin_root,
+            package_env,
         )
         frontmatter_ok, frontmatter_output = check_frontmatter_and_workflow_status(
             plugin_root

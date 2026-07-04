@@ -47,7 +47,7 @@ Set `AIOS_ROOT` only when optional AIOS storage/adapter behavior is wanted. AIOS
 
 ## MCP Registry Submission
 
-The registry draft lives at [mcp-registry/draft-server.json](../mcp-registry/draft-server.json). It uses the official `server.json` schema and should pass:
+The source repository registry draft lives at `mcp-registry/draft-server.json`. It uses the official `server.json` schema and should pass:
 
 ```bash
 mcp-publisher validate mcp-registry/draft-server.json

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import tarfile
 import tempfile
@@ -918,6 +919,14 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
             quality_run = root / ".quality-runner" / "runs" / "local"
             quality_run.mkdir(parents=True)
             (quality_run / "audit.json").write_text("{}", encoding="utf-8")
+            registry = root / "mcp-registry"
+            registry.mkdir()
+            (registry / "draft-server.json").write_text("{}", encoding="utf-8")
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "RELEASE_EVIDENCE.json").write_text("{}", encoding="utf-8")
+            (docs / "VERIFICATION.md").write_text("# Verification\n", encoding="utf-8")
+            (docs / "TIER_ONE_RELEASE_RUBRIC.md").write_text("# Rubric\n", encoding="utf-8")
             output_path = Path(tmp) / "tmcp.tar.gz"
 
             module.create_package(root, output_path)
@@ -929,3 +938,32 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         self.assertNotIn("tmcp/.aios/audit/gate-events.jsonl", names)
         self.assertNotIn("tmcp/.codex/config.toml", names)
         self.assertNotIn("tmcp/.quality-runner/runs/local/audit.json", names)
+        self.assertNotIn("tmcp/mcp-registry/draft-server.json", names)
+        self.assertNotIn("tmcp/docs/RELEASE_EVIDENCE.json", names)
+        self.assertNotIn("tmcp/docs/VERIFICATION.md", names)
+        self.assertIn("tmcp/docs/TIER_ONE_RELEASE_RUBRIC.md", names)
+
+    def test_release_package_creation_is_deterministic(self) -> None:
+        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
+        spec = importlib.util.spec_from_file_location("check_release_package", path)
+        if spec is None or spec.loader is None:
+            raise RuntimeError("Could not load check_release_package module")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "plugin"
+            root.mkdir()
+            (root / "README.md").write_text("# Plugin\n", encoding="utf-8")
+            (root / "skills").mkdir()
+            (root / "skills" / "SKILL.md").write_text("# Skill\n", encoding="utf-8")
+            first = Path(tmp) / "first.tar.gz"
+            second = Path(tmp) / "second.tar.gz"
+
+            module.create_package(root, first)
+            module.create_package(root, second)
+
+            first_digest = hashlib.sha256(first.read_bytes()).hexdigest()
+            second_digest = hashlib.sha256(second.read_bytes()).hexdigest()
+
+        self.assertEqual(first_digest, second_digest)
