@@ -4,6 +4,51 @@ Date: 2026-07-04
 
 Plugin version: `0.3.2+codex.20260704042711`
 
+## 2026-07-04 Post-Publish Marketplace And Registry Smokes
+
+Commands run for this change:
+
+```bash
+claude plugin marketplace add jakyeamos/tmcp
+claude plugin validate --strict .
+claude plugin install tmcp@tmcp
+claude plugin list
+claude plugin details tmcp
+node <claude-plugin-cache>/marketplaces/tmcp/scripts/tmcp_launcher.mjs doctor --compact
+node <claude-plugin-cache>/marketplaces/tmcp/scripts/tmcp_launcher.mjs status --compact
+node <claude-plugin-cache>/marketplaces/tmcp/scripts/tmcp_launcher.mjs explain "Review release readiness" --project-path /private/tmp/tmcp-smoke-source --adapter standalone --compact
+node <claude-plugin-cache>/marketplaces/tmcp/scripts/tmcp_launcher.mjs harvest /private/tmp/tmcp-smoke-source --limit 5 --no-write-artifacts --compact
+node <claude-plugin-cache>/marketplaces/tmcp/scripts/tmcp_launcher.mjs recommend /private/tmp/tmcp-smoke-source --candidate-workflows release_readiness --min-confidence 0.1 --no-write-artifacts --compact
+brew install mcp-publisher
+gh api repos/jakyeamos/tmcp --jq '.id'
+curl -sS https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json
+mcp-publisher validate mcp-registry/draft-server.json
+codex plugin marketplace add jakyeamos/tmcp@v0.3.2
+codex plugin marketplace upgrade tmcp
+python3 <codex-marketplace-cache>/tmcp/scripts/check_install.py <codex-marketplace-cache>/tmcp
+node <codex-marketplace-cache>/tmcp/scripts/tmcp_launcher.mjs status --compact
+node <codex-marketplace-cache>/tmcp/scripts/tmcp_launcher.mjs list-tools
+node <codex-marketplace-cache>/tmcp/scripts/tmcp_launcher.mjs compose-packet "Improve release readiness" --project-path /private/tmp/tmcp-smoke-source --source-path /private/tmp/tmcp-smoke-source --phase start --cache-policy isolated --compact
+curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.3.2/tmcp-v0.3.2.tar.gz -o /private/tmp/tmcp-public-release.WV6u3O/tmcp-v0.3.2.tar.gz
+openssl dgst -sha256 /private/tmp/tmcp-public-release.WV6u3O/tmcp-v0.3.2.tar.gz
+tar -xzf /private/tmp/tmcp-public-release.WV6u3O/tmcp-v0.3.2.tar.gz -C /private/tmp/tmcp-public-release.WV6u3O
+python3 /private/tmp/tmcp-public-release.WV6u3O/tmcp/scripts/check_install.py /private/tmp/tmcp-public-release.WV6u3O/tmcp
+node /private/tmp/tmcp-public-release.WV6u3O/tmcp/scripts/tmcp_launcher.mjs doctor --compact
+node /private/tmp/tmcp-public-release.WV6u3O/tmcp/scripts/tmcp_launcher.mjs status --compact
+node /private/tmp/tmcp-public-release.WV6u3O/tmcp/scripts/tmcp_launcher.mjs list-tools
+node /private/tmp/tmcp-public-release.WV6u3O/tmcp/scripts/tmcp_launcher.mjs compose-packet "Improve release readiness" --project-path /private/tmp/tmcp-smoke-source --source-path /private/tmp/tmcp-smoke-source --phase start --cache-policy isolated --compact
+```
+
+Results:
+
+- Claude Code marketplace: `jakyeamos/tmcp` added as marketplace `tmcp`; strict marketplace validation passed; `tmcp@tmcp` installed at version `0.3.2`.
+- Claude installed plugin inventory: 20 skills, one MCP server, and projected always-on cost about 865 tokens.
+- Claude installed launcher smokes: doctor, status, explain, harvest, and release-readiness recommendation passed from the local Claude marketplace cache.
+- MCP Registry draft: updated to official `server.json` schema `https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json`; repository id recorded as `1281619125`; `mcp-publisher validate mcp-registry/draft-server.json` passed against `https://registry.modelcontextprotocol.io`.
+- Codex marketplace: `jakyeamos/tmcp@v0.3.2` added and upgraded; the installed marketplace root reports `.codex-plugin` version `0.3.2+codex.20260704042711`.
+- Codex installed marketplace smokes: install check, status, tools list, and composition passed.
+- Public release artifact smoke: downloaded `tmcp-v0.3.2.tar.gz`; SHA-256 matched `3866f4e93acd0d30f704764c03bbad1f061675272183f506b52b476fc0127a7b`; extracted package passed install, doctor, status, tools list, and composition.
+
 ## 2026-07-04 Main Evidence And 0.3.2 Publish Prep
 
 Commands run for this change:

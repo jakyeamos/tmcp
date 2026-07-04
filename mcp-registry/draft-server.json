@@ -1,39 +1,43 @@
 {
-  "schema": "tmcp-mcp-registry-draft-v0.1",
-  "name": "io.github.jakyeamos.tmcp",
-  "display_name": "TMCP",
-  "description": "Standalone TMCP skill-packet workflows, skill harvesting, adaptive workflow-pack recommendations, packet substance checks, and expert rubric remediation over MCP.",
-  "repository": "https://github.com/jakyeamos/tmcp",
-  "homepage": "https://github.com/jakyeamos/tmcp#readme",
-  "license": "MIT",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.jakyeamos/tmcp",
+  "title": "TMCP",
+  "description": "Composable skill packets, harvests, workflow routing, and release/audit rubrics over MCP.",
   "version": "0.3.2",
-  "transport": {
-    "type": "stdio",
-    "command": "node",
-    "args": [
-      "scripts/tmcp_launcher.mjs"
-    ]
+  "websiteUrl": "https://github.com/jakyeamos/tmcp#readme",
+  "repository": {
+    "url": "https://github.com/jakyeamos/tmcp",
+    "source": "github",
+    "id": "1281619125"
   },
-  "runtime": {
-    "node": ">=20",
-    "python": ">=3.10"
-  },
-  "tools": [
-    "tmcp_doctor",
-    "tmcp_status",
-    "tmcp_explain",
-    "tmcp_harvest_skills",
-    "tmcp_recommend_workflows",
-    "tmcp_promote_harvest",
-    "tmcp_compose_packet",
-    "tmcp_runtime_next",
-    "tmcp_record_receipt",
-    "expert_rubric_review_plan"
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/jakyeamos/tmcp/releases/download/v0.3.2/tmcp-v0.3.2.tar.gz",
+      "version": "0.3.2",
+      "fileSha256": "3866f4e93acd0d30f704764c03bbad1f061675272183f506b52b476fc0127a7b",
+      "transport": {
+        "type": "stdio"
+      }
+    }
   ],
-  "status": "draft",
-  "submission_notes": [
-    "Confirm the current MCP Registry schema before submission.",
-    "Replace draft schema marker with official registry schema URL.",
-    "Submit after the public GitHub repository and release tag exist."
-  ]
+  "_meta": {
+    "io.github.jakyeamos.tmcp/toolNames": [
+      "tmcp_doctor",
+      "tmcp_status",
+      "tmcp_explain",
+      "tmcp_harvest_skills",
+      "tmcp_recommend_workflows",
+      "tmcp_promote_harvest",
+      "tmcp_compose_packet",
+      "tmcp_runtime_next",
+      "tmcp_record_receipt",
+      "expert_rubric_review_plan"
+    ],
+    "io.github.jakyeamos.tmcp/runtime": {
+      "node": ">=20",
+      "python": ">=3.10"
+    },
+    "io.github.jakyeamos.tmcp/installNote": "TMCP is currently distributed as a GitHub release artifact and source/plugin repository. Generic MCP hosts can run node scripts/tmcp_launcher.mjs from an extracted checkout."
+  }
 }
