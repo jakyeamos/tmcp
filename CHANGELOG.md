@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased
+
+- Made TMCP packaging portable-first: generic MCP config no longer sets `AIOS_ROOT`, `tmcp_doctor` documents skill-only, repo checkout, Codex plugin cache, and AIOS-backed layouts, and public docs avoid personal-machine paths.
+- Split the main TMCP skill into a concise router plus progressive-disclosure references for concepts, CLI usage, workflows, and the optional AIOS adapter.
+- Preserved all existing workflows while labeling the stable public set and marking non-stable router skills as experimental.
+- Added workflow stability metadata to recommendations, templates, rubric seeds, workflow instances, adaptive packs, and custom workflow ideas.
+- Strengthened harvest safety with broader default exclusions, untrusted-source metadata, and warnings for harvested text that attempts to override higher-priority instructions.
+- Expanded release package validation to check frontmatter/status, hardcoded user paths, private example names, Markdown links, doctor, harvest, workflow recommendation, and expert rubric smoke runs.
+
+## 0.3.1 - 2026-07-02
+
+- Excluded local `.aios/`, `.codex/`, and `.quality-runner/` artifact directories from generated release packages.
+- Removed the environment-sensitive fake-AIOS adapter unit test and ignored local Codex/Quality Runner artifact directories.
+- Added `evidence_contract` and `evidence_diagnostics` to expert rubric review results so coarse `evidence_json` records are reported before they produce uncited, low-value findings.
+
+## 0.3.0 - 2026-06-29
+
+- Added the adaptive workflow expansion: eight default workflow router skills for incidents, architecture decisions, test strategy, migrations, data integrity, agent handoffs, PR risk, and performance readiness.
+- Added adaptive/meta router skills for workflow packs, custom rubric generation, routing-policy generation, and skill-gap analysis.
+- Expanded `tmcp_recommend_workflows` to emit a first-class `adaptive_workflow_pack` artifact with schema `tmcp-adaptive-workflow-pack-v0.1`.
+- Added additive recommendation fields for `custom_workflow_ideas`, default workflow `template`, and candidate `workflow_instance`.
+- Added source-backed custom workflow ideas, routing triggers, required evidence lists, documented process gaps, and approval-gated next workflow selection.
+- Updated docs, examples, install checks, and release-package validation for the adaptive workflow-pack surface.
+
 ## 0.2.5 - 2026-06-27
 
 - Generalized profile coverage requirements beyond UI reviews so security/privacy, public-sector, developer-experience, and general reviews can reject off-profile evidence and request a profile-coverage evidence slice.

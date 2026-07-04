@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-promoted-harvest-graph-v0.1.schema.json",
+  "title": "TMCP Promoted Harvest Graph v0.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "promotion_name",
+    "created_at",
+    "source_nodes",
+    "behavior_atoms",
+    "workflow_nodes",
+    "edges",
+    "trust"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-promoted-harvest-graph-v0.1"
+    },
+    "promotion_name": {
+      "type": ["string", "null"]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "behavior_atoms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "workflow_nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "trust": {
+      "const": "advisory_untrusted"
+    },
+    "instruction_override_policy": {
+      "type": "string"
+    }
+  }
+}

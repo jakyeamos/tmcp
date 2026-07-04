@@ -6,11 +6,11 @@ Claude Desktop does not use the Claude Code plugin marketplace. Install TMCP man
 
 - Node.js 20+
 - Python 3.10+
-- A local checkout of this repository
+- A local checkout or copied package of this repository
 
 ## Configuration
 
-Add this to `claude_desktop_config.json`, replacing `/absolute/path/to/tmcp` with this repository path:
+Add this to `claude_desktop_config.json`, replacing `/absolute/path/to/tmcp` with your TMCP checkout or package path:
 
 ```json
 {
@@ -19,20 +19,6 @@ Add this to `claude_desktop_config.json`, replacing `/absolute/path/to/tmcp` wit
       "command": "node",
       "args": ["/absolute/path/to/tmcp/scripts/tmcp_launcher.mjs"],
       "cwd": "/absolute/path/to/tmcp"
-    }
-  }
-}
-```
-
-On this machine, the local development value is:
-
-```json
-{
-  "mcpServers": {
-    "tmcp": {
-      "command": "node",
-      "args": ["/Users/jakyeamos/plugins/tmcp/scripts/tmcp_launcher.mjs"],
-      "cwd": "/Users/jakyeamos/plugins/tmcp"
     }
   }
 }
@@ -55,13 +41,13 @@ If Python is installed in a non-standard location, set `TMCP_PYTHON`:
 }
 ```
 
-Restart Claude Desktop after editing the config.
+Set `AIOS_ROOT` only if you explicitly want the optional AIOS adapter.
 
 ## Smoke Test
 
-After restart, call the `tmcp_doctor` MCP tool. Then call `tmcp_status`.
+After restarting Claude Desktop, call `tmcp_doctor`, then `tmcp_status`.
 
-Expected result:
+Expected:
 
-- `standalone.available` is `true`.
-- `aios_adapter.available` may be `false`; AIOS is optional.
+- `standalone.available` is `true`
+- `aios_adapter.available` may be `false`

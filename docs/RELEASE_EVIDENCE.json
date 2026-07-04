@@ -1,0 +1,27 @@
+{
+  "schema": "tmcp-release-evidence-v0.1",
+  "version": "0.3.1",
+  "checked_at": "2026-07-04T04:08:51Z",
+  "hosted_verification": {
+    "status": "pending",
+    "conclusion": null,
+    "source": null,
+    "ref": null,
+    "pr_number": null,
+    "workflow": ".github/workflows/verify.yml",
+    "run_id": null,
+    "url": null,
+    "notes": "No hosted verify.yml pull request or 0.3.1/v0.3.1 tag run is recorded for the active release version yet. Remote tag refs/tags/v0.3.1 exists, but gh run list --workflow verify.yml --branch v0.3.1 returned no runs on 2026-07-04. Create a release PR or intentionally re-push a release tag before claiming the release."
+  },
+  "discovery": {
+    "remote": "git@github.com:jakyeamos/tmcp.git",
+    "remote_tag": "refs/tags/v0.3.1",
+    "commands": [
+      "gh run list --repo jakyeamos/tmcp --workflow verify.yml --limit 20 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt",
+      "gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch v0.3.1 --limit 10 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt",
+      "git ls-remote --tags origin v0.3.1",
+      "gh pr list --repo jakyeamos/tmcp --state all --limit 20 --json number,title,headRefName,baseRefName,state,url,updatedAt"
+    ],
+    "result": "No qualifying hosted pull request or release-tag run was found."
+  }
+}

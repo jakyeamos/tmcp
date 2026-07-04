@@ -1,27 +1,21 @@
 # Distribution Plan
 
-TMCP ships through five surfaces.
+TMCP ships through portable layouts that all use the same launcher:
 
-If you are choosing between them, use [MARKETPLACE_MATRIX.md](MARKETPLACE_MATRIX.md).
-
-## 1. GitHub Source Repository
-
-Canonical repository:
-
-```text
-https://github.com/jakyeamos/tmcp
+```bash
+node scripts/tmcp_launcher.mjs
 ```
 
-The repository contains source, docs, license, CI, Codex plugin metadata, Claude Code plugin metadata, and release checks.
+## GitHub Source Repository
 
-Shared first-run check after any install:
+The repository contains source, docs, license, CI, plugin metadata, examples, and release checks. A fresh clone should pass:
 
-```text
-tmcp_doctor
-tmcp_status
+```bash
+node scripts/tmcp_launcher.mjs doctor
+python3 scripts/check_release_package.py .
 ```
 
-## 2. Codex Plugin
+## Codex Plugin
 
 Codex uses:
 
@@ -29,9 +23,9 @@ Codex uses:
 - [.mcp.json](../.mcp.json)
 - [skills/tmcp/SKILL.md](../skills/tmcp/SKILL.md)
 
-The local personal Codex marketplace entry points to this plugin from `/Users/jakyeamos/.agents/plugins/marketplace.json`.
+The MCP server declaration launches `scripts/tmcp_launcher.mjs` relative to the plugin root.
 
-## 3. Claude Code Plugin And Marketplace
+## Claude Code Plugin
 
 Claude Code uses:
 
@@ -39,36 +33,18 @@ Claude Code uses:
 - [.claude-plugin/mcp.json](../.claude-plugin/mcp.json)
 - [.claude-plugin/marketplace.json](../.claude-plugin/marketplace.json)
 
-Install after the public GitHub repo exists:
+## Claude Desktop Manual MCP Install
 
-```bash
-claude plugin marketplace add jakyeamos/tmcp
-claude plugin install tmcp@tmcp
-```
+Claude Desktop users install TMCP by adding a local stdio MCP server entry to `claude_desktop_config.json`. See [CLAUDE_DESKTOP.md](CLAUDE_DESKTOP.md).
 
-## 4. Claude Desktop Manual MCP Install
+## Skill-Only Install
 
-Claude Desktop users install TMCP by adding a local MCP server entry to `claude_desktop_config.json`.
+Skill-only installs copy `skills/tmcp` and its `references/` directory. They provide routing and manual packet synthesis. They do not expose MCP tools unless the host also has access to the launcher.
 
-See [CLAUDE_DESKTOP.md](CLAUDE_DESKTOP.md).
+## AIOS-Backed Install
 
-## 5. MCP Registry Submission
+Set `AIOS_ROOT` only when optional AIOS storage/adapter behavior is wanted. AIOS is not required for standalone TMCP.
 
-The registry draft lives at [mcp-registry/draft-server.json](../mcp-registry/draft-server.json).
+## MCP Registry Submission
 
-Submit only after:
-
-- The public GitHub repository exists.
-- A release tag exists.
-- The registry's current server schema is confirmed.
-- The install command is tested from a clean clone.
-
-## Shared Runtime Contract
-
-Every distribution path launches the same MCP server through:
-
-```bash
-node scripts/tmcp_launcher.mjs
-```
-
-The launcher discovers Python through `TMCP_PYTHON`, `py -3`, `python`, or `python3`, depending on platform.
+The registry draft lives at [mcp-registry/draft-server.json](../mcp-registry/draft-server.json). Submit only after release validation passes from a clean checkout and extracted package.

@@ -1,6 +1,6 @@
 # Packet Stability
 
-TMCP packets are intended to be stable enough for other tools to consume. The current public packet schema is `tmcp-skill-packet-v0.2`.
+TMCP packets are intended to be stable enough for other tools to consume. The current public packet schema is `tmcp-skill-packet-v0.2`. Adaptive workflow-pack artifacts use `tmcp-adaptive-workflow-pack-v0.1`. Composable runtime artifacts use `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, and `tmcp-run-receipt-v0.1`. Promoted harvest graphs use `tmcp-promoted-harvest-graph-v0.1`.
 
 ## Compatibility Promise
 
@@ -37,9 +37,16 @@ External tools can rely on these fields for `tmcp-skill-packet-v0.2`:
 - `output_contract`
 - `packet_markdown`
 
+External tools can rely on these fields for composition/runtime schemas:
+
+- `tmcp-composed-packet-v0.1`: `packet_id`, `active_instructions`, `required_reads`, `tool_script_prompts`, `verification_gates`, `stop_conditions`, `active_atoms`, `deferred_atoms`, `ignored_sources`, `conflicts`, `evidence_citations`, `receipt_template`, and `safety`.
+- `tmcp-runtime-next-v0.1`: `packet_delta`, `next_verification_gate`, `warnings`, and `safety`.
+- `tmcp-run-receipt-v0.1`: `packet_id`, `activated_atoms`, `ignored_atoms`, `commands_run`, `verification_results`, `user_overrides`, `outcome`, and `trust`.
+- `tmcp-promoted-harvest-graph-v0.1`: `source_nodes`, `behavior_atoms`, `workflow_nodes`, `edges`, and `trust`.
+
 ## Machine-Readable Schema
 
-The JSON Schema draft lives at [schemas/tmcp-skill-packet-v0.2.schema.json](../schemas/tmcp-skill-packet-v0.2.schema.json). It is intentionally strict about required fields and permissive about additive fields.
+The packet JSON Schema draft lives at [schemas/tmcp-skill-packet-v0.2.schema.json](../schemas/tmcp-skill-packet-v0.2.schema.json). The adaptive workflow-pack schema lives at [schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json](../schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json). Composition schemas live at [schemas/tmcp-composed-packet-v0.1.schema.json](../schemas/tmcp-composed-packet-v0.1.schema.json), [schemas/tmcp-runtime-next-v0.1.schema.json](../schemas/tmcp-runtime-next-v0.1.schema.json), [schemas/tmcp-run-receipt-v0.1.schema.json](../schemas/tmcp-run-receipt-v0.1.schema.json), and [schemas/tmcp-promoted-harvest-graph-v0.1.schema.json](../schemas/tmcp-promoted-harvest-graph-v0.1.schema.json). These schemas are intentionally strict about required fields and permissive about additive fields.
 
 ## Migration Rules
 
@@ -49,4 +56,3 @@ When the packet schema changes:
 - Add a migration note to this file.
 - Add or update golden packet fixtures.
 - Keep MCP tool responses explicit about the packet schema they return.
-

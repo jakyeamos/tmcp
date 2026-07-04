@@ -1,14 +1,12 @@
 {
   "mcpServers": {
     "tmcp": {
+      "type": "stdio",
       "command": "node",
       "args": [
         "scripts/tmcp_launcher.mjs"
       ],
-      "cwd": ".",
-      "env": {
-        "AIOS_ROOT": "~/AIOS"
-      }
+      "cwd": "."
     }
   }
 }

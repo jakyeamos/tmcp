@@ -10,19 +10,57 @@ from pathlib import Path
 from typing import Any
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
+PLUGIN_ROOT = SCRIPT_DIR.parent
+if str(PLUGIN_ROOT) not in sys.path:
+    sys.path.insert(0, str(PLUGIN_ROOT))
 
-from tmcp_mcp_framing import encode_message  # noqa: E402
+from scripts.tmcp_mcp_framing import encode_message  # noqa: E402
 
 
 REQUIRED_FILES = (
     ".codex-plugin/plugin.json",
     ".mcp.json",
+    "examples/workflows/adaptive-workflow-pack.md",
+    "schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json",
+    "schemas/tmcp-composed-packet-v0.1.schema.json",
+    "schemas/tmcp-promoted-harvest-graph-v0.1.schema.json",
+    "schemas/tmcp-run-receipt-v0.1.schema.json",
+    "schemas/tmcp-runtime-next-v0.1.schema.json",
     "scripts/tmcp_launcher.mjs",
     "scripts/tmcp_mcp_server.py",
+    "skills/tmcp-adaptive-workflow-pack/SKILL.md",
+    "skills/tmcp-agent-handoff/SKILL.md",
+    "skills/tmcp-architecture-decision/SKILL.md",
+    "skills/tmcp-custom-rubric-generator/SKILL.md",
+    "skills/tmcp-data-integrity-audit/SKILL.md",
+    "skills/tmcp-dx-audit/SKILL.md",
+    "skills/tmcp-incident-postmortem/SKILL.md",
+    "skills/tmcp-migration-readiness/SKILL.md",
+    "skills/tmcp-performance-readiness/SKILL.md",
+    "skills/tmcp-pr-risk-review/SKILL.md",
+    "skills/tmcp-release-readiness/SKILL.md",
+    "skills/tmcp-routing-policy-generator/SKILL.md",
+    "skills/tmcp-security-privacy-audit/SKILL.md",
+    "skills/tmcp-skill-harvest/SKILL.md",
+    "skills/tmcp-skill-gap-analysis/SKILL.md",
+    "skills/tmcp-test-strategy/SKILL.md",
+    "skills/tmcp-ui-rubric/SKILL.md",
+    "skills/tmcp-workflow-recommendation/SKILL.md",
     "skills/tmcp/SKILL.md",
 )
+
+EXPECTED_MCP_TOOLS = {
+    "expert_rubric_review_plan",
+    "tmcp_doctor",
+    "tmcp_compose_packet",
+    "tmcp_explain",
+    "tmcp_harvest_skills",
+    "tmcp_promote_harvest",
+    "tmcp_record_receipt",
+    "tmcp_recommend_workflows",
+    "tmcp_runtime_next",
+    "tmcp_status",
+}
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -76,13 +114,21 @@ def check_plugin_root(plugin_root: Path) -> list[str]:
         if not isinstance(tmcp, dict):
             errors.append("mcpServers.tmcp must be an object")
         else:
+            if tmcp.get("type") != "stdio":
+                errors.append(
+                    "mcpServers.tmcp.type must be stdio for Codex MCP discovery"
+                )
             if tmcp.get("command") != "node":
                 errors.append("mcpServers.tmcp.command must be node")
             if tmcp.get("cwd") != ".":
-                errors.append("mcpServers.tmcp.cwd must be '.' for portable plugin-root launch")
+                errors.append(
+                    "mcpServers.tmcp.cwd must be '.' for portable plugin-root launch"
+                )
             args = tmcp.get("args")
             if args != ["scripts/tmcp_launcher.mjs"]:
-                errors.append("mcpServers.tmcp.args must use relative scripts/tmcp_launcher.mjs")
+                errors.append(
+                    "mcpServers.tmcp.args must use relative scripts/tmcp_launcher.mjs"
+                )
     return errors
 
 
@@ -93,8 +139,10 @@ def check_mcp_launch(plugin_root: Path) -> tuple[bool, str]:
     tmcp = mcp_config["mcpServers"]["tmcp"]
     command = tmcp["command"]
     args = tmcp["args"]
-    if not isinstance(command, str) or not isinstance(args, list) or not all(
-        isinstance(arg, str) for arg in args
+    if (
+        not isinstance(command, str)
+        or not isinstance(args, list)
+        or not all(isinstance(arg, str) for arg in args)
     ):
         return False, ".mcp.json command and args must be strings"
     request = framed_request(
@@ -123,8 +171,7 @@ def check_mcp_launch(plugin_root: Path) -> tuple[bool, str]:
     if not isinstance(tools, list):
         return False, f"MCP tools/list missing tools array: {response}"
     tool_names = {str(tool.get("name")) for tool in tools if isinstance(tool, dict)}
-    expected = {"tmcp_status", "tmcp_explain", "tmcp_harvest_skills", "expert_rubric_review_plan"}
-    missing = expected - tool_names
+    missing = EXPECTED_MCP_TOOLS - tool_names
     if missing:
         return False, f"MCP tools/list missing tools: {sorted(missing)}"
     return True, "MCP tools/list passed without AIOS"
@@ -132,7 +179,9 @@ def check_mcp_launch(plugin_root: Path) -> tuple[bool, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check TMCP plugin install shape.")
-    parser.add_argument("plugin_root", nargs="?", default=".", help="Path to the TMCP plugin root")
+    parser.add_argument(
+        "plugin_root", nargs="?", default=".", help="Path to the TMCP plugin root"
+    )
     args = parser.parse_args()
     plugin_root = Path(args.plugin_root).expanduser().resolve()
     errors = check_plugin_root(plugin_root)

@@ -19,11 +19,13 @@ Current verification:
 ## Filesystem Assumptions
 
 - Plugin launch `cwd` is the plugin root.
+- Codex MCP config declares `"type": "stdio"` and then launches the bundled Node entrypoint.
 - MCP launcher path is relative: `scripts/tmcp_launcher.mjs`.
 - Python server path is relative from the launcher: `scripts/tmcp_mcp_server.py`.
 - Harvest roots may be files or directories.
 - Symlink traversal is disabled by default.
 - Dependency, build, cache, VCS, coverage, and generated plugin-cache directories are pruned by default.
+- Adaptive workflow recommendations are derived from harvested text, frontmatter, paths, source types, keywords, and behavior atoms. They are advisory until the user selects a workflow.
 
 ## Known Gaps
 
