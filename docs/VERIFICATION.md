@@ -23,6 +23,10 @@ python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.3.3.sec
 shasum -a 256 /private/tmp/tmcp-v0.3.3.second.tar.gz
 tar -tzf /private/tmp/tmcp-v0.3.3.tar.gz | rg '^tmcp/(mcp-registry|docs/VERIFICATION.md|docs/RELEASE_EVIDENCE.json)'
 tar -tzf /private/tmp/tmcp-v0.3.3.tar.gz | rg '^tmcp/(README.md|scripts/check_release_package.py|docs/DISTRIBUTION.md|docs/TIER_ONE_RELEASE_RUBRIC.md)$'
+gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch main --limit 10 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt
+gh run watch 28711514414 --repo jakyeamos/tmcp --exit-status
+gh run view 28711514414 --repo jakyeamos/tmcp --json status,conclusion,url,headSha,updatedAt,createdAt,event,displayTitle
+gh run view 28711514414 --repo jakyeamos/tmcp --json jobs --jq '.jobs[] | [.name, .conclusion] | @tsv'
 python3 scripts/check_release_evidence.py .
 mcp-publisher validate mcp-registry/draft-server.json
 claude plugin validate --strict .
@@ -41,7 +45,9 @@ Results:
 - Release package intentionally excludes `mcp-registry/`, `docs/VERIFICATION.md`, and `docs/RELEASE_EVIDENCE.json` so the registry draft and release evidence can record the package hash without self-reference; runtime package files such as `README.md`, `docs/DISTRIBUTION.md`, `docs/TIER_ONE_RELEASE_RUBRIC.md`, and `scripts/check_release_package.py` are present.
 - MCP Registry draft validation: pass against `https://registry.modelcontextprotocol.io`.
 - Claude Code marketplace validation: pass with `claude plugin validate --strict .`.
-- Release evidence checker: expected fail until hosted `verify.yml` evidence records a successful `main` or `v0.3.3` run for active version `0.3.3`.
+- Hosted `main` verification run `28711514414` completed successfully at commit `09b74ef5ffd5b973247d3ed63c2eb9ff5a00285a`.
+- Matrix jobs passed on Ubuntu, macOS, and Windows for Python 3.10 and 3.13.
+- Release evidence checker: pass for active version `0.3.3`.
 
 ## 2026-07-04 Post-Publish Marketplace And Registry Smokes
 

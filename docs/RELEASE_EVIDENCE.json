@@ -1,18 +1,18 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.3.3",
-  "checked_at": "2026-07-04T15:41:08Z",
+  "checked_at": "2026-07-04T15:53:32Z",
   "hosted_verification": {
-    "status": "pending",
-    "conclusion": null,
-    "source": "tag",
-    "ref": "v0.3.3",
+    "status": "completed",
+    "conclusion": "success",
+    "source": "main",
+    "ref": "main",
     "pr_number": null,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": null,
-    "url": null,
-    "head_sha": null,
-    "notes": "Pending successful hosted verify.yml evidence for the 0.3.3 release tag or main release commit."
+    "run_id": 28711514414,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/28711514414",
+    "head_sha": "09b74ef5ffd5b973247d3ed63c2eb9ff5a00285a",
+    "notes": "Successful main verify.yml run for the 0.3.3 release candidate. The run completed successfully across Ubuntu, macOS, and Windows on Python 3.10 and 3.13."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
@@ -20,11 +20,13 @@
     "commands": [
       "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.3.3.tar.gz",
       "git push origin main",
-      "git tag v0.3.3",
-      "git push origin v0.3.3",
       "gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch main --limit 10 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt",
-      "gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch v0.3.3 --limit 10 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt"
+      "gh run watch 28711514414 --repo jakyeamos/tmcp --exit-status",
+      "gh run view 28711514414 --repo jakyeamos/tmcp --json status,conclusion,url,headSha,updatedAt,createdAt,event,displayTitle",
+      "gh run view 28711514414 --repo jakyeamos/tmcp --json jobs --jq '.jobs[] | [.name, .conclusion] | @tsv'",
+      "git tag v0.3.3",
+      "git push origin v0.3.3"
     ],
-    "result": "Pending hosted verification for the 0.3.3 release candidate."
+    "result": "Successful main-hosted verify.yml run accepted as release evidence for the 0.3.3 release candidate."
   }
 }
