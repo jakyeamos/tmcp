@@ -34,12 +34,16 @@ mcp-publisher validate mcp-registry/draft-server.json
 claude plugin validate --strict .
 gh release create v0.3.3 /private/tmp/tmcp-v0.3.3.tar.gz --repo jakyeamos/tmcp --title "TMCP 0.3.3" --notes "TMCP 0.3.3 promotes curated scoped packet seeds into first-class graph and recommendation nodes, adds scoped seed promotion-preview edges, tightens workflow selector overlap handling, fixes direct file-root harvest identity, and makes release packages deterministic with stable artifact hashes."
 gh release view v0.3.3 --repo jakyeamos/tmcp --json tagName,targetCommitish,isDraft,isPrerelease,name,url,createdAt,publishedAt,assets
+git tag -f -a v0.3.3 -m "TMCP 0.3.3" HEAD
+git push origin v0.3.3 --force
+gh release upload v0.3.3 /private/tmp/tmcp-v0.3.3.tar.gz --clobber --repo jakyeamos/tmcp
+gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch v0.3.3 --limit 5 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt
 curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.3.3/tmcp-v0.3.3.tar.gz -o /private/tmp/tmcp-v0.3.3.release.tar.gz
 shasum -a 256 /private/tmp/tmcp-v0.3.3.release.tar.gz
 mkdir -p /private/tmp/tmcp-v0.3.3.release-smoke
 tar -xzf /private/tmp/tmcp-v0.3.3.release.tar.gz -C /private/tmp/tmcp-v0.3.3.release-smoke
 python3 /private/tmp/tmcp-v0.3.3.release-smoke/tmcp/scripts/check_install.py /private/tmp/tmcp-v0.3.3.release-smoke/tmcp
-node /private/tmp/tmcp-v0.3.3.release-smoke/tmcp/scripts/tmcp_launcher.mjs doctor --compact
+node /private/tmp/tmcp-v0.3.3.release-smoke/tmcp/scripts/tmcp_launcher.mjs doctor --client codex --compact
 node /private/tmp/tmcp-v0.3.3.release-smoke/tmcp/scripts/tmcp_launcher.mjs status --compact
 node /private/tmp/tmcp-v0.3.3.release-smoke/tmcp/scripts/tmcp_launcher.mjs list-tools
 git diff --check
@@ -49,22 +53,23 @@ Results:
 
 - Version metadata updated for `0.3.3` in the Codex plugin, Claude plugin, Claude marketplace, MCP Registry draft, and hosted verification tag filters.
 - Python compile, Node launcher syntax, JSON syntax checks, and `git diff --check`: pass.
-- Full unit and MCP protocol suite: pass, 74 tests, with `TMCP_HOME` isolated to `/private/tmp/tmcp-release-test-home`.
+- Full unit and MCP protocol suite: pass, 75 tests, with `TMCP_HOME` isolated to `/private/tmp/tmcp-release-test-home`.
 - Release package check: pass, including extracted package install/test/smoke coverage, doctor, harvest, recommendation, expert-rubric, composition/runtime/receipt, frontmatter, link, hardcoded-path, and private-name gates.
 - Release package artifact: `/private/tmp/tmcp-v0.3.3.tar.gz`.
-- Release package SHA-256: `f78fd2005470db8380b1f3f0badd7f1bc3fbe51a5b9c1e83cc291a7938c2af7e`.
+- Release package SHA-256: `125cbd4b86c9c2bbc585b11ebe5a95674d71d7f567d81343421350168f54f38c`.
 - Deterministic package check: a second generated artifact at `/private/tmp/tmcp-v0.3.3.second.tar.gz` produced the same SHA-256.
 - Release package intentionally excludes `mcp-registry/`, `docs/VERIFICATION.md`, and `docs/RELEASE_EVIDENCE.json` so the registry draft and release evidence can record the package hash without self-reference; runtime package files such as `README.md`, `docs/DISTRIBUTION.md`, `docs/TIER_ONE_RELEASE_RUBRIC.md`, and `scripts/check_release_package.py` are present.
 - MCP Registry draft validation: pass against `https://registry.modelcontextprotocol.io`.
 - Claude Code marketplace validation: pass with `claude plugin validate --strict .`.
-- Hosted `main` verification run `28711514414` completed successfully at commit `09b74ef5ffd5b973247d3ed63c2eb9ff5a00285a`.
+- Hosted `main` verification run `28711767260` completed successfully at commit `de185a1c62ba8bbb8fe928112832b653f0c6aea5`.
 - Matrix jobs passed on Ubuntu, macOS, and Windows for Python 3.10 and 3.13.
 - Release evidence checker: pass for active version `0.3.3`.
-- Tag verification run `28711603903` completed successfully for `v0.3.3` at commit `5e047206861cd120196f782ca11b235492eaa682`.
+- Updated tag verification run `28711865883` completed successfully for `v0.3.3` at commit `de185a1c62ba8bbb8fe928112832b653f0c6aea5`.
 - GitHub release published: `https://github.com/jakyeamos/tmcp/releases/tag/v0.3.3`.
-- GitHub release asset `tmcp-v0.3.3.tar.gz` uploaded with digest `sha256:f78fd2005470db8380b1f3f0badd7f1bc3fbe51a5b9c1e83cc291a7938c2af7e`.
-- Downloaded public release asset SHA-256 matched `f78fd2005470db8380b1f3f0badd7f1bc3fbe51a5b9c1e83cc291a7938c2af7e`.
-- Extracted public release asset smokes passed: install check, doctor, status, and tools list.
+- GitHub release asset `tmcp-v0.3.3.tar.gz` replaced with digest `sha256:125cbd4b86c9c2bbc585b11ebe5a95674d71d7f567d81343421350168f54f38c`.
+- Downloaded public release asset SHA-256 matched `125cbd4b86c9c2bbc585b11ebe5a95674d71d7f567d81343421350168f54f38c`.
+- Extracted public release asset smokes passed: install check, Codex doctor fallback diagnostics, status, and tools list.
+- Folded-in scope: Codex MCP discovery-gap diagnostics and skill/docs guidance from `de185a1`.
 
 ## 2026-07-04 Post-Publish Marketplace And Registry Smokes
 

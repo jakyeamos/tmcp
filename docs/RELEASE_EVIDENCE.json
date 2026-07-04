@@ -1,32 +1,45 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.3.3",
-  "checked_at": "2026-07-04T15:53:32Z",
+  "checked_at": "2026-07-04T16:06:26Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "main",
-    "ref": "main",
+    "source": "tag",
+    "ref": "v0.3.3",
     "pr_number": null,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 28711514414,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/28711514414",
-    "head_sha": "09b74ef5ffd5b973247d3ed63c2eb9ff5a00285a",
-    "notes": "Successful main verify.yml run for the 0.3.3 release candidate. The run completed successfully across Ubuntu, macOS, and Windows on Python 3.10 and 3.13."
+    "run_id": 28711865883,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/28711865883",
+    "head_sha": "de185a1c62ba8bbb8fe928112832b653f0c6aea5",
+    "notes": "Successful updated v0.3.3 tag verify.yml run after folding Codex MCP discovery fallback diagnostics into the 0.3.3 package."
+  },
+  "release_package": {
+    "path": "/private/tmp/tmcp-v0.3.3.tar.gz",
+    "sha256": "125cbd4b86c9c2bbc585b11ebe5a95674d71d7f567d81343421350168f54f38c",
+    "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.3.3/tmcp-v0.3.3.tar.gz",
+    "notes": "GitHub release asset was replaced with --clobber after moving v0.3.3 to de185a1c62ba8bbb8fe928112832b653f0c6aea5."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
     "remote_tag": "refs/tags/v0.3.3",
     "commands": [
       "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.3.3.tar.gz",
-      "git push origin main",
+      "shasum -a 256 /private/tmp/tmcp-v0.3.3.tar.gz",
+      "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.3.3.second.tar.gz",
+      "shasum -a 256 /private/tmp/tmcp-v0.3.3.second.tar.gz",
+      "git tag -f -a v0.3.3 -m \"TMCP 0.3.3\" HEAD",
+      "git push origin v0.3.3 --force",
+      "gh release upload v0.3.3 /private/tmp/tmcp-v0.3.3.tar.gz --clobber --repo jakyeamos/tmcp",
       "gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch main --limit 10 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt",
-      "gh run watch 28711514414 --repo jakyeamos/tmcp --exit-status",
-      "gh run view 28711514414 --repo jakyeamos/tmcp --json status,conclusion,url,headSha,updatedAt,createdAt,event,displayTitle",
-      "gh run view 28711514414 --repo jakyeamos/tmcp --json jobs --jq '.jobs[] | [.name, .conclusion] | @tsv'",
-      "git tag v0.3.3",
-      "git push origin v0.3.3"
+      "gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch v0.3.3 --limit 5 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt",
+      "curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.3.3/tmcp-v0.3.3.tar.gz -o /private/tmp/tmcp-v0.3.3.release.tar.gz",
+      "shasum -a 256 /private/tmp/tmcp-v0.3.3.release.tar.gz",
+      "python3 /private/tmp/tmcp-v0.3.3.release-smoke-foldin/tmcp/scripts/check_install.py /private/tmp/tmcp-v0.3.3.release-smoke-foldin/tmcp",
+      "node /private/tmp/tmcp-v0.3.3.release-smoke-foldin/tmcp/scripts/tmcp_launcher.mjs doctor --client codex --compact",
+      "node /private/tmp/tmcp-v0.3.3.release-smoke-foldin/tmcp/scripts/tmcp_launcher.mjs status --compact",
+      "node /private/tmp/tmcp-v0.3.3.release-smoke-foldin/tmcp/scripts/tmcp_launcher.mjs list-tools"
     ],
-    "result": "Successful main-hosted verify.yml run accepted as release evidence for the 0.3.3 release candidate."
+    "result": "Successful v0.3.3 tag-hosted verify.yml run accepted after folding Codex MCP discovery fallback diagnostics into the 0.3.3 package."
   }
 }
