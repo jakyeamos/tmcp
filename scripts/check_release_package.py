@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import tarfile
@@ -17,13 +18,44 @@ EXCLUDE_DIRS = {
     ".aios",
     ".codex",
     ".git",
+    ".mypy_cache",
     ".pre-cr",
     ".pytest_cache",
     ".quality-runner",
-    ".mypy_cache",
     ".ruff_cache",
 }
 EXCLUDE_SUFFIXES = {".pyc", ".pyo"}
+HARDCODED_USER_PATH_PATTERNS = (
+    re.compile(r"/" r"Users/(?!example\b|you\b|your\b|name\b)[^\s)\"'`]+"),
+    re.compile(r"~/" r"AIOS"),
+)
+PRIVATE_NAME_PATTERNS = (
+    re.compile(r"\bHoopscout\b"),
+    re.compile(r"\bCrimClock\b"),
+)
+STABLE_SKILLS = {
+    "tmcp",
+    "tmcp-skill-harvest",
+    "tmcp-workflow-recommendation",
+    "tmcp-release-readiness",
+    "tmcp-dx-audit",
+}
+EXPERIMENTAL_SKILLS = {
+    "tmcp-adaptive-workflow-pack",
+    "tmcp-agent-handoff",
+    "tmcp-architecture-decision",
+    "tmcp-custom-rubric-generator",
+    "tmcp-data-integrity-audit",
+    "tmcp-incident-postmortem",
+    "tmcp-migration-readiness",
+    "tmcp-performance-readiness",
+    "tmcp-pr-risk-review",
+    "tmcp-routing-policy-generator",
+    "tmcp-security-privacy-audit",
+    "tmcp-skill-gap-analysis",
+    "tmcp-test-strategy",
+    "tmcp-ui-rubric",
+}
 
 
 def should_include(path: Path) -> bool:
@@ -38,9 +70,7 @@ def create_package(plugin_root: Path, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with tarfile.open(output_path, "w:gz") as archive:
         for path in sorted(plugin_root.rglob("*")):
-            if path.is_symlink():
-                continue
-            if not path.is_file():
+            if path.is_symlink() or not path.is_file():
                 continue
             relative = path.relative_to(plugin_root)
             if not should_include(relative):
@@ -61,9 +91,13 @@ def run(command: list[str], cwd: Path) -> tuple[bool, str]:
     return completed.returncode == 0, completed.stdout + completed.stderr
 
 
-def run_json(command: list[str], cwd: Path) -> tuple[bool, str, dict[str, Any] | None]:
+def run_json(
+    command: list[str], cwd: Path, extra_env: dict[str, str] | None = None
+) -> tuple[bool, str, dict[str, Any] | None]:
     env = os.environ.copy()
-    env["AIOS_ROOT"] = "/tmp/tmcp-aios-missing"
+    env.pop("AIOS_ROOT", None)
+    if extra_env:
+        env.update(extra_env)
     completed = subprocess.run(
         command,
         cwd=cwd,
@@ -84,6 +118,208 @@ def run_json(command: list[str], cwd: Path) -> tuple[bool, str, dict[str, Any] |
     if not isinstance(payload, dict):
         return False, f"JSON output must be an object\n{output}", None
     return True, output, payload
+
+
+def parse_frontmatter(path: Path) -> dict[str, str]:
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---\n"):
+        raise RuntimeError(f"{path} missing frontmatter")
+    end = text.find("\n---", 4)
+    if end == -1:
+        raise RuntimeError(f"{path} frontmatter is not closed")
+    frontmatter: dict[str, str] = {}
+    for raw_line in text[4:end].splitlines():
+        if ":" not in raw_line:
+            continue
+        key, value = raw_line.split(":", 1)
+        frontmatter[key.strip()] = value.strip().strip("\"'")
+    return frontmatter
+
+
+def check_frontmatter_and_workflow_status(plugin_root: Path) -> tuple[bool, str]:
+    errors: list[str] = []
+    statuses: dict[str, str] = {}
+    for path in sorted((plugin_root / "skills").glob("*/SKILL.md")):
+        try:
+            frontmatter = parse_frontmatter(path)
+        except RuntimeError as exc:
+            errors.append(str(exc))
+            continue
+        name = frontmatter.get("name", "")
+        status = frontmatter.get("status", "")
+        if not name:
+            errors.append(f"{path} missing name")
+        if not frontmatter.get("description"):
+            errors.append(f"{path} missing description")
+        if status not in {"stable", "experimental"}:
+            errors.append(f"{path} status must be stable or experimental")
+        statuses[name] = status
+        if status == "experimental" and "Status: experimental." not in path.read_text(
+            encoding="utf-8"
+        ):
+            errors.append(f"{path} missing visible experimental status note")
+    for name in sorted(STABLE_SKILLS):
+        if statuses.get(name) != "stable":
+            errors.append(f"{name} must be marked stable")
+    for name in sorted(EXPERIMENTAL_SKILLS):
+        if statuses.get(name) != "experimental":
+            errors.append(f"{name} must be marked experimental")
+    workflows_ref = plugin_root / "skills" / "tmcp" / "references" / "workflows.md"
+    if not workflows_ref.exists():
+        errors.append("skills/tmcp/references/workflows.md missing")
+    else:
+        text = workflows_ref.read_text(encoding="utf-8").lower()
+        if (
+            "stable public workflows" not in text
+            or "experimental workflows" not in text
+        ):
+            errors.append(
+                "workflows reference must separate stable and experimental workflows"
+            )
+    return not errors, "\n".join(errors)
+
+
+def iter_shipped_text_files(plugin_root: Path) -> list[Path]:
+    suffixes = {".md", ".json", ".toml", ".py", ".mjs", ".yml", ".yaml"}
+    return [
+        path
+        for path in sorted(plugin_root.rglob("*"))
+        if path.is_file()
+        and should_include(path.relative_to(plugin_root))
+        and path.suffix in suffixes
+    ]
+
+
+def check_no_hardcoded_user_paths(plugin_root: Path) -> tuple[bool, str]:
+    errors: list[str] = []
+    for path in iter_shipped_text_files(plugin_root):
+        relative = path.relative_to(plugin_root).as_posix()
+        if relative.startswith("tests/"):
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for pattern in HARDCODED_USER_PATH_PATTERNS:
+            for match in pattern.finditer(text):
+                errors.append(f"{relative}: hardcoded local path {match.group(0)}")
+    return not errors, "\n".join(errors[:20])
+
+
+def check_no_private_names(plugin_root: Path) -> tuple[bool, str]:
+    errors: list[str] = []
+    for path in iter_shipped_text_files(plugin_root):
+        relative = path.relative_to(plugin_root).as_posix()
+        if relative.startswith("tests/"):
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for pattern in PRIVATE_NAME_PATTERNS:
+            for match in pattern.finditer(text):
+                errors.append(f"{relative}: private example name {match.group(0)}")
+    return not errors, "\n".join(errors[:20])
+
+
+def check_markdown_links(plugin_root: Path) -> tuple[bool, str]:
+    errors: list[str] = []
+    link_pattern = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
+    for path in sorted(plugin_root.rglob("*.md")):
+        if not should_include(path.relative_to(plugin_root)):
+            continue
+        text = path.read_text(encoding="utf-8")
+        for match in link_pattern.finditer(text):
+            target = match.group(1).strip()
+            if (
+                not target
+                or target.startswith(("#", "http://", "https://", "mailto:"))
+                or target.startswith("<")
+            ):
+                continue
+            clean = target.split("#", 1)[0]
+            if clean and not (path.parent / clean).resolve().exists():
+                errors.append(
+                    f"{path.relative_to(plugin_root).as_posix()}: unresolved link {target}"
+                )
+    return not errors, "\n".join(errors[:20])
+
+
+def check_doctor_surface(plugin_root: Path) -> tuple[bool, str]:
+    ok, output, payload = run_json(
+        ["node", "scripts/tmcp_launcher.mjs", "doctor", "--compact"],
+        plugin_root,
+    )
+    if not ok or payload is None:
+        return False, output
+    install_paths = payload.get("recommended_install_paths")
+    if not isinstance(install_paths, dict):
+        return False, "doctor output missing recommended_install_paths"
+    for key in ("skill_only", "repo_checkout", "codex_plugin_cache", "aios_backed"):
+        if key not in install_paths:
+            return False, f"doctor output missing install layout {key}"
+    return True, output
+
+
+def check_sample_harvest(plugin_root: Path) -> tuple[bool, str]:
+    ok, output, payload = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "harvest",
+            "skills",
+            "--limit",
+            "5",
+            "--no-write-artifacts",
+            "--compact",
+        ],
+        plugin_root,
+    )
+    if not ok or payload is None:
+        return False, output
+    if payload.get("schema") != "tmcp-harvest-result-v0.1":
+        return False, f"unexpected harvest schema: {payload.get('schema')}"
+    safety = payload.get("safety")
+    if (
+        not isinstance(safety, dict)
+        or safety.get("harvested_text_trust") != "untrusted"
+    ):
+        return False, "harvest output missing untrusted text safety marker"
+    return True, output
+
+
+def check_sample_expert_rubric(plugin_root: Path) -> tuple[bool, str]:
+    evidence = json.dumps(
+        [
+            {
+                "dimension_id": "source_grounding",
+                "severity": "warning",
+                "summary": "Release claims need package evidence.",
+                "evidence": ["python3 scripts/check_release_package.py ."],
+                "recommended_fix": "Run and cite the release package check.",
+            }
+        ]
+    )
+    ok, output, payload = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "review-plan",
+            "Review release portability",
+            "--project-path",
+            ".",
+            "--evidence-json",
+            evidence,
+            "--no-write-artifacts",
+            "--compact",
+        ],
+        plugin_root,
+    )
+    if not ok or payload is None:
+        return False, output
+    if payload.get("schema") != "tmcp-review-plan-result-v0.1":
+        return False, f"unexpected review schema: {payload.get('schema')}"
+    output_contract = payload.get("output_contract")
+    if (
+        not isinstance(output_contract, list)
+        or "verification expectations" not in output_contract
+    ):
+        return False, "review-plan output missing workflow output contract"
+    return True, output
 
 
 def check_adaptive_workflow_surface(
@@ -129,6 +365,11 @@ def check_adaptive_workflow_surface(
             False,
             "tmcp_recommend_workflows did not recommend release_readiness_workflow",
         )
+    if not all(
+        isinstance(item, dict) and item.get("stability") in {"stable", "experimental"}
+        for item in recommended
+    ):
+        return False, "recommended workflows must include stability metadata"
     adaptive_pack = payload.get("adaptive_workflow_pack")
     if not isinstance(adaptive_pack, dict):
         return False, "tmcp_recommend_workflows output missing adaptive_workflow_pack"
@@ -142,6 +383,181 @@ def check_adaptive_workflow_surface(
     if payload.get("artifact_paths") != {}:
         return False, "recommend smoke should not write artifacts"
     return True, output
+
+
+def check_composition_surface(
+    plugin_root: Path, scratch_root: Path
+) -> tuple[bool, str]:
+    source_root = scratch_root / "composition-release-surface"
+    tmcp_home = scratch_root / "tmcp-home"
+    skill_root = source_root / "skills" / "impeccable"
+    skill_root.mkdir(parents=True, exist_ok=True)
+    (source_root / "AGENTS.md").write_text(
+        "\n".join(
+            [
+                "# Agent Rules",
+                "Use pnpm only.",
+                "Read before modifying and search existing behavior first.",
+                "Release readiness requires CI evidence, package checks, changelog review, and hosted verification.",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (skill_root / "SKILL.md").write_text(
+        "\n".join(
+            [
+                "---",
+                "name: impeccable",
+                "---",
+                "# Impeccable",
+                "For craft commands, run scripts/context.mjs and choose the brand or product register.",
+                "Verify browser screenshots, contrast, reduced motion, and responsive behavior for UI work.",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    env = {"TMCP_HOME": str(tmcp_home)}
+
+    ok, output, compose = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "compose-packet",
+            "Improve release readiness before release",
+            "--project-path",
+            str(source_root),
+            "--source-path",
+            str(source_root),
+            "--phase",
+            "start",
+            "--cache-policy",
+            "none",
+            "--compact",
+        ],
+        plugin_root,
+        env,
+    )
+    if not ok or compose is None:
+        return False, output
+    if compose.get("schema") != "tmcp-composed-packet-v0.1":
+        return False, f"unexpected compose schema: {compose.get('schema')}"
+    if not isinstance(compose.get("receipt_template"), dict):
+        return False, "compose output missing receipt_template"
+    verification_text = " ".join(compose.get("verification_gates", [])).lower()
+    if "browser" in verification_text:
+        return False, "release composition smoke unexpectedly activated browser gate"
+
+    ok, output, runtime = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "runtime-next",
+            "Fix the dashboard UI bug",
+            "--project-path",
+            str(source_root),
+            "--current-phase",
+            "final",
+            "--files-changed",
+            "app/page.tsx",
+            "--failures",
+            "vitest failed",
+            "--browser-evidence",
+            "screenshot shows overlap",
+            "--cache-policy",
+            "none",
+            "--compact",
+        ],
+        plugin_root,
+        env,
+    )
+    if not ok or runtime is None:
+        return False, output
+    if runtime.get("schema") != "tmcp-runtime-next-v0.1":
+        return False, f"unexpected runtime-next schema: {runtime.get('schema')}"
+    packet_delta = runtime.get("packet_delta")
+    if not isinstance(packet_delta, dict):
+        return False, "runtime-next output missing packet_delta"
+    activated = set(packet_delta.get("activated_atoms", []))
+    if not {
+        "ui-browser-verification",
+        "debugging-regression",
+        "verification-before-completion",
+    }.issubset(activated):
+        return False, "runtime-next smoke missing contextual activated atoms"
+
+    ok, output, receipt = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "record-receipt",
+            str(compose.get("packet_id")),
+            "--activated-atoms",
+            "behavior-verification",
+            "--commands-run",
+            "python3 -m unittest",
+            "--verification-results",
+            "passed",
+            "--outcome",
+            "passed",
+            "--compact",
+        ],
+        plugin_root,
+        env,
+    )
+    if not ok or receipt is None:
+        return False, output
+    if receipt.get("schema") != "tmcp-run-receipt-v0.1":
+        return False, f"unexpected receipt schema: {receipt.get('schema')}"
+    receipt_json = receipt.get("artifact_paths", {}).get("receipt_json")
+    if not isinstance(receipt_json, str) or not Path(receipt_json).exists():
+        return False, "record-receipt did not write receipt_json"
+
+    ok, output, explain = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "explain",
+            "Review release readiness",
+            "--project-path",
+            str(source_root),
+            "--source-path",
+            str(source_root),
+            "--compose",
+            "--compact",
+        ],
+        plugin_root,
+        env,
+    )
+    if not ok or explain is None:
+        return False, output
+    if explain.get("composed_packet", {}).get("schema") != "tmcp-composed-packet-v0.1":
+        return False, "explain --compose output missing composed packet"
+
+    ok, output, recommend = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "recommend",
+            str(source_root),
+            "--candidate-workflows",
+            "release_readiness",
+            "--min-confidence",
+            "0.1",
+            "--no-write-artifacts",
+            "--compose",
+            "--compact",
+        ],
+        plugin_root,
+        env,
+    )
+    if not ok or recommend is None:
+        return False, output
+    if (
+        recommend.get("composed_packet", {}).get("schema")
+        != "tmcp-composed-packet-v0.1"
+    ):
+        return False, "recommend --compose output missing composed packet"
+    return True, "\n".join([output, "composition surface smoke passed"])
 
 
 def safe_extractall(archive: tarfile.TarFile, target: Path) -> None:
@@ -178,6 +594,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
                 "scripts/tmcp_mcp_server.py",
                 "scripts/check_install.py",
                 "scripts/check_release_package.py",
+                "scripts/check_release_evidence.py",
                 "scripts/pre_cr_coverage.py",
                 "scripts/tmcp_mcp_framing.py",
                 "scripts/tmcp_redaction.py",
@@ -187,7 +604,19 @@ def check_package(package_path: Path) -> dict[str, Any]:
         launcher_ok, launcher_output = run(
             ["node", "--check", "scripts/tmcp_launcher.mjs"], plugin_root
         )
+        frontmatter_ok, frontmatter_output = check_frontmatter_and_workflow_status(
+            plugin_root
+        )
+        paths_ok, paths_output = check_no_hardcoded_user_paths(plugin_root)
+        names_ok, names_output = check_no_private_names(plugin_root)
+        links_ok, links_output = check_markdown_links(plugin_root)
+        doctor_ok, doctor_output = check_doctor_surface(plugin_root)
+        harvest_ok, harvest_output = check_sample_harvest(plugin_root)
+        review_ok, review_output = check_sample_expert_rubric(plugin_root)
         adaptive_ok, adaptive_output = check_adaptive_workflow_surface(
+            plugin_root, tmp_path
+        )
+        composition_ok, composition_output = check_composition_surface(
             plugin_root, tmp_path
         )
     return {
@@ -195,13 +624,29 @@ def check_package(package_path: Path) -> dict[str, Any]:
         "tests": "pass" if tests_ok else "fail",
         "compile": "pass" if compile_ok else "fail",
         "launcher_syntax": "pass" if launcher_ok else "fail",
+        "frontmatter": "pass" if frontmatter_ok else "fail",
+        "hardcoded_user_paths": "pass" if paths_ok else "fail",
+        "private_names": "pass" if names_ok else "fail",
+        "markdown_links": "pass" if links_ok else "fail",
+        "doctor_surface": "pass" if doctor_ok else "fail",
+        "sample_harvest": "pass" if harvest_ok else "fail",
+        "sample_expert_rubric": "pass" if review_ok else "fail",
         "adaptive_workflow_surface": "pass" if adaptive_ok else "fail",
+        "composition_surface": "pass" if composition_ok else "fail",
         "output": {
             "install": install_output,
             "tests": tests_output,
             "compile": compile_output,
             "launcher_syntax": launcher_output,
+            "frontmatter": frontmatter_output,
+            "hardcoded_user_paths": paths_output,
+            "private_names": names_output,
+            "markdown_links": links_output,
+            "doctor_surface": doctor_output,
+            "sample_harvest": harvest_output,
+            "sample_expert_rubric": review_output,
             "adaptive_workflow_surface": adaptive_output,
+            "composition_surface": composition_output,
         },
     }
 
@@ -229,12 +674,23 @@ def main() -> int:
         **check_package(output_path),
     }
     print(json.dumps(result, indent=2, sort_keys=True))
-    ok = (
-        result["install_check"] == "pass"
-        and result["tests"] == "pass"
-        and result["compile"] == "pass"
-        and result["launcher_syntax"] == "pass"
-        and result["adaptive_workflow_surface"] == "pass"
+    ok = all(
+        result[key] == "pass"
+        for key in (
+            "install_check",
+            "tests",
+            "compile",
+            "launcher_syntax",
+            "frontmatter",
+            "hardcoded_user_paths",
+            "private_names",
+            "markdown_links",
+            "doctor_surface",
+            "sample_harvest",
+            "sample_expert_rubric",
+            "adaptive_workflow_surface",
+            "composition_surface",
+        )
     )
     if not args.output:
         try:

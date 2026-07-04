@@ -1,6 +1,7 @@
 ---
 name: tmcp-dx-audit
 description: Use TMCP for developer-experience audits of onboarding docs, setup commands, contribution flow, CI clarity, repo navigation, and maintainer handoff readiness.
+status: stable
 ---
 
 # TMCP Developer Experience Audit

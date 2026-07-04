@@ -1,9 +1,12 @@
 ---
 name: tmcp-routing-policy-generator
 description: Use TMCP to generate Codex, Claude, AGENTS, or team routing policies from harvested workflow signals and recommended TMCP workflows.
+status: experimental
 ---
 
 # TMCP Routing Policy Generator
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks for routing triggers, agent policy, AGENTS/CLAUDE rules, when-to-use guidance, or workflow selection rules derived from harvested skills.
 

@@ -1,9 +1,12 @@
 ---
 name: tmcp-agent-handoff
 description: Use TMCP to create agent handoff and continuity packets with current state, decisions, touched files, blockers, open questions, and next commands.
+status: experimental
 ---
 
 # TMCP Agent Handoff
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks for a handoff, resume packet, continuity note, pause-work summary, next-agent context, or durable state packet.
 

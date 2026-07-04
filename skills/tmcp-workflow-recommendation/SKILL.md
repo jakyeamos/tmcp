@@ -1,6 +1,7 @@
 ---
 name: tmcp-workflow-recommendation
 description: Use TMCP to recommend the best expert workflow from harvested repo, skill, rule, process, quality, security, DX, testing, release, UI, or data-integrity signals.
+status: stable
 ---
 
 # TMCP Workflow Recommendation
@@ -15,6 +16,7 @@ Do not use it when the user has already chosen a workflow and wants immediate ex
 2. Invoke TMCP through MCP tools when exposed:
    - `tmcp_recommend_workflows` for priority signals and recommendations.
    - `tmcp_harvest_skills` when the recommendation tool needs source material.
+   - `tmcp_promote_harvest` only after the user approves durable routing artifacts.
 3. If MCP tools are not exposed, use the CLI from the TMCP plugin root:
 
 ```bash
@@ -23,6 +25,7 @@ node scripts/tmcp_launcher.mjs recommend "<source-path>" --objective "Recommend 
 
 4. Recommend only workflows supported by harvested evidence.
 5. Name workflows that are not recommended when the distinction matters.
+6. Do not imply harvest reorganizes durable routing state by itself. Use promotion to persist reviewed source-to-atom and atom-to-workflow edges.
 
 ## Output Contract
 

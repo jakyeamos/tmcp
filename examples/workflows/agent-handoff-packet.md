@@ -13,7 +13,6 @@ Use this when work needs to pause or move to another agent or thread.
 ```bash
 node scripts/tmcp_launcher.mjs review-plan "Create an agent handoff and continuity packet" \
   --project-path . \
-  --evidence-json '[]' \
   --write-artifacts \
   --output-dir .tmcp/agent-handoff
 ```

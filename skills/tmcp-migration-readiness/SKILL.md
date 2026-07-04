@@ -1,9 +1,12 @@
 ---
 name: tmcp-migration-readiness
 description: Use TMCP for migration plans, upgrade readiness, deprecation cleanup, compatibility audits, rollback plans, and sequenced refactor readiness.
+status: experimental
 ---
 
 # TMCP Migration Readiness
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks for a migration plan, upgrade readiness review, deprecation cleanup plan, compatibility audit, large refactor sequencing, or rollback/cutover readiness.
 

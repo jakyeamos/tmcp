@@ -1,6 +1,7 @@
 ---
 name: tmcp-release-readiness
 description: Use TMCP for release readiness audits, ship/no-ship planning, quality ladder gaps, launch blockers, and ordered release remediation slices.
+status: stable
 ---
 
 # TMCP Release Readiness

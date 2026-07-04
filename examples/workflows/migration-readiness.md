@@ -13,7 +13,6 @@ Use this before upgrades, deprecations, large refactors, compatibility work, or 
 ```bash
 node scripts/tmcp_launcher.mjs review-plan "Review migration readiness" \
   --project-path . \
-  --evidence-json '[]' \
   --write-artifacts \
   --output-dir .tmcp/migration-readiness
 ```

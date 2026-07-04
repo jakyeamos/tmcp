@@ -1,6 +1,7 @@
 ---
 name: tmcp-skill-harvest
 description: Use TMCP to harvest local skills, AGENTS/CLAUDE rules, editor rules, repository workflow docs, and process instructions into reusable skill packets.
+status: stable
 ---
 
 # TMCP Skill Harvest

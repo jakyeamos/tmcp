@@ -1,9 +1,12 @@
 ---
 name: tmcp-performance-readiness
 description: Use TMCP for performance readiness reviews, latency risks, profiling gaps, bundle/runtime concerns, load-test planning, and measurement-first remediation.
+status: experimental
 ---
 
 # TMCP Performance Readiness
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks for a performance audit, scaling readiness review, latency risk review, profiling plan, bundle/runtime review, load-test plan, or optimization-readiness packet.
 

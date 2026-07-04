@@ -13,7 +13,6 @@ Use this when optimization work needs measurement-first planning.
 ```bash
 node scripts/tmcp_launcher.mjs review-plan "Review performance risks and verification signals" \
   --project-path . \
-  --evidence-json '[]' \
   --write-artifacts \
   --output-dir .tmcp/performance-readiness
 ```

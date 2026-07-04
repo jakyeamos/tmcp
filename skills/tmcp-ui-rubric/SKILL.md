@@ -1,9 +1,12 @@
 ---
 name: tmcp-ui-rubric
 description: Use TMCP for UI quality audits, expert UI rubrics, visual polish reviews, screenshot-backed interface findings, and ordered UI remediation plans.
+status: experimental
 ---
 
 # TMCP UI Rubric
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks for a UI audit, expert UI rubric, visual quality review, product polish review, responsive UI assessment, design-system fit review, or a remediation plan for interface quality.
 

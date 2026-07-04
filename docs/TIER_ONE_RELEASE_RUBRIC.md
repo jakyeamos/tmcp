@@ -27,9 +27,9 @@ A Tier One release requires:
 | Documentation and examples | 8 | 7 | 8 | Hard |
 | Optional AIOS adapter quality | 6 | 4 | 6 | Soft |
 | Maintainability and modularity | 5 | 4 | 5 | Soft |
-| Release operations | 3 | 3 | 3 | Hard |
+| Release operations | 3 | 3 | 2 | Hard |
 
-Current score: 100/100 for the scoped Tier One release target.
+Current score: 99/100 for the scoped Tier One release target. The remaining hard-gate gap is hosted release evidence for active version `0.3.1`.
 
 ## Dimensions
 
@@ -59,12 +59,15 @@ Pass criteria:
 - Packet includes selected nodes, skipped nodes, source tiers, behavior atoms, traversal trace, output contract, token estimates, and shortcut governance.
 - Packet compilation works without AIOS.
 - AIOS enriches but does not define core behavior.
+- Composition tools return small current-task packets, runtime deltas, and receipts with machine-readable schemas.
+- Composer ranking avoids unrelated workflow spillover such as UI/browser checks or repo-behavior spreadsheets on release-readiness tasks.
 
 Required evidence:
 
 - Packet spec document.
 - Tests for audit, implementation, planning, and harvest task routing.
 - Golden packet fixtures for representative prompts.
+- Golden composition tests for release readiness, repo behavior sweeps, UI work, runtime adaptation, receipts, and `--compose` compatibility.
 
 ### Skill Harvest Robustness
 
@@ -103,7 +106,7 @@ Pass criteria:
 
 - Server handles `initialize`, `tools/list`, `tools/call`, `ping`, `resources/list`, and `prompts/list`.
 - Tool errors return structured MCP errors or `isError` results.
-- All tools have JSON schemas with required fields.
+- All tools and public runtime artifacts have JSON schemas with required fields.
 - Protocol tests cover sequential calls in one process.
 
 Required evidence:
@@ -195,11 +198,13 @@ Pass criteria:
 - Release checklist is complete.
 - Known limitations are documented.
 - A fresh verification record links commands, outputs, and residual risks.
+- `docs/RELEASE_EVIDENCE.json` records a successful hosted `verify.yml` pull request or release tag run for the active manifest version, and `python3 scripts/check_release_evidence.py .` passes.
 
 Required evidence:
 
 - Release notes or verification record.
 - Clean file inventory.
+- Hosted release evidence record.
 
 ## Work Order
 

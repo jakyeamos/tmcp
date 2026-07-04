@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Made TMCP packaging portable-first: generic MCP config no longer sets `AIOS_ROOT`, `tmcp_doctor` documents skill-only, repo checkout, Codex plugin cache, and AIOS-backed layouts, and public docs avoid personal-machine paths.
+- Split the main TMCP skill into a concise router plus progressive-disclosure references for concepts, CLI usage, workflows, and the optional AIOS adapter.
+- Preserved all existing workflows while labeling the stable public set and marking non-stable router skills as experimental.
+- Added workflow stability metadata to recommendations, templates, rubric seeds, workflow instances, adaptive packs, and custom workflow ideas.
+- Strengthened harvest safety with broader default exclusions, untrusted-source metadata, and warnings for harvested text that attempts to override higher-priority instructions.
+- Expanded release package validation to check frontmatter/status, hardcoded user paths, private example names, Markdown links, doctor, harvest, workflow recommendation, and expert rubric smoke runs.
+
 ## 0.3.1 - 2026-07-02
 
 - Excluded local `.aios/`, `.codex/`, and `.quality-runner/` artifact directories from generated release packages.

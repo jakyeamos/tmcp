@@ -1,9 +1,12 @@
 ---
 name: tmcp-test-strategy
 description: Use TMCP for test strategy audits, regression coverage plans, test value reviews, behavior coverage, and quality-gate remediation.
+status: experimental
 ---
 
 # TMCP Test Strategy
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks what to test, whether tests are valuable, how to cover regression risk, whether coverage protects behavior, or how to improve a test/quality gate plan.
 

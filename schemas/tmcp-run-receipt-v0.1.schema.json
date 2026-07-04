@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-run-receipt-v0.1.schema.json",
+  "title": "TMCP Run Receipt v0.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "created_at",
+    "packet_id",
+    "activated_atoms",
+    "ignored_atoms",
+    "commands_run",
+    "verification_results",
+    "user_overrides",
+    "outcome",
+    "trust",
+    "instruction_override_policy"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-run-receipt-v0.1"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "packet_id": {
+      "type": "string"
+    },
+    "activated_atoms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ignored_atoms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "commands_run": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "verification_results": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "user_overrides": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outcome": {
+      "type": "string"
+    },
+    "trust": {
+      "const": "advisory_untrusted"
+    },
+    "instruction_override_policy": {
+      "type": "string"
+    }
+  }
+}

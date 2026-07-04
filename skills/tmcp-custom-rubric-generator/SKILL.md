@@ -1,9 +1,12 @@
 ---
 name: tmcp-custom-rubric-generator
 description: Use TMCP to generate source-backed custom rubrics from harvested skills, rules, docs, workflow prompts, and recurring evidence signals.
+status: experimental
 ---
 
 # TMCP Custom Rubric Generator
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks to create a rubric from their own docs, turn harvested process into scoring criteria, customize an audit rubric, or convert team standards into review dimensions.
 

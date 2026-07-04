@@ -1,6 +1,14 @@
 # TMCP Examples
 
-These examples show TMCP as a general skill-packet workflow system, not only a UI rubric tool.
+These examples show TMCP as a portable skill-packet workflow system. Stable examples match the first public workflow contract; experimental examples remain shipped and callable.
+
+## Stable Examples
+
+- [Developer onboarding audit](workflows/developer-onboarding-audit.md)
+- [Release readiness planning](workflows/release-readiness-planning.md)
+- [Skill harvest workflow recommendation](workflows/skill-harvest-workflow-recommendation.md)
+
+## Experimental Examples
 
 - [Adaptive workflow pack](workflows/adaptive-workflow-pack.md)
 - [Architecture decision review](workflows/architecture-decision-review.md)
@@ -12,7 +20,4 @@ These examples show TMCP as a general skill-packet workflow system, not only a U
 - [PR risk review](workflows/pr-risk-review.md)
 - [Performance readiness](workflows/performance-readiness.md)
 - [Data integrity audit](workflows/data-integrity-audit.md)
-- [Developer onboarding audit](workflows/developer-onboarding-audit.md)
 - [Security and privacy harvest audit](workflows/security-privacy-harvest-audit.md)
-- [Release readiness planning](workflows/release-readiness-planning.md)
-- [Skill harvest workflow recommendation](workflows/skill-harvest-workflow-recommendation.md)

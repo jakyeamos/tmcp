@@ -1,9 +1,12 @@
 ---
 name: tmcp-incident-postmortem
 description: Use TMCP for incident reviews, postmortems, outage/regression analysis, causal timelines, contributing factors, and follow-up remediation plans.
+status: experimental
 ---
 
 # TMCP Incident Postmortem
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks for an incident review, postmortem, outage analysis, regression analysis, root-cause writeup, failure timeline, or follow-up remediation plan.
 

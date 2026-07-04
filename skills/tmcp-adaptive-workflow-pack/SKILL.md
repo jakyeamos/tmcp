@@ -1,9 +1,12 @@
 ---
 name: tmcp-adaptive-workflow-pack
 description: Use TMCP to harvest a user/team/repo skill corpus, infer operating priorities, recommend default workflows, and propose custom workflow-pack outputs.
+status: experimental
 ---
 
 # TMCP Adaptive Workflow Pack
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks to make TMCP fit a repo/team/user, build a workflow pack, harvest operating style, infer custom workflows, or adapt agent behavior from local skills and process docs.
 

@@ -13,7 +13,6 @@ Use this when correctness depends on schemas, migrations, pipelines, invariants,
 ```bash
 node scripts/tmcp_launcher.mjs review-plan "Review data integrity, migrations, and pipeline correctness" \
   --project-path . \
-  --evidence-json '[]' \
   --write-artifacts \
   --output-dir .tmcp/data-integrity
 ```

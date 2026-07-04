@@ -13,7 +13,6 @@ Use this when a project needs an ADR-style decision packet before implementation
 ```bash
 node scripts/tmcp_launcher.mjs review-plan "Review this architecture decision" \
   --project-path . \
-  --evidence-json '[]' \
   --write-artifacts \
   --output-dir .tmcp/architecture-decision
 ```

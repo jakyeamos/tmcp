@@ -36,7 +36,7 @@ Review developer onboarding commands and CLI docs.
 {
   "objective": "Review developer onboarding commands and CLI docs",
   "project_path": ".",
-  "evidence_json": "[]",
+  "evidence_json": "[{\"dimension_id\":\"setup_clarity\",\"severity\":\"warning\",\"summary\":\"Setup command evidence is ready for review.\",\"evidence\":[\"README.md#install\",\"docs/CLI.md#commands\"],\"recommended_fix\":\"Align setup docs with the cited command surface.\"}]",
   "write_artifacts": true
 }
 ```
@@ -47,4 +47,3 @@ Review developer onboarding commands and CLI docs.
 - Evidence gaps if command docs are missing.
 - Remediation slices for setup, validation, and troubleshooting.
 - Verification expectations for every command the docs claim.
-

@@ -1,9 +1,12 @@
 ---
 name: tmcp-architecture-decision
 description: Use TMCP for architecture reviews, ADRs, design decisions, tradeoff analysis, alternatives, constraints, and recommendation packets.
+status: experimental
 ---
 
 # TMCP Architecture Decision
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks whether to use an architecture, library, platform, design pattern, boundary, or migration approach, or when they ask for an ADR/design-decision review.
 

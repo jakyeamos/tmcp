@@ -1,9 +1,12 @@
 ---
 name: tmcp-skill-gap-analysis
 description: Use TMCP to identify missing process docs, weak skill signals, undocumented quality gates, and workflow gaps from a skill harvest.
+status: experimental
 ---
 
 # TMCP Skill Gap Analysis
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks what their skill corpus is missing, where process docs are weak, which workflows lack evidence, or how to improve agent/team operating instructions.
 

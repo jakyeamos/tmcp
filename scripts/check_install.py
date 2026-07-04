@@ -22,6 +22,10 @@ REQUIRED_FILES = (
     ".mcp.json",
     "examples/workflows/adaptive-workflow-pack.md",
     "schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json",
+    "schemas/tmcp-composed-packet-v0.1.schema.json",
+    "schemas/tmcp-promoted-harvest-graph-v0.1.schema.json",
+    "schemas/tmcp-run-receipt-v0.1.schema.json",
+    "schemas/tmcp-runtime-next-v0.1.schema.json",
     "scripts/tmcp_launcher.mjs",
     "scripts/tmcp_mcp_server.py",
     "skills/tmcp-adaptive-workflow-pack/SKILL.md",
@@ -48,9 +52,13 @@ REQUIRED_FILES = (
 EXPECTED_MCP_TOOLS = {
     "expert_rubric_review_plan",
     "tmcp_doctor",
+    "tmcp_compose_packet",
     "tmcp_explain",
     "tmcp_harvest_skills",
+    "tmcp_promote_harvest",
+    "tmcp_record_receipt",
     "tmcp_recommend_workflows",
+    "tmcp_runtime_next",
     "tmcp_status",
 }
 

@@ -51,6 +51,13 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         self.assertEqual(
             result["recommended_workflows"][0]["id"], "expert_ui_rubric_workflow"
         )
+        self.assertEqual(
+            result["recommended_workflows"][0]["stability"], "experimental"
+        )
+        self.assertEqual(
+            result["recommended_workflows"][0]["template"]["stability"],
+            "experimental",
+        )
         self.assertTrue(result["recommended_workflows"][0]["evidence"])
         self.assertIn("starter_prompt", result["recommended_workflows"][0])
 
@@ -82,6 +89,7 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
             pack = result["adaptive_workflow_pack"]
             self.assertEqual(pack["schema"], "tmcp-adaptive-workflow-pack-v0.1")
             self.assertEqual(pack["artifact_type"], "adaptive_workflow_pack")
+            self.assertIn("workflow_stability", pack)
             self.assertTrue(pack["harvested_source_map"])
             self.assertTrue(pack["operating_profile"]["source_scope_counts"])
             self.assertTrue(pack["strongest_behavior_signals"])
@@ -90,6 +98,12 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
             self.assertEqual(
                 result["custom_workflow_ideas"],
                 pack["generated_custom_workflow_ideas"],
+            )
+            self.assertTrue(
+                all(
+                    item["stability"] == "experimental"
+                    for item in result["custom_workflow_ideas"]
+                )
             )
             self.assertTrue(pack["suggested_routing_triggers"])
             self.assertTrue(pack["documented_process_gaps"])
@@ -237,6 +251,9 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
                 [item["id"] for item in result["recommended_workflows"]],
                 ["security_privacy_review_workflow"],
             )
+            self.assertEqual(
+                result["recommended_workflows"][0]["stability"], "experimental"
+            )
             self.assertEqual(result["not_recommended"], [])
             paths = result["artifact_paths"]
             self.assertTrue(Path(paths["recommendation_json"]).exists())
@@ -276,6 +293,10 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
 
         recommended_ids = {item["id"] for item in result["recommended_workflows"]}
         self.assertEqual(
+            {item["stability"] for item in result["recommended_workflows"]},
+            {"experimental"},
+        )
+        self.assertEqual(
             recommended_ids,
             {
                 "incident_postmortem_workflow",
@@ -307,7 +328,479 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
             [item["id"] for item in result["recommended_workflows"]],
             ["agent_handoff_workflow"],
         )
+        self.assertEqual(
+            result["recommended_workflows"][0]["stability"], "experimental"
+        )
         self.assertEqual(result["not_recommended"], [])
+
+    def test_recommend_workflows_promotes_repo_behavior_spec_loop(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: repo-behavior-spec-loop",
+                        "---",
+                        "# Repo Behavior Spec Loop",
+                        "Create one canonical spreadsheet with stable Feature ID values,",
+                        "code-derived expected behavior, user-acceptable behavior, source files/functions,",
+                        "test command/actions, observed behavior, Status, Defect ID, Defect type,",
+                        "Regression test added, Complexity review, Evidence, Iteration, and Last tested commit.",
+                        "Drive every feature from spec -> tested -> fixed -> verified -> regression-covered.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {
+                    "source_path": str(root),
+                    "candidate_workflows": ["repo_behavior_spec_loop"],
+                    "min_confidence": 0.1,
+                },
+            )
+
+        self.assertEqual(
+            [item["id"] for item in result["recommended_workflows"]],
+            ["repo_behavior_spec_loop_workflow"],
+        )
+        recommendation = result["recommended_workflows"][0]
+        self.assertEqual(recommendation["signal_family"], "repo_behavior_spec_loop")
+        self.assertEqual(recommendation["stability"], "experimental")
+        self.assertEqual(
+            recommendation["template"]["profile"], "repo_behavior_spec_loop"
+        )
+        self.assertEqual(
+            recommendation["rubric_seed"]["profile"], "repo_behavior_spec_loop"
+        )
+        dimension_ids = {
+            item["id"] for item in recommendation["rubric_seed"]["dimension_seeds"]
+        }
+        self.assertIn("code_derived_feature_inventory", dimension_ids)
+        self.assertIn("canonical_spreadsheet_contract", dimension_ids)
+        self.assertIn("running_app_verification_loop", dimension_ids)
+        required_evidence = " ".join(
+            recommendation["workflow_instance"]["required_evidence"]
+        ).lower()
+        self.assertIn("canonical spreadsheet", required_evidence)
+        self.assertIn("feature ids", required_evidence)
+        self.assertIn("last tested commit", required_evidence)
+        self.assertEqual(result["not_recommended"], [])
+
+    def test_promote_harvest_writes_durable_graph_edges(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output_dir = root / "promotion"
+            (root / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: repo-behavior-spec-loop",
+                        "---",
+                        "# Repo Behavior Spec Loop",
+                        "Maintain a canonical spreadsheet with stable Feature IDs, Evidence,",
+                        "source files/functions, observed behavior, Last tested commit, and Status.",
+                        "Run the test/fix/re-test loop until verified and regression-covered.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (root / "AGENTS.md").write_text(
+                "# Agent Rules\n\nKeep evidence-backed claims and source traceability in behavior verification work.",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_promote_harvest",
+                {
+                    "source_path": str(root),
+                    "candidate_workflows": ["repo_behavior_spec_loop"],
+                    "selected_workflows": ["repo_behavior_spec_loop_workflow"],
+                    "min_confidence": 0.1,
+                    "promotion_name": "repo-behavior-spec-loop",
+                    "output_dir": str(output_dir),
+                },
+            )
+
+            graph_path = Path(result["artifact_paths"]["promotion_graph_json"])
+            self.assertTrue(graph_path.exists())
+            graph = json.loads(graph_path.read_text(encoding="utf-8"))
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["schema"], "tmcp-harvest-promotion-v0.1")
+        self.assertEqual(result["status"], "promoted")
+        self.assertEqual(
+            result["promoted_workflow_ids"], ["repo_behavior_spec_loop_workflow"]
+        )
+        self.assertEqual(graph["schema"], "tmcp-promoted-harvest-graph-v0.1")
+        self.assertTrue(graph["source_nodes"])
+        self.assertTrue(graph["behavior_atoms"])
+        self.assertTrue(
+            any(edge["relation"] == "declares_behavior_atom" for edge in graph["edges"])
+        )
+        self.assertTrue(
+            any(edge["relation"] == "supports_workflow" for edge in graph["edges"])
+        )
+
+    def test_promote_harvest_preview_does_not_write_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "AGENTS.md").write_text(
+                "# Release\n\nUse release readiness, verification evidence, and quality gates.",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_promote_harvest",
+                {
+                    "source_path": str(root),
+                    "candidate_workflows": ["release_readiness"],
+                    "min_confidence": 0.1,
+                    "write_artifacts": False,
+                },
+            )
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["status"], "preview")
+        self.assertEqual(result["artifact_paths"], {})
+        self.assertTrue(result["promotion_graph"]["edges"])
+
+    def test_compose_packet_combines_impeccable_and_agent_slices(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            skill = root / "skills" / "impeccable"
+            refs = skill / "reference"
+            refs.mkdir(parents=True)
+            (root / "AGENTS.md").write_text(
+                "\n".join(
+                    [
+                        "# Agent Rules",
+                        "Use pnpm only.",
+                        "Read before modifying.",
+                        "Search existing behavior first.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (skill / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: impeccable",
+                        "---",
+                        "# Impeccable",
+                        "For craft commands, run scripts/context.mjs, then read reference/craft.md.",
+                        "Choose the brand or product register before implementation.",
+                        "If no design tokens exist, run scripts/palette.mjs.",
+                        "Verify contrast, reduced motion, responsive behavior, and browser screenshots.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (refs / "craft.md").write_text(
+                "# Craft\n\nBuild production UI only after discovery and browser verification.",
+                encoding="utf-8",
+            )
+            (refs / "brand.md").write_text(
+                "# Brand\n\nUse distinctive visual direction for landing pages.",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_compose_packet",
+                {
+                    "source_path": str(root),
+                    "objective": "impeccable craft landing page",
+                    "project_path": str(root),
+                    "phase": "start",
+                    "cache_policy": "none",
+                    "limit": 10,
+                },
+            )
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["schema"], "tmcp-composed-packet-v0.1")
+        packet_text = " ".join(result["active_instructions"]).lower()
+        required_reads = " ".join(result["required_reads"])
+        tool_prompts = " ".join(result["tool_script_prompts"])
+        verification = " ".join(result["verification_gates"]).lower()
+        active_atoms = set(result["active_atoms"])
+
+        self.assertIn("pnpm", packet_text)
+        self.assertIn("existing behavior", packet_text)
+        self.assertIn("reference/craft.md", required_reads)
+        self.assertIn("reference/brand.md", required_reads)
+        self.assertIn("scripts/context.mjs", tool_prompts)
+        self.assertIn("scripts/palette.mjs", tool_prompts)
+        self.assertIn("contrast", verification)
+        self.assertIn("reduced motion", verification)
+        self.assertIn("browser", verification)
+        self.assertIn("ui-browser-verification", active_atoms)
+
+    def test_compose_packet_consumes_global_promoted_graph(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "source"
+            project = Path(tmp) / "project"
+            tmcp_home = Path(tmp) / "tmcp-home"
+            root.mkdir()
+            project.mkdir()
+            original_home = getattr(self.server, "TMCP_HOME", None)
+            setattr(self.server, "TMCP_HOME", tmcp_home)
+            try:
+                (root / "SKILL.md").write_text(
+                    "\n".join(
+                        [
+                            "---",
+                            "name: repo-behavior-spec-loop",
+                            "---",
+                            "# Repo Behavior Spec Loop",
+                            "Maintain one canonical spreadsheet with stable Feature IDs,",
+                            "source files/functions, observed behavior, Status, Evidence,",
+                            "Last tested commit, and regression-covered verification.",
+                        ]
+                    ),
+                    encoding="utf-8",
+                )
+
+                promote = self.server._call_tool(
+                    "tmcp_promote_harvest",
+                    {
+                        "source_path": str(root),
+                        "candidate_workflows": ["repo_behavior_spec_loop"],
+                        "selected_workflows": ["repo_behavior_spec_loop_workflow"],
+                        "min_confidence": 0.1,
+                        "promotion_name": "repo-behavior-spec-loop",
+                        "output_dir": str(Path(tmp) / "promotion"),
+                    },
+                )
+                result = self.server._call_tool(
+                    "tmcp_compose_packet",
+                    {
+                        "source_path": str(project),
+                        "objective": "run a repo behavior sweep",
+                        "project_path": str(project),
+                        "phase": "start",
+                        "cache_policy": "global",
+                    },
+                )
+            finally:
+                setattr(self.server, "TMCP_HOME", original_home)
+
+        self.assertTrue(promote["global_artifact_paths"]["promotion_graph_json"])
+        self.assertTrue(result["ok"])
+        self.assertGreaterEqual(result["global_cache"]["promoted_graph_count"], 1)
+        packet_text = " ".join(result["active_instructions"]).lower()
+        self.assertIn("canonical spreadsheet", packet_text)
+        self.assertIn("feature id", packet_text)
+
+    def test_compose_packet_keeps_release_readiness_packet_narrow(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "skills" / "tmcp-release-readiness").mkdir(parents=True)
+            (root / "skills" / "tmcp-pr-risk-review").mkdir(parents=True)
+            (root / "skills" / "tmcp-repo-behavior-spec-loop").mkdir(parents=True)
+            (root / "skills" / "tmcp-ui-rubric").mkdir(parents=True)
+            (root / "skills" / "tmcp-migration-readiness").mkdir(parents=True)
+            (root / "skills" / "tmcp-performance-readiness").mkdir(parents=True)
+            (root / "skills" / "tmcp-release-readiness" / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: tmcp-release-readiness",
+                        "---",
+                        "# TMCP Release Readiness",
+                        "Use for release readiness, ship/no-ship planning, quality gates, package checks, CI evidence, and changelog review.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (root / "skills" / "tmcp-pr-risk-review" / "SKILL.md").write_text(
+                "# PR Risk Review\n\nUse for changed-surface maps and merge risk reviews.",
+                encoding="utf-8",
+            )
+            (root / "skills" / "tmcp-repo-behavior-spec-loop" / "SKILL.md").write_text(
+                "# Repo Behavior Spec Loop\n\nMaintain one canonical spreadsheet with stable Feature IDs and last tested commit evidence.",
+                encoding="utf-8",
+            )
+            (root / "skills" / "tmcp-ui-rubric" / "SKILL.md").write_text(
+                "# UI Rubric\n\nVerify browser screenshots, contrast, reduced motion, and responsive behavior.",
+                encoding="utf-8",
+            )
+            (root / "skills" / "tmcp-migration-readiness" / "SKILL.md").write_text(
+                "# Migration Readiness\n\nUse for migration readiness, deprecation, rollout, and compatibility risk.",
+                encoding="utf-8",
+            )
+            (root / "skills" / "tmcp-performance-readiness" / "SKILL.md").write_text(
+                "# Performance Readiness\n\nUse for performance readiness, latency, load, and capacity risk.",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_compose_packet",
+                {
+                    "source_path": str(root),
+                    "objective": "Improve TMCP release readiness before release",
+                    "project_path": str(root),
+                    "phase": "start",
+                    "cache_policy": "none",
+                    "limit": 12,
+                },
+            )
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["schema"], "tmcp-composed-packet-v0.1")
+        active_text = " ".join(result["active_instructions"]).lower()
+        verification_text = " ".join(result["verification_gates"]).lower()
+        cited_sources = {
+            str(citation.get("source") or "")
+            for citation in result["evidence_citations"]
+        }
+        self.assertTrue(
+            any(
+                source.endswith("tmcp-release-readiness/SKILL.md")
+                for source in cited_sources
+            )
+        )
+        self.assertFalse(
+            any(
+                source.endswith("tmcp-repo-behavior-spec-loop/SKILL.md")
+                for source in cited_sources
+            )
+        )
+        self.assertFalse(
+            any(source.endswith("tmcp-ui-rubric/SKILL.md") for source in cited_sources)
+        )
+        self.assertFalse(
+            any(
+                source.endswith("tmcp-migration-readiness/SKILL.md")
+                for source in cited_sources
+            )
+        )
+        self.assertFalse(
+            any(
+                source.endswith("tmcp-performance-readiness/SKILL.md")
+                for source in cited_sources
+            )
+        )
+        self.assertNotIn("canonical spreadsheet", active_text)
+        self.assertNotIn("browser", verification_text)
+        self.assertNotIn("screenshot", verification_text)
+
+    def test_runtime_next_activates_contextual_packet_deltas(self) -> None:
+        result = self.server._call_tool(
+            "tmcp_runtime_next",
+            {
+                "objective": "fix the dashboard UI bug",
+                "project_path": "/tmp/project",
+                "current_phase": "final",
+                "previous_packet_id": "packet-old",
+                "files_changed": ["app/page.tsx", "app/styles.css"],
+                "failures": ["vitest failed"],
+                "browser_evidence": ["screenshot shows overlap"],
+                "latest_user_message": "actually verify it before final",
+            },
+        )
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["schema"], "tmcp-runtime-next-v0.1")
+        self.assertEqual(result["previous_packet_id"], "packet-old")
+        activated = set(result["packet_delta"]["activated_atoms"])
+        self.assertIn("ui-browser-verification", activated)
+        self.assertIn("debugging-regression", activated)
+        self.assertIn("verification-before-completion", activated)
+        self.assertTrue(result["packet_delta"]["newly_required_reads"])
+        self.assertIn("browser", " ".join(result["next_verification_gate"]).lower())
+
+    def test_runtime_next_treats_pending_hosted_release_evidence_as_gap(
+        self,
+    ) -> None:
+        result = self.server._call_tool(
+            "tmcp_runtime_next",
+            {
+                "objective": "Improve TMCP release readiness before release",
+                "project_path": "/tmp/project",
+                "current_phase": "verification",
+                "failures": [
+                    "python3 scripts/check_release_evidence.py . failed because hosted release evidence is pending"
+                ],
+                "latest_user_message": "dogfood tmcp and iterate improvements until satisfied",
+                "cache_policy": "none",
+            },
+        )
+
+        self.assertTrue(result["ok"])
+        activated = set(result["packet_delta"]["activated_atoms"])
+        next_gate = " ".join(result["next_verification_gate"]).lower()
+        self.assertIn("explicit-evidence-gaps", activated)
+        self.assertNotIn("debugging-regression", activated)
+        self.assertIn("hosted evidence", next_gate)
+        self.assertIn("release", next_gate)
+
+    def test_record_receipt_writes_global_cache(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmcp_home = Path(tmp) / "tmcp-home"
+            original_home = getattr(self.server, "TMCP_HOME", None)
+            setattr(self.server, "TMCP_HOME", tmcp_home)
+            try:
+                result = self.server._call_tool(
+                    "tmcp_record_receipt",
+                    {
+                        "packet_id": "packet-123",
+                        "activated_atoms": ["ui-browser-verification"],
+                        "ignored_atoms": ["release_readiness"],
+                        "commands_run": ["python3 -m unittest"],
+                        "verification_results": ["passed"],
+                        "user_overrides": ["keep impeccable active"],
+                        "outcome": "passed",
+                    },
+                )
+            finally:
+                setattr(self.server, "TMCP_HOME", original_home)
+
+            receipt_path = Path(result["artifact_paths"]["receipt_json"])
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["schema"], "tmcp-run-receipt-v0.1")
+        self.assertEqual(receipt["packet_id"], "packet-123")
+        self.assertEqual(receipt["outcome"], "passed")
+        self.assertEqual(receipt["trust"], "advisory_untrusted")
+
+    def test_existing_tools_include_composed_packet_when_requested(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "AGENTS.md").write_text(
+                "# Agent Rules\n\nUse pnpm, read before modifying, and verify UI with browser evidence.",
+                encoding="utf-8",
+            )
+
+            explain = self.server._call_tool(
+                "tmcp_explain",
+                {
+                    "objective": "Review dashboard UI quality",
+                    "project_path": str(root),
+                    "source_path": str(root),
+                    "compose": True,
+                },
+            )
+            recommend = self.server._call_tool(
+                "tmcp_recommend_workflows",
+                {
+                    "source_path": str(root),
+                    "objective": "Review dashboard UI quality",
+                    "compose": True,
+                    "min_confidence": 0.1,
+                },
+            )
+
+        self.assertEqual(
+            explain["composed_packet"]["schema"], "tmcp-composed-packet-v0.1"
+        )
+        self.assertEqual(
+            recommend["composed_packet"]["schema"], "tmcp-composed-packet-v0.1"
+        )
 
     def test_release_package_check_smokes_adaptive_surface(self) -> None:
         path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
@@ -319,6 +812,21 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             ok, output = module.check_adaptive_workflow_surface(
+                helpers.PLUGIN_ROOT, Path(tmp)
+            )
+
+        self.assertTrue(ok, output)
+
+    def test_release_package_check_smokes_composition_surface(self) -> None:
+        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
+        spec = importlib.util.spec_from_file_location("check_release_package", path)
+        if spec is None or spec.loader is None:
+            raise RuntimeError("Could not load check_release_package module")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            ok, output = module.check_composition_surface(
                 helpers.PLUGIN_ROOT, Path(tmp)
             )
 

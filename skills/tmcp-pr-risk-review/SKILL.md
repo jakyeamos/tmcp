@@ -1,9 +1,12 @@
 ---
 name: tmcp-pr-risk-review
 description: Use TMCP for PR risk reviews, changed-surface maps, merge readiness, regression risk, missing tests, and review handoff packets.
+status: experimental
 ---
 
 # TMCP PR Risk Review
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks to review a PR, branch, diff, changed contract, merge risk, regression risk, or release risk before merging.
 

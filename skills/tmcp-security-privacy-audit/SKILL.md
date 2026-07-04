@@ -1,9 +1,12 @@
 ---
 name: tmcp-security-privacy-audit
 description: Use TMCP for security/privacy process audits, redacted instruction harvests, secret-handling reviews, risk evidence gaps, and remediation planning.
+status: experimental
 ---
 
 # TMCP Security Privacy Audit
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks for a security audit, privacy audit, secret-handling review, redacted skill harvest, process-risk audit, safety review, or remediation plan for security/privacy practices.
 

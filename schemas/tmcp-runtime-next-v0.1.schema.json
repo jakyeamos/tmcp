@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-runtime-next-v0.1.schema.json",
+  "title": "TMCP Runtime Next v0.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "objective",
+    "project_path",
+    "current_phase",
+    "previous_packet_id",
+    "packet_delta",
+    "next_verification_gate",
+    "warnings",
+    "safety"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-runtime-next-v0.1"
+    },
+    "objective": {
+      "type": "string"
+    },
+    "project_path": {
+      "type": "string"
+    },
+    "current_phase": {
+      "type": "string"
+    },
+    "previous_packet_id": {
+      "type": ["string", "null"]
+    },
+    "packet_delta": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "activated_atoms",
+        "deactivated_atoms",
+        "stale_atoms",
+        "newly_required_reads"
+      ],
+      "properties": {
+        "activated_atoms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deactivated_atoms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stale_atoms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "newly_required_reads": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "next_verification_gate": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

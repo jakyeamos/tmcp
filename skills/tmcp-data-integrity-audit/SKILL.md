@@ -1,9 +1,12 @@
 ---
 name: tmcp-data-integrity-audit
 description: Use TMCP for data correctness audits, schema/migration reviews, invariants, pipelines, reconciliation, idempotency, and backfill risk.
+status: experimental
 ---
 
 # TMCP Data Integrity Audit
+
+Status: experimental. This workflow remains shipped and callable, but its public contract may change.
 
 Use this skill when the user asks about data correctness, schema review, migration safety, invariants, pipelines, ETL, backfills, reconciliation, idempotency, or data-loss risk.
 

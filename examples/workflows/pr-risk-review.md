@@ -13,7 +13,6 @@ Use this when a PR or branch needs risk-oriented merge readiness beyond normal c
 ```bash
 node scripts/tmcp_launcher.mjs review-plan "Review PR risk and merge readiness" \
   --project-path . \
-  --evidence-json '[]' \
   --write-artifacts \
   --output-dir .tmcp/pr-risk-review
 ```
