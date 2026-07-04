@@ -2,6 +2,7 @@
 
 ## 0.3.3 - 2026-07-04
 
+- Added Codex MCP discovery-gap diagnostics and skill guidance so agents can continue through the TMCP CLI when `tool_search` does not expose plugin MCP tools.
 - Added scoped packet seed parsing for `tmcp-scoped-packet-seeds-v0.1` artifacts so curated seeds become first-class virtual `scoped_packet_seed` source nodes.
 - Added `recommended_scoped_packet_seeds` to workflow recommendations and adaptive workflow packs so selectors can recommend exact curated seed IDs before falling back to generic workflow advice.
 - Added scoped seed promotion-preview graph output with raw-source, behavior-atom, and verification-expectation edges while preserving proposal-only promotion requirements.

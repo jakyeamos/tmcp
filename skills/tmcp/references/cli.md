@@ -3,7 +3,7 @@
 The canonical portable launcher is:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor
+node scripts/tmcp_launcher.mjs doctor --client codex
 ```
 
 Run it from a TMCP repo checkout, copied plugin root, or installed plugin cache. With no arguments, the same launcher starts the MCP stdio server.
@@ -11,6 +11,7 @@ Run it from a TMCP repo checkout, copied plugin root, or installed plugin cache.
 ## Common Commands
 
 ```bash
+node scripts/tmcp_launcher.mjs list-tools
 node scripts/tmcp_launcher.mjs doctor
 node scripts/tmcp_launcher.mjs status
 node scripts/tmcp_launcher.mjs compose-packet "<objective>" --project-path "<project-path>" --phase start
@@ -34,10 +35,19 @@ node scripts/tmcp_launcher.mjs review-plan "<objective>" --project-path "<projec
 ## Fallback Order
 
 1. Exposed MCP tools.
-2. Local `node scripts/tmcp_launcher.mjs ...` CLI.
+2. Local `node scripts/tmcp_launcher.mjs ...` CLI. Use this when `tool_search` returns no TMCP tools even though TMCP skills are installed.
 3. Repo or plugin launcher script discovered relative to the installed skill/plugin root.
 4. Explicit AIOS adapter only when `AIOS_ROOT` is configured and requested.
 5. Manual packet synthesis using the same output contract.
+
+Codex discovery diagnostic:
+
+```bash
+node scripts/tmcp_launcher.mjs doctor --client codex
+node scripts/tmcp_launcher.mjs list-tools
+```
+
+If those commands pass but Codex still cannot find `tmcp_explain` or `expert_rubric_review_plan` through `tool_search`, report a Codex MCP discovery gap and continue through CLI-generated JSON/artifacts.
 
 If no launcher is found, report: clone or copy TMCP, run `node scripts/tmcp_launcher.mjs doctor` from the TMCP root, and set `TMCP_PYTHON` if Python discovery fails.
 

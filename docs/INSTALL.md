@@ -30,11 +30,30 @@ Expected:
 ## First-Run Smoke Test
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor
+node scripts/tmcp_launcher.mjs doctor --client codex
 node scripts/tmcp_launcher.mjs status
+node scripts/tmcp_launcher.mjs list-tools
 ```
 
 Standalone mode should be available even when AIOS is not configured.
+
+## Codex Tool Discovery
+
+Codex may load TMCP skills before it exposes the plugin MCP tools through deferred
+tool discovery. If `tool_search` cannot find `tmcp_explain`, `tmcp_doctor`, or
+`expert_rubric_review_plan`, first run the smoke test above from the installed
+TMCP plugin root. If it passes, continue with the equivalent CLI command and cite
+the generated JSON/artifacts.
+
+For explicit Codex MCP registration, add a server entry that points at the
+installed TMCP root:
+
+```toml
+[mcp_servers.tmcp]
+command = "node"
+args = ["scripts/tmcp_launcher.mjs"]
+cwd = "/absolute/path/to/tmcp"
+```
 
 ## MCP Config Shape
 
