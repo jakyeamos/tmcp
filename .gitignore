@@ -17,3 +17,7 @@ coverage/
 .aios/
 .codex/
 .quality-runner/
+
+# Generated / cache / audit output
+.turbo/
+.firecrawl/
