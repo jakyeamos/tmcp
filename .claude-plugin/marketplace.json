@@ -4,7 +4,7 @@
     "name": "Jakye Amos"
   },
   "description": "TMCP skill-packet workflow plugins for Claude Code, including first-run checks, portable skill harvest, adaptive workflow-pack recommendations, and packet substance checks.",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "plugins": [
     {
       "name": "tmcp",
@@ -15,7 +15,7 @@
         "ref": "main"
       },
       "description": "Standalone TMCP skill-packet workflows, first-run checks, skill harvesting, adaptive workflow-pack recommendations, packet substance checks, and expert rubric remediation.",
-      "version": "0.3.3",
+      "version": "0.4.0",
       "author": {
         "name": "Jakye Amos"
       },

@@ -1,0 +1,64 @@
+{
+  "schema": "tmcp-scoped-packet-seeds-v0.1",
+  "status": "proposal_not_promoted",
+  "seeds": [
+    {
+      "id": "frontend_redesign_runtime_v1",
+      "name": "Frontend redesign runtime",
+      "route_affinity": [
+        "ui_ux_redesign",
+        "frontend_implementation",
+        "motion_interaction"
+      ],
+      "objective_patterns": [
+        "redesign",
+        "visually striking",
+        "motion-rich",
+        "production-ready",
+        "interactive",
+        "modern"
+      ],
+      "sources": [".agents/skills/ui-ux-pro-max/SKILL.md"],
+      "chains_before": ["frontend-design", "motion-system"],
+      "chains_after": ["frontend-design"],
+      "do_not_activate_with": ["motion-system"],
+      "phase_transitions": {
+        "runtime": {
+          "next_phases": ["implementation"],
+          "activate_skills": ["frontend-design"],
+          "verification_gates": [
+            "Inspect existing pages before proposing redesign."
+          ]
+        },
+        "start": {
+          "next_phases": ["implementation"],
+          "activate_skills": ["frontend-design"],
+          "verification_gates": [
+            "Inspect existing pages before proposing redesign."
+          ]
+        },
+        "implementation": {
+          "next_phases": ["polish-verify"],
+          "activate_skills": ["motion-system"],
+          "verification_gates": [
+            "Reachable UI states implemented before motion polish."
+          ]
+        },
+        "polish-verify": {
+          "next_phases": ["review"],
+          "activate_skills": [],
+          "verification_gates": [
+            "Capture browser evidence before final response."
+          ]
+        }
+      },
+      "behavior_atoms": [
+        "source-traceability",
+        "ui-browser-verification"
+      ],
+      "use_when": [
+        "Natural-language frontend redesign requests without explicit skill names."
+      ]
+    }
+  ]
+}

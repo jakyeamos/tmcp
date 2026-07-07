@@ -10,13 +10,16 @@ Use this skill whenever the user asks for TMCP, a TMCP packet, TMCP traversal, T
 
 TMCP turns scattered agent instructions into task-specific packets. AIOS is optional storage and adapter support, not the concept.
 
+**Slash commands are manual imports. TMCP is the compiler.** The user describes work in natural language. TMCP compiles the operating packet, recompiles when evidence changes, and records receipts. Skill names are provenance, not the user interface.
+
 ## Routing
 
 - `TMCP expert rubric`, `expert rubric workflow`, and similar wording mean the stable `expert_rubric_review_plan` workflow.
 - `TMCP expert UI rubric`, `expert UI rubric`, and similar wording route through `expert_rubric_review_plan` with the UI rubric profile; this UI-specific router remains experimental but callable.
 - Skill harvest requests gather local skill definitions, agent instruction files, editor rules, repository process docs, and workflow docs into source nodes, classify behavior atoms, and compile the smallest useful packet.
-- Skill composition requests use `tmcp_compose_packet` at run start or phase start to combine AGENTS defaults, harvested skills, promoted global cache knowledge, and project evidence into a small current-task packet. This returns active instructions, required reads, tool/script prompts, verification gates, stop conditions, deferred atoms, ignored sources, conflicts, citations, and a receipt template; it is not a workflow list.
-- Runtime routing requests use `tmcp_runtime_next` after user redirects, phase changes, changed UI/front-end files, test failures, browser evidence, or final-response preparation. Treat the output as packet deltas for the next step.
+- Skill evaluation requests use experimental `tmcp_evaluate_skills` to statically review skills, generate behavioral A/B plans, score structured trace evidence, and emit advisory harvest feedback without auto-promotion.
+- Skill composition requests use `tmcp_compose_packet` at run start or phase start to combine AGENTS defaults, harvested skills, promoted global cache knowledge, and project evidence into a small current-task packet. This returns `task_identity`, `active_instructions`, `required_reads`, `tool_script_prompts`, `verification_gates`, `stop_conditions`, `deferred_atoms`, `ignored_sources`, `conflicts`, `evidence_citations`, `compiled_from`, `packet_markdown`, and a receipt template; it is not a workflow list.
+- Runtime routing requests use `tmcp_runtime_next` after user redirects, phase changes, changed UI/front-end files, test failures, browser evidence, or final-response preparation. Treat the output as packet deltas for the next step. Use `output_mode: "full"` with `previous_packet` (or the `recompile-packet` CLI alias) when the agent needs a full regenerated operating contract plus `packet_diff`. Supply `previous_task_identity` when available so TMCP can emit `task_identity_delta`.
 - Record `tmcp_record_receipt` after meaningful verification or task outcomes. Receipts improve future ranking but never override system, developer, user, or project instructions.
 - Use `tmcp_explain --compose` or `tmcp_recommend_workflows --compose` when the user wants the legacy packet/recommendation output plus a small composed packet.
 - Workflow recommendation requests run harvest first, then recommend source-backed stable or experimental workflows with explicit stability labels.
@@ -26,16 +29,22 @@ TMCP turns scattered agent instructions into task-specific packets. AIOS is opti
 
 ## Happy Path
 
-Use MCP tools first when exposed:
+Default adaptive packet runtime for implementation work:
 
-1. `tmcp_doctor`
-2. `tmcp_status`
-3. `tmcp_compose_packet` for the current objective and phase.
-4. `tmcp_runtime_next` when runtime evidence changes the next step.
-5. `tmcp_record_receipt` after verification or outcome.
-6. `tmcp_explain --compose` when a standard packet should include composition.
-7. `tmcp_harvest_skills`, `tmcp_recommend_workflows --compose`, and `tmcp_promote_harvest` for harvest/recommend/promote work.
-8. `expert_rubric_review_plan` for scored audit/remediation workflows.
+1. `tmcp_doctor` and `tmcp_status` when TMCP availability is unclear.
+2. `tmcp_compose_packet` at intake with the user's natural-language objective and current phase.
+3. Execute under the returned `packet_markdown` contract. Surface `task_identity`, selected sources, excluded sources, and verification gates in the handoff.
+4. `tmcp_runtime_next` when runtime evidence changes the next step. Prefer `output_mode: "full"` with `previous_packet` (CLI: `recompile-packet`) when the operating contract itself should change, not just the next reads/gates.
+5. `tmcp_record_receipt` after meaningful verification or outcome.
+6. Use harvest/recommend/promote only when building or updating durable routing knowledge, not on every ordinary task.
+
+Supporting tools:
+
+- `tmcp_explain --compose` when a routed expertise packet should include composition.
+- `tmcp_harvest_skills`, `tmcp_evaluate_skills`, `tmcp_recommend_workflows --compose`, and `tmcp_promote_harvest` for harvest/evaluate/recommend/promote work.
+- `expert_rubric_review_plan` for scored audit/remediation workflows.
+
+Do not ask the user to name slash skills unless they want to force a route. If they do force a route, pass that constraint in the objective and still compile through TMCP.
 
 The stable public workflow set is `skill-harvest`, `workflow-recommendation`, `expert-rubric-review`, `release-readiness`, and `dx-audit`. Experimental workflows remain shipped and callable; label them experimental in outputs and handoffs.
 
@@ -47,6 +56,7 @@ When MCP tools are not exposed, use the bundled launcher from the TMCP root:
 node scripts/tmcp_launcher.mjs doctor
 node scripts/tmcp_launcher.mjs status
 node scripts/tmcp_launcher.mjs compose-packet "<objective>" --project-path "<project-path>" --phase start
+node scripts/tmcp_launcher.mjs recompile-packet "<objective>" --current-phase runtime --previous-packet '<composed-packet-json>' --files-changed "app/page.tsx"
 node scripts/tmcp_launcher.mjs runtime-next "<objective>" --current-phase verification --files-changed "app/page.tsx"
 node scripts/tmcp_launcher.mjs record-receipt "<packet-id>" --activated-atoms "ui-browser-verification" --outcome passed
 node scripts/tmcp_launcher.mjs explain "<objective>" --project-path "<project-path>" --compose
@@ -92,7 +102,7 @@ Every workflow answer should include or cite:
 - Sources inspected.
 - Skipped sources and why.
 - Packet summary.
-- Composed packet or packet deltas when composition/runtime routing was used.
+- Composed packet `task_identity`, `packet_markdown`, `shortcut_candidate`, or recompiled `packet_diff` when composition/runtime routing was used.
 - Extracted behavior atoms.
 - Evidence gaps.
 - Recommendation or remediation plan.
@@ -101,6 +111,7 @@ Every workflow answer should include or cite:
 
 ## References
 
+- [Adaptive packet runtime](../../docs/ADAPTIVE_PACKET_RUNTIME.md)
 - [Concepts](references/concepts.md)
 - [CLI](references/cli.md)
 - [Workflows](references/workflows.md)

@@ -8,6 +8,22 @@ The compatibility policy is documented in [PACKET_STABILITY.md](PACKET_STABILITY
 
 Adaptive workflow-pack artifacts are separate from compiled task packets. They use schema `tmcp-adaptive-workflow-pack-v0.1` and are emitted by `tmcp_recommend_workflows` to capture harvested source maps, operating profile, default templates, custom workflow ideas, routing triggers, process gaps, and approval-gated next workflow selection.
 
+Composable runtime packets (`tmcp-composed-packet-v0.1`) and the Adaptive Packet Runtime design are documented in [ADAPTIVE_PACKET_RUNTIME.md](ADAPTIVE_PACKET_RUNTIME.md).
+
+## Composed Packet Fields (`tmcp-composed-packet-v0.1`)
+
+`tmcp_compose_packet` returns a composed runtime packet. In addition to the required v0.1 fields, composed packets now include:
+
+| Field | Meaning |
+| --- | --- |
+| `task_identity` | Structured task classification: `primary`, `secondary`, `active_routes`, `confidence`, `signals`. |
+| `compiled_from` | Provenance for the compile: `graph_version`, `route_catalog_version`, `seed_id`, `cache_policy`. |
+| `packet_markdown` | Human-readable operating contract rendered from structured packet fields. |
+| `shortcut_candidate` | Advisory compiled-route shortcut metadata with `compiled_from` provenance. |
+| `family_context` | Optional skill-family orchestration context from scoped seeds or router skills. |
+
+`tmcp_runtime_next` may also return `task_identity` for the current runtime state and `task_identity_delta` when `previous_task_identity` is supplied. With `output_mode: "full"` and `previous_packet`, TMCP returns `tmcp-recompiled-packet-v0.1` containing a full regenerated packet plus `packet_diff`.
+
 ## Required Fields
 
 | Field | Meaning |

@@ -20,10 +20,12 @@ EXCLUDE_DIRS = {
     ".codex",
     ".git",
     ".mypy_cache",
+    ".planning",
     ".pre-cr",
     ".pytest_cache",
     ".quality-runner",
     ".ruff_cache",
+    ".tmcp",
     "mcp-registry",
 }
 EXCLUDE_PATHS = {

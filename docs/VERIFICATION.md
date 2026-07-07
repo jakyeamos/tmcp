@@ -1,5 +1,37 @@
 # Verification Record
 
+Date: 2026-07-07
+
+Plugin version: `0.4.0+codex.20260707134500`
+
+## 2026-07-07 0.4.0 Release Candidate
+
+Commands run for this change:
+
+```bash
+python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py scripts/tmcp_route_catalog.py scripts/tmcp_skill_evaluate.py
+node --check scripts/tmcp_launcher.mjs
+python3 -m unittest discover -s tests
+python3 scripts/check_install.py .
+python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.4.0.tar.gz
+shasum -a 256 /private/tmp/tmcp-v0.4.0.tar.gz
+python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.4.0.second.tar.gz
+shasum -a 256 /private/tmp/tmcp-v0.4.0.second.tar.gz
+```
+
+Results:
+
+- Version metadata updated for `0.4.0` in the Codex plugin, Claude plugin, Claude marketplace, MCP Registry draft, and hosted verification tag filters.
+- Unit tests: pass (`120` tests, `21` subtests).
+- Install check: pass.
+- Release package check: pass.
+- Deterministic package check: a second generated artifact at `/private/tmp/tmcp-v0.4.0.second.tar.gz` produced the same SHA-256 (`a24fb730fb50bb6249f47918f01cc4d82cb0bd1346c4edd32908916edaecb149`).
+- Release package artifact: `/private/tmp/tmcp-v0.4.0.tar.gz` with digest `sha256:a24fb730fb50bb6249f47918f01cc4d82cb0bd1346c4edd32908916edaecb149`.
+- Release evidence checker: pending hosted `verify.yml` evidence for `v0.4.0` or the release merge commit on `main`.
+- Residual risks: `tmcp_evaluate_skills` remains experimental; full recompile mode is additive and should not break delta-only `tmcp_runtime_next` consumers.
+
+---
+
 Date: 2026-07-04
 
 Plugin version: `0.3.3+codex.20260704154108`

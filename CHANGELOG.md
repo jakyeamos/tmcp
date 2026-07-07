@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+## 0.4.0 - 2026-07-07
+- Added experimental `tmcp_evaluate_skills` with plan and score modes for full-skill behavioral evaluation, static anti-pattern review, A/B variant matrices, dimension scorecards, guidebook artifacts, and advisory harvest feedback without auto-promotion.
+- Wired `tmcp_harvest_skills` to emit per-source `skill_eval_advisories` and top-level warnings from the evaluation anti-pattern catalog (`verification no-op`, overbroad triggers, precedence hazards, and related patterns).
+- Packet inclusion scoring now diffs `tmcp_compose_packet` output against per-skill `packet_inclusion_contracts` instead of trace-only approximation.
+- Added `tmcp-skill-evaluation-plan-v0.1`, `tmcp-skill-evaluation-report-v0.1`, and `tmcp-skill-eval-trace-v0.1` schemas plus seed guidebook and pattern catalog docs.
+- Added first-class `task_identity` on composed and runtime packets via deterministic route-catalog scoring (`scripts/tmcp_route_catalog.py`).
+- Added `compiled_from` provenance and `packet_markdown` audit rendering on every `tmcp_compose_packet` response.
+- Added `tmcp_runtime_next` `output_mode=full` and `recompile-packet` CLI alias for full packet recompilation with `packet_diff`, `recompile_reason`, and audit markdown.
+- Added `tmcp-recompiled-packet-v0.1` schema and agent `proposed_changes` validation against the route catalog.
+- Added route-aware compose scoring, scoped-seed auto-matching via `route_affinity` / `objective_patterns`, `shortcut_candidate` provenance on composed packets, and `examples/seeds/frontend-redesign-runtime.json`.
+- Updated README, skill contract, concepts, quickstart, and golden adaptive-runtime fixtures for the compiler-first agent loop.
+- Added declared load-path extraction during harvest so skills that say `Search product-decisions/...` or `Check coverage-gaps.md` publish `routing_metadata.declared_loads`.
+- Added compose-time declared load resolution with surface-aware narrowing, so runtime skills pull relevant decision-library files into `required_reads` and packet citations without flattening the whole family.
+- Extended `scoped-packet-seeds` with `loads`, `chains_before`, `chains_after`, and `do_not_activate_with` for opt-in skill-family orchestration.
+- Added router-aware compose selection that suppresses sibling skills and support docs unless explicitly named, while preserving router context and emitting `family_context` in composed packets.
+- Fixed scoped packet seed harvesting to parse structural JSON before redaction so `.agents/...` source paths remain usable.
+- Added `phase_transitions` on scoped packet seeds and family-aware `tmcp_runtime_next` deltas with `suggested_phase`, `suggested_skills`, deferred siblings, and next-step required reads.
+
 ## 0.3.3 - 2026-07-04
 
 - Added Codex MCP discovery-gap diagnostics and skill guidance so agents can continue through the TMCP CLI when `tool_search` does not expose plugin MCP tools.

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-recompiled-packet-v0.1.schema.json",
+  "title": "TMCP Recompiled Packet v0.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "previous_packet_id",
+    "recompile_reason",
+    "recompile_detail",
+    "packet",
+    "packet_diff",
+    "agent_proposals",
+    "validated_changes",
+    "warnings",
+    "safety"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-recompiled-packet-v0.1"
+    },
+    "previous_packet_id": {
+      "type": ["string", "null"]
+    },
+    "recompile_reason": {
+      "type": "string"
+    },
+    "recompile_detail": {
+      "type": "string"
+    },
+    "packet": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "packet_diff": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["dropped", "added", "unchanged"],
+      "properties": {
+        "dropped": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "added": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "unchanged": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "phase_change": {
+          "type": ["object", "null"],
+          "additionalProperties": true
+        }
+      }
+    },
+    "agent_proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "validated_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "suggested_phase": {
+      "type": "string"
+    },
+    "task_identity": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "task_identity_delta": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}
