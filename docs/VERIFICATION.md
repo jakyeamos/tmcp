@@ -50,9 +50,13 @@ shasum -a 256 /private/tmp/tmcp-v0.4.0.release.tar.gz
 
 Results:
 
-- GitHub release: pending `v0.4.0` tag publish.
-- Release asset digest target: `sha256:a24fb730fb50bb6249f47918f01cc4d82cb0bd1346c4edd32908916edaecb149`.
-- Tag verification run: pending.
+- GitHub release published: `https://github.com/jakyeamos/tmcp/releases/tag/v0.4.0`.
+- GitHub release asset `tmcp-v0.4.0.tar.gz` digest: `sha256:fab7d19af407c3c9ef41b3753545c9a48b83659214f18bac837e81d50187c5b7`.
+- Tag verification run `28871784926` completed successfully for `v0.4.0` at commit `ed63ec796a48649b48e0dc2000c97f69569482b8`.
+- Release evidence checker: pass for active version `0.4.0` using hosted tag `verify.yml` run `28871784926`.
+- Release smoke from published asset: `check_install`, `doctor`, `status`, and `list-tools` passed from `/private/tmp/tmcp-v0.4.0.release-smoke/tmcp`.
+- MCP Registry validation: `mcp-publisher validate mcp-registry/draft-server.json` passed.
+- MCP Registry publish: blocked because the stored Registry JWT is expired; rerun `mcp-publisher login github` before `mcp-publisher publish mcp-registry/draft-server.json`.
 
 ---
 

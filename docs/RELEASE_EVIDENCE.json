@@ -1,24 +1,24 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.4.0",
-  "checked_at": "2026-07-07T13:54:00Z",
+  "checked_at": "2026-07-07T13:58:00Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "main",
-    "ref": "main",
+    "source": "tag",
+    "ref": "v0.4.0",
     "pr_number": null,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 28871545129,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/28871545129",
-    "head_sha": "b0e68c0cc2392a967598f15fee41153ac8e44ce2",
-    "notes": "Successful main verify.yml run for the merged TMCP 0.4.0 release candidate across Ubuntu, macOS, and Windows on Python 3.10 and 3.13."
+    "run_id": 28871784926,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/28871784926",
+    "head_sha": "ed63ec796a48649b48e0dc2000c97f69569482b8",
+    "notes": "Successful v0.4.0 tag verify.yml run after recording release evidence and publishing the GitHub release asset."
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.4.0.tar.gz",
-    "sha256": "a24fb730fb50bb6249f47918f01cc4d82cb0bd1346c4edd32908916edaecb149",
+    "sha256": "fab7d19af407c3c9ef41b3753545c9a48b83659214f18bac837e81d50187c5b7",
     "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.4.0/tmcp-v0.4.0.tar.gz",
-    "notes": "Release package built from merged main at b0e68c0 before tagging v0.4.0."
+    "notes": "GitHub release asset published from tag v0.4.0 at ed63ec796a48649b48e0dc2000c97f69569482b8."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
@@ -31,8 +31,13 @@
       "shasum -a 256 /private/tmp/tmcp-v0.4.0.tar.gz",
       "git tag -a v0.4.0 -m \"TMCP 0.4.0\"",
       "git push origin v0.4.0",
-      "gh release create v0.4.0 /private/tmp/tmcp-v0.4.0.tar.gz --repo jakyeamos/tmcp --title \"TMCP 0.4.0\" --notes \"TMCP 0.4.0 ships the compiler-first adaptive packet runtime with task identity, full recompile mode, route-aware compose, declared loads, skill-family orchestration, and experimental tmcp_evaluate_skills.\""
+      "gh release create v0.4.0 /private/tmp/tmcp-v0.4.0.tar.gz --repo jakyeamos/tmcp --title \"TMCP 0.4.0\"",
+      "gh run watch 28871784926 --repo jakyeamos/tmcp --exit-status",
+      "curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.4.0/tmcp-v0.4.0.tar.gz -o /private/tmp/tmcp-v0.4.0.release.tar.gz",
+      "shasum -a 256 /private/tmp/tmcp-v0.4.0.release.tar.gz",
+      "mcp-publisher validate mcp-registry/draft-server.json",
+      "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "Main-hosted verify.yml run accepted for the 0.4.0 release candidate; tag evidence pending."
+    "result": "Successful v0.4.0 tag-hosted verify.yml run accepted for the published release."
   }
 }
