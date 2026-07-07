@@ -6,8 +6,8 @@ on:
     branches:
       - main
     tags:
-      - "v0.3.3"
-      - "0.3.3"
+      - "v0.4.0"
+      - "0.4.0"
 
 jobs:
   verify:
@@ -33,7 +33,7 @@ jobs:
         with:
           node-version: "20"
       - name: Compile
-        run: python -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
+        run: python -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py scripts/tmcp_route_catalog.py scripts/tmcp_skill_evaluate.py
       - name: Launcher syntax
         run: node --check scripts/tmcp_launcher.mjs
       - name: Tests

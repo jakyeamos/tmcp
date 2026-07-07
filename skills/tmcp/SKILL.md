@@ -111,7 +111,7 @@ Every workflow answer should include or cite:
 
 ## References
 
-- [Adaptive packet runtime](../../../docs/ADAPTIVE_PACKET_RUNTIME.md)
+- [Adaptive packet runtime](../../docs/ADAPTIVE_PACKET_RUNTIME.md)
 - [Concepts](references/concepts.md)
 - [CLI](references/cli.md)
 - [Workflows](references/workflows.md)

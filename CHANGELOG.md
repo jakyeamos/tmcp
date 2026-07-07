@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+## 0.4.0 - 2026-07-07
 - Added experimental `tmcp_evaluate_skills` with plan and score modes for full-skill behavioral evaluation, static anti-pattern review, A/B variant matrices, dimension scorecards, guidebook artifacts, and advisory harvest feedback without auto-promotion.
 - Wired `tmcp_harvest_skills` to emit per-source `skill_eval_advisories` and top-level warnings from the evaluation anti-pattern catalog (`verification no-op`, overbroad triggers, precedence hazards, and related patterns).
 - Packet inclusion scoring now diffs `tmcp_compose_packet` output against per-skill `packet_inclusion_contracts` instead of trace-only approximation.

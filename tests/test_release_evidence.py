@@ -10,7 +10,7 @@ from pathlib import Path, PureWindowsPath
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 CHECK_RELEASE_EVIDENCE_PATH = PLUGIN_ROOT / "scripts" / "check_release_evidence.py"
-ACTIVE_RELEASE_VERSION = "0.3.3"
+ACTIVE_RELEASE_VERSION = "0.4.0"
 
 
 def load_check_release_evidence_module():
