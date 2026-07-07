@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-skill-eval-trace-v0.1.schema.json",
+  "title": "TMCP Skill Evaluation Trace v0.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "task_id",
+    "variant_id",
+    "observations"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-skill-eval-trace-v0.1"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "variant_id": {
+      "type": "string"
+    },
+    "agent": {
+      "type": "object"
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "value"],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "human_labels": {
+      "type": "array"
+    },
+    "outcome": {
+      "type": "string"
+    }
+  }
+}

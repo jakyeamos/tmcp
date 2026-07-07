@@ -1,0 +1,50 @@
+{
+  "schema": "tmcp-skill-pattern-catalog-v0.1",
+  "patterns": [
+    {
+      "pattern_id": "verification.concrete-command",
+      "label": "Concrete verification command",
+      "classification": "effective_pattern",
+      "evidence_level": "hypothesis",
+      "internal_atoms": ["behavior-verification", "quality-gate-disclosure"],
+      "good_example": "Run `npm test -- --runInBand` and report pass/fail.",
+      "weak_example": "Make sure everything works.",
+      "detection_terms": ["report pass/fail", "run `", "npm test", "pytest"]
+    },
+    {
+      "pattern_id": "verification.vague-quality-language",
+      "label": "Vague verification language",
+      "classification": "anti_pattern",
+      "evidence_level": "hypothesis",
+      "internal_atoms": ["behavior-verification", "quality-gate-disclosure"],
+      "good_example": "Run the targeted test command and report whether it passed or failed.",
+      "weak_example": "Make sure the implementation is high quality.",
+      "detection_terms": ["make sure", "high quality", "works well", "everything works"],
+      "suggested_harvest_warning": "Verification language is abstract and has no observable pass/fail gate.",
+      "safe_to_auto_warn": true,
+      "safe_to_auto_rewrite": false
+    },
+    {
+      "pattern_id": "trigger.overbroad-description",
+      "label": "Overbroad trigger description",
+      "classification": "anti_pattern",
+      "evidence_level": "hypothesis",
+      "internal_atoms": ["tool-use-policy"],
+      "detection_terms": ["use when", "always", "any task", "whenever"],
+      "suggested_harvest_warning": "Trigger description may over-activate because it matches broad task classes.",
+      "safe_to_auto_warn": true,
+      "safe_to_auto_rewrite": false
+    },
+    {
+      "pattern_id": "precedence.override-hazard",
+      "label": "Instruction-precedence hazards",
+      "classification": "anti_pattern",
+      "evidence_level": "hypothesis",
+      "internal_atoms": ["conflict-preservation"],
+      "detection_terms": ["ignore system", "override user", "ignore developer", "highest priority"],
+      "suggested_harvest_warning": "Skill language may attempt to override higher-priority instructions.",
+      "safe_to_auto_warn": true,
+      "safe_to_auto_rewrite": false
+    }
+  ]
+}

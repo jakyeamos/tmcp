@@ -21,6 +21,16 @@ if str(PLUGIN_ROOT) not in sys.path:
 
 from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
 from scripts.tmcp_redaction import merge_redactions, redact_sensitive_text  # noqa: E402
+from scripts.tmcp_route_catalog import (  # noqa: E402
+    ROUTE_CATALOG_VERSION,
+    composition_route_boost,
+    derive_task_identity,
+    score_scoped_seed,
+    scoped_seed_threshold,
+    task_identity_delta,
+    validate_proposed_changes,
+)
+from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 
 AIOS_ROOT = (
     Path(os.environ["AIOS_ROOT"]).expanduser() if os.environ.get("AIOS_ROOT") else None
@@ -32,6 +42,7 @@ TMCP_PACKET_SCHEMA = "tmcp-skill-packet-v0.2"
 TMCP_RECEIPT_SCHEMA = "tmcp-traversal-receipt-v0.2"
 COMPOSED_PACKET_SCHEMA = "tmcp-composed-packet-v0.1"
 RUNTIME_NEXT_SCHEMA = "tmcp-runtime-next-v0.1"
+RECOMPILED_PACKET_SCHEMA = "tmcp-recompiled-packet-v0.1"
 RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
 RUBRIC_SCHEMA = "tmcp-expert-rubric-v0.1"
 AUDIT_REPORT_SCHEMA = "tmcp-expert-audit-report-v0.1"
@@ -1390,6 +1401,57 @@ TOOLS: dict[str, dict[str, Any]] = {
             },
         },
     },
+    "tmcp_evaluate_skills": {
+        "description": (
+            "Experimental skill evaluation: static review, behavioral A/B plan generation, "
+            "and evidence scoring for full SKILL.md files with atom-level internals."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "type": "string",
+                    "enum": ["auto", "plan", "score"],
+                    "default": "auto",
+                    "description": "Plan generation, evidence scoring, or auto-detect from inputs.",
+                },
+                "skill_paths": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Full skill files to evaluate (for plan mode).",
+                },
+                "task_fixtures": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "description": "Behavioral task fixtures with expected observables.",
+                },
+                "variants": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Variant ids for the behavioral A/B matrix.",
+                },
+                "evaluation_plan": {
+                    "description": "Evaluation plan object or path (for score mode).",
+                },
+                "run_evidence_json": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "description": "Structured trace evidence for score mode.",
+                },
+                "compose_packet": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Score packet inclusion from tmcp_compose_packet diffs.",
+                },
+                "project_path": {
+                    "type": "string",
+                    "description": "Project root used when composing packets during scoring.",
+                },
+                "write_artifacts": {"type": "boolean", "default": False},
+                "output_dir": {"type": "string"},
+            },
+        },
+    },
     "tmcp_recommend_workflows": {
         "description": (
             "Harvest local skill and instruction sources, infer coding-quality priority signals, "
@@ -1471,6 +1533,15 @@ TOOLS: dict[str, dict[str, Any]] = {
             "properties": {
                 "objective": {"type": "string"},
                 "project_path": {"type": "string", "default": "."},
+                "source_path": {
+                    "type": "string",
+                    "description": "Optional harvest root for family phase transitions.",
+                },
+                "source_paths": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional harvest roots for family phase transitions.",
+                },
                 "current_phase": {"type": "string", "default": "start"},
                 "previous_packet_id": {"type": "string"},
                 "files_read": {"type": "array", "items": {"type": "string"}},
@@ -1479,6 +1550,22 @@ TOOLS: dict[str, dict[str, Any]] = {
                 "failures": {"type": "array", "items": {"type": "string"}},
                 "browser_evidence": {"type": "array", "items": {"type": "string"}},
                 "latest_user_message": {"type": "string"},
+                "previous_task_identity": {"type": "object"},
+                "previous_packet": {
+                    "type": "object",
+                    "description": "Full previous composed packet required for output_mode=full.",
+                },
+                "proposed_changes": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "description": "Agent-proposed packet changes validated against the route catalog.",
+                },
+                "output_mode": {
+                    "type": "string",
+                    "enum": ["delta", "full"],
+                    "default": "delta",
+                    "description": "Return packet deltas or a full recompiled packet.",
+                },
                 "cache_policy": {
                     "type": "string",
                     "enum": ["global", "none"],
@@ -1611,6 +1698,10 @@ CLI_TOOL_ALIASES = {
     "harvest-skills": "tmcp_harvest_skills",
     "tmcp-harvest-skills": "tmcp_harvest_skills",
     "tmcp_harvest_skills": "tmcp_harvest_skills",
+    "evaluate-skills": "tmcp_evaluate_skills",
+    "evaluate": "tmcp_evaluate_skills",
+    "tmcp-evaluate-skills": "tmcp_evaluate_skills",
+    "tmcp_evaluate_skills": "tmcp_evaluate_skills",
     "recommend": "tmcp_recommend_workflows",
     "recommend-workflows": "tmcp_recommend_workflows",
     "tmcp-recommend-workflows": "tmcp_recommend_workflows",
@@ -1627,6 +1718,8 @@ CLI_TOOL_ALIASES = {
     "runtime-next": "tmcp_runtime_next",
     "tmcp-runtime-next": "tmcp_runtime_next",
     "tmcp_runtime_next": "tmcp_runtime_next",
+    "recompile-packet": "tmcp_runtime_next",
+    "tmcp-recompile-packet": "tmcp_runtime_next",
     "record-receipt": "tmcp_record_receipt",
     "tmcp-record-receipt": "tmcp_record_receipt",
     "tmcp_record_receipt": "tmcp_record_receipt",
@@ -1662,6 +1755,8 @@ CLI_COMMAND_DEFAULT_ARGUMENTS = {
         "objective": "Use the TMCP expert UI rubric on this project.",
         "adapter": "standalone",
     },
+    "recompile-packet": {"output_mode": "full"},
+    "tmcp-recompile-packet": {"output_mode": "full"},
 }
 
 
@@ -1953,6 +2048,717 @@ def _packet_markdown(packet: dict[str, Any]) -> str:
         for issue in _string_list(substance.get("issues")):
             lines.append(f"- Issue: {issue}")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def _compiled_from_packet(
+    *,
+    cache_policy: str,
+    family_context: dict[str, Any] | None,
+    evidence_citations: list[dict[str, Any]],
+) -> dict[str, Any]:
+    seed_id = str((family_context or {}).get("active_seed_id") or "").strip()
+    source_keys = sorted(
+        str(item.get("source") or item.get("path") or "")
+        for item in evidence_citations
+        if str(item.get("source") or item.get("path") or "")
+    )
+    graph_version = hashlib.sha256(
+        json.dumps(source_keys, sort_keys=True).encode()
+    ).hexdigest()[:16]
+    return {
+        "graph_version": graph_version,
+        "route_catalog_version": ROUTE_CATALOG_VERSION,
+        "seed_id": seed_id or None,
+        "receipt_ids": [],
+        "cache_policy": cache_policy,
+    }
+
+
+def _shortcut_candidate_for_composed_packet(
+    *,
+    packet: dict[str, Any],
+    compiled_from: dict[str, Any],
+    receipt_count: int,
+    user_overrides: list[str] | None = None,
+) -> dict[str, Any]:
+    family_context = packet.get("family_context")
+    task_identity = packet.get("task_identity")
+    seed_id = ""
+    if isinstance(family_context, dict):
+        seed_id = str(family_context.get("active_seed_id") or "").strip()
+    shortcut_id = seed_id
+    if not shortcut_id and isinstance(task_identity, dict):
+        shortcut_id = str(task_identity.get("primary") or "").strip()
+    if not shortcut_id:
+        return {
+            "status": "none",
+            "shortcut_id": "",
+            "matched": False,
+            "compiled_from": compiled_from,
+            "regenerate_when": [],
+            "fallback": "router_traversal",
+            "reason": "No scoped seed or stable route identity matched.",
+        }
+    overrides = _string_list(user_overrides)
+    status = "eligible"
+    reason = "Compiled route identity matches current graph inputs."
+    if overrides:
+        status = "needs_revalidation"
+        reason = "User overrides require full packet revalidation."
+    return {
+        "status": status,
+        "shortcut_id": shortcut_id,
+        "matched": status == "eligible",
+        "compiled_from": {
+            **compiled_from,
+            "receipt_count": receipt_count,
+        },
+        "regenerate_when": [
+            "graph_version changes",
+            "seed_id unpublished",
+            "user_override present",
+        ],
+        "fallback": "router_traversal",
+        "reason": reason,
+    }
+
+
+def _selection_rationale(packet: dict[str, Any]) -> str:
+    task_identity = packet.get("task_identity")
+    if not isinstance(task_identity, dict):
+        return "TMCP selected sources from the harvested skill graph for the stated objective."
+    primary = str(task_identity.get("primary") or "general_task")
+    signals = [
+        item
+        for item in _json_list(task_identity.get("signals"))
+        if isinstance(item, dict)
+    ]
+    if not signals:
+        return (
+            f"TMCP inferred primary task identity `{primary}` from the objective and runtime context."
+        )
+    top = signals[0]
+    route = str(top.get("route") or primary)
+    evidence = ", ".join(_string_list(top.get("evidence"))[:3])
+    route_scores = ", ".join(
+        f"{item.get('route')} ({item.get('score')})"
+        for item in signals[:4]
+        if isinstance(item, dict) and item.get("route")
+    )
+    family_context = packet.get("family_context")
+    if isinstance(family_context, dict) and family_context.get("active_seed_id"):
+        seed_id = str(family_context.get("active_seed_id"))
+        return (
+            f"TMCP matched scoped packet seed `{seed_id}` and route `{route}` "
+            f"from route scores [{route_scores}] and signals ({evidence})."
+        )
+    return (
+        f"TMCP inferred primary task identity `{primary}` with strongest route `{route}` "
+        f"from route scores [{route_scores}] and signals ({evidence})."
+    )
+
+
+def _composed_packet_markdown(packet: dict[str, Any]) -> str:
+    task_identity = packet.get("task_identity")
+    if not isinstance(task_identity, dict):
+        task_identity = {}
+    primary = str(task_identity.get("primary") or "general_task")
+    secondary = _string_list(task_identity.get("secondary"))
+    active_routes = _string_list(task_identity.get("active_routes"))
+    lines = [
+        "# TMCP Packet",
+        "",
+        f"Objective: {packet.get('objective', '')}",
+        f"Phase: `{packet.get('phase', 'start')}`",
+        f"Packet ID: `{packet.get('packet_id', '')}`",
+        "",
+        "## Task Identity",
+        f"Primary: {primary}",
+    ]
+    if secondary:
+        lines.append(f"Secondary: {', '.join(secondary)}")
+    if active_routes:
+        lines.extend(["", "## Active Routes"])
+        lines.extend(f"- {route}" for route in active_routes)
+    citations = [
+        item for item in _json_list(packet.get("evidence_citations")) if isinstance(item, dict)
+    ]
+    if citations:
+        lines.extend(["", "## Loaded Skill Sources"])
+        for item in citations[:10]:
+            source = str(item.get("source") or item.get("path") or "source")
+            atoms = ", ".join(_string_list(item.get("matched_atoms"))[:4])
+            if atoms:
+                lines.append(f"- {source}: {atoms}")
+            else:
+                lines.append(f"- {source}")
+    lines.extend(["", "## Selection Rationale", _selection_rationale(packet)])
+    ignored = [
+        item for item in _json_list(packet.get("ignored_sources")) if isinstance(item, dict)
+    ]
+    if ignored:
+        lines.extend(["", "## Excluded Skills"])
+        for item in ignored[:10]:
+            source = str(item.get("source") or "source")
+            reason = str(item.get("reason") or "No match for current objective or phase.")
+            lines.append(f"- {source}: {reason}")
+    deferred = _string_list(packet.get("deferred_atoms"))
+    if deferred:
+        lines.append(f"- deferred atoms: {', '.join(deferred)}")
+    instructions = _string_list(packet.get("active_instructions"))
+    if instructions:
+        lines.extend(["", "## Operating Instructions"])
+        for index, instruction in enumerate(instructions, start=1):
+            lines.append(f"{index}. {instruction}")
+    gates = _string_list(packet.get("verification_gates"))
+    if gates:
+        lines.extend(["", "## Verification Gates"])
+        for gate in gates:
+            lines.append(f"- {gate}")
+    family_context = packet.get("family_context")
+    if isinstance(family_context, dict) and family_context.get("active_seed_id"):
+        lines.extend(
+            [
+                "",
+                "## Recompile Triggers",
+                "- New task phase detected",
+                "- User changes target pages or objective",
+                "- Codebase reveals framework or design-system constraints",
+                "- Implementation exposes accessibility or performance risk",
+            ]
+        )
+    lines.extend(
+        [
+            "",
+            "## Required Receipts",
+            "- Pages or files changed",
+            "- Skills and routes used",
+            "- Validation performed",
+            "- Known tradeoffs",
+        ]
+    )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+RECOMPILE_REASON_DETAILS: dict[str, str] = {
+    "user_redirect": "Latest user message redirected the task.",
+    "phase_transition": "Family phase transition activated the next skill layer.",
+    "implementation_phase_detected": (
+        "Work moved from visual exploration into production implementation."
+    ),
+    "verification_failure": "Runtime failures require debugging and regression focus.",
+    "browser_evidence_available": "Browser evidence is available for the next verification step.",
+    "task_identity_shift": "Task identity changed materially from the previous packet.",
+    "runtime_context_changed": "Runtime evidence changed the next operating packet.",
+}
+
+
+def _parse_previous_packet(arguments: dict[str, Any]) -> dict[str, Any] | None:
+    previous_packet = arguments.get("previous_packet")
+    if isinstance(previous_packet, dict):
+        return previous_packet
+    if isinstance(previous_packet, str) and previous_packet.strip().startswith("{"):
+        payload = json.loads(previous_packet)
+        if isinstance(payload, dict):
+            return payload
+    return None
+
+
+def _resolve_recompile_reason(arguments: dict[str, Any], state: dict[str, Any]) -> str:
+    latest_user_message = str(arguments.get("latest_user_message") or "").lower()
+    if any(
+        term in latest_user_message
+        for term in ("actually", "instead", "new goal", "different")
+    ):
+        return "user_redirect"
+    identity_delta = state.get("task_identity_delta")
+    if isinstance(identity_delta, dict) and identity_delta.get("reason") in {
+        "task_identity_primary_changed",
+        "user_redirect",
+    }:
+        return "task_identity_shift"
+    if _string_list(arguments.get("failures")):
+        return "verification_failure"
+    if _string_list(arguments.get("browser_evidence")):
+        return "browser_evidence_available"
+    suggested_phase = str(state.get("suggested_phase") or "")
+    files_changed = _string_list(arguments.get("files_changed"))
+    if suggested_phase:
+        if suggested_phase == "implementation" and files_changed:
+            return "implementation_phase_detected"
+        return "phase_transition"
+    if files_changed:
+        return "implementation_phase_detected"
+    return "runtime_context_changed"
+
+
+def _recompile_detail(reason: str) -> str:
+    return RECOMPILE_REASON_DETAILS.get(
+        reason, "Runtime evidence changed the next operating packet."
+    )
+
+
+def _drop_reason(item_id: str, recompile_reason: str, packet_delta: dict[str, Any]) -> str:
+    deactivated = set(_string_list(packet_delta.get("deactivated_atoms"))) | set(
+        _string_list(packet_delta.get("stale_atoms"))
+    )
+    if item_id in deactivated:
+        return "Deactivated by family phase transition."
+    if recompile_reason == "implementation_phase_detected" and (
+        "research" in item_id or item_id == "freshness_research"
+    ):
+        return "Implementation files changed; exploration atoms deferred."
+    return f"Not required after {recompile_reason}."
+
+
+def _packet_diff(
+    previous: dict[str, Any],
+    current: dict[str, Any],
+    *,
+    packet_delta: dict[str, Any],
+    recompile_reason: str,
+) -> dict[str, Any]:
+    prev_atoms = set(_string_list(previous.get("active_atoms")))
+    curr_atoms = set(_string_list(current.get("active_atoms")))
+    prev_routes = set(
+        _string_list((previous.get("task_identity") or {}).get("active_routes"))
+    )
+    curr_routes = set(
+        _string_list((current.get("task_identity") or {}).get("active_routes"))
+    )
+    dropped: list[dict[str, str]] = []
+    for atom in sorted(prev_atoms - curr_atoms):
+        dropped.append(
+            {
+                "kind": "atom",
+                "id": atom,
+                "reason": _drop_reason(atom, recompile_reason, packet_delta),
+            }
+        )
+    for route in sorted(prev_routes - curr_routes):
+        dropped.append(
+            {
+                "kind": "route",
+                "id": route,
+                "reason": _drop_reason(route, recompile_reason, packet_delta),
+            }
+        )
+    added: list[dict[str, str]] = []
+    for atom in sorted(curr_atoms - prev_atoms):
+        added.append(
+            {
+                "kind": "atom",
+                "id": atom,
+                "reason": "Activated after runtime recompile.",
+            }
+        )
+    for skill in _string_list(packet_delta.get("suggested_skills")):
+        added.append(
+            {
+                "kind": "skill",
+                "id": skill,
+                "reason": "phase_transitions.activate_skills",
+            }
+        )
+    for route in sorted(curr_routes - prev_routes):
+        added.append(
+            {
+                "kind": "route",
+                "id": route,
+                "reason": "Route activated from runtime evidence.",
+            }
+        )
+    phase_change = None
+    previous_phase = str(previous.get("phase") or "")
+    current_phase = str(current.get("phase") or "")
+    if previous_phase and current_phase and previous_phase != current_phase:
+        phase_change = {"from": previous_phase, "to": current_phase}
+    return {
+        "dropped": dropped,
+        "added": added,
+        "unchanged": sorted(prev_atoms & curr_atoms),
+        "phase_change": phase_change,
+    }
+
+
+def _merge_packet_delta(
+    packet: dict[str, Any],
+    packet_delta: dict[str, Any],
+    *,
+    next_gates: list[str],
+) -> dict[str, Any]:
+    merged = dict(packet)
+    activated = _string_list(packet_delta.get("activated_atoms"))
+    deactivated = set(
+        _string_list(packet_delta.get("deactivated_atoms"))
+        + _string_list(packet_delta.get("stale_atoms"))
+    )
+    active_atoms = [
+        atom
+        for atom in _ordered_unique(_string_list(merged.get("active_atoms")) + activated)
+        if atom not in deactivated
+    ]
+    deferred_atoms = _ordered_unique(
+        [
+            atom
+            for atom in _string_list(merged.get("deferred_atoms"))
+            if atom not in active_atoms
+        ]
+        + [atom for atom in deactivated if atom not in active_atoms]
+    )
+    required_reads = _ordered_unique(
+        _string_list(merged.get("required_reads"))
+        + _string_list(packet_delta.get("newly_required_reads"))
+    )
+    verification_gates = _ordered_unique(
+        _string_list(merged.get("verification_gates")) + next_gates
+    )
+    family_context = dict(merged.get("family_context") or {})
+    delta_family_context = packet_delta.get("family_context")
+    if isinstance(delta_family_context, dict) and delta_family_context:
+        family_context.update(delta_family_context)
+    suggested_phase = str(packet_delta.get("suggested_phase") or "").strip()
+    if suggested_phase:
+        merged["phase"] = suggested_phase
+    merged["active_atoms"] = active_atoms[:16]
+    merged["deferred_atoms"] = deferred_atoms[:8]
+    merged["required_reads"] = required_reads[:12]
+    merged["verification_gates"] = verification_gates[:10]
+    merged["family_context"] = family_context
+    return merged
+
+
+def _enrich_packet_from_source_nodes(
+    packet: dict[str, Any], source_nodes: list[dict[str, Any]], read_paths: list[str]
+) -> dict[str, Any]:
+    if not read_paths:
+        return packet
+    wanted_paths = set(read_paths)
+    citations = [
+        item
+        for item in _json_list(packet.get("evidence_citations"))
+        if isinstance(item, dict)
+    ]
+    cited_paths = {
+        str(item.get("source") or item.get("path") or "") for item in citations
+    }
+    active_instructions = _string_list(packet.get("active_instructions"))
+    for node in source_nodes:
+        rel_path = str(node.get("relative_path") or "")
+        if rel_path not in wanted_paths or rel_path in cited_paths:
+            continue
+        citations.append(
+            {
+                "source": rel_path,
+                "path": node.get("path"),
+                "trust": node.get("trust", "untrusted_harvested_text"),
+                "matched_atoms": _string_list(node.get("behavior_atoms"))[:5],
+            }
+        )
+        active_instructions.extend(_node_active_instructions(node))
+        cited_paths.add(rel_path)
+    packet["evidence_citations"] = citations
+    packet["active_instructions"] = _ordered_unique(active_instructions)[:10]
+    return packet
+
+
+def _apply_validated_proposals(
+    packet: dict[str, Any], validated_changes: list[dict[str, Any]]
+) -> dict[str, Any]:
+    if not validated_changes:
+        return packet
+    task_identity = dict(packet.get("task_identity") or {})
+    active_routes = _string_list(task_identity.get("active_routes"))
+    for change in validated_changes:
+        action = str(change.get("action") or "")
+        if action == "add_route":
+            route = str(change.get("route") or "")
+            if route and route not in active_routes:
+                active_routes.append(route)
+    task_identity["active_routes"] = active_routes
+    secondary = _string_list(task_identity.get("secondary"))
+    for route in active_routes:
+        if route != task_identity.get("primary") and route not in secondary:
+            secondary.append(route)
+    task_identity["secondary"] = secondary[:6]
+    packet["task_identity"] = task_identity
+    return packet
+
+
+def _recompiled_packet_markdown(recompiled: dict[str, Any]) -> str:
+    packet = recompiled.get("packet")
+    if not isinstance(packet, dict):
+        return ""
+    lines = [
+        f"## Recompile",
+        f"Reason: {recompiled.get('recompile_reason', '')}",
+        f"Detail: {recompiled.get('recompile_detail', '')}",
+    ]
+    packet_diff = recompiled.get("packet_diff")
+    if isinstance(packet_diff, dict):
+        dropped = [
+            item for item in _json_list(packet_diff.get("dropped")) if isinstance(item, dict)
+        ]
+        added = [
+            item for item in _json_list(packet_diff.get("added")) if isinstance(item, dict)
+        ]
+        if dropped:
+            lines.extend(["", "### Dropped"])
+            for item in dropped:
+                lines.append(
+                    f"- {item.get('kind', 'item')}: {item.get('id', '')} ({item.get('reason', '')})"
+                )
+        if added:
+            lines.extend(["", "### Added"])
+            for item in added:
+                lines.append(
+                    f"- {item.get('kind', 'item')}: {item.get('id', '')} ({item.get('reason', '')})"
+                )
+    base_markdown = _composed_packet_markdown(packet)
+    return base_markdown.replace(
+        "# TMCP Packet\n",
+        "# TMCP Packet\n" + "\n".join(lines) + "\n",
+        1,
+    )
+
+
+def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
+    objective = str(arguments.get("objective") or "").strip()
+    if not objective:
+        raise ValueError("tmcp_runtime_next requires objective.")
+    phase = str(arguments.get("current_phase") or "start")
+    cache_policy = str(arguments.get("cache_policy") or "global")
+    latest_user_message = str(arguments.get("latest_user_message") or "")
+    files_changed = _string_list(arguments.get("files_changed"))
+    failures = _string_list(arguments.get("failures"))
+    browser_evidence = _string_list(arguments.get("browser_evidence"))
+    context = {
+        "files_changed": files_changed,
+        "failures": failures,
+        "browser_evidence": browser_evidence,
+    }
+    combined_objective = " ".join(
+        part for part in (objective, latest_user_message) if part
+    ).strip()
+    activated_atoms, newly_required_reads, next_gates = _contextual_atoms_and_gates(
+        combined_objective, phase, context
+    )
+    stale_atoms: list[str] = []
+    warnings: list[str] = []
+    family_delta: dict[str, Any] = {}
+    family_context: dict[str, Any] | None = None
+    source_nodes: list[dict[str, Any]] = []
+    suggested_phase = ""
+    harvest_root = str(
+        arguments.get("source_path") or arguments.get("project_path") or ""
+    ).strip()
+    if harvest_root and Path(harvest_root).expanduser().exists():
+        harvest = _harvest_skills(_runtime_harvest_arguments(arguments))
+        source_nodes = [
+            item
+            for item in _json_list(harvest.get("source_nodes"))
+            if isinstance(item, dict)
+        ]
+        family_context, seed_node = _runtime_family_seed_context(
+            source_nodes, combined_objective, phase
+        )
+        family_delta = _runtime_family_packet_delta(
+            current_phase=phase,
+            family_context=family_context,
+            seed_node=seed_node,
+            source_nodes=source_nodes,
+            objective=combined_objective,
+            context=context,
+            latest_user_message=latest_user_message,
+        )
+        if family_delta:
+            activated_atoms = _ordered_unique(
+                activated_atoms + _string_list(family_delta.get("activated_atoms"))
+            )
+            newly_required_reads = _ordered_unique(
+                newly_required_reads
+                + _string_list(family_delta.get("newly_required_reads"))
+            )
+            next_gates = _ordered_unique(
+                next_gates + _string_list(family_delta.get("verification_gates"))
+            )
+            stale_atoms = _ordered_unique(
+                stale_atoms + _string_list(family_delta.get("deactivated_atoms"))
+            )
+            suggested_phase = str(family_delta.get("suggested_phase") or "")
+    if any(
+        term in latest_user_message.lower()
+        for term in ("actually", "instead", "new goal", "different")
+    ):
+        stale_atoms.append("previous-objective-specific-atoms")
+        warnings.append(
+            "Latest user message may redirect the objective; stale atoms should be rechecked before use."
+        )
+    if cache_policy != "none":
+        _, graph_warnings = _load_global_promoted_graphs(cache_policy)
+        _, receipt_warnings = _load_recent_receipts(cache_policy, limit=10)
+        warnings.extend(graph_warnings + receipt_warnings)
+    if not next_gates:
+        next_gates.append("Read the next required source before changing behavior.")
+    identity_context = dict(context)
+    identity_context["latest_user_message"] = latest_user_message
+    resolved_family_context = family_context
+    if not resolved_family_context:
+        packet_family_context = family_delta.get("family_context")
+        if isinstance(packet_family_context, dict) and packet_family_context:
+            resolved_family_context = packet_family_context
+    current_task_identity = derive_task_identity(
+        combined_objective,
+        identity_context,
+        resolved_family_context,
+    )
+    previous_task_identity = arguments.get("previous_task_identity")
+    if not isinstance(previous_task_identity, dict):
+        previous_packet = _parse_previous_packet(arguments)
+        if isinstance(previous_packet, dict):
+            previous_task_identity = previous_packet.get("task_identity")
+    identity_delta: dict[str, Any] | None = None
+    if isinstance(previous_task_identity, dict):
+        delta_reason = "runtime_context_changed"
+        if any(
+            term in latest_user_message.lower()
+            for term in ("actually", "instead", "new goal", "different")
+        ):
+            delta_reason = "user_redirect"
+        elif suggested_phase:
+            delta_reason = "phase_transition"
+        elif files_changed:
+            delta_reason = "implementation_phase_detected"
+        identity_delta = task_identity_delta(
+            previous_task_identity,
+            current_task_identity,
+            reason=delta_reason,
+        )
+    packet_delta = {
+        "activated_atoms": activated_atoms,
+        "deactivated_atoms": stale_atoms,
+        "stale_atoms": stale_atoms,
+        "newly_required_reads": newly_required_reads,
+        "suggested_phase": suggested_phase,
+        "suggested_skills": _string_list(family_delta.get("suggested_skills")),
+        "deferred_skills": _string_list(family_delta.get("deferred_skills")),
+        "family_context": family_delta.get("family_context", {}),
+    }
+    proposed_changes = [
+        item
+        for item in _json_list(arguments.get("proposed_changes"))
+        if isinstance(item, dict)
+    ]
+    validated_changes, proposal_warnings = validate_proposed_changes(proposed_changes)
+    warnings.extend(proposal_warnings)
+    return {
+        "objective": objective,
+        "combined_objective": combined_objective,
+        "project_path": str(arguments.get("project_path") or "."),
+        "phase": phase,
+        "suggested_phase": suggested_phase,
+        "cache_policy": cache_policy,
+        "context": context,
+        "latest_user_message": latest_user_message,
+        "source_nodes": source_nodes,
+        "task_identity": current_task_identity,
+        "task_identity_delta": identity_delta,
+        "packet_delta": packet_delta,
+        "next_verification_gate": next_gates,
+        "warnings": _ordered_unique(warnings),
+        "proposed_changes": proposed_changes,
+        "validated_changes": validated_changes,
+    }
+
+
+def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
+    previous_packet = _parse_previous_packet(arguments)
+    if not isinstance(previous_packet, dict):
+        raise ValueError(
+            "tmcp_runtime_next output_mode=full requires previous_packet as an object."
+        )
+    packet_delta = dict(state.get("packet_delta") or {})
+    next_gates = _string_list(state.get("next_verification_gate"))
+    target_phase = str(state.get("suggested_phase") or state.get("phase") or "start")
+    compose_arguments = {
+        "objective": state.get("combined_objective") or state.get("objective"),
+        "project_path": previous_packet.get("project_path")
+        or state.get("project_path"),
+        "source_path": arguments.get("source_path")
+        or arguments.get("project_path")
+        or previous_packet.get("project_path"),
+        "phase": target_phase,
+        "cache_policy": state.get("cache_policy") or "global",
+        "runtime_context": state.get("context") or {},
+        "latest_user_message": state.get("latest_user_message") or "",
+        "limit": arguments.get("limit", 40),
+    }
+    for key in (
+        "source_paths",
+        "include_globs",
+        "exclude_globs",
+        "max_file_bytes",
+        "max_excerpt_chars",
+        "follow_symlinks",
+        "redact_sensitive",
+    ):
+        if key in arguments:
+            compose_arguments[key] = arguments[key]
+    new_packet = _compose_packet(compose_arguments)
+    new_packet = _merge_packet_delta(new_packet, packet_delta, next_gates=next_gates)
+    source_nodes = [
+        item
+        for item in _json_list(state.get("source_nodes"))
+        if isinstance(item, dict)
+    ]
+    new_packet = _enrich_packet_from_source_nodes(
+        new_packet,
+        source_nodes,
+        _string_list(packet_delta.get("newly_required_reads")),
+    )
+    new_packet = _apply_validated_proposals(
+        new_packet, _json_list(state.get("validated_changes"))
+    )
+    new_packet["task_identity"] = state.get("task_identity") or new_packet.get(
+        "task_identity"
+    )
+    recompile_reason = _resolve_recompile_reason(arguments, state)
+    packet_diff = _packet_diff(
+        previous_packet,
+        new_packet,
+        packet_delta=packet_delta,
+        recompile_reason=recompile_reason,
+    )
+    previous_packet_id = str(
+        arguments.get("previous_packet_id")
+        or previous_packet.get("packet_id")
+        or ""
+    )
+    recompiled = {
+        "ok": True,
+        "schema": RECOMPILED_PACKET_SCHEMA,
+        "previous_packet_id": previous_packet_id or None,
+        "recompile_reason": recompile_reason,
+        "recompile_detail": _recompile_detail(recompile_reason),
+        "packet": new_packet,
+        "packet_diff": packet_diff,
+        "agent_proposals": state.get("proposed_changes") or [],
+        "validated_changes": state.get("validated_changes") or [],
+        "suggested_phase": state.get("suggested_phase") or "",
+        "task_identity": state.get("task_identity"),
+        "task_identity_delta": state.get("task_identity_delta"),
+        "warnings": state.get("warnings") or [],
+        "safety": {
+            "stateless": True,
+            "cache_trust": "advisory_untrusted",
+            "instruction_override_policy": (
+                "Recompiled packets never override system, developer, user, or project instructions."
+            ),
+        },
+    }
+    new_packet["packet_markdown"] = _recompiled_packet_markdown(recompiled)
+    recompiled["packet"] = new_packet
+    return recompiled
 
 
 def _source_node_for_packet(node: dict[str, Any]) -> dict[str, Any]:
@@ -3240,6 +4046,657 @@ def _ordered_unique(values: list[str]) -> list[str]:
     return ordered
 
 
+DECLARED_LOAD_VERB_PATTERN = re.compile(
+    r"(?:search|load|read from|check|inspect|open)\s+`([^`]+)`",
+    re.IGNORECASE,
+)
+DECLARED_LOAD_PATH_PATTERN = re.compile(
+    r"`((?:[a-zA-Z0-9][a-zA-Z0-9_.-]*/)+|"
+    r"[a-zA-Z0-9][a-zA-Z0-9_.-]*\.(?:md|json|yaml|yml))`"
+)
+DECLARED_LOAD_GLOBAL_BASENAMES = frozenset(
+    {
+        "coverage-gaps.md",
+        "lint-candidates.md",
+        "readme.md",
+    }
+)
+DECLARED_LOAD_SURFACE_TERMS = (
+    "onboarding",
+    "settings",
+    "billing",
+    "dashboard",
+    "dashboards",
+    "forms",
+    "permissions",
+    "destructive",
+    "empty state",
+    "empty states",
+    "loading state",
+    "loading states",
+    "validation",
+    "checkout",
+    "workspace",
+)
+
+
+def _normalize_declared_load_pattern(pattern: str) -> str:
+    normalized = pattern.strip().strip("`").replace("\\", "/").lstrip("./")
+    if not normalized:
+        return ""
+    if normalized.endswith("/"):
+        return f"{normalized.rstrip('/')}/**"
+    if "**" not in normalized and not Path(normalized).suffix:
+        return f"{normalized}/**"
+    return normalized
+
+
+def _declared_load_patterns_from_text(text: str) -> list[str]:
+    patterns: list[str] = []
+    for match in DECLARED_LOAD_VERB_PATTERN.finditer(text):
+        patterns.append(_normalize_declared_load_pattern(match.group(1)))
+    for match in DECLARED_LOAD_PATH_PATTERN.finditer(text):
+        candidate = _normalize_declared_load_pattern(match.group(1))
+        if candidate and ("/" in candidate or candidate.endswith((".md", ".json", ".yaml", ".yml"))):
+            patterns.append(candidate)
+    return [pattern for pattern in _ordered_unique(patterns) if pattern]
+
+
+def _node_matches_declared_load_pattern(rel_path: str, pattern: str) -> bool:
+    rel = rel_path.replace("\\", "/").lstrip("./")
+    pat = pattern.replace("\\", "/").lstrip("./")
+    if not rel or not pat:
+        return False
+    if "**" in pat:
+        regex = "^" + re.escape(pat).replace(r"\*\*", ".*") + "$"
+        return bool(re.match(regex, rel))
+    if "/" not in pat and Path(pat).suffix:
+        return rel == pat or rel.endswith(f"/{pat}")
+    return fnmatch.fnmatch(rel, pat) or rel == pat
+
+
+def _surface_terms_from_objective(objective: str) -> list[str]:
+    lower = objective.lower()
+    return [term for term in DECLARED_LOAD_SURFACE_TERMS if term in lower]
+
+
+def _narrow_declared_load_paths(
+    paths: list[str], objective: str, *, limit: int = 12
+) -> list[str]:
+    if not paths:
+        return []
+    ordered = _ordered_unique(paths)
+    surfaces = _surface_terms_from_objective(objective)
+    if not surfaces:
+        return ordered[:limit]
+
+    matched: list[str] = []
+    global_paths: list[str] = []
+    for path in ordered:
+        lower = path.lower()
+        basename = Path(path).name.lower()
+        if basename in DECLARED_LOAD_GLOBAL_BASENAMES or "/standards/" in lower:
+            global_paths.append(path)
+            continue
+        if any(
+            surface in lower
+            or surface.replace(" ", "-") in lower
+            or surface.replace(" ", "_") in lower
+            for surface in surfaces
+        ):
+            matched.append(path)
+    return _ordered_unique(matched + global_paths)[:limit]
+
+
+def _resolved_declared_load_paths(
+    *,
+    selected_nodes: list[dict[str, Any]],
+    source_nodes: list[dict[str, Any]],
+    objective: str,
+    family_context: dict[str, Any] | None = None,
+) -> list[str]:
+    patterns: list[str] = []
+    for node in selected_nodes:
+        metadata = _routing_metadata(node)
+        patterns.extend(_string_list(metadata.get("declared_loads")))
+    if family_context:
+        patterns.extend(_string_list(family_context.get("declared_loads")))
+    patterns = _ordered_unique(patterns)
+    if not patterns:
+        return []
+
+    matched_paths: list[str] = []
+    for node in source_nodes:
+        rel_path = str(node.get("relative_path") or "")
+        if not rel_path:
+            continue
+        if any(
+            _node_matches_declared_load_pattern(rel_path, pattern)
+            for pattern in patterns
+        ):
+            matched_paths.append(rel_path)
+    return _narrow_declared_load_paths(matched_paths, objective)
+
+
+def _resolved_declared_load_nodes(
+    *,
+    selected_nodes: list[dict[str, Any]],
+    source_nodes: list[dict[str, Any]],
+    objective: str,
+    family_context: dict[str, Any] | None = None,
+    max_nodes: int = 6,
+) -> tuple[list[str], list[dict[str, Any]]]:
+    narrowed_paths = _resolved_declared_load_paths(
+        selected_nodes=selected_nodes,
+        source_nodes=source_nodes,
+        objective=objective,
+        family_context=family_context,
+    )
+    if not narrowed_paths:
+        return [], []
+
+    selected_paths = {
+        str(node.get("relative_path") or "") for node in selected_nodes if node.get("relative_path")
+    }
+    narrowed_nodes = [
+        node
+        for node in source_nodes
+        if str(node.get("relative_path") or "") in narrowed_paths
+        and str(node.get("relative_path") or "") not in selected_paths
+    ][:max_nodes]
+    return narrowed_paths, narrowed_nodes
+
+
+def _merge_compose_nodes(
+    primary_nodes: list[dict[str, Any]],
+    additional_nodes: list[dict[str, Any]],
+    *,
+    max_nodes: int = 14,
+) -> list[dict[str, Any]]:
+    merged: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for node in [*primary_nodes, *additional_nodes]:
+        rel_path = str(node.get("relative_path") or "")
+        if not rel_path or rel_path in seen:
+            continue
+        seen.add(rel_path)
+        merged.append(node)
+        if len(merged) >= max_nodes:
+            break
+    return merged
+
+
+ROUTER_CHILD_PATTERN = re.compile(r"→\s*([a-z0-9-]+)")
+FAMILY_SUPPORT_DOC_NAMES = frozenset({"install.md", "example_workflow.md", "readme.md"})
+
+
+def _normalize_skill_slug(value: str) -> str:
+    return re.sub(r"\s+", "-", str(value or "").strip().lower())
+
+
+def _skill_slug_from_relative_path(rel_path: str) -> str:
+    normalized = str(rel_path or "").replace("\\", "/")
+    if not normalized.lower().endswith("/skill.md"):
+        return ""
+    return Path(normalized).parent.name
+
+
+def _objective_names_skill_slug(objective: str, slug: str) -> bool:
+    if not slug:
+        return False
+    lower = objective.lower()
+    normalized = _normalize_skill_slug(slug)
+    return normalized in lower or normalized.replace("-", " ") in lower
+
+
+def _is_skill_family_router(node: dict[str, Any]) -> bool:
+    if str(node.get("source_type") or "") != "skill_definition":
+        return False
+    text = _node_signal_text(node).lower()
+    rel_path = str(node.get("relative_path") or "").lower()
+    return (
+        "choose exactly one primary mode" in text
+        or "skill family" in text
+        or "/product-judgment/" in rel_path
+        or bool(ROUTER_CHILD_PATTERN.search(text))
+    )
+
+
+def _router_child_slugs(node: dict[str, Any]) -> list[str]:
+    return _ordered_unique(ROUTER_CHILD_PATTERN.findall(_node_signal_text(node)))
+
+
+def _family_skills_root_from_sources(source_patterns: list[str]) -> str:
+    if not source_patterns:
+        return ""
+    normalized = [pattern.replace("\\", "/").lstrip("./") for pattern in source_patterns]
+    if not normalized:
+        return ""
+    common = os.path.commonpath(normalized)
+    if common.endswith(".md"):
+        common = str(Path(common).parent)
+    if not common.endswith("/"):
+        common = f"{common}/"
+    return common
+
+
+def _scoped_seed_objective_score(
+    node: dict[str, Any],
+    objective: str,
+    active_routes: list[str] | None = None,
+) -> float:
+    if str(node.get("source_type") or "") != "scoped_packet_seed":
+        return 0.0
+    return score_scoped_seed(node, objective, active_routes)
+
+
+def _family_context_from_seed_node(
+    seed_node: dict[str, Any], objective: str
+) -> dict[str, Any]:
+    source_references = _string_list(seed_node.get("source_references"))
+    matched_sources = [
+        source_ref
+        for source_ref in source_references
+        if _objective_names_skill_slug(objective, _skill_slug_from_relative_path(source_ref))
+    ]
+    primary_source_patterns = matched_sources or source_references
+    primary_skill_slugs = {
+        _skill_slug_from_relative_path(source_ref)
+        for source_ref in primary_source_patterns
+        if _skill_slug_from_relative_path(source_ref)
+    }
+    declared_loads = _ordered_unique(
+        [
+            _normalize_declared_load_pattern(pattern)
+            for pattern in _string_list(seed_node.get("loads"))
+        ]
+        + _string_list(_routing_metadata(seed_node).get("declared_loads"))
+    )
+    deferred_skill_slugs = {
+        _normalize_skill_slug(item)
+        for item in _string_list(seed_node.get("chains_before"))
+        + _string_list(seed_node.get("do_not_activate_with"))
+    }
+    deferred_skill_slugs -= {
+        _normalize_skill_slug(slug) for slug in primary_skill_slugs
+    }
+    return {
+        "kind": "scoped_packet_seed",
+        "active_seed_id": str(seed_node.get("seed_id") or seed_node.get("id") or ""),
+        "seed_name": str(seed_node.get("title") or seed_node.get("seed_id") or ""),
+        "route_affinity": _string_list(seed_node.get("route_affinity")),
+        "primary_source_patterns": primary_source_patterns,
+        "primary_skill_slugs": sorted(primary_skill_slugs),
+        "declared_loads": [pattern for pattern in declared_loads if pattern],
+        "deferred_skill_slugs": sorted(deferred_skill_slugs),
+        "chains_after": _string_list(seed_node.get("chains_after")),
+        "family_skills_root": _family_skills_root_from_sources(source_references),
+        "router_relative_paths": [],
+    }
+
+
+def _family_context_from_router(
+    router_node: dict[str, Any], source_nodes: list[dict[str, Any]], objective: str
+) -> dict[str, Any] | None:
+    child_slugs = _router_child_slugs(router_node)
+    matched_children = [
+        slug for slug in child_slugs if _objective_names_skill_slug(objective, slug)
+    ]
+    if not matched_children:
+        return None
+    primary_slug = matched_children[0]
+    router_path = str(router_node.get("relative_path") or "")
+    family_root = str(Path(router_path.replace("\\", "/")).parent)
+    if family_root and not family_root.endswith("/"):
+        family_root = f"{family_root}/"
+    deferred_skill_slugs = {
+        _normalize_skill_slug(slug)
+        for slug in child_slugs
+        if _normalize_skill_slug(slug) != _normalize_skill_slug(primary_slug)
+    }
+    primary_patterns = [
+        str(node.get("relative_path") or "")
+        for node in source_nodes
+        if _skill_slug_from_relative_path(str(node.get("relative_path") or ""))
+        == primary_slug
+    ]
+    declared_loads: list[str] = []
+    for node in source_nodes:
+        if _skill_slug_from_relative_path(str(node.get("relative_path") or "")) != primary_slug:
+            continue
+        declared_loads.extend(
+            _string_list(_routing_metadata(node).get("declared_loads"))
+        )
+    return {
+        "kind": "router_skill",
+        "active_seed_id": "",
+        "primary_source_patterns": primary_patterns,
+        "primary_skill_slugs": [primary_slug],
+        "declared_loads": _ordered_unique(declared_loads),
+        "deferred_skill_slugs": sorted(deferred_skill_slugs),
+        "chains_after": [],
+        "family_skills_root": family_root,
+        "router_relative_paths": [router_path] if router_path else [],
+    }
+
+
+def _compose_family_context(
+    source_nodes: list[dict[str, Any]],
+    objective: str,
+    context: dict[str, Any] | None = None,
+    active_routes: list[str] | None = None,
+) -> dict[str, Any] | None:
+    resolved_routes = active_routes
+    if not resolved_routes:
+        identity_context = dict(context or {})
+        resolved_routes = _string_list(
+            derive_task_identity(objective, identity_context).get("active_routes")
+        )
+    seed_candidates: list[tuple[float, dict[str, Any]]] = []
+    for node in source_nodes:
+        if str(node.get("source_type") or "") != "scoped_packet_seed":
+            continue
+        score = _scoped_seed_objective_score(node, objective, resolved_routes)
+        threshold = scoped_seed_threshold(node, resolved_routes)
+        if score >= threshold:
+            seed_candidates.append((score, node))
+    if seed_candidates:
+        _, seed_node = max(
+            seed_candidates,
+            key=lambda item: (
+                item[0],
+                str(item[1].get("seed_id") or item[1].get("id") or ""),
+            ),
+        )
+        return _family_context_from_seed_node(seed_node, objective)
+
+    for router_node in source_nodes:
+        if not _is_skill_family_router(router_node):
+            continue
+        family_context = _family_context_from_router(router_node, source_nodes, objective)
+        if family_context is not None:
+            return family_context
+    return None
+
+
+def _node_matches_family_primary(
+    node: dict[str, Any], family_context: dict[str, Any] | None, objective: str
+) -> bool:
+    if not family_context:
+        return False
+    rel_path = str(node.get("relative_path") or "")
+    slug = _skill_slug_from_relative_path(rel_path)
+    if slug and slug in _string_list(family_context.get("primary_skill_slugs")):
+        return True
+    for pattern in _string_list(family_context.get("primary_source_patterns")):
+        normalized_pattern = pattern.replace("\\", "/").lstrip("./")
+        if rel_path.endswith(normalized_pattern) or normalized_pattern in rel_path:
+            return True
+    seed_id = str(family_context.get("active_seed_id") or "")
+    if seed_id and seed_id in rel_path:
+        return True
+    return _objective_names_skill_slug(objective, slug)
+
+
+def _node_is_deferred_family_sibling(
+    node: dict[str, Any], family_context: dict[str, Any] | None, objective: str
+) -> bool:
+    if not family_context:
+        return False
+    rel_path = str(node.get("relative_path") or "")
+    rel_lower = rel_path.lower()
+    basename = Path(rel_lower).name
+    if basename in FAMILY_SUPPORT_DOC_NAMES and not any(
+        term in objective.lower()
+        for term in ("install", "example", "workflow", "readme")
+    ):
+        return True
+    slug = _skill_slug_from_relative_path(rel_path)
+    if not slug:
+        return False
+    if _node_matches_family_primary(node, family_context, objective):
+        return False
+    if _objective_names_skill_slug(objective, slug):
+        return False
+    deferred = {
+        _normalize_skill_slug(item)
+        for item in _string_list(family_context.get("deferred_skill_slugs"))
+    }
+    if _normalize_skill_slug(slug) in deferred:
+        return True
+    family_root = str(family_context.get("family_skills_root") or "")
+    primary_slugs = {
+        _normalize_skill_slug(item)
+        for item in _string_list(family_context.get("primary_skill_slugs"))
+    }
+    if (
+        family_root
+        and family_root in rel_path.replace("\\", "/")
+        and rel_lower.endswith("/skill.md")
+        and _normalize_skill_slug(slug) not in primary_slugs
+    ):
+        return True
+    return False
+
+
+FAMILY_PHASE_ALIASES = {
+    "start": "runtime",
+    "discover": "runtime",
+    "verify": "polish-verify",
+    "verification": "polish-verify",
+    "final": "review",
+}
+
+
+def _normalize_family_phase(phase: str) -> str:
+    normalized = str(phase or "start").strip().lower()
+    return FAMILY_PHASE_ALIASES.get(normalized, normalized)
+
+
+def _seed_node_for_family_context(
+    source_nodes: list[dict[str, Any]], family_context: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    if not family_context:
+        return None
+    seed_id = str(family_context.get("active_seed_id") or "")
+    if not seed_id:
+        return None
+    for node in source_nodes:
+        if str(node.get("seed_id") or node.get("id") or "") == seed_id:
+            return node
+    return None
+
+
+def _phase_transitions_for_seed_node(
+    seed_node: dict[str, Any] | None,
+    family_context: dict[str, Any] | None,
+) -> dict[str, dict[str, Any]]:
+    if seed_node:
+        raw = seed_node.get("phase_transitions")
+        if isinstance(raw, dict) and raw:
+            return {
+                str(phase).lower(): dict(value)
+                for phase, value in raw.items()
+                if isinstance(value, dict)
+            }
+    if family_context and _string_list(family_context.get("chains_after")):
+        activate_skills = _string_list(family_context.get("chains_after"))
+        fallback = {
+            "next_phases": ["implementation"],
+            "activate_skills": activate_skills,
+            "verification_gates": [
+                "Complete the current family phase before advancing."
+            ],
+        }
+        return {
+            "runtime": dict(fallback),
+            "start": dict(fallback),
+        }
+    return {}
+
+
+def _pick_next_family_phase(
+    candidates: list[str], context: dict[str, Any], objective: str
+) -> str:
+    if not candidates:
+        return ""
+    if len(candidates) == 1:
+        return candidates[0]
+    objective_lower = objective.lower()
+    browser_evidence = _string_list(context.get("browser_evidence"))
+    if browser_evidence:
+        for candidate in candidates:
+            if "polish" in candidate or "review" in candidate:
+                return candidate
+    if any("review" in candidate for candidate in candidates) and any(
+        term in objective_lower for term in ("review", "pr", "diff")
+    ):
+        for candidate in candidates:
+            if "review" in candidate:
+                return candidate
+    if any("polish" in candidate for candidate in candidates) and any(
+        term in objective_lower for term in ("polish", "motion", "screenshot")
+    ):
+        for candidate in candidates:
+            if "polish" in candidate:
+                return candidate
+    return candidates[0]
+
+
+def _skill_relative_paths_for_slugs(
+    source_nodes: list[dict[str, Any]], skill_slugs: list[str]
+) -> list[str]:
+    wanted = {_normalize_skill_slug(slug) for slug in skill_slugs if slug}
+    if not wanted:
+        return []
+    paths: list[str] = []
+    for node in source_nodes:
+        rel_path = str(node.get("relative_path") or "")
+        slug = _skill_slug_from_relative_path(rel_path)
+        if _normalize_skill_slug(slug) in wanted:
+            paths.append(rel_path)
+    return _ordered_unique(paths)
+
+
+def _runtime_harvest_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
+    source_paths = _string_list(arguments.get("source_paths"))
+    if not source_paths:
+        source_path = arguments.get("source_path") or arguments.get("project_path") or "."
+        source_paths = [str(source_path)]
+    return {
+        "objective": str(arguments.get("objective") or ""),
+        "source_paths": source_paths,
+        "include_globs": arguments.get("include_globs"),
+        "exclude_globs": arguments.get("exclude_globs"),
+        "limit": arguments.get("limit", 40),
+        "max_file_bytes": arguments.get("max_file_bytes", 262144),
+        "max_excerpt_chars": arguments.get("max_excerpt_chars", 1200),
+        "follow_symlinks": bool(arguments.get("follow_symlinks", False)),
+        "redact_sensitive": bool(arguments.get("redact_sensitive", True)),
+        "write_artifacts": False,
+    }
+
+
+def _runtime_family_packet_delta(
+    *,
+    current_phase: str,
+    family_context: dict[str, Any] | None,
+    seed_node: dict[str, Any] | None,
+    source_nodes: list[dict[str, Any]],
+    objective: str,
+    context: dict[str, Any],
+    latest_user_message: str,
+) -> dict[str, Any]:
+    if not family_context:
+        return {}
+    if any(
+        term in latest_user_message.lower()
+        for term in ("not yet", "before implementing", "hold on", "stay in runtime")
+    ):
+        return {}
+
+    transitions = _phase_transitions_for_seed_node(seed_node, family_context)
+    current = transitions.get(_normalize_family_phase(current_phase))
+    if not current:
+        return {}
+
+    next_phases = _string_list(current.get("next_phases")) or _string_list(
+        current.get("next")
+    )
+    if not next_phases:
+        return {}
+
+    suggested_phase = _pick_next_family_phase(next_phases, context, objective)
+    activate_skills = _string_list(current.get("activate_skills"))
+    if not activate_skills:
+        activate_skills = _string_list(family_context.get("chains_after"))
+
+    activate_paths = _skill_relative_paths_for_slugs(source_nodes, activate_skills)
+    virtual_selected = [
+        node
+        for node in source_nodes
+        if str(node.get("relative_path") or "") in activate_paths
+    ]
+    newly_required_reads = list(activate_paths)
+    newly_required_reads.extend(
+        _resolved_declared_load_paths(
+            selected_nodes=virtual_selected,
+            source_nodes=source_nodes,
+            objective=objective,
+            family_context=family_context,
+        )
+    )
+    for node in virtual_selected:
+        newly_required_reads.extend(
+            _string_list(_routing_metadata(node).get("required_reads"))
+        )
+
+    primary_slugs = {
+        _normalize_skill_slug(slug)
+        for slug in _string_list(family_context.get("primary_skill_slugs"))
+    }
+    activate_normalized = {_normalize_skill_slug(slug) for slug in activate_skills}
+    deferred_skills = [
+        slug
+        for slug in _string_list(family_context.get("deferred_skill_slugs"))
+        if _normalize_skill_slug(slug) not in activate_normalized
+    ]
+    activated_atoms = [f"skill:{slug}" for slug in activate_skills if slug]
+    deactivated_atoms = [
+        f"skill:{slug}" for slug in sorted(primary_slugs) if slug not in activate_normalized
+    ]
+
+    return {
+        "suggested_phase": suggested_phase,
+        "suggested_skills": activate_skills,
+        "deferred_skills": deferred_skills,
+        "activated_atoms": _ordered_unique(activated_atoms),
+        "deactivated_atoms": _ordered_unique(deactivated_atoms),
+        "newly_required_reads": _ordered_unique(newly_required_reads),
+        "verification_gates": _string_list(current.get("verification_gates")),
+        "family_context": family_context,
+    }
+
+
+def _runtime_family_seed_context(
+    source_nodes: list[dict[str, Any]], objective: str, current_phase: str
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    family_context = _compose_family_context(source_nodes, objective)
+    seed_node = _seed_node_for_family_context(source_nodes, family_context)
+    if seed_node is not None and family_context is not None:
+        return family_context, seed_node
+
+    normalized_phase = _normalize_family_phase(current_phase)
+    for node in source_nodes:
+        if str(node.get("source_type") or "") != "scoped_packet_seed":
+            continue
+        transitions = _phase_transitions_for_seed_node(node, None)
+        if normalized_phase not in transitions:
+            continue
+        return _family_context_from_seed_node(node, objective), node
+    return None, None
+
+
 def _routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
     lower = text.lower()
     commands = sorted(
@@ -3279,6 +4736,7 @@ def _routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
         re.findall(r"reference/[A-Za-z0-9_.-]+\.md", text)
         + re.findall(r"references/[A-Za-z0-9_.-]+\.md", text)
     )
+    declared_loads = _declared_load_patterns_from_text(text)
     script_prompts = _ordered_unique(
         re.findall(r"(?:[\w./-]+/)?scripts/[A-Za-z0-9_./-]+\.(?:mjs|js|py)", text)
     )
@@ -3357,6 +4815,7 @@ def _routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
         "commands": commands,
         "trigger_phrases": _ordered_unique(trigger_phrases),
         "required_reads": required_reads,
+        "declared_loads": declared_loads,
         "tool_script_prompts": script_prompts,
         "setup_blockers": setup_blockers,
         "stop_conditions": _ordered_unique(stop_conditions),
@@ -4046,16 +5505,33 @@ def _scoped_seed_signal_text(seed: dict[str, Any]) -> str:
         "id",
         "name",
         "sources",
+        "loads",
+        "chains_before",
+        "chains_after",
+        "do_not_activate_with",
+        "phase_transitions",
         "use_when",
         "modes",
         "behavior_atoms",
         "minimum_spec_fields",
         "ticket_types",
+        "route_affinity",
+        "objective_patterns",
         "verification_expectations",
     ):
         value = seed.get(key)
         if isinstance(value, list):
             pieces.extend(str(item) for item in value if str(item))
+        elif isinstance(value, dict):
+            for phase, details in value.items():
+                pieces.append(str(phase))
+                if isinstance(details, dict):
+                    pieces.extend(
+                        str(item)
+                        for item in _string_list(details.get("activate_skills"))
+                        + _string_list(details.get("verification_gates"))
+                        + _string_list(details.get("next_phases"))
+                    )
         elif value:
             pieces.append(str(value))
     return "\n".join(pieces)
@@ -4087,6 +5563,14 @@ def _scoped_packet_seed_nodes(
             continue
         signal_text = _scoped_seed_signal_text(seed)
         virtual_rel_path = f"{rel_path}#{seed_id}"
+        seed_loads = [
+            _normalize_declared_load_pattern(pattern)
+            for pattern in _string_list(seed.get("loads"))
+        ]
+        routing_metadata = _routing_metadata_for(virtual_rel_path, signal_text)
+        routing_metadata["declared_loads"] = _ordered_unique(
+            _string_list(routing_metadata.get("declared_loads")) + seed_loads
+        )
         nodes.append(
             {
                 "id": seed_id,
@@ -4106,7 +5590,7 @@ def _scoped_packet_seed_nodes(
                 )[:20],
                 "guidance_labels": _guidance_labels_for(virtual_rel_path, signal_text),
                 "keywords": sorted(_text_tokens(signal_text))[:20],
-                "routing_metadata": _routing_metadata_for(virtual_rel_path, signal_text),
+                "routing_metadata": routing_metadata,
                 "excerpt": signal_text[:max_excerpt_chars],
                 "signal_excerpt": signal_text[:max_excerpt_chars],
                 "redactions": redactions,
@@ -4115,7 +5599,18 @@ def _scoped_packet_seed_nodes(
                 "seed_id": seed_id,
                 "canonical_source": rel_path,
                 "source_references": _string_list(seed.get("sources")),
+                "loads": [pattern for pattern in seed_loads if pattern],
+                "chains_before": _string_list(seed.get("chains_before")),
+                "chains_after": _string_list(seed.get("chains_after")),
+                "do_not_activate_with": _string_list(seed.get("do_not_activate_with")),
+                "phase_transitions": (
+                    dict(seed.get("phase_transitions"))
+                    if isinstance(seed.get("phase_transitions"), dict)
+                    else {}
+                ),
                 "use_when": _string_list(seed.get("use_when")),
+                "route_affinity": _string_list(seed.get("route_affinity")),
+                "objective_patterns": _string_list(seed.get("objective_patterns")),
                 "modes": _string_list(seed.get("modes")),
                 "minimum_spec_fields": _string_list(seed.get("minimum_spec_fields")),
                 "ticket_types": _string_list(seed.get("ticket_types")),
@@ -4129,6 +5624,28 @@ def _scoped_packet_seed_nodes(
             }
         )
     return nodes
+
+
+def _skill_eval_advisory_summary(nodes: list[dict[str, Any]]) -> dict[str, Any]:
+    advisories: list[dict[str, Any]] = []
+    for node in nodes:
+        advisories.extend(_json_list(node.get("skill_eval_advisories")))
+    pattern_ids = sorted(
+        {
+            str(item.get("pattern_id"))
+            for item in advisories
+            if str(item.get("pattern_id") or "").strip()
+        }
+    )
+    return {
+        "warning_count": len(advisories),
+        "patterns_detected": pattern_ids,
+        "policy": "advisory_only_no_auto_rewrite",
+        "notes": (
+            "Skill evaluation advisories warn about likely no-ops or anti-patterns. "
+            "They do not mutate harvested text or promote routing state."
+        ),
+    }
 
 
 def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -4182,9 +5699,9 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
         for source_warning in _instruction_override_warnings(path, rel_path, text):
             if len(warnings) < 50:
                 warnings.append(source_warning)
+        scoped_seed_payload = _scoped_packet_seed_payload(text)
         safe_text, redactions = redact_sensitive_text(text, enabled=redact_sensitive)
         merge_redactions(redaction_totals, redactions)
-        scoped_seed_payload = _scoped_packet_seed_payload(safe_text)
         if scoped_seed_payload is not None:
             nodes.extend(
                 _scoped_packet_seed_nodes(
@@ -4204,27 +5721,37 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
             f"{path}:{hashlib.sha256(text.encode()).hexdigest()}".encode()
         ).hexdigest()[:12]
         frontmatter = _frontmatter_for(safe_text)
-        nodes.append(
-            {
-                "id": node_id,
-                "root_path": str(root),
-                "path": str(path),
-                "relative_path": rel_path,
-                "title": _title_for(path, text),
-                "source_type": source_type,
-                "source_tier": source_type,
-                "frontmatter": frontmatter,
-                "token_estimate": _estimate_tokens(safe_text),
-                "behavior_atoms": _classify_atoms(safe_text, source_type),
-                "guidance_labels": _guidance_labels_for(rel_path, safe_text),
-                "keywords": tokens[:20],
-                "routing_metadata": _routing_metadata_for(rel_path, safe_text),
-                "excerpt": safe_text[:max_excerpt_chars],
-                "signal_excerpt": signal_text[:max_excerpt_chars],
-                "redactions": redactions,
-                "trust": "untrusted_harvested_text",
-            }
+        skill_eval_advisories = harvest_warnings_for_source(
+            path,
+            safe_text,
+            rel_path=rel_path,
+            source_type=source_type,
         )
+        for advisory in skill_eval_advisories:
+            if len(warnings) < 50:
+                warnings.append(str(advisory["warning"]))
+        node: dict[str, Any] = {
+            "id": node_id,
+            "root_path": str(root),
+            "path": str(path),
+            "relative_path": rel_path,
+            "title": _title_for(path, text),
+            "source_type": source_type,
+            "source_tier": source_type,
+            "frontmatter": frontmatter,
+            "token_estimate": _estimate_tokens(safe_text),
+            "behavior_atoms": _classify_atoms(safe_text, source_type),
+            "guidance_labels": _guidance_labels_for(rel_path, safe_text),
+            "keywords": tokens[:20],
+            "routing_metadata": _routing_metadata_for(rel_path, safe_text),
+            "excerpt": safe_text[:max_excerpt_chars],
+            "signal_excerpt": signal_text[:max_excerpt_chars],
+            "redactions": redactions,
+            "trust": "untrusted_harvested_text",
+        }
+        if skill_eval_advisories:
+            node["skill_eval_advisories"] = skill_eval_advisories
+        nodes.append(node)
     nodes.sort(key=_node_harvest_sort_key)
     if len(nodes) > limit:
         warnings.append(
@@ -4261,6 +5788,7 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
             ),
         },
         "warnings": warnings,
+        "skill_eval_advisory_summary": _skill_eval_advisory_summary(nodes),
         "matched_source_count": len(candidates),
         "source_count": len(nodes),
         "source_nodes": nodes,
@@ -4619,6 +6147,10 @@ def _recommended_scoped_packet_seeds(
                 "relative_path": node.get("relative_path"),
                 "canonical_source": node.get("canonical_source"),
                 "source_references": _string_list(node.get("source_references")),
+                "loads": _string_list(node.get("loads")),
+                "chains_before": _string_list(node.get("chains_before")),
+                "chains_after": _string_list(node.get("chains_after")),
+                "do_not_activate_with": _string_list(node.get("do_not_activate_with")),
                 "use_when": _string_list(node.get("use_when")),
                 "modes": _string_list(node.get("modes")),
                 "minimum_spec_fields": _string_list(node.get("minimum_spec_fields")),
@@ -5157,6 +6689,10 @@ def _promotion_scoped_packet_seed_nodes(
                 "relative_path": seed.get("relative_path"),
                 "canonical_source": seed.get("canonical_source"),
                 "source_references": _string_list(seed.get("source_references")),
+                "loads": _string_list(seed.get("loads")),
+                "chains_before": _string_list(seed.get("chains_before")),
+                "chains_after": _string_list(seed.get("chains_after")),
+                "do_not_activate_with": _string_list(seed.get("do_not_activate_with")),
                 "use_when": _string_list(seed.get("use_when")),
                 "modes": _string_list(seed.get("modes")),
                 "minimum_spec_fields": _string_list(seed.get("minimum_spec_fields")),
@@ -5570,8 +7106,16 @@ def _is_ui_file(path: str) -> bool:
 
 
 def _node_composition_score(
-    node: dict[str, Any], objective: str, phase: str, context: dict[str, Any]
+    node: dict[str, Any],
+    objective: str,
+    phase: str,
+    context: dict[str, Any],
+    family_context: dict[str, Any] | None = None,
+    active_routes: list[str] | None = None,
 ) -> float:
+    if _node_is_deferred_family_sibling(node, family_context, objective):
+        return 0.0
+
     text = _node_signal_text(node)
     objective_lower = objective.lower()
     objective_terms = _composition_terms(objective)
@@ -5654,6 +7198,18 @@ def _node_composition_score(
         for boundary in _string_list(metadata.get("do_not_use_when"))
     ):
         score -= 6.0
+    if _node_matches_family_primary(node, family_context, objective):
+        score += 8.0
+    if family_context and str(node.get("relative_path") or "") in _string_list(
+        family_context.get("router_relative_paths")
+    ):
+        score += 3.0
+    score += composition_route_boost(
+        active_routes or [],
+        relative_path=str(node.get("relative_path") or ""),
+        source_type=source_type,
+        text=text,
+    )
     return score
 
 
@@ -5662,10 +7218,25 @@ def _selected_compose_nodes(
     objective: str,
     phase: str,
     context: dict[str, Any],
+    family_context: dict[str, Any] | None = None,
+    active_routes: list[str] | None = None,
 ) -> list[dict[str, Any]]:
+    active_family_context = family_context or _compose_family_context(
+        source_nodes, objective, context, active_routes
+    )
+    resolved_routes = active_routes or _string_list(
+        derive_task_identity(objective, context).get("active_routes")
+    )
     scored: list[tuple[float, str, dict[str, Any]]] = []
     for node in source_nodes:
-        score = _node_composition_score(node, objective, phase, context)
+        score = _node_composition_score(
+            node,
+            objective,
+            phase,
+            context,
+            active_family_context,
+            resolved_routes,
+        )
         if score <= 0:
             continue
         scored.append((score, str(node.get("relative_path") or ""), node))
@@ -5970,13 +7541,41 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
     phase = str(arguments.get("phase") or "start")
     cache_policy = str(arguments.get("cache_policy") or "global")
     context = _compose_context(arguments)
+    identity_context = dict(context)
+    identity_context["latest_user_message"] = str(arguments.get("latest_user_message") or "")
+    preliminary_routes = _string_list(
+        derive_task_identity(objective, identity_context).get("active_routes")
+    )
     harvest = _harvest_skills(_compose_harvest_arguments(arguments))
     source_nodes = [
         item
         for item in _json_list(harvest.get("source_nodes"))
         if isinstance(item, dict)
     ]
-    selected_nodes = _selected_compose_nodes(source_nodes, objective, phase, context)
+    family_context = _compose_family_context(
+        source_nodes, objective, identity_context, preliminary_routes
+    )
+    task_identity = derive_task_identity(
+        objective,
+        identity_context,
+        family_context if family_context else None,
+    )
+    active_routes = _string_list(task_identity.get("active_routes")) or preliminary_routes
+    selected_nodes = _selected_compose_nodes(
+        source_nodes,
+        objective,
+        phase,
+        context,
+        family_context,
+        active_routes,
+    )
+    declared_load_paths, declared_load_nodes = _resolved_declared_load_nodes(
+        selected_nodes=selected_nodes,
+        source_nodes=source_nodes,
+        objective=objective,
+        family_context=family_context,
+    )
+    selected_nodes = _merge_compose_nodes(selected_nodes, declared_load_nodes)
     global_graphs, graph_warnings = _load_global_promoted_graphs(cache_policy)
     receipts, receipt_warnings = _load_recent_receipts(cache_policy)
     selected_workflows = _selected_global_workflows(global_graphs, objective)
@@ -6012,6 +7611,7 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
         )
 
     required_reads.extend(_matching_reference_reads(source_nodes, objective))
+    required_reads.extend(declared_load_paths)
     for item in selected_workflows:
         workflow = dict(item.get("workflow") or {})
         graph = dict(item.get("graph") or {})
@@ -6072,6 +7672,20 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
         )
         if atom not in active_atoms
     ][:8]
+    compiled_from = _compiled_from_packet(
+        cache_policy=cache_policy,
+        family_context=family_context,
+        evidence_citations=evidence_citations,
+    )
+    shortcut_candidate = _shortcut_candidate_for_composed_packet(
+        packet={
+            "family_context": family_context or {},
+            "task_identity": task_identity,
+        },
+        compiled_from=compiled_from,
+        receipt_count=len(receipts),
+        user_overrides=_string_list(arguments.get("user_overrides")),
+    )
     packet_id = (
         "packet-"
         + hashlib.sha256(
@@ -6081,18 +7695,22 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
                     "phase": phase,
                     "sources": [item.get("source") for item in evidence_citations],
                     "atoms": active_atoms,
+                    "active_routes": task_identity.get("active_routes"),
                 },
                 sort_keys=True,
             ).encode()
         ).hexdigest()[:12]
     )
-    return {
+    packet: dict[str, Any] = {
         "ok": True,
         "schema": COMPOSED_PACKET_SCHEMA,
         "packet_id": packet_id,
         "objective": objective,
         "project_path": str(arguments.get("project_path") or "."),
         "phase": phase,
+        "task_identity": task_identity,
+        "compiled_from": compiled_from,
+        "shortcut_candidate": shortcut_candidate,
         "active_instructions": active_instructions,
         "required_reads": required_reads,
         "tool_script_prompts": tool_script_prompts,
@@ -6100,6 +7718,7 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
         "stop_conditions": stop_conditions,
         "active_atoms": active_atoms,
         "deferred_atoms": deferred_atoms,
+        "family_context": family_context or {},
         "ignored_sources": ignored_sources,
         "conflicts": conflicts,
         "evidence_citations": evidence_citations,
@@ -6129,57 +7748,28 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
             ),
         },
     }
+    packet["packet_markdown"] = _composed_packet_markdown(packet)
+    return packet
 
 
 def _runtime_next(arguments: dict[str, Any]) -> dict[str, Any]:
-    objective = str(arguments.get("objective") or "").strip()
-    if not objective:
-        raise ValueError("tmcp_runtime_next requires objective.")
-    phase = str(arguments.get("current_phase") or "start")
-    cache_policy = str(arguments.get("cache_policy") or "global")
-    latest_user_message = str(arguments.get("latest_user_message") or "")
-    files_changed = _string_list(arguments.get("files_changed"))
-    failures = _string_list(arguments.get("failures"))
-    browser_evidence = _string_list(arguments.get("browser_evidence"))
-    context = {
-        "files_changed": files_changed,
-        "failures": failures,
-        "browser_evidence": browser_evidence,
-    }
-    activated_atoms, newly_required_reads, next_gates = _contextual_atoms_and_gates(
-        " ".join([objective, latest_user_message]), phase, context
-    )
-    stale_atoms: list[str] = []
-    warnings: list[str] = []
-    if any(
-        term in latest_user_message.lower()
-        for term in ("actually", "instead", "new goal", "different")
-    ):
-        stale_atoms.append("previous-objective-specific-atoms")
-        warnings.append(
-            "Latest user message may redirect the objective; stale atoms should be rechecked before use."
-        )
-    if cache_policy != "none":
-        _, graph_warnings = _load_global_promoted_graphs(cache_policy)
-        _, receipt_warnings = _load_recent_receipts(cache_policy, limit=10)
-        warnings.extend(graph_warnings + receipt_warnings)
-    if not next_gates:
-        next_gates.append("Read the next required source before changing behavior.")
+    state = _build_runtime_state(arguments)
+    output_mode = str(arguments.get("output_mode") or "delta").strip().lower()
+    if output_mode == "full":
+        return _recompile_packet(arguments, state)
     return {
         "ok": True,
         "schema": RUNTIME_NEXT_SCHEMA,
-        "objective": objective,
-        "project_path": str(arguments.get("project_path") or "."),
-        "current_phase": phase,
+        "objective": state["objective"],
+        "project_path": state["project_path"],
+        "current_phase": state["phase"],
+        "suggested_phase": state["suggested_phase"],
         "previous_packet_id": arguments.get("previous_packet_id"),
-        "packet_delta": {
-            "activated_atoms": activated_atoms,
-            "deactivated_atoms": stale_atoms,
-            "stale_atoms": stale_atoms,
-            "newly_required_reads": newly_required_reads,
-        },
-        "next_verification_gate": next_gates,
-        "warnings": _ordered_unique(warnings),
+        "task_identity": state["task_identity"],
+        "task_identity_delta": state["task_identity_delta"],
+        "packet_delta": state["packet_delta"],
+        "next_verification_gate": state["next_verification_gate"],
+        "warnings": state["warnings"],
         "safety": {
             "stateless": True,
             "cache_trust": "advisory_untrusted",
@@ -6770,6 +8360,8 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         return result
     if name == "tmcp_harvest_skills":
         return _harvest_skills(arguments)
+    if name == "tmcp_evaluate_skills":
+        return evaluate_skills(arguments)
     if name == "tmcp_recommend_workflows":
         return _recommend_workflows(arguments)
     if name == "tmcp_compose_packet":
@@ -6900,10 +8492,12 @@ Usage:
   node scripts/tmcp_launcher.mjs status
   node scripts/tmcp_launcher.mjs explain "<objective>" [--project-path .] [--adapter auto]
   node scripts/tmcp_launcher.mjs harvest [source_path] [--objective "..."] [--write-artifacts --output-dir .tmcp/harvest]
+  node scripts/tmcp_launcher.mjs evaluate-skills [--skill-paths path/to/SKILL.md] [--task-fixtures '[...]'] [--write-artifacts]
   node scripts/tmcp_launcher.mjs recommend [source_path] [--candidate-workflows ui_quality] [--write-artifacts]
   node scripts/tmcp_launcher.mjs promote-harvest [source_path] [--selected-workflows workflow_id] [--write-artifacts]
   node scripts/tmcp_launcher.mjs compose-packet "<objective>" [--project-path .] [--source-path .]
-  node scripts/tmcp_launcher.mjs runtime-next "<objective>" [--current-phase verification] [--files-changed app/page.tsx]
+  node scripts/tmcp_launcher.mjs runtime-next "<objective>" [--current-phase verification] [--files-changed app/page.tsx] [--output-mode full] [--previous-packet '{...}']
+  node scripts/tmcp_launcher.mjs recompile-packet "<objective>" [--previous-packet '{...}'] [--current-phase runtime] [--files-changed app/page.tsx]
   node scripts/tmcp_launcher.mjs record-receipt packet-id [--activated-atoms atom] [--outcome passed]
   node scripts/tmcp_launcher.mjs review-plan "<objective>" [--project-path .] [--evidence-json '<dimension-mapped JSON>']
   node scripts/tmcp_launcher.mjs expert-ui-rubric [--project-path .] [--evidence-json '<dimension-mapped JSON>']
@@ -6996,6 +8590,7 @@ def _parse_cli_arguments(argv: list[str]) -> tuple[str, dict[str, Any], bool]:
             "tmcp_harvest_skills",
             "tmcp_recommend_workflows",
             "tmcp_promote_harvest",
+            "tmcp_evaluate_skills",
         }:
             arguments.setdefault("source_path", positionals[0])
             if len(positionals) > 1:

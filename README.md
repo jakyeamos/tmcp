@@ -1,12 +1,16 @@
 <div align="center">
   <img src="assets/logo.svg" alt="TMCP logo" width="96" height="96" />
   <h1>TMCP</h1>
-  <p><strong>Portable skill-packet workflows for MCP agents.</strong></p>
+  <p><strong>Slash commands are manual imports. TMCP is the compiler.</strong></p>
 </div>
 
-TMCP turns scattered agent instructions into task-specific packets. It reads skills, docs, rules, prompts, and project evidence as source nodes; extracts behavior atoms; compiles the smallest useful packet; and runs repeatable workflows over that packet.
+TMCP turns scattered agent instructions into task-specific operating packets. The user describes the work in natural language. TMCP infers task identity, compiles the strongest current packet from skills/rules/evidence, recompiles as the work changes, and leaves an audit trail.
+
+Skill names are provenance, not the user interface. Power users can still force a route; the default is natural prompting.
 
 AIOS is optional storage and adapter support. TMCP runs standalone from a repo checkout, copied plugin package, Codex plugin cache, Claude plugin cache, or any MCP host that can launch the bundled Node entrypoint.
+
+See [docs/ADAPTIVE_PACKET_RUNTIME.md](docs/ADAPTIVE_PACKET_RUNTIME.md) for the adaptive packet runtime design.
 
 ## Quickstart
 
@@ -56,8 +60,8 @@ Experimental workflows include UI rubric, security/privacy, test strategy, adapt
 | `tmcp_doctor` | Check first-run readiness and supported install layouts. |
 | `tmcp_status` | Report standalone capability and optional AIOS adapter status. |
 | `tmcp_explain` | Compile a task-specific TMCP packet. |
-| `tmcp_compose_packet` | Compose a small task/phase packet from harvested sources, promoted cache evidence, and runtime context. |
-| `tmcp_runtime_next` | Return packet deltas after changed files, failures, browser evidence, phase changes, or user redirects. |
+| `tmcp_compose_packet` | Compile a task/phase operating packet with `task_identity`, `packet_markdown`, and provenance. |
+| `tmcp_runtime_next` | Return packet deltas or a full recompiled packet (`output_mode: full`) after runtime evidence changes. |
 | `tmcp_record_receipt` | Write an advisory run receipt after verification or outcome. |
 | `tmcp_harvest_skills` | Harvest local skills, instructions, rules, docs, and workflows into source nodes. |
 | `tmcp_recommend_workflows` | Recommend stable or experimental workflows from harvested evidence, with stability metadata. |
@@ -84,7 +88,23 @@ Recommend workflows for a project:
 node scripts/tmcp_launcher.mjs recommend . --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose --no-write-artifacts
 ```
 
-Compose a current-task packet and adapt it during runtime:
+Compose a current-task packet, recompile during the run, and record a receipt:
+
+```bash
+node scripts/tmcp_launcher.mjs compose-packet \
+  "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
+  --project-path . --phase start
+
+node scripts/tmcp_launcher.mjs recompile-packet \
+  "Redesign these pages..." \
+  --current-phase runtime \
+  --previous-packet "$(cat .tmcp/last-packet.json)" \
+  --files-changed app/page.tsx
+
+node scripts/tmcp_launcher.mjs record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
+```
+
+Legacy delta-only runtime routing:
 
 ```bash
 node scripts/tmcp_launcher.mjs compose-packet "Fix the dashboard UI bug" --project-path . --phase start
@@ -140,4 +160,5 @@ limits.
 - [Install and package check](docs/INSTALL.md)
 - [Distribution](docs/DISTRIBUTION.md)
 - [Packet stability](docs/PACKET_STABILITY.md)
+- [Adaptive packet runtime](docs/ADAPTIVE_PACKET_RUNTIME.md)
 - [Tier One release rubric](docs/TIER_ONE_RELEASE_RUBRIC.md)

@@ -660,6 +660,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "expert_rubric_review_plan",
                 "tmcp_compose_packet",
                 "tmcp_doctor",
+                "tmcp_evaluate_skills",
                 "tmcp_explain",
                 "tmcp_harvest_skills",
                 "tmcp_promote_harvest",

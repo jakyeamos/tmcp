@@ -19,5 +19,6 @@ coverage/
 .quality-runner/
 
 # Generated / cache / audit output
+.tmcp/
 .turbo/
 .firecrawl/

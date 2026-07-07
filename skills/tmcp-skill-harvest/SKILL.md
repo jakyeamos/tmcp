@@ -22,7 +22,7 @@ This is a discovery and packet-compilation workflow. Do not use it for direct fe
 node scripts/tmcp_launcher.mjs harvest "<source-path>" --objective "Harvest reusable skill behavior" --write-artifacts
 ```
 
-4. Preserve redaction behavior and report warnings as evidence.
+4. Preserve redaction behavior and report warnings as evidence, including any `skill_eval_advisories` surfaced by the evaluation anti-pattern catalog.
 5. Keep the packet focused; avoid sweeping unrelated docs into the harvest.
 
 ## Output Contract
@@ -32,4 +32,5 @@ Produce or cite:
 - Harvest source paths and skipped/missing-source warnings.
 - Redaction summary.
 - Behavior atoms and source tiers.
+- Skill evaluation advisories when anti-patterns are detected.
 - Packet seed and recommended next use.

@@ -107,6 +107,25 @@
       "type": "object",
       "additionalProperties": true
     },
+    "task_identity": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "compiled_from": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "packet_markdown": {
+      "type": "string"
+    },
+    "shortcut_candidate": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "family_context": {
+      "type": "object",
+      "additionalProperties": true
+    },
     "receipt_template": {
       "type": "object",
       "additionalProperties": true,

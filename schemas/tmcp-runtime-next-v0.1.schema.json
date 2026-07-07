@@ -31,6 +31,14 @@
     "previous_packet_id": {
       "type": ["string", "null"]
     },
+    "task_identity": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "task_identity_delta": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
     "packet_delta": {
       "type": "object",
       "additionalProperties": true,
