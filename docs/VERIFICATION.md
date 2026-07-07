@@ -27,8 +27,32 @@ Results:
 - Release package check: pass.
 - Deterministic package check: a second generated artifact at `/private/tmp/tmcp-v0.4.0.second.tar.gz` produced the same SHA-256 (`a24fb730fb50bb6249f47918f01cc4d82cb0bd1346c4edd32908916edaecb149`).
 - Release package artifact: `/private/tmp/tmcp-v0.4.0.tar.gz` with digest `sha256:a24fb730fb50bb6249f47918f01cc4d82cb0bd1346c4edd32908916edaecb149`.
-- Release evidence checker: pending hosted `verify.yml` evidence for `v0.4.0` or the release merge commit on `main`.
+- Release evidence checker: pass for active version `0.4.0` using hosted main `verify.yml` run `28871545129` at `b0e68c0cc2392a967598f15fee41153ac8e44ce2`.
 - Residual risks: `tmcp_evaluate_skills` remains experimental; full recompile mode is additive and should not break delta-only `tmcp_runtime_next` consumers.
+
+## 2026-07-07 0.4.0 Published Release
+
+Commands run for this change:
+
+```bash
+gh pr merge 1 --merge
+git pull origin main
+gh run watch 28871545129 --repo jakyeamos/tmcp --exit-status
+python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.4.0.tar.gz
+shasum -a 256 /private/tmp/tmcp-v0.4.0.tar.gz
+git tag -a v0.4.0 -m "TMCP 0.4.0"
+git push origin v0.4.0
+gh release create v0.4.0 /private/tmp/tmcp-v0.4.0.tar.gz --repo jakyeamos/tmcp --title "TMCP 0.4.0" --notes "TMCP 0.4.0 ships the compiler-first adaptive packet runtime with task identity, full recompile mode, route-aware compose, declared loads, skill-family orchestration, and experimental tmcp_evaluate_skills."
+gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch v0.4.0 --limit 5 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt
+curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.4.0/tmcp-v0.4.0.tar.gz -o /private/tmp/tmcp-v0.4.0.release.tar.gz
+shasum -a 256 /private/tmp/tmcp-v0.4.0.release.tar.gz
+```
+
+Results:
+
+- GitHub release: pending `v0.4.0` tag publish.
+- Release asset digest target: `sha256:a24fb730fb50bb6249f47918f01cc4d82cb0bd1346c4edd32908916edaecb149`.
+- Tag verification run: pending.
 
 ---
 

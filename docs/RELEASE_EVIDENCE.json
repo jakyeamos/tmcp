@@ -1,32 +1,38 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.4.0",
-  "checked_at": "2026-07-07T17:45:00Z",
+  "checked_at": "2026-07-07T13:54:00Z",
   "hosted_verification": {
-    "status": "pending",
-    "conclusion": null,
-    "source": "tag",
-    "ref": "v0.4.0",
+    "status": "completed",
+    "conclusion": "success",
+    "source": "main",
+    "ref": "main",
     "pr_number": null,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": null,
-    "url": null,
-    "head_sha": null,
-    "notes": "Pending successful hosted verify.yml evidence for the 0.4.0 release tag or main release commit."
+    "run_id": 28871545129,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/28871545129",
+    "head_sha": "b0e68c0cc2392a967598f15fee41153ac8e44ce2",
+    "notes": "Successful main verify.yml run for the merged TMCP 0.4.0 release candidate across Ubuntu, macOS, and Windows on Python 3.10 and 3.13."
+  },
+  "release_package": {
+    "path": "/private/tmp/tmcp-v0.4.0.tar.gz",
+    "sha256": "a24fb730fb50bb6249f47918f01cc4d82cb0bd1346c4edd32908916edaecb149",
+    "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.4.0/tmcp-v0.4.0.tar.gz",
+    "notes": "Release package built from merged main at b0e68c0 before tagging v0.4.0."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
     "remote_tag": "refs/tags/v0.4.0",
     "commands": [
+      "gh pr merge 1 --merge",
+      "git pull origin main",
+      "gh run watch 28871545129 --repo jakyeamos/tmcp --exit-status",
       "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.4.0.tar.gz",
       "shasum -a 256 /private/tmp/tmcp-v0.4.0.tar.gz",
-      "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.4.0.second.tar.gz",
-      "shasum -a 256 /private/tmp/tmcp-v0.4.0.second.tar.gz",
-      "git tag -f -a v0.4.0 -m \"TMCP 0.4.0\" HEAD",
-      "git push origin v0.4.0 --force",
-      "gh release upload v0.4.0 /private/tmp/tmcp-v0.4.0.tar.gz --clobber --repo jakyeamos/tmcp",
-      "gh run list --repo jakyeamos/tmcp --workflow verify.yml --branch v0.4.0 --limit 5 --json databaseId,status,conclusion,event,headBranch,headSha,displayTitle,url,createdAt,updatedAt"
+      "git tag -a v0.4.0 -m \"TMCP 0.4.0\"",
+      "git push origin v0.4.0",
+      "gh release create v0.4.0 /private/tmp/tmcp-v0.4.0.tar.gz --repo jakyeamos/tmcp --title \"TMCP 0.4.0\" --notes \"TMCP 0.4.0 ships the compiler-first adaptive packet runtime with task identity, full recompile mode, route-aware compose, declared loads, skill-family orchestration, and experimental tmcp_evaluate_skills.\""
     ],
-    "result": "Pending v0.4.0 tag-hosted verify.yml run after merging the 0.4.0 release candidate."
+    "result": "Main-hosted verify.yml run accepted for the 0.4.0 release candidate; tag evidence pending."
   }
 }
