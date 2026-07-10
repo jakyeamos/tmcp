@@ -2,49 +2,67 @@
 
 ## What This Is
 
-tmcp is an existing local codebase in Jakye's QR remediation fleet. This GSD project was initialized from Quality Runner documentation so remediation can be planned, executed, verified, committed, and pushed in atomic repo-local phases.
+tmcp is a portable, local-first MCP/CLI package that compiles task-specific
+operating packets from local skills, instructions, and evidence. This planning
+project now tracks its proposed modernization from the released 0.4.0 baseline.
 
 ## Core Value
 
-Keep tmcp healthy by resolving Quality Runner findings with behavior-preserving, evidence-backed remediation.
+Deliver a trustworthy, portable packet compiler with explicit evidence,
+safe local-file boundaries, coherent agent-facing workflows, and a maintainable
+runtime.
 
 ## Requirements
 
 ### Validated
 
-- Existing repository behavior is the baseline unless a QR hardening finding requires safer input handling.
+- Existing public MCP/CLI contracts and packet schemas are the compatibility
+  baseline.
+- TMCP is an agent-facing MCP/CLI/Markdown product, not a browser application.
+- The released 0.4.0 runtime is portable and works without AIOS.
 
 ### Active
 
-- [ ] Resolve QR findings from run qr-fleet-continue-20260704-tmcp using cluster-oriented remediation.
-- [ ] Verify remediation with focused repo checks and post-remediation QR comparison.
-- [ ] Keep QR advisory-only; source changes happen through GSD execution and git commits.
+- [ ] Close the P0 release-package disclosure risk before any new publication.
+- [ ] Migrate the monolithic runtime to a modular, stdlib-only core behind
+  stable transport entrypoints.
+- [ ] Establish an explicit compose → recompile → outcome journey with honest
+  state and evidence modes.
+- [ ] Make release, metadata, and verification gates enforceable.
 
 ### Out of Scope
 
-- Broad rewrites outside the QR clusters.
-- Pulling QR into execution/mutation responsibilities.
-- Changing product/API/design behavior without an explicit QR hardening need or user decision.
+- A browser dashboard or visual application shell.
+- A required dependency on AIOS, a database, a registry, or network access.
+- Silent breaking changes to existing MCP/CLI contracts.
+- Automatic promotion of harvested instructions or execution of untrusted text.
 
 ## Context
 
-- Repo path: `/Users/jakyeamos/projects/tmcp`
-- QR summary: `/Users/jakyeamos/.local/state/quality-runner/fleet/per-repo-summaries-20260704/tmcp.md`
-- QR run directory: `/Users/jakyeamos/projects/tmcp/.quality-runner/runs/qr-fleet-continue-20260704-tmcp`
-- Package or project files detected: none detected
+- Baseline: 0.4.0 release commit `72baf609a519bebdabc4287b2671f04554ef6c23`.
+- Modernization artifacts: `docs/modernization/AUDIT.md`,
+  `docs/modernization/TARGET.md`, and `docs/modernization/EXEC_PLAN.md`.
+- The prior QR remediation plan is parked rather than discarded; its
+  behavior-preservation discipline remains valuable.
 
 ## Constraints
 
 - **Git:** Commit in atomic units scoped to this repo and concern.
-- **Verification:** A cluster is complete only with focused checks plus QR comparison evidence.
-- **Package management:** Use pnpm for JavaScript package scripts.
+- **Release safety:** Do not publish before the package allowlist and secret
+  containment gate pass.
+- **Compatibility:** Preserve tool names, schema identifiers, stdio framing,
+  standalone operation, and documented launch paths through a versioned plan.
+- **Verification:** Every milestone must end in focused checks and the full
+  package/install validation suite.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Use QR per-repo summaries as PRDs | They contain the current finding clusters, artifacts, and verification suggestions. | Pending execution |
-| Keep Quality Runner advisory-only | The user explicitly does not want execution pulled into QR. | Good |
+| Use a parallel v2 core behind stable entrypoints | Public MCP/CLI contracts require staged migration, not an uncontrolled rewrite. | Approved for planning |
+| Make package safety Milestone 0 | The current packager can include untracked/ignored local content. | Release blocker |
+| Treat CLI/MCP/Markdown as the UX surface | TMCP has no browser UI. | Approved for planning |
+| Keep Quality Runner advisory-only | Quality Runner remains useful evidence, not an execution system. | Retained |
 
 ---
-*Last updated: 2026-07-04 after QR remediation GSD bootstrap*
+*Last updated: 2026-07-10 after modernization audit*
