@@ -29,17 +29,46 @@ def write_json(path: Path, payload: dict[str, object]) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
 
+def write_verification_workflow(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "\n".join(
+            [
+                "name: Verify",
+                "",
+                "on:",
+                "  pull_request:",
+                "  push:",
+                "    branches:",
+                "      - main",
+                "    tags:",
+                '      - "v*"',
+                '      - "[0-9]*"',
+                "",
+                "jobs:",
+                "  verify:",
+                "    runs-on: ubuntu-latest",
+                "    steps:",
+                "      - name: Active release evidence",
+                "        run: python scripts/check_release_evidence.py .",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
 def copy_release_evidence_fixture(root: Path) -> None:
     for relative in (
         ".codex-plugin/plugin.json",
         ".claude-plugin/plugin.json",
         ".claude-plugin/marketplace.json",
-        ".github/workflows/verify.yml",
     ):
         source = PLUGIN_ROOT / relative
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
+    write_verification_workflow(root / ".github" / "workflows" / "verify.yml")
     write_json(
         root / "mcp-registry" / "draft-server.json",
         {
