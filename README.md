@@ -1,1 +1,1 @@
-# Other package
+# Plugin
