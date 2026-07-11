@@ -18,14 +18,14 @@
 fixtures.
 **Requirements:** MOD-CONTRACTS, MOD-OPS
 **Depends on:** Phase 0
-**Plans:** Ready to begin
+**Plans:** Complete 2026-07-11
 
 ### Phase 2: Safe input and storage foundation
 
 **Goal:** Centralize path, redaction, and persistence safety.
 **Requirements:** MOD-SAFE, MOD-STATE, MOD-ARCH
 **Depends on:** Phase 1
-**Plans:** Pending approval
+**Plans:** Ready to begin
 
 ### Phase 3: Compose/recompile vertical slice
 
@@ -65,4 +65,4 @@ safe core.
 **Plans:** Pending approval
 
 ---
-*Last updated: 2026-07-11 after Milestone 0 release-safety verification*
+*Last updated: 2026-07-11 after Milestone 1 contract-freeze verification*

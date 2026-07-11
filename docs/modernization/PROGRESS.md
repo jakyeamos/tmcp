@@ -2,14 +2,15 @@
 
 ## Current state
 
-**Phase:** Milestone 0 complete; Milestone 1 ready.
+**Phase:** Milestone 1 complete; Milestone 2 ready.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
 **Baseline:** `72baf609a519bebdabc4287b2671f04554ef6c23` (`0.4.0`)
 
-**Implementation status:** Release safety is implemented and verified in the
-isolated modernization worktree. Public runtime contracts remain unchanged.
+**Implementation status:** Release safety and the compatibility boundary are
+implemented in the isolated modernization worktree. The public runtime surface
+is now owned by a canonical registry while legacy entrypoints remain unchanged.
 
 ## Decisions recorded
 
@@ -22,13 +23,15 @@ isolated modernization worktree. Public runtime contracts remain unchanged.
   owns containment, manifest validation, and deterministic output.
 - Release evidence is a pre-merge two-run gate for version bumps: record a
   successful release-PR run, then pass the evidence check before merge.
+- Own public version metadata, MCP initialize data, tool schemas, CLI aliases,
+  defaults, and help aliases in `tmcp_runtime/api/registry.py`.
 
 ## Verified baseline
 
-- Full unit, compile, launcher, install, release-evidence, and package checks
-  pass with an isolated `TMCP_HOME`.
-- The real committed tree packages twice with matching archive and manifest
-  digests; the extracted package passes its verification suite.
+- Milestone 1: 151 unit tests, compile, launcher syntax, install, release
+  evidence, and the live contract check pass with an isolated `TMCP_HOME`.
+- A frozen fixture covers all 11 MCP tools, 47 CLI aliases, defaults, help/list
+  pseudo-commands, schemas, output labels, and declared state effects.
 
 ## Blockers and risks
 
@@ -40,5 +43,5 @@ isolated modernization worktree. Public runtime contracts remain unchanged.
 
 ## Next step
 
-Begin Milestone 1 by freezing MCP/CLI compatibility contracts and extracting a
-canonical tool/version registry.
+Begin Milestone 2 by extracting bounded safe-reader, redaction, and storage
+services behind the frozen compatibility adapter.

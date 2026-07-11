@@ -6,19 +6,19 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 1 contract freeze
+**Current focus:** Milestone 2 safe input and storage foundation
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 0 complete; implementation continues
+**Status:** Milestone 1 complete; implementation continues
 **Started:** 2026-07-10
 
 ## Active Phase
 
-- **Phase:** Contract freeze and target baseline
+- **Phase:** Safe input and storage foundation
 - **Slug:** `tmcp-modernization`
-- **Status:** Ready to begin after release-safety verification
+- **Status:** Ready to begin after contract-freeze verification
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -29,6 +29,9 @@ file boundaries and a coherent agent-facing workflow.
 - Milestone 0 release safety completed on `codex/tmcp-modernization-v2`:
   Git-tree allowlist packaging, archive manifest verification, reproducibility,
   hermetic fixtures, and pre-merge release-evidence enforcement.
+- Milestone 1 contract freeze completed in `5981dcd`: canonical version/tool
+  registry, all alias/default fixtures, hermetic transport clients, live MCP
+  metadata validation, and CI enforcement.
 
 ## Workflow Notes
 
@@ -44,10 +47,12 @@ file boundaries and a coherent agent-facing workflow.
   proposes a parallel v2 runtime behind stable entrypoints.
 - 2026-07-11: Milestone 0 closes the package-disclosure blocker; next work
   freezes public contracts before core migration.
+- 2026-07-11: Milestone 1 freezes all public contracts and removes the stale
+  `0.3.0` MCP initialize response; safe IO/storage extraction is next.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Begin Phase 1: freeze public MCP/CLI contracts and canonical metadata.
+# Begin Phase 2: centralize safe reads, redaction, and atomic storage.
 ```
