@@ -364,6 +364,8 @@ class ReleasePackageTests(unittest.TestCase):
         self.package.scan_release_content("README.md", placeholder.encode("utf-8"))
         relative_path = "workflows/" + "security-privacy-harvest-audit"
         self.package.scan_release_content("README.md", relative_path.encode("utf-8"))
+        identifier = "recommended_scoped_packet_" + "seeds"
+        self.package.scan_release_content("README.md", identifier.encode("utf-8"))
 
     def test_manifest_and_archive_are_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
