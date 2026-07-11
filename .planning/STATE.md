@@ -40,6 +40,8 @@ file boundaries and a coherent agent-facing workflow.
   its test value from short source literals.
 - The committed M1 tree passes archive reproducibility and the extracted
   package verification suite (153 tests; source-only metadata check skipped).
+- `49a87c9` separates CLI/launcher contract coverage from server-domain tests,
+  removing the test-size quality warning without changing behavior.
 
 ## Workflow Notes
 

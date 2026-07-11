@@ -41,6 +41,8 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
 - The committed tree passes reproducible archive creation and extracted-package
   verification (153 tests, with one source-metadata check intentionally skipped
   in the excluded-registry package context).
+- CLI/launcher contract tests now have a dedicated module; the retained server
+  test module is below the repository source-size warning threshold.
 
 ## Blockers and risks
 
