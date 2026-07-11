@@ -1,1 +1,0 @@
-oversized-source scripts/tmcp_mcp_server.py - Initial public release keeps the MCP server single-file for standard-library portability; docs/TIER_ONE_RELEASE_RUBRIC.md tracks modularization if growth continues.

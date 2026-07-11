@@ -1,6 +1,0 @@
-{
-  "include": ["scripts", "tests"],
-  "pythonVersion": "3.10",
-  "typeCheckingMode": "basic",
-  "reportImplicitRelativeImport": "error"
-}
