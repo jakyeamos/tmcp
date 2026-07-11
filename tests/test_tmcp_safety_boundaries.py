@@ -12,6 +12,8 @@ from tmcp_runtime.safety import (
     collect_harvest_roots,
     iter_harvest_candidates,
     read_harvest_text,
+    read_json_input,
+    read_skill_inputs,
 )
 from tmcp_runtime.storage import ArtifactStorageError, AtomicArtifactStore
 
@@ -438,6 +440,110 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
 
             self.assertEqual(list(outside.iterdir()), [])
             self.assertFalse((moved_output_dir / "artifact.json").exists())
+
+    def test_store_rejects_ordinary_directory_swap_after_initialization(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox = Path(tmp)
+            output_dir = sandbox / "artifacts"
+            moved_output_dir = sandbox / "moved-artifacts"
+            store = AtomicArtifactStore.explicit(output_dir)
+            output_dir.rename(moved_output_dir)
+            output_dir.mkdir()
+
+            with self.assertRaises(ArtifactStorageError):
+                store.write_json("artifact.json", {"state": "new"})
+
+            self.assertFalse((output_dir / "artifact.json").exists())
+            self.assertFalse((moved_output_dir / "artifact.json").exists())
+
+    def test_storage_fails_closed_without_descriptor_relative_operations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output_dir = root / "artifacts"
+            bundle_dir = root / "bundle"
+            with patch(
+                "tmcp_runtime.storage.artifacts._supports_descriptor_relative_operations",
+                return_value=False,
+            ):
+                with self.assertRaises(ArtifactStorageError):
+                    AtomicArtifactStore.explicit(output_dir)
+                with self.assertRaises(ArtifactStorageError):
+                    AtomicArtifactStore.write_bundle(
+                        bundle_dir,
+                        json_artifacts={"report.json": {"ok": True}},
+                        text_artifacts={"report.md": "# Report\n"},
+                    )
+
+            self.assertFalse(output_dir.exists())
+            self.assertFalse(bundle_dir.exists())
+
+    def test_atomic_bundle_replaces_an_empty_destination_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "artifacts"
+            output_dir.mkdir()
+
+            paths = AtomicArtifactStore.write_bundle(
+                output_dir,
+                json_artifacts={"report.json": {"ok": True}},
+                text_artifacts={"report.md": "# Report\n"},
+            )
+
+            self.assertEqual(set(paths), {"report.json", "report.md"})
+            self.assertTrue(all(Path(path).exists() for path in paths.values()))
+
+    def test_exact_skill_inputs_are_bounded_to_real_skill_files_and_project(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox = Path(tmp)
+            project = sandbox / "project"
+            outside = sandbox / "outside"
+            project.mkdir()
+            outside.mkdir()
+            secret = "sk-" + "A" * 40
+            skill = project / "SKILL.md"
+            skill.write_text(f"# {secret}\n\nUse a verification gate.\n", encoding="utf-8")
+            not_a_skill = project / "notes.md"
+            not_a_skill.write_text("# Notes\n", encoding="utf-8")
+            external_skill = outside / "SKILL.md"
+            external_skill.write_text("# External\n", encoding="utf-8")
+
+            inputs = read_skill_inputs([skill], project_path=project)
+            with self.assertRaises(ValueError):
+                read_skill_inputs([not_a_skill], project_path=project)
+            with self.assertRaises(ValueError):
+                read_skill_inputs([external_skill], project_path=project)
+
+        self.assertEqual(len(inputs), 1)
+        self.assertEqual(inputs[0].display_relative_path, "SKILL.md")
+        self.assertNotIn(secret, inputs[0].text)
+        self.assertIn("[REDACTED:", inputs[0].text)
+
+    def test_exact_file_inputs_reject_symlinks_and_redact_decoded_json(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox = Path(tmp)
+            project = sandbox / "project"
+            outside = sandbox / "outside"
+            project.mkdir()
+            outside.mkdir()
+            external_skill = outside / "SKILL.md"
+            external_skill.write_text("# External\n", encoding="utf-8")
+            linked_skill = project / "SKILL.md"
+            _symlink_or_skip(self, linked_skill, external_skill)
+            secret = "sk-" + "B" * 40
+            encoded_secret = "sk-" + "\\u0042" * 40
+            plan_path = project / "plan.json"
+            plan_path.write_text(
+                json.dumps({"token": secret}).replace(secret, encoded_secret),
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(ValueError):
+                read_skill_inputs([linked_skill], project_path=project)
+            plan = read_json_input(plan_path)
+
+        serialized = json.dumps(plan.payload)
+        self.assertNotIn(secret, serialized)
+        self.assertIn("[REDACTED:", serialized)
+        self.assertGreater(sum(plan.redactions.values()), 0)
 
     def test_atomic_bundle_never_publishes_a_partial_harvest(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,4 +1,4 @@
-"""Atomic, directory-descriptor-safe JSON artifact output."""
+"""Atomic, symlink-aware text and JSON artifact output."""
 
 from __future__ import annotations
 
@@ -40,11 +40,15 @@ def _normalized_path(value: str | Path) -> Path:
     return path
 
 
-def _require_secure_directory_operations() -> None:
+def _supports_descriptor_relative_operations() -> bool:
     required = (os.open, os.mkdir, os.stat, os.unlink, os.rmdir)
-    if not hasattr(os, "O_NOFOLLOW") or any(
+    return hasattr(os, "O_NOFOLLOW") and not any(
         operation not in os.supports_dir_fd for operation in required
-    ):
+    )
+
+
+def _require_secure_directory_operations() -> None:
+    if not _supports_descriptor_relative_operations():
         raise ArtifactStorageError(
             "Secure artifact persistence is unavailable on this platform."
         )
@@ -145,9 +149,12 @@ def _temporary_name(name: str) -> str:
     return f".{name}.{uuid.uuid4().hex}.tmp"
 
 
-def _write_json_at(directory_fd: int, name: str, payload: Any) -> None:
+def _json_content(payload: Any) -> str:
+    return json.dumps(payload, indent=2, sort_keys=True) + "\n"
+
+
+def _write_text_at(directory_fd: int, name: str, content: str) -> None:
     _validate_file_target(directory_fd, name)
-    content = json.dumps(payload, indent=2, sort_keys=True) + "\n"
     temporary_name = _temporary_name(name)
     descriptor = -1
     committed = False
@@ -222,28 +229,36 @@ def _remove_staging_directory(parent_fd: int, name: str) -> None:
 
 @dataclass(frozen=True)
 class AtomicArtifactStore:
-    """A verified directory that accepts atomic JSON artifact writes."""
+    """A verified directory that accepts atomic text and JSON artifact writes."""
 
     root: Path
+    identity: tuple[int, int]
 
     @classmethod
     def explicit(cls, output_dir: str | Path) -> AtomicArtifactStore:
         root = _normalized_path(output_dir)
         directory_fd = _open_directory(root, create=True)
-        os.close(directory_fd)
-        return cls(root=root)
+        try:
+            metadata = os.fstat(directory_fd)
+        finally:
+            os.close(directory_fd)
+        return cls(root=root, identity=(metadata.st_dev, metadata.st_ino))
 
     @classmethod
-    def write_json_bundle(
+    def write_text_bundle(
         cls,
         output_dir: str | Path,
-        payloads: Mapping[str, Any],
+        artifacts: Mapping[str, str],
     ) -> dict[str, str]:
-        if not payloads:
+        if not artifacts:
             return {}
-        names = list(payloads)
+        names = list(artifacts)
         for name in names:
             _validate_name(name)
+            if not isinstance(artifacts[name], str):
+                raise ArtifactStorageError(
+                    f"Artifact content must be text: {redact_path(name)}"
+                )
         root = _normalized_path(output_dir)
         parent_fd = _open_directory(root.parent, create=True)
         stage_name = _temporary_name(root.name)
@@ -268,12 +283,10 @@ class AtomicArtifactStore:
             os.mkdir(stage_name, mode=0o700, dir_fd=parent_fd)
             stage_fd = os.open(stage_name, _directory_flags(), dir_fd=parent_fd)
             for name in names:
-                _write_json_at(stage_fd, name, payloads[name])
+                _write_text_at(stage_fd, name, artifacts[name])
             _sync_directory(stage_fd)
             os.close(stage_fd)
             stage_fd = -1
-            if existing is not None:
-                os.rmdir(root.name, dir_fd=parent_fd)
             os.replace(
                 stage_name,
                 root.name,
@@ -294,10 +307,54 @@ class AtomicArtifactStore:
             os.close(parent_fd)
         return {name: str(root / name) for name in names}
 
-    def write_json(self, name: str, payload: Any) -> Path:
+    @classmethod
+    def write_json_bundle(
+        cls,
+        output_dir: str | Path,
+        payloads: Mapping[str, Any],
+    ) -> dict[str, str]:
+        return cls.write_text_bundle(
+            output_dir,
+            {name: _json_content(payload) for name, payload in payloads.items()},
+        )
+
+    @classmethod
+    def write_bundle(
+        cls,
+        output_dir: str | Path,
+        *,
+        json_artifacts: Mapping[str, Any] | None = None,
+        text_artifacts: Mapping[str, str] | None = None,
+    ) -> dict[str, str]:
+        artifacts = {
+            name: _json_content(payload)
+            for name, payload in (json_artifacts or {}).items()
+        }
+        for name, content in (text_artifacts or {}).items():
+            if name in artifacts:
+                raise ArtifactStorageError(
+                    f"Duplicate artifact name: {redact_path(name)}"
+                )
+            artifacts[name] = content
+        return cls.write_text_bundle(output_dir, artifacts)
+
+    def write_text(self, name: str, content: str) -> Path:
+        if not isinstance(content, str):
+            raise ArtifactStorageError(
+                f"Artifact content must be text: {redact_path(name)}"
+            )
         directory_fd = _open_directory(self.root, create=False)
         try:
-            _write_json_at(directory_fd, name, payload)
+            metadata = os.fstat(directory_fd)
+            if (metadata.st_dev, metadata.st_ino) != self.identity:
+                raise ArtifactStorageError(
+                    "Artifact directory changed during write: "
+                    f"{redact_path(self.root)}"
+                )
+            _write_text_at(directory_fd, name, content)
         finally:
             os.close(directory_fd)
         return self.root / name
+
+    def write_json(self, name: str, payload: Any) -> Path:
+        return self.write_text(name, _json_content(payload))

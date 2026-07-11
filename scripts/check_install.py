@@ -33,6 +33,7 @@ REQUIRED_FILES = (
     "tmcp_runtime/api/registry.py",
     "tmcp_runtime/api/tool_schemas.py",
     "tmcp_runtime/safety/files.py",
+    "tmcp_runtime/safety/fixed_files.py",
     "tmcp_runtime/safety/reader.py",
     "tmcp_runtime/storage/artifacts.py",
     "skills/tmcp-adaptive-workflow-pack/SKILL.md",
