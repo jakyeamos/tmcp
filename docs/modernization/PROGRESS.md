@@ -34,6 +34,8 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
   pseudo-commands, schemas, output labels, and declared state effects.
 - Contract-fixture digests use explicit `sha256:` labels so release scanning
   distinguishes deterministic checksums from secret-like values.
+- The redaction classifier recognizes code identifier assignments without
+  weakening opaque-token detection, so the extracted registry can ship.
 
 ## Blockers and risks
 

@@ -34,6 +34,8 @@ file boundaries and a coherent agent-facing workflow.
   metadata validation, and CI enforcement.
 - Release fixture checksums are explicitly labelled in `0299ca4`, preserving
   the archive secret scanner while allowing deterministic contract fixtures.
+- `b251e8e` preserves the strict scanner while excluding only lower-snake to
+  upper-snake code assignments from high-entropy token detection.
 
 ## Workflow Notes
 
