@@ -53,7 +53,9 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
 - Adversarial coverage now includes external/ancestor/cyclic links, in-root
   opt-in links, resolved exclusion bypasses, path metadata redaction,
   intermediate-directory swaps, output-directory swaps, and failed bundle
-  commits. The full suite has 165 passing tests.
+  commits. The full suite has 166 passing tests.
+- `8c7f498` splits the safe reader and extracted-package compile list into
+  focused modules; the repository commit gate is clean with no size exception.
 
 ## Blockers and risks
 
@@ -62,10 +64,8 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
   implementation.
 - Evaluation, promotion, recommendation, review, cache, and receipt paths still
   need migration onto the new safety/storage services.
-- The M2 commit exposed source-size warnings in the new safety module and the
-  release-package checker; split both before the next milestone boundary.
 
 ## Next step
 
-Split the M2 safety and package-check modules to clear size warnings, then move
-evaluation and the remaining artifact writers onto the shared services.
+Move evaluation and the remaining artifact writers onto the shared safety and
+storage services.

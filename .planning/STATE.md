@@ -52,8 +52,8 @@ file boundaries and a coherent agent-facing workflow.
   reproducibility check before publication.
 - Quality Runner remains advisory-only; the prior QR plan is parked.
 - Preserve public MCP/CLI contracts through a versioned compatibility adapter.
-- Split the new safety module and release-package checker before the next
-  milestone boundary to clear commit-gate source-size warnings.
+- The safe reader and release-package compile surface are split into focused
+  modules; the commit gate is clean again.
 
 ## Accumulated Context
 
@@ -72,6 +72,6 @@ file boundaries and a coherent agent-facing workflow.
 ## Next Command
 
 ```bash
-# Continue Phase 2: split the safety/package modules, then migrate evaluation
-# and remaining artifact writers onto the shared boundaries.
+# Continue Phase 2: migrate evaluation and remaining artifact writers onto the
+# shared safety and storage boundaries.
 ```
