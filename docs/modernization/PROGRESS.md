@@ -38,6 +38,9 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
   weakening opaque-token detection, so the extracted registry can ship.
 - Secret-like regression fixtures are assembled from short literals so package
   scanning stays strict against the committed source tree.
+- The committed tree passes reproducible archive creation and extracted-package
+  verification (153 tests, with one source-metadata check intentionally skipped
+  in the excluded-registry package context).
 
 ## Blockers and risks
 

@@ -38,6 +38,8 @@ file boundaries and a coherent agent-facing workflow.
   upper-snake code assignments from high-entropy token detection.
 - `65a1bfe` keeps the opaque-token regression test archive-safe by assembling
   its test value from short source literals.
+- The committed M1 tree passes archive reproducibility and the extracted
+  package verification suite (153 tests; source-only metadata check skipped).
 
 ## Workflow Notes
 
