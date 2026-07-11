@@ -18,7 +18,7 @@ file boundaries and a coherent agent-facing workflow.
 
 - **Phase:** Safe input and storage foundation
 - **Slug:** `tmcp-modernization`
-- **Status:** Harvest safety complete; evaluation and remaining artifact paths next
+- **Status:** Shared safe input/storage complete; evaluation and remaining artifact paths next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -45,6 +45,10 @@ file boundaries and a coherent agent-facing workflow.
 - `3abe21c` moves harvest through `tmcp_runtime/safety` and its artifact output
   through descriptor-safe staged bundles. It adds 13 boundary tests; the full
   suite now has 165 passing tests.
+- `42b922f` adds redacted, bounded exact-file inputs for evaluation and a single
+  text/JSON artifact store with descriptor-relative writes, directory identity
+  checks, and fail-closed behavior when those primitives are unavailable. The
+  full suite now has 171 passing tests.
 
 ## Workflow Notes
 
@@ -54,6 +58,8 @@ file boundaries and a coherent agent-facing workflow.
 - Preserve public MCP/CLI contracts through a versioned compatibility adapter.
 - The safe reader and release-package compile surface are split into focused
   modules; the commit gate is clean again.
+- Artifact bundles accept only absent or empty destinations; reused artifact
+  directories must use the verified per-file store rather than a bundle swap.
 
 ## Accumulated Context
 
@@ -64,9 +70,9 @@ file boundaries and a coherent agent-facing workflow.
   freezes public contracts before core migration.
 - 2026-07-11: Milestone 1 freezes all public contracts and removes the stale
   `0.3.0` MCP initialize response; safe IO/storage extraction is next.
-- 2026-07-11: M2 begins with contained harvest reads, decoded-JSON/path
-  redaction, and atomic artifact bundles; evaluation and remaining writers are
-  pending migration.
+- 2026-07-11: M2 adds contained harvest reads, decoded-JSON/path redaction,
+  exact evaluation input boundaries, and descriptor-safe artifacts; evaluation
+  and remaining writers are pending migration.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
