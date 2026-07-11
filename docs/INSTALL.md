@@ -27,6 +27,19 @@ Expected:
 - `.mcp.json` declares stdio MCP and launches `node scripts/tmcp_launcher.mjs` with `cwd` set to `.`
 - MCP `tools/list` succeeds with AIOS unavailable
 
+## Release Package Build
+
+`python3 scripts/check_release_package.py . --verify-reproducible` is a release-build
+command, not an install check. Run it only from a clean Git worktree: it reads the committed
+tree, excludes untracked and ignored local state, rejects unsafe tracked paths
+and secret-like content, and writes a deterministic archive with
+RELEASE_MANIFEST.json.
+
+Copied and extracted plugin packages are installation surfaces. Verify those
+with check_install.py, the launcher smoke commands, and the extracted-package
+checks performed by the release builder; do not try to rebuild a release archive
+without its Git source revision.
+
 ## First-Run Smoke Test
 
 ```bash

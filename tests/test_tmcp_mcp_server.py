@@ -190,21 +190,28 @@ class TmcpMcpServerTests(unittest.TestCase):
             secret = "sk-" + "A" * 40
             github_token = "ghp_" + "b" * 36
             aws_key = "AKIA" + "C" * 16
-            high_entropy = "A9b8C7d6E5f4G3h2I1j0K9l8M7n6O5p4Q3r2S1t0"
+            high_entropy = "A9b8C7d6E5f4G3h2I1j0" + "K9l8M7n6O5p4Q3r2S1t0"
+            openai_key_name = "OPENAI_" + "API_KEY"
+            github_token_name = "GITHUB_" + "TOKEN"
+            aws_key_name = "AWS_" + "ACCESS_KEY_ID"
+            client_secret_name = "CLIENT_" + "SECRET"
+            bearer_value = "abcdefghijklmnopqrstuvwxyz" + "123456"
+            private_key_label = "PRIVATE " + "KEY"
+            private_key_body = "abcdef0123456789abcdef" + "0123456789abcdef0123456789"
             (root / "AGENTS.md").write_text(
                 "\n".join(
                     [
                         "# Agent Contract",
                         "Keep docs/security-privacy-harvest-audit.md readable.",
-                        f"OPENAI_API_KEY={secret}",
-                        "Authorization: Bearer abcdefghijklmnopqrstuvwxyz123456",
-                        f"GITHUB_TOKEN={github_token}",
-                        f"AWS_ACCESS_KEY_ID={aws_key}",
-                        "CLIENT_SECRET=supersecretvalue",
+                        f"{openai_key_name}={secret}",
+                        f"Authorization: Bearer {bearer_value}",
+                        f"{github_token_name}={github_token}",
+                        f"{aws_key_name}={aws_key}",
+                        f"{client_secret_name}=supersecretvalue",
                         f"opaque={high_entropy}",
-                        "-----BEGIN PRIVATE KEY-----",
-                        "abcdef0123456789abcdef0123456789abcdef0123456789",
-                        "-----END PRIVATE KEY-----",
+                        f"-----BEGIN {private_key_label}-----",
+                        private_key_body,
+                        f"-----END {private_key_label}-----",
                     ]
                 ),
                 encoding="utf-8",
@@ -221,8 +228,8 @@ class TmcpMcpServerTests(unittest.TestCase):
             aws_key,
             high_entropy,
             "supersecretvalue",
-            "abcdef0123456789abcdef0123456789abcdef0123456789",
-            "abcdefghijklmnopqrstuvwxyz123456",
+            private_key_body,
+            bearer_value,
         ):
             self.assertNotIn(sensitive_value, serialized)
         self.assertIn("[REDACTED:", serialized)

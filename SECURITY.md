@@ -14,6 +14,18 @@ Open a private security advisory or contact the maintainer before publishing exp
 - TMCP warns when a harvested source appears to instruct the agent to override higher-priority instructions.
 - Default harvest excludes `.env*`, credentials, tokens, browser profiles, private caches, dependency trees, build outputs, VCS data, and generated TMCP/AIOS artifacts.
 
+## Release Artifact Boundary
+
+Release archives are built from a clean committed Git tree, never by walking the
+working directory. The builder ships only a reviewed allowlist, rejects
+symlinks, environment files, credentials, key material, unsafe paths, and
+secret-like content, and records payload hashes in RELEASE_MANIFEST.json.
+Untracked and ignored files are not release inputs.
+
+The package checker verifies the manifest before running extracted-package
+smokes. A release build failure is a safety signal: remove or deliberately
+relocate the unsafe tracked content rather than bypassing the check.
+
 ## AIOS
 
 AIOS is optional storage and adapter support. If `AIOS_ROOT` is explicitly set, adapter mode may call local AIOS commands. Without `AIOS_ROOT`, standalone TMCP remains available.

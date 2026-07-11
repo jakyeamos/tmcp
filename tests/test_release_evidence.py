@@ -149,6 +149,164 @@ class ReleaseEvidenceTests(unittest.TestCase):
         self.assertEqual(result["hosted_release_evidence"], "pass")
         self.assertEqual(result["errors"], [])
 
+    def test_release_evidence_requires_version_agnostic_tag_patterns(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            copy_release_evidence_fixture(root)
+            workflow = root / ".github" / "workflows" / "verify.yml"
+            workflow.write_text(
+                workflow.read_text(encoding="utf-8").replace(
+                    '      - "v*"', '      - "v0.4.0"'
+                ),
+                encoding="utf-8",
+            )
+            write_json(
+                root / "docs" / "RELEASE_EVIDENCE.json",
+                {
+                    "schema": "tmcp-release-evidence-v0.1",
+                    "version": ACTIVE_RELEASE_VERSION,
+                    "hosted_verification": {
+                        "status": "completed",
+                        "conclusion": "success",
+                        "source": "tag",
+                        "ref": f"v{ACTIVE_RELEASE_VERSION}",
+                        "pr_number": None,
+                        "workflow": ".github/workflows/verify.yml",
+                        "run_id": 123456,
+                        "url": "https://github.com/jakyeamos/tmcp/actions/runs/123456",
+                        "notes": "Hosted tag run.",
+                    },
+                },
+            )
+
+            result = self.checker.check_release_evidence(root)
+
+        self.assertEqual(result["hosted_release_evidence"], "fail")
+        self.assertIn(
+            ".github/workflows/verify.yml does not include tag trigger pattern 'v*'",
+            result["errors"],
+        )
+
+    def test_release_evidence_requires_premerge_ci_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            copy_release_evidence_fixture(root)
+            workflow = root / ".github" / "workflows" / "verify.yml"
+            workflow.write_text(
+                workflow.read_text(encoding="utf-8").replace(
+                    "python scripts/check_release_evidence.py .",
+                    "python scripts/check_release_evidence.py --disabled",
+                ),
+                encoding="utf-8",
+            )
+            write_json(
+                root / "docs" / "RELEASE_EVIDENCE.json",
+                {
+                    "schema": "tmcp-release-evidence-v0.1",
+                    "version": ACTIVE_RELEASE_VERSION,
+                    "hosted_verification": {
+                        "status": "completed",
+                        "conclusion": "success",
+                        "source": "main",
+                        "ref": "main",
+                        "pr_number": None,
+                        "workflow": ".github/workflows/verify.yml",
+                        "run_id": 123456,
+                        "url": "https://github.com/jakyeamos/tmcp/actions/runs/123456",
+                        "notes": "Hosted main run accepted by release owner.",
+                    },
+                },
+            )
+
+            result = self.checker.check_release_evidence(root)
+
+        self.assertEqual(result["hosted_release_evidence"], "fail")
+        self.assertIn(
+            ".github/workflows/verify.yml must run "
+            "'python scripts/check_release_evidence.py .'",
+            result["errors"],
+        )
+
+    def test_release_evidence_rejects_post_merge_only_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            copy_release_evidence_fixture(root)
+            workflow = root / ".github" / "workflows" / "verify.yml"
+            workflow.write_text(
+                workflow.read_text(encoding="utf-8").replace(
+                    "      - name: Active release evidence\n",
+                    "      - name: Active release evidence\n"
+                    "        if: github.event_name == 'push'\n",
+                ),
+                encoding="utf-8",
+            )
+            write_json(
+                root / "docs" / "RELEASE_EVIDENCE.json",
+                {
+                    "schema": "tmcp-release-evidence-v0.1",
+                    "version": ACTIVE_RELEASE_VERSION,
+                    "hosted_verification": {
+                        "status": "completed",
+                        "conclusion": "success",
+                        "source": "pull_request",
+                        "ref": "codex/release-candidate",
+                        "pr_number": 42,
+                        "workflow": ".github/workflows/verify.yml",
+                        "run_id": 123456,
+                        "url": "https://github.com/jakyeamos/tmcp/actions/runs/123456",
+                        "notes": "Hosted release PR run.",
+                    },
+                },
+            )
+
+            result = self.checker.check_release_evidence(root)
+
+        self.assertEqual(result["hosted_release_evidence"], "fail")
+        self.assertIn(
+            ".github/workflows/verify.yml must run active release evidence on "
+            "pull requests",
+            result["errors"],
+        )
+
+    def test_release_evidence_requires_pull_request_trigger(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            copy_release_evidence_fixture(root)
+            workflow = root / ".github" / "workflows" / "verify.yml"
+            workflow.write_text(
+                workflow.read_text(encoding="utf-8").replace(
+                    "  pull_request:\n", "  workflow_dispatch:\n"
+                ),
+                encoding="utf-8",
+            )
+            write_json(
+                root / "docs" / "RELEASE_EVIDENCE.json",
+                {
+                    "schema": "tmcp-release-evidence-v0.1",
+                    "version": ACTIVE_RELEASE_VERSION,
+                    "hosted_verification": {
+                        "status": "completed",
+                        "conclusion": "success",
+                        "source": "pull_request",
+                        "ref": "codex/release-candidate",
+                        "pr_number": 42,
+                        "workflow": ".github/workflows/verify.yml",
+                        "run_id": 123456,
+                        "url": "https://github.com/jakyeamos/tmcp/actions/runs/123456",
+                        "notes": "Hosted release PR run.",
+                    },
+                },
+            )
+
+            result = self.checker.check_release_evidence(root)
+
+        self.assertEqual(result["hosted_release_evidence"], "fail")
+        self.assertIn(
+            ".github/workflows/verify.yml must verify release evidence on pull "
+            "requests",
+            result["errors"],
+        )
+
     def test_release_evidence_rejects_pending_current_version(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import gzip
 import json
 import os
 import re
@@ -13,26 +12,20 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-EXCLUDE_DIRS = {
-    "__pycache__",
-    ".aios",
-    ".codex",
-    ".git",
-    ".mypy_cache",
-    ".planning",
-    ".pre-cr",
-    ".pytest_cache",
-    ".quality-runner",
-    ".ruff_cache",
-    ".tmcp",
-    "mcp-registry",
-}
-EXCLUDE_PATHS = {
-    Path("docs") / "RELEASE_EVIDENCE.json",
-    Path("docs") / "VERIFICATION.md",
-}
-EXCLUDE_SUFFIXES = {".pyc", ".pyo"}
+from scripts.tmcp_release_archive import (  # noqa: E402
+    PACKAGE_POLICY_VERSION,
+    ReleasePackageError,
+    check_archive_manifest,
+    create_package,
+    safe_extractall,
+    should_include,
+    verify_reproducibility,
+)
+
 HARDCODED_USER_PATH_PATTERNS = (
     re.compile(r"/" r"Users/(?!example\b|you\b|your\b|name\b)[^\s)\"'`]+"),
     re.compile(r"~/" r"AIOS"),
@@ -64,47 +57,13 @@ EXPERIMENTAL_SKILLS = {
     "tmcp-test-strategy",
     "tmcp-ui-rubric",
 }
-
-
-def should_include(path: Path) -> bool:
-    if path in EXCLUDE_PATHS:
-        return False
-    if any(part in EXCLUDE_DIRS for part in path.parts):
-        return False
-    if path.suffix in EXCLUDE_SUFFIXES:
-        return False
-    return True
-
-
-def normalized_tarinfo(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo:
-    tarinfo.uid = 0
-    tarinfo.gid = 0
-    tarinfo.uname = ""
-    tarinfo.gname = ""
-    tarinfo.mtime = 0
-    return tarinfo
-
-
-def create_package(plugin_root: Path, output_path: Path) -> None:
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("wb") as raw_output:
-        with gzip.GzipFile(
-            filename="", fileobj=raw_output, mode="wb", mtime=0
-        ) as gzip_output:
-            with tarfile.open(fileobj=gzip_output, mode="w") as archive:
-                for path in sorted(plugin_root.rglob("*")):
-                    if path.is_symlink() or not path.is_file():
-                        continue
-                    relative = path.relative_to(plugin_root)
-                    if not should_include(relative):
-                        continue
-                    archive.add(
-                        path,
-                        arcname=(Path("tmcp") / relative).as_posix(),
-                        filter=normalized_tarinfo,
-                    )
-
-
+PACKAGE_CHECK_NAMES = (
+    "archive_manifest", "install_check", "tests", "compile",
+    "launcher_syntax", "frontmatter", "hardcoded_user_paths",
+    "private_names", "markdown_links", "doctor_surface",
+    "sample_harvest", "sample_expert_rubric",
+    "adaptive_workflow_surface", "composition_surface",
+)
 def run(
     command: list[str], cwd: Path, extra_env: dict[str, str] | None = None
 ) -> tuple[bool, str]:
@@ -592,23 +551,17 @@ def check_composition_surface(
     ):
         return False, "recommend --compose output missing composed packet"
     return True, "\n".join([output, "composition surface smoke passed"])
-
-
-def safe_extractall(archive: tarfile.TarFile, target: Path) -> None:
-    target_root = target.resolve()
-    for member in archive.getmembers():
-        member_path = (target / member.name).resolve()
-        if member_path != target_root and target_root not in member_path.parents:
-            raise ValueError(f"Unsafe tar path: {member.name}")
-        if member.issym() or member.islnk():
-            raise ValueError(f"Refusing link in tar package: {member.name}")
-    try:
-        archive.extractall(target, filter="data")
-    except TypeError:
-        archive.extractall(target)
+def failed_package_check(manifest_output: str) -> dict[str, Any]:
+    return {
+        **{check: "fail" for check in PACKAGE_CHECK_NAMES},
+        "output": {"archive_manifest": manifest_output},
+    }
 
 
 def check_package(package_path: Path) -> dict[str, Any]:
+    manifest_ok, manifest_output = check_archive_manifest(package_path)
+    if not manifest_ok:
+        return failed_package_check(manifest_output)
     with tempfile.TemporaryDirectory(prefix="tmcp-package-check-") as tmp:
         tmp_path = Path(tmp)
         with tarfile.open(package_path, "r:gz") as archive:
@@ -633,6 +586,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
                 "scripts/tmcp_mcp_server.py",
                 "scripts/check_install.py",
                 "scripts/check_release_package.py",
+                "scripts/tmcp_release_archive.py",
                 "scripts/check_release_evidence.py",
                 "scripts/pre_cr_coverage.py",
                 "scripts/tmcp_mcp_framing.py",
@@ -662,6 +616,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
             plugin_root, tmp_path
         )
     return {
+        "archive_manifest": "pass",
         "install_check": "pass" if install_ok else "fail",
         "tests": "pass" if tests_ok else "fail",
         "compile": "pass" if compile_ok else "fail",
@@ -676,6 +631,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
         "adaptive_workflow_surface": "pass" if adaptive_ok else "fail",
         "composition_surface": "pass" if composition_ok else "fail",
         "output": {
+            "archive_manifest": manifest_output,
             "install": install_output,
             "tests": tests_output,
             "compile": compile_output,
@@ -701,40 +657,72 @@ def main() -> int:
         "plugin_root", nargs="?", default=".", help="Path to plugin root"
     )
     parser.add_argument("--output", help="Optional package output path")
+    parser.add_argument(
+        "--verify-reproducible",
+        action="store_true",
+        help="Build a second archive from the same Git tree and compare digests",
+    )
     args = parser.parse_args()
 
     plugin_root = Path(args.plugin_root).expanduser().resolve()
-    output_path = (
-        Path(args.output).expanduser().resolve()
-        if args.output
-        else Path(tempfile.gettempdir()) / "tmcp-release-check.tar.gz"
-    )
-    create_package(plugin_root, output_path)
-    result = {
-        "schema": "tmcp-release-package-check-v0.1",
-        "package_path": str(output_path),
-        **check_package(output_path),
-    }
+    generated_output = args.output is None
+    if args.output:
+        output_path = Path(args.output).expanduser()
+    else:
+        descriptor, temporary_output = tempfile.mkstemp(
+            prefix="tmcp-release-check-", suffix=".tar.gz"
+        )
+        os.close(descriptor)
+        output_path = Path(temporary_output)
+    try:
+        build = create_package(plugin_root, output_path)
+        result = {
+            "schema": "tmcp-release-package-check-v0.1",
+            "package_path": str(output_path),
+            "package_policy": PACKAGE_POLICY_VERSION,
+            "source_commit": build["source_commit"],
+            "source_tree": build["source_tree"],
+            "archive_digest": build["archive_digest"],
+            "manifest_path": build["manifest_path"],
+            "manifest_digest": build["manifest_digest"],
+            **check_package(output_path),
+        }
+        if args.verify_reproducible:
+            reproducibility = verify_reproducibility(
+                plugin_root, build
+            )
+            result["reproducibility"] = reproducibility["status"]
+            result["repeat_archive_digest"] = reproducibility.get(
+                "repeat_archive_digest"
+            )
+            result["repeat_manifest_digest"] = reproducibility.get(
+                "repeat_manifest_digest"
+            )
+            result["output"]["reproducibility"] = reproducibility["message"]
+    except ReleasePackageError as exc:
+        result = {
+            "schema": "tmcp-release-package-check-v0.1",
+            "package_path": str(output_path),
+            "package_policy": PACKAGE_POLICY_VERSION,
+            "package_build": "fail",
+            "errors": [str(exc)],
+        }
+        if generated_output:
+            try:
+                output_path.unlink()
+            except OSError:
+                pass
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 1
     print(json.dumps(result, indent=2, sort_keys=True))
+    required_checks = PACKAGE_CHECK_NAMES
+    if args.verify_reproducible:
+        required_checks += ("reproducibility",)
     ok = all(
         result[key] == "pass"
-        for key in (
-            "install_check",
-            "tests",
-            "compile",
-            "launcher_syntax",
-            "frontmatter",
-            "hardcoded_user_paths",
-            "private_names",
-            "markdown_links",
-            "doctor_surface",
-            "sample_harvest",
-            "sample_expert_rubric",
-            "adaptive_workflow_surface",
-            "composition_surface",
-        )
+        for key in required_checks
     )
-    if not args.output:
+    if generated_output:
         try:
             output_path.unlink()
         except OSError:

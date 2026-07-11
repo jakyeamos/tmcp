@@ -16,14 +16,18 @@ Use this checklist before claiming a Tier One release.
 - [ ] Public schemas exist for skill packets, adaptive workflow packs, composed packets, runtime deltas, run receipts, and promoted harvest graphs.
 - [ ] `python3 scripts/check_install.py .` passes.
 - [ ] Clean-copy install check passes with no hardcoded local user paths.
+- [ ] Archive creation runs from a clean Git worktree with no staged or unstaged tracked changes.
+- [ ] The generated RELEASE_MANIFEST.json lists only approved committed files and matches every archive payload digest and mode.
+- [ ] Package safety tests prove that untracked local state, .env files, keys, credentials, symlinks, case/Unicode path collisions, and secret-like content cannot ship.
+- [ ] Forged archives with unsafe, unlisted, tampered, or duplicate payloads fail before extraction.
 
 ## Verification
 
-- [ ] `python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py` passes.
+- [ ] `python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/tmcp_release_archive.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py` passes.
 - [ ] `node --check scripts/tmcp_launcher.mjs` passes.
 - [ ] `python3 -m unittest discover -s tests` passes.
 - [ ] JSON syntax check passes for plugin, MCP, marketplace, and fixtures.
-- [ ] `python3 scripts/check_release_package.py .` passes, including frontmatter, link, hardcoded-path, doctor, harvest, recommendation, expert-rubric, composition/runtime/receipt, stable, and experimental gates.
+- [ ] `python3 scripts/check_release_package.py . --verify-reproducible` passes, including Git-tree containment, a repeat archive digest comparison, manifest/digest validation, frontmatter, link, hardcoded-path, doctor, harvest, recommendation, expert-rubric, composition/runtime/receipt, stable, and experimental gates.
 - [ ] Release composition dogfood shows release-readiness packets do not activate UI/browser or repo-behavior spreadsheet gates unless the objective or runtime context asks for them.
 - [ ] `claude plugin validate .` passes for the marketplace.
 - [ ] `claude plugin validate <plugin-only-copy>` passes for the plugin manifest.
@@ -41,7 +45,8 @@ Use this checklist before claiming a Tier One release.
 - [ ] `docs/VERIFICATION.md` updated.
 - [ ] `docs/RELEASE_EVIDENCE.json` records a successful hosted `verify.yml` main, pull request, or release-tag run for the active manifest version.
 - [ ] `python3 scripts/check_release_evidence.py .` passes.
-- [ ] Worktree is clean or the release commit/changelog/truth-file plan explicitly accounts for every dirty path.
+- [ ] A version bump records successful release-PR evidence, then passes a second PR verification before merge; this keeps the evidence gate pre-merge without creating a tag-run self-reference cycle.
+- [ ] Archive creation used a clean committed worktree; no dirty-path exception is accepted.
 - [ ] `docs/TIER_ONE_RELEASE_RUBRIC.md` score updated.
 - [ ] GitHub remote exists and CI has run for `main`, the release PR, or the active release tag.
 - [ ] MCP Registry draft reviewed against the current official registry schema.

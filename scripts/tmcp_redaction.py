@@ -13,6 +13,10 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ),
     ("openai_key", re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b")),
     ("github_token", re.compile(r"\bgh[pousr]_[A-Za-z0-9_]{20,}\b")),
+    (
+        "github_fine_grained_token",
+        re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
+    ),
     ("aws_access_key", re.compile(r"\bA(?:KIA|SIA)[A-Z0-9]{16}\b")),
     ("bearer_token", re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{20,}")),
     (
@@ -27,7 +31,7 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 )
 
 
-def _looks_high_entropy(value: str) -> bool:
+def looks_high_entropy(value: str) -> bool:
     if len(set(value)) < 8:
         return False
     if not re.search(r"[0-9+/=_-]", value):
@@ -47,7 +51,7 @@ def redact_sensitive_text(
     for label, pattern in SECRET_PATTERNS:
 
         def replace(match: re.Match[str], redaction_label: str = label) -> str:
-            if redaction_label == "long_high_entropy" and not _looks_high_entropy(
+            if redaction_label == "long_high_entropy" and not looks_high_entropy(
                 match.group(0)
             ):
                 return match.group(0)

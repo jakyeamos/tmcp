@@ -38,6 +38,12 @@ Current score: 100/100 for the scoped `0.4.0` release candidate. Hosted release 
 Pass criteria:
 
 - Plugin can be installed from a clean checkout or packaged artifact.
+- Release archives derive only from a clean committed Git tree and a reviewed
+  allowlist; untracked/ignored local state cannot ship.
+- Archive manifests, payload hashes, modes, and deterministic digests are
+  verified before extracted-package execution.
+- Unsafe paths, symlinks, key material, environment files, and secret-like
+  content block packaging.
 - No user-specific absolute paths are required.
 - MCP launch works from installed plugin cache and source checkout.
 - README explains install, update, uninstall, and troubleshooting.
@@ -49,6 +55,8 @@ Required evidence:
 - Plugin manifest validation.
 - Clean install test from a temporary or cloned location.
 - MCP `tools/list` after install.
+- Archive-containment, secret-scan, manifest-integrity, and reproducibility
+  tests.
 
 ### Standalone TMCP Packet Model
 

@@ -12,8 +12,22 @@ The repository contains source, docs, license, CI, plugin metadata, examples, an
 
 ```bash
 node scripts/tmcp_launcher.mjs doctor
-python3 scripts/check_release_package.py .
+python3 scripts/check_release_package.py . --verify-reproducible
 ```
+
+Release archives are built only from a clean committed Git tree. The builder
+uses a reviewed allowlist, rejects unsafe tracked inputs, excludes untracked and
+ignored local state, and emits a deterministic archive manifest and digest.
+
+The release sequence is:
+
+1. Commit the release candidate and ensure no staged or unstaged tracked files remain.
+2. Run the package check with `--verify-reproducible` and inspect its source commit, manifest, first archive digest, and repeat archive digest.
+3. Record successful release-PR evidence for the active manifest version, then run the PR checks again; merge only after that second PR verification passes its evidence gate.
+4. Extract the archive, run the install/MCP smoke checks, and publish the verified archive.
+
+Plugin caches and copied packages are valid installation targets, not release
+sources.
 
 ## Codex Plugin
 

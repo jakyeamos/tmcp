@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import importlib.util
-import hashlib
 import json
-import tarfile
+import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,7 +13,6 @@ from tests import test_tmcp_mcp_server as helpers
 ADAPTIVE_PACK_SCHEMA_PATH = (
     helpers.PLUGIN_ROOT / "schemas" / "tmcp-adaptive-workflow-pack-v0.1.schema.json"
 )
-
 
 class TmcpWorkflowRecommendationTests(unittest.TestCase):
     @classmethod
@@ -460,6 +458,9 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             output_dir = root / "promotion"
+            tmcp_home = root / "tmcp-home"
+            original_home = getattr(self.server, "TMCP_HOME", None)
+            setattr(self.server, "TMCP_HOME", tmcp_home)
             (root / "SKILL.md").write_text(
                 "\n".join(
                     [
@@ -479,17 +480,20 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            result = self.server._call_tool(
-                "tmcp_promote_harvest",
-                {
-                    "source_path": str(root),
-                    "candidate_workflows": ["repo_behavior_spec_loop"],
-                    "selected_workflows": ["repo_behavior_spec_loop_workflow"],
-                    "min_confidence": 0.1,
-                    "promotion_name": "repo-behavior-spec-loop",
-                    "output_dir": str(output_dir),
-                },
-            )
+            try:
+                result = self.server._call_tool(
+                    "tmcp_promote_harvest",
+                    {
+                        "source_path": str(root),
+                        "candidate_workflows": ["repo_behavior_spec_loop"],
+                        "selected_workflows": ["repo_behavior_spec_loop_workflow"],
+                        "min_confidence": 0.1,
+                        "promotion_name": "repo-behavior-spec-loop",
+                        "output_dir": str(output_dir),
+                    },
+                )
+            finally:
+                setattr(self.server, "TMCP_HOME", original_home)
 
             graph_path = Path(result["artifact_paths"]["promotion_graph_json"])
             self.assertTrue(graph_path.exists())
@@ -868,102 +872,3 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         self.assertEqual(
             recommend["composed_packet"]["schema"], "tmcp-composed-packet-v0.1"
         )
-
-    def test_release_package_check_smokes_adaptive_surface(self) -> None:
-        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
-        spec = importlib.util.spec_from_file_location("check_release_package", path)
-        if spec is None or spec.loader is None:
-            raise RuntimeError("Could not load check_release_package module")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            ok, output = module.check_adaptive_workflow_surface(
-                helpers.PLUGIN_ROOT, Path(tmp)
-            )
-
-        self.assertTrue(ok, output)
-
-    def test_release_package_check_smokes_composition_surface(self) -> None:
-        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
-        spec = importlib.util.spec_from_file_location("check_release_package", path)
-        if spec is None or spec.loader is None:
-            raise RuntimeError("Could not load check_release_package module")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            ok, output = module.check_composition_surface(
-                helpers.PLUGIN_ROOT, Path(tmp)
-            )
-
-        self.assertTrue(ok, output)
-
-    def test_release_package_excludes_local_artifact_directories(self) -> None:
-        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
-        spec = importlib.util.spec_from_file_location("check_release_package", path)
-        if spec is None or spec.loader is None:
-            raise RuntimeError("Could not load check_release_package module")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "plugin"
-            root.mkdir()
-            (root / "README.md").write_text("# Plugin\n", encoding="utf-8")
-            (root / ".codex").mkdir()
-            (root / ".codex" / "config.toml").write_text("", encoding="utf-8")
-            aios_audit = root / ".aios" / "audit"
-            aios_audit.mkdir(parents=True)
-            (aios_audit / "gate-events.jsonl").write_text("", encoding="utf-8")
-            quality_run = root / ".quality-runner" / "runs" / "local"
-            quality_run.mkdir(parents=True)
-            (quality_run / "audit.json").write_text("{}", encoding="utf-8")
-            registry = root / "mcp-registry"
-            registry.mkdir()
-            (registry / "draft-server.json").write_text("{}", encoding="utf-8")
-            docs = root / "docs"
-            docs.mkdir()
-            (docs / "RELEASE_EVIDENCE.json").write_text("{}", encoding="utf-8")
-            (docs / "VERIFICATION.md").write_text("# Verification\n", encoding="utf-8")
-            (docs / "TIER_ONE_RELEASE_RUBRIC.md").write_text("# Rubric\n", encoding="utf-8")
-            output_path = Path(tmp) / "tmcp.tar.gz"
-
-            module.create_package(root, output_path)
-
-            with tarfile.open(output_path, "r:gz") as archive:
-                names = archive.getnames()
-
-        self.assertIn("tmcp/README.md", names)
-        self.assertNotIn("tmcp/.aios/audit/gate-events.jsonl", names)
-        self.assertNotIn("tmcp/.codex/config.toml", names)
-        self.assertNotIn("tmcp/.quality-runner/runs/local/audit.json", names)
-        self.assertNotIn("tmcp/mcp-registry/draft-server.json", names)
-        self.assertNotIn("tmcp/docs/RELEASE_EVIDENCE.json", names)
-        self.assertNotIn("tmcp/docs/VERIFICATION.md", names)
-        self.assertIn("tmcp/docs/TIER_ONE_RELEASE_RUBRIC.md", names)
-
-    def test_release_package_creation_is_deterministic(self) -> None:
-        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
-        spec = importlib.util.spec_from_file_location("check_release_package", path)
-        if spec is None or spec.loader is None:
-            raise RuntimeError("Could not load check_release_package module")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "plugin"
-            root.mkdir()
-            (root / "README.md").write_text("# Plugin\n", encoding="utf-8")
-            (root / "skills").mkdir()
-            (root / "skills" / "SKILL.md").write_text("# Skill\n", encoding="utf-8")
-            first = Path(tmp) / "first.tar.gz"
-            second = Path(tmp) / "second.tar.gz"
-
-            module.create_package(root, first)
-            module.create_package(root, second)
-
-            first_digest = hashlib.sha256(first.read_bytes()).hexdigest()
-            second_digest = hashlib.sha256(second.read_bytes()).hexdigest()
-
-        self.assertEqual(first_digest, second_digest)

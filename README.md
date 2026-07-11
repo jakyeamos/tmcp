@@ -137,12 +137,21 @@ Before release:
 
 ```bash
 python3 -m unittest discover -s tests
-python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
+python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/tmcp_release_archive.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
 node --check scripts/tmcp_launcher.mjs
 python3 scripts/check_install.py .
+python3 scripts/check_release_package.py . --verify-reproducible
 ```
 
-The release package check validates frontmatter, hardcoded local paths, private example names, links, extracted-package install shape, `doctor`, sample harvest, sample workflow recommendation, sample expert rubric planning, composition/runtime/receipt smoke coverage, and stable/experimental workflow labeling.
+The release package check builds from a clean, reviewed Git revision rather than
+the working directory. It ships only an explicit allowlist of committed files,
+rejects unsafe paths, symlinks, and secret-like content, then emits a
+deterministic RELEASE_MANIFEST.json plus archive digest. The CI release gate
+repeats the build from the same Git tree and requires both digests to match. It also validates
+frontmatter, hardcoded local paths, private example names, links,
+extracted-package install shape, doctor, sample harvest, sample workflow
+recommendation, sample expert rubric planning, composition/runtime/receipt smoke
+coverage, and stable/experimental workflow labeling.
 It is a DOI blocker until existing absolute user paths in release evidence docs are redacted or normalized.
 
 ## DOI-Ready Research Release

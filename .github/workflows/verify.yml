@@ -6,8 +6,11 @@ on:
     branches:
       - main
     tags:
-      - "v0.4.0"
-      - "0.4.0"
+      - "v*"
+      - "[0-9]*"
+
+permissions:
+  contents: read
 
 jobs:
   verify:
@@ -23,6 +26,8 @@ jobs:
         python-version:
           - "3.10"
           - "3.13"
+    env:
+      TMCP_HOME: ${{ runner.temp }}/tmcp-home
 
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +38,7 @@ jobs:
         with:
           node-version: "20"
       - name: Compile
-        run: python -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py scripts/tmcp_route_catalog.py scripts/tmcp_skill_evaluate.py
+        run: python -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/tmcp_release_archive.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py scripts/tmcp_route_catalog.py scripts/tmcp_skill_evaluate.py
       - name: Launcher syntax
         run: node --check scripts/tmcp_launcher.mjs
       - name: Tests
@@ -41,4 +46,6 @@ jobs:
       - name: Install shape
         run: python scripts/check_install.py .
       - name: Release package
-        run: python scripts/check_release_package.py .
+        run: python scripts/check_release_package.py . --verify-reproducible
+      - name: Active release evidence
+        run: python scripts/check_release_evidence.py .
