@@ -38,11 +38,13 @@ jobs:
         with:
           node-version: "20"
       - name: Compile
-        run: python -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/tmcp_release_archive.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py scripts/tmcp_route_catalog.py scripts/tmcp_skill_evaluate.py
+        run: python -m py_compile scripts/tmcp_mcp_server.py scripts/check_contracts.py scripts/check_install.py scripts/check_release_package.py scripts/tmcp_release_archive.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py scripts/tmcp_route_catalog.py scripts/tmcp_skill_evaluate.py tmcp_runtime/__init__.py tmcp_runtime/api/__init__.py tmcp_runtime/api/registry.py tmcp_runtime/api/tool_schemas.py
       - name: Launcher syntax
         run: node --check scripts/tmcp_launcher.mjs
       - name: Tests
         run: python -m unittest discover -s tests
+      - name: Public contracts
+        run: python scripts/check_contracts.py .
       - name: Install shape
         run: python scripts/check_install.py .
       - name: Release package

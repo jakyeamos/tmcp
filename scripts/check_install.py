@@ -15,6 +15,7 @@ if str(PLUGIN_ROOT) not in sys.path:
     sys.path.insert(0, str(PLUGIN_ROOT))
 
 from scripts.tmcp_mcp_framing import encode_message  # noqa: E402
+from tmcp_runtime.api.registry import PUBLIC_TOOL_NAMES  # noqa: E402
 
 
 REQUIRED_FILES = (
@@ -28,6 +29,8 @@ REQUIRED_FILES = (
     "schemas/tmcp-runtime-next-v0.1.schema.json",
     "scripts/tmcp_launcher.mjs",
     "scripts/tmcp_mcp_server.py",
+    "tmcp_runtime/api/registry.py",
+    "tmcp_runtime/api/tool_schemas.py",
     "skills/tmcp-adaptive-workflow-pack/SKILL.md",
     "skills/tmcp-agent-handoff/SKILL.md",
     "skills/tmcp-architecture-decision/SKILL.md",
@@ -49,19 +52,7 @@ REQUIRED_FILES = (
     "skills/tmcp/SKILL.md",
 )
 
-EXPECTED_MCP_TOOLS = {
-    "expert_rubric_review_plan",
-    "tmcp_doctor",
-    "tmcp_compose_packet",
-    "tmcp_evaluate_skills",
-    "tmcp_explain",
-    "tmcp_harvest_skills",
-    "tmcp_promote_harvest",
-    "tmcp_record_receipt",
-    "tmcp_recommend_workflows",
-    "tmcp_runtime_next",
-    "tmcp_status",
-}
+EXPECTED_MCP_TOOLS = PUBLIC_TOOL_NAMES
 
 
 def read_json(path: Path) -> dict[str, Any]:

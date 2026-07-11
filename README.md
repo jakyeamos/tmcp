@@ -64,6 +64,7 @@ Experimental workflows include UI rubric, security/privacy, test strategy, adapt
 | `tmcp_runtime_next` | Return packet deltas or a full recompiled packet (`output_mode: full`) after runtime evidence changes. |
 | `tmcp_record_receipt` | Write an advisory run receipt after verification or outcome. |
 | `tmcp_harvest_skills` | Harvest local skills, instructions, rules, docs, and workflows into source nodes. |
+| `tmcp_evaluate_skills` | Create or score a skill-evaluation plan from full `SKILL.md` inputs. |
 | `tmcp_recommend_workflows` | Recommend stable or experimental workflows from harvested evidence, with stability metadata. |
 | `tmcp_promote_harvest` | Explicitly promote reviewed harvest signals into durable source-to-atom and atom-to-workflow graph artifacts. |
 | `expert_rubric_review_plan` | Produce an expertise packet, scored rubric, evidence audit, remediation plan, and verification expectations. |
@@ -137,8 +138,9 @@ Before release:
 
 ```bash
 python3 -m unittest discover -s tests
-python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/tmcp_release_archive.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
+python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_contracts.py scripts/check_install.py scripts/check_release_package.py scripts/tmcp_release_archive.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py tmcp_runtime/__init__.py tmcp_runtime/api/__init__.py tmcp_runtime/api/registry.py tmcp_runtime/api/tool_schemas.py
 node --check scripts/tmcp_launcher.mjs
+python3 scripts/check_contracts.py .
 python3 scripts/check_install.py .
 python3 scripts/check_release_package.py . --verify-reproducible
 ```

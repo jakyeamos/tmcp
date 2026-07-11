@@ -216,6 +216,22 @@ class ReleaseEvidenceTests(unittest.TestCase):
             result["errors"],
         )
 
+    def test_release_evidence_rejects_non_semver_manifest_suffix(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            copy_release_evidence_fixture(root)
+            codex_manifest = root / ".codex-plugin" / "plugin.json"
+            payload = json.loads(codex_manifest.read_text(encoding="utf-8"))
+            payload["version"] = "0.4.0-invalid"
+            write_json(codex_manifest, payload)
+
+            result = self.checker.check_release_evidence(root)
+
+        self.assertEqual(result["hosted_release_evidence"], "fail")
+        self.assertTrue(
+            any("version is not a semver release" in error for error in result["errors"])
+        )
+
     def test_release_evidence_requires_premerge_ci_gate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

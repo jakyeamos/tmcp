@@ -7,8 +7,14 @@ import re
 import sys
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+PLUGIN_ROOT = SCRIPT_DIR.parent
+if str(PLUGIN_ROOT) not in sys.path:
+    sys.path.insert(0, str(PLUGIN_ROOT))
 
-VERSION_RE = re.compile(r"^(\d+\.\d+\.\d+)")
+from tmcp_runtime.api.registry import VERSION  # noqa: E402
+
+VERSION_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 EVIDENCE_PATH = Path("docs") / "RELEASE_EVIDENCE.json"
 WORKFLOW_PATH = Path(".github") / "workflows" / "verify.yml"
 WORKFLOW_CONTRACT_PATH = ".github/workflows/verify.yml"
@@ -43,10 +49,12 @@ def string_field(payload: dict[str, object], key: str, path: Path) -> str:
 
 
 def release_version(raw_version: str) -> str:
-    match = VERSION_RE.match(raw_version)
-    if match is None:
+    release, separator, build = raw_version.partition("+")
+    if separator and not build:
+        raise RuntimeError(f"version has empty build metadata: {raw_version}")
+    if VERSION_RE.fullmatch(release) is None:
         raise RuntimeError(f"version is not a semver release: {raw_version}")
-    return match.group(1)
+    return release
 
 
 def active_release_version(plugin_root: Path) -> tuple[str | None, list[str]]:
@@ -65,6 +73,11 @@ def active_release_version(plugin_root: Path) -> tuple[str | None, list[str]]:
     if len(unique_versions) != 1:
         errors.append(f"release version mismatch across manifests: {versions}")
         return None, errors
+    if unique_versions[0] != VERSION.release:
+        errors.append(
+            "release version does not match the canonical version descriptor: "
+            f"{unique_versions[0]} != {VERSION.release}"
+        )
     return unique_versions[0], errors
 
 

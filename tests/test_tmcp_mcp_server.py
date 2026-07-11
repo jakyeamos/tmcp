@@ -10,6 +10,9 @@ import unittest
 from collections.abc import Mapping
 from pathlib import Path
 from typing import cast
+from unittest.mock import patch
+
+from tests.tmcp_test_client import TestWorkspace, run_mcp_requests as run_hermetic_mcp_requests
 
 
 SERVER_PATH = Path(__file__).resolve().parents[1] / "scripts" / "tmcp_mcp_server.py"
@@ -28,6 +31,20 @@ RUN_RECEIPT_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-run-receipt-v0.1.schem
 PROMOTED_GRAPH_SCHEMA_PATH = (
     PLUGIN_ROOT / "schemas" / "tmcp-promoted-harvest-graph-v0.1.schema.json"
 )
+_SERVER_RUNTIME = tempfile.TemporaryDirectory(prefix="tmcp-server-tests-")
+
+
+def _server_environment() -> dict[str, str]:
+    root = Path(_SERVER_RUNTIME.name)
+    home = root / "home"
+    tmcp_home = root / "tmcp-home"
+    home.mkdir(exist_ok=True)
+    tmcp_home.mkdir(exist_ok=True)
+    environment = os.environ.copy()
+    environment["HOME"] = str(home)
+    environment["TMCP_HOME"] = str(tmcp_home)
+    environment["AIOS_ROOT"] = str(root / "missing-aios")
+    return environment
 
 
 def load_server_module():
@@ -35,17 +52,8 @@ def load_server_module():
     if spec is None or spec.loader is None:
         raise RuntimeError("Could not load tmcp_mcp_server module")
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-def load_framing_module():
-    path = PLUGIN_ROOT / "scripts" / "tmcp_mcp_framing.py"
-    spec = importlib.util.spec_from_file_location("tmcp_mcp_framing", path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError("Could not load tmcp_mcp_framing module")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    with patch.dict(os.environ, _server_environment(), clear=False):
+        spec.loader.exec_module(module)
     return module
 
 
@@ -59,40 +67,7 @@ def load_check_install_module():
 
 
 def run_mcp_requests(requests: list[dict[str, object]]) -> list[dict[str, object]]:
-    raw = b""
-    framing = load_framing_module()
-    for request in requests:
-        raw += framing.encode_message(request)
-    env = os.environ.copy()
-    env["AIOS_ROOT"] = "/tmp/tmcp-aios-missing"
-    completed = subprocess.run(
-        ["node", str(LAUNCHER_PATH)],
-        input=raw,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=str(SERVER_PATH.parents[1]),
-        env=env,
-        check=False,
-    )
-    if completed.returncode != 0:
-        raise RuntimeError(completed.stderr.decode())
-    responses: list[dict[str, object]] = []
-    stream = completed.stdout
-    position = 0
-    while position < len(stream):
-        header_end = stream.index(b"\r\n\r\n", position)
-        headers = stream[position:header_end].decode().split("\r\n")
-        length = int(
-            [
-                header.split(":", 1)[1].strip()
-                for header in headers
-                if header.lower().startswith("content-length:")
-            ][0]
-        )
-        start = header_end + 4
-        responses.append(json.loads(stream[start : start + length]))
-        position = start + length
-    return responses
+    return run_hermetic_mcp_requests(requests, PLUGIN_ROOT)
 
 
 class TmcpMcpServerTests(unittest.TestCase):
@@ -715,14 +690,16 @@ class TmcpMcpServerTests(unittest.TestCase):
                 copied,
                 ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
             )
-            completed = subprocess.run(
-                ["python3", "scripts/check_install.py", "."],
-                cwd=copied,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                check=False,
-            )
+            with TestWorkspace(copied) as workspace:
+                completed = subprocess.run(
+                    ["python3", "scripts/check_install.py", "."],
+                    cwd=copied,
+                    env=workspace.environment(),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    check=False,
+                )
 
         self.assertEqual(completed.returncode, 0, completed.stderr or completed.stdout)
         payload = json.loads(completed.stdout)
@@ -776,14 +753,8 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertEqual(candidates[0]["source"], "TMCP_PYTHON")
 
     def test_launcher_cli_status_calls_tool_directly(self) -> None:
-        completed = subprocess.run(
-            ["node", str(LAUNCHER_PATH), "status"],
-            cwd=PLUGIN_ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
-        )
+        with TestWorkspace() as workspace:
+            completed = workspace.run_cli(["status"])
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
         payload = json.loads(completed.stdout)
@@ -791,23 +762,17 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertIn("workflow_recommendation", payload["standalone"]["capabilities"])
 
     def test_launcher_cli_explain_accepts_positional_objective(self) -> None:
-        completed = subprocess.run(
-            [
-                "node",
-                str(LAUNCHER_PATH),
-                "explain",
-                "Use the TMCP expert UI rubric on Hoopscout",
-                "--project-path",
-                "/tmp/hoopscout",
-                "--adapter",
-                "standalone",
-            ],
-            cwd=PLUGIN_ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
-        )
+        with TestWorkspace() as workspace:
+            completed = workspace.run_cli(
+                [
+                    "explain",
+                    "Use the TMCP expert UI rubric on Hoopscout",
+                    "--project-path",
+                    "/tmp/hoopscout",
+                    "--adapter",
+                    "standalone",
+                ]
+            )
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
         payload = json.loads(completed.stdout)

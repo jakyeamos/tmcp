@@ -55,8 +55,7 @@ Natural-language objective at intake:
 node scripts/tmcp_launcher.mjs compose-packet \
   "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
   --project-path . \
-  --phase start \
-  --no-write-artifacts
+  --phase start
 ```
 
 Expected:
@@ -73,8 +72,7 @@ node scripts/tmcp_launcher.mjs recompile-packet \
   "Redesign these pages..." \
   --current-phase runtime \
   --previous-packet '<paste prior compose JSON>' \
-  --files-changed app/page.tsx \
-  --no-write-artifacts
+  --files-changed app/page.tsx
 ```
 
 Expected:

@@ -52,6 +52,7 @@ SHIPPED_PREFIXES = (
     "scripts/",
     "skills/",
     "tests/",
+    "tmcp_runtime/",
 )
 SHIPPED_DOC_PATHS = {
     "docs/ADAPTIVE_PACKET_RUNTIME.md",

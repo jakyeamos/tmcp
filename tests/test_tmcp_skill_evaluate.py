@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
+from tests import test_tmcp_mcp_server as helpers
+from tests.tmcp_test_client import run_mcp_requests as run_hermetic_mcp_requests
+
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-SERVER_PATH = PLUGIN_ROOT / "scripts" / "tmcp_mcp_server.py"
 EVALUATE_PATH = PLUGIN_ROOT / "scripts" / "tmcp_skill_evaluate.py"
-LAUNCHER_PATH = PLUGIN_ROOT / "scripts" / "tmcp_launcher.mjs"
 FIXTURE_SKILL = (
     PLUGIN_ROOT / "tests" / "fixtures" / "skills" / "approval-before-edit" / "SKILL.md"
 )
@@ -32,43 +32,14 @@ def load_module(path: Path, name: str):
     return module
 
 
-def run_mcp_requests(requests: list[dict]) -> list[dict]:
-    framing = load_module(PLUGIN_ROOT / "scripts" / "tmcp_mcp_framing.py", "framing")
-    raw = b"".join(framing.encode_message(request) for request in requests)
-    completed = subprocess.run(
-        ["node", str(LAUNCHER_PATH)],
-        input=raw,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=str(PLUGIN_ROOT),
-        check=False,
-    )
-    if completed.returncode != 0:
-        raise RuntimeError(completed.stderr.decode())
-    responses: list[dict] = []
-    stream = completed.stdout
-    position = 0
-    while position < len(stream):
-        header_end = stream.index(b"\r\n\r\n", position)
-        headers = stream[position:header_end].decode().split("\r\n")
-        length = int(
-            [
-                header.split(":", 1)[1].strip()
-                for header in headers
-                if header.lower().startswith("content-length:")
-            ][0]
-        )
-        body_start = header_end + 4
-        body = stream[body_start : body_start + length]
-        responses.append(json.loads(body.decode()))
-        position = body_start + length
-    return responses
+def run_mcp_requests(requests: list[dict[str, object]]) -> list[dict[str, object]]:
+    return run_hermetic_mcp_requests(requests, PLUGIN_ROOT)
 
 
 class SkillEvaluateTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.server = load_module(SERVER_PATH, "tmcp_mcp_server_skill_eval")
+        cls.server = helpers.load_server_module()
         cls.evaluate = load_module(EVALUATE_PATH, "tmcp_skill_evaluate")
 
     def _plan_arguments(self) -> dict:

@@ -18,8 +18,10 @@ node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --
 node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --compose
 node scripts/tmcp_launcher.mjs compose-packet "Fix the dashboard UI bug" --project-path . --phase start
 node scripts/tmcp_launcher.mjs runtime-next "Fix the dashboard UI bug" --current-phase verification --files-changed app/page.tsx --failures "vitest failed"
+node scripts/tmcp_launcher.mjs recompile-packet "Fix the dashboard UI bug" --previous-packet '{...}' --current-phase runtime
 node scripts/tmcp_launcher.mjs record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
 node scripts/tmcp_launcher.mjs harvest . --objective "Harvest reusable project workflow behavior" --limit 40
+node scripts/tmcp_launcher.mjs evaluate-skills --skill-paths path/to/SKILL.md --task-fixtures '[...]'
 node scripts/tmcp_launcher.mjs recommend . --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose
 node scripts/tmcp_launcher.mjs promote-harvest . --selected-workflows release_readiness_workflow --output-dir .tmcp/promoted-harvests/release-readiness
 node scripts/tmcp_launcher.mjs review-plan "Review release portability" --project-path . --evidence-json '[{"dimension_id":"source_grounding","severity":"warning","summary":"Release claims need fresh package evidence.","evidence":["python3 scripts/check_release_package.py ."],"recommended_fix":"Run and cite the release package check before publishing."}]'
@@ -56,6 +58,12 @@ By default, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOM
 - Repeat a flag to send an array.
 - Values that look like JSON objects, arrays, numbers, booleans, or `null` are decoded.
 - Use `--compact` when another tool will parse the output.
+
+`doctor`, `status`, `explain`, `harvest`, `evaluate-skills`, `recommend`,
+`promote-harvest`, `compose-packet`, `runtime-next`, `record-receipt`, and
+`review-plan` are the canonical CLI names. Compatibility aliases remain
+supported and are frozen in `tmcp_runtime/api/registry.py`; use `list-tools`
+for the live MCP schema surface.
 
 ## Fallback Order
 
