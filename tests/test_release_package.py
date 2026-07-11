@@ -366,6 +366,8 @@ class ReleasePackageTests(unittest.TestCase):
         self.package.scan_release_content("README.md", relative_path.encode("utf-8"))
         identifier = "recommended_scoped_packet_" + "seeds"
         self.package.scan_release_content("README.md", identifier.encode("utf-8"))
+        assignment = identifier + "=" + identifier
+        self.package.scan_release_content("README.md", assignment.encode("utf-8"))
 
     def test_manifest_and_archive_are_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
