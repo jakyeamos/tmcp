@@ -36,6 +36,8 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
   distinguishes deterministic checksums from secret-like values.
 - The redaction classifier recognizes code identifier assignments without
   weakening opaque-token detection, so the extracted registry can ship.
+- Secret-like regression fixtures are assembled from short literals so package
+  scanning stays strict against the committed source tree.
 
 ## Blockers and risks
 

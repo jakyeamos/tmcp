@@ -36,6 +36,8 @@ file boundaries and a coherent agent-facing workflow.
   the archive secret scanner while allowing deterministic contract fixtures.
 - `b251e8e` preserves the strict scanner while excluding only lower-snake to
   upper-snake code assignments from high-entropy token detection.
+- `65a1bfe` keeps the opaque-token regression test archive-safe by assembling
+  its test value from short source literals.
 
 ## Workflow Notes
 
