@@ -25,7 +25,7 @@ fixtures.
 **Goal:** Centralize path, redaction, and persistence safety.
 **Requirements:** MOD-SAFE, MOD-STATE, MOD-ARCH
 **Depends on:** Phase 1
-**Plans:** Ready to begin
+**Plans:** In progress — safe harvest/storage slice complete 2026-07-11
 
 ### Phase 3: Compose/recompile vertical slice
 
@@ -65,4 +65,4 @@ safe core.
 **Plans:** Pending approval
 
 ---
-*Last updated: 2026-07-11 after Milestone 1 contract-freeze verification*
+*Last updated: 2026-07-11 after the Milestone 2 safe-harvest slice*

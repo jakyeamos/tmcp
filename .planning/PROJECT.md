@@ -26,6 +26,7 @@ runtime.
 - [x] Close the P0 release-package disclosure risk before any new publication.
 - [x] Freeze the MCP/CLI compatibility surface in a canonical registry with
   live metadata and transport checks.
+- [x] Move harvest onto contained safe reads and staged atomic artifact bundles.
 - [ ] Migrate the monolithic runtime to a modular, stdlib-only core behind
   stable transport entrypoints.
 - [ ] Establish an explicit compose → recompile → outcome journey with honest
@@ -68,4 +69,4 @@ runtime.
 | Keep Quality Runner advisory-only | Quality Runner remains useful evidence, not an execution system. | Retained |
 
 ---
-*Last updated: 2026-07-11 after Milestone 1 contract-freeze verification*
+*Last updated: 2026-07-11 after the Milestone 2 safe-harvest slice*

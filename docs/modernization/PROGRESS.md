@@ -2,7 +2,7 @@
 
 ## Current state
 
-**Phase:** Milestone 1 complete; Milestone 2 ready.
+**Phase:** Milestone 2 in progress; safe harvest/storage slice complete.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -25,6 +25,9 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
   successful release-PR run, then pass the evidence check before merge.
 - Own public version metadata, MCP initialize data, tool schemas, CLI aliases,
   defaults, and help aliases in `tmcp_runtime/api/registry.py`.
+- Own harvest root policy, traversal, bounded reads, redaction, and safe
+  provenance display in `tmcp_runtime/safety`; own harvest bundle persistence
+  in `tmcp_runtime/storage`.
 
 ## Verified baseline
 
@@ -43,16 +46,26 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
   in the excluded-registry package context).
 - CLI/launcher contract tests now have a dedicated module; the retained server
   test module is below the repository source-size warning threshold.
+- `3abe21c` moves harvest onto root-contained, symlink-aware reads; it redacts
+  text, decoded JSON, and path metadata before derivation or serialization.
+  Harvest artifacts now use a staged atomic bundle with restrictive file modes
+  and descriptor-relative writes.
+- Adversarial coverage now includes external/ancestor/cyclic links, in-root
+  opt-in links, resolved exclusion bypasses, path metadata redaction,
+  intermediate-directory swaps, output-directory swaps, and failed bundle
+  commits. The full suite has 165 passing tests.
 
 ## Blockers and risks
 
 - The primary checkout contains user-owned uncommitted work that is not included
   in this audit branch. Integrate or supersede it deliberately during approved
   implementation.
-- The remaining milestones change storage defaults and compatibility semantics;
-  retain the documented compatibility boundary while migrating the runtime.
+- Evaluation, promotion, recommendation, review, cache, and receipt paths still
+  need migration onto the new safety/storage services.
+- The M2 commit exposed source-size warnings in the new safety module and the
+  release-package checker; split both before the next milestone boundary.
 
 ## Next step
 
-Begin Milestone 2 by extracting bounded safe-reader, redaction, and storage
-services behind the frozen compatibility adapter.
+Split the M2 safety and package-check modules to clear size warnings, then move
+evaluation and the remaining artifact writers onto the shared services.

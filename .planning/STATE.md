@@ -11,14 +11,14 @@ file boundaries and a coherent agent-facing workflow.
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 1 complete; implementation continues
+**Status:** Milestone 2 in progress; safe harvest/storage slice complete
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Safe input and storage foundation
 - **Slug:** `tmcp-modernization`
-- **Status:** Ready to begin after contract-freeze verification
+- **Status:** Harvest safety complete; evaluation and remaining artifact paths next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -42,6 +42,9 @@ file boundaries and a coherent agent-facing workflow.
   package verification suite (153 tests; source-only metadata check skipped).
 - `49a87c9` separates CLI/launcher contract coverage from server-domain tests,
   removing the test-size quality warning without changing behavior.
+- `3abe21c` moves harvest through `tmcp_runtime/safety` and its artifact output
+  through descriptor-safe staged bundles. It adds 13 boundary tests; the full
+  suite now has 165 passing tests.
 
 ## Workflow Notes
 
@@ -49,6 +52,8 @@ file boundaries and a coherent agent-facing workflow.
   reproducibility check before publication.
 - Quality Runner remains advisory-only; the prior QR plan is parked.
 - Preserve public MCP/CLI contracts through a versioned compatibility adapter.
+- Split the new safety module and release-package checker before the next
+  milestone boundary to clear commit-gate source-size warnings.
 
 ## Accumulated Context
 
@@ -59,10 +64,14 @@ file boundaries and a coherent agent-facing workflow.
   freezes public contracts before core migration.
 - 2026-07-11: Milestone 1 freezes all public contracts and removes the stale
   `0.3.0` MCP initialize response; safe IO/storage extraction is next.
+- 2026-07-11: M2 begins with contained harvest reads, decoded-JSON/path
+  redaction, and atomic artifact bundles; evaluation and remaining writers are
+  pending migration.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Begin Phase 2: centralize safe reads, redaction, and atomic storage.
+# Continue Phase 2: split the safety/package modules, then migrate evaluation
+# and remaining artifact writers onto the shared boundaries.
 ```
