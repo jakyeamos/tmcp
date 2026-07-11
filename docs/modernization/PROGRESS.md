@@ -32,6 +32,8 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
   evidence, and the live contract check pass with an isolated `TMCP_HOME`.
 - A frozen fixture covers all 11 MCP tools, 47 CLI aliases, defaults, help/list
   pseudo-commands, schemas, output labels, and declared state effects.
+- Contract-fixture digests use explicit `sha256:` labels so release scanning
+  distinguishes deterministic checksums from secret-like values.
 
 ## Blockers and risks
 

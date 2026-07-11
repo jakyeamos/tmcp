@@ -32,6 +32,8 @@ file boundaries and a coherent agent-facing workflow.
 - Milestone 1 contract freeze completed in `5981dcd`: canonical version/tool
   registry, all alias/default fixtures, hermetic transport clients, live MCP
   metadata validation, and CI enforcement.
+- Release fixture checksums are explicitly labelled in `0299ca4`, preserving
+  the archive secret scanner while allowing deterministic contract fixtures.
 
 ## Workflow Notes
 
