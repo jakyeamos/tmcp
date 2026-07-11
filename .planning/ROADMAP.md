@@ -10,7 +10,7 @@
 **Goal:** Eliminate release-archive disclosure risk.
 **Requirements:** MOD-SAFE, MOD-OPS
 **Depends on:** None
-**Plans:** Pending approval
+**Plans:** Complete 2026-07-11
 
 ### Phase 1: Contract freeze and target baseline
 
@@ -18,7 +18,7 @@
 fixtures.
 **Requirements:** MOD-CONTRACTS, MOD-OPS
 **Depends on:** Phase 0
-**Plans:** Pending approval
+**Plans:** Ready to begin
 
 ### Phase 2: Safe input and storage foundation
 
@@ -65,4 +65,4 @@ safe core.
 **Plans:** Pending approval
 
 ---
-*Last updated: 2026-07-10 after modernization audit*
+*Last updated: 2026-07-11 after Milestone 0 release-safety verification*

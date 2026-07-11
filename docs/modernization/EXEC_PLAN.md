@@ -25,7 +25,7 @@ is a release blocker even if the larger modernization is deferred.
 **Objective:** eliminate release-tarball disclosure risk without waiting for
 the full architectural migration.
 
-**Affected surfaces:** `scripts/check_release_package.py`, package tests,
+**Affected surfaces:** archive-policy and release-check scripts, package tests,
 release documentation, CI.
 
 **Preserve:** portable source-checkout installation and deterministic archive

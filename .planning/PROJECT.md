@@ -23,7 +23,7 @@ runtime.
 
 ### Active
 
-- [ ] Close the P0 release-package disclosure risk before any new publication.
+- [x] Close the P0 release-package disclosure risk before any new publication.
 - [ ] Migrate the monolithic runtime to a modular, stdlib-only core behind
   stable transport entrypoints.
 - [ ] Establish an explicit compose → recompile → outcome journey with honest
@@ -60,9 +60,9 @@ runtime.
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Use a parallel v2 core behind stable entrypoints | Public MCP/CLI contracts require staged migration, not an uncontrolled rewrite. | Approved for planning |
-| Make package safety Milestone 0 | The current packager can include untracked/ignored local content. | Release blocker |
+| Make package safety Milestone 0 | The current packager can include untracked/ignored local content. | Complete |
 | Treat CLI/MCP/Markdown as the UX surface | TMCP has no browser UI. | Approved for planning |
 | Keep Quality Runner advisory-only | Quality Runner remains useful evidence, not an execution system. | Retained |
 
 ---
-*Last updated: 2026-07-10 after modernization audit*
+*Last updated: 2026-07-11 after Milestone 0 release-safety verification*

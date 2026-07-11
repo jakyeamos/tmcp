@@ -2,15 +2,14 @@
 
 ## Current state
 
-**Phase:** Audit and target design complete.
+**Phase:** Milestone 0 complete; Milestone 1 ready.
 
-**Branch:** `codex/tmcp-modernization-audit`
+**Branch:** `codex/tmcp-modernization-v2`
 
 **Baseline:** `72baf609a519bebdabc4287b2671f04554ef6c23` (`0.4.0`)
 
-**Implementation status:** Not started. This branch contains planning artifacts
-only; no product code, dependency, release, cache, or primary-checkout changes
-have been made.
+**Implementation status:** Release safety is implemented and verified in the
+isolated modernization worktree. Public runtime contracts remain unchanged.
 
 ## Decisions recorded
 
@@ -19,25 +18,27 @@ have been made.
   publication.
 - Treat TMCP's MCP/CLI/Markdown interaction as the UX surface, not a web UI.
 - Require explicit, visible state effects in the target flow.
+- Package from a clean Git tree, not from filesystem traversal; archive policy
+  owns containment, manifest validation, and deterministic output.
+- Release evidence is a pre-merge two-run gate for version bumps: record a
+  successful release-PR run, then pass the evidence check before merge.
 
 ## Verified baseline
 
-- Python compile and Node launcher syntax pass.
-- The isolated test suite passes: 120 tests.
-- Install shape, release evidence, release package, and standalone smoke checks
+- Full unit, compile, launcher, install, release-evidence, and package checks
   pass with an isolated `TMCP_HOME`.
+- The real committed tree packages twice with matching archive and manifest
+  digests; the extracted package passes its verification suite.
 
 ## Blockers and risks
 
-- **P0:** release package currently can include untracked/ignored sensitive
-  files. Do not release before Milestone 0 is complete.
 - The primary checkout contains user-owned uncommitted work that is not included
   in this audit branch. Integrate or supersede it deliberately during approved
   implementation.
-- The modernization changes storage defaults and compatibility semantics; the
-  five recommendations in `TARGET.md` need confirmation before implementation.
+- The remaining milestones change storage defaults and compatibility semantics;
+  retain the documented compatibility boundary while migrating the runtime.
 
 ## Next step
 
-Review and approve `TARGET.md` and `EXEC_PLAN.md`, then begin Milestone 0 in
-an isolated implementation worktree.
+Begin Milestone 1 by freezing MCP/CLI compatibility contracts and extracting a
+canonical tool/version registry.
