@@ -308,7 +308,7 @@ def canonical_contract_snapshot() -> dict[str, object]:
 
 def _contract_digest(value: object) -> str:
     serialized = json.dumps(value, sort_keys=True, separators=(",", ":"))
-    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+    return f"sha256:{hashlib.sha256(serialized.encode('utf-8')).hexdigest()}"
 
 
 def canonical_contract_fixture() -> dict[str, object]:
