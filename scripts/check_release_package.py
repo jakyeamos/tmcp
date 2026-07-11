@@ -25,6 +25,7 @@ from scripts.tmcp_release_archive import (  # noqa: E402
     should_include,
     verify_reproducibility,
 )
+from scripts.release_package_compile import compile_command  # noqa: E402
 
 HARDCODED_USER_PATH_PATTERNS = (
     re.compile(r"/" r"Users/(?!example\b|you\b|your\b|name\b)[^\s)\"'`]+"),
@@ -579,27 +580,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
             package_env,
         )
         compile_ok, compile_output = run(
-            [
-                sys.executable,
-                "-m",
-                "py_compile",
-                "scripts/tmcp_mcp_server.py",
-                "scripts/check_install.py",
-                "scripts/check_release_package.py",
-                "scripts/tmcp_release_archive.py",
-                "scripts/check_release_evidence.py",
-                "scripts/pre_cr_coverage.py",
-                "scripts/tmcp_mcp_framing.py",
-                "scripts/tmcp_redaction.py",
-                "tmcp_runtime/__init__.py",
-                "tmcp_runtime/api/__init__.py",
-                "tmcp_runtime/api/registry.py",
-                "tmcp_runtime/api/tool_schemas.py",
-                "tmcp_runtime/safety/__init__.py",
-                "tmcp_runtime/safety/files.py",
-                "tmcp_runtime/storage/__init__.py",
-                "tmcp_runtime/storage/artifacts.py",
-            ],
+            compile_command(sys.executable),
             plugin_root,
             package_env,
         )

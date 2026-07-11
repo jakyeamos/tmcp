@@ -8,8 +8,8 @@ from tmcp_runtime.safety.files import (
     iter_harvest_candidates,
     redact_json_value,
     redact_path,
-    read_harvest_text,
 )
+from tmcp_runtime.safety.reader import read_harvest_text
 
 __all__ = [
     "HarvestCandidate",
