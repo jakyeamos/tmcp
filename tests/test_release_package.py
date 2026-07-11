@@ -359,6 +359,10 @@ class ReleasePackageTests(unittest.TestCase):
                 "README.md", f"hash note {checksum}\n".encode("utf-8")
             )
 
+    def test_package_allows_path_shaped_placeholder(self) -> None:
+        placeholder = "/absolute/path/to/tmcp/scripts/" + "tmcp_launcher.mjs"
+        self.package.scan_release_content("README.md", placeholder.encode("utf-8"))
+
     def test_manifest_and_archive_are_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "plugin"
