@@ -20,7 +20,7 @@ if str(PLUGIN_ROOT) not in sys.path:
     sys.path.insert(0, str(PLUGIN_ROOT))
 
 from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
-from scripts.tmcp_redaction import merge_redactions, redact_sensitive_text  # noqa: E402
+from scripts.tmcp_redaction import merge_redactions  # noqa: E402
 from scripts.tmcp_route_catalog import (  # noqa: E402
     ROUTE_CATALOG_VERSION,
     composition_route_boost,
@@ -41,6 +41,14 @@ from tmcp_runtime.api.registry import (  # noqa: E402
     mcp_server_info,
     mcp_tools,
 )
+from tmcp_runtime.safety import (  # noqa: E402
+    collect_harvest_roots,
+    iter_harvest_candidates,
+    redact_json_value,
+    redact_path,
+    read_harvest_text,
+)
+from tmcp_runtime.storage import AtomicArtifactStore  # noqa: E402
 
 AIOS_ROOT = (
     Path(os.environ["AIOS_ROOT"]).expanduser() if os.environ.get("AIOS_ROOT") else None
@@ -3491,58 +3499,20 @@ def _normalize_string_list(
     return list(fallback)
 
 
-def _expand_brace_glob(pattern: str) -> list[str]:
-    match = re.search(r"\{([^{}]+)\}", pattern)
-    if not match:
-        return [pattern]
-    before = pattern[: match.start()]
-    after = pattern[match.end() :]
-    return [f"{before}{item.strip()}{after}" for item in match.group(1).split(",")]
-
-
-def _matches_glob(rel_path: str, path: Path, pattern: str) -> bool:
-    variants = [pattern]
-    if pattern.startswith("**/"):
-        variants.append(pattern[3:])
-    return any(
-        fnmatch.fnmatch(rel_path, variant)
-        or fnmatch.fnmatch(path.name, variant)
-        or fnmatch.fnmatch(f"/{rel_path}", f"/{variant}")
-        for variant in variants
-    )
-
-
-def _matches_any(rel_path: str, path: Path, patterns: list[str]) -> bool:
-    expanded = [item for pattern in patterns for item in _expand_brace_glob(pattern)]
-    return any(_matches_glob(rel_path, path, pattern) for pattern in expanded)
-
-
-def _harvest_source_paths(arguments: dict[str, Any]) -> tuple[list[Path], list[str]]:
+def _source_path_values(arguments: dict[str, Any]) -> list[str]:
     raw_paths = arguments.get("source_paths")
     if isinstance(raw_paths, list) and raw_paths:
-        candidates = [str(item) for item in raw_paths]
-    else:
-        candidates = [str(arguments.get("source_path") or ".")]
-    roots: list[Path] = []
-    warnings: list[str] = []
-    seen: set[str] = set()
-    for candidate in candidates:
-        root = Path(candidate).expanduser().resolve()
-        root_key = str(root)
-        if root_key in seen:
-            continue
-        seen.add(root_key)
-        if not root.exists():
-            warnings.append(f"Source path does not exist: {root}")
-            continue
-        if root.is_file():
-            roots.append(root)
-            continue
-        if root.is_dir():
-            roots.append(root)
-            continue
-        warnings.append(f"Source path is not a regular file or directory: {root}")
-    return roots, warnings
+        return [str(item) for item in raw_paths]
+    return [str(arguments.get("source_path") or arguments.get("project_path") or ".")]
+
+
+def _source_project_path(arguments: dict[str, Any]) -> str:
+    source_path = Path(_source_path_values(arguments)[0]).expanduser()
+    try:
+        resolved_path = source_path.resolve(strict=True)
+    except OSError:
+        resolved_path = source_path.resolve(strict=False)
+    return str(resolved_path if resolved_path.is_dir() else resolved_path.parent)
 
 
 def _source_type_for(path: Path, rel_path: str, text: str) -> str:
@@ -4412,77 +4382,6 @@ def _node_harvest_sort_key(node: dict[str, Any]) -> tuple[int, int, str]:
     return type_score, 0, fallback_path
 
 
-def _path_suffix(path: Path, depth: int) -> str:
-    parts = [part for part in path.parts if part and part != path.anchor]
-    return "/".join(parts[-depth:]) if parts else path.name
-
-
-def _file_root_relative_paths(roots: list[Path]) -> dict[Path, str]:
-    file_roots = [root for root in roots if root.is_file()]
-    if not file_roots:
-        return {}
-    max_depth = max(len(root.parts) for root in file_roots)
-    for depth in range(1, max_depth + 1):
-        labels = {root: _path_suffix(root, depth) for root in file_roots}
-        if len(set(labels.values())) == len(labels):
-            return labels
-    return {root: str(root) for root in file_roots}
-
-
-def _iter_harvest_candidates(
-    roots: list[Path],
-    include_globs: list[str],
-    exclude_globs: list[str],
-    *,
-    follow_symlinks: bool,
-) -> tuple[list[tuple[Path, Path, str]], list[str]]:
-    candidates: list[tuple[Path, Path, str]] = []
-    warnings: list[str] = []
-    seen: set[str] = set()
-    file_root_rel_paths = _file_root_relative_paths(roots)
-    for root in roots:
-        if root.is_file():
-            rel_path = file_root_rel_paths.get(root, root.name)
-            if _matches_any(rel_path, root, include_globs) and not _matches_any(
-                rel_path, root, exclude_globs
-            ):
-                candidates.append((root.parent, root, rel_path))
-            continue
-        for dirpath, dirnames, filenames in os.walk(root, followlinks=follow_symlinks):
-            current = Path(dirpath)
-            rel_dir = current.relative_to(root).as_posix() if current != root else "."
-            pruned: list[str] = []
-            for dirname in list(dirnames):
-                child = current / dirname
-                child_rel = child.relative_to(root).as_posix()
-                if dirname in DEFAULT_HARVEST_EXCLUDE_DIR_NAMES or _matches_any(
-                    f"{child_rel}/", child, exclude_globs
-                ):
-                    dirnames.remove(dirname)
-                    pruned.append(child_rel)
-            if pruned and len(warnings) < 20:
-                warnings.append(f"Skipped directory: {', '.join(pruned[:3])}")
-            for filename in filenames:
-                path = current / filename
-                try:
-                    resolved = str(path.resolve(strict=False))
-                except OSError:
-                    resolved = str(path)
-                if resolved in seen:
-                    continue
-                seen.add(resolved)
-                try:
-                    rel_path = path.relative_to(root).as_posix()
-                except ValueError:
-                    rel_path = f"{rel_dir}/{filename}" if rel_dir != "." else filename
-                if _matches_any(rel_path, path, exclude_globs):
-                    continue
-                if not _matches_any(rel_path, path, include_globs):
-                    continue
-                candidates.append((root, path, rel_path))
-    return candidates, warnings
-
-
 def _classify_atoms(text: str, source_type: str = "") -> list[str]:
     lower = text.lower()
     atoms: set[str] = set(HARVEST_SOURCE_TYPE_ATOMS.get(source_type, ()))
@@ -5008,51 +4907,47 @@ def _frontmatter_for(text: str) -> dict[str, str]:
     return frontmatter
 
 
-def _read_text_limited(
-    path: Path, max_file_bytes: int
-) -> tuple[str | None, str | None]:
-    try:
-        size = path.stat().st_size
-    except OSError as exc:
-        return None, f"Could not stat {path}: {exc}"
-    if size > max_file_bytes:
-        return None, f"Skipped large file: {path} ({size} bytes > {max_file_bytes})"
-    try:
-        data = path.read_bytes()
-    except OSError as exc:
-        return None, f"Could not read {path}: {exc}"
-    if b"\x00" in data[:2048]:
-        return None, f"Skipped likely binary file: {path}"
-    return data.decode("utf-8", errors="replace"), None
-
-
 def _write_harvest_artifacts(
     output_dir: Path, result: dict[str, Any]
 ) -> dict[str, str]:
-    paths = {
-        "harvest_result": output_dir / "tmcp-harvest-result.json",
-        "packet_seed": output_dir / "tmcp-packet-seed.json",
-    }
-    _write_json(paths["harvest_result"], result)
+    payloads: dict[str, Any] = {"tmcp-harvest-result.json": result}
     packet = result.get("packet_seed")
     if isinstance(packet, dict):
-        _write_json(paths["packet_seed"], packet)
-    return {key: str(path) for key, path in paths.items() if path.exists()}
+        payloads["tmcp-packet-seed.json"] = packet
+    written_paths = AtomicArtifactStore.write_json_bundle(output_dir, payloads)
+    return {
+        "harvest_result": redact_path(written_paths["tmcp-harvest-result.json"]),
+        **(
+            {"packet_seed": redact_path(written_paths["tmcp-packet-seed.json"])}
+            if "tmcp-packet-seed.json" in written_paths
+            else {}
+        ),
+    }
 
 
 SCOPED_PACKET_SEEDS_SCHEMA = "tmcp-scoped-packet-seeds-v0.1"
 
 
-def _scoped_packet_seed_payload(text: str) -> dict[str, Any] | None:
+def _scoped_packet_seed_payload(
+    text: str,
+    *,
+    redact_sensitive: bool,
+) -> tuple[dict[str, Any] | None, dict[str, int]]:
     try:
         payload = json.loads(text)
     except json.JSONDecodeError:
-        return None
+        return None, {}
     if not isinstance(payload, dict):
-        return None
-    if payload.get("schema") != SCOPED_PACKET_SEEDS_SCHEMA:
-        return None
-    return payload
+        return None, {}
+    safe_payload, redactions = redact_json_value(
+        payload,
+        enabled=redact_sensitive,
+    )
+    if not isinstance(safe_payload, dict):
+        return None, redactions
+    if safe_payload.get("schema") != SCOPED_PACKET_SEEDS_SCHEMA:
+        return None, redactions
+    return safe_payload, redactions
 
 
 def _scoped_seed_signal_text(seed: dict[str, Any]) -> str:
@@ -5095,8 +4990,8 @@ def _scoped_seed_signal_text(seed: dict[str, Any]) -> str:
 
 def _scoped_packet_seed_nodes(
     *,
-    root: Path,
-    path: Path,
+    root_path: str,
+    source_path: str,
     rel_path: str,
     payload: dict[str, Any],
     max_excerpt_chars: int,
@@ -5130,8 +5025,8 @@ def _scoped_packet_seed_nodes(
         nodes.append(
             {
                 "id": seed_id,
-                "root_path": str(root),
-                "path": str(path),
+                "root_path": root_path,
+                "path": source_path,
                 "relative_path": virtual_rel_path,
                 "title": str(seed.get("name") or seed_id),
                 "source_type": "scoped_packet_seed",
@@ -5211,7 +5106,11 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
     max_excerpt_chars = max(200, int(arguments.get("max_excerpt_chars") or 1200))
     follow_symlinks = bool(arguments.get("follow_symlinks", False))
     redact_sensitive = bool(arguments.get("redact_sensitive", True))
-    source_roots, warnings = _harvest_source_paths(arguments)
+    source_path_values = _source_path_values(arguments)
+    source_roots, warnings = collect_harvest_roots(
+        source_path_values,
+        follow_symlinks=follow_symlinks,
+    )
     include_globs = _normalize_string_list(
         arguments.get("include_globs"),
         DEFAULT_HARVEST_INCLUDE_GLOBS,
@@ -5224,45 +5123,64 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
         arguments.get("exclude_globs"),
         DEFAULT_HARVEST_EXCLUDE_GLOBS,
     )
-    candidates, traversal_warnings = _iter_harvest_candidates(
+    candidates, traversal_warnings = iter_harvest_candidates(
         source_roots,
         include_globs,
         exclude_globs,
+        DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
         follow_symlinks=follow_symlinks,
     )
     warnings.extend(traversal_warnings)
     nodes: list[dict[str, Any]] = []
     redaction_totals: dict[str, int] = {}
     scoped_seed_json_paths = {
-        str(path.resolve(strict=False))
-        for _, path, _ in candidates
-        if path.name == "scoped-packet-seeds.json"
+        str(candidate.resolved_path)
+        for candidate in candidates
+        if candidate.logical_path.name == "scoped-packet-seeds.json"
     }
-    for root, path, rel_path in candidates:
+    for candidate in candidates:
+        root_path = candidate.root.display_path
+        path = candidate.logical_path
+        display_path = Path(candidate.display_path)
+        raw_rel_path = candidate.relative_path
+        rel_path = candidate.display_relative_path
         if (
             path.name == "scoped-packet-seeds.md"
-            and str(path.with_suffix(".json").resolve(strict=False))
+            and str(candidate.resolved_path.with_suffix(".json"))
             in scoped_seed_json_paths
         ):
             continue
-        text, warning = _read_text_limited(path, max_file_bytes)
+        safe_source, warning = read_harvest_text(
+            candidate,
+            max_file_bytes,
+            redact_sensitive=redact_sensitive,
+        )
         if warning:
             if len(warnings) < 50:
                 warnings.append(warning)
             continue
-        if text is None:
+        if safe_source is None:
             continue
-        for source_warning in _instruction_override_warnings(path, rel_path, text):
+        safe_text = safe_source.text
+        redactions = dict(safe_source.redactions)
+        for source_warning in _instruction_override_warnings(
+            display_path,
+            rel_path,
+            safe_text,
+        ):
             if len(warnings) < 50:
                 warnings.append(source_warning)
-        scoped_seed_payload = _scoped_packet_seed_payload(text)
-        safe_text, redactions = redact_sensitive_text(text, enabled=redact_sensitive)
+        scoped_seed_payload, decoded_redactions = _scoped_packet_seed_payload(
+            safe_text,
+            redact_sensitive=redact_sensitive,
+        )
+        merge_redactions(redactions, decoded_redactions)
         merge_redactions(redaction_totals, redactions)
         if scoped_seed_payload is not None:
             nodes.extend(
                 _scoped_packet_seed_nodes(
-                    root=root,
-                    path=path,
+                    root_path=root_path,
+                    source_path=candidate.display_path,
                     rel_path=rel_path,
                     payload=scoped_seed_payload,
                     max_excerpt_chars=max_excerpt_chars,
@@ -5270,15 +5188,15 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
                 )
             )
             continue
-        source_type = _source_type_for(path, rel_path, text)
+        source_type = _source_type_for(path, raw_rel_path, safe_text)
         signal_text = _positive_signal_text(safe_text)
         tokens = sorted(_text_tokens(signal_text))
         node_id = hashlib.sha256(
-            f"{path}:{hashlib.sha256(text.encode()).hexdigest()}".encode()
+            f"{candidate.display_path}:{hashlib.sha256(safe_text.encode()).hexdigest()}".encode()
         ).hexdigest()[:12]
         frontmatter = _frontmatter_for(safe_text)
         skill_eval_advisories = harvest_warnings_for_source(
-            path,
+            display_path,
             safe_text,
             rel_path=rel_path,
             source_type=source_type,
@@ -5288,10 +5206,10 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
                 warnings.append(str(advisory["warning"]))
         node: dict[str, Any] = {
             "id": node_id,
-            "root_path": str(root),
-            "path": str(path),
+            "root_path": root_path,
+            "path": candidate.display_path,
             "relative_path": rel_path,
-            "title": _title_for(path, text),
+            "title": _title_for(display_path, safe_text),
             "source_type": source_type,
             "source_tier": source_type,
             "frontmatter": frontmatter,
@@ -5314,17 +5232,32 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
             f"Harvest limit reached: kept {limit} of {len(nodes)} matched source files."
         )
         nodes = nodes[:limit]
-    project_path = str(source_roots[0]) if source_roots else str(Path(".").resolve())
+    project_path = (
+        str(
+            source_roots[0].resolved_path
+            if source_roots[0].kind == "directory"
+            else source_roots[0].resolved_path.parent
+        )
+        if source_roots
+        else str(Path(".").resolve())
+    )
+    display_project_path = (
+        source_roots[0].display_path
+        if source_roots and source_roots[0].kind == "directory"
+        else redact_path(source_roots[0].logical_path.parent)
+        if source_roots
+        else redact_path(project_path)
+    )
     packet = _compile_standalone_packet(
         objective=objective,
-        project_path=project_path,
+        project_path=display_project_path,
         harvested_nodes=nodes,
     )
     result: dict[str, Any] = {
         "ok": True,
         "adapter": "standalone",
         "schema": "tmcp-harvest-result-v0.1",
-        "source_paths": [str(root) for root in source_roots],
+        "source_paths": [root.display_path for root in source_roots],
         "harvest_config": {
             "include_globs": include_globs,
             "exclude_globs": exclude_globs,
@@ -7528,11 +7461,7 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
         ],
     }
     if bool(arguments.get("write_artifacts", False)):
-        project_path = (
-            str(Path(str(harvest["source_paths"][0])).expanduser())
-            if harvest.get("source_paths")
-            else str(Path(".").resolve())
-        )
+        project_path = _source_project_path(arguments)
         output_dir = Path(
             str(
                 arguments.get("output_dir")
@@ -7547,14 +7476,14 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
     else:
         result["artifact_paths"] = {}
     if bool(arguments.get("compose", False)):
+        project_path = _source_project_path(arguments)
         result["composed_packet"] = _compose_packet(
             {
                 "objective": objective,
-                "project_path": arguments.get("project_path")
-                or (harvest.get("source_paths") or ["."])[0],
+                "project_path": arguments.get("project_path") or project_path,
                 "source_paths": arguments.get("source_paths"),
                 "source_path": arguments.get("source_path")
-                or (harvest.get("source_paths") or ["."])[0],
+                or project_path,
                 "phase": arguments.get("phase") or "start",
                 "cache_policy": arguments.get("cache_policy") or "global",
                 "include_globs": arguments.get("include_globs"),
@@ -7678,10 +7607,7 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
         ),
     }
     if write_artifacts:
-        source_paths = _string_list(
-            recommendation.get("source_harvest", {}).get("source_paths")
-        )
-        project_path = source_paths[0] if source_paths else str(Path(".").resolve())
+        project_path = _source_project_path(arguments)
         output_dir = Path(
             str(
                 arguments.get("output_dir")

@@ -31,6 +31,8 @@ REQUIRED_FILES = (
     "scripts/tmcp_mcp_server.py",
     "tmcp_runtime/api/registry.py",
     "tmcp_runtime/api/tool_schemas.py",
+    "tmcp_runtime/safety/files.py",
+    "tmcp_runtime/storage/artifacts.py",
     "skills/tmcp-adaptive-workflow-pack/SKILL.md",
     "skills/tmcp-agent-handoff/SKILL.md",
     "skills/tmcp-architecture-decision/SKILL.md",

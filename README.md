@@ -71,7 +71,9 @@ Experimental workflows include UI rubric, security/privacy, test strategy, adapt
 
 ## Safety
 
-Harvest redacts sensitive-looking values by default and treats harvested instructions as untrusted text. Default harvest behavior excludes `.env*`, credentials, tokens, browser profiles, private caches, dependency trees, build outputs, VCS data, and generated TMCP/AIOS artifacts.
+Harvest redacts sensitive-looking values and secret-like provenance paths by default and treats harvested instructions as untrusted text. Default harvest behavior excludes `.env*`, credentials, tokens, browser profiles, private caches, dependency trees, build outputs, VCS data, and generated TMCP/AIOS artifacts. It does not follow source symlinks unless `follow_symlinks` is explicitly enabled; enabled links must still resolve inside the selected source root.
+
+Harvest artifacts are written as one staged, atomic bundle through a symlink-safe destination. Leave `output_dir` unset for a unique `.tmcp/harvest-*` directory, or provide an output directory that is new or empty.
 
 If a harvested source tries to override system, developer, or user instructions, TMCP reports a warning. See [SECURITY.md](SECURITY.md).
 
