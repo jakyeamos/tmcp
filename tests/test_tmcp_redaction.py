@@ -15,4 +15,6 @@ class TmcpRedactionTests(unittest.TestCase):
         )
 
     def test_opaque_token_remains_secret_like(self) -> None:
-        self.assertTrue(looks_high_entropy("A9b8C7d6E5f4G3h2I1j0K9l8M7n6O5p4Q3r2S1t0"))
+        opaque_token = "A9b8C7d6E5f4G3h2I1j0" + "K9l8M7n6O5p4Q3r2S1t0"
+
+        self.assertTrue(looks_high_entropy(opaque_token))
