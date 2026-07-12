@@ -1763,7 +1763,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                     "cache_policy": arguments.get("cache_policy") or "none",
                 }
             )
-        return result
+        return _redact_result(result)
     if name == "tmcp_harvest_skills":
         return _harvest_skills(arguments)
     if name == "tmcp_evaluate_skills":
@@ -1774,7 +1774,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "tmcp_recommend_workflows":
         return _recommend_workflows(arguments)
     if name == "tmcp_compose_packet":
-        return _compose_packet(arguments)
+        return _redact_result(_compose_packet(arguments))
     if name == "tmcp_runtime_next":
         return _runtime_next(arguments)
     if name == "tmcp_record_receipt":

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -198,6 +199,35 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
                     },
                 }
             )
+
+    def test_public_compose_and_standalone_explain_redact_project_paths(self) -> None:
+        secret = "sk-" + "F" * 40
+        with tempfile.TemporaryDirectory() as tmp:
+            project_path = Path(tmp) / secret / "project"
+            project_path.mkdir(parents=True)
+            compose = self.server._call_tool(
+                "tmcp_compose_packet",
+                {
+                    "objective": "Implement a reliable project packet",
+                    "project_path": str(project_path),
+                    "source_path": str(project_path),
+                    "cache_policy": "none",
+                },
+            )
+            standalone = self.server._call_tool(
+                "tmcp_explain",
+                {
+                    "objective": "Explain a reliable project packet",
+                    "project_path": str(project_path),
+                    "source_path": str(project_path),
+                    "adapter": "standalone",
+                    "compose": True,
+                },
+            )
+
+        self.assertNotIn(secret, json.dumps({"compose": compose, "standalone": standalone}))
+        self.assertIn("redaction_summary", compose)
+        self.assertIn("redaction_summary", standalone)
 
     def test_review_auto_never_uses_the_aios_adapter(self) -> None:
         with patch.object(self.server, "_aios_available", return_value=True), patch.object(
