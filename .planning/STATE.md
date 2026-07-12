@@ -11,14 +11,14 @@ file boundaries and a coherent agent-facing workflow.
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 2 in progress; POSIX safety slice complete, Windows artifact persistence pending
+**Status:** Milestone 2 implementation complete locally; hosted matrix and adversarial review pending
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Safe input and storage foundation
 - **Slug:** `tmcp-modernization`
-- **Status:** Evaluation migrated; remaining writers and Windows-safe persistence next
+- **Status:** All local writers and cache reads migrated; validate hosted behavior next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -57,6 +57,13 @@ file boundaries and a coherent agent-facing workflow.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
   values now use the permitted `github.workspace` context instead of
   `runner.temp`, which GitHub rejected before scheduling any jobs.
+- `32fb08d` moves review, recommendation, promotion, global cache, and receipt
+  artifacts through the shared safe store; redacts direct user inputs before
+  return/persistence; slugs implicit promotion directories; and publishes the
+  storage capability through `doctor` and `status`.
+- `4c5877f` keeps the new artifact-safety coverage in a focused test module;
+  the full local suite now has 184 passing tests (the unsupported-platform
+  denial test is skipped locally because this host supports secure persistence).
 
 ## Workflow Notes
 
@@ -73,6 +80,8 @@ file boundaries and a coherent agent-facing workflow.
 - Artifact persistence is intentionally fail-closed without descriptor-relative
   no-follow primitives; a race-safe Windows implementation is required before
   cross-platform release claims can remain unconditional.
+- Windows runs read-only and explicit fail-closed checks; positive artifact and
+  release-package persistence checks run only on secure-storage hosts.
 
 ## Accumulated Context
 
@@ -87,16 +96,19 @@ file boundaries and a coherent agent-facing workflow.
   exact evaluation input boundaries, and descriptor-safe artifacts; evaluation
   and remaining writers are pending migration.
 - 2026-07-11: Evaluation now uses data-only composition and safe artifacts;
-  review, recommendation, promotion, cache, and receipt writers remain.
+  review, recommendation, promotion, cache, and receipt writers remained.
 - 2026-07-11: Adversarial review removed a plan-path probe and surfaced the
   Windows secure-persistence gap; both are explicit M2 release conditions.
 - 2026-07-11: GitHub Actions validation was restored after a job-level
   `runner.temp` context reference prevented every matrix job from scheduling.
+- 2026-07-11: All remaining durable writers and global cache reads use the safe
+  storage boundary; compatibility docs now distinguish portable analysis from
+  secure persistence, with Windows intentionally failing write requests closed.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Continue Phase 2: close Windows-safe persistence, then migrate review,
-# recommendation, promotion, cache, and receipt writers onto shared boundaries.
+# Validate the restored hosted matrix, then perform the planned adversarial
+# review of the completed safe-storage migration.
 ```
