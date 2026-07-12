@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import hashlib
-import fnmatch
 import json
 import os
 import re
@@ -29,9 +28,13 @@ from tmcp_runtime.domain.routes import (  # noqa: E402
 )
 from tmcp_runtime.domain.families import (  # noqa: E402
     compose_family_context,
-    normalize_declared_load_pattern,
     runtime_family_packet_delta,
     runtime_family_seed_context,
+)
+from tmcp_runtime.domain.declared_loads import (  # noqa: E402
+    declared_load_patterns_from_text,
+    normalize_declared_load_pattern,
+    resolve_declared_load_nodes,
 )
 from tmcp_runtime.domain.recompile import (  # noqa: E402
     apply_validated_proposals,
@@ -47,6 +50,7 @@ from tmcp_runtime.domain.composition import (  # noqa: E402
     composition_terms,
     contextual_atoms_and_gates,
     filter_source_verification_gates,
+    merge_composition_nodes,
     matching_reference_reads,
     objective_has_phrase,
     select_composition_nodes,
@@ -1705,7 +1709,6 @@ def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
             objective=combined_objective,
             context=context,
             latest_user_message=latest_user_message,
-            resolve_declared_load_paths=_resolved_declared_load_paths,
         )
         if family_delta:
             activated_atoms = _ordered_unique(
@@ -3245,175 +3248,6 @@ def _ordered_unique(values: list[str]) -> list[str]:
     return ordered
 
 
-DECLARED_LOAD_VERB_PATTERN = re.compile(
-    r"(?:search|load|read from|check|inspect|open)\s+`([^`]+)`",
-    re.IGNORECASE,
-)
-DECLARED_LOAD_PATH_PATTERN = re.compile(
-    r"`((?:[a-zA-Z0-9][a-zA-Z0-9_.-]*/)+|"
-    r"[a-zA-Z0-9][a-zA-Z0-9_.-]*\.(?:md|json|yaml|yml))`"
-)
-DECLARED_LOAD_GLOBAL_BASENAMES = frozenset(
-    {
-        "coverage-gaps.md",
-        "lint-candidates.md",
-        "readme.md",
-    }
-)
-DECLARED_LOAD_SURFACE_TERMS = (
-    "onboarding",
-    "settings",
-    "billing",
-    "dashboard",
-    "dashboards",
-    "forms",
-    "permissions",
-    "destructive",
-    "empty state",
-    "empty states",
-    "loading state",
-    "loading states",
-    "validation",
-    "checkout",
-    "workspace",
-)
-
-
-def _declared_load_patterns_from_text(text: str) -> list[str]:
-    patterns: list[str] = []
-    for match in DECLARED_LOAD_VERB_PATTERN.finditer(text):
-        patterns.append(normalize_declared_load_pattern(match.group(1)))
-    for match in DECLARED_LOAD_PATH_PATTERN.finditer(text):
-        candidate = normalize_declared_load_pattern(match.group(1))
-        if candidate and ("/" in candidate or candidate.endswith((".md", ".json", ".yaml", ".yml"))):
-            patterns.append(candidate)
-    return [pattern for pattern in _ordered_unique(patterns) if pattern]
-
-
-def _node_matches_declared_load_pattern(rel_path: str, pattern: str) -> bool:
-    rel = rel_path.replace("\\", "/").lstrip("./")
-    pat = pattern.replace("\\", "/").lstrip("./")
-    if not rel or not pat:
-        return False
-    if "**" in pat:
-        regex = "^" + re.escape(pat).replace(r"\*\*", ".*") + "$"
-        return bool(re.match(regex, rel))
-    if "/" not in pat and Path(pat).suffix:
-        return rel == pat or rel.endswith(f"/{pat}")
-    return fnmatch.fnmatch(rel, pat) or rel == pat
-
-
-def _surface_terms_from_objective(objective: str) -> list[str]:
-    lower = objective.lower()
-    return [term for term in DECLARED_LOAD_SURFACE_TERMS if term in lower]
-
-
-def _narrow_declared_load_paths(
-    paths: list[str], objective: str, *, limit: int = 12
-) -> list[str]:
-    if not paths:
-        return []
-    ordered = _ordered_unique(paths)
-    surfaces = _surface_terms_from_objective(objective)
-    if not surfaces:
-        return ordered[:limit]
-
-    matched: list[str] = []
-    global_paths: list[str] = []
-    for path in ordered:
-        lower = path.lower()
-        basename = Path(path).name.lower()
-        if basename in DECLARED_LOAD_GLOBAL_BASENAMES or "/standards/" in lower:
-            global_paths.append(path)
-            continue
-        if any(
-            surface in lower
-            or surface.replace(" ", "-") in lower
-            or surface.replace(" ", "_") in lower
-            for surface in surfaces
-        ):
-            matched.append(path)
-    return _ordered_unique(matched + global_paths)[:limit]
-
-
-def _resolved_declared_load_paths(
-    *,
-    selected_nodes: list[dict[str, Any]],
-    source_nodes: list[dict[str, Any]],
-    objective: str,
-    family_context: dict[str, Any] | None = None,
-) -> list[str]:
-    patterns: list[str] = []
-    for node in selected_nodes:
-        metadata = _routing_metadata(node)
-        patterns.extend(_string_list(metadata.get("declared_loads")))
-    if family_context:
-        patterns.extend(_string_list(family_context.get("declared_loads")))
-    patterns = _ordered_unique(patterns)
-    if not patterns:
-        return []
-
-    matched_paths: list[str] = []
-    for node in source_nodes:
-        rel_path = str(node.get("relative_path") or "")
-        if not rel_path:
-            continue
-        if any(
-            _node_matches_declared_load_pattern(rel_path, pattern)
-            for pattern in patterns
-        ):
-            matched_paths.append(rel_path)
-    return _narrow_declared_load_paths(matched_paths, objective)
-
-
-def _resolved_declared_load_nodes(
-    *,
-    selected_nodes: list[dict[str, Any]],
-    source_nodes: list[dict[str, Any]],
-    objective: str,
-    family_context: dict[str, Any] | None = None,
-    max_nodes: int = 6,
-) -> tuple[list[str], list[dict[str, Any]]]:
-    narrowed_paths = _resolved_declared_load_paths(
-        selected_nodes=selected_nodes,
-        source_nodes=source_nodes,
-        objective=objective,
-        family_context=family_context,
-    )
-    if not narrowed_paths:
-        return [], []
-
-    selected_paths = {
-        str(node.get("relative_path") or "") for node in selected_nodes if node.get("relative_path")
-    }
-    narrowed_nodes = [
-        node
-        for node in source_nodes
-        if str(node.get("relative_path") or "") in narrowed_paths
-        and str(node.get("relative_path") or "") not in selected_paths
-    ][:max_nodes]
-    return narrowed_paths, narrowed_nodes
-
-
-def _merge_compose_nodes(
-    primary_nodes: list[dict[str, Any]],
-    additional_nodes: list[dict[str, Any]],
-    *,
-    max_nodes: int = 14,
-) -> list[dict[str, Any]]:
-    merged: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for node in [*primary_nodes, *additional_nodes]:
-        rel_path = str(node.get("relative_path") or "")
-        if not rel_path or rel_path in seen:
-            continue
-        seen.add(rel_path)
-        merged.append(node)
-        if len(merged) >= max_nodes:
-            break
-    return merged
-
-
 def _runtime_harvest_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
     source_paths = _string_list(arguments.get("source_paths"))
     if not source_paths:
@@ -3472,7 +3306,7 @@ def _routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
         re.findall(r"reference/[A-Za-z0-9_.-]+\.md", text)
         + re.findall(r"references/[A-Za-z0-9_.-]+\.md", text)
     )
-    declared_loads = _declared_load_patterns_from_text(text)
+    declared_loads = declared_load_patterns_from_text(text)
     script_prompts = _ordered_unique(
         re.findall(r"(?:[\w./-]+/)?scripts/[A-Za-z0-9_./-]+\.(?:mjs|js|py)", text)
     )
@@ -6260,13 +6094,13 @@ def _compose_packet_from_source_nodes(
         active_routes=active_routes,
         node_signal_text=_node_signal_text,
     )
-    declared_load_paths, declared_load_nodes = _resolved_declared_load_nodes(
+    declared_load_paths, declared_load_nodes = resolve_declared_load_nodes(
         selected_nodes=selected_nodes,
         source_nodes=source_nodes,
         objective=objective,
         family_context=family_context,
     )
-    selected_nodes = _merge_compose_nodes(selected_nodes, declared_load_nodes)
+    selected_nodes = merge_composition_nodes(selected_nodes, declared_load_nodes)
     global_graphs, graph_warnings = _load_global_promoted_graphs(cache_policy)
     receipts, receipt_warnings = _load_recent_receipts(cache_policy)
     selected_workflows = _selected_global_workflows(global_graphs, objective)

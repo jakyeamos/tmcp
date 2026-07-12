@@ -303,6 +303,27 @@ def select_composition_nodes(
     return [node for _, _, node in scored[:8]]
 
 
+def merge_composition_nodes(
+    primary_nodes: list[Node],
+    additional_nodes: list[Node],
+    *,
+    max_nodes: int = 14,
+) -> list[Node]:
+    """Merge composition selections while preserving source order and identity."""
+
+    merged: list[Node] = []
+    seen: set[str] = set()
+    for node in [*primary_nodes, *additional_nodes]:
+        rel_path = str(node.get("relative_path") or "")
+        if not rel_path or rel_path in seen:
+            continue
+        seen.add(rel_path)
+        merged.append(node)
+        if len(merged) >= max_nodes:
+            break
+    return merged
+
+
 def contextual_atoms_and_gates(
     objective: str,
     phase: str,

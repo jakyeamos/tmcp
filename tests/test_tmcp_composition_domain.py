@@ -617,6 +617,29 @@ class CompositionDomainTests(unittest.TestCase):
             },
         )
 
+    def test_merge_composition_nodes_preserves_order_identity_and_caps(self) -> None:
+        first = {"relative_path": "skills/first/SKILL.md"}
+        duplicate = {"relative_path": "skills/first/SKILL.md"}
+        second = {"relative_path": "docs/second.md"}
+        third = {"relative_path": "docs/third.md"}
+        primary = [first, duplicate]
+        additional = [duplicate, second, {"title": "no path"}, third]
+        before = copy.deepcopy({"primary": primary, "additional": additional})
+
+        merged = composition.merge_composition_nodes(
+            primary,
+            additional,
+            max_nodes=2,
+        )
+
+        self.assertEqual(
+            [node["relative_path"] for node in merged],
+            ["skills/first/SKILL.md", "docs/second.md"],
+        )
+        self.assertIs(merged[0], first)
+        self.assertIs(merged[1], second)
+        self.assertEqual({"primary": primary, "additional": additional}, before)
+
 
 if __name__ == "__main__":
     unittest.main()

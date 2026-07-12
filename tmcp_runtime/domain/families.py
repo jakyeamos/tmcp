@@ -8,6 +8,10 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from .declared_loads import (
+    normalize_declared_load_pattern,
+    resolve_declared_load_paths,
+)
 from .routes import derive_task_identity, score_scoped_seed, scoped_seed_threshold
 
 
@@ -42,19 +46,6 @@ def _ordered_unique(values: list[str]) -> list[str]:
         seen.add(item)
         ordered.append(item)
     return ordered
-
-
-def normalize_declared_load_pattern(pattern: str) -> str:
-    """Normalize a seed or source-declared read pattern for path matching."""
-
-    normalized = pattern.strip().strip("`").replace("\\", "/").lstrip("./")
-    if not normalized:
-        return ""
-    if normalized.endswith("/"):
-        return f"{normalized.rstrip('/')}/**"
-    if "**" not in normalized and not Path(normalized).suffix:
-        return f"{normalized}/**"
-    return normalized
 
 
 def _routing_metadata(node: Node) -> dict[str, Any]:
@@ -426,7 +417,6 @@ def runtime_family_packet_delta(
     objective: str,
     context: dict[str, Any],
     latest_user_message: str,
-    resolve_declared_load_paths: Callable[..., list[str]],
 ) -> dict[str, Any]:
     """Build a deterministic, advisory delta for an active skill family."""
 

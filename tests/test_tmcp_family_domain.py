@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import copy
 import unittest
+from unittest.mock import patch
 
-from tmcp_runtime.domain import families
+from tmcp_runtime.domain import declared_loads, families
 
 
 def _signal_text(node: dict[str, object]) -> str:
@@ -183,11 +184,13 @@ class FamilyDomainTests(unittest.TestCase):
 
     def test_declared_load_normalization_preserves_path_semantics(self) -> None:
         self.assertEqual(
-            families.normalize_declared_load_pattern(" `product-decisions\\surfaces\\` "),
+            declared_loads.normalize_declared_load_pattern(
+                " `product-decisions\\surfaces\\` "
+            ),
             "product-decisions/surfaces/**",
         )
         self.assertEqual(
-            families.normalize_declared_load_pattern("coverage-gaps.md"),
+            declared_loads.normalize_declared_load_pattern("coverage-gaps.md"),
             "coverage-gaps.md",
         )
 
@@ -227,10 +230,12 @@ class FamilyDomainTests(unittest.TestCase):
             {
                 "relative_path": "skills/ui-polish-verification/SKILL.md",
                 "routing_metadata": {
-                    "required_reads": ["references/frame-audit-checklist.md"]
+                    "declared_loads": ["decisions/**"],
+                    "required_reads": ["references/frame-audit-checklist.md"],
                 },
             },
             {"relative_path": "skills/unrelated/SKILL.md"},
+            {"relative_path": "decisions/dashboard.md"},
         ]
         seed_node = {
             "phase_transitions": {
@@ -242,12 +247,6 @@ class FamilyDomainTests(unittest.TestCase):
             }
         }
         before_nodes = copy.deepcopy(source_nodes)
-        resolver_calls: list[dict[str, object]] = []
-
-        def resolve_declared_load_paths(**kwargs: object) -> list[str]:
-            resolver_calls.append(dict(kwargs))
-            return ["references/frame-audit-checklist.md", "decisions/ui.md"]
-
         delta = families.runtime_family_packet_delta(
             current_phase="implementation",
             family_context=family_context,
@@ -256,7 +255,6 @@ class FamilyDomainTests(unittest.TestCase):
             objective="Polish the dashboard with a screenshot.",
             context={"browser_evidence": ["desktop screenshot"]},
             latest_user_message="The implementation is ready.",
-            resolve_declared_load_paths=resolve_declared_load_paths,
         )
 
         self.assertEqual(delta["suggested_phase"], "polish-verify")
@@ -268,41 +266,33 @@ class FamilyDomainTests(unittest.TestCase):
             delta["newly_required_reads"],
             [
                 "skills/ui-polish-verification/SKILL.md",
+                "decisions/dashboard.md",
                 "references/frame-audit-checklist.md",
-                "decisions/ui.md",
             ],
         )
-        self.assertEqual(len(resolver_calls), 1)
-        self.assertEqual(resolver_calls[0]["selected_nodes"], [source_nodes[0]])
-        self.assertEqual(resolver_calls[0]["source_nodes"], source_nodes)
-        self.assertEqual(
-            resolver_calls[0]["objective"],
-            "Polish the dashboard with a screenshot.",
-        )
-        self.assertEqual(resolver_calls[0]["family_context"], family_context)
         self.assertEqual(source_nodes, before_nodes)
 
-    def test_runtime_delta_holds_without_calling_declared_read_resolver(self) -> None:
-        def unexpected_resolver(**_: object) -> list[str]:
-            self.fail("hold language must short-circuit before resolving declared reads")
-
-        delta = families.runtime_family_packet_delta(
-            current_phase="runtime",
-            family_context={"active_seed_id": "runtime"},
-            seed_node={
-                "phase_transitions": {
-                    "runtime": {
-                        "next_phases": ["implementation"],
-                        "activate_skills": ["ui-implementation"],
+    def test_runtime_delta_holds_before_resolving_declared_reads(self) -> None:
+        with patch(
+            "tmcp_runtime.domain.families.resolve_declared_load_paths",
+            side_effect=AssertionError("hold language must skip declared-read resolution"),
+        ):
+            delta = families.runtime_family_packet_delta(
+                current_phase="runtime",
+                family_context={"active_seed_id": "runtime"},
+                seed_node={
+                    "phase_transitions": {
+                        "runtime": {
+                            "next_phases": ["implementation"],
+                            "activate_skills": ["ui-implementation"],
+                        }
                     }
-                }
-            },
-            source_nodes=[],
-            objective="Implement the dashboard.",
-            context={},
-            latest_user_message="Hold on before implementing.",
-            resolve_declared_load_paths=unexpected_resolver,
-        )
+                },
+                source_nodes=[],
+                objective="Implement the dashboard.",
+                context={},
+                latest_user_message="Hold on before implementing.",
+            )
 
         self.assertEqual(delta, {})
 
@@ -316,12 +306,6 @@ class FamilyDomainTests(unittest.TestCase):
         source_nodes = [
             {"relative_path": "skills/ui-implementation/SKILL.md"}
         ]
-        resolver_calls: list[dict[str, object]] = []
-
-        def resolve_declared_load_paths(**kwargs: object) -> list[str]:
-            resolver_calls.append(dict(kwargs))
-            return []
-
         delta = families.runtime_family_packet_delta(
             current_phase="start",
             family_context=family_context,
@@ -330,7 +314,6 @@ class FamilyDomainTests(unittest.TestCase):
             objective="Implement the dashboard.",
             context={},
             latest_user_message="The runtime brief is ready.",
-            resolve_declared_load_paths=resolve_declared_load_paths,
         )
 
         self.assertEqual(delta["suggested_phase"], "implementation")
@@ -345,9 +328,6 @@ class FamilyDomainTests(unittest.TestCase):
             delta["verification_gates"],
             ["Complete the current family phase before advancing."],
         )
-        self.assertEqual(len(resolver_calls), 1)
-        self.assertEqual(resolver_calls[0]["selected_nodes"], source_nodes)
-        self.assertEqual(resolver_calls[0]["family_context"], family_context)
 
 
 if __name__ == "__main__":
