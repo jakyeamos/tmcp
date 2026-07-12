@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import unittest
 
-from tmcp_runtime.domain import composition
+from tmcp_runtime.domain import composition, packets
 from tmcp_runtime.domain.routes import ROUTE_CATALOG_VERSION
 
 
@@ -366,17 +366,17 @@ class CompositionDomainTests(unittest.TestCase):
             {"path": "skills/a/SKILL.md"},
             {"source": ""},
         ]
-        compiled = composition.compiled_from_packet(
+        compiled = packets.compiled_from_packet(
             cache_policy="none",
             family_context={"active_seed_id": " frontend-run "},
             evidence_citations=citations,
         )
-        reordered = composition.compiled_from_packet(
+        reordered = packets.compiled_from_packet(
             cache_policy="none",
             family_context={"active_seed_id": " frontend-run "},
             evidence_citations=list(reversed(citations)),
         )
-        no_seed = composition.compiled_from_packet(
+        no_seed = packets.compiled_from_packet(
             cache_policy="global",
             family_context=None,
             evidence_citations=[],
@@ -390,12 +390,12 @@ class CompositionDomainTests(unittest.TestCase):
 
     def test_shortcut_candidate_uses_seed_then_identity_and_honors_overrides(self) -> None:
         compiled = {"graph_version": "graph"}
-        no_match = composition.shortcut_candidate_for_composed_packet(
+        no_match = packets.shortcut_candidate_for_composed_packet(
             packet={},
             compiled_from=compiled,
             receipt_count=2,
         )
-        seeded = composition.shortcut_candidate_for_composed_packet(
+        seeded = packets.shortcut_candidate_for_composed_packet(
             packet={
                 "family_context": {"active_seed_id": "seed-id"},
                 "task_identity": {"primary": "route-id"},
@@ -403,7 +403,7 @@ class CompositionDomainTests(unittest.TestCase):
             compiled_from=compiled,
             receipt_count=3,
         )
-        overridden = composition.shortcut_candidate_for_composed_packet(
+        overridden = packets.shortcut_candidate_for_composed_packet(
             packet={"task_identity": {"primary": "route-id"}},
             compiled_from=compiled,
             receipt_count=4,
@@ -423,14 +423,14 @@ class CompositionDomainTests(unittest.TestCase):
 
     def test_selection_rationale_preserves_fallback_and_seed_branches(self) -> None:
         self.assertEqual(
-            composition.selection_rationale({}),
+            packets.selection_rationale({}),
             "TMCP selected sources from the harvested skill graph for the stated objective.",
         )
         self.assertEqual(
-            composition.selection_rationale({"task_identity": {"primary": "audit"}}),
+            packets.selection_rationale({"task_identity": {"primary": "audit"}}),
             "TMCP inferred primary task identity `audit` from the objective and runtime context.",
         )
-        seeded = composition.selection_rationale(
+        seeded = packets.selection_rationale(
             {
                 "task_identity": {
                     "primary": "frontend_product_redesign",
@@ -477,7 +477,7 @@ class CompositionDomainTests(unittest.TestCase):
             "verification_gates": ["Run the focused browser check."],
         }
 
-        markdown = composition.render_composed_packet_markdown(packet)
+        markdown = packets.render_composed_packet_markdown(packet)
 
         self.assertTrue(markdown.startswith("# TMCP Packet\n"))
         self.assertTrue(markdown.endswith("\n"))
@@ -532,7 +532,7 @@ class CompositionDomainTests(unittest.TestCase):
         )
 
         def build(objective: str) -> dict[str, object]:
-            return composition.build_composed_packet(
+            return packets.build_composed_packet(
                 composed_packet_schema="tmcp-composed-packet-v0.1",
                 receipt_schema="tmcp-run-receipt-v0.1",
                 objective=objective,
@@ -605,6 +605,7 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertEqual(first["receipt_template"]["user_overrides"], [])
         self.assertEqual(first["safety"]["harvested_text_trust"], "untrusted_evidence_only")
         self.assertIn(first["packet_id"], first["packet_markdown"])
+        self.assertEqual(first["packet_markdown"], packets.render_composed_packet_markdown(first))
         self.assertEqual(
             inputs_before,
             {

@@ -252,7 +252,7 @@ Add `packet_markdown` to composed and recompiled packets, rendered from structur
 
 ### Markdown template
 
-Rendered by `tmcp_runtime.domain.composition.render_composed_packet_markdown(packet)`:
+Rendered by `tmcp_runtime.domain.packets.render_composed_packet_markdown(packet)`:
 
 ```markdown
 # TMCP Packet
@@ -324,8 +324,8 @@ Detail: Work moved from visual exploration into production implementation.
 
 | Step | Location | Work |
 | --- | --- | --- |
-| 1 | `tmcp_runtime/domain/composition.py` | `render_composed_packet_markdown(packet) -> str` |
-| 2 | `tmcp_runtime/domain/composition.py` | `selection_rationale(packet) -> str` (deterministic template from scores) |
+| 1 | `tmcp_runtime/domain/packets.py` | `render_composed_packet_markdown(packet) -> str` |
+| 2 | `tmcp_runtime/domain/packets.py` | `selection_rationale(packet) -> str` (deterministic template from scores) |
 | 3 | `scripts/tmcp_mcp_server.py` | Set `packet["packet_markdown"]` from the domain renderer |
 | 4 | `tmcp_runtime/domain/recompile.py` | Prepend recompile diff to the injected composition renderer |
 | 5 | `schemas/tmcp-composed-packet-v0.1.schema.json` | Optional `packet_markdown` property |
@@ -443,7 +443,7 @@ Promotion path:
 | 2 | `scripts/tmcp_mcp_server.py` | Thread `active_routes` into `_node_composition_score()` |
 | 3 | `scripts/tmcp_mcp_server.py` | Lower seed match threshold when route affinity overlaps ≥ 2 routes |
 | 4 | `examples/seeds/frontend-redesign-runtime.json` | Reference scoped seed |
-| 5 | `tmcp_runtime/domain/composition.py` | `shortcut_candidate_for_composed_packet(...)` with `compiled_from` |
+| 5 | `tmcp_runtime/domain/packets.py` | `shortcut_candidate_for_composed_packet(...)` with `compiled_from` |
 | 6 | `tests/test_tmcp_route_inference.py` (new) | NL redesign prompt selects correct routes + seed |
 | 7 | `tests/test_tmcp_skill_family_compose.py` | Extend with frontend redesign seed fixture |
 
@@ -573,8 +573,9 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | File | Action |
 | --- | --- |
 | `docs/ADAPTIVE_PACKET_RUNTIME.md` | This document |
-| `tmcp_runtime/domain/composition.py` | Contextual gates, node scoring/selection, final packet assembly, provenance, shortcut eligibility, and composed Markdown rendering |
+| `tmcp_runtime/domain/composition.py` | Contextual gates, node scoring/selection, source verification-gate filtering, and reference-read selection |
 | `tmcp_runtime/domain/families.py` | Scoped-seed and router family resolution, primary-source matching, sibling deferral, and declared-load normalization |
+| `tmcp_runtime/domain/packets.py` | Final packet assembly, provenance, shortcut eligibility, and composed Markdown rendering |
 | `tmcp_runtime/domain/recompile.py` | Pure recompile policy and Markdown diff rendering |
 | `tmcp_runtime/domain/routes.py` | Route definitions and scoring |
 | `scripts/tmcp_mcp_server.py` | Extend compose, runtime, markdown renderers |

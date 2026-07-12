@@ -45,14 +45,16 @@ from tmcp_runtime.domain.recompile import (  # noqa: E402
 )
 from tmcp_runtime.domain.composition import (  # noqa: E402
     REPO_BEHAVIOR_PHRASES,
-    build_composed_packet,
     composition_terms,
     contextual_atoms_and_gates,
     filter_source_verification_gates,
     matching_reference_reads,
     objective_has_phrase,
-    render_composed_packet_markdown,
     select_composition_nodes,
+)
+from tmcp_runtime.domain.packets import (  # noqa: E402
+    build_composed_packet,
+    render_composed_packet_markdown,
 )
 from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
