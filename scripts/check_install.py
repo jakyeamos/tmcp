@@ -31,6 +31,7 @@ REQUIRED_FILES = (
     "scripts/tmcp_launcher.mjs",
     "scripts/tmcp_mcp_server.py",
     "scripts/release_package_compile.py",
+    "scripts/release_package_composition.py",
     "scripts/release_package_sessions.py",
     "tmcp_runtime/domain/routes.py",
     "tmcp_runtime/api/registry.py",

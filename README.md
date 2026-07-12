@@ -170,7 +170,7 @@ Before release:
 
 ```bash
 python3 -m unittest discover -s tests
-python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_contracts.py scripts/check_install.py scripts/check_release_package.py scripts/tmcp_release_archive.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py tmcp_runtime/__init__.py tmcp_runtime/api/__init__.py tmcp_runtime/api/registry.py tmcp_runtime/api/tool_schemas.py
+python3 scripts/release_package_compile.py .
 node --check scripts/tmcp_launcher.mjs
 python3 scripts/check_contracts.py .
 python3 scripts/check_install.py .
