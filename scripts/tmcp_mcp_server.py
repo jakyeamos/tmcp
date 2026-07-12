@@ -23,7 +23,6 @@ if str(PLUGIN_ROOT) not in sys.path:
 from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
 from scripts.tmcp_redaction import merge_redactions  # noqa: E402
 from tmcp_runtime.domain.routes import (  # noqa: E402
-    ROUTE_CATALOG_VERSION,
     composition_route_boost,
     derive_task_identity,
     score_scoped_seed,
@@ -41,11 +40,14 @@ from tmcp_runtime.domain.recompile import (  # noqa: E402
     resolve_recompile_reason,
 )
 from tmcp_runtime.domain.composition import (  # noqa: E402
+    compiled_from_packet,
     contextual_atoms_and_gates,
     filter_source_verification_gates,
     is_ui_file,
     is_uiish_text,
     matching_reference_reads,
+    render_composed_packet_markdown,
+    shortcut_candidate_for_composed_packet,
 )
 from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
@@ -1644,196 +1646,6 @@ def _packet_markdown(packet: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def _compiled_from_packet(
-    *,
-    cache_policy: str,
-    family_context: dict[str, Any] | None,
-    evidence_citations: list[dict[str, Any]],
-) -> dict[str, Any]:
-    seed_id = str((family_context or {}).get("active_seed_id") or "").strip()
-    source_keys = sorted(
-        str(item.get("source") or item.get("path") or "")
-        for item in evidence_citations
-        if str(item.get("source") or item.get("path") or "")
-    )
-    graph_version = hashlib.sha256(
-        json.dumps(source_keys, sort_keys=True).encode()
-    ).hexdigest()[:16]
-    return {
-        "graph_version": graph_version,
-        "route_catalog_version": ROUTE_CATALOG_VERSION,
-        "seed_id": seed_id or None,
-        "receipt_ids": [],
-        "cache_policy": cache_policy,
-    }
-
-
-def _shortcut_candidate_for_composed_packet(
-    *,
-    packet: dict[str, Any],
-    compiled_from: dict[str, Any],
-    receipt_count: int,
-    user_overrides: list[str] | None = None,
-) -> dict[str, Any]:
-    family_context = packet.get("family_context")
-    task_identity = packet.get("task_identity")
-    seed_id = ""
-    if isinstance(family_context, dict):
-        seed_id = str(family_context.get("active_seed_id") or "").strip()
-    shortcut_id = seed_id
-    if not shortcut_id and isinstance(task_identity, dict):
-        shortcut_id = str(task_identity.get("primary") or "").strip()
-    if not shortcut_id:
-        return {
-            "status": "none",
-            "shortcut_id": "",
-            "matched": False,
-            "compiled_from": compiled_from,
-            "regenerate_when": [],
-            "fallback": "router_traversal",
-            "reason": "No scoped seed or stable route identity matched.",
-        }
-    overrides = _string_list(user_overrides)
-    status = "eligible"
-    reason = "Compiled route identity matches current graph inputs."
-    if overrides:
-        status = "needs_revalidation"
-        reason = "User overrides require full packet revalidation."
-    return {
-        "status": status,
-        "shortcut_id": shortcut_id,
-        "matched": status == "eligible",
-        "compiled_from": {
-            **compiled_from,
-            "receipt_count": receipt_count,
-        },
-        "regenerate_when": [
-            "graph_version changes",
-            "seed_id unpublished",
-            "user_override present",
-        ],
-        "fallback": "router_traversal",
-        "reason": reason,
-    }
-
-
-def _selection_rationale(packet: dict[str, Any]) -> str:
-    task_identity = packet.get("task_identity")
-    if not isinstance(task_identity, dict):
-        return "TMCP selected sources from the harvested skill graph for the stated objective."
-    primary = str(task_identity.get("primary") or "general_task")
-    signals = [
-        item
-        for item in _json_list(task_identity.get("signals"))
-        if isinstance(item, dict)
-    ]
-    if not signals:
-        return (
-            f"TMCP inferred primary task identity `{primary}` from the objective and runtime context."
-        )
-    top = signals[0]
-    route = str(top.get("route") or primary)
-    evidence = ", ".join(_string_list(top.get("evidence"))[:3])
-    route_scores = ", ".join(
-        f"{item.get('route')} ({item.get('score')})"
-        for item in signals[:4]
-        if isinstance(item, dict) and item.get("route")
-    )
-    family_context = packet.get("family_context")
-    if isinstance(family_context, dict) and family_context.get("active_seed_id"):
-        seed_id = str(family_context.get("active_seed_id"))
-        return (
-            f"TMCP matched scoped packet seed `{seed_id}` and route `{route}` "
-            f"from route scores [{route_scores}] and signals ({evidence})."
-        )
-    return (
-        f"TMCP inferred primary task identity `{primary}` with strongest route `{route}` "
-        f"from route scores [{route_scores}] and signals ({evidence})."
-    )
-
-
-def _composed_packet_markdown(packet: dict[str, Any]) -> str:
-    task_identity = packet.get("task_identity")
-    if not isinstance(task_identity, dict):
-        task_identity = {}
-    primary = str(task_identity.get("primary") or "general_task")
-    secondary = _string_list(task_identity.get("secondary"))
-    active_routes = _string_list(task_identity.get("active_routes"))
-    lines = [
-        "# TMCP Packet",
-        "",
-        f"Objective: {packet.get('objective', '')}",
-        f"Phase: `{packet.get('phase', 'start')}`",
-        f"Packet ID: `{packet.get('packet_id', '')}`",
-        "",
-        "## Task Identity",
-        f"Primary: {primary}",
-    ]
-    if secondary:
-        lines.append(f"Secondary: {', '.join(secondary)}")
-    if active_routes:
-        lines.extend(["", "## Active Routes"])
-        lines.extend(f"- {route}" for route in active_routes)
-    citations = [
-        item for item in _json_list(packet.get("evidence_citations")) if isinstance(item, dict)
-    ]
-    if citations:
-        lines.extend(["", "## Loaded Skill Sources"])
-        for item in citations[:10]:
-            source = str(item.get("source") or item.get("path") or "source")
-            atoms = ", ".join(_string_list(item.get("matched_atoms"))[:4])
-            if atoms:
-                lines.append(f"- {source}: {atoms}")
-            else:
-                lines.append(f"- {source}")
-    lines.extend(["", "## Selection Rationale", _selection_rationale(packet)])
-    ignored = [
-        item for item in _json_list(packet.get("ignored_sources")) if isinstance(item, dict)
-    ]
-    if ignored:
-        lines.extend(["", "## Excluded Skills"])
-        for item in ignored[:10]:
-            source = str(item.get("source") or "source")
-            reason = str(item.get("reason") or "No match for current objective or phase.")
-            lines.append(f"- {source}: {reason}")
-    deferred = _string_list(packet.get("deferred_atoms"))
-    if deferred:
-        lines.append(f"- deferred atoms: {', '.join(deferred)}")
-    instructions = _string_list(packet.get("active_instructions"))
-    if instructions:
-        lines.extend(["", "## Operating Instructions"])
-        for index, instruction in enumerate(instructions, start=1):
-            lines.append(f"{index}. {instruction}")
-    gates = _string_list(packet.get("verification_gates"))
-    if gates:
-        lines.extend(["", "## Verification Gates"])
-        for gate in gates:
-            lines.append(f"- {gate}")
-    family_context = packet.get("family_context")
-    if isinstance(family_context, dict) and family_context.get("active_seed_id"):
-        lines.extend(
-            [
-                "",
-                "## Recompile Triggers",
-                "- New task phase detected",
-                "- User changes target pages or objective",
-                "- Codebase reveals framework or design-system constraints",
-                "- Implementation exposes accessibility or performance risk",
-            ]
-        )
-    lines.extend(
-        [
-            "",
-            "## Required Receipts",
-            "- Pages or files changed",
-            "- Skills and routes used",
-            "- Validation performed",
-            "- Known tradeoffs",
-        ]
-    )
-    return "\n".join(lines).rstrip() + "\n"
-
-
 def _enrich_packet_from_source_nodes(
     packet: dict[str, Any], source_nodes: list[dict[str, Any]], read_paths: list[str]
 ) -> dict[str, Any]:
@@ -2111,7 +1923,7 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
         },
     }
     new_packet["packet_markdown"] = render_recompiled_packet_markdown(
-        recompiled, compose_markdown=_composed_packet_markdown
+        recompiled, compose_markdown=render_composed_packet_markdown
     )
     recompiled["packet"] = new_packet
     return recompiled
@@ -7179,12 +6991,12 @@ def _compose_packet_from_source_nodes(
         )
         if atom not in active_atoms
     ][:8]
-    compiled_from = _compiled_from_packet(
+    compiled_from = compiled_from_packet(
         cache_policy=cache_policy,
         family_context=family_context,
         evidence_citations=evidence_citations,
     )
-    shortcut_candidate = _shortcut_candidate_for_composed_packet(
+    shortcut_candidate = shortcut_candidate_for_composed_packet(
         packet={
             "family_context": family_context or {},
             "task_identity": task_identity,
@@ -7255,7 +7067,7 @@ def _compose_packet_from_source_nodes(
             ),
         },
     }
-    packet["packet_markdown"] = _composed_packet_markdown(packet)
+    packet["packet_markdown"] = render_composed_packet_markdown(packet)
     return packet
 
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from tmcp_runtime.domain import composition
+from tmcp_runtime.domain.routes import ROUTE_CATALOG_VERSION
 
 
 class CompositionDomainTests(unittest.TestCase):
@@ -109,6 +110,140 @@ class CompositionDomainTests(unittest.TestCase):
                 "docs/reference/verification.md",
             ],
         )
+
+    def test_compiled_from_packet_is_stable_across_citation_order(self) -> None:
+        citations = [
+            {"source": "skills/z/SKILL.md"},
+            {"path": "skills/a/SKILL.md"},
+            {"source": ""},
+        ]
+        compiled = composition.compiled_from_packet(
+            cache_policy="none",
+            family_context={"active_seed_id": " frontend-run "},
+            evidence_citations=citations,
+        )
+        reordered = composition.compiled_from_packet(
+            cache_policy="none",
+            family_context={"active_seed_id": " frontend-run "},
+            evidence_citations=list(reversed(citations)),
+        )
+        no_seed = composition.compiled_from_packet(
+            cache_policy="global",
+            family_context=None,
+            evidence_citations=[],
+        )
+
+        self.assertEqual(compiled, reordered)
+        self.assertEqual(compiled["route_catalog_version"], ROUTE_CATALOG_VERSION)
+        self.assertEqual(compiled["seed_id"], "frontend-run")
+        self.assertEqual(compiled["cache_policy"], "none")
+        self.assertIsNone(no_seed["seed_id"])
+
+    def test_shortcut_candidate_uses_seed_then_identity_and_honors_overrides(self) -> None:
+        compiled = {"graph_version": "graph"}
+        no_match = composition.shortcut_candidate_for_composed_packet(
+            packet={},
+            compiled_from=compiled,
+            receipt_count=2,
+        )
+        seeded = composition.shortcut_candidate_for_composed_packet(
+            packet={
+                "family_context": {"active_seed_id": "seed-id"},
+                "task_identity": {"primary": "route-id"},
+            },
+            compiled_from=compiled,
+            receipt_count=3,
+        )
+        overridden = composition.shortcut_candidate_for_composed_packet(
+            packet={"task_identity": {"primary": "route-id"}},
+            compiled_from=compiled,
+            receipt_count=4,
+            user_overrides=["keep legacy behavior"],
+        )
+
+        self.assertEqual(no_match["status"], "none")
+        self.assertFalse(no_match["matched"])
+        self.assertEqual(no_match["compiled_from"], compiled)
+        self.assertEqual(seeded["shortcut_id"], "seed-id")
+        self.assertEqual(seeded["status"], "eligible")
+        self.assertTrue(seeded["matched"])
+        self.assertEqual(seeded["compiled_from"]["receipt_count"], 3)
+        self.assertEqual(overridden["shortcut_id"], "route-id")
+        self.assertEqual(overridden["status"], "needs_revalidation")
+        self.assertFalse(overridden["matched"])
+
+    def test_selection_rationale_preserves_fallback_and_seed_branches(self) -> None:
+        self.assertEqual(
+            composition.selection_rationale({}),
+            "TMCP selected sources from the harvested skill graph for the stated objective.",
+        )
+        self.assertEqual(
+            composition.selection_rationale({"task_identity": {"primary": "audit"}}),
+            "TMCP inferred primary task identity `audit` from the objective and runtime context.",
+        )
+        seeded = composition.selection_rationale(
+            {
+                "task_identity": {
+                    "primary": "frontend_product_redesign",
+                    "signals": [
+                        {
+                            "route": "ui_ux_redesign",
+                            "score": 4.5,
+                            "evidence": ["design", "dashboard"],
+                        },
+                        {"route": "frontend_implementation", "score": 3.0},
+                    ],
+                },
+                "family_context": {"active_seed_id": "frontend-run"},
+            }
+        )
+
+        self.assertIn("scoped packet seed `frontend-run`", seeded)
+        self.assertIn("route `ui_ux_redesign`", seeded)
+        self.assertIn("ui_ux_redesign (4.5)", seeded)
+        self.assertIn("design, dashboard", seeded)
+
+    def test_composed_markdown_preserves_sections_caps_and_trailing_newline(self) -> None:
+        packet = {
+            "objective": "Redesign the dashboard.",
+            "phase": "implementation",
+            "packet_id": "packet-123",
+            "task_identity": {
+                "primary": "frontend_product_redesign",
+                "secondary": ["motion_interaction"],
+                "active_routes": ["ui_ux_redesign"],
+                "signals": [{"route": "ui_ux_redesign", "score": 5, "evidence": []}],
+            },
+            "family_context": {"active_seed_id": "frontend-run"},
+            "evidence_citations": [
+                {"source": "skill-with-atoms", "matched_atoms": ["a", "b"]},
+                {"path": "skill-without-atoms"},
+                *[{"source": f"extra-{index}"} for index in range(10)],
+            ],
+            "ignored_sources": [
+                *[{"source": f"ignored-{index}"} for index in range(11)],
+            ],
+            "deferred_atoms": ["research"],
+            "active_instructions": ["Read the existing component."],
+            "verification_gates": ["Run the focused browser check."],
+        }
+
+        markdown = composition.render_composed_packet_markdown(packet)
+
+        self.assertTrue(markdown.startswith("# TMCP Packet\n"))
+        self.assertTrue(markdown.endswith("\n"))
+        self.assertIn("## Task Identity", markdown)
+        self.assertIn("## Active Routes", markdown)
+        self.assertIn("- skill-with-atoms: a, b", markdown)
+        self.assertIn("- skill-without-atoms", markdown)
+        self.assertNotIn("extra-9", markdown)
+        self.assertIn("## Excluded Skills", markdown)
+        self.assertNotIn("ignored-10", markdown)
+        self.assertIn("- deferred atoms: research", markdown)
+        self.assertIn("1. Read the existing component.", markdown)
+        self.assertIn("## Verification Gates", markdown)
+        self.assertIn("## Recompile Triggers", markdown)
+        self.assertIn("## Required Receipts", markdown)
 
 
 if __name__ == "__main__":

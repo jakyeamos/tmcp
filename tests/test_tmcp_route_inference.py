@@ -101,6 +101,29 @@ class TmcpRouteInferenceTests(unittest.TestCase):
         )
         self.assertIn("graph_version changes", shortcut["regenerate_when"])
 
+    def test_user_overrides_require_shortcut_revalidation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_frontend_redesign_family(root)
+            result = self.server._compose_packet(
+                {
+                    "source_path": str(root),
+                    "objective": REDESIGN_OBJECTIVE,
+                    "project_path": str(root),
+                    "phase": "start",
+                    "cache_policy": "none",
+                    "user_overrides": ["Keep the existing navigation labels."],
+                    "limit": 30,
+                }
+            )
+
+        shortcut = result["shortcut_candidate"]
+        self.assertEqual(shortcut["status"], "needs_revalidation")
+        self.assertFalse(shortcut["matched"])
+        self.assertEqual(
+            shortcut["reason"], "User overrides require full packet revalidation."
+        )
+
     def test_graph_version_change_invalidates_shortcut_match(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

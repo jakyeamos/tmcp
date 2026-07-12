@@ -252,7 +252,7 @@ Add `packet_markdown` to composed and recompiled packets, rendered from structur
 
 ### Markdown template
 
-Rendered by `_composed_packet_markdown(packet) -> str`:
+Rendered by `tmcp_runtime.domain.composition.render_composed_packet_markdown(packet)`:
 
 ```markdown
 # TMCP Packet
@@ -299,7 +299,7 @@ Section mapping:
 | Task Identity | `task_identity` (Gap 1) |
 | Active Routes | `task_identity.active_routes` |
 | Loaded Skill Sources | `evidence_citations` + selected node titles |
-| Selection Rationale | `_selection_rationale(packet)` from route scores + family_context |
+| Selection Rationale | `selection_rationale(packet)` from route scores + family context |
 | Excluded Skills | `ignored_sources` + `deferred_atoms` |
 | Operating Instructions | `active_instructions` |
 | Recompile Triggers | static catalog + `family_context.phase_transitions` keys |
@@ -324,10 +324,10 @@ Detail: Work moved from visual exploration into production implementation.
 
 | Step | Location | Work |
 | --- | --- | --- |
-| 1 | `scripts/tmcp_mcp_server.py` | `_composed_packet_markdown(packet) -> str` |
-| 2 | `scripts/tmcp_mcp_server.py` | `_selection_rationale(packet) -> str` (deterministic template from scores) |
-| 3 | `scripts/tmcp_mcp_server.py` | Set `packet["packet_markdown"]` in `_compose_packet()` return |
-| 4 | `scripts/tmcp_mcp_server.py` | `_recompiled_packet_markdown(recompiled) -> str` with diff section |
+| 1 | `tmcp_runtime/domain/composition.py` | `render_composed_packet_markdown(packet) -> str` |
+| 2 | `tmcp_runtime/domain/composition.py` | `selection_rationale(packet) -> str` (deterministic template from scores) |
+| 3 | `scripts/tmcp_mcp_server.py` | Set `packet["packet_markdown"]` from the domain renderer |
+| 4 | `tmcp_runtime/domain/recompile.py` | Prepend recompile diff to the injected composition renderer |
 | 5 | `schemas/tmcp-composed-packet-v0.1.schema.json` | Optional `packet_markdown` property |
 | 6 | `skills/tmcp/SKILL.md` | Require agents to surface `packet_markdown` in handoffs |
 | 7 | `tests/test_tmcp_composed_markdown.py` (new) | Snapshot tests for markdown sections |
@@ -443,7 +443,7 @@ Promotion path:
 | 2 | `scripts/tmcp_mcp_server.py` | Thread `active_routes` into `_node_composition_score()` |
 | 3 | `scripts/tmcp_mcp_server.py` | Lower seed match threshold when route affinity overlaps ≥ 2 routes |
 | 4 | `examples/seeds/frontend-redesign-runtime.json` | Reference scoped seed |
-| 5 | `scripts/tmcp_mcp_server.py` | `_shortcut_candidate(packet, graph_version)` with `compiled_from` |
+| 5 | `tmcp_runtime/domain/composition.py` | `shortcut_candidate_for_composed_packet(...)` with `compiled_from` |
 | 6 | `tests/test_tmcp_route_inference.py` (new) | NL redesign prompt selects correct routes + seed |
 | 7 | `tests/test_tmcp_skill_family_compose.py` | Extend with frontend redesign seed fixture |
 
@@ -462,7 +462,7 @@ Promotion path:
 Low risk, additive schema fields, immediate inspectability win.
 
 1. `tmcp_runtime/domain/routes.py` + `_derive_task_identity()`
-2. `_composed_packet_markdown()` on every compose response
+2. `render_composed_packet_markdown()` on every compose response
 3. Tests + update `TMCP_PACKET_SPEC.md`
 
 ### Phase 2 — Full recompile (Gap 2)
@@ -573,7 +573,7 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | File | Action |
 | --- | --- |
 | `docs/ADAPTIVE_PACKET_RUNTIME.md` | This document |
-| `tmcp_runtime/domain/composition.py` | UI/contextual composition gates, source-gate filtering, and reference-read policy |
+| `tmcp_runtime/domain/composition.py` | Contextual gates, reference reads, provenance, shortcut eligibility, and composed Markdown rendering |
 | `tmcp_runtime/domain/recompile.py` | Pure recompile policy and Markdown diff rendering |
 | `tmcp_runtime/domain/routes.py` | Route definitions and scoring |
 | `scripts/tmcp_mcp_server.py` | Extend compose, runtime, markdown renderers |

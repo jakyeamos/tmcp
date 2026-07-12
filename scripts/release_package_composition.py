@@ -70,6 +70,13 @@ def check_composition_surface(
         return False, f"unexpected compose schema: {compose.get('schema')}"
     if not isinstance(compose.get("receipt_template"), dict):
         return False, "compose output missing receipt_template"
+    if not isinstance(compose.get("compiled_from"), dict):
+        return False, "compose output missing compiled_from"
+    if not isinstance(compose.get("shortcut_candidate"), dict):
+        return False, "compose output missing shortcut_candidate"
+    packet_markdown = compose.get("packet_markdown")
+    if not isinstance(packet_markdown, str) or "## Selection Rationale" not in packet_markdown:
+        return False, "compose output missing packet_markdown rationale"
     verification_text = " ".join(compose.get("verification_gates", [])).lower()
     if "browser" in verification_text:
         return False, "release composition smoke unexpectedly activated browser gate"
