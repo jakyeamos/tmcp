@@ -6,8 +6,8 @@
 cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, review-profile catalog,
-review-policy, workflow catalog/scoring, and adaptive workflow-pack splits
-complete; extract promotion-graph and global workflow-activation policy.
+review-policy, workflow catalog/scoring, adaptive workflow-pack, and
+promotion-graph splits complete; extract global workflow-activation policy.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -30,7 +30,10 @@ recommendation scoring receives harvested-node text and guidance labels explicit
 from the adapter, preserving dependency direction. Adaptive workflow-pack
 construction, scoped seed projection, custom-idea derivation, overlap/process-gap
 policy, and recommendation Markdown rendering now share one pure domain owner;
-the adapter still owns redaction and artifact persistence.
+the adapter still owns redaction and artifact persistence. Promotion target
+selection, scoped-seed precedence, graph construction, canonical catalog edges,
+and promotion Markdown rendering also share one pure domain owner; the adapter
+still owns persistence and global-cache activation.
 
 ## Decisions recorded
 
@@ -165,6 +168,11 @@ the adapter still owns redaction and artifact persistence.
   Markdown rendering into `tmcp_runtime/domain/workflow_adaptive.py`. Exact
   old/new parity, focused domain coverage, and the full local suite pass with
   270 tests and three expected platform skips.
+- `5ac3e2a` moves promotion target selection, scoped-seed precedence, graph
+  construction, canonical catalog edges, and promotion Markdown rendering into
+  `tmcp_runtime/domain/workflow_promotion.py`. Exact old/new parity, focused
+  domain coverage, and the full local suite pass with 273 tests and three
+  expected platform skips.
 
 ## Blockers and risks
 
@@ -176,6 +184,6 @@ the adapter still owns redaction and artifact persistence.
 
 ## Next step
 
-Extract pure promotion-graph construction and global workflow-activation policy
-while retaining harvest, redaction, persistence, cache validation, and tool
-dispatch in the MCP adapter; then repeat package and adversarial validation.
+Extract pure global workflow-activation policy while retaining cache validation,
+redaction, persistence, and tool dispatch in the MCP adapter; then repeat
+package and adversarial validation.
