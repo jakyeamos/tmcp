@@ -117,7 +117,7 @@ node scripts/tmcp_launcher.mjs record-receipt packet-abc123 \
 
 Reference seed template: [examples/seeds/frontend-redesign-runtime.json](../examples/seeds/frontend-redesign-runtime.json)
 
-## 5. Recommend Stable Workflows
+## 5. Recommend Curated Workflows
 
 ```bash
 node scripts/tmcp_launcher.mjs recommend ./skills \
@@ -145,15 +145,13 @@ node scripts/tmcp_launcher.mjs review-plan "Review release portability" \
 
 If evidence is not ready, omit `--evidence-json`. The result returns `evidence_contract.starter_template`; fill it with concrete citations and rerun.
 
-## Stable Public Workflows
+## Stability Scopes
 
-- `skill-harvest`
-- `workflow-recommendation`
-- `expert-rubric-review`
-- `release-readiness`
-- `dx-audit`
+- Stable skill packages: `tmcp`, `skill-harvest`, `workflow-recommendation`, `release-readiness`, and `dx-audit`.
+- Stable curated workflow templates: `release-readiness` and `dx-audit`.
+- Stable MCP tool contracts: `doctor`, `status`, `explain`, `compose-packet`, and `runtime-next`; harvest, evaluation, recommendation, promotion, receipt, and expert-rubric tools are experimental.
 
-## Experimental Workflows
+## Experimental Curated Workflows
 
 Experimental workflows remain shipped, callable, documented, and tested where existing coverage applies. Their public contract may change.
 

@@ -407,7 +407,7 @@ Ship a reference seed at `examples/seeds/frontend-redesign-runtime.json` (not au
 
 #### Layer 4c — Cached shortcut packets (compiled views)
 
-Shortcut packets are **not** source of truth. They are memoized compile results.
+Shortcut candidates are **not** source of truth. They are advisory compile metadata; the current runtime emits them for provenance but does not reuse them as a memoized execution path.
 
 ```json
 {
@@ -433,7 +433,7 @@ Promotion path:
 
 1. Repeated successful runs record receipts (`tmcp_record_receipt`).
 2. `tmcp_promote_harvest` can promote a scoped seed + route pattern into global graph (existing).
-3. Compose checks `shortcut_candidate`; if `compiled_from` still matches current graph hash, pre-seed `task_identity` and `family_context` from shortcut metadata — then **still re-run full selection** to validate. Shortcut never skips validation.
+3. Compose currently emits `shortcut_candidate` provenance only. It does not read a prior candidate or pre-seed `task_identity` or `family_context`; full selection runs on every composition. A future explicit-opt-in reuse path must validate current graph provenance before it can influence selection.
 
 ### Implementation
 
@@ -451,7 +451,7 @@ Promotion path:
 
 - Natural-language redesign prompt activates a matching scoped seed when `route_affinity` aligns, without naming the seed.
 - `selection_rationale` in markdown cites route scores, not only keyword luck.
-- Shortcut candidate includes `compiled_from.graph_version`; changing a harvested skill invalidates shortcut status.
+- Shortcut candidate includes `compiled_from.graph_version`; changing a harvested skill changes the provenance that any future reuse path must validate.
 
 ---
 

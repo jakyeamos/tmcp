@@ -6,6 +6,8 @@ status: stable
 
 # TMCP Workflow Recommendation
 
+Status: stable as a skill package. The `tmcp_recommend_workflows` MCP tool is experimental, while individual recommended templates carry their own stability labels.
+
 Use this skill when the user asks what workflow to use, where TMCP is strongest, which rubric/audit should apply, how to route a repo through expert workflows, or how to turn harvested skill signals into recommended workflows.
 
 Do not use it when the user has already chosen a workflow and wants immediate execution.

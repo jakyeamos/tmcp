@@ -39,17 +39,15 @@ node scripts/tmcp_launcher.mjs
 
 Claude Desktop users can add the launcher as a local stdio MCP server. See [docs/CLAUDE_DESKTOP.md](docs/CLAUDE_DESKTOP.md).
 
-## Stable Public Workflows
+## Stability Scopes
 
-The first stable public workflow set is intentionally small:
+TMCP labels three independent surfaces:
 
-- `skill-harvest`
-- `workflow-recommendation`
-- `expert-rubric-review`
-- `release-readiness`
-- `dx-audit`
+- **Skill packages:** `tmcp`, `skill-harvest`, `workflow-recommendation`, `release-readiness`, and `dx-audit` are stable routing packages.
+- **Curated workflow templates:** `release-readiness` and `dx-audit` are the stable templates in the recommendation catalog.
+- **MCP tool contracts:** `doctor`, `status`, `explain`, `compose-packet`, and `runtime-next` are stable. Harvest, evaluation, recommendation, promotion, receipt, and expert-rubric tools remain experimental.
 
-Experimental workflows remain shipped and callable. They are labeled experimental in skill frontmatter, docs, and workflow recommendation output so users keep functionality without mistaking it for the stable first-release contract.
+Experimental templates and tools remain shipped and callable. They are labeled experimental in their own outputs and frontmatter so users do not confuse a stable package route with a stable tool contract or curated template.
 
 Experimental workflows include UI rubric, security/privacy, test strategy, adaptive workflow pack, custom rubric generation, routing policy, skill gap analysis, incident postmortem, architecture decision, migration readiness, agent handoff, PR risk, performance readiness, data integrity, public-sector readiness, and repo behavior spec loop.
 
@@ -164,7 +162,7 @@ node scripts/tmcp_launcher.mjs review-plan "Review release portability" \
   --no-write-artifacts
 ```
 
-More examples live in [examples](examples). Stable examples are developer onboarding, release readiness, and skill-harvest workflow recommendation. Broader examples are retained as experimental examples.
+More examples live in [examples](examples). Developer onboarding and release readiness exercise stable curated templates; skill-harvest and recommendation examples remain available through experimental tool contracts.
 
 ## Validation
 

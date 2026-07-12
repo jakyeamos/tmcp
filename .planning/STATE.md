@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Continue the thin-adapter cutover: reconcile workflow
-stability labels and extract harvest/source-graph responsibilities from scripts.
+**Current focus:** Continue the thin-adapter cutover by extracting harvest and
+source-graph responsibilities from the compatibility adapter.
 
 ## Milestone
 
@@ -17,9 +17,9 @@ contextual/selection composition policy, task-family routing/runtime transitions
 declared-read selection, standalone packet compilation, final packet-policy
 split, complete review policy extraction, workflow catalog/scoring extraction,
 adaptive workflow-pack construction, promotion-graph construction, global
-workflow activation, stateless cache defaults, and evaluator composition-service
-injection complete; reconcile workflow stability labels and continue the
-thin-adapter cutover.
+workflow activation, stateless cache defaults, evaluator composition-service
+injection, stability-taxonomy clarification, and domain-size enforcement
+complete; continue the thin-adapter cutover.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -31,9 +31,9 @@ thin-adapter cutover.
   declared-read selection, standalone packet compilation, final packet
   construction/presentation, complete review-policy split, workflow catalog and
   scoring extraction, adaptive workflow-pack construction, promotion-graph
-  construction, global workflow activation, stateless cache defaults, and
-  evaluator composition-service injection complete; reconcile workflow stability
-  labels and continue the thin-adapter cutover.
+  construction, global workflow activation, stateless cache defaults, evaluator
+  composition-service injection, stability-taxonomy clarification, and domain-size
+  enforcement complete; continue the thin-adapter cutover.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -174,6 +174,10 @@ thin-adapter cutover.
   private server helpers. The MCP adapter injects a data-only composition
   callback, with direct dependency, transport, and no-filesystem-read regression
   coverage; the full local suite has 279 passing tests with three expected skips.
+- `47f056c` removes the stale server `_string_sequence` helper and enforces the
+  600-nonblank-line architecture budget for every domain module. Stability docs
+  now distinguish stable skill packages, curated templates, and MCP tool
+  contracts; shortcut candidates are documented as provenance-only metadata.
 
 ## Workflow Notes
 
@@ -227,6 +231,11 @@ thin-adapter cutover.
   route reads them under the default `cache_policy=none`.
 - Evaluation scoring receives a data-only composition callback from the adapter;
   it has no reverse import or introspection dependency on server internals.
+- Skill-package, curated-template, and MCP-tool stability are separate scopes;
+  their owners are frontmatter/package validation, the workflow catalog, and the
+  public registry respectively.
+- The domain-module size budget is test-enforced; compatibility adapter size is
+  still addressed by the remaining harvest/source-graph extraction.
 
 ## Accumulated Context
 
@@ -280,10 +289,13 @@ thin-adapter cutover.
 - 2026-07-12: `2299f88` replaces evaluator reverse imports with an explicit
   adapter-injected composition boundary. The remaining architecture work is the
   broader thin-adapter cutover and workflow-stability taxonomy reconciliation.
+- 2026-07-12: `47f056c` removes a dead adapter helper and turns the former
+  domain-size claim into an executable budget. Docs now separate package,
+  template, and transport stability; shortcut candidates are provenance-only.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Reconcile workflow stability labels, then extract harvest/source-graph policy.
+# Extract harvest/source-graph policy from the compatibility adapter.
 ```

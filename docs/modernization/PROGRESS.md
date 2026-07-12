@@ -7,9 +7,9 @@ cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
-global workflow-activation, stateless cache-default, and evaluator
-composition-service splits complete; reconcile workflow stability labels and
-continue the thin-adapter cutover.
+global workflow-activation, stateless cache-default, evaluator composition-service,
+stability-taxonomy, and domain-size-budget splits complete; continue the
+thin-adapter cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -42,6 +42,8 @@ objective scoring, canonical workflow rehydration, activation projection, and
 specialized instructions while the adapter retains cache validation and packet
 orchestration. Evaluation scoring now receives a data-only composition callback
 from the MCP adapter; it no longer imports or introspects private server helpers.
+Stability documentation now separates stable skill packages, stable curated
+templates, and stable MCP tool contracts, rather than conflating their labels.
 
 ## Decisions recorded
 
@@ -70,6 +72,9 @@ from the MCP adapter; it no longer imports or introspects private server helpers
 - Default composition and runtime routing to no global cache. Any publication of
   this material behavior change must use the planned `0.5.0` compatibility
   release process rather than relabeling the already-published `0.4.0` release.
+- Treat skill-package, curated-template, and MCP-tool stability as distinct
+  contracts with distinct owners: frontmatter/package validation, the workflow
+  catalog, and the public tool registry.
 
 ## Verified baseline
 
@@ -199,6 +204,10 @@ from the MCP adapter; it no longer imports or introspects private server helpers
   score-mode, no-filesystem-read, and static dependency tests cover the new
   boundary; the full local suite has 279 passing tests with three expected
   platform skips.
+- `47f056c` removes a stale adapter helper and adds a 600-nonblank-line test
+  budget for every domain module. Documentation now labels stability by scope
+  and records shortcut candidates as provenance-only metadata; the full local
+  suite has 280 passing tests with three expected platform skips.
 
 ## Blockers and risks
 
@@ -211,10 +220,10 @@ from the MCP adapter; it no longer imports or introspects private server helpers
   before release, use the target's planned `0.5.0` compatibility/version process
   because the stateless default is a material behavior change.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter; harvest/source-graph extraction and stability-taxonomy
-  reconciliation remain open P2 architecture work.
+  transport adapter; harvest/source-graph extraction remains open P2
+  architecture work.
 
 ## Next step
 
-Reconcile workflow stability labels, correct the shortcut documentation, and
-extract harvest/source-graph responsibilities toward a thin transport adapter.
+Extract harvest/source-graph responsibilities toward a thin transport adapter,
+then rerun the architecture review against the smaller boundary.
