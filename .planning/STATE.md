@@ -11,14 +11,14 @@ file boundaries and a coherent agent-facing workflow.
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 2 in progress; safe harvest/storage slice complete
+**Status:** Milestone 2 in progress; POSIX safety slice complete, Windows artifact persistence pending
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Safe input and storage foundation
 - **Slug:** `tmcp-modernization`
-- **Status:** Shared safe input/storage complete; evaluation and remaining artifact paths next
+- **Status:** Evaluation migrated; remaining writers and Windows-safe persistence next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -49,6 +49,11 @@ file boundaries and a coherent agent-facing workflow.
   text/JSON artifact store with descriptor-relative writes, directory identity
   checks, and fail-closed behavior when those primitives are unavailable. The
   full suite now has 171 passing tests.
+- `587b8c1` moves skill evaluation onto those boundaries: data-only variant
+  composition, bounded/redacted plan and evidence inputs, safe artifact writes,
+  and one-read score persistence. The full suite now has 177 passing tests.
+- `c31641a` removes the last plan-path filesystem probe from advisory analysis;
+  evaluation variants are now composed from redacted in-memory node data only.
 
 ## Workflow Notes
 
@@ -60,6 +65,11 @@ file boundaries and a coherent agent-facing workflow.
   modules; the commit gate is clean again.
 - Artifact bundles accept only absent or empty destinations; reused artifact
   directories must use the verified per-file store rather than a bundle swap.
+- Evaluation never re-reads a persisted plan's skill path while scoring; it
+  composes the plan's redacted variant attachment through preharvested nodes.
+- Artifact persistence is intentionally fail-closed without descriptor-relative
+  no-follow primitives; a race-safe Windows implementation is required before
+  cross-platform release claims can remain unconditional.
 
 ## Accumulated Context
 
@@ -73,11 +83,15 @@ file boundaries and a coherent agent-facing workflow.
 - 2026-07-11: M2 adds contained harvest reads, decoded-JSON/path redaction,
   exact evaluation input boundaries, and descriptor-safe artifacts; evaluation
   and remaining writers are pending migration.
+- 2026-07-11: Evaluation now uses data-only composition and safe artifacts;
+  review, recommendation, promotion, cache, and receipt writers remain.
+- 2026-07-11: Adversarial review removed a plan-path probe and surfaced the
+  Windows secure-persistence gap; both are explicit M2 release conditions.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Continue Phase 2: migrate evaluation and remaining artifact writers onto the
-# shared safety and storage boundaries.
+# Continue Phase 2: close Windows-safe persistence, then migrate review,
+# recommendation, promotion, cache, and receipt writers onto shared boundaries.
 ```
