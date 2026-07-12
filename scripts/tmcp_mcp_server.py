@@ -196,7 +196,7 @@ def _run_aios(args: list[str]) -> dict[str, Any]:
             "ok": False,
             "adapter": "aios",
             "error": "AIOS adapter requested but AIOS_ROOT/bin/aios.py was not found.",
-            "aios_root": str(AIOS_ROOT) if AIOS_ROOT is not None else None,
+            "aios_root": redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None,
             "remediation": (
                 "Continue with --adapter standalone, or set AIOS_ROOT to an AIOS "
                 "checkout if you explicitly want the optional adapter."
@@ -207,14 +207,22 @@ def _run_aios(args: list[str]) -> dict[str, Any]:
         if shutil.which("uv")
         else [sys.executable, "bin/aios.py", *args]
     )
-    completed = subprocess.run(
-        command,
-        cwd=cast(Path, AIOS_ROOT),
-        text=True,
-        capture_output=True,
-        check=False,
-        timeout=120,
-    )
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=cast(Path, AIOS_ROOT),
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=120,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {
+            "ok": False,
+            "adapter": "aios",
+            "error": "AIOS adapter command did not complete.",
+            "error_type": type(exc).__name__,
+        }
     if completed.returncode != 0:
         return {
             "ok": False,
@@ -1652,11 +1660,12 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "tmcp_doctor":
         client = str(arguments.get("client") or "auto")
         plugin_root = PLUGIN_ROOT
+        plugin_root_display = redact_path(plugin_root)
         checks = [
             {
                 "id": "plugin_root",
                 "status": "pass" if plugin_root.exists() else "fail",
-                "detail": str(plugin_root),
+                "detail": plugin_root_display,
             },
             {
                 "id": "node_launcher",
@@ -1704,7 +1713,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                 "id": "aios_adapter",
                 "status": "pass" if _aios_available() else "optional",
                 "detail": (
-                    f"AIOS_ROOT={AIOS_ROOT}"
+                    f"AIOS_ROOT={redact_path(AIOS_ROOT)}"
                     if AIOS_ROOT is not None
                     else "AIOS_ROOT is not set; standalone TMCP is available."
                 ),
@@ -1749,7 +1758,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                     "tmcp": {
                         "command": "node",
                         "args": ["scripts/tmcp_launcher.mjs"],
-                        "cwd": str(plugin_root),
+                        "cwd": plugin_root_display,
                     }
                 }
             },
@@ -1763,7 +1772,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             "ok": not failed,
             "schema": "tmcp-doctor-v0.1",
             "client": client,
-            "plugin_root": str(plugin_root),
+            "plugin_root": plugin_root_display,
             "checks": checks,
             "recommended_install_paths": install_paths,
             "codex_tool_discovery": codex_tool_discovery
@@ -1808,7 +1817,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             "schema": "tmcp-status-v0.1",
             "standalone": {
                 "available": True,
-                "plugin_root": str(PLUGIN_ROOT),
+                "plugin_root": redact_path(PLUGIN_ROOT),
                 "capabilities": capabilities,
                 "artifact_persistence": {
                     "available": artifact_persistence,
@@ -1822,7 +1831,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             },
             "aios_adapter": {
                 "available": _aios_available(),
-                "aios_root": str(AIOS_ROOT) if AIOS_ROOT is not None else None,
+                "aios_root": redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None,
                 "configured": AIOS_ROOT is not None,
                 "role": "optional storage and adapter layer",
             },
@@ -1856,7 +1865,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                             "cache_policy": arguments.get("cache_policy") or "none",
                         }
                     )
-                return payload
+                return _redact_result(payload)
         result = {
             "ok": True,
             "adapter": "standalone",

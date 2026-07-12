@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -65,6 +66,95 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertTrue(result["ok"])
         self.assertEqual(result["adapter"], "standalone")
         self.assertEqual(result["packet"]["schema"], "tmcp-skill-packet-v0.2")
+
+    def test_explain_aios_payloads_are_redacted_before_returning(self) -> None:
+        secret = "sk-" + "B" * 40
+        output_dir = f"/tmp/{secret}/aios-output"
+        project_path = f"/tmp/{secret}/project"
+        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
+            self.server,
+            "_run_aios",
+            return_value={
+                "ok": True,
+                "adapter": "aios",
+                "detail": secret,
+                "output_dir": output_dir,
+                "artifact_paths": {"packet": output_dir},
+            },
+        ):
+            success = self.server._call_tool(
+                "tmcp_explain",
+                {
+                    "objective": "Explain packet",
+                    "project_path": project_path,
+                    "adapter": "aios",
+                    "compose": True,
+                },
+            )
+        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
+            self.server,
+            "_run_aios",
+            return_value={
+                "ok": False,
+                "adapter": "aios",
+                "command": ["aios", secret],
+                "stdout": secret,
+                "stderr": output_dir,
+            },
+        ):
+            failure = self.server._call_tool(
+                "tmcp_explain",
+                {
+                    "objective": "Explain packet",
+                    "project_path": "/tmp/project",
+                    "adapter": "aios",
+                },
+            )
+
+        self.assertTrue(success["ok"])
+        self.assertFalse(failure["ok"])
+        self.assertNotIn(secret, json.dumps({"success": success, "failure": failure}))
+        self.assertNotIn(output_dir, json.dumps({"success": success, "failure": failure}))
+        self.assertIn("redaction_summary", success)
+        self.assertIn("redaction_summary", failure)
+
+    def test_status_and_doctor_redact_sensitive_configured_paths(self) -> None:
+        secret = "sk-" + "C" * 40
+        original_aios_root = getattr(self.server, "AIOS_ROOT")
+        original_plugin_root = getattr(self.server, "PLUGIN_ROOT")
+        setattr(self.server, "AIOS_ROOT", Path("/tmp") / secret / "aios")
+        setattr(self.server, "PLUGIN_ROOT", Path("/tmp") / secret / "plugin")
+        try:
+            status = self.server._call_tool("tmcp_status", {})
+            doctor = self.server._call_tool("tmcp_doctor", {"client": "codex"})
+        finally:
+            setattr(self.server, "AIOS_ROOT", original_aios_root)
+            setattr(self.server, "PLUGIN_ROOT", original_plugin_root)
+
+        rendered = json.dumps({"status": status, "doctor": doctor})
+        self.assertNotIn(secret, rendered)
+        self.assertIn("[REDACTED:", rendered)
+
+    def test_explain_aios_timeout_returns_a_redacted_structured_error(self) -> None:
+        secret = "sk-" + "D" * 40
+        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
+            self.server.subprocess,
+            "run",
+            side_effect=subprocess.TimeoutExpired(["aios", secret], 120),
+        ):
+            result = self.server._call_tool(
+                "tmcp_explain",
+                {
+                    "objective": "Explain packet",
+                    "project_path": "/tmp/project",
+                    "adapter": "aios",
+                },
+            )
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["error_type"], "TimeoutExpired")
+        self.assertNotIn(secret, json.dumps(result))
+        self.assertIn("redaction_summary", result)
 
     def test_review_auto_never_uses_the_aios_adapter(self) -> None:
         with patch.object(self.server, "_aios_available", return_value=True), patch.object(
