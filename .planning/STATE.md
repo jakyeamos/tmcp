@@ -74,6 +74,8 @@ file boundaries and a coherent agent-facing workflow.
   passing tests with three expected platform skips.
 - Clean package reproducibility passes at `1b3697f`; the extracted package
   verifies portable receipt denial as well as persistence-capable receipt flow.
+- `2d04122` moves deterministic route inference into `tmcp_runtime/domain`,
+  removing the first packet-domain owner from the legacy adapter.
 
 ## Workflow Notes
 
