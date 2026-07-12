@@ -284,6 +284,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "tmcp_runtime/domain/standalone_packets.py",
                 "tmcp_runtime/domain/workflow_adaptive.py",
                 "tmcp_runtime/domain/workflow_catalog.py",
+                "tmcp_runtime/domain/workflow_promotion.py",
                 "tmcp_runtime/domain/workflow_recommendations.py",
             }.issubset(required_files)
         )
