@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 review policy is domain-owned; map the next
-deterministic adapter boundary, beginning with workflow recommendation.
+**Current focus:** Milestone 3 workflow catalog is domain-owned; extract pure
+workflow-recommendation scoring and adaptive-pack policy from the adapter.
 
 ## Milestone
 
@@ -15,7 +15,8 @@ deterministic adapter boundary, beginning with workflow recommendation.
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
 contextual/selection composition policy, task-family routing/runtime transitions,
 declared-read selection, standalone packet compilation, final packet-policy
-split, and complete review policy extraction; map workflow recommendation.
+split, complete review policy extraction, and workflow catalog extraction;
+extract recommendation scoring and adaptive-pack policy.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -25,8 +26,8 @@ split, and complete review policy extraction; map workflow recommendation.
 - **Status:** Project-local session journey, focused release checks, pure
   recompile/contextual/selection policy, task-family routing/runtime transitions,
   declared-read selection, standalone packet compilation, final packet
-  construction/presentation, and complete review-policy split complete; map
-  workflow recommendation.
+  construction/presentation, complete review-policy split, and workflow catalog
+  extraction complete; extract recommendation scoring and adaptive-pack policy.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -141,6 +142,9 @@ split, and complete review policy extraction; map workflow recommendation.
   scoring, remediation planning, handoff construction, validations, and Markdown
   rendering into `review_evidence.py` and `review_results.py`; the adapter now
   retains only harvest, redaction, artifact persistence, status, and MCP dispatch.
+- `55ddb54` moves curated workflow definitions, candidate filtering, stability
+  classification, and ID lookup into `tmcp_runtime/domain/workflow_catalog.py`;
+  recommendation, promotion, and global-cache selection share one catalog owner.
 
 ## Workflow Notes
 
@@ -178,6 +182,8 @@ split, and complete review policy extraction; map workflow recommendation.
   recommendation consume its canonical selection and fallback policy.
 - Review evidence, audit, remediation, validation, and rendering policy are
   domain-owned; the review adapter only orchestrates side effects and transport.
+- Curated workflow catalog policy is domain-owned; recommendation, promotion,
+  and global-cache selection no longer maintain adapter-local catalog copies.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -219,11 +225,12 @@ split, and complete review policy extraction; map workflow recommendation.
   declared-read dependency plus selected-node merging into sibling domains;
   `775782e` moves standalone packet compilation into its own deterministic domain;
   `7ed60d4` moves shared review-profile vocabulary and classification out of the
-  adapter; `516a497` completes review evidence, results, and rendering extraction.
+  adapter; `516a497` completes review evidence, results, and rendering extraction;
+  `55ddb54` moves workflow catalog and stability policy into its own domain owner.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map workflow-recommendation policy still owned by the MCP adapter.
+# Extract workflow-recommendation scoring and adaptive-pack policy from the MCP adapter.
 ```

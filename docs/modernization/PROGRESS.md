@@ -6,7 +6,8 @@
 cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, and review-profile
-catalog and review-policy splits complete; map workflow recommendation.
+catalog, review-policy, and workflow-catalog splits complete; extract
+recommendation scoring and adaptive-pack policy.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -23,7 +24,8 @@ construction/presentation are domain-owned. The legacy standalone compiler is
 also domain-owned. Review profiles now have a shared domain owner for standalone
 review and workflow recommendation. Evidence, audit, remediation, validation,
 and Markdown review policy are also domain-owned while public MCP/CLI behavior
-remains stable.
+remains stable. Curated workflow definitions and stability labels now have one
+domain owner shared by recommendation, promotion, and cache selection.
 
 ## Decisions recorded
 
@@ -145,6 +147,10 @@ remains stable.
   remediation, handoff, validation, and Markdown rendering. The adapter retains
   side effects and transport; 262 local tests pass with three expected platform
   skips.
+- `55ddb54` moves the curated workflow catalog, candidate filtering, stability
+  labels, and ID lookup into `tmcp_runtime/domain/workflow_catalog.py`. Promotion
+  and global-cache activation share this owner; 265 local tests pass with three
+  expected platform skips.
 
 ## Blockers and risks
 
@@ -156,5 +162,6 @@ remains stable.
 
 ## Next step
 
-Map workflow-recommendation policy in the MCP adapter, retain stable imports and
-behavior, then repeat package and adversarial validation.
+Extract pure workflow-recommendation scoring and adaptive-pack policy while
+retaining harvest, redaction, persistence, cache validation, and tool dispatch
+in the MCP adapter; then repeat package and adversarial validation.
