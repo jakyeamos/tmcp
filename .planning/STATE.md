@@ -6,19 +6,19 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 composition and recompile vertical slice
+**Current focus:** Milestone 3 recompile-domain extraction after session slice
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 2 complete locally; Milestone 3 discovery and extraction in progress
+**Status:** Milestone 3 session slice complete; recompile-domain extraction in progress
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
-- **Status:** Establish target service boundaries and migrate the first end-to-end packet journey
+- **Status:** Project-local session journey complete; extract the recompile domain service next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -76,6 +76,10 @@ file boundaries and a coherent agent-facing workflow.
   verifies portable receipt denial as well as persistence-capable receipt flow.
 - `2d04122` moves deterministic route inference into `tmcp_runtime/domain`,
   removing the first packet-domain owner from the legacy adapter.
+- `31a1d47` adds explicit, redacted project-local packet sessions with absolute
+  project roots, opaque keys, revision-locked latest records, pinned recompile
+  lineage, portable denial, and CLI/MCP/package coverage. The local suite has
+  218 passing tests with three expected platform skips.
 
 ## Workflow Notes
 
@@ -97,6 +101,9 @@ file boundaries and a coherent agent-facing workflow.
   unavailable.
 - MCP adapter/status safety coverage has a focused test module, keeping the
   server-domain test module below the repository source-size threshold.
+- Packet sessions are explicit-only and latest-only: they require an absolute
+  project root, do not replace an existing run, retain no global registry or
+  history, and use a verified per-session lock for cooperative writers.
 
 ## Accumulated Context
 
@@ -122,11 +129,13 @@ file boundaries and a coherent agent-facing workflow.
 - 2026-07-11: Adversarial hardening makes auto review standalone, rejects
   symlink-derived default writes, bounds and canonicalizes cache input, treats
   Windows junctions as links, and runs portable package verification on Windows.
+- 2026-07-12: M3 adds an explicit project-local compose → full-recompile
+  session path while retaining inline previous-packet compatibility; a fresh
+  adversarial pass closes relative-root and forged-lineage findings.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map composition/recompile responsibilities, then extract the packet service
-# behind the stable MCP/CLI entrypoints.
+# Extract the pure recompile domain service and migrate the stable adapter to it.
 ```

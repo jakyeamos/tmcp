@@ -2,7 +2,8 @@
 
 ## Current state
 
-**Phase:** Milestone 2 complete locally; Milestone 3 composition/recompile slice next.
+**Phase:** Milestone 3 composition/recompile session slice complete; pure
+recompile-domain extraction next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -11,7 +12,9 @@
 **Implementation status:** Release safety, public compatibility, and the safe
 input/storage boundary are implemented in the isolated modernization worktree.
 The public runtime surface remains stable while the next slice moves composition
-and recompilation behind that boundary.
+and recompilation behind that boundary. The first vertical journey now supports
+explicit project-local session persistence without changing the legacy inline
+packet path.
 
 ## Decisions recorded
 
@@ -33,6 +36,10 @@ and recompilation behind that boundary.
   the standalone protected path.
 - Treat durable global cache content as bounded, schema-gated advisory input;
   only canonical workflow identifiers can influence a composed packet.
+- Keep packet sessions opt-in, project-local, latest-only, and fail-closed:
+  callers provide an absolute project root and opaque run label, no global run
+  registry or automatic retention exists, and full recompiles pin their lineage
+  to the stored packet.
 
 ## Verified baseline
 
@@ -64,6 +71,11 @@ and recompilation behind that boundary.
 - Milestone 2 has 203 passing local tests with three expected platform skips;
   the clean Git-tree package check and reproducibility check pass. It covers
   portable receipt denial on hosts without secure artifact persistence.
+- `31a1d47` completes the first M3 vertical path: compose → protected session
+  record → full recompile → revision update. It covers CLI and MCP transport,
+  strict path/lineage rules, redaction, symlink denial, cooperative locking, and
+  package smoke behavior. The local suite has 218 passing tests with three
+  expected platform skips; clean-tree package evidence is the next gate.
 
 ## Blockers and risks
 
@@ -75,6 +87,5 @@ and recompilation behind that boundary.
 
 ## Next step
 
-Start Milestone 3: extract typed composition/recompile services behind the
-stable MCP/CLI adapter, beginning with the public packet contract and transport
-tests.
+Extract the pure recompile service into `tmcp_runtime`, migrate its adapter
+callers, then repeat the complete package and adversarial validation loop.
