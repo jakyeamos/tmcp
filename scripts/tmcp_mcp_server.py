@@ -329,12 +329,6 @@ def _string_list(value: object) -> list[str]:
     return [str(item) for item in _json_list(value) if str(item)]
 
 
-def _string_sequence(value: object) -> list[str]:
-    if isinstance(value, (list, tuple)):
-        return [str(item) for item in value if str(item)]
-    return []
-
-
 def _aios_available() -> bool:
     if AIOS_ROOT is None:
         return False
