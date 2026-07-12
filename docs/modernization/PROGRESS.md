@@ -2,15 +2,16 @@
 
 ## Current state
 
-**Phase:** Milestone 2 in progress; safe harvest/storage slice complete.
+**Phase:** Milestone 2 complete locally; Milestone 3 composition/recompile slice next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
 **Baseline:** `72baf609a519bebdabc4287b2671f04554ef6c23` (`0.4.0`)
 
-**Implementation status:** Release safety and the compatibility boundary are
-implemented in the isolated modernization worktree. The public runtime surface
-is now owned by a canonical registry while legacy entrypoints remain unchanged.
+**Implementation status:** Release safety, public compatibility, and the safe
+input/storage boundary are implemented in the isolated modernization worktree.
+The public runtime surface remains stable while the next slice moves composition
+and recompilation behind that boundary.
 
 ## Decisions recorded
 
@@ -28,6 +29,10 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
 - Own harvest root policy, traversal, bounded reads, redaction, and safe
   provenance display in `tmcp_runtime/safety`; own harvest bundle persistence
   in `tmcp_runtime/storage`.
+- Keep optional AIOS review explicit and read-only; automatic review stays in
+  the standalone protected path.
+- Treat durable global cache content as bounded, schema-gated advisory input;
+  only canonical workflow identifiers can influence a composed packet.
 
 ## Verified baseline
 
@@ -56,16 +61,20 @@ is now owned by a canonical registry while legacy entrypoints remain unchanged.
   commits. The full suite has 166 passing tests.
 - `8c7f498` splits the safe reader and extracted-package compile list into
   focused modules; the repository commit gate is clean with no size exception.
+- Milestone 2 has 203 passing local tests with three expected platform skips;
+  the clean Git-tree package check and reproducibility check pass. It covers
+  portable receipt denial on hosts without secure artifact persistence.
 
 ## Blockers and risks
 
 - The primary checkout contains user-owned uncommitted work that is not included
   in this audit branch. Integrate or supersede it deliberately during approved
   implementation.
-- Evaluation, promotion, recommendation, review, cache, and receipt paths still
-  need migration onto the new safety/storage services.
+- Hosted matrix evidence is pending because this branch has no pull request or
+  tag-triggered run; local package and contract checks are current.
 
 ## Next step
 
-Move evaluation and the remaining artifact writers onto the shared safety and
-storage services.
+Start Milestone 3: extract typed composition/recompile services behind the
+stable MCP/CLI adapter, beginning with the public packet contract and transport
+tests.

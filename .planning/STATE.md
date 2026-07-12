@@ -6,19 +6,19 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 2 adversarial hardening and release validation
+**Current focus:** Milestone 3 composition and recompile vertical slice
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 2 hardening committed locally; clean release-package validation pending
+**Status:** Milestone 2 complete locally; Milestone 3 discovery and extraction in progress
 **Started:** 2026-07-10
 
 ## Active Phase
 
-- **Phase:** Safe input and storage foundation
+- **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
-- **Status:** Adversarial boundary fixes and focused test split committed; complete clean-package validation
+- **Status:** Establish target service boundaries and migrate the first end-to-end packet journey
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -72,6 +72,8 @@ file boundaries and a coherent agent-facing workflow.
 - `c31a9ee` moves MCP adapter/status safety coverage into its own test module,
   restoring the repository test-source size gate; the full local suite has 203
   passing tests with three expected platform skips.
+- Clean package reproducibility passes at `1b3697f`; the extracted package
+  verifies portable receipt denial as well as persistence-capable receipt flow.
 
 ## Workflow Notes
 
@@ -123,5 +125,6 @@ file boundaries and a coherent agent-facing workflow.
 ## Next Command
 
 ```bash
-# Run clean-package reproducibility validation from the hardened commit.
+# Map composition/recompile responsibilities, then extract the packet service
+# behind the stable MCP/CLI entrypoints.
 ```
