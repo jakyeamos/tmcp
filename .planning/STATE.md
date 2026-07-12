@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Continue the thin-adapter cutover by extracting harvest and
-source-graph responsibilities from the compatibility adapter.
+**Current focus:** Verify the post-harvest thin-adapter boundary and select the
+next bounded service extraction.
 
 ## Milestone
 
@@ -18,8 +18,8 @@ declared-read selection, standalone packet compilation, final packet-policy
 split, complete review policy extraction, workflow catalog/scoring extraction,
 adaptive workflow-pack construction, promotion-graph construction, global
 workflow activation, stateless cache defaults, evaluator composition-service
-injection, stability-taxonomy clarification, and domain-size enforcement
-complete; continue the thin-adapter cutover.
+injection, stability-taxonomy clarification, domain-size enforcement, and
+harvest/source-graph extraction complete; continue the thin-adapter cutover.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -32,8 +32,9 @@ complete; continue the thin-adapter cutover.
   construction/presentation, complete review-policy split, workflow catalog and
   scoring extraction, adaptive workflow-pack construction, promotion-graph
   construction, global workflow activation, stateless cache defaults, evaluator
-  composition-service injection, stability-taxonomy clarification, and domain-size
-  enforcement complete; continue the thin-adapter cutover.
+  composition-service injection, stability-taxonomy clarification, domain-size
+  enforcement, and harvest/source-graph extraction complete; continue the
+  thin-adapter cutover.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -178,6 +179,11 @@ complete; continue the thin-adapter cutover.
   600-nonblank-line architecture budget for every domain module. Stability docs
   now distinguish stable skill packages, curated templates, and MCP tool
   contracts; shortcut candidates are documented as provenance-only metadata.
+- 28b06ff moves harvest labels and source-node policy into pure domain modules
+  and safe traversal, redaction, seed projection, and artifact orchestration into
+  tmcp_runtime/services/harvest.py. The compatibility adapter now supplies only
+  the evaluator-specific advisory callback and retained compatibility facades;
+  the full local suite has 283 passing tests with three expected skips.
 
 ## Workflow Notes
 
@@ -234,8 +240,9 @@ complete; continue the thin-adapter cutover.
 - Skill-package, curated-template, and MCP-tool stability are separate scopes;
   their owners are frontmatter/package validation, the workflow catalog, and the
   public registry respectively.
-- The domain-module size budget is test-enforced; compatibility adapter size is
-  still addressed by the remaining harvest/source-graph extraction.
+- The domain-module size budget is test-enforced. Harvest/source-graph policy is
+  runtime-owned; the compatibility adapter injects evaluator advisories through a
+  keyword-aware callback and retains only compatibility facades.
 
 ## Accumulated Context
 

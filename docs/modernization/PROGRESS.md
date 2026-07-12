@@ -8,8 +8,8 @@ task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
 global workflow-activation, stateless cache-default, evaluator composition-service,
-stability-taxonomy, and domain-size-budget splits complete; continue the
-thin-adapter cutover.
+stability-taxonomy, domain-size-budget, and harvest/source-graph splits complete;
+verify the post-harvest adapter boundary before selecting the next cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -44,6 +44,10 @@ orchestration. Evaluation scoring now receives a data-only composition callback
 from the MCP adapter; it no longer imports or introspects private server helpers.
 Stability documentation now separates stable skill packages, stable curated
 templates, and stable MCP tool contracts, rather than conflating their labels.
+Harvest labels and source-node policy are now pure domain modules, while the
+runtime service owns safe traversal, redaction, scoped-seed projection, packet
+seeding, and artifact writes. The adapter injects only the evaluator-specific
+advisory callback and retains compatibility facades used by existing callers.
 
 ## Decisions recorded
 
@@ -75,6 +79,8 @@ templates, and stable MCP tool contracts, rather than conflating their labels.
 - Treat skill-package, curated-template, and MCP-tool stability as distinct
   contracts with distinct owners: frontmatter/package validation, the workflow
   catalog, and the public tool registry.
+- Treat evaluator advisories as an explicit adapter-injected dependency of
+  harvest-node construction; pure runtime modules must not import the MCP adapter.
 
 ## Verified baseline
 
@@ -208,6 +214,11 @@ templates, and stable MCP tool contracts, rather than conflating their labels.
   budget for every domain module. Documentation now labels stability by scope
   and records shortcut candidates as provenance-only metadata; the full local
   suite has 280 passing tests with three expected platform skips.
+- 28b06ff extracts harvest labels and source-node construction into
+  harvest_labels.py and harvest_nodes.py, with safe harvest orchestration in
+  services/harvest.py. Compatibility wrappers preserve existing server callers,
+  and the evaluator hook is injected through a keyword-aware adapter. The full
+  local suite has 283 passing tests with three expected platform skips.
 
 ## Blockers and risks
 
@@ -220,10 +231,11 @@ templates, and stable MCP tool contracts, rather than conflating their labels.
   before release, use the target's planned `0.5.0` compatibility/version process
   because the stateless default is a material behavior change.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter; harvest/source-graph extraction remains open P2
-  architecture work.
+  transport adapter. Review, recommendation, promotion, cache, and dispatch
+  orchestration require a fresh post-harvest architecture review before the next
+  extraction.
 
 ## Next step
 
-Extract harvest/source-graph responsibilities toward a thin transport adapter,
-then rerun the architecture review against the smaller boundary.
+Run an adversarial architecture review against the post-harvest boundary, then
+select the next bounded thin-adapter extraction.
