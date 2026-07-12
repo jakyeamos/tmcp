@@ -31,6 +31,15 @@ from tmcp_runtime.domain.routes import (  # noqa: E402
     task_identity_delta,
     validate_proposed_changes,
 )
+from tmcp_runtime.domain.recompile import (  # noqa: E402
+    apply_validated_proposals,
+    merge_packet_delta,
+    packet_diff as build_packet_diff,
+    parse_previous_packet,
+    recompile_detail,
+    render_recompiled_packet_markdown,
+    resolve_recompile_reason,
+)
 from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
     CLI_COMMAND_DEFAULT_ARGUMENTS,
@@ -1818,194 +1827,6 @@ def _composed_packet_markdown(packet: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-RECOMPILE_REASON_DETAILS: dict[str, str] = {
-    "user_redirect": "Latest user message redirected the task.",
-    "phase_transition": "Family phase transition activated the next skill layer.",
-    "implementation_phase_detected": (
-        "Work moved from visual exploration into production implementation."
-    ),
-    "verification_failure": "Runtime failures require debugging and regression focus.",
-    "browser_evidence_available": "Browser evidence is available for the next verification step.",
-    "task_identity_shift": "Task identity changed materially from the previous packet.",
-    "runtime_context_changed": "Runtime evidence changed the next operating packet.",
-}
-
-
-def _parse_previous_packet(arguments: dict[str, Any]) -> dict[str, Any] | None:
-    previous_packet = arguments.get("previous_packet")
-    if isinstance(previous_packet, dict):
-        return previous_packet
-    if isinstance(previous_packet, str) and previous_packet.strip().startswith("{"):
-        payload = json.loads(previous_packet)
-        if isinstance(payload, dict):
-            return payload
-    return None
-
-
-def _resolve_recompile_reason(arguments: dict[str, Any], state: dict[str, Any]) -> str:
-    latest_user_message = str(arguments.get("latest_user_message") or "").lower()
-    if any(
-        term in latest_user_message
-        for term in ("actually", "instead", "new goal", "different")
-    ):
-        return "user_redirect"
-    identity_delta = state.get("task_identity_delta")
-    if isinstance(identity_delta, dict) and identity_delta.get("reason") in {
-        "task_identity_primary_changed",
-        "user_redirect",
-    }:
-        return "task_identity_shift"
-    if _string_list(arguments.get("failures")):
-        return "verification_failure"
-    if _string_list(arguments.get("browser_evidence")):
-        return "browser_evidence_available"
-    suggested_phase = str(state.get("suggested_phase") or "")
-    files_changed = _string_list(arguments.get("files_changed"))
-    if suggested_phase:
-        if suggested_phase == "implementation" and files_changed:
-            return "implementation_phase_detected"
-        return "phase_transition"
-    if files_changed:
-        return "implementation_phase_detected"
-    return "runtime_context_changed"
-
-
-def _recompile_detail(reason: str) -> str:
-    return RECOMPILE_REASON_DETAILS.get(
-        reason, "Runtime evidence changed the next operating packet."
-    )
-
-
-def _drop_reason(item_id: str, recompile_reason: str, packet_delta: dict[str, Any]) -> str:
-    deactivated = set(_string_list(packet_delta.get("deactivated_atoms"))) | set(
-        _string_list(packet_delta.get("stale_atoms"))
-    )
-    if item_id in deactivated:
-        return "Deactivated by family phase transition."
-    if recompile_reason == "implementation_phase_detected" and (
-        "research" in item_id or item_id == "freshness_research"
-    ):
-        return "Implementation files changed; exploration atoms deferred."
-    return f"Not required after {recompile_reason}."
-
-
-def _packet_diff(
-    previous: dict[str, Any],
-    current: dict[str, Any],
-    *,
-    packet_delta: dict[str, Any],
-    recompile_reason: str,
-) -> dict[str, Any]:
-    prev_atoms = set(_string_list(previous.get("active_atoms")))
-    curr_atoms = set(_string_list(current.get("active_atoms")))
-    prev_routes = set(
-        _string_list((previous.get("task_identity") or {}).get("active_routes"))
-    )
-    curr_routes = set(
-        _string_list((current.get("task_identity") or {}).get("active_routes"))
-    )
-    dropped: list[dict[str, str]] = []
-    for atom in sorted(prev_atoms - curr_atoms):
-        dropped.append(
-            {
-                "kind": "atom",
-                "id": atom,
-                "reason": _drop_reason(atom, recompile_reason, packet_delta),
-            }
-        )
-    for route in sorted(prev_routes - curr_routes):
-        dropped.append(
-            {
-                "kind": "route",
-                "id": route,
-                "reason": _drop_reason(route, recompile_reason, packet_delta),
-            }
-        )
-    added: list[dict[str, str]] = []
-    for atom in sorted(curr_atoms - prev_atoms):
-        added.append(
-            {
-                "kind": "atom",
-                "id": atom,
-                "reason": "Activated after runtime recompile.",
-            }
-        )
-    for skill in _string_list(packet_delta.get("suggested_skills")):
-        added.append(
-            {
-                "kind": "skill",
-                "id": skill,
-                "reason": "phase_transitions.activate_skills",
-            }
-        )
-    for route in sorted(curr_routes - prev_routes):
-        added.append(
-            {
-                "kind": "route",
-                "id": route,
-                "reason": "Route activated from runtime evidence.",
-            }
-        )
-    phase_change = None
-    previous_phase = str(previous.get("phase") or "")
-    current_phase = str(current.get("phase") or "")
-    if previous_phase and current_phase and previous_phase != current_phase:
-        phase_change = {"from": previous_phase, "to": current_phase}
-    return {
-        "dropped": dropped,
-        "added": added,
-        "unchanged": sorted(prev_atoms & curr_atoms),
-        "phase_change": phase_change,
-    }
-
-
-def _merge_packet_delta(
-    packet: dict[str, Any],
-    packet_delta: dict[str, Any],
-    *,
-    next_gates: list[str],
-) -> dict[str, Any]:
-    merged = dict(packet)
-    activated = _string_list(packet_delta.get("activated_atoms"))
-    deactivated = set(
-        _string_list(packet_delta.get("deactivated_atoms"))
-        + _string_list(packet_delta.get("stale_atoms"))
-    )
-    active_atoms = [
-        atom
-        for atom in _ordered_unique(_string_list(merged.get("active_atoms")) + activated)
-        if atom not in deactivated
-    ]
-    deferred_atoms = _ordered_unique(
-        [
-            atom
-            for atom in _string_list(merged.get("deferred_atoms"))
-            if atom not in active_atoms
-        ]
-        + [atom for atom in deactivated if atom not in active_atoms]
-    )
-    required_reads = _ordered_unique(
-        _string_list(merged.get("required_reads"))
-        + _string_list(packet_delta.get("newly_required_reads"))
-    )
-    verification_gates = _ordered_unique(
-        _string_list(merged.get("verification_gates")) + next_gates
-    )
-    family_context = dict(merged.get("family_context") or {})
-    delta_family_context = packet_delta.get("family_context")
-    if isinstance(delta_family_context, dict) and delta_family_context:
-        family_context.update(delta_family_context)
-    suggested_phase = str(packet_delta.get("suggested_phase") or "").strip()
-    if suggested_phase:
-        merged["phase"] = suggested_phase
-    merged["active_atoms"] = active_atoms[:16]
-    merged["deferred_atoms"] = deferred_atoms[:8]
-    merged["required_reads"] = required_reads[:12]
-    merged["verification_gates"] = verification_gates[:10]
-    merged["family_context"] = family_context
-    return merged
-
-
 def _enrich_packet_from_source_nodes(
     packet: dict[str, Any], source_nodes: list[dict[str, Any]], read_paths: list[str]
 ) -> dict[str, Any]:
@@ -2038,66 +1859,6 @@ def _enrich_packet_from_source_nodes(
     packet["evidence_citations"] = citations
     packet["active_instructions"] = _ordered_unique(active_instructions)[:10]
     return packet
-
-
-def _apply_validated_proposals(
-    packet: dict[str, Any], validated_changes: list[dict[str, Any]]
-) -> dict[str, Any]:
-    if not validated_changes:
-        return packet
-    task_identity = dict(packet.get("task_identity") or {})
-    active_routes = _string_list(task_identity.get("active_routes"))
-    for change in validated_changes:
-        action = str(change.get("action") or "")
-        if action == "add_route":
-            route = str(change.get("route") or "")
-            if route and route not in active_routes:
-                active_routes.append(route)
-    task_identity["active_routes"] = active_routes
-    secondary = _string_list(task_identity.get("secondary"))
-    for route in active_routes:
-        if route != task_identity.get("primary") and route not in secondary:
-            secondary.append(route)
-    task_identity["secondary"] = secondary[:6]
-    packet["task_identity"] = task_identity
-    return packet
-
-
-def _recompiled_packet_markdown(recompiled: dict[str, Any]) -> str:
-    packet = recompiled.get("packet")
-    if not isinstance(packet, dict):
-        return ""
-    lines = [
-        f"## Recompile",
-        f"Reason: {recompiled.get('recompile_reason', '')}",
-        f"Detail: {recompiled.get('recompile_detail', '')}",
-    ]
-    packet_diff = recompiled.get("packet_diff")
-    if isinstance(packet_diff, dict):
-        dropped = [
-            item for item in _json_list(packet_diff.get("dropped")) if isinstance(item, dict)
-        ]
-        added = [
-            item for item in _json_list(packet_diff.get("added")) if isinstance(item, dict)
-        ]
-        if dropped:
-            lines.extend(["", "### Dropped"])
-            for item in dropped:
-                lines.append(
-                    f"- {item.get('kind', 'item')}: {item.get('id', '')} ({item.get('reason', '')})"
-                )
-        if added:
-            lines.extend(["", "### Added"])
-            for item in added:
-                lines.append(
-                    f"- {item.get('kind', 'item')}: {item.get('id', '')} ({item.get('reason', '')})"
-                )
-    base_markdown = _composed_packet_markdown(packet)
-    return base_markdown.replace(
-        "# TMCP Packet\n",
-        "# TMCP Packet\n" + "\n".join(lines) + "\n",
-        1,
-    )
 
 
 def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -2192,7 +1953,7 @@ def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
     )
     previous_task_identity = arguments.get("previous_task_identity")
     if not isinstance(previous_task_identity, dict):
-        previous_packet = _parse_previous_packet(arguments)
+        previous_packet = parse_previous_packet(arguments)
         if isinstance(previous_packet, dict):
             previous_task_identity = previous_packet.get("task_identity")
     identity_delta: dict[str, Any] | None = None
@@ -2250,7 +2011,7 @@ def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
-    previous_packet = _parse_previous_packet(arguments)
+    previous_packet = parse_previous_packet(arguments)
     if not isinstance(previous_packet, dict):
         raise ValueError(
             "tmcp_runtime_next output_mode=full requires previous_packet as an object."
@@ -2288,7 +2049,7 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
         if key in arguments:
             compose_arguments[key] = arguments[key]
     new_packet = _compose_packet(compose_arguments)
-    new_packet = _merge_packet_delta(new_packet, packet_delta, next_gates=next_gates)
+    new_packet = merge_packet_delta(new_packet, packet_delta, next_gates=next_gates)
     source_nodes = [
         item
         for item in _json_list(state.get("source_nodes"))
@@ -2299,14 +2060,14 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
         source_nodes,
         _string_list(packet_delta.get("newly_required_reads")),
     )
-    new_packet = _apply_validated_proposals(
+    new_packet = apply_validated_proposals(
         new_packet, _json_list(state.get("validated_changes"))
     )
     new_packet["task_identity"] = state.get("task_identity") or new_packet.get(
         "task_identity"
     )
-    recompile_reason = _resolve_recompile_reason(arguments, state)
-    packet_diff = _packet_diff(
+    recompile_reason = resolve_recompile_reason(arguments, state)
+    packet_change = build_packet_diff(
         previous_packet,
         new_packet,
         packet_delta=packet_delta,
@@ -2325,9 +2086,9 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
         "schema": RECOMPILED_PACKET_SCHEMA,
         "previous_packet_id": previous_packet_id or None,
         "recompile_reason": recompile_reason,
-        "recompile_detail": _recompile_detail(recompile_reason),
+        "recompile_detail": recompile_detail(recompile_reason),
         "packet": new_packet,
-        "packet_diff": packet_diff,
+        "packet_diff": packet_change,
         "agent_proposals": state.get("proposed_changes") or [],
         "validated_changes": state.get("validated_changes") or [],
         "suggested_phase": state.get("suggested_phase") or "",
@@ -2342,7 +2103,9 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
             ),
         },
     }
-    new_packet["packet_markdown"] = _recompiled_packet_markdown(recompiled)
+    new_packet["packet_markdown"] = render_recompiled_packet_markdown(
+        recompiled, compose_markdown=_composed_packet_markdown
+    )
     recompiled["packet"] = new_packet
     return recompiled
 

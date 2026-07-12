@@ -270,6 +270,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "schemas/tmcp-promoted-harvest-graph-v0.1.schema.json",
                 "scripts/release_package_composition.py",
                 "scripts/release_package_sessions.py",
+                "tmcp_runtime/domain/recompile.py",
             }.issubset(required_files)
         )
         self.assertTrue(

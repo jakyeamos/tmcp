@@ -33,6 +33,7 @@ REQUIRED_FILES = (
     "scripts/release_package_compile.py",
     "scripts/release_package_composition.py",
     "scripts/release_package_sessions.py",
+    "tmcp_runtime/domain/recompile.py",
     "tmcp_runtime/domain/routes.py",
     "tmcp_runtime/api/registry.py",
     "tmcp_runtime/api/tool_schemas.py",

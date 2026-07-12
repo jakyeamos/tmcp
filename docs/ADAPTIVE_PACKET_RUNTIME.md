@@ -216,13 +216,14 @@ TMCP validates each proposal against the route catalog and harvested skill graph
 
 | Step | Location | Work |
 | --- | --- | --- |
-| 1 | `scripts/tmcp_mcp_server.py` | Extract `_merge_packet_delta(base_packet, delta) -> composed_packet` |
-| 2 | `scripts/tmcp_mcp_server.py` | `_recompile_packet(arguments)`: load base by `previous_packet_id` or re-compose from stored inputs; apply delta; compute diff |
-| 3 | `scripts/tmcp_mcp_server.py` | `_packet_diff(previous, current) -> packet_diff` |
+| 1 | `tmcp_runtime/domain/recompile.py` | Parse compatibility input; resolve recompile reason; merge deltas; apply validated proposals; compute diff; render the recompile section |
+| 2 | `scripts/tmcp_mcp_server.py` | `_recompile_packet(arguments)`: preserve source/session selection, re-compose and enrich from harvested nodes, then delegate pure recompile policy |
+| 3 | `tmcp_runtime/domain/recompile.py` | `packet_diff(previous, current) -> packet_diff` |
 | 4 | `scripts/tmcp_mcp_server.py` | Wire `_runtime_next()` `output_mode=full` to `_recompile_packet()` |
 | 5 | `scripts/tmcp_launcher.mjs` | `runtime-next --output-mode full`; alias `recompile-packet` |
 | 6 | `schemas/tmcp-recompiled-packet-v0.1.schema.json` | New schema |
-| 7 | `tests/test_tmcp_recompile_packet.py` (new) | Product-design family: runtime → implementation → polish-verify full path |
+| 7 | `tests/test_tmcp_recompile_domain.py` | Direct policy coverage for parsing, reason priority, merge, diff, proposals, and rendering |
+| 8 | `tests/test_tmcp_recompile_packet.py` | Product-design family: runtime → implementation → polish-verify adapter path |
 
 **State note:** The default remains stateless: an agent passes `previous_packet`
 inline for a portable full recompile. When a caller explicitly supplies
@@ -572,6 +573,7 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | File | Action |
 | --- | --- |
 | `docs/ADAPTIVE_PACKET_RUNTIME.md` | This document |
+| `tmcp_runtime/domain/recompile.py` | Pure recompile policy and Markdown diff rendering |
 | `tmcp_runtime/domain/routes.py` | Route definitions and scoring |
 | `scripts/tmcp_mcp_server.py` | Extend compose, runtime, markdown renderers |
 | `schemas/tmcp-recompiled-packet-v0.1.schema.json` | New |
@@ -579,6 +581,7 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | `schemas/tmcp-runtime-next-v0.1.schema.json` | Add optional `task_identity_delta`, `output_mode` response shape |
 | `examples/seeds/frontend-redesign-runtime.json` | New reference seed |
 | `tests/test_tmcp_task_identity.py` | New |
+| `tests/test_tmcp_recompile_domain.py` | Pure recompile policy coverage |
 | `tests/test_tmcp_recompile_packet.py` | New |
 | `tests/test_tmcp_composed_markdown.py` | New |
 | `tests/test_tmcp_route_inference.py` | New |
