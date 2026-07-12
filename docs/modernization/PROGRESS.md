@@ -8,8 +8,8 @@ task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
 global workflow-activation, stateless cache-default, evaluator composition-service,
-stability-taxonomy, domain-size-budget, and harvest/source-graph splits complete;
-verify the post-harvest adapter boundary before selecting the next cutover.
+stability-taxonomy, domain-size-budget, harvest/source-graph, and recommendation
+service splits complete; review the promotion boundary before the next cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -48,6 +48,9 @@ Harvest labels and source-node policy are now pure domain modules, while the
 runtime service owns safe traversal, redaction, scoped-seed projection, packet
 seeding, and artifact writes. The adapter injects only the evaluator-specific
 advisory callback and retains compatibility facades used by existing callers.
+Workflow recommendation assembly now has its own read-only runtime service. The
+adapter injects advisory and compose-preview callbacks, then retains result
+redaction, artifact persistence, promotion, and global-cache authority.
 
 ## Decisions recorded
 
@@ -81,6 +84,9 @@ advisory callback and retains compatibility facades used by existing callers.
   catalog, and the public tool registry.
 - Treat evaluator advisories as an explicit adapter-injected dependency of
   harvest-node construction; pure runtime modules must not import the MCP adapter.
+- Treat workflow recommendation as a read-only service. Compose preview remains
+  adapter-injected, and result redaction plus all durable-write behavior remains
+  adapter-owned.
 
 ## Verified baseline
 
@@ -219,6 +225,10 @@ advisory callback and retains compatibility facades used by existing callers.
   services/harvest.py. Compatibility wrappers preserve existing server callers,
   and the evaluator hook is injected through a keyword-aware adapter. The full
   local suite has 283 passing tests with three expected platform skips.
+- d9422dc extracts catalog scoring, profile construction, adaptive-pack
+  construction, result assembly, and optional compose-preview invocation into
+  services/recommendations.py. The full local suite has 286 passing tests with
+  three expected platform skips.
 
 ## Blockers and risks
 
@@ -231,11 +241,10 @@ advisory callback and retains compatibility facades used by existing callers.
   before release, use the target's planned `0.5.0` compatibility/version process
   because the stateless default is a material behavior change.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter. Review, recommendation, promotion, cache, and dispatch
-  orchestration require a fresh post-harvest architecture review before the next
-  extraction.
+  transport adapter. Review, promotion, cache, and dispatch orchestration still
+  require bounded, security-first extractions.
 
 ## Next step
 
-Run an adversarial architecture review against the post-harvest boundary, then
-select the next bounded thin-adapter extraction.
+Review promotion and global-cache persistence boundaries before selecting the
+next bounded thin-adapter extraction.
