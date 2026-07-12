@@ -9,8 +9,8 @@ packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
 global workflow-activation, stateless cache-default, evaluator composition-service,
 stability-taxonomy, domain-size-budget, harvest/source-graph, recommendation
-service, promotion-planning, and review-plan splits complete; review shared
-artifact persistence and cache ownership before the next cutover.
+service, promotion-planning, review-plan, and cache-policy splits complete;
+continue the thin-adapter cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -57,7 +57,10 @@ also runtime-owned. The adapter retains opaque storage-key derivation, path
 approval, local/global writes, and all cache validation/projection.
 Standalone review-plan assembly is pure and runtime-owned. The adapter retains
 source harvest, evidence parsing, redaction, approved output selection, artifact
-persistence, and explicit AIOS dispatch.
+persistence, and explicit AIOS dispatch. Global-cache bounds, record validation,
+and canonical-ID projection are now pure storage policy with injected schema,
+clock, catalog, and redaction dependencies; cache roots, safe reads, and all
+durable writes remain adapter-owned.
 
 ## Decisions recorded
 
@@ -98,6 +101,10 @@ persistence, and explicit AIOS dispatch.
   validation remain co-owned by the adapter until a dedicated storage/cache slice.
 - Treat standalone review planning as a pure in-memory service. Source acquisition,
   evidence parsing, redaction, artifacts, and AIOS remain adapter-owned.
+- Treat global-cache validation and projection as pure storage policy. Inject its
+  schema, timestamp, canonical catalog, and redactor; keep cache root selection,
+  filesystem traversal, parsing, redaction authority, and persistence in the
+  adapter.
 
 ## Verified baseline
 
@@ -247,6 +254,11 @@ persistence, and explicit AIOS dispatch.
 - e164875 extracts standalone review packet/rubric/audit/remediation/handoff
   assembly into services/review.py. The full local suite has 294 passing tests
   with three expected platform skips.
+- 0e84678 extracts bounded cache limits, JSON structure validation, normalized
+  global-graph construction, and canonical graph/receipt projections into
+  storage/cache_policy.py. The full local suite has 300 passing tests with three
+  expected platform skips; install, contract, compile, and independent boundary
+  reviews pass.
 
 ## Blockers and risks
 
@@ -259,10 +271,11 @@ persistence, and explicit AIOS dispatch.
   before release, use the target's planned `0.5.0` compatibility/version process
   because the stateless default is a material behavior change.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter. Shared artifacts, cache, and dispatch orchestration still
-  require bounded, security-first extractions.
+  transport adapter. Shared artifact and dispatch orchestration still require
+  bounded, security-first extractions; cache I/O must retain its current safety
+  boundary around the new pure policy module.
 
 ## Next step
 
-Review shared artifact persistence and cache ownership before selecting the next
-bounded thin-adapter extraction.
+Select the next bounded thin-adapter extraction, preserving adapter-owned artifact
+and cache I/O authority.

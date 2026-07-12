@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Review shared artifact persistence and cache ownership before
-the next extraction.
+**Current focus:** Select the next authority-limited thin-adapter extraction
+after moving pure global-cache validation and projection policy into storage.
 
 ## Milestone
 
@@ -20,8 +20,8 @@ adaptive workflow-pack construction, promotion-graph construction, global
 workflow activation, stateless cache defaults, evaluator composition-service
 injection, stability-taxonomy clarification, domain-size enforcement,
 harvest/source-graph extraction, recommendation-service extraction,
-promotion-planning extraction, and review-plan extraction complete; continue the
-thin-adapter cutover.
+promotion-planning extraction, review-plan extraction, and cache-policy
+extraction complete; continue the thin-adapter cutover.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -36,8 +36,8 @@ thin-adapter cutover.
   construction, global workflow activation, stateless cache defaults, evaluator
   composition-service injection, stability-taxonomy clarification, domain-size
   enforcement, harvest/source-graph extraction, recommendation-service
-  extraction, promotion-planning extraction, and review-plan extraction complete;
-  continue the thin-adapter cutover.
+extraction, promotion-planning extraction, review-plan extraction, and
+cache-policy extraction complete; continue the thin-adapter cutover.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -200,6 +200,11 @@ thin-adapter cutover.
   The adapter retains source harvest, evidence parsing, redaction, output-root
   approval, artifact persistence, and AIOS dispatch; the full local suite has
   294 passing tests with three expected skips.
+- 0e84678 moves bounded cache limits, JSON-depth checks, normalized global graph
+  construction, and cache-record projections into a pure storage policy module.
+  The adapter retains cache roots, safe reads, TOCTOU checks, redaction callbacks,
+  and all writes; the full local suite has 300 passing tests with three expected
+  skips.
 
 ## Workflow Notes
 
@@ -259,6 +264,9 @@ thin-adapter cutover.
 - The domain-module size budget is test-enforced. Harvest, recommendation,
   promotion-planning, and review-plan policy are runtime-owned; the adapter
   retains source acquisition, redaction, and all durable-write authority.
+- Optional-cache policy is runtime-owned and direct-tested, while cache roots,
+  bounded reads, canonical-catalog injection, redaction, and persistence remain
+  adapter-controlled authority boundaries.
 
 ## Accumulated Context
 
@@ -315,10 +323,13 @@ thin-adapter cutover.
 - 2026-07-12: `47f056c` removes a dead adapter helper and turns the former
   domain-size claim into an executable budget. Docs now separate package,
   template, and transport stability; shortcut candidates are provenance-only.
+- 2026-07-12: `0e84678` moves pure global-cache bounds and safe projections into
+  storage policy while retaining all cache I/O, redaction, and persistence in
+  the adapter; the next cutover must preserve that authority split.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract harvest/source-graph policy from the compatibility adapter.
+# Select the next authority-limited thin-adapter extraction.
 ```
