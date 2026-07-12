@@ -209,6 +209,10 @@ cache-policy extraction complete; continue the thin-adapter cutover.
   optional composition, doctor/status redact configured paths, and execution
   failures return safe structured errors; the full local suite has 303 passing
   tests with three expected skips.
+- 22c0edf redacts both delta and full runtime-next responses only after internal
+  recompile/session work. Inline recompiles of a redacted packet now require an
+  explicit real source or project path; the full local suite has 305 passing
+  tests with three expected skips.
 
 ## Workflow Notes
 
@@ -274,6 +278,9 @@ cache-policy extraction complete; continue the thin-adapter cutover.
 - Optional AIOS execution remains adapter-only. Its child output, configured
   paths, optional composed packet, and execution errors are redacted before any
   MCP or CLI response is returned.
+- Runtime state remains raw only inside the adapter until recompile/session work
+  completes. Public runtime responses redact paths; callers must supply a real
+  path instead of reusing a redacted packet location for an inline recompile.
 
 ## Accumulated Context
 
@@ -335,6 +342,9 @@ cache-policy extraction complete; continue the thin-adapter cutover.
   the adapter; the next cutover must preserve that authority split.
 - 2026-07-12: `7112349` closes the AIOS response boundary so child output, path
   diagnostics, compose output, and timeout failures cannot bypass redaction.
+- 2026-07-12: `22c0edf` redacts public runtime-next paths after internal state
+  work and turns a redacted inline-recompile fallback into a clear explicit-path
+  requirement.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command

@@ -110,6 +110,9 @@ errors before returning transport results.
 - Treat optional AIOS subprocess output as untrusted adapter data: redact the
   complete response only after optional composition, redact status/doctor paths,
   and map launch/timeout failures to structured errors.
+- Redact `tmcp_runtime_next` only after internal compose/recompile/session work.
+  A redacted packet cannot be an implicit filesystem locator for later inline
+  recompiles; callers must supply an explicit real source or project path.
 
 ## Verified baseline
 
@@ -268,6 +271,10 @@ errors before returning transport results.
   failure payloads, compose output, status/doctor paths, missing-AIOS diagnostics,
   and timeout errors are redacted or structured safely; the full local suite has
   303 passing tests with three expected platform skips.
+- 22c0edf redacts delta and full `tmcp_runtime_next` responses after internal
+  state work, and rejects redacted previous-packet paths without an explicit
+  source/project replacement. The full local suite has 305 passing tests with
+  three expected platform skips.
 
 ## Blockers and risks
 
