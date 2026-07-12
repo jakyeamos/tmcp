@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 workflow recommendation, promotion, and global
-activation policy are domain-owned; run final architecture and release review.
+**Current focus:** Final-review remediation: preserve a stateless default,
+remove evaluator-to-adapter coupling, then continue the thin-adapter cutover.
 
 ## Milestone
 
@@ -16,8 +16,9 @@ activation policy are domain-owned; run final architecture and release review.
 contextual/selection composition policy, task-family routing/runtime transitions,
 declared-read selection, standalone packet compilation, final packet-policy
 split, complete review policy extraction, workflow catalog/scoring extraction,
-adaptive workflow-pack construction, promotion-graph construction, and global
-workflow activation; run final architecture and release review.
+adaptive workflow-pack construction, promotion-graph construction, global
+workflow activation, and stateless cache defaults complete; remediate evaluator
+coupling and continue the thin-adapter cutover.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -29,8 +30,8 @@ workflow activation; run final architecture and release review.
   declared-read selection, standalone packet compilation, final packet
   construction/presentation, complete review-policy split, workflow catalog and
   scoring extraction, adaptive workflow-pack construction, promotion-graph
-  construction, and global workflow activation complete; run final architecture
-  and release review.
+  construction, global workflow activation, and stateless cache defaults
+  complete; remediate evaluator coupling and continue the thin-adapter cutover.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -163,6 +164,10 @@ workflow activation; run final architecture and release review.
   rehydration, activation projection, and specialized workflow instructions into
   `tmcp_runtime/domain/workflow_activation.py`; cache validation and packet
   orchestration remain in the adapter.
+- `80835ef` changes composition and runtime routing to `cache_policy=none` by
+  default, with global promoted graphs and receipts available only through an
+  explicit opt-in. The public fixture and CLI/MCP docs now record that behavior;
+  the full local suite has 277 passing tests with three expected platform skips.
 
 ## Workflow Notes
 
@@ -212,6 +217,8 @@ workflow activation; run final architecture and release review.
   only validated canonical workflow IDs and retain advisory provenance.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
+- Global promoted graphs and receipts are explicit opt-ins; no compose or runtime
+  route reads them under the default `cache_policy=none`.
 
 ## Accumulated Context
 
@@ -258,6 +265,10 @@ workflow activation; run final architecture and release review.
   construction and recommendation Markdown rendering into a sibling pure domain;
   `5ac3e2a` moves promotion graph policy behind the canonical workflow catalog;
   `52ad06b` moves global activation behind the same canonical catalog boundary.
+- 2026-07-12: Final review confirmed the cache default contradicted the target;
+  `80835ef` restores the stateless default and adds an explicit-opt-in regression
+  test. The next confirmed issue is evaluator reverse-import coupling to the
+  transport adapter.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command

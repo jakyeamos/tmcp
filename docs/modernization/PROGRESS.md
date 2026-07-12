@@ -7,8 +7,8 @@ cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
-and global workflow-activation splits complete; run final architecture and
-release review.
+global workflow-activation, and stateless cache-default splits complete; remove
+evaluator coupling and continue the thin-adapter cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -16,8 +16,10 @@ release review.
 
 **Implementation status:** Release safety, public compatibility, and the safe
 input/storage boundary are implemented in the isolated modernization worktree.
-The public runtime surface remains stable while the next slice moves composition
-and recompilation behind that boundary. The first vertical journey now supports
+The public runtime surface retains its aliases and output shapes while its
+documented cache behavior is intentionally safer: composition and runtime routing
+default to `cache_policy=none`, with global graphs and receipts available only by
+explicit opt-in. The first vertical journey now supports
 explicit project-local session persistence without changing the legacy inline
 packet path; pure recompile transformations, task-family routing/runtime
 transitions, declared-read selection, node ranking, and final packet
@@ -63,6 +65,9 @@ orchestration.
   callers provide an absolute project root and opaque run label, no global run
   registry or automatic retention exists, and full recompiles pin their lineage
   to the stored packet.
+- Default composition and runtime routing to no global cache. Any publication of
+  this material behavior change must use the planned `0.5.0` compatibility
+  release process rather than relabeling the already-published `0.4.0` release.
 
 ## Verified baseline
 
@@ -182,6 +187,11 @@ orchestration.
   `tmcp_runtime/domain/workflow_activation.py`. Exact old/new parity, focused
   domain coverage, and the full local suite pass with 276 tests and three
   expected platform skips.
+- `80835ef` restores the target's stateless cache default across MCP schemas,
+  runtime fallbacks, recommendation/explain compose paths, docs, and frozen
+  contract metadata. A cache-hardening regression proves global graph activation
+  happens only after explicit `cache_policy=global`; the full local suite has
+  277 passing tests with three expected platform skips.
 
 ## Blockers and risks
 
@@ -190,8 +200,11 @@ orchestration.
   implementation.
 - Hosted matrix evidence is pending because this branch has no pull request or
   tag-triggered run; local package and contract checks are current.
+- The branch intentionally retains `0.4.0` release metadata while unpublished;
+  before release, use the target's planned `0.5.0` compatibility/version process
+  because the stateless default is a material behavior change.
 
 ## Next step
 
-Run final architecture, package, security, data-integrity, accessibility, and
-adversarial review; fix confirmed issues, then repeat the full validation suite.
+Remove the evaluator's reverse dependency on private server helpers, reconcile
+workflow stability labels, and continue extracting the thin transport adapter.
