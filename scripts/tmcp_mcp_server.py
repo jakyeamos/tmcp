@@ -57,9 +57,6 @@ from tmcp_runtime.domain.packets import (  # noqa: E402
 from tmcp_runtime.domain.standalone_packets import (  # noqa: E402
     compile_standalone_packet,
 )
-from tmcp_runtime.domain.harvest_labels import (  # noqa: E402
-    WORKFLOW_SIGNAL_GUIDANCE_LABEL_IDS as HARVEST_WORKFLOW_SIGNAL_GUIDANCE_LABEL_IDS,
-)
 from tmcp_runtime.domain.harvest_nodes import (  # noqa: E402
     node_signal_text as _domain_node_signal_text,
     routing_metadata_for as _domain_routing_metadata_for,
@@ -83,11 +80,7 @@ from tmcp_runtime.domain.review_results import (  # noqa: E402
     review_validations,
 )
 from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
-    experimental_workflow_ids,
-    select_workflow_catalog,
-    stable_workflow_ids,
     workflow_catalog_by_id,
-    workflow_stability,
 )
 from tmcp_runtime.domain.workflow_activation import (  # noqa: E402
     build_global_workflow_activation,
@@ -99,17 +92,7 @@ from tmcp_runtime.domain.workflow_promotion import (  # noqa: E402
     select_promotion_targets,
 )
 from tmcp_runtime.domain.workflow_adaptive import (  # noqa: E402
-    build_adaptive_workflow_pack,
-    custom_workflow_ideas as build_custom_workflow_ideas,
-    recommended_scoped_packet_seeds as build_recommended_scoped_packet_seeds,
     render_workflow_recommendations_markdown,
-)
-from tmcp_runtime.domain.workflow_recommendations import (  # noqa: E402
-    recommendation_reason,
-    score_workflow_signal,
-    workflow_instance,
-    workflow_rubric_seed,
-    workflow_template,
 )
 from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
@@ -142,6 +125,9 @@ from tmcp_runtime.services.harvest import (  # noqa: E402
     harvest_skills as _runtime_harvest_skills,
     require_default_artifact_root as _runtime_require_default_artifact_root,
     source_project_path as _runtime_source_project_path,
+)
+from tmcp_runtime.services.recommendations import (  # noqa: E402
+    recommend_workflows as _runtime_recommend_workflows,
 )
 
 AIOS_ROOT = (
@@ -1773,188 +1759,46 @@ def _record_receipt(arguments: dict[str, Any]) -> dict[str, Any]:
     })
 
 
+def _compose_recommendation_preview(
+    arguments: dict[str, Any],
+    objective: str,
+) -> dict[str, Any]:
+    project_path = _source_project_path(arguments)
+    return _compose_packet(
+        {
+            "objective": objective,
+            "project_path": arguments.get("project_path") or project_path,
+            "source_paths": arguments.get("source_paths"),
+            "source_path": arguments.get("source_path") or project_path,
+            "phase": arguments.get("phase") or "start",
+            "cache_policy": arguments.get("cache_policy") or "none",
+            "include_globs": arguments.get("include_globs"),
+            "exclude_globs": arguments.get("exclude_globs"),
+            "limit": arguments.get("limit", 40),
+            "max_file_bytes": arguments.get("max_file_bytes", 262144),
+            "max_excerpt_chars": arguments.get("max_excerpt_chars", 1200),
+            "follow_symlinks": bool(arguments.get("follow_symlinks", False)),
+            "redact_sensitive": bool(arguments.get("redact_sensitive", True)),
+        }
+    )
+
+
 def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
     objective = str(
         arguments.get("objective")
         or "Recommend custom TMCP workflows from harvested skill signals."
     )
-    harvest_args = dict(arguments)
-    harvest_args["objective"] = objective
-    harvest_args["write_artifacts"] = False
-    harvest = _harvest_skills(harvest_args)
-    source_nodes = [
-        item
-        for item in _json_list(harvest.get("source_nodes"))
-        if isinstance(item, dict)
-    ]
-    catalog = select_workflow_catalog(arguments.get("candidate_workflows"))
-    min_confidence = float(arguments.get("min_confidence") or 0.25)
-    scores = sorted(
-        (
-            score_workflow_signal(
-                workflow,
-                source_nodes,
-                node_signal_text=_node_signal_text,
-                signal_guidance_label_ids=HARVEST_WORKFLOW_SIGNAL_GUIDANCE_LABEL_IDS,
-            )
-            for workflow in catalog
-        ),
-        key=lambda item: (
-            float(item["confidence"]),
-            float(item["score"]),
-            str(item["workflow_id"]),
-        ),
-        reverse=True,
-    )
-    workflows_by_id = {str(item["workflow_id"]): item for item in catalog}
-    recommended: list[dict[str, Any]] = []
-    not_recommended: list[dict[str, Any]] = []
-    for score in scores:
-        workflow = workflows_by_id[str(score["workflow_id"])]
-        if score["confidence"] >= min_confidence and score["evidence"]:
-            template = workflow_template(workflow)
-            recommended.append(
-                {
-                    "id": workflow["workflow_id"],
-                    "name": workflow["name"],
-                    "stability": workflow_stability(workflow),
-                    "signal_family": workflow["signal_family"],
-                    "confidence": score["confidence"],
-                    "score": score["score"],
-                    "why": recommendation_reason(score),
-                    "evidence": score["evidence"],
-                    "starter_prompt": workflow["starter_prompt"],
-                    "expected_artifacts": list(workflow["expected_artifacts"]),
-                    "template": template,
-                    "workflow_instance": workflow_instance(
-                        workflow=workflow,
-                        objective=objective,
-                        harvest=harvest,
-                        score=score,
-                    ),
-                    "rubric_seed": workflow_rubric_seed(workflow, objective),
-                }
-            )
-        else:
-            not_recommended.append(
-                {
-                    "id": workflow["workflow_id"],
-                    "stability": workflow_stability(workflow),
-                    "signal_family": workflow["signal_family"],
-                    "confidence": score["confidence"],
-                    "reason": recommendation_reason(score),
-                }
-            )
-    primary = [item["signal_family"] for item in recommended[:2]]
-    secondary = [
-        item["signal_family"]
-        for item in recommended[2:]
-        if item["signal_family"] not in primary
-    ]
-    weak = [
-        item["signal_family"]
-        for item in scores
-        if 0 < float(item["confidence"]) < min_confidence
-        and item["signal_family"] not in primary
-        and item["signal_family"] not in secondary
-    ]
-    profile_evidence = [
-        {
-            "signal_family": item["signal_family"],
-            "workflow_id": item["workflow_id"],
-            "stability": item["stability"],
-            "confidence": item["confidence"],
-            "evidence": item["evidence"][:3],
-        }
-        for item in scores
-        if item["evidence"]
-    ][:6]
-    priority_profile = {
-        "primary_signals": primary,
-        "secondary_signals": secondary,
-        "weak_signals": sorted(set(weak)),
-        "evidence": profile_evidence,
-        "workflow_stability": {
-            "stable_public_workflows": stable_workflow_ids(),
-            "experimental_workflows": experimental_workflow_ids(),
-            "policy": (
-                "Stable workflows are the public first-release contract. "
-                "Experimental workflows remain callable and are labeled in outputs."
+    safe_result = _redact_result(
+        _runtime_recommend_workflows(
+            arguments,
+            source_advisories=_harvest_source_advisories,
+            compose_preview=(
+                (lambda: _compose_recommendation_preview(arguments, objective))
+                if bool(arguments.get("compose", False))
+                else None
             ),
-        },
-    }
-    recommended_scoped_packet_seeds = build_recommended_scoped_packet_seeds(
-        source_nodes
-    )
-    custom_workflow_ideas = build_custom_workflow_ideas(source_nodes, recommended)
-    adaptive_workflow_pack = build_adaptive_workflow_pack(
-        harvest=harvest,
-        source_nodes=source_nodes,
-        priority_profile=priority_profile,
-        recommended=recommended,
-        recommended_scoped_packet_seeds=recommended_scoped_packet_seeds,
-        not_recommended=not_recommended,
-        custom_workflow_ideas=custom_workflow_ideas,
-    )
-    result: dict[str, Any] = {
-        "ok": True,
-        "adapter": "standalone",
-        "schema": "tmcp-workflow-recommendation-v1",
-        "source_harvest": {
-            "schema": harvest.get("schema"),
-            "source_paths": harvest.get("source_paths", []),
-            "source_count": harvest.get("source_count", 0),
-            "matched_source_count": harvest.get("matched_source_count", 0),
-            "redaction_summary": harvest.get("redaction_summary", {}),
-            "warnings": harvest.get("warnings", []),
-            "skipped_sources_and_why": harvest.get("warnings", []),
-        },
-        "output_contract": [
-            "sources inspected",
-            "skipped sources and why",
-            "packet summary",
-            "extracted behavior atoms",
-            "evidence gaps",
-            "recommendation or remediation plan",
-            "verification expectations",
-        ],
-        "priority_profile": priority_profile,
-        "signal_scores": scores,
-        "recommended_scoped_packet_seeds": recommended_scoped_packet_seeds,
-        "recommended_workflows": recommended,
-        "custom_workflow_ideas": custom_workflow_ideas,
-        "adaptive_workflow_pack": adaptive_workflow_pack,
-        "not_recommended": not_recommended,
-        "quality_rules": [
-            "Recommendations cite harvested evidence.",
-            "Workflow stability is labeled as stable or experimental.",
-            "Weak signals are not promoted above the confidence threshold.",
-            "Privacy redaction remains enabled by default.",
-            "Recommendations are advisory until the user selects a workflow.",
-            "Implementation remains approval-gated.",
-        ],
-    }
-    if bool(arguments.get("compose", False)):
-        project_path = _source_project_path(arguments)
-        result["composed_packet"] = _compose_packet(
-            {
-                "objective": objective,
-                "project_path": arguments.get("project_path") or project_path,
-                "source_paths": arguments.get("source_paths"),
-                "source_path": arguments.get("source_path")
-                or project_path,
-                "phase": arguments.get("phase") or "start",
-                "cache_policy": arguments.get("cache_policy") or "none",
-                "include_globs": arguments.get("include_globs"),
-                "exclude_globs": arguments.get("exclude_globs"),
-                "limit": arguments.get("limit", 40),
-                "max_file_bytes": arguments.get("max_file_bytes", 262144),
-                "max_excerpt_chars": arguments.get("max_excerpt_chars", 1200),
-                "follow_symlinks": bool(arguments.get("follow_symlinks", False)),
-                "redact_sensitive": bool(arguments.get("redact_sensitive", True)),
-            }
         )
-    safe_result = _redact_result(result)
+    )
     if bool(arguments.get("write_artifacts", False)):
         output_dir = (
             Path(str(arguments["output_dir"])).expanduser()

@@ -46,6 +46,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/storage/sessions.py",
     "tmcp_runtime/services/__init__.py",
     "tmcp_runtime/services/harvest.py",
+    "tmcp_runtime/services/recommendations.py",
 )
 
 
