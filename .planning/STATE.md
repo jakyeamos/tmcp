@@ -205,6 +205,10 @@ cache-policy extraction complete; continue the thin-adapter cutover.
   The adapter retains cache roots, safe reads, TOCTOU checks, redaction callbacks,
   and all writes; the full local suite has 300 passing tests with three expected
   skips.
+- 7112349 closes AIOS adapter output leaks: explain payloads are redacted after
+  optional composition, doctor/status redact configured paths, and execution
+  failures return safe structured errors; the full local suite has 303 passing
+  tests with three expected skips.
 
 ## Workflow Notes
 
@@ -267,6 +271,9 @@ cache-policy extraction complete; continue the thin-adapter cutover.
 - Optional-cache policy is runtime-owned and direct-tested, while cache roots,
   bounded reads, canonical-catalog injection, redaction, and persistence remain
   adapter-controlled authority boundaries.
+- Optional AIOS execution remains adapter-only. Its child output, configured
+  paths, optional composed packet, and execution errors are redacted before any
+  MCP or CLI response is returned.
 
 ## Accumulated Context
 
@@ -326,6 +333,8 @@ cache-policy extraction complete; continue the thin-adapter cutover.
 - 2026-07-12: `0e84678` moves pure global-cache bounds and safe projections into
   storage policy while retaining all cache I/O, redaction, and persistence in
   the adapter; the next cutover must preserve that authority split.
+- 2026-07-12: `7112349` closes the AIOS response boundary so child output, path
+  diagnostics, compose output, and timeout failures cannot bypass redaction.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command

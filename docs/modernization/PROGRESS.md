@@ -60,7 +60,9 @@ source harvest, evidence parsing, redaction, approved output selection, artifact
 persistence, and explicit AIOS dispatch. Global-cache bounds, record validation,
 and canonical-ID projection are now pure storage policy with injected schema,
 clock, catalog, and redaction dependencies; cache roots, safe reads, and all
-durable writes remain adapter-owned.
+durable writes remain adapter-owned. Optional AIOS execution remains adapter-only
+and redacts child payloads, configuration paths, composed output, and execution
+errors before returning transport results.
 
 ## Decisions recorded
 
@@ -105,6 +107,9 @@ durable writes remain adapter-owned.
   schema, timestamp, canonical catalog, and redactor; keep cache root selection,
   filesystem traversal, parsing, redaction authority, and persistence in the
   adapter.
+- Treat optional AIOS subprocess output as untrusted adapter data: redact the
+  complete response only after optional composition, redact status/doctor paths,
+  and map launch/timeout failures to structured errors.
 
 ## Verified baseline
 
@@ -259,6 +264,10 @@ durable writes remain adapter-owned.
   storage/cache_policy.py. The full local suite has 300 passing tests with three
   expected platform skips; install, contract, compile, and independent boundary
   reviews pass.
+- 7112349 closes the optional AIOS adapter response boundary. Child success and
+  failure payloads, compose output, status/doctor paths, missing-AIOS diagnostics,
+  and timeout errors are redacted or structured safely; the full local suite has
+  303 passing tests with three expected platform skips.
 
 ## Blockers and risks
 
