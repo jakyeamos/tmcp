@@ -6,22 +6,25 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 composition selection extraction after the
-session slice, release-check cleanup, and recompile/context/presentation/assembly policy
+**Current focus:** Milestone 3 node-ranking extraction after the session slice,
+release-check cleanup, recompile/context/presentation/assembly policy, and
+task-family routing policy
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
-and contextual/presentation/assembly composition policy complete; selection next
+contextual/presentation/assembly composition policy, and task-family routing
+complete; node ranking next
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
-- **Status:** Project-local session journey, focused release checks, and pure
-  recompile/context/presentation/assembly policy complete; extract selection next
+- **Status:** Project-local session journey, focused release checks, pure
+  recompile/context/presentation/assembly policy, and task-family routing
+  complete; extract node ranking next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -101,6 +104,11 @@ and contextual/presentation/assembly composition policy complete; selection next
 - `9cb3c8b` moves final composed-packet assembly into the composition domain:
   normalization/caps, deferred and ignored items, stable packet IDs, receipts,
   safety metadata, and Markdown all derive from one deterministic builder.
+- `06defa0` moves scoped-seed and router task-family policy into
+  `tmcp_runtime/domain/families.py`: family-context construction, primary and
+  sibling decisions, and declared-load/slug normalization. The adapter retains
+  source-text interpretation and runtime state; direct and integration tests
+  cover threshold/tie, router, support-doc, and transition-only fallback paths.
 
 ## Workflow Notes
 
@@ -127,8 +135,8 @@ and contextual/presentation/assembly composition policy complete; selection next
   history, and use a verified per-session lock for cooperative writers.
 - Recompile policy is domain-owned and directly tested; source harvesting,
   composition, enrichment, and session persistence remain adapter/service work.
-- Contextual composition policy and final packet assembly are domain-owned and
-  directly tested; node scoring and family selection remain the next owner split.
+- Contextual composition policy, final packet assembly, and task-family routing
+  are domain-owned and directly tested; node ranking is the next owner split.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -163,11 +171,12 @@ and contextual/presentation/assembly composition policy complete; selection next
   `401e125` moves deterministic recompile policy and `2eedd09` moves contextual
   composition policy behind domain boundaries; `8b2cdb5` centralizes packet
   provenance and presentation in that composition domain; `9cb3c8b` centralizes
-  final packet assembly there as well.
+  final packet assembly there as well; `06defa0` extracts task-family routing
+  into a pure domain module.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract composition node scoring and family selection behind the stable adapter.
+# Extract composition node scoring and selection behind the stable adapter.
 ```

@@ -3,8 +3,8 @@
 ## Current state
 
 **Phase:** Milestone 3 composition/recompile session slice, release-check
-cleanup, pure recompile policy, and contextual/presentation/assembly composition
-policy complete; composition selection extraction next.
+cleanup, pure recompile policy, contextual/presentation/assembly composition
+policy, and task-family routing complete; node-ranking extraction next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -15,7 +15,8 @@ input/storage boundary are implemented in the isolated modernization worktree.
 The public runtime surface remains stable while the next slice moves composition
 and recompilation behind that boundary. The first vertical journey now supports
 explicit project-local session persistence without changing the legacy inline
-packet path, and pure recompile transformations are domain-owned.
+packet path; pure recompile transformations and task-family routing are
+domain-owned.
 
 ## Decisions recorded
 
@@ -98,6 +99,11 @@ packet path, and pure recompile transformations are domain-owned.
   deferred/ignored items, packet identity, receipt template, safety metadata,
   and rendering. The local suite has 235 passing tests with three expected
   platform skips.
+- `06defa0` moves scoped-seed/router family selection into
+  `tmcp_runtime/domain/families.py`, including family context, sibling deferral,
+  and declared-load normalization. The adapter retains source-signal text and
+  runtime state; direct edge cases and existing integration paths pass with 242
+  local tests and three expected platform skips.
 
 ## Blockers and risks
 
@@ -109,6 +115,6 @@ packet path, and pure recompile transformations are domain-owned.
 
 ## Next step
 
-Extract composition node scoring and family selection into `tmcp_runtime`, keep
-source and session I/O at the adapter boundary, then repeat package and
-adversarial validation.
+Extract composition node scoring and selection into `tmcp_runtime`, keep source
+and session I/O at the adapter boundary, then repeat package and adversarial
+validation.
