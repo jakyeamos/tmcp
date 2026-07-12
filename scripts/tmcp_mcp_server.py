@@ -23,7 +23,6 @@ if str(PLUGIN_ROOT) not in sys.path:
 from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
 from scripts.tmcp_redaction import merge_redactions  # noqa: E402
 from tmcp_runtime.domain.routes import (  # noqa: E402
-    composition_route_boost,
     derive_task_identity,
     task_identity_delta,
     validate_proposed_changes,
@@ -31,8 +30,6 @@ from tmcp_runtime.domain.routes import (  # noqa: E402
 from tmcp_runtime.domain.families import (  # noqa: E402
     compose_family_context,
     family_context_from_seed_node,
-    node_is_deferred_family_sibling,
-    node_matches_family_primary,
     normalize_declared_load_pattern,
     normalize_skill_slug,
     skill_slug_from_relative_path,
@@ -47,13 +44,15 @@ from tmcp_runtime.domain.recompile import (  # noqa: E402
     resolve_recompile_reason,
 )
 from tmcp_runtime.domain.composition import (  # noqa: E402
+    REPO_BEHAVIOR_PHRASES,
     build_composed_packet,
+    composition_terms,
     contextual_atoms_and_gates,
     filter_source_verification_gates,
-    is_ui_file,
-    is_uiish_text,
     matching_reference_reads,
+    objective_has_phrase,
     render_composed_packet_markdown,
+    select_composition_nodes,
 )
 from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
@@ -1410,38 +1409,6 @@ def _positive_signal_text(text: str) -> str:
         for line in text.splitlines()
         if not any(marker in line.lower() for marker in NEGATIVE_SIGNAL_LINE_MARKERS)
     )
-
-
-COMPOSITION_GENERIC_TERMS = {
-    "agent",
-    "agents",
-    "before",
-    "codex",
-    "current",
-    "improve",
-    "make",
-    "packet",
-    "packets",
-    "readiness",
-    "release",
-    "skill",
-    "skills",
-    "start",
-    "task",
-    "tmcp",
-    "workflow",
-    "workflows",
-}
-
-
-def _composition_terms(value: str) -> set[str]:
-    return _text_tokens(value).difference(COMPOSITION_GENERIC_TERMS)
-
-
-def _objective_has_phrase(objective: str, phrases: tuple[str, ...]) -> bool:
-    lower = objective.lower()
-    normalized = lower.replace("-", " ").replace("_", " ")
-    return any(phrase in lower or phrase in normalized for phrase in phrases)
 
 
 def _estimate_tokens(value: str) -> int:
@@ -6314,149 +6281,6 @@ def _compose_context(arguments: dict[str, Any]) -> dict[str, Any]:
     return context if isinstance(context, dict) else {}
 
 
-def _node_composition_score(
-    node: dict[str, Any],
-    objective: str,
-    phase: str,
-    context: dict[str, Any],
-    family_context: dict[str, Any] | None = None,
-    active_routes: list[str] | None = None,
-) -> float:
-    if node_is_deferred_family_sibling(node, family_context, objective):
-        return 0.0
-
-    text = _node_signal_text(node)
-    objective_lower = objective.lower()
-    objective_terms = _composition_terms(objective)
-    node_terms = _composition_terms(text)
-    metadata = _routing_metadata(node)
-    score = float(len(objective_terms.intersection(node_terms)))
-    source_type = str(node.get("source_type") or "")
-    rel_path = str(node.get("relative_path") or "").lower()
-
-    repo_behavior_phrases = (
-        "repo behavior",
-        "behavior sweep",
-        "behavior spec",
-        "canonical spreadsheet",
-        "feature id",
-        "feature ids",
-        "status machine",
-        "status-machine",
-    )
-    if "repo-behavior" in rel_path and not _objective_has_phrase(
-        objective, repo_behavior_phrases
-    ):
-        return 0.0
-
-    ui_files_changed = any(
-        is_ui_file(path) for path in _string_list(context.get("files_changed"))
-    )
-    if any(term in rel_path for term in ("ui-rubric", "impeccable")) and not (
-        is_uiish_text(objective) or ui_files_changed
-    ):
-        return 0.0
-
-    if source_type == "agent_operating_contract":
-        score += 5.0
-    if rel_path.endswith("skill.md") and any(
-        term in rel_path for term in objective_terms
-    ):
-        score += 4.0
-    if "release-readiness" in rel_path and _objective_has_phrase(
-        objective,
-        (
-            "release readiness",
-            "ship no ship",
-            "ship/no-ship",
-            "quality gate",
-            "quality gates",
-            "package check",
-            "package checks",
-            "hosted evidence",
-            "ci evidence",
-            "changelog",
-        ),
-    ):
-        score += 5.0
-    if "pr-risk" in rel_path and not _objective_has_phrase(
-        objective, ("pr risk", "pull request risk", "changed surface", "merge risk")
-    ):
-        score -= 5.0
-    for trigger in _string_list(metadata.get("trigger_phrases")):
-        if trigger.lower() in COMPOSITION_GENERIC_TERMS:
-            continue
-        if trigger.lower() in objective_lower:
-            score += 3.0
-    for command in _string_list(metadata.get("commands")):
-        if command.lower() in objective_lower:
-            score += 4.0
-    if phase and phase in _string_list(metadata.get("phase_hints")):
-        score += 2.0
-    if phase == "start" and source_type == "agent_operating_contract":
-        score += 1.0
-    if is_uiish_text(objective) and any(
-        term in text
-        for term in ("browser", "contrast", "responsive", "reduced motion", "design")
-    ):
-        score += 2.5
-    if ui_files_changed and is_uiish_text(text):
-        score += 2.0
-    if any(
-        boundary.lower() in objective_lower
-        for boundary in _string_list(metadata.get("do_not_use_when"))
-    ):
-        score -= 6.0
-    if node_matches_family_primary(node, family_context, objective):
-        score += 8.0
-    if family_context and str(node.get("relative_path") or "") in _string_list(
-        family_context.get("router_relative_paths")
-    ):
-        score += 3.0
-    score += composition_route_boost(
-        active_routes or [],
-        relative_path=str(node.get("relative_path") or ""),
-        source_type=source_type,
-        text=text,
-    )
-    return score
-
-
-def _selected_compose_nodes(
-    source_nodes: list[dict[str, Any]],
-    objective: str,
-    phase: str,
-    context: dict[str, Any],
-    family_context: dict[str, Any] | None = None,
-    active_routes: list[str] | None = None,
-) -> list[dict[str, Any]]:
-    active_family_context = family_context or compose_family_context(
-        source_nodes,
-        objective,
-        context=context,
-        active_routes=active_routes,
-        node_signal_text=_node_signal_text,
-    )
-    resolved_routes = active_routes or _string_list(
-        derive_task_identity(objective, context).get("active_routes")
-    )
-    scored: list[tuple[float, str, dict[str, Any]]] = []
-    for node in source_nodes:
-        score = _node_composition_score(
-            node,
-            objective,
-            phase,
-            context,
-            active_family_context,
-            resolved_routes,
-        )
-        if score <= 0:
-            continue
-        scored.append((score, str(node.get("relative_path") or ""), node))
-    scored.sort(key=lambda item: (-item[0], item[1]))
-    return [node for _, _, node in scored[:8]]
-
-
 def _node_active_instructions(node: dict[str, Any]) -> list[str]:
     rel_path = str(node.get("relative_path") or node.get("path") or "source")
     text = _node_signal_text(node)
@@ -6504,20 +6328,11 @@ def _workflow_catalog_by_id() -> dict[str, dict[str, Any]]:
 
 def _workflow_objective_score(workflow: dict[str, Any], objective: str) -> float:
     objective_lower = objective.lower()
-    objective_terms = _composition_terms(objective)
+    objective_terms = composition_terms(objective)
     signal_family = str(workflow.get("signal_family") or "")
-    if signal_family == "repo_behavior_spec_loop" and not _objective_has_phrase(
+    if signal_family == "repo_behavior_spec_loop" and not objective_has_phrase(
         objective,
-        (
-            "repo behavior",
-            "behavior sweep",
-            "behavior spec",
-            "canonical spreadsheet",
-            "feature id",
-            "feature ids",
-            "status machine",
-            "status-machine",
-        ),
+        REPO_BEHAVIOR_PHRASES,
     ):
         return -1.0
     if signal_family == "public_sector_readiness" and not any(
@@ -6634,13 +6449,14 @@ def _compose_packet_from_source_nodes(
         family_context if family_context else None,
     )
     active_routes = _string_list(task_identity.get("active_routes")) or preliminary_routes
-    selected_nodes = _selected_compose_nodes(
+    selected_nodes = select_composition_nodes(
         source_nodes,
         objective,
         phase,
         context,
-        family_context,
-        active_routes,
+        family_context=family_context,
+        active_routes=active_routes,
+        node_signal_text=_node_signal_text,
     )
     declared_load_paths, declared_load_nodes = _resolved_declared_load_nodes(
         selected_nodes=selected_nodes,

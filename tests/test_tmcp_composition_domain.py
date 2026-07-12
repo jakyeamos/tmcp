@@ -7,6 +7,10 @@ from tmcp_runtime.domain import composition
 from tmcp_runtime.domain.routes import ROUTE_CATALOG_VERSION
 
 
+def _node_signal_text(node: dict[str, object]) -> str:
+    return str(node.get("signal") or "").lower()
+
+
 class CompositionDomainTests(unittest.TestCase):
     def test_ui_classifiers_preserve_signal_boundaries_and_astro_support(self) -> None:
         self.assertTrue(composition.is_uiish_text("Design a responsive frontend dashboard."))
@@ -110,6 +114,250 @@ class CompositionDomainTests(unittest.TestCase):
                 "docs/reference/product.md",
                 "docs/reference/verification.md",
             ],
+        )
+
+    def test_node_scoring_preserves_defer_and_contextual_guardrails(self) -> None:
+        deferred_family = {
+            "primary_skill_slugs": ["product-design-runtime"],
+            "deferred_skill_slugs": ["ui-implementation"],
+            "family_skills_root": "skills/",
+        }
+        deferred = {"relative_path": "skills/ui-implementation/SKILL.md"}
+
+        def signal_must_not_run(_: dict[str, object]) -> str:
+            raise AssertionError("deferred family sibling should not require source text")
+
+        self.assertEqual(
+            composition.score_composition_node(
+                deferred,
+                "Use product design runtime.",
+                "start",
+                {},
+                family_context=deferred_family,
+                node_signal_text=signal_must_not_run,
+            ),
+            0.0,
+        )
+
+        repo_behavior = {
+            "relative_path": "skills/repo-behavior/SKILL.md",
+            "signal": "behavior inventory",
+        }
+        self.assertEqual(
+            composition.score_composition_node(
+                repo_behavior,
+                "Improve release packaging.",
+                "start",
+                {},
+                node_signal_text=_node_signal_text,
+            ),
+            0.0,
+        )
+
+        ui_rubric = {
+            "relative_path": "skills/ui-rubric/SKILL.md",
+            "signal": "browser contrast responsive dashboard",
+        }
+        self.assertEqual(
+            composition.score_composition_node(
+                ui_rubric,
+                "Improve release packaging.",
+                "start",
+                {},
+                node_signal_text=_node_signal_text,
+            ),
+            0.0,
+        )
+        self.assertGreater(
+            composition.score_composition_node(
+                ui_rubric,
+                "Improve release packaging.",
+                "start",
+                {"files_changed": ["app/page.tsx"]},
+                node_signal_text=_node_signal_text,
+            ),
+            0.0,
+        )
+
+        release_node = {
+            "relative_path": "skills/release-readiness/SKILL.md",
+            "signal": "package checks release readiness",
+        }
+        blocked_release_node = {
+            **release_node,
+            "routing_metadata": {"do_not_use_when": ["release readiness"]},
+        }
+        objective = "Run package checks for release readiness."
+        allowed_score = composition.score_composition_node(
+            release_node,
+            objective,
+            "start",
+            {},
+            node_signal_text=_node_signal_text,
+        )
+        blocked_score = composition.score_composition_node(
+            blocked_release_node,
+            objective,
+            "start",
+            {},
+            node_signal_text=_node_signal_text,
+        )
+        self.assertEqual(allowed_score - blocked_score, 6.0)
+
+    def test_node_selection_orders_ties_caps_results_and_preserves_inputs(self) -> None:
+        positive_nodes = [
+            {
+                "relative_path": f"docs/node-{index:02d}.md",
+                "source_type": "agent_operating_contract",
+                "signal": "alpha",
+            }
+            for index in range(8, -1, -1)
+        ]
+        source_nodes = [
+            *positive_nodes,
+            {
+                "relative_path": "docs/ignored.md",
+                "source_type": "project_doc",
+                "signal": "",
+            },
+        ]
+        before = copy.deepcopy(source_nodes)
+
+        selected = composition.select_composition_nodes(
+            source_nodes,
+            "Alpha",
+            "start",
+            {},
+            node_signal_text=_node_signal_text,
+        )
+
+        self.assertEqual(
+            [node["relative_path"] for node in selected],
+            [f"docs/node-{index:02d}.md" for index in range(8)],
+        )
+        self.assertEqual(source_nodes, before)
+
+    def test_node_selection_uses_specific_routing_metadata_but_ignores_generic_trigger(self) -> None:
+        plain = {
+            "relative_path": "skills/a/SKILL.md",
+            "source_type": "skill_definition",
+            "signal": "review",
+        }
+        boosted = {
+            "relative_path": "skills/z/SKILL.md",
+            "source_type": "skill_definition",
+            "signal": "review",
+            "routing_metadata": {
+                "trigger_phrases": ["review"],
+                "commands": ["pnpm"],
+                "phase_hints": ["start"],
+            },
+        }
+        selected = composition.select_composition_nodes(
+            [plain, boosted],
+            "Review with pnpm.",
+            "start",
+            {},
+            family_context={"kind": "test"},
+            active_routes=[],
+            node_signal_text=_node_signal_text,
+        )
+        self.assertEqual(selected[0]["relative_path"], boosted["relative_path"])
+
+        generic = {
+            "relative_path": "skills/z/SKILL.md",
+            "source_type": "skill_definition",
+            "signal": "review",
+            "routing_metadata": {"trigger_phrases": ["release"]},
+        }
+        generic_selected = composition.select_composition_nodes(
+            [generic, plain],
+            "Review release readiness.",
+            "start",
+            {},
+            family_context={"kind": "test"},
+            active_routes=[],
+            node_signal_text=_node_signal_text,
+        )
+        self.assertEqual(generic_selected[0]["relative_path"], plain["relative_path"])
+
+    def test_node_selection_resolves_family_and_routes_when_not_supplied(self) -> None:
+        source_nodes = [
+            {
+                "relative_path": "skills/frontend-design/SKILL.md",
+                "source_type": "skill_definition",
+                "signal": "frontend design",
+            }
+        ]
+
+        selected = composition.select_composition_nodes(
+            source_nodes,
+            "Redesign the frontend.",
+            "start",
+            {},
+            node_signal_text=_node_signal_text,
+        )
+
+        self.assertEqual(selected, source_nodes)
+
+    def test_node_selection_preserves_family_deferral_and_route_ordering(self) -> None:
+        family_context = {
+            "primary_skill_slugs": ["product-design-runtime"],
+            "deferred_skill_slugs": ["ui-implementation"],
+            "family_skills_root": "skills/product-judgment/",
+        }
+        primary = {
+            "relative_path": "skills/product-design-runtime/SKILL.md",
+            "source_type": "skill_definition",
+            "signal": "product design runtime",
+        }
+        sibling = {
+            "relative_path": "skills/ui-implementation/SKILL.md",
+            "source_type": "skill_definition",
+            "signal": "ui implementation",
+        }
+        route_match = {
+            "relative_path": "skills/frontend-design/SKILL.md",
+            "source_type": "skill_definition",
+            "signal": "design",
+        }
+        neutral = {
+            "relative_path": "skills/plain/SKILL.md",
+            "source_type": "skill_definition",
+            "signal": "design",
+        }
+        source_nodes = [primary, sibling, neutral, route_match]
+        objective = "Use product design runtime before implementation."
+
+        selected = composition.select_composition_nodes(
+            source_nodes,
+            objective,
+            "start",
+            {},
+            family_context=family_context,
+            active_routes=["ui_ux_redesign"],
+            node_signal_text=_node_signal_text,
+        )
+        selected_paths = [node["relative_path"] for node in selected]
+        self.assertIn(primary["relative_path"], selected_paths)
+        self.assertNotIn(sibling["relative_path"], selected_paths)
+        self.assertLess(
+            selected_paths.index(route_match["relative_path"]),
+            selected_paths.index(neutral["relative_path"]),
+        )
+
+        explicit_sibling = composition.select_composition_nodes(
+            source_nodes,
+            "Use product design runtime, then ui implementation.",
+            "start",
+            {},
+            family_context=family_context,
+            active_routes=["ui_ux_redesign"],
+            node_signal_text=_node_signal_text,
+        )
+        self.assertIn(
+            sibling["relative_path"],
+            [node["relative_path"] for node in explicit_sibling],
         )
 
     def test_compiled_from_packet_is_stable_across_citation_order(self) -> None:

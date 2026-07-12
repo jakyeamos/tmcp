@@ -5,9 +5,23 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Callable
 from typing import Any
 
-from .routes import ROUTE_CATALOG_VERSION
+from .families import (
+    compose_family_context,
+    node_is_deferred_family_sibling,
+    node_matches_family_primary,
+)
+from .routes import (
+    ROUTE_CATALOG_VERSION,
+    composition_route_boost,
+    derive_task_identity,
+)
+
+
+Node = dict[str, Any]
+NodeSignalText = Callable[[Node], str]
 
 
 UI_SIGNAL_TERMS = (
@@ -59,6 +73,44 @@ UI_VERIFICATION_TERMS = (
     "reduced motion",
     "responsive",
 )
+COMPOSITION_GENERIC_TERMS = {
+    "agent",
+    "agents",
+    "before",
+    "codex",
+    "current",
+    "improve",
+    "make",
+    "packet",
+    "packets",
+    "readiness",
+    "release",
+    "skill",
+    "skills",
+    "start",
+    "task",
+    "tmcp",
+    "workflow",
+    "workflows",
+}
+RELEASE_READINESS_PHRASES = (
+    "release readiness",
+    "ship no ship",
+    "ship/no-ship",
+    "quality gate",
+    "quality gates",
+    "package check",
+    "package checks",
+    "hosted evidence",
+    "ci evidence",
+    "changelog",
+)
+PR_RISK_PHRASES = (
+    "pr risk",
+    "pull request risk",
+    "changed surface",
+    "merge risk",
+)
 
 
 def _json_list(value: object) -> list[Any]:
@@ -97,7 +149,19 @@ def _contains_signal_term(text: str, term: str) -> bool:
     return re.search(pattern, text.lower()) is not None
 
 
-def _objective_has_phrase(objective: str, phrases: tuple[str, ...]) -> bool:
+def _text_tokens(value: str) -> set[str]:
+    return set(re.findall(r"[a-z0-9_]{3,}", value.lower()))
+
+
+def composition_terms(value: str) -> set[str]:
+    """Return objective terms that carry composition-selection signal."""
+
+    return _text_tokens(value).difference(COMPOSITION_GENERIC_TERMS)
+
+
+def objective_has_phrase(objective: str, phrases: tuple[str, ...]) -> bool:
+    """Match a phrase despite dash or underscore spelling differences."""
+
     lower = objective.lower()
     normalized = lower.replace("-", " ").replace("_", " ")
     return any(phrase in lower or phrase in normalized for phrase in phrases)
@@ -109,6 +173,141 @@ def is_uiish_text(value: str) -> bool:
 
 def is_ui_file(path: str) -> bool:
     return path.lower().endswith(UI_FILE_SUFFIXES)
+
+
+def _routing_metadata(node: Node) -> dict[str, Any]:
+    metadata = node.get("routing_metadata")
+    return metadata if isinstance(metadata, dict) else {}
+
+
+def score_composition_node(
+    node: Node,
+    objective: str,
+    phase: str,
+    context: dict[str, Any],
+    *,
+    family_context: dict[str, Any] | None = None,
+    active_routes: list[str] | None = None,
+    node_signal_text: NodeSignalText,
+) -> float:
+    """Score one harvested node for inclusion in a composed packet."""
+
+    if node_is_deferred_family_sibling(node, family_context, objective):
+        return 0.0
+
+    text = node_signal_text(node)
+    objective_lower = objective.lower()
+    objective_terms = composition_terms(objective)
+    node_terms = composition_terms(text)
+    metadata = _routing_metadata(node)
+    score = float(len(objective_terms.intersection(node_terms)))
+    source_type = str(node.get("source_type") or "")
+    rel_path = str(node.get("relative_path") or "").lower()
+
+    if "repo-behavior" in rel_path and not objective_has_phrase(
+        objective,
+        REPO_BEHAVIOR_PHRASES,
+    ):
+        return 0.0
+
+    ui_files_changed = any(
+        is_ui_file(path) for path in _string_list(context.get("files_changed"))
+    )
+    if any(term in rel_path for term in ("ui-rubric", "impeccable")) and not (
+        is_uiish_text(objective) or ui_files_changed
+    ):
+        return 0.0
+
+    if source_type == "agent_operating_contract":
+        score += 5.0
+    if rel_path.endswith("skill.md") and any(
+        term in rel_path for term in objective_terms
+    ):
+        score += 4.0
+    if "release-readiness" in rel_path and objective_has_phrase(
+        objective,
+        RELEASE_READINESS_PHRASES,
+    ):
+        score += 5.0
+    if "pr-risk" in rel_path and not objective_has_phrase(objective, PR_RISK_PHRASES):
+        score -= 5.0
+    for trigger in _string_list(metadata.get("trigger_phrases")):
+        if trigger.lower() in COMPOSITION_GENERIC_TERMS:
+            continue
+        if trigger.lower() in objective_lower:
+            score += 3.0
+    for command in _string_list(metadata.get("commands")):
+        if command.lower() in objective_lower:
+            score += 4.0
+    if phase and phase in _string_list(metadata.get("phase_hints")):
+        score += 2.0
+    if phase == "start" and source_type == "agent_operating_contract":
+        score += 1.0
+    if is_uiish_text(objective) and any(
+        term in text
+        for term in ("browser", "contrast", "responsive", "reduced motion", "design")
+    ):
+        score += 2.5
+    if ui_files_changed and is_uiish_text(text):
+        score += 2.0
+    if any(
+        boundary.lower() in objective_lower
+        for boundary in _string_list(metadata.get("do_not_use_when"))
+    ):
+        score -= 6.0
+    if node_matches_family_primary(node, family_context, objective):
+        score += 8.0
+    if family_context and str(node.get("relative_path") or "") in _string_list(
+        family_context.get("router_relative_paths")
+    ):
+        score += 3.0
+    score += composition_route_boost(
+        active_routes or [],
+        relative_path=str(node.get("relative_path") or ""),
+        source_type=source_type,
+        text=text,
+    )
+    return score
+
+
+def select_composition_nodes(
+    source_nodes: list[Node],
+    objective: str,
+    phase: str,
+    context: dict[str, Any],
+    *,
+    family_context: dict[str, Any] | None = None,
+    active_routes: list[str] | None = None,
+    node_signal_text: NodeSignalText,
+) -> list[Node]:
+    """Return the eight highest-scoring harvested nodes without mutating inputs."""
+
+    active_family_context = family_context or compose_family_context(
+        source_nodes,
+        objective,
+        context=context,
+        active_routes=active_routes,
+        node_signal_text=node_signal_text,
+    )
+    resolved_routes = active_routes or _string_list(
+        derive_task_identity(objective, context).get("active_routes")
+    )
+    scored: list[tuple[float, str, Node]] = []
+    for node in source_nodes:
+        score = score_composition_node(
+            node,
+            objective,
+            phase,
+            context,
+            family_context=active_family_context,
+            active_routes=resolved_routes,
+            node_signal_text=node_signal_text,
+        )
+        if score <= 0:
+            continue
+        scored.append((score, str(node.get("relative_path") or ""), node))
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    return [node for _, _, node in scored[:8]]
 
 
 def contextual_atoms_and_gates(
@@ -188,7 +387,7 @@ def filter_source_verification_gates(
     ui_context = is_uiish_text(objective) or any(
         is_ui_file(path) for path in _string_list(context.get("files_changed"))
     )
-    repo_behavior_context = _objective_has_phrase(objective, REPO_BEHAVIOR_PHRASES)
+    repo_behavior_context = objective_has_phrase(objective, REPO_BEHAVIOR_PHRASES)
     filtered: list[str] = []
     for gate in gates:
         lower = gate.lower()
