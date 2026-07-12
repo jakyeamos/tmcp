@@ -3,8 +3,8 @@
 ## Current state
 
 **Phase:** Milestone 3 composition/recompile session slice, release-check
-cleanup, pure recompile policy, and contextual composition policy complete;
-composition selection/assembly extraction next.
+cleanup, pure recompile policy, and contextual/presentation composition policy
+complete; composition selection/assembly extraction next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -90,6 +90,10 @@ packet path, and pure recompile transformations are domain-owned.
 - `2eedd09` moves UI/contextual gates, source verification-gate filtering, and
   reference-read selection into `tmcp_runtime/domain/composition.py`. The local
   suite has 229 passing tests with three expected platform skips.
+- `8b2cdb5` moves provenance, shortcut eligibility, selection rationale, and
+  composed Markdown rendering into `tmcp_runtime/domain/composition.py`; full
+  recompile injects that renderer. The local suite has 234 passing tests with
+  three expected platform skips.
 
 ## Blockers and risks
 

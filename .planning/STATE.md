@@ -7,13 +7,13 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Milestone 3 composition selection/assembly extraction after
-the session slice, release-check cleanup, and pure recompile/context policy
+the session slice, release-check cleanup, and recompile/context/presentation policy
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 3 session slice, release-check cleanup, pure recompile
-policy, and contextual composition policy complete; selection/assembly next
+**Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
+and contextual/presentation composition policy complete; selection/assembly next
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -21,7 +21,7 @@ policy, and contextual composition policy complete; selection/assembly next
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
 - **Status:** Project-local session journey, focused release checks, and pure
-  recompile/context policy complete; extract composition selection/assembly next
+  recompile/context/presentation policy complete; extract selection/assembly next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -95,6 +95,9 @@ policy, and contextual composition policy complete; selection/assembly next
 - `2eedd09` moves UI/contextual gates, source-gate filtering, and reference-read
   selection into `tmcp_runtime/domain/composition.py`, shared by compose and
   runtime without changing MCP/CLI behavior.
+- `8b2cdb5` moves composed-packet provenance, shortcut eligibility, rationale,
+  and Markdown rendering into the same composition domain; package smoke now
+  asserts those public packet fields in extracted releases.
 
 ## Workflow Notes
 
@@ -123,6 +126,8 @@ policy, and contextual composition policy complete; selection/assembly next
   composition, enrichment, and session persistence remain adapter/service work.
 - Contextual composition policy is domain-owned and directly tested; node
   scoring, family selection, and packet assembly remain the next owner split.
+- Composition provenance, shortcut eligibility, and rendering are domain-owned;
+  recompile injects the domain renderer so both packet forms share one layout.
 
 ## Accumulated Context
 
@@ -153,7 +158,8 @@ policy, and contextual composition policy complete; selection/assembly next
   adversarial pass closes relative-root and forged-lineage findings, then
   `6864350` separates its release dogfood into focused composition/session helpers;
   `401e125` moves deterministic recompile policy and `2eedd09` moves contextual
-  composition policy behind domain boundaries.
+  composition policy behind domain boundaries; `8b2cdb5` centralizes packet
+  provenance and presentation in that composition domain.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
