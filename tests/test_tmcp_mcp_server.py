@@ -13,7 +13,7 @@ from typing import cast
 from unittest.mock import patch
 
 from tests.tmcp_test_client import TestWorkspace, run_mcp_requests as run_hermetic_mcp_requests
-from tmcp_runtime.domain import standalone_packets
+from tmcp_runtime.domain import review_evidence, standalone_packets
 from tmcp_runtime.storage import artifact_persistence_available
 
 
@@ -85,7 +85,9 @@ class TmcpMcpServerTests(unittest.TestCase):
 
         self.assertEqual(packet["task_id"], "audit")
         self.assertIn("@task:audit", packet["selected_nodes"])
-        rubric = self.server._synthesize_rubric(packet, "run-test", packet["objective"])
+        rubric = review_evidence.synthesize_rubric(
+            packet, "run-test", packet["objective"]
+        )
         self.assertEqual(rubric["profile"], "visual_polish")
 
     def test_packet_substance_check_flags_process_only_packets(self) -> None:
@@ -276,7 +278,9 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "tmcp_runtime/domain/families.py",
                 "tmcp_runtime/domain/packets.py",
                 "tmcp_runtime/domain/recompile.py",
+                "tmcp_runtime/domain/review_evidence.py",
                 "tmcp_runtime/domain/review_profiles.py",
+                "tmcp_runtime/domain/review_results.py",
                 "tmcp_runtime/domain/standalone_packets.py",
             }.issubset(required_files)
         )
@@ -810,7 +814,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                     objective=case["objective"],
                     project_path="/tmp/project",
                 )
-                rubric = self.server._synthesize_rubric(
+                rubric = review_evidence.synthesize_rubric(
                     packet,
                     "run-golden",
                     case["objective"],

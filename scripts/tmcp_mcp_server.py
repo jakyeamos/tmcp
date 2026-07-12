@@ -64,10 +64,23 @@ from tmcp_runtime.domain.standalone_packets import (  # noqa: E402
     TMCP_PACKET_SCHEMA,
     compile_standalone_packet,
 )
-from tmcp_runtime.domain.review_profiles import (  # noqa: E402
-    PROFILE_COVERAGE_REQUIREMENTS,
-    profile_dimensions,
-    select_review_profile,
+from tmcp_runtime.domain.review_evidence import (  # noqa: E402
+    actionable_evidence_items as select_actionable_evidence_items,
+    build_audit_report,
+    evidence_contract as build_evidence_contract,
+    evidence_diagnostics as inspect_evidence,
+    evidence_remediation_contract as build_evidence_remediation_contract,
+    parse_evidence,
+    synthesize_rubric,
+)
+from tmcp_runtime.domain.review_profiles import profile_dimensions  # noqa: E402
+from tmcp_runtime.domain.review_results import (  # noqa: E402
+    build_implementation_handoff,
+    build_remediation_plan,
+    render_audit_markdown,
+    render_remediation_plan_markdown,
+    render_rubric_markdown,
+    review_validations,
 )
 from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
@@ -104,11 +117,6 @@ COMPOSED_PACKET_SCHEMA = "tmcp-composed-packet-v0.1"
 RUNTIME_NEXT_SCHEMA = "tmcp-runtime-next-v0.1"
 RECOMPILED_PACKET_SCHEMA = "tmcp-recompiled-packet-v0.1"
 RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
-RUBRIC_SCHEMA = "tmcp-expert-rubric-v0.1"
-AUDIT_REPORT_SCHEMA = "tmcp-expert-audit-report-v0.1"
-REMEDIATION_PLAN_SCHEMA = "tmcp-expert-remediation-plan-v0.1"
-IMPLEMENTATION_HANDOFF_SCHEMA = "tmcp-expert-implementation-handoff-v0.1"
-
 MAX_GLOBAL_CACHE_CANDIDATES = 64
 MAX_GLOBAL_CACHE_SCAN_ENTRIES = 256
 MAX_GLOBAL_CACHE_ENTRIES = 32
@@ -1154,720 +1162,6 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
     return recompiled
 
 
-def _parse_evidence(raw: object) -> list[dict[str, Any]]:
-    if raw is None or raw == "":
-        return []
-    if isinstance(raw, str):
-        parsed = json.loads(raw)
-    else:
-        parsed = raw
-    if isinstance(parsed, dict):
-        return [parsed]
-    if isinstance(parsed, list) and all(isinstance(item, dict) for item in parsed):
-        return parsed
-    raise ValueError("evidence_json must be a JSON object or array of objects.")
-
-
-def _rubric_dimensions(rubric: dict[str, Any]) -> list[dict[str, Any]]:
-    return [
-        item for item in _json_list(rubric.get("dimensions")) if isinstance(item, dict)
-    ]
-
-
-def _evidence_starter_template(rubric: dict[str, Any]) -> list[dict[str, Any]]:
-    template: list[dict[str, Any]] = []
-    for dimension in _rubric_dimensions(rubric):
-        dimension_id = str(dimension.get("id") or "")
-        if not dimension_id:
-            continue
-        dimension_name = str(dimension.get("name") or dimension_id)
-        expectations = _string_list(dimension.get("evidence_expectations"))
-        evidence = [
-            f"TODO: cite evidence for {dimension_id}: {expectation}"
-            for expectation in expectations[:2]
-        ] or [f"TODO: cite concrete evidence for {dimension_id}."]
-        template.append(
-            {
-                "dimension_id": dimension_id,
-                "severity": "warning",
-                "summary": f"TODO: summarize the {dimension_name} issue or evidence gap.",
-                "evidence": evidence,
-                "recommended_fix": (
-                    f"TODO: state the concrete remediation for {dimension_id}."
-                ),
-            }
-        )
-    return template
-
-
-def _evidence_contract(rubric: dict[str, Any]) -> dict[str, Any]:
-    dimensions = _rubric_dimensions(rubric)
-    dimension_ids = [str(item.get("id")) for item in dimensions if item.get("id")]
-    return {
-        "schema": "tmcp-evidence-contract-v0.1",
-        "required_fields": ["dimension_id", "severity", "summary", "evidence"],
-        "optional_fields": ["recommended_fix"],
-        "severity_values": ["blocker", "warning", "observation"],
-        "dimension_ids": dimension_ids,
-        "evidence_requirement": (
-            "`evidence` must contain concrete citations such as file paths, artifact paths, "
-            "command outputs, screenshots, or named local facts. Empty arrays produce "
-            "a starter template instead of findings."
-        ),
-        "starter_template": _evidence_starter_template(rubric),
-        "example": {
-            "dimension_id": dimension_ids[0] if dimension_ids else "source_grounding",
-            "severity": "warning",
-            "summary": "Release verification has not been fully cited.",
-            "evidence": [
-                "pytest: 162 passed",
-                "ruff format --check: failed on generated artifacts",
-            ],
-            "recommended_fix": "Capture the failing format paths and rerun the release gate.",
-        },
-    }
-
-
-def _evidence_item_issues(
-    item: dict[str, Any],
-    dimension_ids: set[str],
-) -> list[str]:
-    issues: list[str] = []
-    dimension_id = str(item.get("dimension_id") or "")
-    if not dimension_id:
-        issues.append(
-            "Missing `dimension_id`; the item cannot produce a scored finding."
-        )
-    elif dimension_id not in dimension_ids:
-        issues.append(f"Unknown `dimension_id` `{dimension_id}`.")
-    severity = str(item.get("severity") or "")
-    if not severity:
-        issues.append("Missing `severity`; use blocker, warning, or observation.")
-    elif severity not in {"blocker", "warning", "observation"}:
-        issues.append(
-            f"Unknown `severity` `{severity}`; use blocker, warning, or observation."
-        )
-    if not str(item.get("summary") or "").strip():
-        issues.append("Missing `summary`; the item cannot produce a useful finding.")
-    if not _string_list(item.get("evidence")):
-        issues.append("Missing non-empty `evidence`; findings will not be traceable.")
-    if item.get("kind") and not dimension_id:
-        issues.append(
-            "`kind` is caller metadata only; use `dimension_id` to map evidence to the rubric."
-        )
-    return issues
-
-
-def _evidence_diagnostics(
-    rubric: dict[str, Any],
-    evidence_items: list[dict[str, Any]],
-) -> dict[str, Any]:
-    dimensions = _rubric_dimensions(rubric)
-    dimension_ids = {str(item.get("id")) for item in dimensions if item.get("id")}
-    item_issues: list[dict[str, Any]] = []
-    mapped_dimension_ids: set[str] = set()
-    for index, item in enumerate(evidence_items, start=1):
-        dimension_id = str(item.get("dimension_id") or "")
-        if dimension_id in dimension_ids:
-            mapped_dimension_ids.add(dimension_id)
-        issues = _evidence_item_issues(item, dimension_ids)
-        if issues:
-            item_issues.append({"index": index, "issues": issues})
-    missing_dimensions = [
-        str(item.get("id"))
-        for item in dimensions
-        if item.get("id") and str(item.get("id")) not in mapped_dimension_ids
-    ]
-    return {
-        "schema": "tmcp-evidence-diagnostics-v0.1",
-        "input_state": "empty" if not evidence_items else "provided",
-        "actionable": bool(evidence_items) and not item_issues,
-        "item_issues": item_issues,
-        "missing_dimensions": missing_dimensions,
-        "guidance": (
-            "Supply one or more evidence objects per relevant rubric dimension. "
-            "Generic records such as `{kind: checks, pytest: ...}` are accepted as JSON "
-            "but are not enough for scored, cited findings unless they include "
-            "`dimension_id`, `summary`, and non-empty `evidence`."
-        ),
-    }
-
-
-def _actionable_evidence_items(
-    rubric: dict[str, Any],
-    evidence_items: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    dimensions = _rubric_dimensions(rubric)
-    dimension_ids = {str(item.get("id")) for item in dimensions if item.get("id")}
-    return [
-        item
-        for item in evidence_items
-        if not _evidence_item_issues(item, dimension_ids)
-    ]
-
-
-def _evidence_remediation_contract(
-    rubric: dict[str, Any],
-    evidence_diagnostics: dict[str, Any],
-) -> dict[str, Any]:
-    required_dimensions: list[dict[str, Any]] = []
-    for dimension in _rubric_dimensions(rubric):
-        dimension_id = str(dimension.get("id") or "")
-        if not dimension_id:
-            continue
-        required_dimensions.append(
-            {
-                "dimension_id": dimension_id,
-                "dimension_name": str(dimension.get("name") or dimension_id),
-                "evidence_expectations": _string_list(
-                    dimension.get("evidence_expectations")
-                ),
-                "source_nodes": _string_list(dimension.get("source_nodes")),
-            }
-        )
-    return {
-        "schema": "tmcp-evidence-remediation-contract-v0.1",
-        "status": (
-            "missing_evidence"
-            if evidence_diagnostics.get("input_state") == "empty"
-            else "invalid_evidence_json"
-        ),
-        "reason": (
-            "No evidence_json records were supplied."
-            if evidence_diagnostics.get("input_state") == "empty"
-            else "One or more evidence_json records did not satisfy the rubric evidence contract."
-        ),
-        "contract_citations": [
-            "rubric.json:dimensions[].id",
-            "rubric.json:dimensions[].evidence_expectations",
-            "expertise-packet.json:selected_nodes",
-        ],
-        "required_dimensions": required_dimensions,
-        "invalid_items": _json_list(evidence_diagnostics.get("item_issues")),
-        "starter_template": _evidence_starter_template(rubric),
-        "next_action": (
-            "Replace generic records with dimension-mapped evidence_json objects, "
-            "then rerun expert_rubric_review_plan."
-        ),
-    }
-
-
-def _dimension(
-    *,
-    dimension: dict[str, Any],
-    source_nodes: list[str],
-) -> dict[str, Any]:
-    return {
-        "id": dimension["id"],
-        "name": dimension["name"],
-        "weight": dimension["weight"],
-        "scale": "0-4",
-        "pass_threshold": 3,
-        "evidence_expectations": dimension["expectations"],
-        "review_questions": dimension["questions"],
-        "source_nodes": source_nodes or ["@task:agent_workflow"],
-    }
-
-
-def _synthesize_rubric(
-    packet: dict[str, Any], run_id: str, objective: str
-) -> dict[str, Any]:
-    source_nodes = _string_list(packet.get("selected_nodes"))
-    profile = select_review_profile(objective, packet)
-    return {
-        "schema": RUBRIC_SCHEMA,
-        "run_id": run_id,
-        "objective": objective,
-        "source_packet": "expertise-packet.json",
-        "profile": profile,
-        "substance_check": packet.get("substance_check", {}),
-        "coverage_requirements": list(PROFILE_COVERAGE_REQUIREMENTS.get(profile, ())),
-        "selected_nodes": source_nodes,
-        "skipped_nodes": packet.get("skipped_nodes", []),
-        "dimensions": [
-            _dimension(dimension=dimension, source_nodes=source_nodes)
-            for dimension in profile_dimensions(profile)
-        ],
-    }
-
-
-def _severity_rank(severity: str) -> int:
-    return {"blocker": 0, "warning": 1, "observation": 2}.get(severity, 1)
-
-
-def _severity_score(severity: str) -> int:
-    return {"blocker": 1, "warning": 2, "observation": 3}.get(severity, 2)
-
-
-def _profile_coverage_gaps(
-    rubric: dict[str, Any],
-    findings: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    requirements = [
-        item
-        for item in _json_list(rubric.get("coverage_requirements"))
-        if isinstance(item, dict)
-    ]
-    if not requirements:
-        return []
-    text_parts: list[str] = []
-    for finding in findings:
-        text_parts.extend(
-            [
-                str(finding.get("summary", "")),
-                str(finding.get("recommended_fix", "")),
-                " ".join(_string_list(finding.get("evidence"))),
-            ]
-        )
-    finding_text = " ".join(text_parts).lower()
-    gaps: list[dict[str, Any]] = []
-    for requirement in requirements:
-        terms = [term.lower() for term in _string_list(requirement.get("terms"))]
-        if not any(term in finding_text for term in terms):
-            issue = str(
-                requirement.get("issue")
-                or requirement.get("label")
-                or "Profile evidence coverage is missing."
-            )
-            gaps.append(
-                {
-                    "coverage_id": str(requirement.get("id") or "profile_coverage"),
-                    "label": str(
-                        requirement.get("label")
-                        or requirement.get("id")
-                        or "profile coverage"
-                    ),
-                    "gaps": [issue],
-                }
-            )
-    return gaps
-
-
-def _known_dimension_id(candidate: object, dimensions: list[dict[str, Any]]) -> str:
-    ids = [str(dimension["id"]) for dimension in dimensions]
-    value = str(candidate or "")
-    if value in ids:
-        return value
-    return ids[0] if ids else "general_review"
-
-
-def _build_audit_report(
-    rubric: dict[str, Any],
-    evidence_items: list[dict[str, Any]],
-    run_id: str,
-) -> dict[str, Any]:
-    dimensions = [
-        item for item in _json_list(rubric.get("dimensions")) if isinstance(item, dict)
-    ]
-    findings: list[dict[str, Any]] = []
-    evidence_by_dimension: dict[str, list[str]] = {}
-    for index, item in sorted(
-        enumerate(evidence_items, start=1),
-        key=lambda indexed: _severity_rank(str(indexed[1].get("severity", "warning"))),
-    ):
-        dimension_id = _known_dimension_id(item.get("dimension_id"), dimensions)
-        severity = str(item.get("severity", "warning"))
-        if severity not in {"blocker", "warning", "observation"}:
-            severity = "warning"
-        evidence = _string_list(item.get("evidence"))
-        evidence_by_dimension.setdefault(dimension_id, []).extend(evidence)
-        findings.append(
-            {
-                "id": f"finding-{dimension_id}-{index}",
-                "severity": severity,
-                "dimension_id": dimension_id,
-                "summary": str(item.get("summary", "Evidence item requires review.")),
-                "evidence": evidence,
-                "recommended_fix": str(
-                    item.get("recommended_fix", "Remediate the cited evidence.")
-                ),
-            }
-        )
-    scores: list[dict[str, Any]] = []
-    coverage_gaps: list[dict[str, Any]] = []
-    for dimension in dimensions:
-        dimension_id = str(dimension["id"])
-        matching = [
-            finding for finding in findings if finding["dimension_id"] == dimension_id
-        ]
-        evidence = evidence_by_dimension.get(dimension_id, [])
-        if matching:
-            score = min(
-                _severity_score(str(finding["severity"])) for finding in matching
-            )
-            gaps: list[str] = []
-            confidence = "high" if evidence else "low"
-        else:
-            score = 0
-            gaps = [f"No evidence supplied for {dimension_id}."]
-            confidence = "low"
-        scores.append(
-            {
-                "dimension_id": dimension_id,
-                "score": score,
-                "confidence": confidence,
-                "evidence": evidence,
-                "gaps": gaps,
-            }
-        )
-        if gaps:
-            coverage_gaps.append(
-                {
-                    "dimension_id": dimension_id,
-                    "dimension_name": str(dimension.get("name", dimension_id)),
-                    "gaps": gaps,
-                }
-            )
-    substance = (
-        rubric.get("substance_check")
-        if isinstance(rubric.get("substance_check"), dict)
-        else {}
-    )
-    deferred_items = [
-        gap for score in scores for gap in _string_list(score.get("gaps"))
-    ]
-    if substance and not bool(substance.get("has_domain_playbook")):
-        deferred_items.extend(_string_list(substance.get("issues")))
-    coverage_gaps.extend(_profile_coverage_gaps(rubric, findings))
-    for item in coverage_gaps:
-        deferred_items.extend(_string_list(item.get("gaps")))
-    deferred_scope: list[str] = []
-    for item in deferred_items:
-        if item not in deferred_scope:
-            deferred_scope.append(item)
-    return {
-        "schema": AUDIT_REPORT_SCHEMA,
-        "run_id": run_id,
-        "rubric": "rubric.json",
-        "profile": str(rubric.get("profile") or "general_review"),
-        "substance_check": substance,
-        "scores": scores,
-        "findings": findings,
-        "coverage_gaps": coverage_gaps,
-        "deferred_scope": deferred_scope,
-    }
-
-
-def _build_remediation_plan(
-    audit_report: dict[str, Any],
-    run_id: str,
-    evidence_remediation_contract: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    slices: list[dict[str, Any]] = []
-    for index, finding in enumerate(_json_list(audit_report.get("findings")), start=1):
-        if not isinstance(finding, dict):
-            continue
-        finding_id = str(finding.get("id", f"finding-{index}"))
-        evidence = _string_list(finding.get("evidence"))
-        slices.append(
-            {
-                "id": f"slice-{index}",
-                "title": str(finding.get("summary", finding_id))[:80],
-                "scope": evidence,
-                "rationale": str(finding.get("summary", "")),
-                "expected_impact": str(finding.get("recommended_fix", "")),
-                "risk": "Review scope is limited to cited evidence; inspect neighboring surfaces before editing.",
-                "verification": ["Run targeted checks covering the cited evidence."],
-                "follow_up_workflow": "implementation-delivery",
-                "source_findings": [finding_id],
-            }
-        )
-    coverage_gaps = [
-        item
-        for item in _json_list(audit_report.get("coverage_gaps"))
-        if isinstance(item, dict)
-    ]
-    if coverage_gaps and _json_list(audit_report.get("findings")):
-        profile = str(audit_report.get("profile") or "general_review")
-        missing_dimensions = [
-            str(
-                item.get("dimension_name")
-                or item.get("dimension_id")
-                or item.get("label")
-                or item.get("coverage_id")
-            )
-            for item in coverage_gaps
-            if item.get("dimension_name")
-            or item.get("dimension_id")
-            or item.get("label")
-            or item.get("coverage_id")
-        ]
-        gap_details = [
-            gap for item in coverage_gaps for gap in _string_list(item.get("gaps"))
-        ]
-        slices.append(
-            {
-                "id": f"slice-{len(slices) + 1}-profile-coverage",
-                "title": "Capture missing profile evidence coverage",
-                "scope": [*missing_dimensions, *gap_details],
-                "rationale": f"The `{profile}` rubric has required coverage without evidence, so the audit is only partially grounded.",
-                "expected_impact": (
-                    "Completes profile-specific evidence coverage before remediation is prioritized, so TMCP cannot "
-                    "present generic findings as a complete expert review."
-                ),
-                "risk": "Do not over-rank remediation from partial or off-profile evidence.",
-                "verification": [
-                    "Capture concrete evidence for every uncovered rubric dimension and profile coverage requirement.",
-                    "Re-run the expert rubric review and confirm profile evidence coverage passes.",
-                ],
-                "follow_up_workflow": "expert-rubric-evidence-audit",
-                "source_findings": [],
-            }
-        )
-    if not slices and audit_report.get("deferred_scope"):
-        contract_dimensions = _json_list(
-            (evidence_remediation_contract or {}).get("required_dimensions")
-        )
-        contract_scope = [
-            (
-                f"{item.get('dimension_id')}: "
-                f"{'; '.join(_string_list(item.get('evidence_expectations')))}"
-            )
-            for item in contract_dimensions
-            if isinstance(item, dict) and item.get("dimension_id")
-        ]
-        slices.append(
-            {
-                "id": "slice-1",
-                "title": "Populate dimension-mapped evidence before remediation",
-                "scope": contract_scope,
-                "rationale": (
-                    str(
-                        (evidence_remediation_contract or {}).get(
-                            "reason",
-                            "The rubric could be synthesized, but no actionable evidence was supplied.",
-                        )
-                    )
-                ),
-                "expected_impact": (
-                    "Produces scored, cited findings and prevents generic evidence records from "
-                    "becoming low-value remediation work."
-                ),
-                "risk": "Do not implement from an evidence-free or contract-invalid rubric.",
-                "verification": [
-                    "Fill evidence_json from evidence_contract.starter_template.",
-                    "Each item must include dimension_id, severity, summary, and non-empty evidence citations.",
-                    "Re-run expert_rubric_review_plan and confirm evidence_json_actionable passes.",
-                ],
-                "follow_up_workflow": "expert-rubric-evidence-audit",
-                "source_findings": [],
-            }
-        )
-    return {
-        "schema": REMEDIATION_PLAN_SCHEMA,
-        "run_id": run_id,
-        "slices": slices,
-        "coverage_gaps": coverage_gaps,
-        "deferred_scope": _string_list(audit_report.get("deferred_scope")),
-        "evidence_remediation_contract": evidence_remediation_contract or {},
-    }
-
-
-def _build_implementation_handoff(
-    remediation_plan: dict[str, Any],
-    run_id: str,
-    selected_slice_id: str | None,
-) -> dict[str, Any]:
-    slices = [
-        item
-        for item in _json_list(remediation_plan.get("slices"))
-        if isinstance(item, dict)
-    ]
-    selected = next(
-        (
-            item
-            for item in slices
-            if selected_slice_id and item.get("id") == selected_slice_id
-        ),
-        slices[0] if slices else {},
-    )
-    return {
-        "schema": IMPLEMENTATION_HANDOFF_SCHEMA,
-        "run_id": run_id,
-        "remediation_plan": "remediation-plan.json",
-        "selected_slice_id": selected.get("id") if selected else selected_slice_id,
-        "selected_slice": selected,
-        "requires_user_approval": True,
-        "follow_up_workflow": str(
-            selected.get("follow_up_workflow") or "implementation-delivery"
-        )
-        if selected
-        else "implementation-delivery",
-        "artifact_inputs": [
-            "expertise-packet.json",
-            "rubric.json",
-            "audit-report.json",
-            "remediation-plan.json",
-        ],
-        "target_files": _string_list(selected.get("scope")) if selected else [],
-        "acceptance_criteria": _string_list(selected.get("verification"))
-        if selected
-        else [],
-        "known_risks": [str(selected.get("risk"))]
-        if selected and selected.get("risk")
-        else [],
-    }
-
-
-def _validations(
-    packet: dict[str, Any],
-    rubric: dict[str, Any],
-    audit_report: dict[str, Any],
-    remediation_plan: dict[str, Any],
-    evidence_diagnostics: dict[str, Any] | None = None,
-) -> list[dict[str, Any]]:
-    coverage_gaps = [
-        item
-        for item in _json_list(audit_report.get("coverage_gaps"))
-        if isinstance(item, dict)
-    ]
-    profile = str(rubric.get("profile") or "general_review")
-    coverage_issues = [
-        f"{profile} coverage missing for {item.get('dimension_name') or item.get('dimension_id') or item.get('label') or item.get('coverage_id')}: {'; '.join(_string_list(item.get('gaps')))}"
-        for item in coverage_gaps
-    ]
-    return [
-        {
-            "validation_key": "tmcp_packet_compiled",
-            "passed": packet.get("schema") == TMCP_PACKET_SCHEMA
-            and bool(packet.get("selected_nodes")),
-            "issues": [],
-        },
-        {
-            "validation_key": "domain_playbook_available",
-            "passed": bool(
-                isinstance(packet.get("substance_check"), dict)
-                and packet["substance_check"].get("has_domain_playbook")
-            ),
-            "issues": _string_list(
-                packet.get("substance_check", {}).get("issues")
-                if isinstance(packet.get("substance_check"), dict)
-                else ["Packet substance check missing."]
-            ),
-        },
-        {
-            "validation_key": "rubric_dimensions_present",
-            "passed": bool(rubric.get("dimensions")),
-            "issues": [] if rubric.get("dimensions") else ["Rubric has no dimensions."],
-        },
-        {
-            "validation_key": "evidence_json_actionable",
-            "passed": bool(
-                not evidence_diagnostics
-                or not _json_list(evidence_diagnostics.get("item_issues"))
-            ),
-            "issues": [
-                f"evidence[{item.get('index')}]: {'; '.join(_string_list(item.get('issues')))}"
-                for item in _json_list((evidence_diagnostics or {}).get("item_issues"))
-                if isinstance(item, dict)
-            ],
-        },
-        {
-            "validation_key": "profile_evidence_coverage",
-            "passed": not coverage_gaps,
-            "issues": coverage_issues,
-        },
-        {
-            "validation_key": "findings_have_evidence",
-            "passed": all(
-                _string_list(item.get("evidence"))
-                for item in _json_list(audit_report.get("findings"))
-            ),
-            "issues": [
-                str(item.get("id", "finding"))
-                for item in _json_list(audit_report.get("findings"))
-                if isinstance(item, dict) and not _string_list(item.get("evidence"))
-            ],
-        },
-        {
-            "validation_key": "remediation_has_verification",
-            "passed": all(
-                _string_list(item.get("verification"))
-                for item in _json_list(remediation_plan.get("slices"))
-                if isinstance(item, dict)
-            ),
-            "issues": [],
-        },
-    ]
-
-
-def _markdown_rubric(rubric: dict[str, Any]) -> str:
-    lines = [
-        f"# Expert Rubric: {rubric['objective']}",
-        "",
-        f"Profile: `{rubric['profile']}`",
-        "",
-    ]
-    substance = rubric.get("substance_check")
-    if isinstance(substance, dict):
-        lines.extend(
-            [
-                "## Packet Substance",
-                "",
-                f"- Level: `{substance.get('level', 'unknown')}`",
-                f"- Fallback policy: {substance.get('fallback_policy', '')}",
-                "",
-            ]
-        )
-    for dimension in rubric["dimensions"]:
-        lines.extend(
-            [
-                f"## {dimension['name']}",
-                "",
-                f"- ID: `{dimension['id']}`",
-                f"- Weight: {dimension['weight']}",
-                f"- Pass threshold: {dimension['pass_threshold']}/4",
-                f"- Source nodes: {', '.join(dimension['source_nodes'])}",
-                "",
-            ]
-        )
-    return "\n".join(lines).rstrip() + "\n"
-
-
-def _markdown_audit(report: dict[str, Any]) -> str:
-    lines = [f"# Expert Audit Report: {report['run_id']}", "", "## Scores"]
-    for score in report.get("scores", []):
-        lines.append(
-            f"- `{score['dimension_id']}`: {score['score']}/4 ({score['confidence']} confidence)"
-        )
-    lines.extend(["", "## Findings"])
-    if not report.get("findings"):
-        lines.append("- No evidence-backed findings were supplied. See deferred scope.")
-    for finding in report.get("findings", []):
-        lines.append(
-            f"- [{finding['severity']}] {finding['summary']} Evidence: {', '.join(_string_list(finding.get('evidence')))}"
-        )
-    if report.get("deferred_scope"):
-        lines.extend(["", "## Deferred Scope"])
-        for item in report["deferred_scope"]:
-            lines.append(f"- {item}")
-    substance = report.get("substance_check")
-    if isinstance(substance, dict):
-        lines.extend(["", "## TMCP Substance Check"])
-        lines.append(f"- Level: `{substance.get('level', 'unknown')}`")
-        lines.append(f"- Fallback policy: {substance.get('fallback_policy', '')}")
-    return "\n".join(lines).rstrip() + "\n"
-
-
-def _markdown_plan(plan: dict[str, Any]) -> str:
-    lines = [f"# Remediation Plan: {plan['run_id']}", ""]
-    for item in plan.get("slices", []):
-        lines.extend(
-            [
-                f"## {item['id']}: {item['title']}",
-                "",
-                f"- Scope: {', '.join(_string_list(item.get('scope')))}",
-                f"- Rationale: {item['rationale']}",
-                f"- Expected impact: {item['expected_impact']}",
-                f"- Risk: {item['risk']}",
-                f"- Verification: {', '.join(_string_list(item.get('verification')))}",
-                f"- Follow-up workflow: `{item['follow_up_workflow']}`",
-                "",
-            ]
-        )
-    return "\n".join(lines).rstrip() + "\n"
-
-
 def _redacted_mapping(value: dict[str, Any]) -> dict[str, Any]:
     safe_value, _ = redact_json_value(value, enabled=True)
     return safe_value if isinstance(safe_value, dict) else {}
@@ -1949,9 +1243,11 @@ def _write_review_artifacts(
             "implementation-handoff.json": safe_handoff,
         },
         text_artifacts={
-            "rubric.md": _markdown_rubric(safe_rubric),
-            "audit-report.md": _markdown_audit(safe_audit_report),
-            "remediation-plan.md": _markdown_plan(safe_remediation_plan),
+            "rubric.md": render_rubric_markdown(safe_rubric),
+            "audit-report.md": render_audit_markdown(safe_audit_report),
+            "remediation-plan.md": render_remediation_plan_markdown(
+                safe_remediation_plan
+            ),
         },
         fresh_bundle=fresh_bundle,
     )
@@ -1991,7 +1287,7 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     objective = str(arguments["objective"])
     project_path = str(arguments.get("project_path") or ".")
     run_id = f"tmcp-review-plan-{uuid.uuid4().hex[:8]}"
-    evidence_items = _parse_evidence(arguments.get("evidence_json") or "[]")
+    evidence_items = parse_evidence(arguments.get("evidence_json") or "[]")
     harvested_nodes: list[dict[str, Any]] = []
     harvest_warnings: list[str] = []
     if bool(arguments.get("harvest_sources", True)):
@@ -2006,23 +1302,25 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         phase="planning",
         harvested_nodes=harvested_nodes,
     )
-    rubric = _synthesize_rubric(packet, run_id, objective)
-    evidence_contract = _evidence_contract(rubric)
-    evidence_diagnostics = _evidence_diagnostics(rubric, evidence_items)
-    actionable_evidence_items = _actionable_evidence_items(rubric, evidence_items)
+    rubric = synthesize_rubric(packet, run_id, objective)
+    evidence_contract = build_evidence_contract(rubric)
+    evidence_diagnostics = inspect_evidence(rubric, evidence_items)
+    actionable_evidence_items = select_actionable_evidence_items(
+        rubric, evidence_items
+    )
     evidence_remediation_contract = (
-        _evidence_remediation_contract(rubric, evidence_diagnostics)
+        build_evidence_remediation_contract(rubric, evidence_diagnostics)
         if not evidence_items
         or bool(_json_list(evidence_diagnostics.get("item_issues")))
         else {}
     )
-    audit_report = _build_audit_report(rubric, actionable_evidence_items, run_id)
-    remediation_plan = _build_remediation_plan(
+    audit_report = build_audit_report(rubric, actionable_evidence_items, run_id)
+    remediation_plan = build_remediation_plan(
         audit_report,
         run_id,
         evidence_remediation_contract or None,
     )
-    handoff = _build_implementation_handoff(
+    handoff = build_implementation_handoff(
         remediation_plan,
         run_id,
         str(arguments.get("selected_slice_id") or "") or None,
@@ -2054,7 +1352,7 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
             "recommendation or remediation plan",
             "verification expectations",
         ],
-        "validations": _validations(
+        "validations": review_validations(
             packet,
             rubric,
             audit_report,
