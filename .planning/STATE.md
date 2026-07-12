@@ -54,6 +54,9 @@ file boundaries and a coherent agent-facing workflow.
   and one-read score persistence. The full suite now has 177 passing tests.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
+- `1e43ed0` restores the hosted verification matrix: job-level environment
+  values now use the permitted `github.workspace` context instead of
+  `runner.temp`, which GitHub rejected before scheduling any jobs.
 
 ## Workflow Notes
 
@@ -87,6 +90,8 @@ file boundaries and a coherent agent-facing workflow.
   review, recommendation, promotion, cache, and receipt writers remain.
 - 2026-07-11: Adversarial review removed a plan-path probe and surfaced the
   Windows secure-persistence gap; both are explicit M2 release conditions.
+- 2026-07-11: GitHub Actions validation was restored after a job-level
+  `runner.temp` context reference prevented every matrix job from scheduling.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
