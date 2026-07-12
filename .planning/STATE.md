@@ -6,16 +6,18 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 declared-read policy extraction after the session
+**Current focus:** Milestone 3 next domain-boundary mapping after the session
 slice, release-check cleanup, recompile/context/presentation/assembly policy,
-task-family routing/runtime transitions, node ranking, and packet-policy split
+task-family routing/runtime transitions, declared-read selection, node ranking,
+and packet-policy split
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
 contextual/selection composition policy, task-family routing/runtime transitions,
-and final packet-policy split complete; extract declared-read policy next
+declared-read selection, and final packet-policy split complete; map the next
+adapter boundary
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -24,8 +26,8 @@ and final packet-policy split complete; extract declared-read policy next
 - **Slug:** `tmcp-modernization`
 - **Status:** Project-local session journey, focused release checks, pure
   recompile/contextual/selection policy, task-family routing/runtime transitions,
-  and final packet construction/presentation split complete; extract declared-read
-  policy next
+  declared-read selection, and final packet construction/presentation split
+  complete; map the next adapter boundary
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -122,8 +124,12 @@ and final packet-policy split complete; extract declared-read policy next
   callback.
 - `32d6a9f` moves family-phase aliases, seed transition fallback, phase choice,
   skill activation/deactivation, and transition-only seed lookup into
-  `tmcp_runtime/domain/families.py`. Declared-read resolution remains an
-  adapter-injected callback, preserving the domain dependency direction.
+  `tmcp_runtime/domain/families.py`, initially keeping declared-read resolution
+  adapter-injected to preserve the domain dependency direction.
+- `6a3acc8` moves declared-read parsing, path matching/narrowing, and selected
+  source enrichment into `tmcp_runtime/domain/declared_loads.py`; runtime-family
+  transitions now call that sibling domain directly, while composition owns the
+  generic selected-node merge.
 
 ## Workflow Notes
 
@@ -154,7 +160,7 @@ and final packet-policy split complete; extract declared-read policy next
   packet construction/presentation are domain-owned and directly tested. Both
   composition owners are below the source-size limit.
 - Family runtime transitions are domain-owned and directly tested; declared-read
-  resolution is explicitly injected from the adapter until its next extraction.
+  resolution and compose-node merging are now direct domain dependencies.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -192,11 +198,12 @@ and final packet-policy split complete; extract declared-read policy next
   final packet assembly there as well; `06defa0` extracts task-family routing
   into a pure domain module; `9b6c47f` adds node ranking; `6cc0769` separates
   final packet construction/presentation to close the required source-size gate;
-  `32d6a9f` adds family runtime transition policy with adapter-injected reads.
+  `32d6a9f` adds family runtime transition policy, and `6a3acc8` moves its
+  declared-read dependency plus selected-node merging into sibling domains.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract declared-read selection and merge policy into a dedicated domain module.
+# Map the next deterministic policy boundary still owned by the MCP adapter.
 ```
