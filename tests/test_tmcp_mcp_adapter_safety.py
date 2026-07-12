@@ -156,6 +156,49 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertNotIn(secret, json.dumps(result))
         self.assertIn("redaction_summary", result)
 
+    def test_runtime_next_redacts_project_paths_after_internal_work(self) -> None:
+        secret = "sk-" + "E" * 40
+        project_path = f"/tmp/{secret}/project"
+        delta = self.server._runtime_next(
+            {
+                "objective": "Implement a reliable project packet",
+                "project_path": project_path,
+                "source_path": project_path,
+                "cache_policy": "none",
+            }
+        )
+        full = self.server._runtime_next(
+            {
+                "objective": "Implement a reliable project packet",
+                "project_path": project_path,
+                "source_path": project_path,
+                "cache_policy": "none",
+                "output_mode": "full",
+                "previous_packet": {
+                    "packet_id": "prior-packet",
+                    "project_path": project_path,
+                },
+            }
+        )
+
+        self.assertNotIn(secret, json.dumps({"delta": delta, "full": full}))
+        self.assertIn("redaction_summary", delta)
+        self.assertIn("redaction_summary", full)
+
+    def test_runtime_next_requires_a_real_path_after_redacted_packet_output(self) -> None:
+        with self.assertRaisesRegex(ValueError, "explicit source_path or project_path"):
+            self.server._runtime_next(
+                {
+                    "objective": "Implement a reliable project packet",
+                    "cache_policy": "none",
+                    "output_mode": "full",
+                    "previous_packet": {
+                        "packet_id": "prior-packet",
+                        "project_path": "/tmp/[REDACTED:opaque_token]/project",
+                    },
+                }
+            )
+
     def test_review_auto_never_uses_the_aios_adapter(self) -> None:
         with patch.object(self.server, "_aios_available", return_value=True), patch.object(
             self.server,
