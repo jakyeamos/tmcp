@@ -5,7 +5,8 @@
 **Phase:** Milestone 3 composition/recompile session slice, release-check
 cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
-packet construction/presentation split complete; map the next adapter boundary.
+packet construction/presentation and standalone compiler splits complete; map
+the next adapter boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -18,7 +19,8 @@ and recompilation behind that boundary. The first vertical journey now supports
 explicit project-local session persistence without changing the legacy inline
 packet path; pure recompile transformations, task-family routing/runtime
 transitions, declared-read selection, node ranking, and final packet
-construction/presentation are domain-owned.
+construction/presentation are domain-owned. The legacy standalone compiler is
+also domain-owned while public MCP/CLI behavior remains stable.
 
 ## Decisions recorded
 
@@ -126,6 +128,11 @@ construction/presentation are domain-owned.
   `tmcp_runtime/domain/declared_loads.py`; `families.py` imports that sibling
   directly, while `composition.py` owns generic selection merging. The full
   local suite has 254 passing tests with three expected platform skips.
+- `775782e` moves the legacy standalone task/playbook catalog, source projection,
+  substance evaluation, packet assembly, and Markdown rendering into
+  `tmcp_runtime/domain/standalone_packets.py`. Harvest classification consumes
+  its shared atom catalog; 258 local tests pass with three expected platform
+  skips.
 
 ## Blockers and risks
 

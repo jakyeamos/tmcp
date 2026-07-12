@@ -9,15 +9,15 @@ file boundaries and a coherent agent-facing workflow.
 **Current focus:** Milestone 3 next domain-boundary mapping after the session
 slice, release-check cleanup, recompile/context/presentation/assembly policy,
 task-family routing/runtime transitions, declared-read selection, node ranking,
-and packet-policy split
+standalone packet compilation, and packet-policy split
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
 contextual/selection composition policy, task-family routing/runtime transitions,
-declared-read selection, and final packet-policy split complete; map the next
-adapter boundary
+declared-read selection, standalone packet compilation, and final packet-policy
+split complete; map the next adapter boundary
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -26,8 +26,8 @@ adapter boundary
 - **Slug:** `tmcp-modernization`
 - **Status:** Project-local session journey, focused release checks, pure
   recompile/contextual/selection policy, task-family routing/runtime transitions,
-  declared-read selection, and final packet construction/presentation split
-  complete; map the next adapter boundary
+  declared-read selection, standalone packet compilation, and final packet
+  construction/presentation split complete; map the next adapter boundary
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -130,6 +130,10 @@ adapter boundary
   source enrichment into `tmcp_runtime/domain/declared_loads.py`; runtime-family
   transitions now call that sibling domain directly, while composition owns the
   generic selected-node merge.
+- `775782e` moves standalone task routing, source projection, substance checks,
+  packet assembly, and Markdown rendering into
+  `tmcp_runtime/domain/standalone_packets.py`; the adapter now only orchestrates
+  its three existing public call paths.
 
 ## Workflow Notes
 
@@ -161,6 +165,8 @@ adapter boundary
   composition owners are below the source-size limit.
 - Family runtime transitions are domain-owned and directly tested; declared-read
   resolution and compose-node merging are now direct domain dependencies.
+- The legacy standalone packet compiler is domain-owned; harvest classification
+  consumes its behavior-atom catalog rather than maintaining a second copy.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -199,7 +205,8 @@ adapter boundary
   into a pure domain module; `9b6c47f` adds node ranking; `6cc0769` separates
   final packet construction/presentation to close the required source-size gate;
   `32d6a9f` adds family runtime transition policy, and `6a3acc8` moves its
-  declared-read dependency plus selected-node merging into sibling domains.
+  declared-read dependency plus selected-node merging into sibling domains;
+  `775782e` moves standalone packet compilation into its own deterministic domain.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command

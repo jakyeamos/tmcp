@@ -27,7 +27,7 @@ This document covers four gaps between that thesis and the current implementatio
 | Primitive | Tool / function | Role today |
 | --- | --- | --- |
 | Intake compile | `tmcp_compose_packet` → `_compose_packet()` | Harvest sources, score nodes, emit composed JSON packet |
-| Route compile | `tmcp_explain` → `_compile_standalone_packet()` | Task routing to `@task:*` nodes with `packet_markdown` |
+| Route compile | `tmcp_explain` → `standalone_packets.compile_standalone_packet()` | Task routing to `@task:*` nodes with `packet_markdown` |
 | Runtime delta | `tmcp_runtime_next` → `_runtime_next()` | Phase-aware atom/read/gate deltas; family seed transitions |
 | Explicit session | `tmcp_compose_packet` / `tmcp_runtime_next` with `session_id` | Protected project-local latest packet for one serialized run |
 | Receipts | `tmcp_record_receipt` → `_record_receipt()` | Advisory run receipts under `~/.tmcp/receipts/` |
@@ -244,7 +244,7 @@ automatic write path.
 
 ### Problem
 
-`tmcp_explain` produces `packet_markdown` via `_packet_markdown()` for routed skill packets. `tmcp_compose_packet` returns JSON only. Agents and users lack a single inspectable markdown operating contract for composed/recompiled runs.
+`tmcp_explain` produces `packet_markdown` through `tmcp_runtime.domain.standalone_packets.render_standalone_packet_markdown()` for routed skill packets. `tmcp_compose_packet` returns JSON only. Agents and users lack a single inspectable markdown operating contract for composed/recompiled runs.
 
 ### Design
 
@@ -579,6 +579,7 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | `tmcp_runtime/domain/packets.py` | Final packet assembly, provenance, shortcut eligibility, and composed Markdown rendering |
 | `tmcp_runtime/domain/recompile.py` | Pure recompile policy and Markdown diff rendering |
 | `tmcp_runtime/domain/routes.py` | Route definitions and scoring |
+| `tmcp_runtime/domain/standalone_packets.py` | Legacy standalone task/playbook packet compilation and Markdown rendering |
 | `scripts/tmcp_mcp_server.py` | Extend compose, runtime, markdown renderers |
 | `schemas/tmcp-recompiled-packet-v0.1.schema.json` | New |
 | `schemas/tmcp-composed-packet-v0.1.schema.json` | Add optional fields |
