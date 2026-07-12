@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from tests import test_tmcp_mcp_server as helpers
+from tmcp_runtime.domain import families
 
 
 def _product_design_family_seed() -> dict[str, object]:
@@ -288,10 +289,11 @@ class TmcpSkillFamilyRuntimeTests(unittest.TestCase):
             }
         ]
 
-        family_context, seed_node = self.server._runtime_family_seed_context(
+        family_context, seed_node = families.runtime_family_seed_context(
             source_nodes,
             "Inspect unrelated service logs.",
             "runtime",
+            node_signal_text=lambda node: str(node.get("signal") or ""),
         )
 
         self.assertEqual(seed_node["seed_id"], "runtime_only_seed")

@@ -191,6 +191,164 @@ class FamilyDomainTests(unittest.TestCase):
             "coverage-gaps.md",
         )
 
+    def test_runtime_seed_context_uses_phase_alias_for_transition_only_seed(self) -> None:
+        source_nodes = [
+            {
+                "source_type": "scoped_packet_seed",
+                "seed_id": "runtime_only",
+                "title": "Runtime only",
+                "source_references": ["skills/runtime/SKILL.md"],
+                "phase_transitions": {
+                    "runtime": {"next_phases": ["implementation"]}
+                },
+            }
+        ]
+
+        family_context, seed_node = families.runtime_family_seed_context(
+            source_nodes,
+            "Inspect unrelated service logs.",
+            "start",
+            node_signal_text=_signal_text,
+        )
+
+        self.assertEqual(seed_node["seed_id"], "runtime_only")
+        self.assertEqual(family_context["active_seed_id"], "runtime_only")
+        self.assertEqual(
+            family_context["primary_source_patterns"], ["skills/runtime/SKILL.md"]
+        )
+
+    def test_runtime_delta_preserves_phase_and_read_order_without_mutation(self) -> None:
+        family_context = {
+            "active_seed_id": "runtime",
+            "primary_skill_slugs": ["runtime"],
+            "deferred_skill_slugs": ["ui-polish-verification", "ui-review"],
+        }
+        source_nodes = [
+            {
+                "relative_path": "skills/ui-polish-verification/SKILL.md",
+                "routing_metadata": {
+                    "required_reads": ["references/frame-audit-checklist.md"]
+                },
+            },
+            {"relative_path": "skills/unrelated/SKILL.md"},
+        ]
+        seed_node = {
+            "phase_transitions": {
+                "implementation": {
+                    "next_phases": ["implementation", "polish-verify", "review"],
+                    "activate_skills": ["ui-polish-verification"],
+                    "verification_gates": ["Capture browser evidence."],
+                }
+            }
+        }
+        before_nodes = copy.deepcopy(source_nodes)
+        resolver_calls: list[dict[str, object]] = []
+
+        def resolve_declared_load_paths(**kwargs: object) -> list[str]:
+            resolver_calls.append(dict(kwargs))
+            return ["references/frame-audit-checklist.md", "decisions/ui.md"]
+
+        delta = families.runtime_family_packet_delta(
+            current_phase="implementation",
+            family_context=family_context,
+            seed_node=seed_node,
+            source_nodes=source_nodes,
+            objective="Polish the dashboard with a screenshot.",
+            context={"browser_evidence": ["desktop screenshot"]},
+            latest_user_message="The implementation is ready.",
+            resolve_declared_load_paths=resolve_declared_load_paths,
+        )
+
+        self.assertEqual(delta["suggested_phase"], "polish-verify")
+        self.assertEqual(delta["suggested_skills"], ["ui-polish-verification"])
+        self.assertEqual(delta["deferred_skills"], ["ui-review"])
+        self.assertEqual(delta["activated_atoms"], ["skill:ui-polish-verification"])
+        self.assertEqual(delta["deactivated_atoms"], ["skill:runtime"])
+        self.assertEqual(
+            delta["newly_required_reads"],
+            [
+                "skills/ui-polish-verification/SKILL.md",
+                "references/frame-audit-checklist.md",
+                "decisions/ui.md",
+            ],
+        )
+        self.assertEqual(len(resolver_calls), 1)
+        self.assertEqual(resolver_calls[0]["selected_nodes"], [source_nodes[0]])
+        self.assertEqual(resolver_calls[0]["source_nodes"], source_nodes)
+        self.assertEqual(
+            resolver_calls[0]["objective"],
+            "Polish the dashboard with a screenshot.",
+        )
+        self.assertEqual(resolver_calls[0]["family_context"], family_context)
+        self.assertEqual(source_nodes, before_nodes)
+
+    def test_runtime_delta_holds_without_calling_declared_read_resolver(self) -> None:
+        def unexpected_resolver(**_: object) -> list[str]:
+            self.fail("hold language must short-circuit before resolving declared reads")
+
+        delta = families.runtime_family_packet_delta(
+            current_phase="runtime",
+            family_context={"active_seed_id": "runtime"},
+            seed_node={
+                "phase_transitions": {
+                    "runtime": {
+                        "next_phases": ["implementation"],
+                        "activate_skills": ["ui-implementation"],
+                    }
+                }
+            },
+            source_nodes=[],
+            objective="Implement the dashboard.",
+            context={},
+            latest_user_message="Hold on before implementing.",
+            resolve_declared_load_paths=unexpected_resolver,
+        )
+
+        self.assertEqual(delta, {})
+
+    def test_runtime_delta_uses_chains_after_fallback_from_start_alias(self) -> None:
+        family_context = {
+            "active_seed_id": "runtime",
+            "chains_after": ["ui-implementation"],
+            "primary_skill_slugs": ["runtime"],
+            "deferred_skill_slugs": ["ui-implementation", "ui-review"],
+        }
+        source_nodes = [
+            {"relative_path": "skills/ui-implementation/SKILL.md"}
+        ]
+        resolver_calls: list[dict[str, object]] = []
+
+        def resolve_declared_load_paths(**kwargs: object) -> list[str]:
+            resolver_calls.append(dict(kwargs))
+            return []
+
+        delta = families.runtime_family_packet_delta(
+            current_phase="start",
+            family_context=family_context,
+            seed_node={"seed_id": "runtime"},
+            source_nodes=source_nodes,
+            objective="Implement the dashboard.",
+            context={},
+            latest_user_message="The runtime brief is ready.",
+            resolve_declared_load_paths=resolve_declared_load_paths,
+        )
+
+        self.assertEqual(delta["suggested_phase"], "implementation")
+        self.assertEqual(delta["suggested_skills"], ["ui-implementation"])
+        self.assertEqual(delta["deferred_skills"], ["ui-review"])
+        self.assertEqual(delta["activated_atoms"], ["skill:ui-implementation"])
+        self.assertEqual(delta["deactivated_atoms"], ["skill:runtime"])
+        self.assertEqual(
+            delta["newly_required_reads"], ["skills/ui-implementation/SKILL.md"]
+        )
+        self.assertEqual(
+            delta["verification_gates"],
+            ["Complete the current family phase before advancing."],
+        )
+        self.assertEqual(len(resolver_calls), 1)
+        self.assertEqual(resolver_calls[0]["selected_nodes"], source_nodes)
+        self.assertEqual(resolver_calls[0]["family_context"], family_context)
+
 
 if __name__ == "__main__":
     unittest.main()

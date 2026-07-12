@@ -17,6 +17,13 @@ NodeSignalText = Callable[[Node], str]
 
 ROUTER_CHILD_PATTERN = re.compile(r"→\s*([a-z0-9-]+)")
 FAMILY_SUPPORT_DOC_NAMES = frozenset({"install.md", "example_workflow.md", "readme.md"})
+FAMILY_PHASE_ALIASES = {
+    "start": "runtime",
+    "discover": "runtime",
+    "verify": "polish-verify",
+    "verification": "polish-verify",
+    "final": "review",
+}
 
 
 def _string_list(value: object) -> list[str]:
@@ -316,3 +323,208 @@ def node_is_deferred_family_sibling(
     ):
         return True
     return False
+
+
+def normalize_family_phase(phase: str) -> str:
+    """Normalize public runtime aliases to a family transition phase."""
+
+    normalized = str(phase or "start").strip().lower()
+    return FAMILY_PHASE_ALIASES.get(normalized, normalized)
+
+
+def _seed_node_for_family_context(
+    source_nodes: list[Node], family_context: FamilyContext | None
+) -> Node | None:
+    if not family_context:
+        return None
+    seed_id = str(family_context.get("active_seed_id") or "")
+    if not seed_id:
+        return None
+    for node in source_nodes:
+        if str(node.get("seed_id") or node.get("id") or "") == seed_id:
+            return node
+    return None
+
+
+def _phase_transitions_for_seed_node(
+    seed_node: Node | None,
+    family_context: FamilyContext | None,
+) -> dict[str, dict[str, Any]]:
+    if seed_node:
+        raw = seed_node.get("phase_transitions")
+        if isinstance(raw, dict) and raw:
+            return {
+                str(phase).lower(): dict(value)
+                for phase, value in raw.items()
+                if isinstance(value, dict)
+            }
+    if family_context and _string_list(family_context.get("chains_after")):
+        activate_skills = _string_list(family_context.get("chains_after"))
+        fallback = {
+            "next_phases": ["implementation"],
+            "activate_skills": activate_skills,
+            "verification_gates": [
+                "Complete the current family phase before advancing."
+            ],
+        }
+        return {
+            "runtime": dict(fallback),
+            "start": dict(fallback),
+        }
+    return {}
+
+
+def _pick_next_family_phase(
+    candidates: list[str], context: dict[str, Any], objective: str
+) -> str:
+    if not candidates:
+        return ""
+    if len(candidates) == 1:
+        return candidates[0]
+    objective_lower = objective.lower()
+    browser_evidence = _string_list(context.get("browser_evidence"))
+    if browser_evidence:
+        for candidate in candidates:
+            if "polish" in candidate or "review" in candidate:
+                return candidate
+    if any("review" in candidate for candidate in candidates) and any(
+        term in objective_lower for term in ("review", "pr", "diff")
+    ):
+        for candidate in candidates:
+            if "review" in candidate:
+                return candidate
+    if any("polish" in candidate for candidate in candidates) and any(
+        term in objective_lower for term in ("polish", "motion", "screenshot")
+    ):
+        for candidate in candidates:
+            if "polish" in candidate:
+                return candidate
+    return candidates[0]
+
+
+def _skill_relative_paths_for_slugs(
+    source_nodes: list[Node], skill_slugs: list[str]
+) -> list[str]:
+    wanted = {normalize_skill_slug(slug) for slug in skill_slugs if slug}
+    if not wanted:
+        return []
+    paths: list[str] = []
+    for node in source_nodes:
+        rel_path = str(node.get("relative_path") or "")
+        slug = skill_slug_from_relative_path(rel_path)
+        if normalize_skill_slug(slug) in wanted:
+            paths.append(rel_path)
+    return _ordered_unique(paths)
+
+
+def runtime_family_packet_delta(
+    *,
+    current_phase: str,
+    family_context: FamilyContext | None,
+    seed_node: Node | None,
+    source_nodes: list[Node],
+    objective: str,
+    context: dict[str, Any],
+    latest_user_message: str,
+    resolve_declared_load_paths: Callable[..., list[str]],
+) -> dict[str, Any]:
+    """Build a deterministic, advisory delta for an active skill family."""
+
+    if not family_context:
+        return {}
+    if any(
+        term in latest_user_message.lower()
+        for term in ("not yet", "before implementing", "hold on", "stay in runtime")
+    ):
+        return {}
+
+    transitions = _phase_transitions_for_seed_node(seed_node, family_context)
+    current = transitions.get(normalize_family_phase(current_phase))
+    if not current:
+        return {}
+
+    next_phases = _string_list(current.get("next_phases")) or _string_list(
+        current.get("next")
+    )
+    if not next_phases:
+        return {}
+
+    suggested_phase = _pick_next_family_phase(next_phases, context, objective)
+    activate_skills = _string_list(current.get("activate_skills"))
+    if not activate_skills:
+        activate_skills = _string_list(family_context.get("chains_after"))
+
+    activate_paths = _skill_relative_paths_for_slugs(source_nodes, activate_skills)
+    virtual_selected = [
+        node
+        for node in source_nodes
+        if str(node.get("relative_path") or "") in activate_paths
+    ]
+    newly_required_reads = list(activate_paths)
+    newly_required_reads.extend(
+        resolve_declared_load_paths(
+            selected_nodes=virtual_selected,
+            source_nodes=source_nodes,
+            objective=objective,
+            family_context=family_context,
+        )
+    )
+    for node in virtual_selected:
+        newly_required_reads.extend(
+            _string_list(_routing_metadata(node).get("required_reads"))
+        )
+
+    primary_slugs = {
+        normalize_skill_slug(slug)
+        for slug in _string_list(family_context.get("primary_skill_slugs"))
+    }
+    activate_normalized = {normalize_skill_slug(slug) for slug in activate_skills}
+    deferred_skills = [
+        slug
+        for slug in _string_list(family_context.get("deferred_skill_slugs"))
+        if normalize_skill_slug(slug) not in activate_normalized
+    ]
+    activated_atoms = [f"skill:{slug}" for slug in activate_skills if slug]
+    deactivated_atoms = [
+        f"skill:{slug}" for slug in sorted(primary_slugs) if slug not in activate_normalized
+    ]
+
+    return {
+        "suggested_phase": suggested_phase,
+        "suggested_skills": activate_skills,
+        "deferred_skills": deferred_skills,
+        "activated_atoms": _ordered_unique(activated_atoms),
+        "deactivated_atoms": _ordered_unique(deactivated_atoms),
+        "newly_required_reads": _ordered_unique(newly_required_reads),
+        "verification_gates": _string_list(current.get("verification_gates")),
+        "family_context": family_context,
+    }
+
+
+def runtime_family_seed_context(
+    source_nodes: list[Node],
+    objective: str,
+    current_phase: str,
+    *,
+    node_signal_text: NodeSignalText,
+) -> tuple[FamilyContext | None, Node | None]:
+    """Resolve the family context, including transition-only seed fallbacks."""
+
+    family_context = compose_family_context(
+        source_nodes,
+        objective,
+        node_signal_text=node_signal_text,
+    )
+    seed_node = _seed_node_for_family_context(source_nodes, family_context)
+    if seed_node is not None and family_context is not None:
+        return family_context, seed_node
+
+    normalized_phase = normalize_family_phase(current_phase)
+    for node in source_nodes:
+        if str(node.get("source_type") or "") != "scoped_packet_seed":
+            continue
+        transitions = _phase_transitions_for_seed_node(node, None)
+        if normalized_phase not in transitions:
+            continue
+        return family_context_from_seed_node(node, objective), node
+    return None, None
