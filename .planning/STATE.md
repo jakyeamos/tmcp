@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Select the next authority-limited thin-adapter extraction
-after moving pure global-cache validation and projection policy into storage.
+**Current focus:** Review compose/recompile orchestration for the next
+authority-limited thin-adapter extraction after the runtime-state reducer split.
 
 ## Milestone
 
@@ -20,8 +20,8 @@ adaptive workflow-pack construction, promotion-graph construction, global
 workflow activation, stateless cache defaults, evaluator composition-service
 injection, stability-taxonomy clarification, domain-size enforcement,
 harvest/source-graph extraction, recommendation-service extraction,
-promotion-planning extraction, review-plan extraction, and cache-policy
-extraction complete; continue the thin-adapter cutover.
+promotion-planning extraction, review-plan extraction, cache-policy extraction,
+and runtime-state reduction complete; continue the thin-adapter cutover.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -36,8 +36,9 @@ extraction complete; continue the thin-adapter cutover.
   construction, global workflow activation, stateless cache defaults, evaluator
   composition-service injection, stability-taxonomy clarification, domain-size
   enforcement, harvest/source-graph extraction, recommendation-service
-extraction, promotion-planning extraction, review-plan extraction, and
-cache-policy extraction complete; continue the thin-adapter cutover.
+extraction, promotion-planning extraction, review-plan extraction, cache-policy
+extraction, and runtime-state reduction complete; continue the thin-adapter
+cutover.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -213,6 +214,10 @@ cache-policy extraction complete; continue the thin-adapter cutover.
   recompile/session work. Inline recompiles of a redacted packet now require an
   explicit real source or project path; the full local suite has 305 passing
   tests with three expected skips.
+- 377bbdd moves runtime context normalization, family deltas, task identity,
+  proposal validation, and state shaping into a pure domain reducer. The adapter
+  retains root checks, safe harvest, cache reads, sessions, recompile, and
+  transport; the full local suite has 310 passing tests with three expected skips.
 
 ## Workflow Notes
 
@@ -281,6 +286,9 @@ cache-policy extraction complete; continue the thin-adapter cutover.
 - Runtime state remains raw only inside the adapter until recompile/session work
   completes. Public runtime responses redact paths; callers must supply a real
   path instead of reusing a redacted packet location for an inline recompile.
+- Runtime-state reduction is pure and receives only preharvested source nodes and
+  cache warnings. The adapter retains cache-policy gating and all filesystem
+  authority.
 
 ## Accumulated Context
 
@@ -345,10 +353,13 @@ cache-policy extraction complete; continue the thin-adapter cutover.
 - 2026-07-12: `22c0edf` redacts public runtime-next paths after internal state
   work and turns a redacted inline-recompile fallback into a clear explicit-path
   requirement.
+- 2026-07-12: `377bbdd` moves runtime-state derivation into a data-only domain
+  reducer, leaving source/cache acquisition and all persistent/transport state in
+  the compatibility adapter.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Select the next authority-limited thin-adapter extraction.
+# Review compose/recompile orchestration for the next safe extraction.
 ```

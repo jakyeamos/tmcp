@@ -9,8 +9,8 @@ packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
 global workflow-activation, stateless cache-default, evaluator composition-service,
 stability-taxonomy, domain-size-budget, harvest/source-graph, recommendation
-service, promotion-planning, review-plan, and cache-policy splits complete;
-continue the thin-adapter cutover.
+service, promotion-planning, review-plan, cache-policy, and runtime-state splits
+complete; continue the thin-adapter cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -63,6 +63,10 @@ clock, catalog, and redaction dependencies; cache roots, safe reads, and all
 durable writes remain adapter-owned. Optional AIOS execution remains adapter-only
 and redacts child payloads, configuration paths, composed output, and execution
 errors before returning transport results.
+Runtime context normalization, family transitions, identity deltas, proposal
+validation, and state shaping are now a pure domain reducer over adapter-supplied
+source nodes and cache warnings; the adapter keeps source/cache acquisition,
+sessions, recompile, redaction, and transport authority.
 
 ## Decisions recorded
 
@@ -113,6 +117,9 @@ errors before returning transport results.
 - Redact `tmcp_runtime_next` only after internal compose/recompile/session work.
   A redacted packet cannot be an implicit filesystem locator for later inline
   recompiles; callers must supply an explicit real source or project path.
+- Treat runtime-state construction as a pure reducer over already-safe source
+  nodes and cache warnings. Keep all root checks, harvest/cache I/O, sessions,
+  recompile, and transport in the adapter.
 
 ## Verified baseline
 
@@ -275,6 +282,10 @@ errors before returning transport results.
   state work, and rejects redacted previous-packet paths without an explicit
   source/project replacement. The full local suite has 305 passing tests with
   three expected platform skips.
+- 377bbdd extracts runtime state into domain/runtime_state.py. The reducer owns
+  context/family deltas, identity, proposal validation, and state shaping over
+  injected safe data; the full local suite has 310 passing tests with three
+  expected platform skips.
 
 ## Blockers and risks
 
@@ -293,5 +304,5 @@ errors before returning transport results.
 
 ## Next step
 
-Select the next bounded thin-adapter extraction, preserving adapter-owned artifact
-and cache I/O authority.
+Review compose/recompile orchestration for the next bounded thin-adapter
+extraction, preserving adapter-owned artifact and cache I/O authority.
