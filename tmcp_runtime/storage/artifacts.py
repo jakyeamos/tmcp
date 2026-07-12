@@ -47,10 +47,18 @@ def _supports_descriptor_relative_operations() -> bool:
     )
 
 
+def artifact_persistence_available() -> bool:
+    """Whether this runtime can provide TMCP's safe artifact-write guarantee."""
+
+    return _supports_descriptor_relative_operations()
+
+
 def _require_secure_directory_operations() -> None:
-    if not _supports_descriptor_relative_operations():
+    if not artifact_persistence_available():
         raise ArtifactStorageError(
-            "Secure artifact persistence is unavailable on this platform."
+            "Secure artifact persistence requires descriptor-relative no-follow "
+            "filesystem operations that are unavailable on this platform. Rerun "
+            "with write_artifacts=false."
         )
 
 

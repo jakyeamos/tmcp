@@ -14,7 +14,7 @@ Current verification:
 
 - macOS: tested locally with Node and Python 3.
 - Linux: hosted GitHub Actions pass on `ubuntu-latest` with Node 20 and Python 3.10/3.13.
-- Windows: hosted GitHub Actions pass on `windows-latest` with Node 20 and Python 3.10/3.13. The launcher prefers the Windows `py -3` launcher before falling back to `python` and `python3`.
+- Windows: the launcher and non-persisting workflows are supported. The launcher prefers the Windows `py -3` launcher before falling back to `python` and `python3`.
 
 ## Filesystem Assumptions
 
@@ -27,6 +27,20 @@ Current verification:
 - Dependency, build, cache, VCS, coverage, and generated plugin-cache directories are pruned by default.
 - Adaptive workflow recommendations are derived from harvested text, frontmatter, paths, source types, keywords, behavior atoms, and source contribution labels. Overlapping labels are reported in adaptive workflow packs so duplicate sources can be consolidated or ranked. Recommendations remain advisory until the user selects a workflow.
 
+## Secure Artifact Persistence
+
+TMCP separates portable analysis from durable local artifacts. A host that exposes
+descriptor-relative, no-follow directory operations can safely persist harvests,
+evaluations, reviews, promotions, and receipts. On a host without those
+primitives, write-capable operations fail closed before creating an output path;
+continue with `write_artifacts=false` for preview and analysis workflows.
+
+`doctor` and `status` report this capability. A successful launcher check does
+not imply that the host can safely persist artifacts.
+
 ## Known Gaps
 
-- Windows support has hosted CI coverage; manual end-user installation on a real Windows workstation is still recommended before treating it as field-proven.
+- The current storage implementation intentionally denies artifact persistence on
+  Windows rather than using a pathname-based fallback vulnerable to reparse-point
+  races. A dedicated, tested Windows backend is required before durable artifact
+  writes can be claimed there; a manual install cannot remove that limitation.

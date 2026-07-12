@@ -6,7 +6,7 @@ The canonical portable launcher is:
 node scripts/tmcp_launcher.mjs doctor
 ```
 
-Use the Node launcher everywhere so Python discovery remains cross-platform. With no arguments, it starts the MCP stdio server. With arguments, it invokes the same implementations exposed through MCP tools and prints JSON.
+Use the Node launcher everywhere so Python discovery remains cross-platform. With no arguments, it starts the MCP stdio server. With arguments, it invokes the same implementations exposed through MCP tools and prints JSON. Launcher portability is separate from durable artifact persistence; see [Compatibility](COMPATIBILITY.md#secure-artifact-persistence).
 
 ## Commands
 
@@ -46,13 +46,13 @@ node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path .
 
 Running a review without `--evidence-json` returns `evidence_contract.starter_template`; fill it with concrete citations and rerun before expecting scored findings.
 
-`promote-harvest` is the explicit persistence step after harvest/recommendation review. It writes a promoted graph with source-to-atom and atom-to-workflow edges. Use `--no-write-artifacts` for a preview; harvest and recommend do not reorganize durable routing state by themselves.
+`promote-harvest` is the explicit persistence step after harvest/recommendation review. It writes a promoted graph with source-to-atom and atom-to-workflow edges. Use `--no-write-artifacts` for a preview; harvest and recommend do not reorganize durable routing state by themselves. Where `status` reports artifact persistence unavailable, all durable writes fail closed and preview mode is the portable option.
 
 `harvest` does not follow source symlinks by default. Set `--follow-symlinks` only when the linked targets are intentionally in scope; TMCP still rejects targets outside the selected source root and redacts secret-like path metadata. Harvest artifact output is an atomic bundle, so an explicit `--output-dir` must be new or empty; omit it to use a unique `.tmcp/harvest-*` directory.
 
 `evaluate-skills` follows the safety boundary described in the README: pass explicit `SKILL.md` files, optionally constrain them with a project root, and use a new or empty directory when writing an initial evaluation plan.
 
-By default, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOME/promoted-harvests/<promotion-name>/`, or `~/.tmcp/promoted-harvests/<promotion-name>/` when `TMCP_HOME` is unset. Receipts are written under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions.
+On secure-persistence hosts, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOME/promoted-harvests/<promotion-name>/`, or `~/.tmcp/promoted-harvests/<promotion-name>/` when `TMCP_HOME` is unset. Receipts are written under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions.
 
 ## Argument Rules
 

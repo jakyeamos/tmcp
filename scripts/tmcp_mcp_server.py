@@ -7,6 +7,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import uuid
@@ -48,7 +49,10 @@ from tmcp_runtime.safety import (  # noqa: E402
     redact_path,
     read_harvest_text,
 )
-from tmcp_runtime.storage import AtomicArtifactStore  # noqa: E402
+from tmcp_runtime.storage import (  # noqa: E402
+    AtomicArtifactStore,
+    artifact_persistence_available,
+)
 
 AIOS_ROOT = (
     Path(os.environ["AIOS_ROOT"]).expanduser() if os.environ.get("AIOS_ROOT") else None
@@ -3325,11 +3329,55 @@ def _markdown_plan(plan: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def _write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+def _redacted_mapping(value: dict[str, Any]) -> dict[str, Any]:
+    safe_value, _ = redact_json_value(value, enabled=True)
+    return safe_value if isinstance(safe_value, dict) else {}
+
+
+def _redact_result(result: dict[str, Any]) -> dict[str, Any]:
+    safe_result, redactions = redact_json_value(result, enabled=True)
+    if not isinstance(safe_result, dict):
+        raise ValueError("TMCP result must be a JSON object.")
+    existing = safe_result.get("redaction_summary")
+    summary = dict(existing) if isinstance(existing, dict) else {}
+    merge_redactions(summary, redactions)
+    safe_result["redaction_summary"] = summary
+    return safe_result
+
+
+def _persist_artifacts(
+    output_dir: Path,
+    *,
+    json_artifacts: dict[str, Any],
+    text_artifacts: dict[str, str],
+    fresh_bundle: bool,
+) -> dict[str, str]:
+    if set(json_artifacts).intersection(text_artifacts):
+        raise ValueError("Artifact names must be unique.")
+    safe_json = _redacted_mapping(json_artifacts)
+    safe_text = {
+        name: str(redact_json_value(content, enabled=True)[0])
+        for name, content in text_artifacts.items()
+    }
+    if fresh_bundle:
+        paths = AtomicArtifactStore.write_bundle(
+            output_dir,
+            json_artifacts=safe_json,
+            text_artifacts=safe_text,
+        )
+    else:
+        store = AtomicArtifactStore.explicit(output_dir)
+        paths = {
+            name: str(store.write_json(name, payload))
+            for name, payload in safe_json.items()
+        }
+        paths.update(
+            {
+                name: str(store.write_text(name, content))
+                for name, content in safe_text.items()
+            }
+        )
+    return {name: redact_path(path) for name, path in paths.items()}
 
 
 def _write_review_artifacts(
@@ -3339,30 +3387,40 @@ def _write_review_artifacts(
     audit_report: dict[str, Any],
     remediation_plan: dict[str, Any],
     handoff: dict[str, Any],
+    *,
+    fresh_bundle: bool,
 ) -> dict[str, str]:
-    paths = {
-        "expertise_packet": output_dir / "expertise-packet.json",
-        "rubric_json": output_dir / "rubric.json",
-        "rubric_markdown": output_dir / "rubric.md",
-        "audit_report_json": output_dir / "audit-report.json",
-        "audit_report_markdown": output_dir / "audit-report.md",
-        "remediation_plan_json": output_dir / "remediation-plan.json",
-        "remediation_plan_markdown": output_dir / "remediation-plan.md",
-        "implementation_handoff_json": output_dir / "implementation-handoff.json",
+    safe_packet = _redacted_mapping(packet)
+    safe_rubric = _redacted_mapping(rubric)
+    safe_audit_report = _redacted_mapping(audit_report)
+    safe_remediation_plan = _redacted_mapping(remediation_plan)
+    safe_handoff = _redacted_mapping(handoff)
+    paths = _persist_artifacts(
+        output_dir,
+        json_artifacts={
+            "expertise-packet.json": safe_packet,
+            "rubric.json": safe_rubric,
+            "audit-report.json": safe_audit_report,
+            "remediation-plan.json": safe_remediation_plan,
+            "implementation-handoff.json": safe_handoff,
+        },
+        text_artifacts={
+            "rubric.md": _markdown_rubric(safe_rubric),
+            "audit-report.md": _markdown_audit(safe_audit_report),
+            "remediation-plan.md": _markdown_plan(safe_remediation_plan),
+        },
+        fresh_bundle=fresh_bundle,
+    )
+    return {
+        "expertise_packet": paths["expertise-packet.json"],
+        "rubric_json": paths["rubric.json"],
+        "rubric_markdown": paths["rubric.md"],
+        "audit_report_json": paths["audit-report.json"],
+        "audit_report_markdown": paths["audit-report.md"],
+        "remediation_plan_json": paths["remediation-plan.json"],
+        "remediation_plan_markdown": paths["remediation-plan.md"],
+        "implementation_handoff_json": paths["implementation-handoff.json"],
     }
-    _write_json(paths["expertise_packet"], packet)
-    _write_json(paths["rubric_json"], rubric)
-    paths["rubric_markdown"].write_text(_markdown_rubric(rubric), encoding="utf-8")
-    _write_json(paths["audit_report_json"], audit_report)
-    paths["audit_report_markdown"].write_text(
-        _markdown_audit(audit_report), encoding="utf-8"
-    )
-    _write_json(paths["remediation_plan_json"], remediation_plan)
-    paths["remediation_plan_markdown"].write_text(
-        _markdown_plan(remediation_plan), encoding="utf-8"
-    )
-    _write_json(paths["implementation_handoff_json"], handoff)
-    return {key: str(path) for key, path in paths.items()}
 
 
 def _default_output_dir(project_path: str) -> str:
@@ -3426,18 +3484,6 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         run_id,
         str(arguments.get("selected_slice_id") or "") or None,
     )
-    artifact_paths: dict[str, str] = {}
-    if bool(arguments.get("write_artifacts", True)):
-        artifact_paths = _write_review_artifacts(
-            Path(
-                str(arguments.get("output_dir") or _default_output_dir(project_path))
-            ).expanduser(),
-            packet,
-            rubric,
-            audit_report,
-            remediation_plan,
-            handoff,
-        )
     invalid_items = bool(_json_list(evidence_diagnostics.get("item_issues")))
     all_supplied_evidence_invalid = (
         bool(evidence_items) and not actionable_evidence_items
@@ -3449,7 +3495,7 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         status = "needs_evidence"
     elif invalid_items:
         status = "completed_with_evidence_diagnostics"
-    return {
+    result = {
         "ok": not all_supplied_evidence_invalid,
         "adapter": "standalone",
         "schema": "tmcp-review-plan-result-v0.1",
@@ -3482,8 +3528,23 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         "remediation_plan": remediation_plan,
         "remediation_slices": remediation_plan["slices"],
         "implementation_handoff": handoff,
-        "artifact_paths": artifact_paths,
+        "artifact_paths": {},
     }
+    safe_result = _redact_result(result)
+    if bool(arguments.get("write_artifacts", True)):
+        output_dir = Path(
+            str(arguments.get("output_dir") or _default_output_dir(project_path))
+        ).expanduser()
+        safe_result["artifact_paths"] = _write_review_artifacts(
+            output_dir,
+            dict(safe_result["expertise_packet"]),
+            dict(safe_result["rubric"]),
+            dict(safe_result["audit_report"]),
+            dict(safe_result["remediation_plan"]),
+            dict(safe_result["implementation_handoff"]),
+            fresh_bundle=not bool(arguments.get("output_dir")),
+        )
+    return safe_result
 
 
 def _normalize_string_list(
@@ -6032,26 +6093,38 @@ def _markdown_recommendations(result: dict[str, Any]) -> str:
 
 
 def _write_workflow_recommendation_artifacts(
-    output_dir: Path, result: dict[str, Any]
+    output_dir: Path,
+    result: dict[str, Any],
+    *,
+    fresh_bundle: bool,
 ) -> dict[str, str]:
-    paths = {
-        "recommendation_json": output_dir / "workflow-recommendations.json",
-        "recommendation_markdown": output_dir / "workflow-recommendations.md",
-        "priority_profile_json": output_dir / "priority-profile.json",
-        "adaptive_pack_json": output_dir / "adaptive-workflow-pack.json",
+    safe_result = _redacted_mapping(result)
+    profile = safe_result.get("priority_profile")
+    json_artifacts: dict[str, Any] = {
+        "workflow-recommendations.json": safe_result,
     }
-    _write_json(paths["recommendation_json"], result)
-    paths["recommendation_markdown"].parent.mkdir(parents=True, exist_ok=True)
-    paths["recommendation_markdown"].write_text(
-        _markdown_recommendations(result), encoding="utf-8"
-    )
-    profile = result.get("priority_profile")
     if isinstance(profile, dict):
-        _write_json(paths["priority_profile_json"], profile)
-    adaptive_pack = result.get("adaptive_workflow_pack")
+        json_artifacts["priority-profile.json"] = profile
+    adaptive_pack = safe_result.get("adaptive_workflow_pack")
     if isinstance(adaptive_pack, dict):
-        _write_json(paths["adaptive_pack_json"], adaptive_pack)
-    return {key: str(path) for key, path in paths.items() if path.exists()}
+        json_artifacts["adaptive-workflow-pack.json"] = adaptive_pack
+    paths = _persist_artifacts(
+        output_dir,
+        json_artifacts=json_artifacts,
+        text_artifacts={
+            "workflow-recommendations.md": _markdown_recommendations(safe_result),
+        },
+        fresh_bundle=fresh_bundle,
+    )
+    result_paths = {
+        "recommendation_json": paths["workflow-recommendations.json"],
+        "recommendation_markdown": paths["workflow-recommendations.md"],
+    }
+    if "priority-profile.json" in paths:
+        result_paths["priority_profile_json"] = paths["priority-profile.json"]
+    if "adaptive-workflow-pack.json" in paths:
+        result_paths["adaptive_pack_json"] = paths["adaptive-workflow-pack.json"]
+    return result_paths
 
 
 def _selected_promotion_workflows(
@@ -6340,24 +6413,31 @@ def _promotion_markdown(result: dict[str, Any]) -> str:
 def _write_promotion_artifacts(
     output_dir: Path, result: dict[str, Any]
 ) -> dict[str, str]:
-    paths = {
-        "promotion_json": output_dir / "promoted-harvest.json",
-        "promotion_markdown": output_dir / "promoted-harvest.md",
-        "promotion_graph_json": output_dir / "promotion-graph.json",
-        "adaptive_pack_json": output_dir / "adaptive-workflow-pack.json",
+    safe_result = _redacted_mapping(result)
+    graph = safe_result.get("promotion_graph")
+    json_artifacts: dict[str, Any] = {
+        "promoted-harvest.json": safe_result,
     }
-    _write_json(paths["promotion_json"], result)
-    paths["promotion_markdown"].parent.mkdir(parents=True, exist_ok=True)
-    paths["promotion_markdown"].write_text(
-        _promotion_markdown(result), encoding="utf-8"
-    )
-    graph = result.get("promotion_graph")
     if isinstance(graph, dict):
-        _write_json(paths["promotion_graph_json"], graph)
-    adaptive_pack = result.get("adaptive_workflow_pack")
+        json_artifacts["promotion-graph.json"] = graph
+    adaptive_pack = safe_result.get("adaptive_workflow_pack")
     if isinstance(adaptive_pack, dict):
-        _write_json(paths["adaptive_pack_json"], adaptive_pack)
-    return {key: str(path) for key, path in paths.items() if path.exists()}
+        json_artifacts["adaptive-workflow-pack.json"] = adaptive_pack
+    paths = _persist_artifacts(
+        output_dir,
+        json_artifacts=json_artifacts,
+        text_artifacts={"promoted-harvest.md": _promotion_markdown(safe_result)},
+        fresh_bundle=False,
+    )
+    result_paths = {
+        "promotion_json": paths["promoted-harvest.json"],
+        "promotion_markdown": paths["promoted-harvest.md"],
+    }
+    if "promotion-graph.json" in paths:
+        result_paths["promotion_graph_json"] = paths["promotion-graph.json"]
+    if "adaptive-workflow-pack.json" in paths:
+        result_paths["adaptive_pack_json"] = paths["adaptive-workflow-pack.json"]
+    return result_paths
 
 
 def _tmcp_home() -> Path:
@@ -6463,7 +6543,7 @@ def _write_global_promotion(
     result: dict[str, Any], promotion_name: str
 ) -> dict[str, str]:
     output_dir = _global_promoted_root() / _promotion_slug(promotion_name)
-    graph = _normalized_global_graph(result)
+    graph = _redacted_mapping(_normalized_global_graph(result))
     summary = {
         "schema": "tmcp-global-promoted-harvest-v0.1",
         "promotion_name": promotion_name,
@@ -6475,17 +6555,107 @@ def _write_global_promotion(
         "promotion_graph": graph,
         "trust": "advisory_untrusted",
     }
+    safe_summary = _redacted_mapping(summary)
     adaptive_pack = result.get("adaptive_workflow_pack")
-    paths = {
-        "promotion_json": output_dir / "promoted-harvest.json",
-        "promotion_graph_json": output_dir / "promotion-graph.json",
+    json_artifacts: dict[str, Any] = {
+        "promoted-harvest.json": safe_summary,
+        "promotion-graph.json": graph,
     }
-    _write_json(paths["promotion_json"], summary)
-    _write_json(paths["promotion_graph_json"], graph)
     if isinstance(adaptive_pack, dict):
-        paths["adaptive_pack_json"] = output_dir / "adaptive-workflow-pack.json"
-        _write_json(paths["adaptive_pack_json"], adaptive_pack)
-    return {key: str(path) for key, path in paths.items() if path.exists()}
+        json_artifacts["adaptive-workflow-pack.json"] = _redacted_mapping(adaptive_pack)
+    paths = _persist_artifacts(
+        output_dir,
+        json_artifacts=json_artifacts,
+        text_artifacts={},
+        fresh_bundle=False,
+    )
+    result_paths = {
+        "promotion_json": paths["promoted-harvest.json"],
+        "promotion_graph_json": paths["promotion-graph.json"],
+    }
+    if "adaptive-workflow-pack.json" in paths:
+        result_paths["adaptive_pack_json"] = paths["adaptive-workflow-pack.json"]
+    return result_paths
+
+
+def _safe_global_cache_entries(
+    root: Path,
+    *,
+    filename: str | None,
+) -> tuple[list[tuple[dict[str, Any], str, int]], list[str]]:
+    try:
+        root.lstat()
+    except FileNotFoundError:
+        return [], []
+    except OSError as exc:
+        return [], [
+            "Could not inspect TMCP global cache root "
+            f"{redact_path(root)}: {redact_path(str(exc))}"
+        ]
+    roots, root_warnings = collect_harvest_roots([root], follow_symlinks=False)
+    warnings = list(root_warnings)
+    if len(roots) != 1 or roots[0].kind != "directory":
+        return [], warnings
+    candidates, traversal_warnings = iter_harvest_candidates(
+        roots,
+        ["*.json"],
+        [],
+        set(),
+        follow_symlinks=False,
+    )
+    warnings.extend(traversal_warnings)
+    entries: list[tuple[dict[str, Any], str, int]] = []
+    for candidate in candidates:
+        parts = Path(candidate.relative_path).parts
+        if len(parts) != 2 or (filename is not None and parts[-1] != filename):
+            continue
+        source, warning = read_harvest_text(
+            candidate,
+            1_048_576,
+            redact_sensitive=True,
+        )
+        if warning or source is None:
+            if len(warnings) < 12:
+                warnings.append(
+                    warning
+                    or f"Skipped unreadable global cache entry {candidate.display_path}."
+                )
+            continue
+        try:
+            payload = json.loads(source.text)
+        except json.JSONDecodeError as exc:
+            if len(warnings) < 12:
+                warnings.append(
+                    "Skipped invalid global cache entry "
+                    f"{candidate.display_path}: {redact_path(str(exc))}"
+                )
+            continue
+        if not isinstance(payload, dict):
+            continue
+        try:
+            metadata = candidate.resolved_path.lstat()
+        except OSError:
+            continue
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or (metadata.st_dev, metadata.st_ino) != (candidate.device, candidate.inode)
+        ):
+            if len(warnings) < 12:
+                warnings.append(
+                    "Skipped global cache entry that changed while reading: "
+                    f"{candidate.display_path}"
+                )
+            continue
+        safe_payload, _ = redact_json_value(payload, enabled=True)
+        if isinstance(safe_payload, dict):
+            entries.append(
+                (
+                    safe_payload,
+                    candidate.display_path,
+                    metadata.st_mtime_ns,
+                )
+            )
+    return entries, warnings[:12]
 
 
 def _load_global_promoted_graphs(
@@ -6493,21 +6663,13 @@ def _load_global_promoted_graphs(
 ) -> tuple[list[dict[str, Any]], list[str]]:
     if cache_policy == "none":
         return [], []
-    root = _global_promoted_root()
-    warnings: list[str] = []
+    entries, warnings = _safe_global_cache_entries(
+        _global_promoted_root(),
+        filename="promotion-graph.json",
+    )
     graphs: list[dict[str, Any]] = []
-    if not root.exists():
-        return graphs, warnings
-    for path in sorted(root.glob("*/promotion-graph.json")):
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
-            if len(warnings) < 12:
-                warnings.append(f"Skipped unreadable promoted graph {path}: {exc}")
-            continue
-        if not isinstance(payload, dict):
-            continue
-        payload["_global_cache_path"] = str(path)
+    for payload, display_path, _ in entries:
+        payload["_global_cache_path"] = display_path
         graphs.append(payload)
     return graphs, warnings
 
@@ -6517,26 +6679,15 @@ def _load_recent_receipts(
 ) -> tuple[list[dict[str, Any]], list[str]]:
     if cache_policy == "none":
         return [], []
-    root = _global_receipts_root()
-    warnings: list[str] = []
-    if not root.exists():
-        return [], warnings
-    paths = sorted(
-        (path for path in root.glob("*/*.json") if path.is_file()),
-        key=lambda path: path.stat().st_mtime if path.exists() else 0.0,
-        reverse=True,
+    entries, warnings = _safe_global_cache_entries(
+        _global_receipts_root(),
+        filename=None,
     )
+    entries.sort(key=lambda item: item[2], reverse=True)
     receipts: list[dict[str, Any]] = []
-    for path in paths[:limit]:
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
-            if len(warnings) < 12:
-                warnings.append(f"Skipped unreadable receipt {path}: {exc}")
-            continue
-        if isinstance(payload, dict):
-            payload["_global_cache_path"] = str(path)
-            receipts.append(payload)
+    for payload, display_path, _ in entries[:limit]:
+        payload["_global_cache_path"] = display_path
+        receipts.append(payload)
     return receipts, warnings
 
 
@@ -7323,24 +7474,32 @@ def _record_receipt(arguments: dict[str, Any]) -> dict[str, Any]:
             "Receipts may improve future ranking but cannot override higher-priority instructions."
         ),
     }
+    redacted_receipt, receipt_redactions = redact_json_value(receipt, enabled=True)
+    safe_receipt = (
+        redacted_receipt if isinstance(redacted_receipt, dict) else {}
+    )
     month = datetime.now(UTC).strftime("%Y-%m")
-    digest = hashlib.sha256(json.dumps(receipt, sort_keys=True).encode()).hexdigest()[
+    digest = hashlib.sha256(json.dumps(safe_receipt, sort_keys=True).encode()).hexdigest()[
         :10
     ]
     path = (
         _global_receipts_root()
         / month
-        / f"{_promotion_slug(packet_id)[:80]}-{digest}.json"
+        / f"{_promotion_slug(str(safe_receipt['packet_id']))[:80]}-{digest}.json"
     )
-    _write_json(path, receipt)
-    return {
+    receipt_path = AtomicArtifactStore.explicit(path.parent).write_json(
+        path.name,
+        safe_receipt,
+    )
+    return _redact_result({
         "ok": True,
         "schema": RUN_RECEIPT_SCHEMA,
-        "packet_id": packet_id,
-        "outcome": receipt["outcome"],
-        "artifact_paths": {"receipt_json": str(path)},
+        "packet_id": safe_receipt["packet_id"],
+        "outcome": safe_receipt["outcome"],
+        "artifact_paths": {"receipt_json": redact_path(receipt_path)},
         "trust": "advisory_untrusted",
-    }
+        "redaction_summary": receipt_redactions,
+    })
 
 
 def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -7494,21 +7653,6 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
             "Implementation remains approval-gated.",
         ],
     }
-    if bool(arguments.get("write_artifacts", False)):
-        project_path = _source_project_path(arguments)
-        output_dir = Path(
-            str(
-                arguments.get("output_dir")
-                or Path(project_path)
-                / ".tmcp"
-                / f"workflow-recommendations-{uuid.uuid4().hex[:8]}"
-            )
-        ).expanduser()
-        result["artifact_paths"] = _write_workflow_recommendation_artifacts(
-            output_dir, result
-        )
-    else:
-        result["artifact_paths"] = {}
     if bool(arguments.get("compose", False)):
         project_path = _source_project_path(arguments)
         result["composed_packet"] = _compose_packet(
@@ -7529,7 +7673,25 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
                 "redact_sensitive": bool(arguments.get("redact_sensitive", True)),
             }
         )
-    return result
+    safe_result = _redact_result(result)
+    if bool(arguments.get("write_artifacts", False)):
+        project_path = _source_project_path(arguments)
+        output_dir = Path(
+            str(
+                arguments.get("output_dir")
+                or Path(project_path)
+                / ".tmcp"
+                / f"workflow-recommendations-{uuid.uuid4().hex[:8]}"
+            )
+        ).expanduser()
+        safe_result["artifact_paths"] = _write_workflow_recommendation_artifacts(
+            output_dir,
+            safe_result,
+            fresh_bundle=not bool(arguments.get("output_dir")),
+        )
+    else:
+        safe_result["artifact_paths"] = {}
+    return safe_result
 
 
 def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -7640,28 +7802,36 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
             else "Review this preview, then rerun without --no-write-artifacts to persist promotion artifacts."
         ),
     }
+    safe_result = _redact_result(result)
     if write_artifacts:
         project_path = _source_project_path(arguments)
         output_dir = Path(
             str(
                 arguments.get("output_dir")
-                or Path(project_path) / ".tmcp" / "promoted-harvests" / promotion_name
+                or Path(project_path)
+                / ".tmcp"
+                / "promoted-harvests"
+                / _promotion_slug(str(safe_result["promotion_name"]))
             )
         ).expanduser()
-        result["artifact_paths"] = _write_promotion_artifacts(output_dir, result)
+        safe_result["artifact_paths"] = _write_promotion_artifacts(
+            output_dir,
+            safe_result,
+        )
     else:
-        result["artifact_paths"] = {}
+        safe_result["artifact_paths"] = {}
     if (
         write_artifacts
         and bool(arguments.get("persist_global", True))
         and selected_workflows
     ):
-        result["global_artifact_paths"] = _write_global_promotion(
-            result, promotion_name
+        safe_result["global_artifact_paths"] = _write_global_promotion(
+            safe_result,
+            str(safe_result["promotion_name"]),
         )
     else:
-        result["global_artifact_paths"] = {}
-    return result
+        safe_result["global_artifact_paths"] = {}
+    return safe_result
 
 
 def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
@@ -7703,6 +7873,18 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                 )
                 else "fail",
                 "detail": "Set TMCP_PYTHON if automatic Python discovery fails.",
+            },
+            {
+                "id": "secure_artifact_persistence",
+                "status": "pass"
+                if artifact_persistence_available()
+                else "limited",
+                "detail": (
+                    "Secure local artifact writes are available."
+                    if artifact_persistence_available()
+                    else "Secure artifact writes are unavailable on this platform; "
+                    "rerun write-capable tools with write_artifacts=false."
+                ),
             },
             {
                 "id": "aios_adapter",
@@ -7811,6 +7993,15 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                     "expert_rubric_review_plan",
                     "artifact_write",
                 ],
+                "artifact_persistence": {
+                    "available": artifact_persistence_available(),
+                    "detail": (
+                        "Secure descriptor-relative no-follow artifact writes are available."
+                        if artifact_persistence_available()
+                        else "Secure artifact writes are unavailable on this platform; "
+                        "write-capable tools fail closed."
+                    ),
+                },
             },
             "aios_adapter": {
                 "available": _aios_available(),
@@ -7904,6 +8095,8 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                 str(arguments.get("evidence_json") or "[]"),
                 "--json",
             ]
+            if not bool(arguments.get("write_artifacts", True)):
+                args.append("--no-write-artifacts")
             if arguments.get("selected_slice_id"):
                 args.extend(
                     ["--selected-slice-id", str(arguments["selected_slice_id"])]

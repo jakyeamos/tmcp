@@ -26,6 +26,14 @@ The package checker verifies the manifest before running extracted-package
 smokes. A release build failure is a safety signal: remove or deliberately
 relocate the unsafe tracked content rather than bypassing the check.
 
+## Local Artifact Persistence
+
+Local harvest, evaluation, review, promotion, and receipt artifacts are written
+only through descriptor-relative, no-follow filesystem operations. If a host
+cannot provide that boundary, TMCP rejects the write before creating output;
+it does not downgrade to a pathname-based fallback. Use non-persisting preview
+mode on those hosts.
+
 ## AIOS
 
 AIOS is optional storage and adapter support. If `AIOS_ROOT` is explicitly set, adapter mode may call local AIOS commands. Without `AIOS_ROOT`, standalone TMCP remains available.

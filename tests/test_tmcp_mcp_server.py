@@ -13,6 +13,7 @@ from typing import cast
 from unittest.mock import patch
 
 from tests.tmcp_test_client import TestWorkspace, run_mcp_requests as run_hermetic_mcp_requests
+from tmcp_runtime.storage import artifact_persistence_available
 
 
 SERVER_PATH = Path(__file__).resolve().parents[1] / "scripts" / "tmcp_mcp_server.py"
@@ -317,6 +318,10 @@ class TmcpMcpServerTests(unittest.TestCase):
                     required_by_schema[schema_name].issubset(schema["required"])
                 )
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_review_plan_writes_expected_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "review"
@@ -358,6 +363,46 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "implementation-handoff.json",
             }
             self.assertEqual({path.name for path in output_dir.iterdir()}, expected)
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
+    def test_review_plan_redacts_direct_evidence_before_persistence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            secret = "sk-" + "R" * 40
+            project_path = Path(tmp) / secret
+            output_dir = Path(tmp) / "review"
+            project_path.mkdir()
+            result = self.server._standalone_review_plan(
+                {
+                    "objective": f"Review {secret}",
+                    "project_path": str(project_path),
+                    "output_dir": str(output_dir),
+                    "harvest_sources": False,
+                    "evidence_json": json.dumps(
+                        [
+                            {
+                                "dimension_id": "surface_hierarchy",
+                                "severity": "warning",
+                                "summary": secret,
+                                "evidence": [secret],
+                                "recommended_fix": secret,
+                            }
+                        ]
+                    ),
+                }
+            )
+            artifacts = "\n".join(
+                path.read_text(encoding="utf-8")
+                for path in output_dir.iterdir()
+                if path.is_file()
+            )
+
+        self.assertNotIn(secret, json.dumps(result))
+        self.assertNotIn(secret, artifacts)
+        self.assertIn("[REDACTED:", artifacts)
+        self.assertGreater(result["redaction_summary"].get("openai_key", 0), 0)
 
     def test_review_plan_reports_generic_evidence_shape_diagnostics(self) -> None:
         result = self.server._standalone_review_plan(

@@ -28,7 +28,7 @@ Use this checklist before claiming a Tier One release.
 - [ ] `node --check scripts/tmcp_launcher.mjs` passes.
 - [ ] `python3 -m unittest discover -s tests` passes.
 - [ ] JSON syntax check passes for plugin, MCP, marketplace, and fixtures.
-- [ ] `python3 scripts/check_release_package.py . --verify-reproducible` passes, including Git-tree containment, a repeat archive digest comparison, manifest/digest validation, frontmatter, link, hardcoded-path, doctor, harvest, recommendation, expert-rubric, composition/runtime/receipt, stable, and experimental gates.
+- [ ] On a secure-persistence host, `python3 scripts/check_release_package.py . --verify-reproducible` passes, including Git-tree containment, a repeat archive digest comparison, manifest/digest validation, frontmatter, link, hardcoded-path, doctor, harvest, recommendation, expert-rubric, composition/runtime/receipt, stable, and experimental gates.
 - [ ] Release composition dogfood shows release-readiness packets do not activate UI/browser or repo-behavior spreadsheet gates unless the objective or runtime context asks for them.
 - [ ] `claude plugin validate .` passes for the marketplace.
 - [ ] `claude plugin validate <plugin-only-copy>` passes for the plugin manifest.
@@ -40,6 +40,8 @@ Use this checklist before claiming a Tier One release.
 - [ ] macOS local run.
 - [ ] Linux CI or container run.
 - [ ] Windows CI or manual run.
+- [ ] POSIX CI proves positive artifact writes, atomic bundles, and replacement safety.
+- [ ] Windows CI proves launcher/read-only workflows and that unsupported artifact writes fail closed without creating output.
 
 ## Release Evidence
 

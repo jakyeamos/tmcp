@@ -2,7 +2,7 @@
 
 Tier One means the plugin is safe, portable, explainable, and useful for someone who does not share the original author's machine, AIOS install, Codex cache, operating system, or project conventions.
 
-Release scope for this rubric: Codex plugin environments with Node.js and Python 3 available. The MCP command is a Node launcher that discovers Python through `TMCP_PYTHON`, `py -3`, `python`, or `python3`, depending on platform. macOS behavior is locally verified; Linux and Windows behavior are hosted-CI verified through GitHub Actions.
+Release scope for this rubric: Codex plugin environments with Node.js and Python 3 available. The MCP command is a Node launcher that discovers Python through `TMCP_PYTHON`, `py -3`, `python`, or `python3`, depending on platform. Launcher and read-only behavior are portable; durable artifact persistence is a separate secure-storage capability described in [Compatibility](COMPATIBILITY.md#secure-artifact-persistence).
 
 ## Release Gate
 
@@ -82,7 +82,7 @@ Required evidence:
 Pass criteria:
 
 - Harvest accepts arbitrary roots and multiple roots.
-- Harvest supports include/exclude globs, size limits, symlink policy, and artifact output.
+- Harvest supports include/exclude globs, size limits, symlink policy, and secure artifact output where the host can provide it.
 - Harvest classifies source types without relying on Codex, AIOS, Claude, or a single folder layout.
 - Harvest reports warnings instead of failing on missing or skipped sources.
 - Vendor, dependency, cache, build, VCS, and generated plugin-cache trees are pruned by default.
@@ -144,6 +144,7 @@ Pass criteria:
 - MCP launch goes through a cross-platform Node launcher.
 - Tests cover macOS/Linux and Windows launcher selection semantics where possible.
 - CI covers macOS, Linux, and Windows.
+- CI proves positive artifact persistence on supported hosts and fail-closed behavior on unsupported hosts.
 
 Required evidence:
 
@@ -219,5 +220,6 @@ Required evidence:
 1. Submit to Claude community marketplace after the GitHub repo is live.
 2. Review and submit MCP Registry metadata against the current official schema.
 3. Run a manual Windows end-user install and record results.
-4. Expand semantic extraction beyond keyword heuristics.
-5. Split packet compiler, harvester, and rubric workflow into separate modules if growth continues.
+4. Build and independently validate a Windows secure-storage backend before claiming durable artifact writes there.
+5. Expand semantic extraction beyond keyword heuristics.
+6. Split packet compiler, harvester, and rubric workflow into separate modules if growth continues.

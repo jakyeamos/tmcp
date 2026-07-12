@@ -70,6 +70,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         payload = json.loads(completed.stdout)
         self.assertTrue(payload["standalone"]["available"])
         self.assertIn("workflow_recommendation", payload["standalone"]["capabilities"])
+        self.assertIn("artifact_persistence", payload["standalone"])
 
     def test_launcher_cli_explain_accepts_positional_objective(self) -> None:
         with TestWorkspace() as workspace:

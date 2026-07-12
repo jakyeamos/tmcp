@@ -50,6 +50,11 @@ node scripts/tmcp_launcher.mjs list-tools
 
 Standalone mode should be available even when AIOS is not configured.
 
+The launcher can be available even when secure local artifact persistence is
+not. Check `doctor` or `status` before a workflow that writes artifacts, and
+use `--no-write-artifacts` for portable previews. See
+[Compatibility](COMPATIBILITY.md#secure-artifact-persistence) for the boundary.
+
 ## Codex Tool Discovery
 
 Codex may load TMCP skills before it exposes the plugin MCP tools through deferred

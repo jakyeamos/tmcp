@@ -15,7 +15,11 @@ from tmcp_runtime.safety import (
     read_json_input,
     read_skill_inputs,
 )
-from tmcp_runtime.storage import ArtifactStorageError, AtomicArtifactStore
+from tmcp_runtime.storage import (
+    ArtifactStorageError,
+    AtomicArtifactStore,
+    artifact_persistence_available,
+)
 
 
 def _symlink_or_skip(test_case: unittest.TestCase, link: Path, target: Path) -> None:
@@ -101,6 +105,10 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
                         any("symlink" in warning.lower() for warning in result["warnings"])
                     )
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_source_root_symlink_requires_explicit_opt_in(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             sandbox = Path(tmp)
@@ -258,6 +266,10 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
         self.assertNotIn("EXCLUDED_DIRECTORY_CONTENT", json.dumps(result))
         self.assertTrue(any("Skipped directory" in warning for warning in result["warnings"]))
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_path_metadata_is_redacted_before_result_and_artifact_output(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             sandbox = Path(tmp)
@@ -287,6 +299,10 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
         self.assertNotIn(secret, artifact_text)
         self.assertIn("[REDACTED:", json.dumps(result))
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_redaction_precedes_titles_seed_parse_and_artifact_output(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "project"
@@ -406,6 +422,10 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "unchanged")
             self.assertFalse((output_dir / "tmcp-harvest-result.json").exists())
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_atomic_write_preserves_old_file_on_commit_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "artifacts"
@@ -424,6 +444,10 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             if os.name != "nt":
                 self.assertEqual(target.stat().st_mode & 0o777, 0o600)
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_store_rejects_output_directory_swap_after_initialization(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             sandbox = Path(tmp)
@@ -441,6 +465,10 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             self.assertEqual(list(outside.iterdir()), [])
             self.assertFalse((moved_output_dir / "artifact.json").exists())
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_store_rejects_ordinary_directory_swap_after_initialization(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             sandbox = Path(tmp)
@@ -477,6 +505,87 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             self.assertFalse(output_dir.exists())
             self.assertFalse(bundle_dir.exists())
 
+    @unittest.skipIf(
+        artifact_persistence_available(),
+        "This platform provides descriptor-relative artifact persistence.",
+    )
+    def test_native_unsupported_platform_rejects_all_artifact_writes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output_dir = root / "artifacts"
+            bundle_dir = root / "bundle"
+
+            with self.assertRaises(ArtifactStorageError):
+                AtomicArtifactStore.explicit(output_dir)
+            with self.assertRaises(ArtifactStorageError):
+                AtomicArtifactStore.write_bundle(
+                    bundle_dir,
+                    json_artifacts={"report.json": {"ok": True}},
+                )
+
+            self.assertFalse(output_dir.exists())
+            self.assertFalse(bundle_dir.exists())
+
+    def test_default_receipt_write_fails_closed_without_safe_storage(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmcp_home = Path(tmp) / "tmcp-home"
+            original_home = getattr(self.server, "TMCP_HOME", None)
+            setattr(self.server, "TMCP_HOME", tmcp_home)
+            try:
+                with patch(
+                    "tmcp_runtime.storage.artifacts._supports_descriptor_relative_operations",
+                    return_value=False,
+                ), self.assertRaises(ArtifactStorageError):
+                    self.server._record_receipt(
+                        {"packet_id": "packet-123", "outcome": "passed"}
+                    )
+            finally:
+                setattr(self.server, "TMCP_HOME", original_home)
+
+            self.assertFalse(tmcp_home.exists())
+
+    def test_default_review_and_promotion_writes_fail_closed_without_safe_storage(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "project"
+            review_dir = Path(tmp) / "review"
+            promotion_dir = Path(tmp) / "promotion"
+            root.mkdir()
+            (root / "SKILL.md").write_text(
+                "# Release\n\nUse package verification.\n",
+                encoding="utf-8",
+            )
+
+            with patch(
+                "tmcp_runtime.storage.artifacts._supports_descriptor_relative_operations",
+                return_value=False,
+            ):
+                with self.assertRaises(ArtifactStorageError):
+                    self.server._standalone_review_plan(
+                        {
+                            "objective": "Review release safety",
+                            "project_path": str(root),
+                            "output_dir": str(review_dir),
+                            "harvest_sources": False,
+                        }
+                    )
+                with self.assertRaises(ArtifactStorageError):
+                    self.server._promote_harvest(
+                        {
+                            "source_path": str(root),
+                            "output_dir": str(promotion_dir),
+                            "persist_global": False,
+                        }
+                    )
+
+            self.assertFalse(review_dir.exists())
+            self.assertFalse(promotion_dir.exists())
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_atomic_bundle_replaces_an_empty_destination_directory(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "artifacts"
@@ -545,6 +654,10 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
         self.assertIn("[REDACTED:", serialized)
         self.assertGreater(sum(plan.redactions.values()), 0)
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_atomic_bundle_never_publishes_a_partial_harvest(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "artifacts"

@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tests.test_tmcp_skill_evaluate import EVALUATE_PATH, FIXTURE_SKILL, load_module
-from tmcp_runtime.storage import ArtifactStorageError
+from tmcp_runtime.storage import ArtifactStorageError, artifact_persistence_available
 
 
 class SkillEvaluateSafetyTests(unittest.TestCase):
@@ -42,6 +42,10 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
             }
         ]
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_plan_redacts_source_fixture_and_artifact_provenance(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             sandbox = Path(tmp)
@@ -153,6 +157,10 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
         self.assertEqual(packet_score["confidence"], "high")
         self.assertTrue(packet_score["signals"]["skill_selected_in_packet"])
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_score_redacts_inline_plan_and_evidence_before_artifact_writes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "artifacts"
@@ -191,6 +199,10 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
         self.assertGreater(result["redaction_summary"].get("openai_key", 0), 0)
         self.assertIn("[REDACTED:", artifact_text)
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_score_reads_a_persisted_plan_once_and_reuses_plan_output_directory(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

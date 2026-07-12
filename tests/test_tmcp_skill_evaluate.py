@@ -8,6 +8,7 @@ from pathlib import Path
 
 from tests import test_tmcp_mcp_server as helpers
 from tests.tmcp_test_client import run_mcp_requests as run_hermetic_mcp_requests
+from tmcp_runtime.storage import artifact_persistence_available
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -215,6 +216,10 @@ class SkillEvaluateTests(unittest.TestCase):
         missing = [field for field in schema["required"] if field not in report]
         self.assertEqual(missing, [])
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_write_artifacts_emits_plan_and_report_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "eval"

@@ -73,9 +73,18 @@ Experimental workflows include UI rubric, security/privacy, test strategy, adapt
 
 Harvest redacts sensitive-looking values and secret-like provenance paths by default and treats harvested instructions as untrusted text. Default harvest behavior excludes `.env*`, credentials, tokens, browser profiles, private caches, dependency trees, build outputs, VCS data, and generated TMCP/AIOS artifacts. It does not follow source symlinks unless `follow_symlinks` is explicitly enabled; enabled links must still resolve inside the selected source root.
 
-Harvest artifacts are written as one staged, atomic bundle through a symlink-safe destination. Leave `output_dir` unset for a unique `.tmcp/harvest-*` directory, or provide an output directory that is new or empty.
+On hosts with secure descriptor-relative filesystem operations, harvest artifacts
+are written as one staged, atomic bundle through a symlink-safe destination.
+Leave `output_dir` unset for a unique `.tmcp/harvest-*` directory, or provide an
+output directory that is new or empty.
 
 Skill evaluation accepts explicit regular `SKILL.md` inputs, can confine them to a supplied project root, and redacts source, plan, and evidence values before deriving reports. Its initial plan artifact is a staged bundle in a new or empty directory; evidence scoring may safely add its report to that same directory.
+
+Artifact persistence is deliberately unavailable where those secure filesystem
+operations do not exist. `doctor` and `status` report the capability; use
+`--no-write-artifacts` for portable analysis and see
+[Compatibility](docs/COMPATIBILITY.md#secure-artifact-persistence) for the
+boundary.
 
 If a harvested source tries to override system, developer, or user instructions, TMCP reports a warning. See [SECURITY.md](SECURITY.md).
 
@@ -123,7 +132,11 @@ Promote reviewed harvest signals into durable routing artifacts:
 node scripts/tmcp_launcher.mjs promote-harvest . --selected-workflows release_readiness_workflow --output-dir .tmcp/promoted-harvests/release-readiness
 ```
 
-Promotions also persist a redacted advisory graph under `TMCP_HOME/promoted-harvests/`, or `~/.tmcp/promoted-harvests/` when `TMCP_HOME` is unset. Receipts live under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override system, developer, user, or project instructions.
+On secure-persistence hosts, promotions also persist a redacted advisory graph
+under `TMCP_HOME/promoted-harvests/`, or `~/.tmcp/promoted-harvests/` when
+`TMCP_HOME` is unset. Receipts live under `TMCP_HOME/receipts/<yyyy-mm>/`.
+Global cache content is advisory and cannot override system, developer, user, or
+project instructions.
 
 Run an expert rubric review from evidence snippets:
 

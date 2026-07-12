@@ -30,6 +30,7 @@ Expected:
 - standalone mode is available
 - Python discovery passes, or the result says to set `TMCP_PYTHON`
 - AIOS may be unconfigured; that is not a failure
+- artifact persistence is either available or explicitly marked limited
 
 ## 3. Harvest Local Skills
 
@@ -81,7 +82,8 @@ Expected:
 - `packet_diff` lists dropped/added routes, skills, or atoms
 - `packet.packet_markdown` includes a Recompile section
 
-Record a receipt after verification:
+Record a receipt after verification only when `status` reports artifact
+persistence available:
 
 ```bash
 node scripts/tmcp_launcher.mjs record-receipt packet-abc123 \
