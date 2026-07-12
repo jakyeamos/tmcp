@@ -6,19 +6,19 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 2 safe input and storage foundation
+**Current focus:** Milestone 2 adversarial hardening and release validation
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 2 implementation complete locally; hosted matrix and adversarial review pending
+**Status:** Milestone 2 hardening committed locally; release-package validation and a focused test-module split pending
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Safe input and storage foundation
 - **Slug:** `tmcp-modernization`
-- **Status:** All local writers and cache reads migrated; validate hosted behavior next
+- **Status:** Adversarial boundary fixes committed; complete clean-package validation after a focused test-module split
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -64,6 +64,11 @@ file boundaries and a coherent agent-facing workflow.
 - `4c5877f` keeps the new artifact-safety coverage in a focused test module;
   the full local suite now has 184 passing tests (the unsupported-platform
   denial test is skipped locally because this host supports secure persistence).
+- `3f4b74b` closes the adversarial boundary findings: review auto mode stays
+  standalone; explicit AIOS review is preview-only; default writes reject
+  symlink-derived roots; cache reads are bounded, schema-gated, and canonical;
+  Windows junctions are link-like; artifact identities retain opaque collision
+  resistance; and Windows runs the portable package smoke instead of skipping it.
 
 ## Workflow Notes
 
@@ -80,8 +85,12 @@ file boundaries and a coherent agent-facing workflow.
 - Artifact persistence is intentionally fail-closed without descriptor-relative
   no-follow primitives; a race-safe Windows implementation is required before
   cross-platform release claims can remain unconditional.
-- Windows runs read-only and explicit fail-closed checks; positive artifact and
-  release-package persistence checks run only on secure-storage hosts.
+- Windows runs read-only and explicit fail-closed checks; the release-package
+  smoke runs on every platform and verifies receipt denial where persistence is
+  unavailable.
+- The commit gate reports `tests/test_tmcp_mcp_server.py` at 908 nonblank lines;
+  split the new adapter/status coverage into a focused module before finalizing
+  the milestone.
 
 ## Accumulated Context
 
@@ -104,11 +113,14 @@ file boundaries and a coherent agent-facing workflow.
 - 2026-07-11: All remaining durable writers and global cache reads use the safe
   storage boundary; compatibility docs now distinguish portable analysis from
   secure persistence, with Windows intentionally failing write requests closed.
+- 2026-07-11: Adversarial hardening makes auto review standalone, rejects
+  symlink-derived default writes, bounds and canonicalizes cache input, treats
+  Windows junctions as links, and runs portable package verification on Windows.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Validate the restored hosted matrix, then perform the planned adversarial
-# review of the completed safe-storage migration.
+# Split the oversized MCP server test module, then run clean-package
+# reproducibility validation from the hardened commit.
 ```
