@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Review the promotion boundary before any durable-write
-extraction.
+**Current focus:** Review standalone-review orchestration and shared artifact
+boundaries before the next extraction.
 
 ## Milestone
 
@@ -19,8 +19,8 @@ split, complete review policy extraction, workflow catalog/scoring extraction,
 adaptive workflow-pack construction, promotion-graph construction, global
 workflow activation, stateless cache defaults, evaluator composition-service
 injection, stability-taxonomy clarification, domain-size enforcement,
-harvest/source-graph extraction, and recommendation-service extraction complete;
-continue the thin-adapter cutover.
+harvest/source-graph extraction, recommendation-service extraction, and
+promotion-planning extraction complete; continue the thin-adapter cutover.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -34,8 +34,9 @@ continue the thin-adapter cutover.
   scoring extraction, adaptive workflow-pack construction, promotion-graph
   construction, global workflow activation, stateless cache defaults, evaluator
   composition-service injection, stability-taxonomy clarification, domain-size
-  enforcement, harvest/source-graph extraction, and recommendation-service
-  extraction complete; continue the thin-adapter cutover.
+  enforcement, harvest/source-graph extraction, recommendation-service
+  extraction, and promotion-planning extraction complete; continue the
+  thin-adapter cutover.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -189,6 +190,11 @@ continue the thin-adapter cutover.
   service. The adapter injects harvest advisories and compose preview, then
   retains redaction, artifact writes, and promotion/global-cache authority; the
   full local suite has 286 passing tests with three expected skips.
+- b167af6 moves promotion target selection, graph construction, and result/status
+  assembly into a read-only service. The adapter retains redaction, opaque
+  storage keys, output-root validation, all artifact writes, and global-cache
+  projection; the full local suite has 290 passing tests with three expected
+  skips.
 
 ## Workflow Notes
 
@@ -245,9 +251,9 @@ continue the thin-adapter cutover.
 - Skill-package, curated-template, and MCP-tool stability are separate scopes;
   their owners are frontmatter/package validation, the workflow catalog, and the
   public registry respectively.
-- The domain-module size budget is test-enforced. Harvest and recommendation
-  policy are runtime-owned; the adapter injects evaluator advisories and
-  compose-preview authority while retaining redaction and durable-write facades.
+- The domain-module size budget is test-enforced. Harvest, recommendation, and
+  promotion-planning policy are runtime-owned; the adapter injects evaluator
+  advisories and compose preview while retaining redaction and durable writes.
 
 ## Accumulated Context
 

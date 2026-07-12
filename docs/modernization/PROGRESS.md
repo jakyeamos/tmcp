@@ -8,8 +8,9 @@ task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
 global workflow-activation, stateless cache-default, evaluator composition-service,
-stability-taxonomy, domain-size-budget, harvest/source-graph, and recommendation
-service splits complete; review the promotion boundary before the next cutover.
+stability-taxonomy, domain-size-budget, harvest/source-graph, recommendation
+service, and promotion-planning splits complete; review standalone-review and
+shared artifact boundaries before the next cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -51,6 +52,9 @@ advisory callback and retains compatibility facades used by existing callers.
 Workflow recommendation assembly now has its own read-only runtime service. The
 adapter injects advisory and compose-preview callbacks, then retains result
 redaction, artifact persistence, promotion, and global-cache authority.
+Promotion target selection, graph construction, and status/result assembly are
+also runtime-owned. The adapter retains opaque storage-key derivation, path
+approval, local/global writes, and all cache validation/projection.
 
 ## Decisions recorded
 
@@ -87,6 +91,8 @@ redaction, artifact persistence, promotion, and global-cache authority.
 - Treat workflow recommendation as a read-only service. Compose preview remains
   adapter-injected, and result redaction plus all durable-write behavior remains
   adapter-owned.
+- Treat promotion planning as a read-only service. Global-cache persistence and
+  validation remain co-owned by the adapter until a dedicated storage/cache slice.
 
 ## Verified baseline
 
@@ -229,6 +235,10 @@ redaction, artifact persistence, promotion, and global-cache authority.
   construction, result assembly, and optional compose-preview invocation into
   services/recommendations.py. The full local suite has 286 passing tests with
   three expected platform skips.
+- b167af6 extracts promotion target selection, graph construction, and
+  status/result assembly into services/promotion.py. Existing adapter paths
+  retain local/global artifact writes and global-cache safeguards; the full local
+  suite has 290 passing tests with three expected platform skips.
 
 ## Blockers and risks
 
@@ -241,10 +251,10 @@ redaction, artifact persistence, promotion, and global-cache authority.
   before release, use the target's planned `0.5.0` compatibility/version process
   because the stateless default is a material behavior change.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter. Review, promotion, cache, and dispatch orchestration still
-  require bounded, security-first extractions.
+  transport adapter. Review, shared artifacts, cache, and dispatch orchestration
+  still require bounded, security-first extractions.
 
 ## Next step
 
-Review promotion and global-cache persistence boundaries before selecting the
-next bounded thin-adapter extraction.
+Review standalone-review orchestration and shared artifact boundaries before
+selecting the next bounded thin-adapter extraction.
