@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 review-profile catalog complete; extract the
-remaining evidence, audit, and remediation policy from the MCP adapter.
+**Current focus:** Milestone 3 review policy is domain-owned; map the next
+deterministic adapter boundary, beginning with workflow recommendation.
 
 ## Milestone
 
@@ -15,7 +15,7 @@ remaining evidence, audit, and remediation policy from the MCP adapter.
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
 contextual/selection composition policy, task-family routing/runtime transitions,
 declared-read selection, standalone packet compilation, final packet-policy
-split, and review-profile catalog complete; extract review evidence policy.
+split, and complete review policy extraction; map workflow recommendation.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -25,8 +25,8 @@ split, and review-profile catalog complete; extract review evidence policy.
 - **Status:** Project-local session journey, focused release checks, pure
   recompile/contextual/selection policy, task-family routing/runtime transitions,
   declared-read selection, standalone packet compilation, final packet
-  construction/presentation, and review-profile catalog split complete; extract
-  review evidence policy.
+  construction/presentation, and complete review-policy split complete; map
+  workflow recommendation.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -137,6 +137,10 @@ split, and review-profile catalog complete; extract review evidence policy.
   selection precedence, and fallback behavior into
   `tmcp_runtime/domain/review_profiles.py`; standalone review and workflow
   recommendation now consume one canonical catalog.
+- `516a497` moves review evidence parsing/contracts, rubric synthesis, audit
+  scoring, remediation planning, handoff construction, validations, and Markdown
+  rendering into `review_evidence.py` and `review_results.py`; the adapter now
+  retains only harvest, redaction, artifact persistence, status, and MCP dispatch.
 
 ## Workflow Notes
 
@@ -172,6 +176,8 @@ split, and review-profile catalog complete; extract review evidence policy.
   consumes its behavior-atom catalog rather than maintaining a second copy.
 - Review-profile vocabulary is domain-owned; standalone review and workflow
   recommendation consume its canonical selection and fallback policy.
+- Review evidence, audit, remediation, validation, and rendering policy are
+  domain-owned; the review adapter only orchestrates side effects and transport.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -213,11 +219,11 @@ split, and review-profile catalog complete; extract review evidence policy.
   declared-read dependency plus selected-node merging into sibling domains;
   `775782e` moves standalone packet compilation into its own deterministic domain;
   `7ed60d4` moves shared review-profile vocabulary and classification out of the
-  adapter before evidence/audit policy extraction.
+  adapter; `516a497` completes review evidence, results, and rendering extraction.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract pure evidence, audit, and remediation policy from the MCP adapter.
+# Map workflow-recommendation policy still owned by the MCP adapter.
 ```

@@ -578,7 +578,9 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | `tmcp_runtime/domain/families.py` | Scoped-seed/router family resolution, primary-source matching, sibling deferral, and runtime phase-transition policy |
 | `tmcp_runtime/domain/packets.py` | Final packet assembly, provenance, shortcut eligibility, and composed Markdown rendering |
 | `tmcp_runtime/domain/recompile.py` | Pure recompile policy and Markdown diff rendering |
+| `tmcp_runtime/domain/review_evidence.py` | Evidence parsing/contracts, rubric synthesis, and audit scoring/coverage policy |
 | `tmcp_runtime/domain/review_profiles.py` | Review dimensions, coverage requirements, profile classification, and fallback vocabulary shared by standalone review and workflow recommendation |
+| `tmcp_runtime/domain/review_results.py` | Remediation plans, implementation handoffs, review validations, and review-artifact Markdown rendering |
 | `tmcp_runtime/domain/routes.py` | Route definitions and scoring |
 | `tmcp_runtime/domain/standalone_packets.py` | Legacy standalone task/playbook packet compilation and Markdown rendering |
 | `scripts/tmcp_mcp_server.py` | Extend compose, runtime, markdown renderers |

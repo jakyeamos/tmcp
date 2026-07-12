@@ -6,7 +6,7 @@
 cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, and review-profile
-catalog splits complete; extract review evidence policy.
+catalog and review-policy splits complete; map workflow recommendation.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -21,7 +21,9 @@ packet path; pure recompile transformations, task-family routing/runtime
 transitions, declared-read selection, node ranking, and final packet
 construction/presentation are domain-owned. The legacy standalone compiler is
 also domain-owned. Review profiles now have a shared domain owner for standalone
-review and workflow recommendation while public MCP/CLI behavior remains stable.
+review and workflow recommendation. Evidence, audit, remediation, validation,
+and Markdown review policy are also domain-owned while public MCP/CLI behavior
+remains stable.
 
 ## Decisions recorded
 
@@ -138,6 +140,11 @@ review and workflow recommendation while public MCP/CLI behavior remains stable.
   and fallback behavior into `tmcp_runtime/domain/review_profiles.py`. Standalone
   review and workflow recommendation consume that one catalog; 260 local tests
   pass with three expected platform skips.
+- `516a497` completes the review-policy split: `review_evidence.py` owns evidence
+  contracts, rubric synthesis, and audit scoring, while `review_results.py` owns
+  remediation, handoff, validation, and Markdown rendering. The adapter retains
+  side effects and transport; 262 local tests pass with three expected platform
+  skips.
 
 ## Blockers and risks
 
@@ -149,6 +156,5 @@ review and workflow recommendation while public MCP/CLI behavior remains stable.
 
 ## Next step
 
-Extract the pure review evidence, audit, remediation, and rendering policy from
-the MCP adapter while retaining orchestration, harvest, redaction, and artifact
-persistence at the boundary; then repeat package and adversarial validation.
+Map workflow-recommendation policy in the MCP adapter, retain stable imports and
+behavior, then repeat package and adversarial validation.
