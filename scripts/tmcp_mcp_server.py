@@ -82,6 +82,14 @@ from tmcp_runtime.domain.review_results import (  # noqa: E402
     render_rubric_markdown,
     review_validations,
 )
+from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
+    experimental_workflow_ids,
+    select_workflow_catalog,
+    stable_workflow_ids,
+    workflow_catalog,
+    workflow_catalog_by_id,
+    workflow_stability,
+)
 from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
     CLI_COMMAND_DEFAULT_ARGUMENTS,
@@ -142,27 +150,6 @@ DEFAULT_HARVEST_INCLUDE_GLOBS = (
     "**/workflows/**/*.md",
     "**/*.md",
 )
-
-STABLE_WORKFLOW_IDS = {
-    "release_readiness_workflow",
-    "developer_experience_workflow",
-}
-
-EXPERIMENTAL_WORKFLOW_IDS = {
-    "expert_ui_rubric_workflow",
-    "security_privacy_review_workflow",
-    "public_sector_readiness_workflow",
-    "test_strategy_and_regression_workflow",
-    "maintainability_workflow",
-    "performance_review_workflow",
-    "data_integrity_workflow",
-    "incident_postmortem_workflow",
-    "architecture_decision_workflow",
-    "migration_readiness_workflow",
-    "agent_handoff_workflow",
-    "pr_risk_review_workflow",
-    "repo_behavior_spec_loop_workflow",
-}
 
 DEFAULT_HARVEST_EXCLUDE_DIR_NAMES = {
     ".DS_Store",
@@ -261,491 +248,6 @@ HARVEST_SOURCE_TYPE_ATOMS: dict[str, tuple[str, ...]] = {
     "workflow_prompt": ("workflow-routing", "artifact-contract"),
     "markdown_process_doc": ("process-documentation", "source-grounding"),
 }
-
-WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
-    {
-        "signal_family": "ui_quality",
-        "workflow_id": "expert_ui_rubric_workflow",
-        "name": "Expert UI Rubric Workflow",
-        "keywords": (
-            "ui",
-            "ux",
-            "frontend",
-            "visual",
-            "polish",
-            "visual design",
-            "ui design",
-            "interface design",
-            "design-system",
-            "responsive",
-            "screen",
-            "screenshot",
-            "layout",
-            "ui component",
-            "frontend component",
-            "component state",
-            "visible state",
-            "interaction state",
-            "interaction",
-            "button",
-            "buttons",
-            "controls",
-            "input",
-            "toolbar",
-            "tooltip",
-        ),
-        "behavior_atoms": (
-            "evidence-backed-claims",
-            "concrete-citations",
-            "artifact-contract",
-        ),
-        "profile": "visual_polish",
-        "starter_prompt": "Use the TMCP expert UI rubric on this project.",
-        "expected_artifacts": (
-            "expertise packet",
-            "scored visual rubric",
-            "evidence-backed UI audit",
-            "ordered remediation plan",
-        ),
-    },
-    {
-        "signal_family": "security_privacy",
-        "workflow_id": "security_privacy_review_workflow",
-        "name": "Security And Privacy Review Workflow",
-        "keywords": (
-            "security",
-            "privacy",
-            "redact",
-            "redaction",
-            "secret",
-            "permission",
-            "auth",
-            "token",
-            "credential",
-            "data flow",
-            "audit log",
-            "retention",
-        ),
-        "behavior_atoms": (
-            "bounded-tool-side-effects",
-            "approval-before-implementation",
-        ),
-        "profile": "security_privacy",
-        "starter_prompt": "Use TMCP to audit security and privacy risks in this project.",
-        "expected_artifacts": (
-            "expertise packet",
-            "scored security/privacy rubric",
-            "evidence-backed risk audit",
-            "ordered remediation plan",
-        ),
-    },
-    {
-        "signal_family": "public_sector_readiness",
-        "workflow_id": "public_sector_readiness_workflow",
-        "name": "Public Sector Readiness Workflow",
-        "keywords": (
-            "government",
-            "public sector",
-            "public-sector",
-            "compliance",
-            "governance",
-            "policy",
-            "uat",
-            "user acceptance",
-            "accessibility",
-            "section 508",
-            "wcag",
-            "auditability",
-            "audit log",
-            "legal",
-            "calculation",
-            "tenant",
-            "risk register",
-            "release blocker",
-            "acceptance criteria",
-            "readiness",
-        ),
-        "behavior_atoms": (
-            "source-traceability",
-            "explicit-evidence-gaps",
-            "quality-gate-disclosure",
-        ),
-        "profile": "public_sector_readiness",
-        "starter_prompt": "Use TMCP to review public-sector readiness for this project.",
-        "expected_artifacts": (
-            "expertise packet",
-            "public-sector readiness rubric",
-            "evidence-backed governance, compliance, UAT, and accessibility audit",
-            "ordered readiness remediation plan",
-        ),
-    },
-    {
-        "signal_family": "testing_quality",
-        "workflow_id": "test_strategy_and_regression_workflow",
-        "name": "Test Strategy And Regression Workflow",
-        "keywords": (
-            "test",
-            "testing",
-            "tdd",
-            "regression",
-            "coverage",
-            "quality gate",
-            "vitest",
-            "jest",
-            "pytest",
-            "unit test",
-            "integration",
-            "e2e",
-        ),
-        "behavior_atoms": ("behavior-verification", "quality-gate-disclosure"),
-        "profile": "general_review",
-        "starter_prompt": "Use TMCP to review test strategy and regression risk in this project.",
-        "expected_artifacts": (
-            "expertise packet",
-            "test strategy rubric",
-            "coverage and regression audit",
-            "verification-focused remediation plan",
-        ),
-    },
-    {
-        "signal_family": "release_readiness",
-        "workflow_id": "release_readiness_workflow",
-        "name": "Release Readiness Workflow",
-        "keywords": (
-            "release",
-            "ship",
-            "deploy",
-            "deployment",
-            "ci",
-            "cd",
-            "checklist",
-            "package",
-            "version",
-            "changelog",
-            "tag",
-            "verification",
-        ),
-        "behavior_atoms": (
-            "quality-gate-disclosure",
-            "ordered-next-actions",
-            "artifact-contract",
-        ),
-        "profile": "general_review",
-        "starter_prompt": "Use TMCP to plan release readiness for this project.",
-        "expected_artifacts": (
-            "expertise packet",
-            "release readiness rubric",
-            "evidence gap audit",
-            "ordered release remediation plan",
-        ),
-    },
-    {
-        "signal_family": "developer_experience",
-        "workflow_id": "developer_experience_workflow",
-        "name": "Developer Experience Workflow",
-        "keywords": (
-            "developer",
-            "dx",
-            "onboarding",
-            "setup",
-            "install",
-            "command",
-            "cli",
-            "readme",
-            "docs",
-            "troubleshooting",
-        ),
-        "behavior_atoms": (
-            "local-context-first",
-            "source-traceability",
-            "artifact-contract",
-        ),
-        "profile": "developer_experience",
-        "starter_prompt": "Use TMCP to review developer onboarding commands and CLI docs.",
-        "expected_artifacts": (
-            "expertise packet",
-            "developer-experience rubric",
-            "command and docs audit",
-            "onboarding remediation plan",
-        ),
-    },
-    {
-        "signal_family": "maintainability",
-        "workflow_id": "maintainability_workflow",
-        "name": "Maintainability Workflow",
-        "keywords": (
-            "maintainability",
-            "refactor",
-            "architecture",
-            "modular",
-            "boundary",
-            "dead code",
-            "duplication",
-            "complexity",
-            "abstraction",
-            "cleanup",
-        ),
-        "behavior_atoms": (
-            "smallest-effective-change",
-            "avoid-speculative-abstractions",
-        ),
-        "profile": "general_review",
-        "starter_prompt": "Use TMCP to review maintainability, boundaries, and dead-code risk.",
-        "expected_artifacts": (
-            "expertise packet",
-            "maintainability rubric",
-            "codebase structure audit",
-            "scoped refactor plan",
-        ),
-    },
-    {
-        "signal_family": "performance",
-        "workflow_id": "performance_review_workflow",
-        "name": "Performance Review Workflow",
-        "keywords": (
-            "performance",
-            "latency",
-            "profiling",
-            "profile",
-            "bundle",
-            "runtime",
-            "load test",
-            "speed",
-            "memory",
-            "optimize",
-        ),
-        "behavior_atoms": ("evidence-backed-claims", "behavior-verification"),
-        "profile": "general_review",
-        "starter_prompt": "Use TMCP to review performance risks and verification signals.",
-        "expected_artifacts": (
-            "expertise packet",
-            "performance rubric",
-            "evidence-backed performance audit",
-            "measurement-first remediation plan",
-        ),
-    },
-    {
-        "signal_family": "data_correctness",
-        "workflow_id": "data_integrity_workflow",
-        "name": "Data Integrity Workflow",
-        "keywords": (
-            "data",
-            "schema",
-            "migration",
-            "validation",
-            "invariant",
-            "pipeline",
-            "etl",
-            "backfill",
-            "database",
-            "integrity",
-        ),
-        "behavior_atoms": (
-            "source-traceability",
-            "behavior-verification",
-            "explicit-evidence-gaps",
-        ),
-        "profile": "general_review",
-        "starter_prompt": "Use TMCP to review data integrity, migrations, and pipeline correctness.",
-        "expected_artifacts": (
-            "expertise packet",
-            "data integrity rubric",
-            "schema and pipeline audit",
-            "verification-first remediation plan",
-        ),
-    },
-    {
-        "signal_family": "incident_postmortem",
-        "workflow_id": "incident_postmortem_workflow",
-        "name": "Incident Postmortem Workflow",
-        "keywords": (
-            "incident",
-            "postmortem",
-            "post-mortem",
-            "outage",
-            "regression analysis",
-            "root cause",
-            "timeline",
-            "blast radius",
-            "rollback",
-            "remediation",
-        ),
-        "behavior_atoms": (
-            "evidence-backed-claims",
-            "explicit-evidence-gaps",
-            "ordered-next-actions",
-        ),
-        "profile": "general_review",
-        "starter_prompt": "Use TMCP to create an incident postmortem packet for this project.",
-        "expected_artifacts": (
-            "expertise packet",
-            "incident timeline",
-            "cause and contributing-factor audit",
-            "ordered follow-up remediation plan",
-        ),
-    },
-    {
-        "signal_family": "architecture_decision",
-        "workflow_id": "architecture_decision_workflow",
-        "name": "Architecture Decision Workflow",
-        "keywords": (
-            "architecture",
-            "adr",
-            "architecture decision",
-            "decision record",
-            "alternative",
-            "tradeoff",
-            "constraint",
-            "migration cost",
-            "design decision",
-        ),
-        "behavior_atoms": (
-            "source-traceability",
-            "conflict-preservation",
-            "evidence-backed-claims",
-        ),
-        "profile": "general_review",
-        "starter_prompt": "Use TMCP to review this architecture decision and produce an ADR packet.",
-        "expected_artifacts": (
-            "expertise packet",
-            "decision context",
-            "alternatives and tradeoff audit",
-            "recommended ADR outcome",
-        ),
-    },
-    {
-        "signal_family": "migration_readiness",
-        "workflow_id": "migration_readiness_workflow",
-        "name": "Migration Readiness Workflow",
-        "keywords": (
-            "migration",
-            "upgrade",
-            "deprecation",
-            "refactor plan",
-            "rollback",
-            "compatibility",
-            "sequencing",
-            "backfill",
-            "cutover",
-        ),
-        "behavior_atoms": (
-            "ordered-next-actions",
-            "behavior-verification",
-            "explicit-evidence-gaps",
-        ),
-        "profile": "general_review",
-        "starter_prompt": "Use TMCP to review migration readiness and sequencing for this project.",
-        "expected_artifacts": (
-            "expertise packet",
-            "migration readiness rubric",
-            "compatibility and rollback audit",
-            "sequenced migration plan",
-        ),
-    },
-    {
-        "signal_family": "agent_handoff",
-        "workflow_id": "agent_handoff_workflow",
-        "name": "Agent Handoff Workflow",
-        "keywords": (
-            "handoff",
-            "continuity",
-            "resume",
-            "state",
-            "blocker",
-            "next command",
-            "open question",
-            "context packet",
-            "pause",
-        ),
-        "behavior_atoms": (
-            "artifact-contract",
-            "ordered-next-actions",
-            "source-traceability",
-        ),
-        "profile": "developer_experience",
-        "starter_prompt": "Use TMCP to create an agent handoff and continuity packet for this work.",
-        "expected_artifacts": (
-            "expertise packet",
-            "current-state summary",
-            "blockers and open questions",
-            "next-action handoff packet",
-        ),
-    },
-    {
-        "signal_family": "pr_risk_review",
-        "workflow_id": "pr_risk_review_workflow",
-        "name": "PR Risk Review Workflow",
-        "keywords": (
-            "pr",
-            "pull request",
-            "diff",
-            "review",
-            "merge",
-            "changed contract",
-            "regression risk",
-            "risk review",
-            "ci",
-        ),
-        "behavior_atoms": (
-            "evidence-backed-claims",
-            "quality-gate-disclosure",
-            "scope-control",
-        ),
-        "profile": "general_review",
-        "starter_prompt": "Use TMCP to review PR risk, changed contracts, and merge readiness.",
-        "expected_artifacts": (
-            "expertise packet",
-            "changed-surface map",
-            "risk and regression audit",
-            "merge-readiness remediation plan",
-        ),
-    },
-    {
-        "signal_family": "repo_behavior_spec_loop",
-        "workflow_id": "repo_behavior_spec_loop_workflow",
-        "name": "Repo Behavior Spec Loop Workflow",
-        "keywords": (
-            "repo behavior spec loop",
-            "behavior spec",
-            "behavioral spec",
-            "canonical spreadsheet",
-            "single source of truth",
-            "feature id",
-            "feature ids",
-            "code-derived",
-            "source files/functions",
-            "expected behavior",
-            "user-acceptable behavior",
-            "observed behavior",
-            "defect id",
-            "defect type",
-            "tested-pass",
-            "tested-fail",
-            "verified",
-            "regression-covered",
-            "last tested commit",
-            "test fix re-test",
-            "complexity review",
-        ),
-        "behavior_atoms": (
-            "artifact-contract",
-            "behavior-verification",
-            "concrete-citations",
-            "evidence-backed-claims",
-            "quality-gate-disclosure",
-            "source-traceability",
-        ),
-        "profile": "repo_behavior_spec_loop",
-        "starter_prompt": "Use TMCP to run the repo behavior spec loop for this project.",
-        "expected_artifacts": (
-            "expertise packet",
-            "canonical behavior spreadsheet contract",
-            "feature inventory and status-machine audit",
-            "test/fix/re-test/regression remediation loop",
-        ),
-    },
-)
-
 
 
 def _now_iso() -> str:
@@ -2649,30 +2151,6 @@ def _source_scope_for(path: str) -> str:
     return "repo_or_project_local"
 
 
-def _workflow_catalog(arguments: dict[str, Any]) -> list[dict[str, Any]]:
-    requested = {
-        str(item)
-        for item in _json_list(arguments.get("candidate_workflows"))
-        if str(item).strip()
-    }
-    if not requested:
-        return [dict(item) for item in WORKFLOW_SIGNAL_CATALOG]
-    return [
-        dict(item)
-        for item in WORKFLOW_SIGNAL_CATALOG
-        if item["workflow_id"] in requested or item["signal_family"] in requested
-    ]
-
-
-def _workflow_stability(workflow: dict[str, Any]) -> str:
-    workflow_id = str(workflow.get("workflow_id") or "")
-    if workflow_id in STABLE_WORKFLOW_IDS:
-        return "stable"
-    if workflow_id in EXPERIMENTAL_WORKFLOW_IDS:
-        return "experimental"
-    return str(workflow.get("stability") or "experimental")
-
-
 def _score_workflow_signal(
     workflow: dict[str, Any],
     source_nodes: list[dict[str, Any]],
@@ -2734,7 +2212,7 @@ def _score_workflow_signal(
         "signal_family": workflow["signal_family"],
         "workflow_id": workflow["workflow_id"],
         "name": workflow["name"],
-        "stability": _workflow_stability(workflow),
+        "stability": workflow_stability(workflow),
         "score": round(score, 2),
         "confidence": confidence,
         "evidence": evidence,
@@ -2763,7 +2241,7 @@ def _workflow_rubric_seed(workflow: dict[str, Any], objective: str) -> dict[str,
     dimensions = profile_dimensions(profile)
     return {
         "workflow_id": workflow["workflow_id"],
-        "stability": _workflow_stability(workflow),
+        "stability": workflow_stability(workflow),
         "profile": profile,
         "objective": objective,
         "starter_prompt": workflow["starter_prompt"],
@@ -2784,7 +2262,7 @@ def _workflow_template(workflow: dict[str, Any]) -> dict[str, Any]:
         "id": workflow["workflow_id"],
         "kind": "default_template",
         "name": workflow["name"],
-        "stability": _workflow_stability(workflow),
+        "stability": workflow_stability(workflow),
         "signal_family": workflow["signal_family"],
         "profile": workflow.get("profile", "general_review"),
         "starter_prompt": workflow["starter_prompt"],
@@ -2910,7 +2388,7 @@ def _workflow_instance(
     return {
         "id": f"{workflow['workflow_id']}.{identity}",
         "status": "candidate",
-        "stability": _workflow_stability(workflow),
+        "stability": workflow_stability(workflow),
         "template_id": workflow["workflow_id"],
         "adapted_from": {
             "source_paths": source_paths,
@@ -3558,7 +3036,7 @@ def _promotion_workflow_edges(
     seen: set[tuple[str, str, str]] = set()
     workflow_atoms = {
         str(item.get("workflow_id")): set(_string_sequence(item.get("behavior_atoms")))
-        for item in WORKFLOW_SIGNAL_CATALOG
+        for item in workflow_catalog()
     }
     promoted_atoms = {str(item.get("id")) for item in behavior_atoms if item.get("id")}
     for workflow in selected_workflows:
@@ -4019,7 +3497,7 @@ def _cached_promotion_graph(
             "Skipped global cache graph with unexpected schema: " f"{display_path}",
         )
 
-    catalog = _workflow_catalog_by_id()
+    catalog = workflow_catalog_by_id()
     workflow_nodes: list[dict[str, str]] = []
     unknown_nodes = False
     seen_workflows: set[str] = set()
@@ -4214,10 +3692,6 @@ def _node_active_instructions(node: dict[str, Any]) -> list[str]:
     return instructions
 
 
-def _workflow_catalog_by_id() -> dict[str, dict[str, Any]]:
-    return {str(item["workflow_id"]): dict(item) for item in WORKFLOW_SIGNAL_CATALOG}
-
-
 def _workflow_objective_score(workflow: dict[str, Any], objective: str) -> float:
     objective_lower = objective.lower()
     objective_terms = composition_terms(objective)
@@ -4274,7 +3748,7 @@ def _workflow_objective_score(workflow: dict[str, Any], objective: str) -> float
 def _selected_global_workflows(
     graphs: list[dict[str, Any]], objective: str
 ) -> list[dict[str, Any]]:
-    catalog = _workflow_catalog_by_id()
+    catalog = workflow_catalog_by_id()
     selected: list[tuple[float, str, dict[str, Any], dict[str, Any]]] = []
     for graph in graphs:
         for node in _json_list(graph.get("workflow_nodes")):
@@ -4631,7 +4105,7 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
         for item in _json_list(harvest.get("source_nodes"))
         if isinstance(item, dict)
     ]
-    catalog = _workflow_catalog(arguments)
+    catalog = select_workflow_catalog(arguments.get("candidate_workflows"))
     min_confidence = float(arguments.get("min_confidence") or 0.25)
     scores = sorted(
         (_score_workflow_signal(workflow, source_nodes) for workflow in catalog),
@@ -4653,7 +4127,7 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
                 {
                     "id": workflow["workflow_id"],
                     "name": workflow["name"],
-                    "stability": _workflow_stability(workflow),
+                    "stability": workflow_stability(workflow),
                     "signal_family": workflow["signal_family"],
                     "confidence": score["confidence"],
                     "score": score["score"],
@@ -4675,7 +4149,7 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
             not_recommended.append(
                 {
                     "id": workflow["workflow_id"],
-                    "stability": _workflow_stability(workflow),
+                    "stability": workflow_stability(workflow),
                     "signal_family": workflow["signal_family"],
                     "confidence": score["confidence"],
                     "reason": _recommendation_reason(score),
@@ -4711,8 +4185,8 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
         "weak_signals": sorted(set(weak)),
         "evidence": profile_evidence,
         "workflow_stability": {
-            "stable_public_workflows": sorted(STABLE_WORKFLOW_IDS),
-            "experimental_workflows": sorted(EXPERIMENTAL_WORKFLOW_IDS),
+            "stable_public_workflows": stable_workflow_ids(),
+            "experimental_workflows": experimental_workflow_ids(),
             "policy": (
                 "Stable workflows are the public first-release contract. "
                 "Experimental workflows remain callable and are labeled in outputs."
