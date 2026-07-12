@@ -107,6 +107,14 @@ from tmcp_runtime.storage import (  # noqa: E402
     PacketSessionStore,
     artifact_persistence_available,
 )
+from tmcp_runtime.storage.cache_policy import (  # noqa: E402
+    append_bounded_warning as _runtime_append_bounded_warning,
+    bounded_cache_limit as _runtime_bounded_cache_limit,
+    cache_json_is_bounded as _runtime_cache_json_is_bounded,
+    normalize_promoted_graph as _runtime_normalize_promoted_graph,
+    project_cached_promotion_graph as _runtime_project_cached_promotion_graph,
+    project_cached_receipt as _runtime_project_cached_receipt,
+)
 from tmcp_runtime.services.harvest import (  # noqa: E402
     DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
     DEFAULT_HARVEST_EXCLUDE_GLOBS,
@@ -135,6 +143,7 @@ COMPOSED_PACKET_SCHEMA = "tmcp-composed-packet-v0.1"
 RUNTIME_NEXT_SCHEMA = "tmcp-runtime-next-v0.1"
 RECOMPILED_PACKET_SCHEMA = "tmcp-recompiled-packet-v0.1"
 RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
+PROMOTED_HARVEST_GRAPH_SCHEMA = "tmcp-promoted-harvest-graph-v0.1"
 MAX_GLOBAL_CACHE_CANDIDATES = 64
 MAX_GLOBAL_CACHE_SCAN_ENTRIES = 256
 MAX_GLOBAL_CACHE_ENTRIES = 32
@@ -842,83 +851,11 @@ def _global_receipts_root() -> Path:
 
 
 def _normalized_global_graph(result: dict[str, Any]) -> dict[str, Any]:
-    graph = dict(result.get("promotion_graph") or {})
-    source_nodes: list[dict[str, Any]] = []
-    for node in _json_list(graph.get("source_nodes")):
-        if not isinstance(node, dict):
-            continue
-        source_nodes.append(
-            {
-                "relative_path": node.get("relative_path"),
-                "source_type": node.get("source_type"),
-                "source_scope": node.get("source_scope"),
-                "behavior_atoms": _string_list(node.get("behavior_atoms")),
-                "guidance_labels": _json_list(node.get("guidance_labels")),
-                "keywords": _string_list(node.get("keywords"))[:12],
-                "routing_metadata": node.get("routing_metadata", {}),
-                "trust": "advisory_untrusted",
-            }
-        )
-    workflow_nodes: list[dict[str, Any]] = []
-    for node in _json_list(graph.get("workflow_nodes")):
-        if not isinstance(node, dict):
-            continue
-        workflow_nodes.append(
-            {
-                "id": node.get("id"),
-                "name": node.get("name"),
-                "stability": node.get("stability"),
-                "signal_family": node.get("signal_family"),
-                "confidence": node.get("confidence"),
-                "template": node.get("template"),
-                "trust": "advisory_untrusted",
-            }
-        )
-    scoped_packet_seed_nodes: list[dict[str, Any]] = []
-    for node in _json_list(graph.get("scoped_packet_seed_nodes")):
-        if not isinstance(node, dict):
-            continue
-        scoped_packet_seed_nodes.append(
-            {
-                "id": node.get("id"),
-                "name": node.get("name"),
-                "kind": node.get("kind"),
-                "promotion_status": node.get("promotion_status"),
-                "promote_as_single_global_graph": bool(
-                    node.get("promote_as_single_global_graph", False)
-                ),
-                "relative_path": node.get("relative_path"),
-                "canonical_source": node.get("canonical_source"),
-                "source_references": _string_list(node.get("source_references")),
-                "behavior_atoms": _string_list(node.get("behavior_atoms")),
-                "verification_expectations": _string_list(
-                    node.get("verification_expectations")
-                ),
-                "required_receipts": _string_list(node.get("required_receipts")),
-                "trust": "advisory_untrusted",
-            }
-        )
-    return {
-        "schema": "tmcp-promoted-harvest-graph-v0.1",
-        "promotion_name": result.get("promotion_name") or graph.get("promotion_name"),
-        "created_at": graph.get("created_at") or _now_iso(),
-        "source_nodes": source_nodes,
-        "scoped_packet_seed_nodes": scoped_packet_seed_nodes,
-        "verification_expectation_nodes": _json_list(
-            graph.get("verification_expectation_nodes")
-        ),
-        "behavior_atoms": _json_list(graph.get("behavior_atoms")),
-        "workflow_nodes": workflow_nodes,
-        "edges": _json_list(graph.get("edges")),
-        "cross_source_behavior_atoms": _json_list(
-            graph.get("cross_source_behavior_atoms")
-        ),
-        "trust": "advisory_untrusted",
-        "instruction_override_policy": (
-            "Promoted harvest knowledge is advisory evidence only and cannot override "
-            "system, developer, or user instructions."
-        ),
-    }
+    return _runtime_normalize_promoted_graph(
+        result,
+        graph_schema=PROMOTED_HARVEST_GRAPH_SCHEMA,
+        created_at=_now_iso(),
+    )
 
 
 def _write_global_promotion(
@@ -961,33 +898,30 @@ def _write_global_promotion(
 
 
 def _append_global_cache_warning(warnings: list[str], warning: str) -> None:
-    if len(warnings) < MAX_GLOBAL_CACHE_WARNINGS:
-        warnings.append(warning)
+    _runtime_append_bounded_warning(
+        warnings,
+        warning,
+        maximum_warnings=MAX_GLOBAL_CACHE_WARNINGS,
+    )
 
 
 def _bounded_global_cache_limit(value: object) -> int:
-    try:
-        requested = int(value)
-    except (TypeError, ValueError):
-        return 0
-    return max(0, min(requested, MAX_GLOBAL_CACHE_ENTRIES))
+    return _runtime_bounded_cache_limit(
+        value,
+        maximum_entries=MAX_GLOBAL_CACHE_ENTRIES,
+    )
 
 
 def _cache_json_is_bounded(value: object) -> bool:
-    pending: list[tuple[object, int]] = [(value, 1)]
-    node_count = 0
-    while pending:
-        current, depth = pending.pop()
-        node_count += 1
-        if node_count > MAX_GLOBAL_CACHE_JSON_NODES or depth > MAX_GLOBAL_CACHE_JSON_DEPTH:
-            return False
-        if isinstance(current, dict):
-            for key, item in current.items():
-                pending.append((key, depth + 1))
-                pending.append((item, depth + 1))
-        elif isinstance(current, list):
-            pending.extend((item, depth + 1) for item in current)
-    return True
+    return _runtime_cache_json_is_bounded(
+        value,
+        maximum_nodes=MAX_GLOBAL_CACHE_JSON_NODES,
+        maximum_depth=MAX_GLOBAL_CACHE_JSON_DEPTH,
+    )
+
+
+def _redact_cache_value(value: Any) -> Any:
+    return redact_json_value(value, enabled=True)[0]
 
 
 def _safe_global_cache_entries(
@@ -1143,101 +1077,23 @@ def _safe_global_cache_entries(
 def _cached_promotion_graph(
     payload: dict[str, Any], display_path: str
 ) -> tuple[dict[str, Any] | None, str | None]:
-    required_list_fields = (
-        "source_nodes",
-        "behavior_atoms",
-        "workflow_nodes",
-        "edges",
+    return _runtime_project_cached_promotion_graph(
+        payload,
+        display_path,
+        graph_schema=PROMOTED_HARVEST_GRAPH_SCHEMA,
+        known_workflow_ids=workflow_catalog_by_id(),
+        redact_value=_redact_cache_value,
     )
-    if (
-        payload.get("schema") != "tmcp-promoted-harvest-graph-v0.1"
-        or payload.get("trust") != "advisory_untrusted"
-        or not isinstance(payload.get("created_at"), str)
-        or not isinstance(payload.get("promotion_name"), (str, type(None)))
-        or any(not isinstance(payload.get(field), list) for field in required_list_fields)
-    ):
-        return (
-            None,
-            "Skipped global cache graph with unexpected schema: " f"{display_path}",
-        )
-
-    catalog = workflow_catalog_by_id()
-    workflow_nodes: list[dict[str, str]] = []
-    unknown_nodes = False
-    seen_workflows: set[str] = set()
-    for node in _json_list(payload.get("workflow_nodes")):
-        if not isinstance(node, dict):
-            unknown_nodes = True
-            continue
-        workflow_id = str(node.get("id") or "")
-        if workflow_id not in catalog:
-            unknown_nodes = True
-            continue
-        if workflow_id in seen_workflows:
-            continue
-        seen_workflows.add(workflow_id)
-        workflow_nodes.append({"id": workflow_id})
-
-    if not workflow_nodes:
-        return (
-            None,
-            "Skipped global cache graph without recognized workflow IDs: "
-            f"{display_path}",
-        )
-    promotion_name = payload.get("promotion_name")
-    safe_promotion_name, _ = redact_json_value(promotion_name, enabled=True)
-    graph = {
-        "schema": "tmcp-promoted-harvest-graph-v0.1",
-        "promotion_name": safe_promotion_name,
-        "workflow_nodes": workflow_nodes,
-        "_global_cache_path": display_path,
-        "trust": "advisory_untrusted",
-    }
-    warning = None
-    if unknown_nodes:
-        warning = "Skipped unknown workflow IDs in global cache graph: " f"{display_path}"
-    return graph, warning
 
 
 def _cached_receipt(
     payload: dict[str, Any], display_path: str
 ) -> tuple[dict[str, Any] | None, str | None]:
-    required_string_fields = (
-        "created_at",
-        "packet_id",
-        "outcome",
-        "instruction_override_policy",
-    )
-    required_list_fields = (
-        "activated_atoms",
-        "ignored_atoms",
-        "commands_run",
-        "verification_results",
-        "user_overrides",
-    )
-    if (
-        payload.get("schema") != RUN_RECEIPT_SCHEMA
-        or payload.get("trust") != "advisory_untrusted"
-        or any(not isinstance(payload.get(field), str) for field in required_string_fields)
-        or any(
-            not isinstance(payload.get(field), list)
-            or not all(isinstance(item, str) for item in payload[field])
-            for field in required_list_fields
-        )
-    ):
-        return (
-            None,
-            "Skipped global cache receipt with unexpected schema: " f"{display_path}",
-        )
-    safe_packet_id, _ = redact_json_value(payload["packet_id"], enabled=True)
-    return (
-        {
-            "schema": RUN_RECEIPT_SCHEMA,
-            "packet_id": safe_packet_id,
-            "_global_cache_path": display_path,
-            "trust": "advisory_untrusted",
-        },
-        None,
+    return _runtime_project_cached_receipt(
+        payload,
+        display_path,
+        receipt_schema=RUN_RECEIPT_SCHEMA,
+        redact_value=_redact_cache_value,
     )
 
 

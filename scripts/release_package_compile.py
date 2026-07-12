@@ -43,6 +43,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/safety/reader.py",
     "tmcp_runtime/storage/__init__.py",
     "tmcp_runtime/storage/artifacts.py",
+    "tmcp_runtime/storage/cache_policy.py",
     "tmcp_runtime/storage/sessions.py",
     "tmcp_runtime/services/__init__.py",
     "tmcp_runtime/services/harvest.py",
