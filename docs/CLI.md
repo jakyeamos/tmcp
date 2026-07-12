@@ -20,9 +20,9 @@ node scripts/tmcp_launcher.mjs doctor
 node scripts/tmcp_launcher.mjs status
 node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --adapter standalone
 node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --compose
-node scripts/tmcp_launcher.mjs compose-packet "Fix the dashboard UI bug" --project-path . --phase start
+node scripts/tmcp_launcher.mjs compose-packet "Fix the dashboard UI bug" --project-path "$PWD" --phase start --session-id dashboard-run
 node scripts/tmcp_launcher.mjs runtime-next "Fix the dashboard UI bug" --current-phase verification --files-changed app/page.tsx --failures "vitest failed"
-node scripts/tmcp_launcher.mjs recompile-packet "Fix the dashboard UI bug" --previous-packet '{...}' --current-phase runtime
+node scripts/tmcp_launcher.mjs recompile-packet "Fix the dashboard UI bug" --project-path "$PWD" --session-id dashboard-run --current-phase runtime
 node scripts/tmcp_launcher.mjs record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
 node scripts/tmcp_launcher.mjs harvest . --objective "Harvest reusable project workflow behavior" --limit 40
 node scripts/tmcp_launcher.mjs evaluate-skills --skill-paths path/to/SKILL.md --task-fixtures '[...]'
@@ -39,7 +39,28 @@ Use `tmcp_runtime_next` / `runtime-next` after changed files, failures, browser 
 
 `tmcp_explain --compose` and `tmcp_recommend_workflows --compose` preserve their legacy output and add a composed packet.
 
-The machine-readable contracts are `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, and `tmcp-run-receipt-v0.1`. Promoted harvest cache entries use `tmcp-promoted-harvest-graph-v0.1`.
+The machine-readable contracts are `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, `tmcp-recompiled-packet-v0.1`, `tmcp-run-receipt-v0.1`, and the project-local `tmcp-run-session-v0.1`. Promoted harvest cache entries use `tmcp-promoted-harvest-graph-v0.1`.
+
+## Packet Sessions
+
+Composition and runtime remain read-only unless `session_id` is supplied. A
+session requires an explicit absolute `project_path`; `compose-packet` creates one
+redacted latest-packet record beneath that project, and `recompile-packet` (or
+`runtime-next --output-mode full`) reloads and replaces that record. The result
+contains additive `session` metadata with an opaque key, record path, revision,
+and packet id.
+
+Sessions are deliberately narrow: the raw identifier is not persisted in the
+filename (identifiers are labels, not secrets), creation never replaces an existing session, and updates are
+serialized against the current revision. They have no automatic creation, global
+lookup, history, retention policy, rollback, or multi-agent coordination. Use a
+new identifier for a new run and serialize callers that share one. On a host
+without secure persistence, session operations fail before creating artifacts.
+
+`session_id` is valid only for a full recompile and cannot be combined with
+`previous_packet`. Existing inline `previous_packet` calls remain the portable
+compatibility path. `explain --compose` and `recommend --compose` do not accept
+or create packet sessions.
 
 Experimental workflows remain callable through existing aliases and `candidate_workflows`, for example:
 

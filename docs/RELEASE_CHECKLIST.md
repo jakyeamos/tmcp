@@ -13,7 +13,7 @@ Use this checklist before claiming a Tier One release.
 - [ ] Stable public workflows are labeled stable and documented.
 - [ ] Experimental workflows remain shipped, callable, and labeled experimental.
 - [ ] MCP `tools/list` includes `tmcp_recommend_workflows`, `tmcp_compose_packet`, `tmcp_runtime_next`, and `tmcp_record_receipt`.
-- [ ] Public schemas exist for skill packets, adaptive workflow packs, composed packets, runtime deltas, run receipts, and promoted harvest graphs.
+- [ ] Public schemas exist for skill packets, adaptive workflow packs, composed packets, runtime deltas, recompiled packets, explicit run sessions, run receipts, and promoted harvest graphs.
 - [ ] `python3 scripts/check_contracts.py .` confirms the canonical registry, manifests, installer, live MCP initialize response, and tool list agree.
 - [ ] `python3 scripts/check_install.py .` passes.
 - [ ] Clean-copy install check passes with no hardcoded local user paths.
@@ -28,7 +28,7 @@ Use this checklist before claiming a Tier One release.
 - [ ] `node --check scripts/tmcp_launcher.mjs` passes.
 - [ ] `python3 -m unittest discover -s tests` passes.
 - [ ] JSON syntax check passes for plugin, MCP, marketplace, and fixtures.
-- [ ] On a secure-persistence host, `python3 scripts/check_release_package.py . --verify-reproducible` passes, including Git-tree containment, a repeat archive digest comparison, manifest/digest validation, frontmatter, link, hardcoded-path, doctor, harvest, recommendation, expert-rubric, composition/runtime/receipt, stable, and experimental gates.
+- [ ] On a secure-persistence host, `python3 scripts/check_release_package.py . --verify-reproducible` passes, including Git-tree containment, a repeat archive digest comparison, manifest/digest validation, frontmatter, link, hardcoded-path, doctor, harvest, recommendation, expert-rubric, composition/runtime/session/receipt, stable, and experimental gates.
 - [ ] Release composition dogfood shows release-readiness packets do not activate UI/browser or repo-behavior spreadsheet gates unless the objective or runtime context asks for them.
 - [ ] `claude plugin validate .` passes for the marketplace.
 - [ ] `claude plugin validate <plugin-only-copy>` passes for the plugin manifest.

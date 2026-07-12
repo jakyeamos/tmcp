@@ -16,6 +16,7 @@ from tmcp_runtime.api.registry import (
     CLI_HELP_ALIASES,
     CLI_LIST_TOOLS_ALIASES,
     CLI_TOOL_ALIASES,
+    TOOL_STATE_EFFECTS,
     VERSION,
     canonical_contract_fixture,
     mcp_server_info,
@@ -44,6 +45,10 @@ class PublicContractTests(unittest.TestCase):
         fixture = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
 
         self.assertEqual(canonical_contract_fixture(), fixture)
+
+    def test_packet_sessions_are_explicit_optional_writes(self) -> None:
+        self.assertEqual(TOOL_STATE_EFFECTS["tmcp_compose_packet"], "optional_write")
+        self.assertEqual(TOOL_STATE_EFFECTS["tmcp_runtime_next"], "optional_write")
 
     def test_every_cli_alias_and_pseudo_command_resolves_from_registry(self) -> None:
         with TestWorkspace() as workspace:

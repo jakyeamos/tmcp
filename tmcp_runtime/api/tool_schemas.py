@@ -218,8 +218,25 @@ TOOLS: dict[str, dict[str, object]] = {
                 "max_excerpt_chars": {"type": "integer", "default": 1200},
                 "follow_symlinks": {"type": "boolean", "default": False},
                 "redact_sensitive": {"type": "boolean", "default": True},
+                "session_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$",
+                    "description": (
+                        "Optional explicit project-local packet session identifier. "
+                        "Requires an absolute project_path and enables a protected local "
+                        "session write."
+                    ),
+                },
             },
             "required": ["objective"],
+            "allOf": [
+                {
+                    "if": {"required": ["session_id"]},
+                    "then": {"required": ["project_path"]},
+                }
+            ],
         },
     },
     "tmcp_runtime_next": {
@@ -254,6 +271,17 @@ TOOLS: dict[str, dict[str, object]] = {
                     "type": "object",
                     "description": "Full previous composed packet required for output_mode=full.",
                 },
+                "session_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$",
+                    "description": (
+                        "Optional project-local packet session identifier for a full "
+                        "recompile. Requires an absolute project_path and cannot be combined with "
+                        "previous_packet."
+                    ),
+                },
                 "proposed_changes": {
                     "type": "array",
                     "items": {"type": "object"},
@@ -272,6 +300,16 @@ TOOLS: dict[str, dict[str, object]] = {
                 },
             },
             "required": ["objective"],
+            "allOf": [
+                {
+                    "if": {"required": ["session_id"]},
+                    "then": {
+                        "required": ["project_path", "output_mode"],
+                        "properties": {"output_mode": {"const": "full"}},
+                        "not": {"required": ["previous_packet"]},
+                    },
+                }
+            ],
         },
     },
     "tmcp_record_receipt": {

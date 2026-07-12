@@ -28,6 +28,7 @@ RUNTIME_NEXT_SCHEMA_PATH = (
     PLUGIN_ROOT / "schemas" / "tmcp-runtime-next-v0.1.schema.json"
 )
 RUN_RECEIPT_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-run-receipt-v0.1.schema.json"
+RUN_SESSION_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-run-session-v0.1.schema.json"
 PROMOTED_GRAPH_SCHEMA_PATH = (
     PLUGIN_ROOT / "schemas" / "tmcp-promoted-harvest-graph-v0.1.schema.json"
 )
@@ -265,6 +266,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "schemas/tmcp-composed-packet-v0.1.schema.json",
                 "schemas/tmcp-runtime-next-v0.1.schema.json",
                 "schemas/tmcp-run-receipt-v0.1.schema.json",
+                "schemas/tmcp-run-session-v0.1.schema.json",
                 "schemas/tmcp-promoted-harvest-graph-v0.1.schema.json",
             }.issubset(required_files)
         )
@@ -282,6 +284,7 @@ class TmcpMcpServerTests(unittest.TestCase):
             "tmcp-composed-packet-v0.1": COMPOSED_PACKET_SCHEMA_PATH,
             "tmcp-runtime-next-v0.1": RUNTIME_NEXT_SCHEMA_PATH,
             "tmcp-run-receipt-v0.1": RUN_RECEIPT_SCHEMA_PATH,
+            "tmcp-run-session-v0.1": RUN_SESSION_SCHEMA_PATH,
             "tmcp-promoted-harvest-graph-v0.1": PROMOTED_GRAPH_SCHEMA_PATH,
         }
         required_by_schema = {
@@ -302,6 +305,15 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "verification_results",
                 "outcome",
             },
+            "tmcp-run-session-v0.1": {
+                "schema",
+                "format_version",
+                "revision",
+                "created_at",
+                "updated_at",
+                "packet",
+                "last_recompile",
+            },
             "tmcp-promoted-harvest-graph-v0.1": {
                 "source_nodes",
                 "behavior_atoms",
@@ -317,6 +329,13 @@ class TmcpMcpServerTests(unittest.TestCase):
                 self.assertTrue(
                     required_by_schema[schema_name].issubset(schema["required"])
                 )
+
+        session_schema = json.loads(RUN_SESSION_SCHEMA_PATH.read_text(encoding="utf-8"))
+        session_reference = session_schema["$defs"]["session_reference"]
+        self.assertEqual(
+            session_reference["properties"]["record_schema"]["const"],
+            "tmcp-run-session-v0.1",
+        )
 
     @unittest.skipUnless(
         artifact_persistence_available(),

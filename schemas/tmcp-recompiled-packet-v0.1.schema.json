@@ -89,6 +89,9 @@
       "type": ["object", "null"],
       "additionalProperties": true
     },
+    "session": {
+      "$ref": "tmcp-run-session-v0.1.schema.json#/$defs/session_reference"
+    },
     "warnings": {
       "type": "array",
       "items": {

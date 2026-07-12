@@ -90,6 +90,11 @@ boundary.
 artifact itself. Run it only when `status` reports artifact persistence
 available.
 
+Packet sessions are equally explicit: `compose-packet --session-id` writes one
+redacted, project-local latest-packet record only when secure persistence is
+available. They are for a single serialized run, not a global history or
+coordination service. See [the CLI session contract](docs/CLI.md#packet-sessions).
+
 If a harvested source tries to override system, developer, or user instructions, TMCP reports a warning. See [SECURITY.md](SECURITY.md).
 
 ## Examples
@@ -106,22 +111,26 @@ Recommend workflows for a project:
 node scripts/tmcp_launcher.mjs recommend . --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose --no-write-artifacts
 ```
 
-Compose a current-task packet and recompile during the run. The receipt command
-in this example requires `status` to report artifact persistence available:
+Compose a current-task packet and recompile during the run. This session flow
+requires `status` to report artifact persistence available:
 
 ```bash
 node scripts/tmcp_launcher.mjs compose-packet \
   "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
-  --project-path . --phase start
+  --project-path "$PWD" --phase start --session-id redesign-run
 
 node scripts/tmcp_launcher.mjs recompile-packet \
   "Redesign these pages..." \
+  --project-path "$PWD" \
   --current-phase runtime \
-  --previous-packet "$(cat .tmcp/last-packet.json)" \
+  --session-id redesign-run \
   --files-changed app/page.tsx
 
 node scripts/tmcp_launcher.mjs record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
 ```
+
+When session persistence is unavailable, preserve the compatibility path by
+passing the prior composed JSON inline through `--previous-packet` instead.
 
 Legacy delta-only runtime routing:
 

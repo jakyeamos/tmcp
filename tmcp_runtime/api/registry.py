@@ -169,8 +169,8 @@ TOOL_STATE_EFFECTS: Final[dict[str, StateEffect]] = {
     "tmcp_evaluate_skills": "optional_write",
     "tmcp_recommend_workflows": "optional_write",
     "tmcp_promote_harvest": "default_write",
-    "tmcp_compose_packet": "read_only",
-    "tmcp_runtime_next": "read_only",
+    "tmcp_compose_packet": "optional_write",
+    "tmcp_runtime_next": "optional_write",
     "tmcp_record_receipt": "default_write",
     "expert_rubric_review_plan": "default_write",
 }
@@ -263,9 +263,9 @@ Usage:
   node scripts/tmcp_launcher.mjs {commands['tmcp_evaluate_skills']} [--skill-paths path/to/SKILL.md] [--task-fixtures '[...]'] [--write-artifacts]
   node scripts/tmcp_launcher.mjs {commands['tmcp_recommend_workflows']} [source_path] [--candidate-workflows ui_quality] [--write-artifacts]
   node scripts/tmcp_launcher.mjs {commands['tmcp_promote_harvest']} [source_path] [--selected-workflows workflow_id] [--write-artifacts]
-  node scripts/tmcp_launcher.mjs {commands['tmcp_compose_packet']} \"<objective>\" [--project-path .] [--source-path .]
-  node scripts/tmcp_launcher.mjs {commands['tmcp_runtime_next']} \"<objective>\" [--current-phase verification] [--files-changed app/page.tsx] [--output-mode full] [--previous-packet '{{...}}']
-  node scripts/tmcp_launcher.mjs recompile-packet \"<objective>\" [--previous-packet '{{...}}'] [--current-phase runtime] [--files-changed app/page.tsx]
+  node scripts/tmcp_launcher.mjs {commands['tmcp_compose_packet']} \"<objective>\" [--project-path .] [--source-path .] [--session-id run-name --project-path /absolute/project]
+  node scripts/tmcp_launcher.mjs {commands['tmcp_runtime_next']} \"<objective>\" [--current-phase verification] [--files-changed app/page.tsx] [--output-mode full] [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project]
+  node scripts/tmcp_launcher.mjs recompile-packet \"<objective>\" [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project] [--current-phase runtime] [--files-changed app/page.tsx]
   node scripts/tmcp_launcher.mjs {commands['tmcp_record_receipt']} packet-id [--activated-atoms atom] [--outcome passed]
   node scripts/tmcp_launcher.mjs {commands['expert_rubric_review_plan']} \"<objective>\" [--project-path .] [--evidence-json '<dimension-mapped JSON>']
   node scripts/tmcp_launcher.mjs expert-ui-rubric [--project-path .] [--evidence-json '<dimension-mapped JSON>']

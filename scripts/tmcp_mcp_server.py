@@ -52,6 +52,7 @@ from tmcp_runtime.safety import (  # noqa: E402
 from tmcp_runtime.storage import (  # noqa: E402
     ArtifactStorageError,
     AtomicArtifactStore,
+    PacketSessionStore,
     artifact_persistence_available,
 )
 
@@ -2257,13 +2258,18 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
     packet_delta = dict(state.get("packet_delta") or {})
     next_gates = _string_list(state.get("next_verification_gate"))
     target_phase = str(state.get("suggested_phase") or state.get("phase") or "start")
+    session_project_path = (
+        state.get("project_path")
+        if arguments.get("session_id") is not None
+        else previous_packet.get("project_path") or state.get("project_path")
+    )
+    source_path = arguments.get("source_path") or arguments.get("project_path")
+    if not source_path and arguments.get("session_id") is None:
+        source_path = previous_packet.get("project_path")
     compose_arguments = {
         "objective": state.get("combined_objective") or state.get("objective"),
-        "project_path": previous_packet.get("project_path")
-        or state.get("project_path"),
-        "source_path": arguments.get("source_path")
-        or arguments.get("project_path")
-        or previous_packet.get("project_path"),
+        "project_path": session_project_path,
+        "source_path": source_path,
         "phase": target_phase,
         "cache_policy": state.get("cache_policy") or "global",
         "runtime_context": state.get("context") or {},
@@ -2306,11 +2312,14 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
         packet_delta=packet_delta,
         recompile_reason=recompile_reason,
     )
-    previous_packet_id = str(
-        arguments.get("previous_packet_id")
-        or previous_packet.get("packet_id")
-        or ""
-    )
+    if arguments.get("session_id") is not None:
+        previous_packet_id = str(previous_packet.get("packet_id") or "")
+    else:
+        previous_packet_id = str(
+            arguments.get("previous_packet_id")
+            or previous_packet.get("packet_id")
+            or ""
+        )
     recompiled = {
         "ok": True,
         "schema": RECOMPILED_PACKET_SCHEMA,
@@ -7673,20 +7682,76 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
     objective = str(arguments.get("objective") or "").strip()
     if not objective:
         raise ValueError("tmcp_compose_packet requires objective.")
+    store = _packet_session_store(arguments)
     harvest = _harvest_skills(_compose_harvest_arguments(arguments))
     source_nodes = [
         item
         for item in _json_list(harvest.get("source_nodes"))
         if isinstance(item, dict)
     ]
-    return _compose_packet_from_source_nodes(arguments, source_nodes=source_nodes)
+    packet = _compose_packet_from_source_nodes(arguments, source_nodes=source_nodes)
+    if store is not None:
+        packet["session"] = store.create(packet).metadata()
+    return packet
+
+
+def _packet_session_store(arguments: dict[str, Any]) -> PacketSessionStore | None:
+    session_id = arguments.get("session_id")
+    if session_id is None:
+        return None
+    project_path = arguments.get("project_path")
+    if isinstance(project_path, bool) or not isinstance(project_path, (str, Path)):
+        raise ValueError("session_id requires an explicit project_path.")
+    path = Path(project_path).expanduser()
+    if not str(project_path).strip() or not path.is_absolute():
+        raise ValueError("session_id requires an absolute project_path.")
+    return PacketSessionStore.open(path, session_id)
 
 
 def _runtime_next(arguments: dict[str, Any]) -> dict[str, Any]:
-    state = _build_runtime_state(arguments)
     output_mode = str(arguments.get("output_mode") or "delta").strip().lower()
+    session_id = arguments.get("session_id")
+    if session_id is not None and output_mode != "full":
+        raise ValueError("session_id requires tmcp_runtime_next output_mode=full.")
+    runtime_arguments = dict(arguments)
+    session_snapshot = None
+    if session_id is not None:
+        if "previous_packet" in arguments:
+            raise ValueError("session_id cannot be combined with previous_packet.")
+        session_store = _packet_session_store(arguments)
+        if session_store is None:
+            raise RuntimeError("Packet session was not initialized.")
+        session_snapshot = session_store.load()
+        stored_packet_id = str(session_snapshot.packet.get("packet_id") or "")
+        previous_packet_id = arguments.get("previous_packet_id")
+        if (
+            previous_packet_id is not None
+            and str(previous_packet_id) != stored_packet_id
+        ):
+            raise ValueError("previous_packet_id must match the packet in session_id.")
+        runtime_arguments["project_path"] = str(session_store.project_root)
+        runtime_arguments.setdefault("source_path", str(session_store.project_root))
+        runtime_arguments["previous_packet"] = session_snapshot.packet
+        runtime_arguments["previous_packet_id"] = stored_packet_id
+    else:
+        session_store = None
+    state = _build_runtime_state(runtime_arguments)
     if output_mode == "full":
-        return _recompile_packet(arguments, state)
+        recompiled = _recompile_packet(runtime_arguments, state)
+        if session_store is not None and session_snapshot is not None:
+            updated_at = _now_iso()
+            updated = session_store.update(
+                session_snapshot,
+                dict(recompiled["packet"]),
+                last_recompile={
+                    "previous_packet_id": recompiled.get("previous_packet_id"),
+                    "recompile_reason": recompiled.get("recompile_reason"),
+                    "updated_at": updated_at,
+                },
+                now=updated_at,
+            )
+            recompiled["session"] = updated.metadata()
+        return recompiled
     return {
         "ok": True,
         "schema": RUNTIME_NEXT_SCHEMA,
@@ -8526,7 +8591,12 @@ def _parse_cli_arguments(argv: list[str]) -> tuple[str, dict[str, Any], bool]:
                 _set_cli_argument(arguments, key, True)
                 index += 1
                 continue
-            _set_cli_argument(arguments, key, _decode_cli_value(argv[next_index]))
+            value = (
+                argv[next_index]
+                if key.replace("-", "_") == "session_id"
+                else _decode_cli_value(argv[next_index])
+            )
+            _set_cli_argument(arguments, key, value)
             index += 2
             continue
         positionals.append(token)

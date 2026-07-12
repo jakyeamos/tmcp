@@ -7,11 +7,18 @@ import os
 import stat
 import uuid
 from collections.abc import Mapping
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from tmcp_runtime.safety import redact_path
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - durable writes already fail closed here.
+    fcntl = None
 
 
 class ArtifactStorageError(RuntimeError):
@@ -366,3 +373,47 @@ class AtomicArtifactStore:
 
     def write_json(self, name: str, payload: Any) -> Path:
         return self.write_text(name, _json_content(payload))
+
+    @contextmanager
+    def locked(self, name: str) -> Iterator[None]:
+        """Serialize one named operation inside this verified directory."""
+
+        _validate_name(name)
+        if fcntl is None:
+            raise ArtifactStorageError(
+                "Secure artifact locking is unavailable on this platform."
+            )
+        directory_fd = _open_directory(self.root, create=False)
+        descriptor = -1
+        locked = False
+        try:
+            metadata = os.fstat(directory_fd)
+            if (metadata.st_dev, metadata.st_ino) != self.identity:
+                raise ArtifactStorageError(
+                    "Artifact directory changed during lock: " f"{redact_path(self.root)}"
+                )
+            _validate_file_target(directory_fd, name)
+            try:
+                descriptor = os.open(
+                    name,
+                    os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW,
+                    0o600,
+                    dir_fd=directory_fd,
+                )
+                os.fchmod(descriptor, 0o600)
+                fcntl.flock(descriptor, fcntl.LOCK_EX)
+                locked = True
+            except OSError as exc:
+                raise ArtifactStorageError(
+                    f"Could not lock artifact {redact_path(name)}."
+                ) from exc
+            yield
+        finally:
+            if descriptor != -1:
+                if locked:
+                    try:
+                        fcntl.flock(descriptor, fcntl.LOCK_UN)
+                    except OSError:
+                        pass
+                os.close(descriptor)
+            os.close(directory_fd)

@@ -55,7 +55,7 @@ Natural-language objective at intake:
 ```bash
 node scripts/tmcp_launcher.mjs compose-packet \
   "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
-  --project-path . \
+  --project-path "$PWD" \
   --phase start
 ```
 
@@ -66,7 +66,27 @@ Expected:
 - `compiled_from` and `shortcut_candidate` include provenance
 - `evidence_citations` lists selected skill sources; `ignored_sources` explains skips
 
-Recompile after runtime evidence changes:
+To let TMCP retain the latest packet for one explicit, serialized run, first
+confirm that `status` reports secure artifact persistence. Then give both calls
+the same project path and session identifier:
+
+```bash
+node scripts/tmcp_launcher.mjs compose-packet \
+  "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
+  --project-path "$PWD" \
+  --phase start \
+  --session-id redesign-run
+
+node scripts/tmcp_launcher.mjs recompile-packet \
+  "Redesign these pages..." \
+  --project-path "$PWD" \
+  --current-phase runtime \
+  --session-id redesign-run \
+  --files-changed app/page.tsx
+```
+
+Recompile after runtime evidence changes without persistence by using the
+compatible inline-packet path:
 
 ```bash
 node scripts/tmcp_launcher.mjs recompile-packet \
@@ -81,6 +101,10 @@ Expected:
 - schema is `tmcp-recompiled-packet-v0.1`
 - `packet_diff` lists dropped/added routes, skills, or atoms
 - `packet.packet_markdown` includes a Recompile section
+
+Sessions write only a redacted latest-packet record under the explicit project;
+they do not create history, discover runs globally, or coordinate concurrent
+agents. See [CLI](CLI.md#packet-sessions) for the operational boundary.
 
 Record a receipt after verification only when `status` reports artifact
 persistence available:

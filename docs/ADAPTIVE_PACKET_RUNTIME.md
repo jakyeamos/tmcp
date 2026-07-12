@@ -29,15 +29,16 @@ This document covers four gaps between that thesis and the current implementatio
 | Intake compile | `tmcp_compose_packet` → `_compose_packet()` | Harvest sources, score nodes, emit composed JSON packet |
 | Route compile | `tmcp_explain` → `_compile_standalone_packet()` | Task routing to `@task:*` nodes with `packet_markdown` |
 | Runtime delta | `tmcp_runtime_next` → `_runtime_next()` | Phase-aware atom/read/gate deltas; family seed transitions |
+| Explicit session | `tmcp_compose_packet` / `tmcp_runtime_next` with `session_id` | Protected project-local latest packet for one serialized run |
 | Receipts | `tmcp_record_receipt` → `_record_receipt()` | Advisory run receipts under `~/.tmcp/receipts/` |
 | Family orchestration | `_compose_family_context()`, scoped seeds | Suppress sibling skills, chain phases, declared loads |
 | Cached shortcuts | Promoted harvest graphs, scoped packet seeds | Curated compile recipes; not yet full provenance chain |
 
-Schemas in play: `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, `tmcp-skill-packet-v0.2`, `tmcp-scoped-packet-seeds-v0.1`.
+Schemas in play: `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, `tmcp-recompiled-packet-v0.1`, `tmcp-run-session-v0.1`, `tmcp-skill-packet-v0.2`, `tmcp-scoped-packet-seeds-v0.1`.
 
 What works well and should be preserved:
 
-- Deterministic, stateless server functions (no hidden agent state in TMCP)
+- Deterministic server functions with no hidden agent state; session persistence is explicit and project-local
 - `ignored_sources`, `deferred_atoms`, `evidence_citations` as provenance hooks
 - `family_context` + `phase_transitions` for mid-run skill-family chains
 - Advisory trust model: packets never override system/developer/user instructions
@@ -223,12 +224,12 @@ TMCP validates each proposal against the route catalog and harvested skill graph
 | 6 | `schemas/tmcp-recompiled-packet-v0.1.schema.json` | New schema |
 | 7 | `tests/test_tmcp_recompile_packet.py` (new) | Product-design family: runtime → implementation → polish-verify full path |
 
-**State note:** TMCP remains stateless. `previous_packet_id` recompile requires either:
-
-- (Phase 1) Agent passes `previous_packet` JSON inline in `arguments.previous_packet`, or
-- (Phase 2) Optional local packet cache under `.tmcp/runs/<packet_id>.json` when `write_artifacts: true`
-
-Default Phase 1 avoids new persistence requirements.
+**State note:** The default remains stateless: an agent passes `previous_packet`
+inline for a portable full recompile. When a caller explicitly supplies
+`session_id` and an absolute `project_path`, TMCP stores one redacted latest-packet record
+under that project and reloads it for a full recompile. This is a serialized
+single-run convenience, not a global cache, history, rollback mechanism, or
+automatic write path.
 
 ### Acceptance criteria
 
@@ -513,7 +514,7 @@ Tool names remain stable:
 ```bash
 node scripts/tmcp_launcher.mjs compose-packet \
   "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
-  --project-path . --phase start
+  --project-path "$PWD" --phase start --session-id redesign-run
 ```
 
 Expected packet highlights:
@@ -533,9 +534,9 @@ Agent reads pages, finds React + design system.
 ```bash
 node scripts/tmcp_launcher.mjs runtime-next \
   "Redesign these pages..." \
+  --project-path "$PWD" \
   --current-phase runtime \
-  --previous-packet-id packet-abc123 \
-  --previous-packet @composed-packet.json \
+  --session-id redesign-run \
   --files-changed "app/page.tsx,components/Hero.tsx" \
   --output-mode full
 ```

@@ -8,7 +8,7 @@ For most adaptive agent runs, prefer a composed packet over a dedicated workflow
 
 1. Start with `tmcp_compose_packet` for the objective, project path, source paths, and phase.
 2. Follow only the packet's active instructions, required reads, tool/script prompts, verification gates, and stop conditions that fit the current task.
-3. Call `tmcp_runtime_next` when files changed, tests fail, browser evidence appears, the user redirects the goal, or the run enters verification/final.
+3. Call `tmcp_runtime_next` when files changed, tests fail, browser evidence appears, the user redirects the goal, or the run enters verification/final. For an explicit serialized project run, use the same `session_id` and absolute `project_path` from compose through full recompile; otherwise pass the previous packet inline.
 4. Call `tmcp_record_receipt` after meaningful verification or outcome so future ranking can learn from the run.
 
 Composed packets and receipts are advisory. They never override system, developer, user, or project instructions.

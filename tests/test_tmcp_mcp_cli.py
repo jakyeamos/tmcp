@@ -155,6 +155,8 @@ class TmcpMcpCliTests(unittest.TestCase):
                 "global",
                 "--runtime-context",
                 '{"files_changed":["src/App.tsx"]}',
+                "--session-id",
+                "123",
                 "--compact",
             ]
         )
@@ -168,6 +170,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(
             arguments["runtime_context"], {"files_changed": ["src/App.tsx"]}
         )
+        self.assertEqual(arguments["session_id"], "123")
 
         tool_name, arguments, _ = self.server._parse_cli_arguments(
             [
@@ -245,6 +248,7 @@ class TmcpMcpCliTests(unittest.TestCase):
             "runtime-next",
             "record-receipt",
             "--compose",
+            "session_id",
             "TMCP_HOME",
             "advisory",
         ):

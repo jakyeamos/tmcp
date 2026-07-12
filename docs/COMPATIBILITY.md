@@ -31,12 +31,19 @@ Current verification:
 
 TMCP separates portable analysis from durable local artifacts. A host that exposes
 descriptor-relative, no-follow directory operations can safely persist harvests,
-evaluations, reviews, promotions, and receipts. On a host without those
+evaluations, reviews, promotions, receipts, and explicitly requested packet
+sessions. On a host without those
 primitives, write-capable operations fail closed before creating an output path;
 continue with `write_artifacts=false` for preview and analysis workflows.
 
 `doctor` and `status` report this capability. A successful launcher check does
 not imply that the host can safely persist artifacts.
+
+Packet sessions additionally require an explicit absolute project path. They retain one
+redacted latest-packet record for a single serialized run under that project;
+they are not a portable fallback, history store, or concurrent-run registry.
+Use inline `previous_packet` data for full recompiles when durable writes are
+unavailable.
 
 ## Known Gaps
 
