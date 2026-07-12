@@ -7,8 +7,9 @@ cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
-global workflow-activation, and stateless cache-default splits complete; remove
-evaluator coupling and continue the thin-adapter cutover.
+global workflow-activation, stateless cache-default, and evaluator
+composition-service splits complete; reconcile workflow stability labels and
+continue the thin-adapter cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -39,7 +40,8 @@ and promotion Markdown rendering also share one pure domain owner; the adapter
 still owns persistence and global-cache activation. Global activation now owns
 objective scoring, canonical workflow rehydration, activation projection, and
 specialized instructions while the adapter retains cache validation and packet
-orchestration.
+orchestration. Evaluation scoring now receives a data-only composition callback
+from the MCP adapter; it no longer imports or introspects private server helpers.
 
 ## Decisions recorded
 
@@ -192,6 +194,11 @@ orchestration.
   contract metadata. A cache-hardening regression proves global graph activation
   happens only after explicit `cache_policy=global`; the full local suite has
   277 passing tests with three expected platform skips.
+- `2299f88` replaces evaluator reverse imports and private-function
+  introspection with an explicit adapter-injected composition callback. MCP
+  score-mode, no-filesystem-read, and static dependency tests cover the new
+  boundary; the full local suite has 279 passing tests with three expected
+  platform skips.
 
 ## Blockers and risks
 
@@ -203,8 +210,11 @@ orchestration.
 - The branch intentionally retains `0.4.0` release metadata while unpublished;
   before release, use the target's planned `0.5.0` compatibility/version process
   because the stateless default is a material behavior change.
+- The legacy server and evaluator scripts remain broader than the target's thin
+  transport adapter; harvest/source-graph extraction and stability-taxonomy
+  reconciliation remain open P2 architecture work.
 
 ## Next step
 
-Remove the evaluator's reverse dependency on private server helpers, reconcile
-workflow stability labels, and continue extracting the thin transport adapter.
+Reconcile workflow stability labels, correct the shortcut documentation, and
+extract harvest/source-graph responsibilities toward a thin transport adapter.

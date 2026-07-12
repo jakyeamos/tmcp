@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Final-review remediation: preserve a stateless default,
-remove evaluator-to-adapter coupling, then continue the thin-adapter cutover.
+**Current focus:** Continue the thin-adapter cutover: reconcile workflow
+stability labels and extract harvest/source-graph responsibilities from scripts.
 
 ## Milestone
 
@@ -17,8 +17,9 @@ contextual/selection composition policy, task-family routing/runtime transitions
 declared-read selection, standalone packet compilation, final packet-policy
 split, complete review policy extraction, workflow catalog/scoring extraction,
 adaptive workflow-pack construction, promotion-graph construction, global
-workflow activation, and stateless cache defaults complete; remediate evaluator
-coupling and continue the thin-adapter cutover.
+workflow activation, stateless cache defaults, and evaluator composition-service
+injection complete; reconcile workflow stability labels and continue the
+thin-adapter cutover.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -30,8 +31,9 @@ coupling and continue the thin-adapter cutover.
   declared-read selection, standalone packet compilation, final packet
   construction/presentation, complete review-policy split, workflow catalog and
   scoring extraction, adaptive workflow-pack construction, promotion-graph
-  construction, global workflow activation, and stateless cache defaults
-  complete; remediate evaluator coupling and continue the thin-adapter cutover.
+  construction, global workflow activation, stateless cache defaults, and
+  evaluator composition-service injection complete; reconcile workflow stability
+  labels and continue the thin-adapter cutover.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -168,6 +170,10 @@ coupling and continue the thin-adapter cutover.
   default, with global promoted graphs and receipts available only through an
   explicit opt-in. The public fixture and CLI/MCP docs now record that behavior;
   the full local suite has 277 passing tests with three expected platform skips.
+- `2299f88` removes evaluation's dynamic import and `__globals__` traversal of
+  private server helpers. The MCP adapter injects a data-only composition
+  callback, with direct dependency, transport, and no-filesystem-read regression
+  coverage; the full local suite has 279 passing tests with three expected skips.
 
 ## Workflow Notes
 
@@ -219,6 +225,8 @@ coupling and continue the thin-adapter cutover.
   recompile injects the domain renderer so both packet forms share one layout.
 - Global promoted graphs and receipts are explicit opt-ins; no compose or runtime
   route reads them under the default `cache_policy=none`.
+- Evaluation scoring receives a data-only composition callback from the adapter;
+  it has no reverse import or introspection dependency on server internals.
 
 ## Accumulated Context
 
@@ -269,10 +277,13 @@ coupling and continue the thin-adapter cutover.
   `80835ef` restores the stateless default and adds an explicit-opt-in regression
   test. The next confirmed issue is evaluator reverse-import coupling to the
   transport adapter.
+- 2026-07-12: `2299f88` replaces evaluator reverse imports with an explicit
+  adapter-injected composition boundary. The remaining architecture work is the
+  broader thin-adapter cutover and workflow-stability taxonomy reconciliation.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Run final architecture, package, and adversarial review of the modernization branch.
+# Reconcile workflow stability labels, then extract harvest/source-graph policy.
 ```
