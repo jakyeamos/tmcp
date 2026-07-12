@@ -218,6 +218,9 @@ cutover.
   proposal validation, and state shaping into a pure domain reducer. The adapter
   retains root checks, safe harvest, cache reads, sessions, recompile, and
   transport; the full local suite has 310 passing tests with three expected skips.
+- cb9ad0f redacts public compose and standalone/auto explain responses after
+  internal session work, closing project/source path leaks; the full local suite
+  has 311 passing tests with three expected skips.
 
 ## Workflow Notes
 
@@ -289,6 +292,9 @@ cutover.
 - Runtime-state reduction is pure and receives only preharvested source nodes and
   cache warnings. The adapter retains cache-policy gating and all filesystem
   authority.
+- Public compose and explain results redact complete response trees after internal
+  session work, while the protected session record retains its existing redaction
+  guarantees.
 
 ## Accumulated Context
 
@@ -356,6 +362,8 @@ cutover.
 - 2026-07-12: `377bbdd` moves runtime-state derivation into a data-only domain
   reducer, leaving source/cache acquisition and all persistent/transport state in
   the compatibility adapter.
+- 2026-07-12: `cb9ad0f` closes public compose/explain path leaks by applying final
+  response redaction after any internal packet/session work.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command

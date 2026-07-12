@@ -67,6 +67,8 @@ Runtime context normalization, family transitions, identity deltas, proposal
 validation, and state shaping are now a pure domain reducer over adapter-supplied
 source nodes and cache warnings; the adapter keeps source/cache acquisition,
 sessions, recompile, redaction, and transport authority.
+Public compose and standalone/auto explain responses now redact complete result
+trees only after their internal session/packet work is complete.
 
 ## Decisions recorded
 
@@ -120,6 +122,8 @@ sessions, recompile, redaction, and transport authority.
 - Treat runtime-state construction as a pure reducer over already-safe source
   nodes and cache warnings. Keep all root checks, harvest/cache I/O, sessions,
   recompile, and transport in the adapter.
+- Redact public compose and standalone/auto explain responses at their final
+  adapter return boundary, after any internal session creation or packet work.
 
 ## Verified baseline
 
@@ -286,6 +290,9 @@ sessions, recompile, redaction, and transport authority.
   context/family deltas, identity, proposal validation, and state shaping over
   injected safe data; the full local suite has 310 passing tests with three
   expected platform skips.
+- cb9ad0f closes public compose/explain project/source-path leaks with final
+  adapter response redaction. Session persistence remains redacted internally;
+  the full local suite has 311 passing tests with three expected platform skips.
 
 ## Blockers and risks
 
