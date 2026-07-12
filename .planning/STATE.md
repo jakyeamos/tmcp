@@ -6,14 +6,14 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 composition-service extraction after the session
-slice, release-check cleanup, and pure recompile-policy extraction
+**Current focus:** Milestone 3 composition selection/assembly extraction after
+the session slice, release-check cleanup, and pure recompile/context policy
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 3 session slice, release-check cleanup, and pure
-recompile-policy extraction complete; composition-service extraction next
+**Status:** Milestone 3 session slice, release-check cleanup, pure recompile
+policy, and contextual composition policy complete; selection/assembly next
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -21,7 +21,7 @@ recompile-policy extraction complete; composition-service extraction next
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
 - **Status:** Project-local session journey, focused release checks, and pure
-  recompile policy complete; extract deterministic composition policy next
+  recompile/context policy complete; extract composition selection/assembly next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -92,6 +92,9 @@ recompile-policy extraction complete; composition-service extraction next
   proposal application, and recompile Markdown rendering into
   `tmcp_runtime/domain/recompile.py`; the server retains only runtime state,
   source enrichment, composition/session selection, and transport assembly.
+- `2eedd09` moves UI/contextual gates, source-gate filtering, and reference-read
+  selection into `tmcp_runtime/domain/composition.py`, shared by compose and
+  runtime without changing MCP/CLI behavior.
 
 ## Workflow Notes
 
@@ -118,6 +121,8 @@ recompile-policy extraction complete; composition-service extraction next
   history, and use a verified per-session lock for cooperative writers.
 - Recompile policy is domain-owned and directly tested; source harvesting,
   composition, enrichment, and session persistence remain adapter/service work.
+- Contextual composition policy is domain-owned and directly tested; node
+  scoring, family selection, and packet assembly remain the next owner split.
 
 ## Accumulated Context
 
@@ -147,11 +152,12 @@ recompile-policy extraction complete; composition-service extraction next
   session path while retaining inline previous-packet compatibility; a fresh
   adversarial pass closes relative-root and forged-lineage findings, then
   `6864350` separates its release dogfood into focused composition/session helpers;
-  `401e125` moves the deterministic recompile policy behind a domain boundary.
+  `401e125` moves deterministic recompile policy and `2eedd09` moves contextual
+  composition policy behind domain boundaries.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract deterministic composition policy behind the stable adapter.
+# Extract composition selection and packet assembly behind the stable adapter.
 ```

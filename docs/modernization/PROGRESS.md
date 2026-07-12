@@ -3,7 +3,8 @@
 ## Current state
 
 **Phase:** Milestone 3 composition/recompile session slice, release-check
-cleanup, and pure recompile policy complete; composition-service extraction next.
+cleanup, pure recompile policy, and contextual composition policy complete;
+composition selection/assembly extraction next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -86,6 +87,9 @@ packet path, and pure recompile transformations are domain-owned.
   Markdown diff rendering. The adapter retains source-aware composition,
   enrichment, session persistence, and transport responsibilities; the local
   suite has 224 passing tests with three expected platform skips.
+- `2eedd09` moves UI/contextual gates, source verification-gate filtering, and
+  reference-read selection into `tmcp_runtime/domain/composition.py`. The local
+  suite has 229 passing tests with three expected platform skips.
 
 ## Blockers and risks
 
@@ -97,6 +101,6 @@ packet path, and pure recompile transformations are domain-owned.
 
 ## Next step
 
-Extract deterministic composition policy into `tmcp_runtime`, keep source and
-session I/O at the adapter boundary, then repeat the package and adversarial
-validation loop.
+Extract composition selection and packet assembly into `tmcp_runtime`, keep
+source and session I/O at the adapter boundary, then repeat package and
+adversarial validation.
