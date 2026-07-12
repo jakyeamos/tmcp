@@ -13,6 +13,7 @@ from typing import cast
 from unittest.mock import patch
 
 from tests.tmcp_test_client import TestWorkspace, run_mcp_requests as run_hermetic_mcp_requests
+from tmcp_runtime.domain import standalone_packets
 from tmcp_runtime.storage import artifact_persistence_available
 
 
@@ -77,7 +78,7 @@ class TmcpMcpServerTests(unittest.TestCase):
         cls.server = load_server_module()
 
     def test_expert_ui_rubric_routes_to_audit_packet(self) -> None:
-        packet = self.server._compile_standalone_packet(
+        packet = standalone_packets.compile_standalone_packet(
             objective="Use the TMCP expert UI rubric on Hoopscout",
             project_path="/tmp/hoopscout",
         )
@@ -88,7 +89,7 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertEqual(rubric["profile"], "visual_polish")
 
     def test_packet_substance_check_flags_process_only_packets(self) -> None:
-        packet = self.server._compile_standalone_packet(
+        packet = standalone_packets.compile_standalone_packet(
             objective="Use TMCP to audit government readiness for CrimClock",
             project_path="/tmp/crimclock",
         )
@@ -275,6 +276,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "tmcp_runtime/domain/families.py",
                 "tmcp_runtime/domain/packets.py",
                 "tmcp_runtime/domain/recompile.py",
+                "tmcp_runtime/domain/standalone_packets.py",
             }.issubset(required_files)
         )
         self.assertTrue(
@@ -743,7 +745,7 @@ class TmcpMcpServerTests(unittest.TestCase):
 
     def test_packet_schema_required_fields_match_compiled_packet(self) -> None:
         schema = json.loads(PACKET_SCHEMA_PATH.read_text(encoding="utf-8"))
-        packet = self.server._compile_standalone_packet(
+        packet = standalone_packets.compile_standalone_packet(
             objective="Plan a release readiness roadmap for the plugin",
             project_path="/tmp/project",
         )
@@ -803,7 +805,7 @@ class TmcpMcpServerTests(unittest.TestCase):
         cases = json.loads(GOLDEN_PACKETS_PATH.read_text(encoding="utf-8"))
         for case in cases:
             with self.subTest(objective=case["objective"]):
-                packet = self.server._compile_standalone_packet(
+                packet = standalone_packets.compile_standalone_packet(
                     objective=case["objective"],
                     project_path="/tmp/project",
                 )

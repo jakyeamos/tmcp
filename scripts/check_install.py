@@ -39,6 +39,7 @@ REQUIRED_FILES = (
     "tmcp_runtime/domain/packets.py",
     "tmcp_runtime/domain/recompile.py",
     "tmcp_runtime/domain/routes.py",
+    "tmcp_runtime/domain/standalone_packets.py",
     "tmcp_runtime/api/registry.py",
     "tmcp_runtime/api/tool_schemas.py",
     "tmcp_runtime/safety/files.py",
