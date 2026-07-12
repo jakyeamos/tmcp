@@ -6,14 +6,14 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 composition selection/assembly extraction after
-the session slice, release-check cleanup, and recompile/context/presentation policy
+**Current focus:** Milestone 3 composition selection extraction after the
+session slice, release-check cleanup, and recompile/context/presentation/assembly policy
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
-and contextual/presentation composition policy complete; selection/assembly next
+and contextual/presentation/assembly composition policy complete; selection next
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -21,7 +21,7 @@ and contextual/presentation composition policy complete; selection/assembly next
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
 - **Status:** Project-local session journey, focused release checks, and pure
-  recompile/context/presentation policy complete; extract selection/assembly next
+  recompile/context/presentation/assembly policy complete; extract selection next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -98,6 +98,9 @@ and contextual/presentation composition policy complete; selection/assembly next
 - `8b2cdb5` moves composed-packet provenance, shortcut eligibility, rationale,
   and Markdown rendering into the same composition domain; package smoke now
   asserts those public packet fields in extracted releases.
+- `9cb3c8b` moves final composed-packet assembly into the composition domain:
+  normalization/caps, deferred and ignored items, stable packet IDs, receipts,
+  safety metadata, and Markdown all derive from one deterministic builder.
 
 ## Workflow Notes
 
@@ -124,8 +127,8 @@ and contextual/presentation composition policy complete; selection/assembly next
   history, and use a verified per-session lock for cooperative writers.
 - Recompile policy is domain-owned and directly tested; source harvesting,
   composition, enrichment, and session persistence remain adapter/service work.
-- Contextual composition policy is domain-owned and directly tested; node
-  scoring, family selection, and packet assembly remain the next owner split.
+- Contextual composition policy and final packet assembly are domain-owned and
+  directly tested; node scoring and family selection remain the next owner split.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -159,11 +162,12 @@ and contextual/presentation composition policy complete; selection/assembly next
   `6864350` separates its release dogfood into focused composition/session helpers;
   `401e125` moves deterministic recompile policy and `2eedd09` moves contextual
   composition policy behind domain boundaries; `8b2cdb5` centralizes packet
-  provenance and presentation in that composition domain.
+  provenance and presentation in that composition domain; `9cb3c8b` centralizes
+  final packet assembly there as well.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract composition selection and packet assembly behind the stable adapter.
+# Extract composition node scoring and family selection behind the stable adapter.
 ```

@@ -3,8 +3,8 @@
 ## Current state
 
 **Phase:** Milestone 3 composition/recompile session slice, release-check
-cleanup, pure recompile policy, and contextual/presentation composition policy
-complete; composition selection/assembly extraction next.
+cleanup, pure recompile policy, and contextual/presentation/assembly composition
+policy complete; composition selection extraction next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -94,6 +94,10 @@ packet path, and pure recompile transformations are domain-owned.
   composed Markdown rendering into `tmcp_runtime/domain/composition.py`; full
   recompile injects that renderer. The local suite has 234 passing tests with
   three expected platform skips.
+- `9cb3c8b` moves final composed-packet assembly into the same domain: caps,
+  deferred/ignored items, packet identity, receipt template, safety metadata,
+  and rendering. The local suite has 235 passing tests with three expected
+  platform skips.
 
 ## Blockers and risks
 
@@ -105,6 +109,6 @@ packet path, and pure recompile transformations are domain-owned.
 
 ## Next step
 
-Extract composition selection and packet assembly into `tmcp_runtime`, keep
+Extract composition node scoring and family selection into `tmcp_runtime`, keep
 source and session I/O at the adapter boundary, then repeat package and
 adversarial validation.
