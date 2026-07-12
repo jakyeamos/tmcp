@@ -2923,6 +2923,40 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
     return packet
 
 
+def _compose_evaluation_row(
+    row: dict[str, Any],
+    project_path: str | Path | None = None,
+) -> dict[str, Any]:
+    """Compose one redacted evaluation row without reading its source path."""
+
+    source_nodes: list[dict[str, Any]] = []
+    if str(row.get("variant_id") or "") != "baseline":
+        attachment = row.get("skill_attachment")
+        if not isinstance(attachment, str):
+            raise ValueError("Evaluation row requires a text skill_attachment.")
+        source_nodes.append(
+            _source_node_from_text(
+                root_path=redact_path(project_path or "."),
+                source_path=redact_path(str(row.get("skill_path") or "SKILL.md")),
+                relative_path="SKILL.md",
+                text=attachment,
+                max_excerpt_chars=1200,
+                redactions={},
+                source_type="skill_definition",
+            )
+        )
+    return _compose_packet_from_source_nodes(
+        {
+            "objective": str(row.get("prompt") or "Evaluate skill behavior."),
+            "project_path": redact_path(project_path or "."),
+            "phase": "start",
+            "cache_policy": "none",
+            "redact_sensitive": True,
+        },
+        source_nodes=source_nodes,
+    )
+
+
 def _packet_session_store(arguments: dict[str, Any]) -> PacketSessionStore | None:
     session_id = arguments.get("session_id")
     if session_id is None:
@@ -3615,7 +3649,10 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "tmcp_harvest_skills":
         return _harvest_skills(arguments)
     if name == "tmcp_evaluate_skills":
-        return evaluate_skills(arguments)
+        return evaluate_skills(
+            arguments,
+            compose_evaluation_row=_compose_evaluation_row,
+        )
     if name == "tmcp_recommend_workflows":
         return _recommend_workflows(arguments)
     if name == "tmcp_compose_packet":

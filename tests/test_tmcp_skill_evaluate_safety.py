@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from tests import test_tmcp_mcp_server as helpers
 from tests.test_tmcp_skill_evaluate import EVALUATE_PATH, FIXTURE_SKILL, load_module
 from tmcp_runtime.storage import ArtifactStorageError, artifact_persistence_available
 
@@ -13,6 +14,7 @@ from tmcp_runtime.storage import ArtifactStorageError, artifact_persistence_avai
 class SkillEvaluateSafetyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        cls.server = helpers.load_server_module()
         cls.evaluate = load_module(EVALUATE_PATH, "tmcp_skill_evaluate_safety")
 
     def _plan_arguments(self, skill_path: Path) -> dict[str, object]:
@@ -139,18 +141,14 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
             for row in plan["task_matrix"]:
                 row["skill_path"] = str(missing_skill)
 
-            compose_fn = self.evaluate._get_compose_packet_fn()
-            with patch.object(
-                self.evaluate,
-                "_get_compose_packet_fn",
-                return_value=compose_fn,
-            ), patch.object(Path, "resolve", side_effect=AssertionError("path read")):
+            with patch.object(Path, "resolve", side_effect=AssertionError("path read")):
                 report = self.evaluate.score_evidence(
                     {
                         "evaluation_plan": plan,
                         "project_path": str(Path(tmp) / "project"),
                         "run_evidence_json": self._trace(),
-                    }
+                    },
+                    compose_evaluation_row=self.server._compose_evaluation_row,
                 )
 
         packet_score = report["packet_inclusion_scores"][0]

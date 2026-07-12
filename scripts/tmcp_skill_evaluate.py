@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import uuid
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,8 @@ EVAL_PLAN_SCHEMA = "tmcp-skill-evaluation-plan-v0.1"
 EVAL_REPORT_SCHEMA = "tmcp-skill-evaluation-report-v0.1"
 EVAL_TRACE_SCHEMA = "tmcp-skill-eval-trace-v0.1"
 MAX_EVALUATION_PLAN_BYTES = 8_388_608
+
+ComposeEvaluationRow = Callable[[dict[str, Any], str | Path | None], dict[str, Any]]
 
 DEFAULT_VARIANTS = (
     "baseline",
@@ -825,15 +828,6 @@ def _variant_inclusion_expectations(
     }
 
 
-def _get_compose_packet_fn() -> Any:
-    try:
-        from scripts.tmcp_mcp_server import _compose_packet
-
-        return _compose_packet
-    except Exception:
-        return None
-
-
 def _task_matrix_row(
     plan: dict[str, Any],
     task_id: str,
@@ -862,75 +856,15 @@ def _expectations_for_plan_row(plan: dict[str, Any], row: dict[str, Any]) -> dic
     return _variant_inclusion_expectations(base, str(row.get("variant_id") or ""))
 
 
-def compose_arguments_for_eval_row(
-    row: dict[str, Any],
-    *,
-    project_path: str | Path | None = None,
-) -> dict[str, Any]:
-    """Build data-only composer arguments for one already-redacted row."""
-
-    prompt = str(row.get("prompt") or "Evaluate skill behavior.")
-    arguments: dict[str, Any] = {
-        "objective": prompt,
-        "project_path": redact_path(project_path or "."),
-        "phase": "start",
-        "cache_policy": "none",
-        "redact_sensitive": True,
-    }
-    return arguments
-
-
-def _data_only_composer_support(compose_fn: Any) -> tuple[Any, Any]:
-    module_globals = getattr(compose_fn, "__globals__", {})
-    compose_from_nodes = module_globals.get("_compose_packet_from_source_nodes")
-    source_node_from_text = module_globals.get("_source_node_from_text")
-    if not callable(compose_from_nodes) or not callable(source_node_from_text):
-        raise RuntimeError("Data-only compose support is unavailable.")
-    return compose_from_nodes, source_node_from_text
-
-
-def _source_nodes_for_eval_row(
-    row: dict[str, Any],
-    source_node_from_text: Any,
-    *,
-    project_path: str | Path | None,
-) -> list[dict[str, Any]]:
-    if str(row.get("variant_id") or "") == "baseline":
-        return []
-    attachment = row.get("skill_attachment")
-    if not isinstance(attachment, str):
-        raise ValueError("Evaluation row requires a text skill_attachment.")
-    source_path = redact_path(str(row.get("skill_path") or "SKILL.md"))
-    node = source_node_from_text(
-        root_path=redact_path(project_path or "."),
-        source_path=source_path,
-        relative_path="SKILL.md",
-        text=attachment,
-        max_excerpt_chars=1200,
-        redactions={},
-        source_type="skill_definition",
-    )
-    return [node]
-
-
 def compose_packet_for_eval_row(
     row: dict[str, Any],
-    compose_fn: Any,
+    compose_evaluation_row: ComposeEvaluationRow | None,
     *,
     project_path: str | Path | None = None,
 ) -> dict[str, Any]:
-    if compose_fn is None:
-        raise RuntimeError("compose_packet function is unavailable.")
-    compose_from_nodes, source_node_from_text = _data_only_composer_support(compose_fn)
-    source_nodes = _source_nodes_for_eval_row(
-        row,
-        source_node_from_text,
-        project_path=project_path,
-    )
-    return compose_from_nodes(
-        compose_arguments_for_eval_row(row, project_path=project_path),
-        source_nodes=source_nodes,
-    )
+    if compose_evaluation_row is None:
+        raise RuntimeError("Evaluation compose service is unavailable.")
+    return compose_evaluation_row(row, project_path)
 
 
 def _any_packet_match(needle: str, packet_values: list[str]) -> bool:
@@ -1380,7 +1314,7 @@ def _score_packet_inclusion(
     trace: dict[str, Any],
     plan: dict[str, Any],
     *,
-    compose_fn: Any = None,
+    compose_evaluation_row: ComposeEvaluationRow | None = None,
     compose_cache: dict[str, dict[str, Any]] | None = None,
     project_path: str | Path | None = None,
     use_compose_packet: bool = True,
@@ -1404,8 +1338,7 @@ def _score_packet_inclusion(
             "notes": "No matching task_matrix row for packet inclusion scoring.",
         }
 
-    compose_fn = compose_fn if compose_fn is not None else _get_compose_packet_fn()
-    if use_compose_packet and compose_fn is not None:
+    if use_compose_packet and compose_evaluation_row is not None:
         cache = compose_cache if compose_cache is not None else {}
         cache_key = json.dumps(
             {
@@ -1422,7 +1355,7 @@ def _score_packet_inclusion(
             if composed is None:
                 composed = compose_packet_for_eval_row(
                     row,
-                    compose_fn,
+                    compose_evaluation_row,
                     project_path=project_path,
                 )
                 safe_composed, _ = redact_json_value(composed, enabled=True)
@@ -1444,7 +1377,7 @@ def _score_packet_inclusion(
                 "confidence": diff["confidence"],
                 "signals": diff["signals"],
                 "packet_inclusion_diff": diff,
-                "notes": "Scored from data-only tmcp_compose_packet semantics.",
+                "notes": "Scored from the injected data-only tmcp_compose_packet service.",
             }
         except (RuntimeError, TypeError, ValueError):
             pass
@@ -1611,6 +1544,7 @@ def score_evidence(
     arguments: dict[str, Any],
     *,
     plan: dict[str, Any] | None = None,
+    compose_evaluation_row: ComposeEvaluationRow | None = None,
 ) -> dict[str, Any]:
     plan = _load_plan(arguments) if plan is None else _validate_plan(plan)
     raw_evidence = arguments.get("run_evidence_json")
@@ -1635,7 +1569,6 @@ def score_evidence(
     if project_path is not None and not isinstance(project_path, (str, Path)):
         raise ValueError("project_path must be a path string.")
     compose_cache: dict[str, dict[str, Any]] = {}
-    compose_fn = _get_compose_packet_fn() if use_compose_packet else None
 
     activation_scores = [_score_activation(trace, plan) for trace in traces]
     adherence_scores = [_score_adherence(trace) for trace in traces]
@@ -1644,7 +1577,7 @@ def score_evidence(
         _score_packet_inclusion(
             trace,
             plan,
-            compose_fn=compose_fn,
+            compose_evaluation_row=compose_evaluation_row,
             compose_cache=compose_cache,
             project_path=project_path,
             use_compose_packet=use_compose_packet,
@@ -1963,7 +1896,11 @@ def _write_artifacts(
     }
 
 
-def evaluate_skills(arguments: dict[str, Any]) -> dict[str, Any]:
+def evaluate_skills(
+    arguments: dict[str, Any],
+    *,
+    compose_evaluation_row: ComposeEvaluationRow | None = None,
+) -> dict[str, Any]:
     mode = str(arguments.get("mode") or "auto")
     has_evidence = bool(arguments.get("run_evidence_json"))
     if mode == "auto":
@@ -1989,7 +1926,11 @@ def evaluate_skills(arguments: dict[str, Any]) -> dict[str, Any]:
 
     if mode == "score":
         plan = _load_plan(arguments)
-        report = score_evidence(arguments, plan=plan)
+        report = score_evidence(
+            arguments,
+            plan=plan,
+            compose_evaluation_row=compose_evaluation_row,
+        )
         result = {"mode": "score", **report}
         if bool(arguments.get("write_artifacts", False)):
             output_dir = Path(

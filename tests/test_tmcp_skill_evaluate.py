@@ -67,6 +67,12 @@ class SkillEvaluateTests(unittest.TestCase):
         tool_names = {tool["name"] for tool in tools}
         self.assertIn("tmcp_evaluate_skills", tool_names)
 
+    def test_evaluator_does_not_depend_on_private_server_helpers(self) -> None:
+        source = EVALUATE_PATH.read_text(encoding="utf-8")
+
+        self.assertNotIn("scripts.tmcp_mcp_server", source)
+        self.assertNotIn("__globals__", source)
+
     def test_plan_decomposes_fixture_skill(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
         self.assertEqual(plan["schema"], "tmcp-skill-evaluation-plan-v0.1")
@@ -270,6 +276,34 @@ class SkillEvaluateTests(unittest.TestCase):
         self.assertEqual(result["mode"], "plan")
         self.assertEqual(result["schema"], "tmcp-skill-evaluation-plan-v0.1")
 
+    def test_mcp_tool_call_score_mode_injects_composition_service(self) -> None:
+        plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
+
+        result = self.server._call_tool(
+            "tmcp_evaluate_skills",
+            {
+                "mode": "score",
+                "evaluation_plan": plan,
+                "project_path": str(PLUGIN_ROOT),
+                "run_evidence_json": [
+                    {
+                        "task_id": "approval-before-edit",
+                        "variant_id": "original",
+                        "observations": [
+                            {"kind": "command_run", "value": "npm test"},
+                        ],
+                        "outcome": "passed",
+                    }
+                ],
+            },
+        )
+
+        self.assertEqual(result["mode"], "score")
+        self.assertEqual(
+            result["packet_inclusion_scores"][0]["confidence"],
+            "high",
+        )
+
     def test_harvest_emits_skill_eval_warnings_for_fixture_skill(self) -> None:
         result = self.server._harvest_skills(
             {
@@ -308,7 +342,7 @@ class SkillEvaluateTests(unittest.TestCase):
         )
         composed = self.evaluate.compose_packet_for_eval_row(
             row,
-            self.server._compose_packet,
+            self.server._compose_evaluation_row,
             project_path=str(PLUGIN_ROOT),
         )
         contract = plan["packet_inclusion_contracts"][0]["expected"]
@@ -338,7 +372,8 @@ class SkillEvaluateTests(unittest.TestCase):
                         "outcome": "passed",
                     }
                 ],
-            }
+            },
+            compose_evaluation_row=self.server._compose_evaluation_row,
         )
         packet_score = report["packet_inclusion_scores"][0]
         self.assertEqual(packet_score["confidence"], "high")
@@ -358,7 +393,7 @@ class SkillEvaluateTests(unittest.TestCase):
         )
         composed = self.evaluate.compose_packet_for_eval_row(
             row,
-            self.server._compose_packet,
+            self.server._compose_evaluation_row,
             project_path=str(PLUGIN_ROOT),
         )
         contract = plan["packet_inclusion_contracts"][0]["expected"]
@@ -391,7 +426,8 @@ class SkillEvaluateTests(unittest.TestCase):
                         "outcome": "passed",
                     },
                 ],
-            }
+            },
+            compose_evaluation_row=self.server._compose_evaluation_row,
         )
         levels = {entry["evidence_level"] for entry in report["guidebook_entries"]}
         self.assertIn("controlled_multi_agent_eval", levels)
