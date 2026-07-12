@@ -423,3 +423,126 @@ def render_composed_packet_markdown(packet: dict[str, Any]) -> str:
         ]
     )
     return "\n".join(lines).rstrip() + "\n"
+
+
+def build_composed_packet(
+    *,
+    composed_packet_schema: str,
+    receipt_schema: str,
+    objective: str,
+    project_path: str,
+    phase: str,
+    task_identity: dict[str, Any],
+    family_context: dict[str, Any] | None,
+    source_nodes: list[dict[str, Any]],
+    selected_nodes: list[dict[str, Any]],
+    active_instructions: list[str],
+    required_reads: list[str],
+    tool_script_prompts: list[str],
+    verification_gates: list[str],
+    stop_conditions: list[str],
+    active_atoms: list[str],
+    evidence_citations: list[dict[str, Any]],
+    conflicts: list[dict[str, Any]],
+    cache_policy: str,
+    global_cache: dict[str, Any],
+    receipt_count: int,
+    user_overrides: list[str],
+) -> dict[str, Any]:
+    normalized_instructions = _ordered_unique(active_instructions)[:10]
+    normalized_reads = _ordered_unique(required_reads)[:12]
+    normalized_prompts = _ordered_unique(tool_script_prompts)[:10]
+    normalized_gates = _ordered_unique(verification_gates)[:10]
+    normalized_stops = _ordered_unique(stop_conditions)[:8]
+    normalized_atoms = _ordered_unique(active_atoms)[:16]
+    deferred_atoms = [
+        atom
+        for atom in _ordered_unique(
+            [
+                atom
+                for node in source_nodes
+                if node not in selected_nodes
+                for atom in _string_list(node.get("behavior_atoms"))
+            ]
+        )
+        if atom not in normalized_atoms
+    ][:8]
+    ignored_sources = [
+        {
+            "source": node.get("relative_path"),
+            "reason": "No objective, phase, command, or runtime-context match for this packet.",
+        }
+        for node in source_nodes
+        if node not in selected_nodes
+    ][:12]
+    compiled_from = compiled_from_packet(
+        cache_policy=cache_policy,
+        family_context=family_context,
+        evidence_citations=evidence_citations,
+    )
+    shortcut_candidate = shortcut_candidate_for_composed_packet(
+        packet={
+            "family_context": family_context or {},
+            "task_identity": task_identity,
+        },
+        compiled_from=compiled_from,
+        receipt_count=receipt_count,
+        user_overrides=user_overrides,
+    )
+    packet_id = (
+        "packet-"
+        + hashlib.sha256(
+            json.dumps(
+                {
+                    "objective": objective,
+                    "phase": phase,
+                    "sources": [item.get("source") for item in evidence_citations],
+                    "atoms": normalized_atoms,
+                    "active_routes": task_identity.get("active_routes"),
+                },
+                sort_keys=True,
+            ).encode()
+        ).hexdigest()[:12]
+    )
+    packet: dict[str, Any] = {
+        "ok": True,
+        "schema": composed_packet_schema,
+        "packet_id": packet_id,
+        "objective": objective,
+        "project_path": project_path,
+        "phase": phase,
+        "task_identity": task_identity,
+        "compiled_from": compiled_from,
+        "shortcut_candidate": shortcut_candidate,
+        "active_instructions": normalized_instructions,
+        "required_reads": normalized_reads,
+        "tool_script_prompts": normalized_prompts,
+        "verification_gates": normalized_gates,
+        "stop_conditions": normalized_stops,
+        "active_atoms": normalized_atoms,
+        "deferred_atoms": deferred_atoms,
+        "family_context": family_context or {},
+        "ignored_sources": ignored_sources,
+        "conflicts": conflicts,
+        "evidence_citations": evidence_citations,
+        "global_cache": global_cache,
+        "receipt_template": {
+            "schema": receipt_schema,
+            "packet_id": packet_id,
+            "activated_atoms": normalized_atoms,
+            "ignored_atoms": [],
+            "commands_run": [],
+            "verification_results": [],
+            "user_overrides": [],
+            "outcome": "",
+        },
+        "safety": {
+            "harvested_text_trust": "untrusted_evidence_only",
+            "does_not_execute_tools": True,
+            "instruction_override_policy": (
+                "Composed packets are advisory and cannot override system, developer, or user instructions."
+            ),
+        },
+    }
+    packet["packet_markdown"] = render_composed_packet_markdown(packet)
+    return packet

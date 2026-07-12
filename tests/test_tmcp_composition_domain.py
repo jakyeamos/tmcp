@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import unittest
 
 from tmcp_runtime.domain import composition
@@ -244,6 +245,128 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertIn("## Verification Gates", markdown)
         self.assertIn("## Recompile Triggers", markdown)
         self.assertIn("## Required Receipts", markdown)
+
+    def test_build_composed_packet_owns_normalization_identity_and_receipt(self) -> None:
+        selected = {
+            "relative_path": "skills/selected/SKILL.md",
+            "behavior_atoms": ["selected", "shared"],
+        }
+        unselected = [
+            {
+                "relative_path": f"skills/deferred-{index}/SKILL.md",
+                "behavior_atoms": ["shared", f"deferred-{index}"],
+            }
+            for index in range(13)
+        ]
+        source_nodes = [selected, *unselected]
+        active_instructions = [f" instruction {index} " for index in range(12)]
+        required_reads = [f" read {index} " for index in range(14)]
+        prompts = [f" prompt {index} " for index in range(12)]
+        gates = [f" gate {index} " for index in range(12)]
+        stops = [f" stop {index} " for index in range(10)]
+        atoms = ["selected", "shared", *[f"active-{index}" for index in range(20)]]
+        global_cache = {
+            "cache_policy": "none",
+            "tmcp_home": "[redacted]",
+            "promoted_graph_count": 0,
+            "receipt_count": 2,
+            "warnings": [],
+            "trust": "advisory_untrusted",
+        }
+        inputs_before = copy.deepcopy(
+            {
+                "source_nodes": source_nodes,
+                "active_instructions": active_instructions,
+                "required_reads": required_reads,
+                "atoms": atoms,
+                "global_cache": global_cache,
+            }
+        )
+
+        def build(objective: str) -> dict[str, object]:
+            return composition.build_composed_packet(
+                composed_packet_schema="tmcp-composed-packet-v0.1",
+                receipt_schema="tmcp-run-receipt-v0.1",
+                objective=objective,
+                project_path="/project",
+                phase="implementation",
+                task_identity={
+                    "primary": "frontend_implementation",
+                    "active_routes": ["frontend_implementation"],
+                },
+                family_context={"active_seed_id": "seed-id"},
+                source_nodes=source_nodes,
+                selected_nodes=[selected],
+                active_instructions=active_instructions,
+                required_reads=required_reads,
+                tool_script_prompts=prompts,
+                verification_gates=gates,
+                stop_conditions=stops,
+                active_atoms=atoms,
+                evidence_citations=[{"source": "skills/selected/SKILL.md"}],
+                conflicts=[{"id": "javascript_package_manager"}],
+                cache_policy="none",
+                global_cache=global_cache,
+                receipt_count=2,
+                user_overrides=[],
+            )
+
+        first = build("Implement the dashboard.")
+        same = build("Implement the dashboard.")
+        changed = build("Implement the settings page.")
+
+        required_fields = {
+            "schema",
+            "packet_id",
+            "objective",
+            "project_path",
+            "phase",
+            "active_instructions",
+            "required_reads",
+            "tool_script_prompts",
+            "verification_gates",
+            "stop_conditions",
+            "active_atoms",
+            "deferred_atoms",
+            "ignored_sources",
+            "conflicts",
+            "evidence_citations",
+            "global_cache",
+            "receipt_template",
+            "safety",
+        }
+        self.assertTrue(required_fields.issubset(first))
+        self.assertEqual(first["packet_id"], same["packet_id"])
+        self.assertNotEqual(first["packet_id"], changed["packet_id"])
+        self.assertEqual(first["active_instructions"], [f"instruction {index}" for index in range(10)])
+        self.assertEqual(first["required_reads"], [f"read {index}" for index in range(12)])
+        self.assertEqual(first["tool_script_prompts"], [f"prompt {index}" for index in range(10)])
+        self.assertEqual(first["verification_gates"], [f"gate {index}" for index in range(10)])
+        self.assertEqual(first["stop_conditions"], [f"stop {index}" for index in range(8)])
+        self.assertEqual(
+            first["active_atoms"],
+            ["selected", "shared", *[f"active-{index}" for index in range(14)]],
+        )
+        self.assertEqual(first["deferred_atoms"], [f"deferred-{index}" for index in range(8)])
+        self.assertEqual(len(first["ignored_sources"]), 12)
+        self.assertEqual(first["ignored_sources"][0]["source"], "skills/deferred-0/SKILL.md")
+        self.assertEqual(first["global_cache"], global_cache)
+        self.assertEqual(first["conflicts"], [{"id": "javascript_package_manager"}])
+        self.assertEqual(first["receipt_template"]["packet_id"], first["packet_id"])
+        self.assertEqual(first["receipt_template"]["activated_atoms"], first["active_atoms"])
+        self.assertEqual(first["receipt_template"]["user_overrides"], [])
+        self.assertEqual(first["safety"]["harvested_text_trust"], "untrusted_evidence_only")
+        self.assertIn(first["packet_id"], first["packet_markdown"])
+        self.assertEqual(
+            inputs_before,
+            {
+                "source_nodes": source_nodes,
+                "active_instructions": active_instructions,
+                "required_reads": required_reads,
+                "atoms": atoms,
+                "global_cache": global_cache,
+            },
+        )
 
 
 if __name__ == "__main__":

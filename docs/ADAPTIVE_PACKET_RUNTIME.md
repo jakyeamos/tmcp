@@ -573,7 +573,7 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | File | Action |
 | --- | --- |
 | `docs/ADAPTIVE_PACKET_RUNTIME.md` | This document |
-| `tmcp_runtime/domain/composition.py` | Contextual gates, reference reads, provenance, shortcut eligibility, and composed Markdown rendering |
+| `tmcp_runtime/domain/composition.py` | Contextual gates, final packet assembly, provenance, shortcut eligibility, and composed Markdown rendering |
 | `tmcp_runtime/domain/recompile.py` | Pure recompile policy and Markdown diff rendering |
 | `tmcp_runtime/domain/routes.py` | Route definitions and scoring |
 | `scripts/tmcp_mcp_server.py` | Extend compose, runtime, markdown renderers |

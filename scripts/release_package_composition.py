@@ -77,6 +77,13 @@ def check_composition_surface(
     packet_markdown = compose.get("packet_markdown")
     if not isinstance(packet_markdown, str) or "## Selection Rationale" not in packet_markdown:
         return False, "compose output missing packet_markdown rationale"
+    packet_id = compose.get("packet_id")
+    if compose["receipt_template"].get("packet_id") != packet_id:
+        return False, "compose receipt_template did not retain packet_id"
+    if not isinstance(compose.get("safety"), dict) or not compose["safety"]:
+        return False, "compose output missing safety metadata"
+    if not isinstance(packet_id, str) or packet_id not in packet_markdown:
+        return False, "compose packet_markdown did not retain packet_id"
     verification_text = " ".join(compose.get("verification_gates", [])).lower()
     if "browser" in verification_text:
         return False, "release composition smoke unexpectedly activated browser gate"

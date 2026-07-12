@@ -100,6 +100,15 @@ class TmcpRouteInferenceTests(unittest.TestCase):
             result["compiled_from"]["route_catalog_version"],
         )
         self.assertIn("graph_version changes", shortcut["regenerate_when"])
+        composed_schema = json.loads(
+            (
+                PLUGIN_ROOT / "schemas" / "tmcp-composed-packet-v0.1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertTrue(set(composed_schema["required"]).issubset(result))
+        self.assertEqual(result["receipt_template"]["packet_id"], result["packet_id"])
+        self.assertTrue(result["safety"])
+        self.assertIn("tmcp_home", result["global_cache"])
 
     def test_user_overrides_require_shortcut_revalidation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

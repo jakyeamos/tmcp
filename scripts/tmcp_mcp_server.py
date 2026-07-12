@@ -40,14 +40,13 @@ from tmcp_runtime.domain.recompile import (  # noqa: E402
     resolve_recompile_reason,
 )
 from tmcp_runtime.domain.composition import (  # noqa: E402
-    compiled_from_packet,
+    build_composed_packet,
     contextual_atoms_and_gates,
     filter_source_verification_gates,
     is_ui_file,
     is_uiish_text,
     matching_reference_reads,
     render_composed_packet_markdown,
-    shortcut_candidate_for_composed_packet,
 )
 from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
@@ -6973,102 +6972,37 @@ def _compose_packet_from_source_nodes(
             }
         )
 
-    active_instructions = _ordered_unique(active_instructions)[:10]
-    required_reads = _ordered_unique(required_reads)[:12]
-    tool_script_prompts = _ordered_unique(tool_script_prompts)[:10]
-    verification_gates = _ordered_unique(verification_gates)[:10]
-    stop_conditions = _ordered_unique(stop_conditions)[:8]
-    active_atoms = _ordered_unique(active_atoms)[:16]
-    deferred_atoms = [
-        atom
-        for atom in _ordered_unique(
-            [
-                atom
-                for node in source_nodes
-                if node not in selected_nodes
-                for atom in _string_list(node.get("behavior_atoms"))
-            ]
-        )
-        if atom not in active_atoms
-    ][:8]
-    compiled_from = compiled_from_packet(
-        cache_policy=cache_policy,
+    global_cache = {
+        "cache_policy": cache_policy,
+        "tmcp_home": redact_path(_tmcp_home()),
+        "promoted_graph_count": len(global_graphs),
+        "receipt_count": len(receipts),
+        "warnings": graph_warnings + receipt_warnings,
+        "trust": "advisory_untrusted",
+    }
+    return build_composed_packet(
+        composed_packet_schema=COMPOSED_PACKET_SCHEMA,
+        receipt_schema=RUN_RECEIPT_SCHEMA,
+        objective=objective,
+        project_path=str(arguments.get("project_path") or "."),
+        phase=phase,
+        task_identity=task_identity,
         family_context=family_context,
+        source_nodes=source_nodes,
+        selected_nodes=selected_nodes,
+        active_instructions=active_instructions,
+        required_reads=required_reads,
+        tool_script_prompts=tool_script_prompts,
+        verification_gates=verification_gates,
+        stop_conditions=stop_conditions,
+        active_atoms=active_atoms,
         evidence_citations=evidence_citations,
-    )
-    shortcut_candidate = shortcut_candidate_for_composed_packet(
-        packet={
-            "family_context": family_context or {},
-            "task_identity": task_identity,
-        },
-        compiled_from=compiled_from,
+        conflicts=conflicts,
+        cache_policy=cache_policy,
+        global_cache=global_cache,
         receipt_count=len(receipts),
         user_overrides=_string_list(arguments.get("user_overrides")),
     )
-    packet_id = (
-        "packet-"
-        + hashlib.sha256(
-            json.dumps(
-                {
-                    "objective": objective,
-                    "phase": phase,
-                    "sources": [item.get("source") for item in evidence_citations],
-                    "atoms": active_atoms,
-                    "active_routes": task_identity.get("active_routes"),
-                },
-                sort_keys=True,
-            ).encode()
-        ).hexdigest()[:12]
-    )
-    packet: dict[str, Any] = {
-        "ok": True,
-        "schema": COMPOSED_PACKET_SCHEMA,
-        "packet_id": packet_id,
-        "objective": objective,
-        "project_path": str(arguments.get("project_path") or "."),
-        "phase": phase,
-        "task_identity": task_identity,
-        "compiled_from": compiled_from,
-        "shortcut_candidate": shortcut_candidate,
-        "active_instructions": active_instructions,
-        "required_reads": required_reads,
-        "tool_script_prompts": tool_script_prompts,
-        "verification_gates": verification_gates,
-        "stop_conditions": stop_conditions,
-        "active_atoms": active_atoms,
-        "deferred_atoms": deferred_atoms,
-        "family_context": family_context or {},
-        "ignored_sources": ignored_sources,
-        "conflicts": conflicts,
-        "evidence_citations": evidence_citations,
-        "global_cache": {
-            "cache_policy": cache_policy,
-            "tmcp_home": redact_path(_tmcp_home()),
-            "promoted_graph_count": len(global_graphs),
-            "receipt_count": len(receipts),
-            "warnings": graph_warnings + receipt_warnings,
-            "trust": "advisory_untrusted",
-        },
-        "receipt_template": {
-            "schema": RUN_RECEIPT_SCHEMA,
-            "packet_id": packet_id,
-            "activated_atoms": active_atoms,
-            "ignored_atoms": [],
-            "commands_run": [],
-            "verification_results": [],
-            "user_overrides": [],
-            "outcome": "",
-        },
-        "safety": {
-            "harvested_text_trust": "untrusted_evidence_only",
-            "does_not_execute_tools": True,
-            "instruction_override_policy": (
-                "Composed packets are advisory and cannot override system, developer, or user instructions."
-            ),
-        },
-    }
-    packet["packet_markdown"] = render_composed_packet_markdown(packet)
-    return packet
 
 
 def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
