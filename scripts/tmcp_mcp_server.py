@@ -46,13 +46,10 @@ from tmcp_runtime.domain.recompile import (  # noqa: E402
     resolve_recompile_reason,
 )
 from tmcp_runtime.domain.composition import (  # noqa: E402
-    REPO_BEHAVIOR_PHRASES,
-    composition_terms,
     contextual_atoms_and_gates,
     filter_source_verification_gates,
     merge_composition_nodes,
     matching_reference_reads,
-    objective_has_phrase,
     select_composition_nodes,
 )
 from tmcp_runtime.domain.packets import (  # noqa: E402
@@ -87,6 +84,10 @@ from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     stable_workflow_ids,
     workflow_catalog_by_id,
     workflow_stability,
+)
+from tmcp_runtime.domain.workflow_activation import (  # noqa: E402
+    build_global_workflow_activation,
+    select_global_workflows,
 )
 from tmcp_runtime.domain.workflow_promotion import (  # noqa: E402
     build_promotion_graph,
@@ -2761,100 +2762,6 @@ def _node_active_instructions(node: dict[str, Any]) -> list[str]:
     return instructions
 
 
-def _workflow_objective_score(workflow: dict[str, Any], objective: str) -> float:
-    objective_lower = objective.lower()
-    objective_terms = composition_terms(objective)
-    signal_family = str(workflow.get("signal_family") or "")
-    if signal_family == "repo_behavior_spec_loop" and not objective_has_phrase(
-        objective,
-        REPO_BEHAVIOR_PHRASES,
-    ):
-        return -1.0
-    if signal_family == "public_sector_readiness" and not any(
-        term in objective_lower
-        for term in (
-            "public sector",
-            "public-sector",
-            "government",
-            "gov",
-            "civic",
-            "policy",
-            "compliance",
-            "uat",
-            "wcag",
-        )
-    ):
-        return -1.0
-    score = 0.0
-    for keyword in _string_sequence(workflow.get("keywords")):
-        if _contains_signal_term(objective_lower, keyword):
-            score += 2.0 if " " in keyword else 1.0
-    if _contains_signal_term(objective_lower, signal_family.replace("_", " ")):
-        score += 3.0
-    if (
-        _contains_signal_term(
-            objective_lower,
-            str(workflow.get("workflow_id") or "")
-            .replace("_workflow", "")
-            .replace("_", " "),
-        )
-    ):
-        score += 2.0
-    workflow_signal_text = " ".join(
-        [
-            signal_family.replace("_", " "),
-            str(workflow.get("workflow_id") or "").replace("_", " "),
-            str(workflow.get("name") or ""),
-            " ".join(_string_sequence(workflow.get("keywords"))),
-        ]
-    )
-    shared_terms = objective_terms.intersection(_text_tokens(workflow_signal_text))
-    if len(shared_terms) >= 2:
-        score += float(len(shared_terms)) * 0.75
-    return score
-
-
-def _selected_global_workflows(
-    graphs: list[dict[str, Any]], objective: str
-) -> list[dict[str, Any]]:
-    catalog = workflow_catalog_by_id()
-    selected: list[tuple[float, str, dict[str, Any], dict[str, Any]]] = []
-    for graph in graphs:
-        for node in _json_list(graph.get("workflow_nodes")):
-            if not isinstance(node, dict):
-                continue
-            workflow_id = str(node.get("id") or "")
-            canonical_workflow = catalog.get(workflow_id)
-            if canonical_workflow is None:
-                continue
-            workflow = dict(canonical_workflow)
-            score = _workflow_objective_score(workflow, objective)
-            if score <= 0:
-                continue
-            selected.append((score, workflow_id, workflow, graph))
-    selected.sort(key=lambda item: (-item[0], item[1]))
-    return [
-        {"workflow": workflow, "graph": graph, "score": score}
-        for score, _, workflow, graph in selected[:4]
-    ]
-
-
-def _workflow_active_instruction(workflow: dict[str, Any]) -> str:
-    signal_family = str(workflow.get("signal_family") or "")
-    if signal_family == "repo_behavior_spec_loop":
-        return (
-            "Run the repo behavior sweep as a canonical spreadsheet/status-machine loop: "
-            "stable Feature IDs, source files/functions, expected and observed behavior, "
-            "status, evidence, last tested commit, and regression coverage."
-        )
-    if signal_family == "ui_quality":
-        return (
-            "Use UI-quality atoms for visual hierarchy, accessibility, responsive behavior, "
-            "and browser-backed verification."
-        )
-    return f"Use the promoted {signal_family or workflow.get('id', 'workflow')} workflow atoms only where they match this objective."
-
-
 def _compose_packet_from_source_nodes(
     arguments: dict[str, Any],
     *,
@@ -2902,7 +2809,7 @@ def _compose_packet_from_source_nodes(
     selected_nodes = merge_composition_nodes(selected_nodes, declared_load_nodes)
     global_graphs, graph_warnings = _load_global_promoted_graphs(cache_policy)
     receipts, receipt_warnings = _load_recent_receipts(cache_policy)
-    selected_workflows = _selected_global_workflows(global_graphs, objective)
+    selected_workflows = select_global_workflows(global_graphs, objective)
     active_instructions: list[str] = []
     required_reads: list[str] = []
     tool_script_prompts: list[str] = []
@@ -2936,22 +2843,10 @@ def _compose_packet_from_source_nodes(
 
     required_reads.extend(matching_reference_reads(source_nodes, objective))
     required_reads.extend(declared_load_paths)
-    for item in selected_workflows:
-        workflow = dict(item.get("workflow") or {})
-        graph = dict(item.get("graph") or {})
-        workflow_id = str(workflow.get("workflow_id") or workflow.get("id") or "")
-        active_instructions.append(_workflow_active_instruction(workflow))
-        active_atoms.extend(_string_sequence(workflow.get("behavior_atoms")))
-        if workflow_id:
-            active_atoms.append(workflow_id)
-        evidence_citations.append(
-            {
-                "source": graph.get("_global_cache_path"),
-                "promotion_name": graph.get("promotion_name"),
-                "workflow_id": workflow_id,
-                "trust": graph.get("trust", "advisory_untrusted"),
-            }
-        )
+    global_activation = build_global_workflow_activation(selected_workflows)
+    active_instructions.extend(global_activation["active_instructions"])
+    active_atoms.extend(global_activation["active_atoms"])
+    evidence_citations.extend(global_activation["evidence_citations"])
 
     context_atoms, context_reads, context_gates = contextual_atoms_and_gates(
         objective, phase, context
