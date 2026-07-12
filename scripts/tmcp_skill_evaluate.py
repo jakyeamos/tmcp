@@ -2081,7 +2081,7 @@ def harvest_warnings_for_source(
     skill_path = Path(path)
     if not is_evaluable_skill_source(skill_path, rel_path, source_type):
         return []
-    decomposition = decompose_skill(skill_path.resolve(), text)
+    decomposition = decompose_skill(skill_path, text)
     findings = static_review(decomposition, text)
     patterns = _pattern_lookup()
     advisories: list[dict[str, Any]] = []

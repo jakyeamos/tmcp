@@ -135,13 +135,19 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
             for row in plan["task_matrix"]:
                 row["skill_path"] = str(missing_skill)
 
-            report = self.evaluate.score_evidence(
-                {
-                    "evaluation_plan": plan,
-                    "project_path": str(Path(tmp) / "project"),
-                    "run_evidence_json": self._trace(),
-                }
-            )
+            compose_fn = self.evaluate._get_compose_packet_fn()
+            with patch.object(
+                self.evaluate,
+                "_get_compose_packet_fn",
+                return_value=compose_fn,
+            ), patch.object(Path, "resolve", side_effect=AssertionError("path read")):
+                report = self.evaluate.score_evidence(
+                    {
+                        "evaluation_plan": plan,
+                        "project_path": str(Path(tmp) / "project"),
+                        "run_evidence_json": self._trace(),
+                    }
+                )
 
         packet_score = report["packet_inclusion_scores"][0]
         self.assertEqual(packet_score["confidence"], "high")
