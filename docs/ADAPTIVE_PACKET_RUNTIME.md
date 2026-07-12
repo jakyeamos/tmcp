@@ -91,7 +91,7 @@ Add `task_identity` as a structured, first-class field on composed and recompile
 3. When a scoped packet seed matches, seed `primary` from seed `id` / `name` and merge seed `behavior_atoms` into routes.
 4. On recompile, compare new `task_identity` to `previous_task_identity`; emit `task_identity_delta` when primary or secondary sets change.
 
-**Route catalog** (initial set, extensible in `scripts/tmcp_route_catalog.py`):
+**Route catalog** (initial set, extensible in `tmcp_runtime/domain/routes.py`):
 
 | Route ID | Trigger signals (objective / context) |
 | --- | --- |
@@ -121,7 +121,7 @@ Additive fields on `tmcp-runtime-next-v0.1`:
 
 | Step | Location | Work |
 | --- | --- | --- |
-| 1 | `scripts/tmcp_route_catalog.py` (new) | Route definitions, `_score_routes(objective, context) -> list[RouteScore]` |
+| 1 | `tmcp_runtime/domain/routes.py` | Route definitions, `_score_routes(objective, context) -> list[RouteScore]` |
 | 2 | `scripts/tmcp_mcp_server.py` | `_derive_task_identity()` called from `_compose_packet()` and `_runtime_next()` |
 | 3 | `scripts/tmcp_mcp_server.py` | Include `task_identity` in `packet_id` hash inputs when identity changes materially |
 | 4 | `schemas/tmcp-composed-packet-v0.1.schema.json` | Document optional `task_identity`, `compiled_from` |
@@ -437,7 +437,7 @@ Promotion path:
 
 | Step | Location | Work |
 | --- | --- | --- |
-| 1 | `scripts/tmcp_route_catalog.py` | Route definitions with `source_boost()` |
+| 1 | `tmcp_runtime/domain/routes.py` | Route definitions with `source_boost()` |
 | 2 | `scripts/tmcp_mcp_server.py` | Thread `active_routes` into `_node_composition_score()` |
 | 3 | `scripts/tmcp_mcp_server.py` | Lower seed match threshold when route affinity overlaps ≥ 2 routes |
 | 4 | `examples/seeds/frontend-redesign-runtime.json` | Reference scoped seed |
@@ -459,7 +459,7 @@ Promotion path:
 
 Low risk, additive schema fields, immediate inspectability win.
 
-1. `tmcp_route_catalog.py` + `_derive_task_identity()`
+1. `tmcp_runtime/domain/routes.py` + `_derive_task_identity()`
 2. `_composed_packet_markdown()` on every compose response
 3. Tests + update `TMCP_PACKET_SPEC.md`
 
@@ -571,7 +571,7 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | File | Action |
 | --- | --- |
 | `docs/ADAPTIVE_PACKET_RUNTIME.md` | This document |
-| `scripts/tmcp_route_catalog.py` | New — route definitions and scoring |
+| `tmcp_runtime/domain/routes.py` | Route definitions and scoring |
 | `scripts/tmcp_mcp_server.py` | Extend compose, runtime, markdown renderers |
 | `schemas/tmcp-recompiled-packet-v0.1.schema.json` | New |
 | `schemas/tmcp-composed-packet-v0.1.schema.json` | Add optional fields |

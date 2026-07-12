@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.tmcp_route_catalog import validate_proposed_changes
+from tmcp_runtime.domain.routes import validate_proposed_changes
 from tests import test_tmcp_mcp_server as helpers
 from tests.test_tmcp_skill_family_compose import _write_product_design_family
 

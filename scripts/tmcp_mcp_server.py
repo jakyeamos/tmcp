@@ -22,7 +22,7 @@ if str(PLUGIN_ROOT) not in sys.path:
 
 from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
 from scripts.tmcp_redaction import merge_redactions  # noqa: E402
-from scripts.tmcp_route_catalog import (  # noqa: E402
+from tmcp_runtime.domain.routes import (  # noqa: E402
     ROUTE_CATALOG_VERSION,
     composition_route_boost,
     derive_task_identity,

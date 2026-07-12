@@ -14,6 +14,8 @@ COMPILE_PATHS: tuple[str, ...] = (
     "scripts/tmcp_mcp_framing.py",
     "scripts/tmcp_redaction.py",
     "tmcp_runtime/__init__.py",
+    "tmcp_runtime/domain/__init__.py",
+    "tmcp_runtime/domain/routes.py",
     "tmcp_runtime/api/__init__.py",
     "tmcp_runtime/api/registry.py",
     "tmcp_runtime/api/tool_schemas.py",
