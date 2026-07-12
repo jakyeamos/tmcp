@@ -6,16 +6,16 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 composition-domain split after the session slice,
-release-check cleanup, recompile/context/presentation/assembly policy,
-task-family routing, and node-ranking policy
+**Current focus:** Milestone 3 next domain-boundary mapping after the session
+slice, release-check cleanup, recompile/context/presentation/assembly policy,
+task-family routing, node ranking, and packet-policy split
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
-contextual/presentation/assembly composition policy, task-family routing, and
-node ranking complete; split the oversized composition owner next
+contextual/selection composition policy, task-family routing, and final packet
+policy split complete; map the next adapter boundary
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -23,8 +23,8 @@ node ranking complete; split the oversized composition owner next
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
 - **Status:** Project-local session journey, focused release checks, pure
-  recompile/context/presentation/assembly policy, task-family routing, and node
-  ranking complete; split the oversized composition owner next
+  recompile/contextual/selection policy, task-family routing, and final packet
+  construction/presentation split complete; map the next adapter boundary
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -114,6 +114,11 @@ node ranking complete; split the oversized composition owner next
   tests cover guardrails, metadata, fallback, and tie behavior. The commit gate
   reports that this owner is now above the 600-line source limit, so split it
   before the next feature change.
+- `6cc0769` resolves that source-size gate by separating final packet
+  construction, provenance, shortcut selection, and Markdown rendering into
+  `tmcp_runtime/domain/packets.py`. Both domain owners are below the 600-line
+  limit; the server keeps recompile renderer injection as a dependency-free
+  callback.
 
 ## Workflow Notes
 
@@ -140,9 +145,9 @@ node ranking complete; split the oversized composition owner next
   history, and use a verified per-session lock for cooperative writers.
 - Recompile policy is domain-owned and directly tested; source harvesting,
   composition, enrichment, and session persistence remain adapter/service work.
-- Contextual composition policy, task-family routing, and node ranking are
-  domain-owned and directly tested. Split the oversized composition owner before
-  further policy work.
+- Contextual composition policy, task-family routing, node ranking, and final
+  packet construction/presentation are domain-owned and directly tested. Both
+  composition owners are below the source-size limit.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -178,12 +183,12 @@ node ranking complete; split the oversized composition owner next
   composition policy behind domain boundaries; `8b2cdb5` centralizes packet
   provenance and presentation in that composition domain; `9cb3c8b` centralizes
   final packet assembly there as well; `06defa0` extracts task-family routing
-  into a pure domain module; `9b6c47f` adds node ranking but creates a required
-  source-size split follow-up.
+  into a pure domain module; `9b6c47f` adds node ranking; `6cc0769` separates
+  final packet construction/presentation to close the required source-size gate.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Split composition-domain responsibilities below the 600-line source limit.
+# Map the next deterministic policy boundary still owned by the MCP adapter.
 ```

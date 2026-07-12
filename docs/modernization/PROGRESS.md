@@ -3,9 +3,9 @@
 ## Current state
 
 **Phase:** Milestone 3 composition/recompile session slice, release-check
-cleanup, pure recompile policy, contextual/presentation/assembly composition
-policy, task-family routing, and node ranking complete; split the oversized
-composition owner next.
+cleanup, pure recompile policy, contextual/selection composition policy,
+task-family routing, and final packet construction/presentation split complete;
+map the next adapter boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -16,8 +16,8 @@ input/storage boundary are implemented in the isolated modernization worktree.
 The public runtime surface remains stable while the next slice moves composition
 and recompilation behind that boundary. The first vertical journey now supports
 explicit project-local session persistence without changing the legacy inline
-packet path; pure recompile transformations, task-family routing, and node
-ranking are domain-owned.
+packet path; pure recompile transformations, task-family routing, node ranking,
+and final packet construction/presentation are domain-owned.
 
 ## Decisions recorded
 
@@ -111,6 +111,10 @@ ranking are domain-owned.
   247 local tests and three expected platform skips. The commit gate reports
   that `composition.py` exceeds the 600-line production source limit, so its
   responsibilities must be split before new feature work.
+- `6cc0769` closes that gate by moving final composed-packet assembly,
+  provenance, shortcut eligibility, and Markdown rendering into
+  `tmcp_runtime/domain/packets.py`. The server keeps callback-based recompile
+  rendering; composition and packets are both below the source limit.
 
 ## Blockers and risks
 
@@ -122,6 +126,5 @@ ranking are domain-owned.
 
 ## Next step
 
-Split `tmcp_runtime/domain/composition.py` by responsibility below the source
-size limit, retain stable imports/behavior, then repeat package and adversarial
-validation.
+Map the next deterministic policy boundary remaining in the MCP adapter, retain
+stable imports/behavior, then repeat package and adversarial validation.
