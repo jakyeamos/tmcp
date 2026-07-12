@@ -6,19 +6,22 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 recompile-domain extraction after session slice
+**Current focus:** Milestone 3 recompile-domain extraction after the session
+slice and release-check cleanup
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 3 session slice complete; recompile-domain extraction in progress
+**Status:** Milestone 3 session slice and release-check cleanup complete;
+recompile-domain extraction next
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
-- **Status:** Project-local session journey complete; extract the recompile domain service next
+- **Status:** Project-local session journey and focused release checks complete;
+  extract the recompile domain service next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -82,6 +85,9 @@ file boundaries and a coherent agent-facing workflow.
   218 passing tests with three expected platform skips.
 - The clean committed tree at `fcbae5e` passes reproducible package verification,
   including the packaged session compose → recompile smoke.
+- `6864350` moves composition/runtime/session release dogfood into focused
+  helpers, preserves the main release checker as an orchestrator, and makes the
+  shared release compile helper the documented local source-validation command.
 
 ## Workflow Notes
 
@@ -89,8 +95,8 @@ file boundaries and a coherent agent-facing workflow.
   reproducibility check before publication.
 - Quality Runner remains advisory-only; the prior QR plan is parked.
 - Preserve public MCP/CLI contracts through a versioned compatibility adapter.
-- The safe reader and release-package compile surface are split into focused
-  modules; the commit gate is clean again.
+- Release composition/runtime/session dogfood lives in focused helpers; the
+  main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
   directories must use the verified per-file store rather than a bundle swap.
 - Evaluation never re-reads a persisted plan's skill path while scoring; it
@@ -133,7 +139,8 @@ file boundaries and a coherent agent-facing workflow.
   Windows junctions as links, and runs portable package verification on Windows.
 - 2026-07-12: M3 adds an explicit project-local compose → full-recompile
   session path while retaining inline previous-packet compatibility; a fresh
-  adversarial pass closes relative-root and forged-lineage findings.
+  adversarial pass closes relative-root and forged-lineage findings, then
+  `6864350` separates its release dogfood into focused composition/session helpers.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command

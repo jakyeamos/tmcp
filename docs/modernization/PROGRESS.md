@@ -2,8 +2,8 @@
 
 ## Current state
 
-**Phase:** Milestone 3 composition/recompile session slice complete; pure
-recompile-domain extraction next.
+**Phase:** Milestone 3 composition/recompile session slice and release-check
+cleanup complete; pure recompile-domain extraction next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -77,6 +77,9 @@ packet path.
   package smoke behavior. The local suite has 218 passing tests with three
   expected platform skips; the clean committed tree at `fcbae5e` also passes
   reproducible package verification, including the packaged session smoke.
+- `6864350` moves composition, runtime, receipt, and session release dogfood
+  into focused helpers. The main release checker is below the repository source
+  size threshold, and its package/install/CI/local-validation surfaces are synchronized.
 
 ## Blockers and risks
 
