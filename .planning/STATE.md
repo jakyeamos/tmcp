@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 promotion-graph construction is domain-owned;
-extract global workflow-activation policy next.
+**Current focus:** Milestone 3 workflow recommendation, promotion, and global
+activation policy are domain-owned; run final architecture and release review.
 
 ## Milestone
 
@@ -16,8 +16,8 @@ extract global workflow-activation policy next.
 contextual/selection composition policy, task-family routing/runtime transitions,
 declared-read selection, standalone packet compilation, final packet-policy
 split, complete review policy extraction, workflow catalog/scoring extraction,
-adaptive workflow-pack construction, and promotion-graph construction; extract
-global workflow-activation policy.
+adaptive workflow-pack construction, promotion-graph construction, and global
+workflow activation; run final architecture and release review.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -28,8 +28,9 @@ global workflow-activation policy.
   recompile/contextual/selection policy, task-family routing/runtime transitions,
   declared-read selection, standalone packet compilation, final packet
   construction/presentation, complete review-policy split, workflow catalog and
-  scoring extraction, adaptive workflow-pack construction, and promotion-graph
-  construction complete; extract global workflow-activation policy.
+  scoring extraction, adaptive workflow-pack construction, promotion-graph
+  construction, and global workflow activation complete; run final architecture
+  and release review.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -158,6 +159,10 @@ global workflow-activation policy.
   construction, canonical catalog edges, and promotion Markdown rendering into
   `tmcp_runtime/domain/workflow_promotion.py`; the adapter retains harvest,
   redaction, artifact persistence, and global-cache activation.
+- `52ad06b` moves global workflow objective scoring, canonical catalog
+  rehydration, activation projection, and specialized workflow instructions into
+  `tmcp_runtime/domain/workflow_activation.py`; cache validation and packet
+  orchestration remain in the adapter.
 
 ## Workflow Notes
 
@@ -203,6 +208,8 @@ global workflow-activation policy.
   domain-owned; the adapter redacts results before persisting rendered artifacts.
 - Promotion target selection and graph construction are domain-owned; graph
   edges derive workflow atoms from the canonical catalog, not harvested payloads.
+- Global workflow activation is domain-owned; untrusted cache graphs contribute
+  only validated canonical workflow IDs and retain advisory provenance.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -249,11 +256,12 @@ global workflow-activation policy.
   `f6f50f3` moves recommendation scoring and candidate construction behind an
   explicit harvested-text boundary; `03009f9` moves adaptive workflow-pack
   construction and recommendation Markdown rendering into a sibling pure domain;
-  `5ac3e2a` moves promotion graph policy behind the canonical workflow catalog.
+  `5ac3e2a` moves promotion graph policy behind the canonical workflow catalog;
+  `52ad06b` moves global activation behind the same canonical catalog boundary.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract global workflow-activation policy from the MCP adapter.
+# Run final architecture, package, and adversarial review of the modernization branch.
 ```

@@ -583,6 +583,7 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | `tmcp_runtime/domain/review_results.py` | Remediation plans, implementation handoffs, review validations, and review-artifact Markdown rendering |
 | `tmcp_runtime/domain/routes.py` | Route definitions and scoring |
 | `tmcp_runtime/domain/standalone_packets.py` | Legacy standalone task/playbook packet compilation and Markdown rendering |
+| `tmcp_runtime/domain/workflow_activation.py` | Objective scoring, canonical workflow rehydration, activation projection, and specialized workflow instructions for validated promoted graphs |
 | `tmcp_runtime/domain/workflow_adaptive.py` | Scoped-seed projection, adaptive workflow-pack construction, custom-idea/overlap/process-gap policy, and recommendation Markdown rendering |
 | `tmcp_runtime/domain/workflow_catalog.py` | Curated workflow definitions, candidate filtering, stability labels, and ID lookup shared by recommendation, promotion, and cache selection |
 | `tmcp_runtime/domain/workflow_promotion.py` | Promotion target selection, scoped-seed precedence, canonical graph construction, and promotion Markdown rendering |

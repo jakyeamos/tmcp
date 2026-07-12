@@ -6,8 +6,9 @@
 cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, review-profile catalog,
-review-policy, workflow catalog/scoring, adaptive workflow-pack, and
-promotion-graph splits complete; extract global workflow-activation policy.
+review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
+and global workflow-activation splits complete; run final architecture and
+release review.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -33,7 +34,10 @@ policy, and recommendation Markdown rendering now share one pure domain owner;
 the adapter still owns redaction and artifact persistence. Promotion target
 selection, scoped-seed precedence, graph construction, canonical catalog edges,
 and promotion Markdown rendering also share one pure domain owner; the adapter
-still owns persistence and global-cache activation.
+still owns persistence and global-cache activation. Global activation now owns
+objective scoring, canonical workflow rehydration, activation projection, and
+specialized instructions while the adapter retains cache validation and packet
+orchestration.
 
 ## Decisions recorded
 
@@ -173,6 +177,11 @@ still owns persistence and global-cache activation.
   `tmcp_runtime/domain/workflow_promotion.py`. Exact old/new parity, focused
   domain coverage, and the full local suite pass with 273 tests and three
   expected platform skips.
+- `52ad06b` moves global workflow objective scoring, canonical catalog
+  rehydration, activation projection, and specialized workflow instructions into
+  `tmcp_runtime/domain/workflow_activation.py`. Exact old/new parity, focused
+  domain coverage, and the full local suite pass with 276 tests and three
+  expected platform skips.
 
 ## Blockers and risks
 
@@ -184,6 +193,5 @@ still owns persistence and global-cache activation.
 
 ## Next step
 
-Extract pure global workflow-activation policy while retaining cache validation,
-redaction, persistence, and tool dispatch in the MCP adapter; then repeat
-package and adversarial validation.
+Run final architecture, package, security, data-integrity, accessibility, and
+adversarial review; fix confirmed issues, then repeat the full validation suite.
