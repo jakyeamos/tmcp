@@ -4,8 +4,8 @@
 
 **Phase:** Milestone 3 composition/recompile session slice, release-check
 cleanup, pure recompile policy, contextual/selection composition policy,
-task-family routing, and final packet construction/presentation split complete;
-map the next adapter boundary.
+task-family routing/runtime transitions, and final packet construction/presentation
+split complete; extract declared-read policy next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -16,8 +16,9 @@ input/storage boundary are implemented in the isolated modernization worktree.
 The public runtime surface remains stable while the next slice moves composition
 and recompilation behind that boundary. The first vertical journey now supports
 explicit project-local session persistence without changing the legacy inline
-packet path; pure recompile transformations, task-family routing, node ranking,
-and final packet construction/presentation are domain-owned.
+packet path; pure recompile transformations, task-family routing/runtime
+transitions, node ranking, and final packet construction/presentation are
+domain-owned.
 
 ## Decisions recorded
 
@@ -115,6 +116,11 @@ and final packet construction/presentation are domain-owned.
   provenance, shortcut eligibility, and Markdown rendering into
   `tmcp_runtime/domain/packets.py`. The server keeps callback-based recompile
   rendering; composition and packets are both below the source limit.
+- `32d6a9f` moves family phase aliases, transition-only seed fallback, phase
+  selection, skill activation/deactivation, and transition deltas into
+  `tmcp_runtime/domain/families.py`. The adapter injects declared-read selection,
+  avoiding a domain-to-adapter dependency; 251 local tests pass with three
+  expected platform skips.
 
 ## Blockers and risks
 
@@ -126,5 +132,6 @@ and final packet construction/presentation are domain-owned.
 
 ## Next step
 
-Map the next deterministic policy boundary remaining in the MCP adapter, retain
-stable imports/behavior, then repeat package and adversarial validation.
+Extract declared-read selection and compose-node merge policy from the MCP
+adapter, retain stable imports/behavior, then repeat package and adversarial
+validation.

@@ -574,7 +574,7 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | --- | --- |
 | `docs/ADAPTIVE_PACKET_RUNTIME.md` | This document |
 | `tmcp_runtime/domain/composition.py` | Contextual gates, node scoring/selection, source verification-gate filtering, and reference-read selection |
-| `tmcp_runtime/domain/families.py` | Scoped-seed and router family resolution, primary-source matching, sibling deferral, and declared-load normalization |
+| `tmcp_runtime/domain/families.py` | Scoped-seed/router family resolution, primary-source matching, sibling deferral, declared-load normalization, and runtime phase-transition policy; declared-read selection remains adapter-injected |
 | `tmcp_runtime/domain/packets.py` | Final packet assembly, provenance, shortcut eligibility, and composed Markdown rendering |
 | `tmcp_runtime/domain/recompile.py` | Pure recompile policy and Markdown diff rendering |
 | `tmcp_runtime/domain/routes.py` | Route definitions and scoring |

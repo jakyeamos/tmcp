@@ -6,16 +6,16 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 next domain-boundary mapping after the session
+**Current focus:** Milestone 3 declared-read policy extraction after the session
 slice, release-check cleanup, recompile/context/presentation/assembly policy,
-task-family routing, node ranking, and packet-policy split
+task-family routing/runtime transitions, node ranking, and packet-policy split
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
-contextual/selection composition policy, task-family routing, and final packet
-policy split complete; map the next adapter boundary
+contextual/selection composition policy, task-family routing/runtime transitions,
+and final packet-policy split complete; extract declared-read policy next
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -23,8 +23,9 @@ policy split complete; map the next adapter boundary
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
 - **Status:** Project-local session journey, focused release checks, pure
-  recompile/contextual/selection policy, task-family routing, and final packet
-  construction/presentation split complete; map the next adapter boundary
+  recompile/contextual/selection policy, task-family routing/runtime transitions,
+  and final packet construction/presentation split complete; extract declared-read
+  policy next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -119,6 +120,10 @@ policy split complete; map the next adapter boundary
   `tmcp_runtime/domain/packets.py`. Both domain owners are below the 600-line
   limit; the server keeps recompile renderer injection as a dependency-free
   callback.
+- `32d6a9f` moves family-phase aliases, seed transition fallback, phase choice,
+  skill activation/deactivation, and transition-only seed lookup into
+  `tmcp_runtime/domain/families.py`. Declared-read resolution remains an
+  adapter-injected callback, preserving the domain dependency direction.
 
 ## Workflow Notes
 
@@ -148,6 +153,8 @@ policy split complete; map the next adapter boundary
 - Contextual composition policy, task-family routing, node ranking, and final
   packet construction/presentation are domain-owned and directly tested. Both
   composition owners are below the source-size limit.
+- Family runtime transitions are domain-owned and directly tested; declared-read
+  resolution is explicitly injected from the adapter until its next extraction.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -184,11 +191,12 @@ policy split complete; map the next adapter boundary
   provenance and presentation in that composition domain; `9cb3c8b` centralizes
   final packet assembly there as well; `06defa0` extracts task-family routing
   into a pure domain module; `9b6c47f` adds node ranking; `6cc0769` separates
-  final packet construction/presentation to close the required source-size gate.
+  final packet construction/presentation to close the required source-size gate;
+  `32d6a9f` adds family runtime transition policy with adapter-injected reads.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the next deterministic policy boundary still owned by the MCP adapter.
+# Extract declared-read selection and merge policy into a dedicated domain module.
 ```
