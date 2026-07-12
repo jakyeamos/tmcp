@@ -80,6 +80,8 @@ file boundaries and a coherent agent-facing workflow.
   project roots, opaque keys, revision-locked latest records, pinned recompile
   lineage, portable denial, and CLI/MCP/package coverage. The local suite has
   218 passing tests with three expected platform skips.
+- The clean committed tree at `fcbae5e` passes reproducible package verification,
+  including the packaged session compose → recompile smoke.
 
 ## Workflow Notes
 

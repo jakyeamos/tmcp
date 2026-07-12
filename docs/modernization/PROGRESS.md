@@ -75,7 +75,8 @@ packet path.
   record → full recompile → revision update. It covers CLI and MCP transport,
   strict path/lineage rules, redaction, symlink denial, cooperative locking, and
   package smoke behavior. The local suite has 218 passing tests with three
-  expected platform skips; clean-tree package evidence is the next gate.
+  expected platform skips; the clean committed tree at `fcbae5e` also passes
+  reproducible package verification, including the packaged session smoke.
 
 ## Blockers and risks
 
