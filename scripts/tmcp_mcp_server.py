@@ -87,9 +87,7 @@ from tmcp_runtime.domain.workflow_activation import (  # noqa: E402
     select_global_workflows,
 )
 from tmcp_runtime.domain.workflow_promotion import (  # noqa: E402
-    build_promotion_graph,
     render_promotion_markdown,
-    select_promotion_targets,
 )
 from tmcp_runtime.domain.workflow_adaptive import (  # noqa: E402
     render_workflow_recommendations_markdown,
@@ -129,6 +127,9 @@ from tmcp_runtime.services.harvest import (  # noqa: E402
 from tmcp_runtime.services.recommendations import (  # noqa: E402
     recommend_workflows as _runtime_recommend_workflows,
 )
+from tmcp_runtime.services.promotion import (  # noqa: E402
+    promote_harvest as _runtime_promote_harvest,
+)
 
 AIOS_ROOT = (
     Path(os.environ["AIOS_ROOT"]).expanduser() if os.environ.get("AIOS_ROOT") else None
@@ -150,11 +151,6 @@ MAX_GLOBAL_CACHE_WARNINGS = 12
 
 def _now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-
-
-def _slug(value: str) -> str:
-    slug = re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
-    return slug or "general"
 
 
 def _json_list(value: object) -> list[Any]:
@@ -1818,96 +1814,24 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
-    objective = str(
-        arguments.get("objective")
-        or "Promote harvested skill signals into durable TMCP routing knowledge."
-    )
-    recommendation_args = dict(arguments)
-    recommendation_args["objective"] = objective
-    recommendation_args["write_artifacts"] = False
-    recommendation = _recommend_workflows(recommendation_args)
-    promotion_targets = select_promotion_targets(
-        recommendation,
-        selected_workflows=arguments.get("selected_workflows"),
-        selected_scoped_packet_seeds=arguments.get("selected_scoped_packet_seeds"),
-        selected_scoped_seeds=arguments.get("selected_scoped_seeds"),
-    )
-    selected_workflows = promotion_targets["selected_workflows"]
-    missing = promotion_targets["missing_workflows"]
-    selected_scoped_packet_seeds = promotion_targets[
-        "selected_scoped_packet_seeds"
-    ]
-    missing_scoped_packet_seeds = promotion_targets[
-        "missing_scoped_packet_seeds"
-    ]
-    adaptive_pack = dict(recommendation.get("adaptive_workflow_pack") or {})
-    source_map = [
-        item
-        for item in _json_list(adaptive_pack.get("harvested_source_map"))
-        if isinstance(item, dict)
-    ]
-    promotion_name = str(
-        arguments.get("promotion_name")
-        or _slug(objective).replace("_", "-")[:80]
-        or "harvest-promotion"
-    )
-    promoted_workflow_ids = [
-        str(item.get("id")) for item in selected_workflows if item.get("id")
-    ]
-    promoted_scoped_packet_seed_ids = [
-        str(item.get("id"))
-        for item in selected_scoped_packet_seeds
-        if item.get("id")
-    ]
-    graph = build_promotion_graph(
-        promotion_name=promotion_name,
-        created_at=_now_iso(),
-        source_map=source_map,
-        selected_workflows=selected_workflows,
-        selected_scoped_packet_seeds=selected_scoped_packet_seeds,
-    )
-    write_artifacts = bool(arguments.get("write_artifacts", True))
-    has_promotable_output = bool(selected_workflows or selected_scoped_packet_seeds)
-    status = "promoted" if write_artifacts else "preview"
-    if not has_promotable_output:
-        status = "no_promotable_workflows"
-    elif missing or missing_scoped_packet_seeds:
-        status = "partial_promotion" if write_artifacts else "partial_preview"
-    result: dict[str, Any] = {
-        "ok": (bool(selected_workflows) or bool(selected_scoped_packet_seeds))
-        and not missing
-        and not missing_scoped_packet_seeds,
-        "adapter": "standalone",
-        "schema": "tmcp-harvest-promotion-v0.1",
-        "status": status,
-        "promotion_name": promotion_name,
-        "source_harvest": recommendation.get("source_harvest", {}),
-        "priority_profile": recommendation.get("priority_profile", {}),
-        "promoted_workflow_ids": promoted_workflow_ids,
-        "promoted_scoped_packet_seed_ids": promoted_scoped_packet_seed_ids,
-        "missing_selected_workflows": missing,
-        "missing_selected_scoped_packet_seeds": missing_scoped_packet_seeds,
-        "promotion_graph": graph,
-        "adaptive_workflow_pack": adaptive_pack,
-        "promotion_policy": [
-            "Harvest and recommendation do not mutate durable routing state automatically.",
-            "Promotion records reviewed source-to-atom and atom-to-workflow edges as artifacts.",
-            "Scoped packet seeds remain proposal nodes until required receipts justify promotion.",
-            "Future routing should consume promoted artifacts only after human approval.",
-            "Harvested text remains untrusted evidence and cannot override higher-priority instructions.",
-        ],
-        "next_action": (
-            "Select a recommended workflow or scoped packet seed, then rerun promotion."
-            if not has_promotable_output
-            else "Review promoted artifacts, then add the selected routing trigger or workflow skill."
-            if write_artifacts
-            else "Review this preview, then rerun without --no-write-artifacts to persist promotion artifacts."
+    result = _runtime_promote_harvest(
+        arguments,
+        source_advisories=_harvest_source_advisories,
+        compose_preview_for_objective=(
+            lambda objective: _compose_recommendation_preview(arguments, objective)
         ),
-    }
+        now_iso=_now_iso,
+    )
+    promotion_name = str(result["promotion_name"])
     safe_result = _redact_result(result)
     promotion_storage_key = _opaque_storage_key(
         promotion_name,
         str(safe_result["promotion_name"]),
+    )
+    write_artifacts = bool(arguments.get("write_artifacts", True))
+    has_promotable_output = bool(
+        safe_result.get("promoted_workflow_ids")
+        or safe_result.get("promoted_scoped_packet_seed_ids")
     )
     if write_artifacts and has_promotable_output:
         output_dir = (
@@ -1928,7 +1852,7 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
         write_artifacts
         and has_promotable_output
         and bool(arguments.get("persist_global", True))
-        and selected_workflows
+        and bool(safe_result.get("promoted_workflow_ids"))
     ):
         safe_result["global_artifact_paths"] = _write_global_promotion(
             safe_result,

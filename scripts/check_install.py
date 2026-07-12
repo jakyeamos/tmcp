@@ -59,6 +59,7 @@ REQUIRED_FILES = (
     "tmcp_runtime/storage/sessions.py",
     "tmcp_runtime/services/__init__.py",
     "tmcp_runtime/services/harvest.py",
+    "tmcp_runtime/services/promotion.py",
     "tmcp_runtime/services/recommendations.py",
     "skills/tmcp-adaptive-workflow-pack/SKILL.md",
     "skills/tmcp-agent-handoff/SKILL.md",
