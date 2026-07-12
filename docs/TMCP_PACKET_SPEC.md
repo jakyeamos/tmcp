@@ -25,6 +25,10 @@ Composable runtime packets (`tmcp-composed-packet-v0.1`) and the Adaptive Packet
 
 `tmcp_runtime_next` may also return `task_identity` for the current runtime state and `task_identity_delta` when `previous_task_identity` is supplied. With `output_mode: "full"` and `previous_packet`, TMCP returns `tmcp-recompiled-packet-v0.1` containing a full regenerated packet plus `packet_diff`.
 
+Composition and runtime routing are stateless by default: `cache_policy` defaults
+to `none`. Pass `cache_policy: "global"` only when the caller explicitly wants
+to read advisory promoted graphs and receipts from `TMCP_HOME`.
+
 ## Packet Sessions
 
 `tmcp-run-session-v0.1` is a redacted, project-local record for the latest

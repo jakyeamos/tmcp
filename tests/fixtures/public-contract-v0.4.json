@@ -1,5 +1,5 @@
 {
-  "mcp_tools_sha256": "sha256:3bb671a8f66e2479b214094f07719c9b1d454c4d7a02c5e3163bf18ee93477bf",
+  "mcp_tools_sha256": "sha256:a7f5eafae63f7f19ec48cb9fc130bd4e6ae8a14750f860f617363a1ef3751d5c",
   "pseudo_commands": {
     "help": ["help", "-h", "--help"],
     "list_tools": ["list-tools", "tools", "tools-list"],
@@ -82,7 +82,7 @@
       "cli_aliases": ["compose", "compose-packet", "tmcp-compose-packet", "tmcp_compose_packet"],
       "cli_defaults": {},
       "description_sha256": "sha256:beac1193f576cba018f600ee033df19c51c0b06ab2f6cb005f721196b0a496be",
-      "input_schema_sha256": "sha256:ae31954991e1fdea21f04ab61ea6905b100cd5da77d7dc01d94bb26681e0e10d",
+      "input_schema_sha256": "sha256:08f87afa4194e0d66342f90d2590283b194b4db42d53aa89735f63e90c6826e1",
       "name": "tmcp_compose_packet",
       "output_schema_ids": ["tmcp-composed-packet-v0.1"],
       "stability": "stable",
@@ -96,7 +96,7 @@
         "tmcp-recompile-packet": {"output_mode": "full"}
       },
       "description_sha256": "sha256:765221fb63a755cb9f338c92b1449943a84d1d4294b2a056687512fe56da8f2f",
-      "input_schema_sha256": "sha256:d20ccf11cde5a90d9805e2c2b63894f30a6239356aee92e54e61db13a718eb27",
+      "input_schema_sha256": "sha256:457374260ee8afa3f0c247f842c055c55d7ba5b8e6eb7bdf7c5e91ad3d2438da",
       "name": "tmcp_runtime_next",
       "output_schema_ids": ["tmcp-runtime-next-v0.1", "tmcp-recompiled-packet-v0.1"],
       "stability": "stable",

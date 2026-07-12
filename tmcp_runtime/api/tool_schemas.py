@@ -208,7 +208,11 @@ TOOLS: dict[str, dict[str, object]] = {
                 "cache_policy": {
                     "type": "string",
                     "enum": ["global", "none"],
-                    "default": "global",
+                    "default": "none",
+                    "description": (
+                        "Read no global cache by default. Set global only to opt into "
+                        "advisory promoted graphs and receipts from TMCP_HOME."
+                    ),
                 },
                 "runtime_context": {"type": "object"},
                 "include_globs": {"type": "array", "items": {"type": "string"}},
@@ -296,7 +300,11 @@ TOOLS: dict[str, dict[str, object]] = {
                 "cache_policy": {
                     "type": "string",
                     "enum": ["global", "none"],
-                    "default": "global",
+                    "default": "none",
+                    "description": (
+                        "Read no global cache by default. Set global only to opt into "
+                        "advisory promoted graphs and receipts from TMCP_HOME."
+                    ),
                 },
             },
             "required": ["objective"],

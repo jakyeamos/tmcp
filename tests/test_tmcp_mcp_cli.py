@@ -190,6 +190,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(tool_name, "tmcp_runtime_next")
         self.assertEqual(arguments["objective"], "Fix the dashboard bug")
         self.assertEqual(arguments["current_phase"], "final")
+        self.assertNotIn("cache_policy", arguments)
         self.assertEqual(arguments["files_changed"], ["app/page.tsx"])
         self.assertEqual(arguments["failures"], ["vitest failed"])
 

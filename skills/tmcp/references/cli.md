@@ -26,7 +26,7 @@ node scripts/tmcp_launcher.mjs review-plan "<objective>" --project-path "<projec
 
 ## Composition Commands
 
-- `tmcp_compose_packet` / `compose-packet`: create a small phase-specific packet from harvested sources, promoted global cache knowledge, and optional runtime context.
+- `tmcp_compose_packet` / `compose-packet`: create a small phase-specific packet from harvested sources, optional explicitly opted-in global cache knowledge, and optional runtime context.
 - `tmcp_runtime_next` / `runtime-next`: return packet deltas after changed files, failures, browser evidence, phase changes, or user redirects.
 - `tmcp_record_receipt` / `record-receipt`: write an advisory run receipt after verification or outcome.
 - `--compose`: add a composed packet to `explain` or `recommend` output without changing their legacy output shape.
@@ -38,7 +38,7 @@ requires secure persistence, cannot replace an existing session or be combined
 with `previous_packet`, and has no history or global lookup. Keep the inline
 `previous_packet` path for portable full recompiles.
 
-`TMCP_HOME` controls the global cache location; if unset, TMCP uses `~/.tmcp`. Promoted harvest graphs live under `promoted-harvests/`, and receipts live under `receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions.
+`TMCP_HOME` controls the global cache location; if unset, TMCP uses `~/.tmcp`. Promoted harvest graphs live under `promoted-harvests/`, and receipts live under `receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions. Composition and runtime routing default to `cache_policy=none`; pass `--cache-policy global` only to opt in.
 
 ## Fallback Order
 

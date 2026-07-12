@@ -434,7 +434,7 @@ def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
     if not objective:
         raise ValueError("tmcp_runtime_next requires objective.")
     phase = str(arguments.get("current_phase") or "start")
-    cache_policy = str(arguments.get("cache_policy") or "global")
+    cache_policy = str(arguments.get("cache_policy") or "none")
     latest_user_message = str(arguments.get("latest_user_message") or "")
     files_changed = _string_list(arguments.get("files_changed"))
     failures = _string_list(arguments.get("failures"))
@@ -603,7 +603,7 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
         "project_path": session_project_path,
         "source_path": source_path,
         "phase": target_phase,
-        "cache_policy": state.get("cache_policy") or "global",
+        "cache_policy": state.get("cache_policy") or "none",
         "runtime_context": state.get("context") or {},
         "latest_user_message": state.get("latest_user_message") or "",
         "limit": arguments.get("limit", 40),
@@ -2771,7 +2771,7 @@ def _compose_packet_from_source_nodes(
     if not objective:
         raise ValueError("tmcp_compose_packet requires objective.")
     phase = str(arguments.get("phase") or "start")
-    cache_policy = str(arguments.get("cache_policy") or "global")
+    cache_policy = str(arguments.get("cache_policy") or "none")
     context = _compose_context(arguments)
     identity_context = dict(context)
     identity_context["latest_user_message"] = str(arguments.get("latest_user_message") or "")
@@ -3226,7 +3226,7 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
                 "source_path": arguments.get("source_path")
                 or project_path,
                 "phase": arguments.get("phase") or "start",
-                "cache_policy": arguments.get("cache_policy") or "global",
+                "cache_policy": arguments.get("cache_policy") or "none",
                 "include_globs": arguments.get("include_globs"),
                 "exclude_globs": arguments.get("exclude_globs"),
                 "limit": arguments.get("limit", 40),
@@ -3583,7 +3583,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                             or arguments.get("project_path")
                             or ".",
                             "phase": arguments.get("phase") or "start",
-                            "cache_policy": arguments.get("cache_policy") or "global",
+                            "cache_policy": arguments.get("cache_policy") or "none",
                         }
                     )
                 return payload
@@ -3608,7 +3608,7 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                     or arguments.get("project_path")
                     or ".",
                     "phase": arguments.get("phase") or "start",
-                    "cache_policy": arguments.get("cache_policy") or "global",
+                    "cache_policy": arguments.get("cache_policy") or "none",
                 }
             )
         return result

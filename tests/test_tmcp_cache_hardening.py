@@ -112,6 +112,62 @@ class TmcpCacheHardeningTests(unittest.TestCase):
         self.assertNotIn("MALICIOUS", rendered)
         self.assertIn("canonical spreadsheet", " ".join(packet["active_instructions"]).lower())
 
+    def test_composition_ignores_global_cache_without_explicit_opt_in(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox = Path(tmp)
+            source = sandbox / "source"
+            tmcp_home = sandbox / "tmcp-home"
+            source.mkdir()
+            graph_path = (
+                tmcp_home
+                / "promoted-harvests"
+                / "cache-test"
+                / "promotion-graph.json"
+            )
+            graph_path.parent.mkdir(parents=True)
+            graph_path.write_text(
+                json.dumps(
+                    self._graph_payload(
+                        [{"id": "repo_behavior_spec_loop_workflow"}]
+                    )
+                ),
+                encoding="utf-8",
+            )
+            original_home = self.server.TMCP_HOME
+            self.server.TMCP_HOME = tmcp_home
+            try:
+                default_packet = self.server._call_tool(
+                    "tmcp_compose_packet",
+                    {
+                        "source_path": str(source),
+                        "project_path": str(source),
+                        "objective": "run a repo behavior sweep",
+                    },
+                )
+                opted_in_packet = self.server._call_tool(
+                    "tmcp_compose_packet",
+                    {
+                        "source_path": str(source),
+                        "project_path": str(source),
+                        "objective": "run a repo behavior sweep",
+                        "cache_policy": "global",
+                    },
+                )
+            finally:
+                self.server.TMCP_HOME = original_home
+
+        self.assertEqual(default_packet["global_cache"]["cache_policy"], "none")
+        self.assertEqual(default_packet["global_cache"]["promoted_graph_count"], 0)
+        self.assertNotIn(
+            "canonical spreadsheet",
+            " ".join(default_packet["active_instructions"]).lower(),
+        )
+        self.assertGreaterEqual(opted_in_packet["global_cache"]["promoted_graph_count"], 1)
+        self.assertIn(
+            "canonical spreadsheet",
+            " ".join(opted_in_packet["active_instructions"]).lower(),
+        )
+
     def test_global_cache_rejects_deeply_nested_json_without_composition_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmcp_home = Path(tmp) / "tmcp-home"

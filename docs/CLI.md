@@ -78,6 +78,8 @@ Running a review without `--evidence-json` returns `evidence_contract.starter_te
 `evaluate-skills` follows the safety boundary described in the README: pass explicit `SKILL.md` files, optionally constrain them with a project root, and use a new or empty directory when writing an initial evaluation plan.
 
 On secure-persistence hosts, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOME/promoted-harvests/<opaque-promotion-key>/`, or `~/.tmcp/promoted-harvests/<opaque-promotion-key>/` when `TMCP_HOME` is unset. Receipts are written under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions.
+`compose-packet` and `runtime-next` use `cache_policy=none` by default; pass
+`--cache-policy global` only to opt into those advisory global artifacts.
 
 ## Argument Rules
 

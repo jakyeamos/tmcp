@@ -152,6 +152,8 @@ under `TMCP_HOME/promoted-harvests/<opaque-promotion-key>/`, or
 Receipts live under `TMCP_HOME/receipts/<yyyy-mm>/`.
 Global cache content is advisory and cannot override system, developer, user, or
 project instructions.
+Packet composition and runtime routing do not read that cache unless the caller
+explicitly passes `--cache-policy global`; their default policy is `none`.
 
 Run an expert rubric review from evidence snippets:
 
