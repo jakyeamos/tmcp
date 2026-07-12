@@ -18,6 +18,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/__init__.py",
     "tmcp_runtime/domain/__init__.py",
     "tmcp_runtime/domain/composition.py",
+    "tmcp_runtime/domain/families.py",
     "tmcp_runtime/domain/recompile.py",
     "tmcp_runtime/domain/routes.py",
     "tmcp_runtime/api/__init__.py",

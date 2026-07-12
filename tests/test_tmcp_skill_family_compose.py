@@ -272,6 +272,35 @@ class TmcpSkillFamilyRuntimeTests(unittest.TestCase):
             ["ui-implementation"],
         )
 
+    def test_runtime_family_fallback_uses_transition_seed_below_compose_threshold(self) -> None:
+        source_nodes = [
+            {
+                "source_type": "scoped_packet_seed",
+                "seed_id": "runtime_only_seed",
+                "title": "Runtime-only seed",
+                "source_references": ["skills/product-design-runtime/SKILL.md"],
+                "phase_transitions": {
+                    "runtime": {
+                        "next_phases": ["implementation"],
+                        "activate_skills": ["ui-implementation"],
+                    }
+                },
+            }
+        ]
+
+        family_context, seed_node = self.server._runtime_family_seed_context(
+            source_nodes,
+            "Inspect unrelated service logs.",
+            "runtime",
+        )
+
+        self.assertEqual(seed_node["seed_id"], "runtime_only_seed")
+        self.assertEqual(family_context["active_seed_id"], "runtime_only_seed")
+        self.assertEqual(
+            family_context["primary_source_patterns"],
+            ["skills/product-design-runtime/SKILL.md"],
+        )
+
     def test_runtime_next_suggests_implementation_after_runtime_phase(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

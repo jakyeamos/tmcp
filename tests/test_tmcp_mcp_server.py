@@ -271,6 +271,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "scripts/release_package_composition.py",
                 "scripts/release_package_sessions.py",
                 "tmcp_runtime/domain/composition.py",
+                "tmcp_runtime/domain/families.py",
                 "tmcp_runtime/domain/recompile.py",
             }.issubset(required_files)
         )
