@@ -184,6 +184,7 @@ def read_skill_inputs(
 def read_json_input(
     path: str | Path,
     *,
+    project_path: str | Path | None = None,
     max_file_bytes: int = 262_144,
 ) -> SafeJsonInput:
     """Read a regular `.json` file and redact decoded string values."""
@@ -191,9 +192,10 @@ def read_json_input(
     root = _file_root(path)
     if root.logical_path.suffix.lower() != ".json":
         raise ValueError(f"Input must be a JSON file: {root.display_path}")
+    boundary = _project_root(project_path)
     source = _read_exact_file(
         path,
-        boundary=None,
+        boundary=boundary,
         max_file_bytes=max_file_bytes,
     )
     try:

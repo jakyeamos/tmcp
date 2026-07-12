@@ -50,6 +50,8 @@ Running a review without `--evidence-json` returns `evidence_contract.starter_te
 
 `harvest` does not follow source symlinks by default. Set `--follow-symlinks` only when the linked targets are intentionally in scope; TMCP still rejects targets outside the selected source root and redacts secret-like path metadata. Harvest artifact output is an atomic bundle, so an explicit `--output-dir` must be new or empty; omit it to use a unique `.tmcp/harvest-*` directory.
 
+`evaluate-skills` follows the safety boundary described in the README: pass explicit `SKILL.md` files, optionally constrain them with a project root, and use a new or empty directory when writing an initial evaluation plan.
+
 By default, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOME/promoted-harvests/<promotion-name>/`, or `~/.tmcp/promoted-harvests/<promotion-name>/` when `TMCP_HOME` is unset. Receipts are written under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions.
 
 ## Argument Rules

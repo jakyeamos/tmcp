@@ -5099,6 +5099,53 @@ def _skill_eval_advisory_summary(nodes: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _source_node_from_text(
+    *,
+    root_path: str,
+    source_path: str,
+    relative_path: str,
+    text: str,
+    max_excerpt_chars: int,
+    redactions: dict[str, int],
+    source_type: str,
+) -> dict[str, Any]:
+    """Build one already-redacted source node without filesystem access."""
+
+    display_path = Path(source_path)
+    signal_text = _positive_signal_text(text)
+    node_id = hashlib.sha256(
+        f"{source_path}:{hashlib.sha256(text.encode()).hexdigest()}".encode()
+    ).hexdigest()[:12]
+    skill_eval_advisories = harvest_warnings_for_source(
+        display_path,
+        text,
+        rel_path=relative_path,
+        source_type=source_type,
+    )
+    node: dict[str, Any] = {
+        "id": node_id,
+        "root_path": root_path,
+        "path": source_path,
+        "relative_path": relative_path,
+        "title": _title_for(display_path, text),
+        "source_type": source_type,
+        "source_tier": source_type,
+        "frontmatter": _frontmatter_for(text),
+        "token_estimate": _estimate_tokens(text),
+        "behavior_atoms": _classify_atoms(text, source_type),
+        "guidance_labels": _guidance_labels_for(relative_path, text),
+        "keywords": sorted(_text_tokens(signal_text))[:20],
+        "routing_metadata": _routing_metadata_for(relative_path, text),
+        "excerpt": text[:max_excerpt_chars],
+        "signal_excerpt": signal_text[:max_excerpt_chars],
+        "redactions": dict(redactions),
+        "trust": "untrusted_harvested_text",
+    }
+    if skill_eval_advisories:
+        node["skill_eval_advisories"] = skill_eval_advisories
+    return node
+
+
 def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
     objective = str(arguments.get("objective") or "Harvest reusable skill behavior")
     limit = max(1, int(arguments.get("limit") or 40))
@@ -5189,42 +5236,18 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
             )
             continue
         source_type = _source_type_for(path, raw_rel_path, safe_text)
-        signal_text = _positive_signal_text(safe_text)
-        tokens = sorted(_text_tokens(signal_text))
-        node_id = hashlib.sha256(
-            f"{candidate.display_path}:{hashlib.sha256(safe_text.encode()).hexdigest()}".encode()
-        ).hexdigest()[:12]
-        frontmatter = _frontmatter_for(safe_text)
-        skill_eval_advisories = harvest_warnings_for_source(
-            display_path,
-            safe_text,
-            rel_path=rel_path,
+        node = _source_node_from_text(
+            root_path=root_path,
+            source_path=candidate.display_path,
+            relative_path=rel_path,
+            text=safe_text,
+            max_excerpt_chars=max_excerpt_chars,
+            redactions=redactions,
             source_type=source_type,
         )
-        for advisory in skill_eval_advisories:
+        for advisory in _json_list(node.get("skill_eval_advisories")):
             if len(warnings) < 50:
                 warnings.append(str(advisory["warning"]))
-        node: dict[str, Any] = {
-            "id": node_id,
-            "root_path": root_path,
-            "path": candidate.display_path,
-            "relative_path": rel_path,
-            "title": _title_for(display_path, safe_text),
-            "source_type": source_type,
-            "source_tier": source_type,
-            "frontmatter": frontmatter,
-            "token_estimate": _estimate_tokens(safe_text),
-            "behavior_atoms": _classify_atoms(safe_text, source_type),
-            "guidance_labels": _guidance_labels_for(rel_path, safe_text),
-            "keywords": tokens[:20],
-            "routing_metadata": _routing_metadata_for(rel_path, safe_text),
-            "excerpt": safe_text[:max_excerpt_chars],
-            "signal_excerpt": signal_text[:max_excerpt_chars],
-            "redactions": redactions,
-            "trust": "untrusted_harvested_text",
-        }
-        if skill_eval_advisories:
-            node["skill_eval_advisories"] = skill_eval_advisories
         nodes.append(node)
     nodes.sort(key=_node_harvest_sort_key)
     if len(nodes) > limit:
@@ -7023,7 +7046,11 @@ def _source_verification_gates(
     return filtered
 
 
-def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
+def _compose_packet_from_source_nodes(
+    arguments: dict[str, Any],
+    *,
+    source_nodes: list[dict[str, Any]],
+) -> dict[str, Any]:
     objective = str(arguments.get("objective") or "").strip()
     if not objective:
         raise ValueError("tmcp_compose_packet requires objective.")
@@ -7035,12 +7062,6 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
     preliminary_routes = _string_list(
         derive_task_identity(objective, identity_context).get("active_routes")
     )
-    harvest = _harvest_skills(_compose_harvest_arguments(arguments))
-    source_nodes = [
-        item
-        for item in _json_list(harvest.get("source_nodes"))
-        if isinstance(item, dict)
-    ]
     family_context = _compose_family_context(
         source_nodes, objective, identity_context, preliminary_routes
     )
@@ -7239,6 +7260,19 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
     }
     packet["packet_markdown"] = _composed_packet_markdown(packet)
     return packet
+
+
+def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
+    objective = str(arguments.get("objective") or "").strip()
+    if not objective:
+        raise ValueError("tmcp_compose_packet requires objective.")
+    harvest = _harvest_skills(_compose_harvest_arguments(arguments))
+    source_nodes = [
+        item
+        for item in _json_list(harvest.get("source_nodes"))
+        if isinstance(item, dict)
+    ]
+    return _compose_packet_from_source_nodes(arguments, source_nodes=source_nodes)
 
 
 def _runtime_next(arguments: dict[str, Any]) -> dict[str, Any]:

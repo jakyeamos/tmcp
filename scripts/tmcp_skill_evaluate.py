@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import uuid
@@ -11,12 +10,22 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from scripts.tmcp_redaction import merge_redactions
+from tmcp_runtime.safety import (
+    read_json_input,
+    read_skill_inputs,
+    redact_json_value,
+    redact_path,
+)
+from tmcp_runtime.storage import AtomicArtifactStore
+
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 UTC = datetime.now(timezone.utc)
 
 EVAL_PLAN_SCHEMA = "tmcp-skill-evaluation-plan-v0.1"
 EVAL_REPORT_SCHEMA = "tmcp-skill-evaluation-report-v0.1"
 EVAL_TRACE_SCHEMA = "tmcp-skill-eval-trace-v0.1"
+MAX_EVALUATION_PLAN_BYTES = 8_388_608
 
 DEFAULT_VARIANTS = (
     "baseline",
@@ -191,8 +200,31 @@ def _iso_now() -> str:
     )
 
 
-def _read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="replace")
+def _json_text(payload: Any, *, label: str) -> str:
+    try:
+        return json.dumps(payload, indent=2, sort_keys=True) + "\n"
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{label} must be JSON-serializable.") from exc
+
+
+def _redact_output(
+    payload: dict[str, Any],
+    redactions: dict[str, int] | None = None,
+) -> dict[str, Any]:
+    safe_payload, output_redactions = redact_json_value(payload, enabled=True)
+    if not isinstance(safe_payload, dict):
+        raise ValueError("Evaluation output must be a JSON object.")
+    summary = dict(redactions or {})
+    merge_redactions(summary, output_redactions)
+    if summary:
+        safe_payload["redaction_summary"] = summary
+    return safe_payload
+
+
+def _safe_json_value(value: Any, redactions: dict[str, int]) -> Any:
+    safe_value, value_redactions = redact_json_value(value, enabled=True)
+    merge_redactions(redactions, value_redactions)
+    return safe_value
 
 
 def _frontmatter(text: str) -> dict[str, str]:
@@ -833,38 +865,72 @@ def _expectations_for_plan_row(plan: dict[str, Any], row: dict[str, Any]) -> dic
 def compose_arguments_for_eval_row(
     row: dict[str, Any],
     *,
-    project_path: str | None = None,
+    project_path: str | Path | None = None,
 ) -> dict[str, Any]:
-    skill_path = Path(str(row.get("skill_path")))
+    """Build data-only composer arguments for one already-redacted row."""
+
     prompt = str(row.get("prompt") or "Evaluate skill behavior.")
-    variant_id = str(row.get("variant_id") or "original")
-    root = Path(project_path).expanduser() if project_path else skill_path.parent
     arguments: dict[str, Any] = {
         "objective": prompt,
-        "project_path": str(root),
+        "project_path": redact_path(project_path or "."),
         "phase": "start",
         "cache_policy": "none",
         "redact_sensitive": True,
     }
-    if variant_id == "baseline":
-        arguments["source_path"] = str(root)
-        arguments["include_globs"] = ["**/*.md"]
-        arguments["exclude_globs"] = [f"**/{skill_path.name}"]
-        return arguments
-    arguments["source_path"] = str(skill_path.parent)
-    arguments["include_globs"] = [skill_path.name, "**/SKILL.md"]
     return arguments
+
+
+def _data_only_composer_support(compose_fn: Any) -> tuple[Any, Any]:
+    module_globals = getattr(compose_fn, "__globals__", {})
+    compose_from_nodes = module_globals.get("_compose_packet_from_source_nodes")
+    source_node_from_text = module_globals.get("_source_node_from_text")
+    if not callable(compose_from_nodes) or not callable(source_node_from_text):
+        raise RuntimeError("Data-only compose support is unavailable.")
+    return compose_from_nodes, source_node_from_text
+
+
+def _source_nodes_for_eval_row(
+    row: dict[str, Any],
+    source_node_from_text: Any,
+    *,
+    project_path: str | Path | None,
+) -> list[dict[str, Any]]:
+    if str(row.get("variant_id") or "") == "baseline":
+        return []
+    attachment = row.get("skill_attachment")
+    if not isinstance(attachment, str):
+        raise ValueError("Evaluation row requires a text skill_attachment.")
+    source_path = redact_path(str(row.get("skill_path") or "SKILL.md"))
+    node = source_node_from_text(
+        root_path=redact_path(project_path or "."),
+        source_path=source_path,
+        relative_path="SKILL.md",
+        text=attachment,
+        max_excerpt_chars=1200,
+        redactions={},
+        source_type="skill_definition",
+    )
+    return [node]
 
 
 def compose_packet_for_eval_row(
     row: dict[str, Any],
     compose_fn: Any,
     *,
-    project_path: str | None = None,
+    project_path: str | Path | None = None,
 ) -> dict[str, Any]:
     if compose_fn is None:
         raise RuntimeError("compose_packet function is unavailable.")
-    return compose_fn(compose_arguments_for_eval_row(row, project_path=project_path))
+    compose_from_nodes, source_node_from_text = _data_only_composer_support(compose_fn)
+    source_nodes = _source_nodes_for_eval_row(
+        row,
+        source_node_from_text,
+        project_path=project_path,
+    )
+    return compose_from_nodes(
+        compose_arguments_for_eval_row(row, project_path=project_path),
+        source_nodes=source_nodes,
+    )
 
 
 def _any_packet_match(needle: str, packet_values: list[str]) -> bool:
@@ -992,13 +1058,35 @@ def diff_packet_inclusion(
 
 
 def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
-    skill_paths = [Path(str(item)).expanduser() for item in arguments.get("skill_paths", [])]
-    if not skill_paths:
+    raw_skill_paths = arguments.get("skill_paths")
+    if not isinstance(raw_skill_paths, list) or not raw_skill_paths:
         raise ValueError("skill_paths is required for evaluation plan generation.")
-    task_fixtures = list(arguments.get("task_fixtures") or [])
-    if not task_fixtures:
+    project_path = arguments.get("project_path")
+    if project_path is not None and not isinstance(project_path, (str, Path)):
+        raise ValueError("project_path must be a path string.")
+    skill_inputs = read_skill_inputs(raw_skill_paths, project_path=project_path)
+
+    redactions: dict[str, int] = {}
+    for skill_input in skill_inputs:
+        merge_redactions(redactions, skill_input.redactions)
+
+    raw_task_fixtures = arguments.get("task_fixtures")
+    if not isinstance(raw_task_fixtures, list) or not raw_task_fixtures:
         raise ValueError("task_fixtures is required for evaluation plan generation.")
-    variants = list(arguments.get("variants") or DEFAULT_VARIANTS)
+    task_fixtures = _safe_json_value(raw_task_fixtures, redactions)
+    if not isinstance(task_fixtures, list) or not all(
+        isinstance(item, dict) for item in task_fixtures
+    ):
+        raise ValueError("task_fixtures must contain objects.")
+
+    raw_variants = arguments.get("variants") or list(DEFAULT_VARIANTS)
+    if not isinstance(raw_variants, list):
+        raise ValueError("variants must be a list of strings.")
+    variants = _safe_json_value(raw_variants, redactions)
+    if not isinstance(variants, list) or not all(
+        isinstance(item, str) for item in variants
+    ):
+        raise ValueError("variants must be a list of strings.")
 
     evaluated_skills: list[dict[str, Any]] = []
     task_matrix: list[dict[str, Any]] = []
@@ -1006,11 +1094,10 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     guidebook_candidates: list[dict[str, Any]] = []
     packet_inclusion_contracts: list[dict[str, Any]] = []
 
-    for skill_path in skill_paths:
-        if not skill_path.exists():
-            raise ValueError(f"Skill path does not exist: {skill_path}")
-        text = _read_text(skill_path)
-        decomposition = decompose_skill(skill_path.resolve(), text)
+    for skill_input in skill_inputs:
+        text = skill_input.text
+        skill_path = skill_input.display_path
+        decomposition = decompose_skill(Path(skill_path), text)
         static_findings = static_review(decomposition, text)
         skill_observables = _observable_contract(decomposition, static_findings)
         observable_contract.extend(skill_observables)
@@ -1039,7 +1126,7 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
                 )
         evaluated_skills.append(
             {
-                "skill_path": str(skill_path.resolve()),
+                "skill_path": skill_path,
                 "decomposition": decomposition,
                 "static_findings": static_findings,
                 "variants": variant_entries,
@@ -1047,7 +1134,7 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         )
         packet_inclusion_contracts.append(
             {
-                "skill_path": str(skill_path.resolve()),
+                "skill_path": skill_path,
                 "expected": packet_inclusion_expectations(decomposition),
             }
         )
@@ -1055,17 +1142,22 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
             fixture_id = str(fixture.get("id") or "")
             if not fixture_id:
                 raise ValueError("Each task fixture requires an id.")
+            expected_observables = fixture.get("expected_observables") or []
+            if not isinstance(expected_observables, list) or not all(
+                isinstance(item, str) for item in expected_observables
+            ):
+                raise ValueError(
+                    "Each task fixture expected_observables value must be a list of strings."
+                )
             for variant in variant_entries:
                 task_matrix.append(
                     {
                         "task_id": fixture_id,
                         "variant_id": variant["variant_id"],
                         "ablation_section": variant.get("ablation_section"),
-                        "skill_path": str(skill_path.resolve()),
+                        "skill_path": skill_path,
                         "prompt": fixture.get("prompt"),
-                        "expected_observables": list(
-                            fixture.get("expected_observables") or []
-                        ),
+                        "expected_observables": expected_observables,
                         "skill_attachment": variant["content"],
                     }
                 )
@@ -1131,7 +1223,15 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
             ),
         },
     }
-    return plan
+    safe_plan = _redact_output(plan, redactions)
+    if len(_json_text(safe_plan, label="Evaluation plan").encode("utf-8")) > (
+        MAX_EVALUATION_PLAN_BYTES
+    ):
+        raise ValueError(
+            "Evaluation plan exceeds the maximum serialized size of "
+            f"{MAX_EVALUATION_PLAN_BYTES} bytes."
+        )
+    return safe_plan
 
 
 def _dedupe_observables(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1146,19 +1246,55 @@ def _dedupe_observables(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return result
 
 
+def _validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
+    if plan.get("schema") != EVAL_PLAN_SCHEMA:
+        raise ValueError(f"evaluation_plan schema must be {EVAL_PLAN_SCHEMA}.")
+    for key in (
+        "evaluated_skills",
+        "task_matrix",
+        "observable_behavior_contract",
+        "packet_inclusion_contracts",
+    ):
+        value = plan.get(key)
+        if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
+            raise ValueError(f"evaluation_plan {key} must be a list of objects.")
+    return plan
+
+
 def _load_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     plan_input = arguments.get("evaluation_plan")
+    project_path = arguments.get("project_path")
+    if project_path is not None and not isinstance(project_path, (str, Path)):
+        raise ValueError("project_path must be a path string.")
+    redactions: dict[str, int] = {}
     if isinstance(plan_input, dict):
-        return plan_input
-    if isinstance(plan_input, str):
-        path = Path(plan_input).expanduser()
-        if not path.exists():
-            raise ValueError(f"evaluation_plan file not found: {path}")
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(payload, dict):
+        plan = _safe_json_value(plan_input, redactions)
+        if not isinstance(plan, dict):
             raise ValueError("evaluation_plan must be a JSON object.")
-        return payload
-    raise ValueError("evaluation_plan is required for evidence scoring.")
+    elif isinstance(plan_input, str):
+        plan_input_file = read_json_input(
+            plan_input,
+            project_path=project_path,
+            max_file_bytes=MAX_EVALUATION_PLAN_BYTES,
+        )
+        plan = plan_input_file.payload
+        merge_redactions(redactions, plan_input_file.redactions)
+    else:
+        raise ValueError("evaluation_plan is required for evidence scoring.")
+    if redactions:
+        existing_summary = plan.get("redaction_summary")
+        summary = (
+            {
+                str(label): count
+                for label, count in existing_summary.items()
+                if isinstance(label, str) and isinstance(count, int) and count >= 0
+            }
+            if isinstance(existing_summary, dict)
+            else {}
+        )
+        merge_redactions(summary, redactions)
+        plan = {**plan, "redaction_summary": summary}
+    return _validate_plan(plan)
 
 
 def _normalize_trace(item: dict[str, Any]) -> dict[str, Any]:
@@ -1246,7 +1382,7 @@ def _score_packet_inclusion(
     *,
     compose_fn: Any = None,
     compose_cache: dict[str, dict[str, Any]] | None = None,
-    project_path: str | None = None,
+    project_path: str | Path | None = None,
     use_compose_packet: bool = True,
 ) -> dict[str, Any]:
     task_id = str(trace.get("task_id") or "")
@@ -1277,34 +1413,41 @@ def _score_packet_inclusion(
                 "variant_id": variant_id,
                 "skill_path": row.get("skill_path"),
                 "prompt": row.get("prompt"),
-                "project_path": project_path,
+                "project_path": str(project_path) if project_path is not None else None,
             },
             sort_keys=True,
         )
         composed = cache.get(cache_key)
-        if composed is None:
-            composed = compose_packet_for_eval_row(
-                row,
-                compose_fn,
-                project_path=project_path,
+        try:
+            if composed is None:
+                composed = compose_packet_for_eval_row(
+                    row,
+                    compose_fn,
+                    project_path=project_path,
+                )
+                safe_composed, _ = redact_json_value(composed, enabled=True)
+                if not isinstance(safe_composed, dict):
+                    raise ValueError("Data-only composition did not return an object.")
+                composed = safe_composed
+                cache[cache_key] = composed
+            expectations = _expectations_for_plan_row(plan, row)
+            diff = diff_packet_inclusion(
+                expectations,
+                composed,
+                skill_path=str(row.get("skill_path") or ""),
+                variant_id=variant_id,
             )
-            cache[cache_key] = composed
-        expectations = _expectations_for_plan_row(plan, row)
-        diff = diff_packet_inclusion(
-            expectations,
-            composed,
-            skill_path=str(row.get("skill_path") or ""),
-            variant_id=variant_id,
-        )
-        return {
-            "task_id": task_id,
-            "variant_id": variant_id,
-            "score": diff["score"],
-            "confidence": diff["confidence"],
-            "signals": diff["signals"],
-            "packet_inclusion_diff": diff,
-            "notes": "Scored from tmcp_compose_packet output.",
-        }
+            return {
+                "task_id": task_id,
+                "variant_id": variant_id,
+                "score": diff["score"],
+                "confidence": diff["confidence"],
+                "signals": diff["signals"],
+                "packet_inclusion_diff": diff,
+                "notes": "Scored from data-only tmcp_compose_packet semantics.",
+            }
+        except (RuntimeError, TypeError, ValueError):
+            pass
 
     text = _observation_text(trace)
     contract = plan.get("observable_behavior_contract") or []
@@ -1464,12 +1607,20 @@ def _score_cost(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def score_evidence(arguments: dict[str, Any]) -> dict[str, Any]:
-    plan = _load_plan(arguments)
-    raw_evidence = list(arguments.get("run_evidence_json") or [])
-    if not raw_evidence:
+def score_evidence(
+    arguments: dict[str, Any],
+    *,
+    plan: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    plan = _load_plan(arguments) if plan is None else _validate_plan(plan)
+    raw_evidence = arguments.get("run_evidence_json")
+    if not isinstance(raw_evidence, list) or not raw_evidence:
         raise ValueError("run_evidence_json is required for evidence scoring.")
-    traces = [_normalize_trace(item) for item in raw_evidence if isinstance(item, dict)]
+    redactions: dict[str, int] = {}
+    safe_evidence = _safe_json_value(raw_evidence, redactions)
+    if not isinstance(safe_evidence, list):
+        raise ValueError("run_evidence_json must contain trace objects.")
+    traces = [_normalize_trace(item) for item in safe_evidence if isinstance(item, dict)]
     if not traces:
         raise ValueError("run_evidence_json must contain trace objects.")
     for trace in traces:
@@ -1480,7 +1631,9 @@ def score_evidence(arguments: dict[str, Any]) -> dict[str, Any]:
             )
 
     use_compose_packet = bool(arguments.get("compose_packet", True))
-    project_path = str(arguments.get("project_path") or "") or None
+    project_path = arguments.get("project_path")
+    if project_path is not None and not isinstance(project_path, (str, Path)):
+        raise ValueError("project_path must be a path string.")
     compose_cache: dict[str, dict[str, Any]] = {}
     compose_fn = _get_compose_packet_fn() if use_compose_packet else None
 
@@ -1557,7 +1710,7 @@ def score_evidence(arguments: dict[str, Any]) -> dict[str, Any]:
         },
     }
 
-    return {
+    report = {
         "ok": True,
         "stability": "experimental",
         "schema": EVAL_REPORT_SCHEMA,
@@ -1582,6 +1735,17 @@ def score_evidence(arguments: dict[str, Any]) -> dict[str, Any]:
             "notes": "v0.1 never auto-promotes evaluation findings.",
         },
     }
+    plan_redactions = plan.get("redaction_summary")
+    if isinstance(plan_redactions, dict):
+        merge_redactions(
+            redactions,
+            {
+                str(label): count
+                for label, count in plan_redactions.items()
+                if isinstance(label, str) and isinstance(count, int) and count >= 0
+            },
+        )
+    return _redact_output(report, redactions)
 
 
 def _aggregate_dimension(scores: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1689,12 +1853,7 @@ def _harvest_feedback(anti_patterns: list[dict[str, Any]]) -> list[dict[str, Any
     return feedback
 
 
-def _write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-
-
-def _write_guidebook_markdown(path: Path, entries: list[dict[str, Any]]) -> None:
+def _guidebook_markdown(entries: list[dict[str, Any]]) -> str:
     lines = [
         "# TMCP Skill Writing Guidebook",
         "",
@@ -1728,12 +1887,11 @@ def _write_guidebook_markdown(path: Path, entries: list[dict[str, Any]]) -> None
                 "",
             ]
         )
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return "\n".join(lines) + "\n"
 
 
-def _write_pattern_catalog(path: Path, entries: list[dict[str, Any]]) -> None:
-    catalog = {
+def _pattern_catalog(entries: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
         "schema": "tmcp-skill-pattern-catalog-v0.1",
         "created_at": _iso_now(),
         "patterns": [
@@ -1751,30 +1909,58 @@ def _write_pattern_catalog(path: Path, entries: list[dict[str, Any]]) -> None:
         ],
         "guidebook_entries": entries,
     }
-    _write_json(path, catalog)
 
 
 def _write_artifacts(
     output_dir: Path,
     plan: dict[str, Any] | None,
     report: dict[str, Any] | None,
+    *,
+    fresh_bundle: bool,
 ) -> dict[str, str]:
-    paths: dict[str, str] = {}
+    contents: dict[str, str] = {}
+    artifact_names: dict[str, str] = {}
     if plan is not None:
-        plan_path = output_dir / "tmcp-skill-evaluation-plan.json"
-        _write_json(plan_path, plan)
-        paths["evaluation_plan"] = str(plan_path)
+        name = "tmcp-skill-evaluation-plan.json"
+        contents[name] = _json_text(plan, label="Evaluation plan artifact")
+        artifact_names["evaluation_plan"] = name
     if report is not None:
-        report_path = output_dir / "tmcp-skill-evaluation-report.json"
-        _write_json(report_path, report)
-        paths["evaluation_report"] = str(report_path)
-        catalog_path = output_dir / "skill-pattern-catalog.json"
-        _write_pattern_catalog(catalog_path, report.get("guidebook_entries", []))
-        paths["pattern_catalog"] = str(catalog_path)
-        guidebook_path = output_dir / "skill-writing-guidebook.md"
-        _write_guidebook_markdown(guidebook_path, report.get("guidebook_entries", []))
-        paths["guidebook"] = str(guidebook_path)
-    return paths
+        report_name = "tmcp-skill-evaluation-report.json"
+        catalog_name = "skill-pattern-catalog.json"
+        guidebook_name = "skill-writing-guidebook.md"
+        guidebook_entries = report.get("guidebook_entries", [])
+        if not isinstance(guidebook_entries, list) or not all(
+            isinstance(item, dict) for item in guidebook_entries
+        ):
+            raise ValueError("Evaluation report guidebook_entries must be objects.")
+        contents[report_name] = _json_text(
+            report,
+            label="Evaluation report artifact",
+        )
+        contents[catalog_name] = _json_text(
+            _pattern_catalog(guidebook_entries),
+            label="Pattern catalog artifact",
+        )
+        contents[guidebook_name] = _guidebook_markdown(guidebook_entries)
+        artifact_names.update(
+            {
+                "evaluation_report": report_name,
+                "pattern_catalog": catalog_name,
+                "guidebook": guidebook_name,
+            }
+        )
+    if fresh_bundle:
+        written_paths = AtomicArtifactStore.write_text_bundle(output_dir, contents)
+    else:
+        store = AtomicArtifactStore.explicit(output_dir)
+        written_paths = {
+            name: str(store.write_text(name, content))
+            for name, content in contents.items()
+        }
+    return {
+        artifact_key: redact_path(written_paths[name])
+        for artifact_key, name in artifact_names.items()
+    }
 
 
 def evaluate_skills(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -1793,11 +1979,17 @@ def evaluate_skills(arguments: dict[str, Any]) -> dict[str, Any]:
                     or Path(".").resolve() / ".tmcp" / f"skill-eval-{uuid.uuid4().hex[:8]}"
                 )
             ).expanduser()
-            result["artifact_paths"] = _write_artifacts(output_dir, plan, None)
+            result["artifact_paths"] = _write_artifacts(
+                output_dir,
+                plan,
+                None,
+                fresh_bundle=True,
+            )
         return result
 
     if mode == "score":
-        report = score_evidence(arguments)
+        plan = _load_plan(arguments)
+        report = score_evidence(arguments, plan=plan)
         result = {"mode": "score", **report}
         if bool(arguments.get("write_artifacts", False)):
             output_dir = Path(
@@ -1806,8 +1998,12 @@ def evaluate_skills(arguments: dict[str, Any]) -> dict[str, Any]:
                     or Path(".").resolve() / ".tmcp" / f"skill-eval-{uuid.uuid4().hex[:8]}"
                 )
             ).expanduser()
-            plan = _load_plan(arguments)
-            result["artifact_paths"] = _write_artifacts(output_dir, plan, report)
+            result["artifact_paths"] = _write_artifacts(
+                output_dir,
+                plan,
+                report,
+                fresh_bundle=False,
+            )
         return result
 
     raise ValueError(f"Unsupported mode: {mode}")

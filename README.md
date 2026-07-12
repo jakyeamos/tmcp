@@ -75,6 +75,8 @@ Harvest redacts sensitive-looking values and secret-like provenance paths by def
 
 Harvest artifacts are written as one staged, atomic bundle through a symlink-safe destination. Leave `output_dir` unset for a unique `.tmcp/harvest-*` directory, or provide an output directory that is new or empty.
 
+Skill evaluation accepts explicit regular `SKILL.md` inputs, can confine them to a supplied project root, and redacts source, plan, and evidence values before deriving reports. Its initial plan artifact is a staged bundle in a new or empty directory; evidence scoring may safely add its report to that same directory.
+
 If a harvested source tries to override system, developer, or user instructions, TMCP reports a warning. See [SECURITY.md](SECURITY.md).
 
 ## Examples
