@@ -276,6 +276,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "tmcp_runtime/domain/families.py",
                 "tmcp_runtime/domain/packets.py",
                 "tmcp_runtime/domain/recompile.py",
+                "tmcp_runtime/domain/review_profiles.py",
                 "tmcp_runtime/domain/standalone_packets.py",
             }.issubset(required_files)
         )

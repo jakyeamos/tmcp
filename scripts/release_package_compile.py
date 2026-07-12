@@ -22,6 +22,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/domain/families.py",
     "tmcp_runtime/domain/packets.py",
     "tmcp_runtime/domain/recompile.py",
+    "tmcp_runtime/domain/review_profiles.py",
     "tmcp_runtime/domain/routes.py",
     "tmcp_runtime/domain/standalone_packets.py",
     "tmcp_runtime/api/__init__.py",
