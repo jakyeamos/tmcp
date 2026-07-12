@@ -26,6 +26,7 @@ from scripts.tmcp_release_archive import (  # noqa: E402
     verify_reproducibility,
 )
 from scripts.release_package_compile import compile_command  # noqa: E402
+from scripts.release_package_sessions import check_session_surface  # noqa: E402
 from tmcp_runtime.storage import artifact_persistence_available  # noqa: E402
 
 HARDCODED_USER_PATH_PATTERNS = (
@@ -442,84 +443,14 @@ def check_composition_surface(
     if "browser" in verification_text:
         return False, "release composition smoke unexpectedly activated browser gate"
 
-    session_id = "release-session"
-    ok, session_output, session_compose = run_json(
-        [
-            "node",
-            "scripts/tmcp_launcher.mjs",
-            "compose-packet",
-            "Improve release readiness before release",
-            "--project-path",
-            str(source_root),
-            "--source-path",
-            str(source_root),
-            "--phase",
-            "start",
-            "--cache-policy",
-            "none",
-            "--session-id",
-            session_id,
-            "--compact",
-        ],
+    sessions_ok, session_mode = check_session_surface(
         plugin_root,
-        env,
+        source_root,
+        tmcp_home,
+        run_json,
     )
-    if artifact_persistence_available():
-        if not ok or session_compose is None:
-            return False, session_output
-        session = session_compose.get("session")
-        if not isinstance(session, dict):
-            return False, "session compose output missing session metadata"
-        if session.get("record_schema") != "tmcp-run-session-v0.1":
-            return False, "session compose record schema mismatch"
-        if session.get("revision") != 1:
-            return False, "session compose did not create revision 1"
-        session_path = session.get("path")
-        if not isinstance(session_path, str) or not Path(session_path).is_file():
-            return False, "session compose did not write its project-local record"
-        if session_id in Path(session_path).name:
-            return False, "session compose exposed the raw session identifier"
-
-        ok, session_output, session_recompile = run_json(
-            [
-                "node",
-                "scripts/tmcp_launcher.mjs",
-                "recompile-packet",
-                "Improve release readiness before release",
-                "--project-path",
-                str(source_root),
-                "--source-path",
-                str(source_root),
-                "--current-phase",
-                "verification",
-                "--files-changed",
-                "scripts/check_release_package.py",
-                "--cache-policy",
-                "none",
-                "--session-id",
-                session_id,
-                "--compact",
-            ],
-            plugin_root,
-            env,
-        )
-        if not ok or session_recompile is None:
-            return False, session_output
-        updated_session = session_recompile.get("session")
-        if not isinstance(updated_session, dict) or updated_session.get("revision") != 2:
-            return False, "session recompile did not update revision 2"
-        serialized_session = Path(session_path).read_text(encoding="utf-8")
-        if session_id in serialized_session:
-            return False, "session record exposed the raw session identifier"
-        session_mode = "project-local session smoke passed"
-    else:
-        if ok or session_compose is not None:
-            return False, "session compose unexpectedly wrote an artifact on this platform"
-        if "Secure artifact persistence" not in session_output:
-            return False, f"session compose did not fail closed: {session_output}"
-        if (source_root / ".tmcp").exists():
-            return False, "session compose created artifacts despite unavailable persistence"
-        session_mode = "portable session denial smoke passed"
+    if not sessions_ok:
+        return False, session_mode
 
     ok, output, runtime = run_json(
         [

@@ -7,6 +7,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "scripts/tmcp_mcp_server.py",
     "scripts/check_install.py",
     "scripts/check_release_package.py",
+    "scripts/release_package_sessions.py",
     "scripts/release_package_compile.py",
     "scripts/tmcp_release_archive.py",
     "scripts/check_release_evidence.py",

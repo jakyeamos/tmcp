@@ -268,6 +268,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "schemas/tmcp-run-receipt-v0.1.schema.json",
                 "schemas/tmcp-run-session-v0.1.schema.json",
                 "schemas/tmcp-promoted-harvest-graph-v0.1.schema.json",
+                "scripts/release_package_sessions.py",
             }.issubset(required_files)
         )
         self.assertTrue(
