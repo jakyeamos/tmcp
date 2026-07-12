@@ -4,7 +4,8 @@
 
 **Phase:** Milestone 3 composition/recompile session slice, release-check
 cleanup, pure recompile policy, contextual/presentation/assembly composition
-policy, and task-family routing complete; node-ranking extraction next.
+policy, task-family routing, and node ranking complete; split the oversized
+composition owner next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -15,8 +16,8 @@ input/storage boundary are implemented in the isolated modernization worktree.
 The public runtime surface remains stable while the next slice moves composition
 and recompilation behind that boundary. The first vertical journey now supports
 explicit project-local session persistence without changing the legacy inline
-packet path; pure recompile transformations and task-family routing are
-domain-owned.
+packet path; pure recompile transformations, task-family routing, and node
+ranking are domain-owned.
 
 ## Decisions recorded
 
@@ -104,6 +105,12 @@ domain-owned.
   and declared-load normalization. The adapter retains source-signal text and
   runtime state; direct edge cases and existing integration paths pass with 242
   local tests and three expected platform skips.
+- `9b6c47f` moves composition node scoring and selection into
+  `tmcp_runtime/domain/composition.py`; the adapter now only injects source text
+  and enriches selected nodes. Direct policy tests plus the full suite pass with
+  247 local tests and three expected platform skips. The commit gate reports
+  that `composition.py` exceeds the 600-line production source limit, so its
+  responsibilities must be split before new feature work.
 
 ## Blockers and risks
 
@@ -115,6 +122,6 @@ domain-owned.
 
 ## Next step
 
-Extract composition node scoring and selection into `tmcp_runtime`, keep source
-and session I/O at the adapter boundary, then repeat package and adversarial
+Split `tmcp_runtime/domain/composition.py` by responsibility below the source
+size limit, retain stable imports/behavior, then repeat package and adversarial
 validation.

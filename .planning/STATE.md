@@ -6,16 +6,16 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 node-ranking extraction after the session slice,
-release-check cleanup, recompile/context/presentation/assembly policy, and
-task-family routing policy
+**Current focus:** Milestone 3 composition-domain split after the session slice,
+release-check cleanup, recompile/context/presentation/assembly policy,
+task-family routing, and node-ranking policy
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
-contextual/presentation/assembly composition policy, and task-family routing
-complete; node ranking next
+contextual/presentation/assembly composition policy, task-family routing, and
+node ranking complete; split the oversized composition owner next
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -23,8 +23,8 @@ complete; node ranking next
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
 - **Status:** Project-local session journey, focused release checks, pure
-  recompile/context/presentation/assembly policy, and task-family routing
-  complete; extract node ranking next
+  recompile/context/presentation/assembly policy, task-family routing, and node
+  ranking complete; split the oversized composition owner next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -109,6 +109,11 @@ complete; node ranking next
   sibling decisions, and declared-load/slug normalization. The adapter retains
   source-text interpretation and runtime state; direct and integration tests
   cover threshold/tie, router, support-doc, and transition-only fallback paths.
+- `9b6c47f` moves node scoring, ordering/caps, route/family interactions, and
+  lexical selection helpers into `tmcp_runtime/domain/composition.py`; direct
+  tests cover guardrails, metadata, fallback, and tie behavior. The commit gate
+  reports that this owner is now above the 600-line source limit, so split it
+  before the next feature change.
 
 ## Workflow Notes
 
@@ -135,8 +140,9 @@ complete; node ranking next
   history, and use a verified per-session lock for cooperative writers.
 - Recompile policy is domain-owned and directly tested; source harvesting,
   composition, enrichment, and session persistence remain adapter/service work.
-- Contextual composition policy, final packet assembly, and task-family routing
-  are domain-owned and directly tested; node ranking is the next owner split.
+- Contextual composition policy, task-family routing, and node ranking are
+  domain-owned and directly tested. Split the oversized composition owner before
+  further policy work.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -172,11 +178,12 @@ complete; node ranking next
   composition policy behind domain boundaries; `8b2cdb5` centralizes packet
   provenance and presentation in that composition domain; `9cb3c8b` centralizes
   final packet assembly there as well; `06defa0` extracts task-family routing
-  into a pure domain module.
+  into a pure domain module; `9b6c47f` adds node ranking but creates a required
+  source-size split follow-up.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract composition node scoring and selection behind the stable adapter.
+# Split composition-domain responsibilities below the 600-line source limit.
 ```
