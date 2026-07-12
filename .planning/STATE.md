@@ -11,14 +11,14 @@ file boundaries and a coherent agent-facing workflow.
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 2 hardening committed locally; release-package validation and a focused test-module split pending
+**Status:** Milestone 2 hardening committed locally; clean release-package validation pending
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Safe input and storage foundation
 - **Slug:** `tmcp-modernization`
-- **Status:** Adversarial boundary fixes committed; complete clean-package validation after a focused test-module split
+- **Status:** Adversarial boundary fixes and focused test split committed; complete clean-package validation
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -69,6 +69,9 @@ file boundaries and a coherent agent-facing workflow.
   symlink-derived roots; cache reads are bounded, schema-gated, and canonical;
   Windows junctions are link-like; artifact identities retain opaque collision
   resistance; and Windows runs the portable package smoke instead of skipping it.
+- `c31a9ee` moves MCP adapter/status safety coverage into its own test module,
+  restoring the repository test-source size gate; the full local suite has 203
+  passing tests with three expected platform skips.
 
 ## Workflow Notes
 
@@ -88,9 +91,8 @@ file boundaries and a coherent agent-facing workflow.
 - Windows runs read-only and explicit fail-closed checks; the release-package
   smoke runs on every platform and verifies receipt denial where persistence is
   unavailable.
-- The commit gate reports `tests/test_tmcp_mcp_server.py` at 908 nonblank lines;
-  split the new adapter/status coverage into a focused module before finalizing
-  the milestone.
+- MCP adapter/status safety coverage has a focused test module, keeping the
+  server-domain test module below the repository source-size threshold.
 
 ## Accumulated Context
 
@@ -121,6 +123,5 @@ file boundaries and a coherent agent-facing workflow.
 ## Next Command
 
 ```bash
-# Split the oversized MCP server test module, then run clean-package
-# reproducibility validation from the hardened commit.
+# Run clean-package reproducibility validation from the hardened commit.
 ```
