@@ -20,6 +20,8 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/domain/declared_loads.py",
     "tmcp_runtime/domain/composition.py",
     "tmcp_runtime/domain/families.py",
+    "tmcp_runtime/domain/harvest_labels.py",
+    "tmcp_runtime/domain/harvest_nodes.py",
     "tmcp_runtime/domain/packets.py",
     "tmcp_runtime/domain/recompile.py",
     "tmcp_runtime/domain/review_evidence.py",
@@ -42,6 +44,8 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/storage/__init__.py",
     "tmcp_runtime/storage/artifacts.py",
     "tmcp_runtime/storage/sessions.py",
+    "tmcp_runtime/services/__init__.py",
+    "tmcp_runtime/services/harvest.py",
 )
 
 

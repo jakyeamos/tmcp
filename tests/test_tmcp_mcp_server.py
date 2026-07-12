@@ -276,6 +276,8 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "tmcp_runtime/domain/declared_loads.py",
                 "tmcp_runtime/domain/composition.py",
                 "tmcp_runtime/domain/families.py",
+                "tmcp_runtime/domain/harvest_labels.py",
+                "tmcp_runtime/domain/harvest_nodes.py",
                 "tmcp_runtime/domain/packets.py",
                 "tmcp_runtime/domain/recompile.py",
                 "tmcp_runtime/domain/review_evidence.py",
@@ -287,6 +289,8 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "tmcp_runtime/domain/workflow_catalog.py",
                 "tmcp_runtime/domain/workflow_promotion.py",
                 "tmcp_runtime/domain/workflow_recommendations.py",
+                "tmcp_runtime/services/__init__.py",
+                "tmcp_runtime/services/harvest.py",
             }.issubset(required_files)
         )
         self.assertTrue(
