@@ -7,7 +7,7 @@ cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
 packet construction/presentation, standalone compiler, and review-profile
 catalog, review-policy, and workflow-catalog splits complete; extract
-recommendation scoring and adaptive-pack policy.
+adaptive workflow-pack and recommendation Markdown policy.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -25,7 +25,9 @@ also domain-owned. Review profiles now have a shared domain owner for standalone
 review and workflow recommendation. Evidence, audit, remediation, validation,
 and Markdown review policy are also domain-owned while public MCP/CLI behavior
 remains stable. Curated workflow definitions and stability labels now have one
-domain owner shared by recommendation, promotion, and cache selection.
+domain owner shared by recommendation, promotion, and cache selection. Workflow
+recommendation scoring receives harvested-node text and guidance labels explicitly
+from the adapter, preserving dependency direction.
 
 ## Decisions recorded
 
@@ -151,6 +153,10 @@ domain owner shared by recommendation, promotion, and cache selection.
   labels, and ID lookup into `tmcp_runtime/domain/workflow_catalog.py`. Promotion
   and global-cache activation share this owner; 265 local tests pass with three
   expected platform skips.
+- `f6f50f3` moves workflow scoring, reasons, rubric/template and candidate-instance
+  construction, required-evidence guidance, and source-scope policy into
+  `tmcp_runtime/domain/workflow_recommendations.py`. The adapter injects source
+  text and label mapping; 267 local tests pass with three expected platform skips.
 
 ## Blockers and risks
 
@@ -162,6 +168,6 @@ domain owner shared by recommendation, promotion, and cache selection.
 
 ## Next step
 
-Extract pure workflow-recommendation scoring and adaptive-pack policy while
+Extract pure adaptive workflow-pack and recommendation Markdown policy while
 retaining harvest, redaction, persistence, cache validation, and tool dispatch
 in the MCP adapter; then repeat package and adversarial validation.

@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 workflow catalog is domain-owned; extract pure
-workflow-recommendation scoring and adaptive-pack policy from the adapter.
+**Current focus:** Milestone 3 workflow recommendation scoring is domain-owned;
+extract adaptive workflow-pack and recommendation Markdown policy next.
 
 ## Milestone
 
@@ -16,7 +16,7 @@ workflow-recommendation scoring and adaptive-pack policy from the adapter.
 contextual/selection composition policy, task-family routing/runtime transitions,
 declared-read selection, standalone packet compilation, final packet-policy
 split, complete review policy extraction, and workflow catalog extraction;
-extract recommendation scoring and adaptive-pack policy.
+extract adaptive workflow-pack and recommendation Markdown policy.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -27,7 +27,8 @@ extract recommendation scoring and adaptive-pack policy.
   recompile/contextual/selection policy, task-family routing/runtime transitions,
   declared-read selection, standalone packet compilation, final packet
   construction/presentation, complete review-policy split, and workflow catalog
-  extraction complete; extract recommendation scoring and adaptive-pack policy.
+  and scoring extraction complete; extract adaptive workflow-pack and
+  recommendation Markdown policy.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -145,6 +146,9 @@ extract recommendation scoring and adaptive-pack policy.
 - `55ddb54` moves curated workflow definitions, candidate filtering, stability
   classification, and ID lookup into `tmcp_runtime/domain/workflow_catalog.py`;
   recommendation, promotion, and global-cache selection share one catalog owner.
+- `f6f50f3` moves workflow signal scoring, recommendation reasons, rubric/template
+  construction, required-evidence guidance, source-scope policy, and candidate
+  instance construction into `tmcp_runtime/domain/workflow_recommendations.py`.
 
 ## Workflow Notes
 
@@ -184,6 +188,8 @@ extract recommendation scoring and adaptive-pack policy.
   domain-owned; the review adapter only orchestrates side effects and transport.
 - Curated workflow catalog policy is domain-owned; recommendation, promotion,
   and global-cache selection no longer maintain adapter-local catalog copies.
+- Workflow recommendation scoring is domain-owned and receives harvested-node
+  text plus guidance-label mapping explicitly from the adapter.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -226,11 +232,13 @@ extract recommendation scoring and adaptive-pack policy.
   `775782e` moves standalone packet compilation into its own deterministic domain;
   `7ed60d4` moves shared review-profile vocabulary and classification out of the
   adapter; `516a497` completes review evidence, results, and rendering extraction;
-  `55ddb54` moves workflow catalog and stability policy into its own domain owner.
+  `55ddb54` moves workflow catalog and stability policy into its own domain owner;
+  `f6f50f3` moves recommendation scoring and candidate construction behind an
+  explicit harvested-text boundary.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract workflow-recommendation scoring and adaptive-pack policy from the MCP adapter.
+# Extract adaptive workflow-pack and recommendation Markdown policy from the MCP adapter.
 ```
