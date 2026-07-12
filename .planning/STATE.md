@@ -6,8 +6,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 workflow recommendation scoring is domain-owned;
-extract adaptive workflow-pack and recommendation Markdown policy next.
+**Current focus:** Milestone 3 adaptive workflow-pack construction and
+recommendation Markdown policy are domain-owned; extract promotion-graph and
+global workflow-activation policy next.
 
 ## Milestone
 
@@ -15,8 +16,9 @@ extract adaptive workflow-pack and recommendation Markdown policy next.
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
 contextual/selection composition policy, task-family routing/runtime transitions,
 declared-read selection, standalone packet compilation, final packet-policy
-split, complete review policy extraction, and workflow catalog extraction;
-extract adaptive workflow-pack and recommendation Markdown policy.
+split, complete review policy extraction, workflow catalog/scoring extraction,
+and adaptive workflow-pack construction; extract promotion-graph and global
+workflow-activation policy.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -26,9 +28,9 @@ extract adaptive workflow-pack and recommendation Markdown policy.
 - **Status:** Project-local session journey, focused release checks, pure
   recompile/contextual/selection policy, task-family routing/runtime transitions,
   declared-read selection, standalone packet compilation, final packet
-  construction/presentation, complete review-policy split, and workflow catalog
-  and scoring extraction complete; extract adaptive workflow-pack and
-  recommendation Markdown policy.
+  construction/presentation, complete review-policy split, workflow catalog and
+  scoring extraction, and adaptive workflow-pack construction complete; extract
+  promotion-graph and global workflow-activation policy.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -149,6 +151,10 @@ extract adaptive workflow-pack and recommendation Markdown policy.
 - `f6f50f3` moves workflow signal scoring, recommendation reasons, rubric/template
   construction, required-evidence guidance, source-scope policy, and candidate
   instance construction into `tmcp_runtime/domain/workflow_recommendations.py`.
+- `03009f9` moves scoped-seed projection, custom workflow ideas, adaptive-pack
+  construction, duplicate-label analysis, process-gap policy, and recommendation
+  Markdown rendering into `tmcp_runtime/domain/workflow_adaptive.py`; the adapter
+  retains harvest, redaction, artifact persistence, and tool dispatch.
 
 ## Workflow Notes
 
@@ -190,6 +196,8 @@ extract adaptive workflow-pack and recommendation Markdown policy.
   and global-cache selection no longer maintain adapter-local catalog copies.
 - Workflow recommendation scoring is domain-owned and receives harvested-node
   text plus guidance-label mapping explicitly from the adapter.
+- Adaptive workflow-pack construction and recommendation Markdown rendering are
+  domain-owned; the adapter redacts results before persisting rendered artifacts.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -234,11 +242,12 @@ extract adaptive workflow-pack and recommendation Markdown policy.
   adapter; `516a497` completes review evidence, results, and rendering extraction;
   `55ddb54` moves workflow catalog and stability policy into its own domain owner;
   `f6f50f3` moves recommendation scoring and candidate construction behind an
-  explicit harvested-text boundary.
+  explicit harvested-text boundary; `03009f9` moves adaptive workflow-pack
+  construction and recommendation Markdown rendering into a sibling pure domain.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract adaptive workflow-pack and recommendation Markdown policy from the MCP adapter.
+# Extract promotion-graph construction and global workflow-activation policy from the MCP adapter.
 ```

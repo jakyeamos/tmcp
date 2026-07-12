@@ -5,9 +5,9 @@
 **Phase:** Milestone 3 composition/recompile session slice, release-check
 cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
-packet construction/presentation, standalone compiler, and review-profile
-catalog, review-policy, and workflow-catalog splits complete; extract
-adaptive workflow-pack and recommendation Markdown policy.
+packet construction/presentation, standalone compiler, review-profile catalog,
+review-policy, workflow catalog/scoring, and adaptive workflow-pack splits
+complete; extract promotion-graph and global workflow-activation policy.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -27,7 +27,10 @@ and Markdown review policy are also domain-owned while public MCP/CLI behavior
 remains stable. Curated workflow definitions and stability labels now have one
 domain owner shared by recommendation, promotion, and cache selection. Workflow
 recommendation scoring receives harvested-node text and guidance labels explicitly
-from the adapter, preserving dependency direction.
+from the adapter, preserving dependency direction. Adaptive workflow-pack
+construction, scoped seed projection, custom-idea derivation, overlap/process-gap
+policy, and recommendation Markdown rendering now share one pure domain owner;
+the adapter still owns redaction and artifact persistence.
 
 ## Decisions recorded
 
@@ -157,6 +160,11 @@ from the adapter, preserving dependency direction.
   construction, required-evidence guidance, and source-scope policy into
   `tmcp_runtime/domain/workflow_recommendations.py`. The adapter injects source
   text and label mapping; 267 local tests pass with three expected platform skips.
+- `03009f9` moves scoped-seed projection, custom workflow ideas, adaptive-pack
+  construction, duplicate-label analysis, process-gap policy, and recommendation
+  Markdown rendering into `tmcp_runtime/domain/workflow_adaptive.py`. Exact
+  old/new parity, focused domain coverage, and the full local suite pass with
+  270 tests and three expected platform skips.
 
 ## Blockers and risks
 
@@ -168,6 +176,6 @@ from the adapter, preserving dependency direction.
 
 ## Next step
 
-Extract pure adaptive workflow-pack and recommendation Markdown policy while
-retaining harvest, redaction, persistence, cache validation, and tool dispatch
-in the MCP adapter; then repeat package and adversarial validation.
+Extract pure promotion-graph construction and global workflow-activation policy
+while retaining harvest, redaction, persistence, cache validation, and tool
+dispatch in the MCP adapter; then repeat package and adversarial validation.
