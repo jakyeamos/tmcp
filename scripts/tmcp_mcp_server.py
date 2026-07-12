@@ -40,6 +40,13 @@ from tmcp_runtime.domain.recompile import (  # noqa: E402
     render_recompiled_packet_markdown,
     resolve_recompile_reason,
 )
+from tmcp_runtime.domain.composition import (  # noqa: E402
+    contextual_atoms_and_gates,
+    filter_source_verification_gates,
+    is_ui_file,
+    is_uiish_text,
+    matching_reference_reads,
+)
 from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
     CLI_COMMAND_DEFAULT_ARGUMENTS,
@@ -1879,7 +1886,7 @@ def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
     combined_objective = " ".join(
         part for part in (objective, latest_user_message) if part
     ).strip()
-    activated_atoms, newly_required_reads, next_gates = _contextual_atoms_and_gates(
+    activated_atoms, newly_required_reads, next_gates = contextual_atoms_and_gates(
         combined_objective, phase, context
     )
     stale_atoms: list[str] = []
@@ -6749,52 +6756,6 @@ def _compose_context(arguments: dict[str, Any]) -> dict[str, Any]:
     return context if isinstance(context, dict) else {}
 
 
-def _is_uiish_text(value: str) -> bool:
-    return bool(
-        _matched_signal_terms(
-            value,
-            [
-                "ui",
-                "ux",
-                "frontend",
-                "front-end",
-                "react",
-                "next.js",
-                "tsx",
-                "jsx",
-                "css",
-                "dashboard",
-                "landing page",
-                "design",
-                "browser",
-                "responsive",
-                "contrast",
-                "button",
-                "buttons",
-                "controls",
-            ],
-        )
-    )
-
-
-def _is_ui_file(path: str) -> bool:
-    lower = path.lower()
-    return lower.endswith(
-        (
-            ".tsx",
-            ".jsx",
-            ".css",
-            ".scss",
-            ".sass",
-            ".less",
-            ".vue",
-            ".svelte",
-            ".astro",
-            ".html",
-        )
-    )
-
-
 def _node_composition_score(
     node: dict[str, Any],
     objective: str,
@@ -6831,10 +6792,10 @@ def _node_composition_score(
         return 0.0
 
     ui_files_changed = any(
-        _is_ui_file(path) for path in _string_list(context.get("files_changed"))
+        is_ui_file(path) for path in _string_list(context.get("files_changed"))
     )
     if any(term in rel_path for term in ("ui-rubric", "impeccable")) and not (
-        _is_uiish_text(objective) or ui_files_changed
+        is_uiish_text(objective) or ui_files_changed
     ):
         return 0.0
 
@@ -6876,12 +6837,12 @@ def _node_composition_score(
         score += 2.0
     if phase == "start" and source_type == "agent_operating_contract":
         score += 1.0
-    if _is_uiish_text(objective) and any(
+    if is_uiish_text(objective) and any(
         term in text
         for term in ("browser", "contrast", "responsive", "reduced motion", "design")
     ):
         score += 2.5
-    if ui_files_changed and _is_uiish_text(text):
+    if ui_files_changed and is_uiish_text(text):
         score += 2.0
     if any(
         boundary.lower() in objective_lower
@@ -6973,40 +6934,6 @@ def _node_active_instructions(node: dict[str, Any]) -> list[str]:
                 f"Apply relevant harvested behavior atoms from {rel_path}: {atoms}."
             )
     return instructions
-
-
-def _matching_reference_reads(
-    source_nodes: list[dict[str, Any]], objective: str
-) -> list[str]:
-    objective_lower = objective.lower()
-    reads: list[str] = []
-    for node in source_nodes:
-        rel_path = str(node.get("relative_path") or "")
-        rel_lower = rel_path.lower()
-        if (
-            "/reference/" not in f"/{rel_lower}"
-            and "/references/" not in f"/{rel_lower}"
-        ):
-            continue
-        if "craft" in objective_lower and rel_lower.endswith("craft.md"):
-            reads.append(rel_path)
-        if any(
-            term in objective_lower for term in ("landing", "brand", "site")
-        ) and rel_lower.endswith("brand.md"):
-            reads.append(rel_path)
-        if any(
-            term in objective_lower for term in ("dashboard", "product", "audit")
-        ) and rel_lower.endswith("product.md"):
-            reads.append(rel_path)
-        if (
-            any(
-                term in objective_lower
-                for term in ("verify", "verification", "browser")
-            )
-            and "verification" in rel_lower
-        ):
-            reads.append(rel_path)
-    return reads
 
 
 def _workflow_catalog_by_id() -> dict[str, dict[str, Any]]:
@@ -7116,115 +7043,6 @@ def _workflow_active_instruction(workflow: dict[str, Any]) -> str:
     return f"Use the promoted {signal_family or workflow.get('id', 'workflow')} workflow atoms only where they match this objective."
 
 
-def _contextual_atoms_and_gates(
-    objective: str, phase: str, context: dict[str, Any]
-) -> tuple[list[str], list[str], list[str]]:
-    files_changed = _string_list(context.get("files_changed"))
-    failures = _string_list(context.get("failures"))
-    browser_evidence = _string_list(context.get("browser_evidence"))
-    objective_lower = objective.lower()
-    failure_text = " ".join(failures).lower()
-    pending_hosted_release_evidence = any(
-        term in failure_text for term in ("hosted evidence", "release evidence")
-    ) and any(
-        term in failure_text
-        for term in ("pending", "no hosted", "no matching", "external")
-    )
-    active_atoms: list[str] = []
-    required_reads: list[str] = []
-    verification_gates: list[str] = []
-    if _is_uiish_text(objective) or any(_is_ui_file(path) for path in files_changed):
-        active_atoms.append("ui-browser-verification")
-        required_reads.append("UI/browser verification guidance for changed surfaces.")
-        verification_gates.append(
-            "Verify rendered UI in a browser with screenshot or DOM evidence."
-        )
-        if any(
-            term in objective_lower
-            for term in ("design", "landing", "frontend", "ui", "dashboard")
-        ):
-            verification_gates.extend(
-                [
-                    "Verify contrast on visible UI states.",
-                    "Verify reduced motion behavior where animation is present.",
-                    "Verify responsive behavior across relevant viewport sizes.",
-                ]
-            )
-    if pending_hosted_release_evidence:
-        active_atoms.append("explicit-evidence-gaps")
-        required_reads.append(
-            "Hosted release evidence record and release evidence checker output."
-        )
-        verification_gates.append(
-            "Do not claim release readiness until hosted evidence is recorded for release."
-        )
-    elif failures or any(
-        term in objective_lower for term in ("bug", "failing", "failure", "debug")
-    ):
-        active_atoms.append("debugging-regression")
-        required_reads.append(
-            "Debugging and regression evidence from the current failure."
-        )
-        verification_gates.append(
-            "Re-run the failing command and capture the passing result."
-        )
-    if phase == "final" or "final" in objective_lower:
-        active_atoms.append("verification-before-completion")
-        verification_gates.append(
-            "Run the highest-signal verification gate before final response."
-        )
-    if browser_evidence and "ui-browser-verification" not in active_atoms:
-        active_atoms.append("ui-browser-verification")
-        verification_gates.append("Use browser evidence to confirm the next claim.")
-    return (
-        _ordered_unique(active_atoms),
-        _ordered_unique(required_reads),
-        _ordered_unique(verification_gates),
-    )
-
-
-def _source_verification_gates(
-    gates: list[str], objective: str, context: dict[str, Any]
-) -> list[str]:
-    ui_context = _is_uiish_text(objective) or any(
-        _is_ui_file(path) for path in _string_list(context.get("files_changed"))
-    )
-    repo_behavior_context = _objective_has_phrase(
-        objective,
-        (
-            "repo behavior",
-            "behavior sweep",
-            "behavior spec",
-            "canonical spreadsheet",
-            "feature id",
-            "feature ids",
-            "status machine",
-            "status-machine",
-        ),
-    )
-    filtered: list[str] = []
-    for gate in gates:
-        lower = gate.lower()
-        if (
-            any(
-                term in lower
-                for term in (
-                    "browser",
-                    "screenshot",
-                    "contrast",
-                    "reduced motion",
-                    "responsive",
-                )
-            )
-            and not ui_context
-        ):
-            continue
-        if "canonical spreadsheet" in lower and not repo_behavior_context:
-            continue
-        filtered.append(gate)
-    return filtered
-
-
 def _compose_packet_from_source_nodes(
     arguments: dict[str, Any],
     *,
@@ -7282,7 +7100,7 @@ def _compose_packet_from_source_nodes(
         required_reads.extend(_string_list(metadata.get("required_reads")))
         tool_script_prompts.extend(_string_list(metadata.get("tool_script_prompts")))
         verification_gates.extend(
-            _source_verification_gates(
+            filter_source_verification_gates(
                 _string_list(metadata.get("verification_gates")),
                 objective,
                 context,
@@ -7299,7 +7117,7 @@ def _compose_packet_from_source_nodes(
             }
         )
 
-    required_reads.extend(_matching_reference_reads(source_nodes, objective))
+    required_reads.extend(matching_reference_reads(source_nodes, objective))
     required_reads.extend(declared_load_paths)
     for item in selected_workflows:
         workflow = dict(item.get("workflow") or {})
@@ -7318,7 +7136,7 @@ def _compose_packet_from_source_nodes(
             }
         )
 
-    context_atoms, context_reads, context_gates = _contextual_atoms_and_gates(
+    context_atoms, context_reads, context_gates = contextual_atoms_and_gates(
         objective, phase, context
     )
     active_atoms.extend(context_atoms)
