@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Review standalone-review orchestration and shared artifact
-boundaries before the next extraction.
+**Current focus:** Review shared artifact persistence and cache ownership before
+the next extraction.
 
 ## Milestone
 
@@ -19,8 +19,9 @@ split, complete review policy extraction, workflow catalog/scoring extraction,
 adaptive workflow-pack construction, promotion-graph construction, global
 workflow activation, stateless cache defaults, evaluator composition-service
 injection, stability-taxonomy clarification, domain-size enforcement,
-harvest/source-graph extraction, recommendation-service extraction, and
-promotion-planning extraction complete; continue the thin-adapter cutover.
+harvest/source-graph extraction, recommendation-service extraction,
+promotion-planning extraction, and review-plan extraction complete; continue the
+thin-adapter cutover.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -35,8 +36,8 @@ promotion-planning extraction complete; continue the thin-adapter cutover.
   construction, global workflow activation, stateless cache defaults, evaluator
   composition-service injection, stability-taxonomy clarification, domain-size
   enforcement, harvest/source-graph extraction, recommendation-service
-  extraction, and promotion-planning extraction complete; continue the
-  thin-adapter cutover.
+  extraction, promotion-planning extraction, and review-plan extraction complete;
+  continue the thin-adapter cutover.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -195,6 +196,10 @@ promotion-planning extraction complete; continue the thin-adapter cutover.
   storage keys, output-root validation, all artifact writes, and global-cache
   projection; the full local suite has 290 passing tests with three expected
   skips.
+- e164875 moves in-memory standalone review-plan assembly into a pure service.
+  The adapter retains source harvest, evidence parsing, redaction, output-root
+  approval, artifact persistence, and AIOS dispatch; the full local suite has
+  294 passing tests with three expected skips.
 
 ## Workflow Notes
 
@@ -251,9 +256,9 @@ promotion-planning extraction complete; continue the thin-adapter cutover.
 - Skill-package, curated-template, and MCP-tool stability are separate scopes;
   their owners are frontmatter/package validation, the workflow catalog, and the
   public registry respectively.
-- The domain-module size budget is test-enforced. Harvest, recommendation, and
-  promotion-planning policy are runtime-owned; the adapter injects evaluator
-  advisories and compose preview while retaining redaction and durable writes.
+- The domain-module size budget is test-enforced. Harvest, recommendation,
+  promotion-planning, and review-plan policy are runtime-owned; the adapter
+  retains source acquisition, redaction, and all durable-write authority.
 
 ## Accumulated Context
 

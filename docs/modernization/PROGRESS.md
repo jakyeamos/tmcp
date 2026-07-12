@@ -9,8 +9,8 @@ packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
 global workflow-activation, stateless cache-default, evaluator composition-service,
 stability-taxonomy, domain-size-budget, harvest/source-graph, recommendation
-service, and promotion-planning splits complete; review standalone-review and
-shared artifact boundaries before the next cutover.
+service, promotion-planning, and review-plan splits complete; review shared
+artifact persistence and cache ownership before the next cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -55,6 +55,9 @@ redaction, artifact persistence, promotion, and global-cache authority.
 Promotion target selection, graph construction, and status/result assembly are
 also runtime-owned. The adapter retains opaque storage-key derivation, path
 approval, local/global writes, and all cache validation/projection.
+Standalone review-plan assembly is pure and runtime-owned. The adapter retains
+source harvest, evidence parsing, redaction, approved output selection, artifact
+persistence, and explicit AIOS dispatch.
 
 ## Decisions recorded
 
@@ -93,6 +96,8 @@ approval, local/global writes, and all cache validation/projection.
   adapter-owned.
 - Treat promotion planning as a read-only service. Global-cache persistence and
   validation remain co-owned by the adapter until a dedicated storage/cache slice.
+- Treat standalone review planning as a pure in-memory service. Source acquisition,
+  evidence parsing, redaction, artifacts, and AIOS remain adapter-owned.
 
 ## Verified baseline
 
@@ -239,6 +244,9 @@ approval, local/global writes, and all cache validation/projection.
   status/result assembly into services/promotion.py. Existing adapter paths
   retain local/global artifact writes and global-cache safeguards; the full local
   suite has 290 passing tests with three expected platform skips.
+- e164875 extracts standalone review packet/rubric/audit/remediation/handoff
+  assembly into services/review.py. The full local suite has 294 passing tests
+  with three expected platform skips.
 
 ## Blockers and risks
 
@@ -251,10 +259,10 @@ approval, local/global writes, and all cache validation/projection.
   before release, use the target's planned `0.5.0` compatibility/version process
   because the stateless default is a material behavior change.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter. Review, shared artifacts, cache, and dispatch orchestration
-  still require bounded, security-first extractions.
+  transport adapter. Shared artifacts, cache, and dispatch orchestration still
+  require bounded, security-first extractions.
 
 ## Next step
 
-Review standalone-review orchestration and shared artifact boundaries before
-selecting the next bounded thin-adapter extraction.
+Review shared artifact persistence and cache ownership before selecting the next
+bounded thin-adapter extraction.
