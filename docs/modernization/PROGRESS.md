@@ -2,8 +2,8 @@
 
 ## Current state
 
-**Phase:** Milestone 3 composition/recompile session slice and release-check
-cleanup complete; pure recompile-domain extraction next.
+**Phase:** Milestone 3 composition/recompile session slice, release-check
+cleanup, and pure recompile policy complete; composition-service extraction next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -14,7 +14,7 @@ input/storage boundary are implemented in the isolated modernization worktree.
 The public runtime surface remains stable while the next slice moves composition
 and recompilation behind that boundary. The first vertical journey now supports
 explicit project-local session persistence without changing the legacy inline
-packet path.
+packet path, and pure recompile transformations are domain-owned.
 
 ## Decisions recorded
 
@@ -80,6 +80,12 @@ packet path.
 - `6864350` moves composition, runtime, receipt, and session release dogfood
   into focused helpers. The main release checker is below the repository source
   size threshold, and its package/install/CI/local-validation surfaces are synchronized.
+- `401e125` moves deterministic recompile behavior into
+  `tmcp_runtime/domain/recompile.py`: previous-packet compatibility parsing,
+  reason/detail selection, delta merge, diffing, proposal application, and
+  Markdown diff rendering. The adapter retains source-aware composition,
+  enrichment, session persistence, and transport responsibilities; the local
+  suite has 224 passing tests with three expected platform skips.
 
 ## Blockers and risks
 
@@ -91,5 +97,6 @@ packet path.
 
 ## Next step
 
-Extract the pure recompile service into `tmcp_runtime`, migrate its adapter
-callers, then repeat the complete package and adversarial validation loop.
+Extract deterministic composition policy into `tmcp_runtime`, keep source and
+session I/O at the adapter boundary, then repeat the package and adversarial
+validation loop.

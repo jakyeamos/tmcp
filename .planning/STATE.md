@@ -6,22 +6,22 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 recompile-domain extraction after the session
-slice and release-check cleanup
+**Current focus:** Milestone 3 composition-service extraction after the session
+slice, release-check cleanup, and pure recompile-policy extraction
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 3 session slice and release-check cleanup complete;
-recompile-domain extraction next
+**Status:** Milestone 3 session slice, release-check cleanup, and pure
+recompile-policy extraction complete; composition-service extraction next
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
-- **Status:** Project-local session journey and focused release checks complete;
-  extract the recompile domain service next
+- **Status:** Project-local session journey, focused release checks, and pure
+  recompile policy complete; extract deterministic composition policy next
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -88,6 +88,10 @@ recompile-domain extraction next
 - `6864350` moves composition/runtime/session release dogfood into focused
   helpers, preserves the main release checker as an orchestrator, and makes the
   shared release compile helper the documented local source-validation command.
+- `401e125` moves compatibility parsing, reason/diff/merge policy, validated
+  proposal application, and recompile Markdown rendering into
+  `tmcp_runtime/domain/recompile.py`; the server retains only runtime state,
+  source enrichment, composition/session selection, and transport assembly.
 
 ## Workflow Notes
 
@@ -112,6 +116,8 @@ recompile-domain extraction next
 - Packet sessions are explicit-only and latest-only: they require an absolute
   project root, do not replace an existing run, retain no global registry or
   history, and use a verified per-session lock for cooperative writers.
+- Recompile policy is domain-owned and directly tested; source harvesting,
+  composition, enrichment, and session persistence remain adapter/service work.
 
 ## Accumulated Context
 
@@ -140,11 +146,12 @@ recompile-domain extraction next
 - 2026-07-12: M3 adds an explicit project-local compose → full-recompile
   session path while retaining inline previous-packet compatibility; a fresh
   adversarial pass closes relative-root and forged-lineage findings, then
-  `6864350` separates its release dogfood into focused composition/session helpers.
+  `6864350` separates its release dogfood into focused composition/session helpers;
+  `401e125` moves the deterministic recompile policy behind a domain boundary.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract the pure recompile domain service and migrate the stable adapter to it.
+# Extract deterministic composition policy behind the stable adapter.
 ```
