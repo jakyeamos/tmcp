@@ -57,8 +57,8 @@ def _require_secure_directory_operations() -> None:
     if not artifact_persistence_available():
         raise ArtifactStorageError(
             "Secure artifact persistence requires descriptor-relative no-follow "
-            "filesystem operations that are unavailable on this platform. Rerun "
-            "with write_artifacts=false."
+            "filesystem operations that are unavailable on this platform. This "
+            "operation cannot create artifacts here."
         )
 
 

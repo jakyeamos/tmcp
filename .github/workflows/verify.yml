@@ -47,8 +47,7 @@ jobs:
         run: python scripts/check_contracts.py .
       - name: Install shape
         run: python scripts/check_install.py .
-      - name: Release package (POSIX secure storage)
-        if: runner.os != 'Windows'
+      - name: Release package
         run: python scripts/check_release_package.py . --verify-reproducible
       - name: Active release evidence
         run: python scripts/check_release_evidence.py .

@@ -62,7 +62,7 @@ Experimental workflows include UI rubric, security/privacy, test strategy, adapt
 | `tmcp_explain` | Compile a task-specific TMCP packet. |
 | `tmcp_compose_packet` | Compile a task/phase operating packet with `task_identity`, `packet_markdown`, and provenance. |
 | `tmcp_runtime_next` | Return packet deltas or a full recompiled packet (`output_mode: full`) after runtime evidence changes. |
-| `tmcp_record_receipt` | Write an advisory run receipt after verification or outcome. |
+| `tmcp_record_receipt` | Write an advisory run receipt after verification or outcome on a secure-persistence host. |
 | `tmcp_harvest_skills` | Harvest local skills, instructions, rules, docs, and workflows into source nodes. |
 | `tmcp_evaluate_skills` | Create or score a skill-evaluation plan from full `SKILL.md` inputs. |
 | `tmcp_recommend_workflows` | Recommend stable or experimental workflows from harvested evidence, with stability metadata. |
@@ -86,6 +86,10 @@ operations do not exist. `doctor` and `status` report the capability; use
 [Compatibility](docs/COMPATIBILITY.md#secure-artifact-persistence) for the
 boundary.
 
+`tmcp_record_receipt` has no non-persisting preview because the receipt is the
+artifact itself. Run it only when `status` reports artifact persistence
+available.
+
 If a harvested source tries to override system, developer, or user instructions, TMCP reports a warning. See [SECURITY.md](SECURITY.md).
 
 ## Examples
@@ -102,7 +106,8 @@ Recommend workflows for a project:
 node scripts/tmcp_launcher.mjs recommend . --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose --no-write-artifacts
 ```
 
-Compose a current-task packet, recompile during the run, and record a receipt:
+Compose a current-task packet and recompile during the run. The receipt command
+in this example requires `status` to report artifact persistence available:
 
 ```bash
 node scripts/tmcp_launcher.mjs compose-packet \
@@ -133,8 +138,9 @@ node scripts/tmcp_launcher.mjs promote-harvest . --selected-workflows release_re
 ```
 
 On secure-persistence hosts, promotions also persist a redacted advisory graph
-under `TMCP_HOME/promoted-harvests/`, or `~/.tmcp/promoted-harvests/` when
-`TMCP_HOME` is unset. Receipts live under `TMCP_HOME/receipts/<yyyy-mm>/`.
+under `TMCP_HOME/promoted-harvests/<opaque-promotion-key>/`, or
+`~/.tmcp/promoted-harvests/<opaque-promotion-key>/` when `TMCP_HOME` is unset.
+Receipts live under `TMCP_HOME/receipts/<yyyy-mm>/`.
 Global cache content is advisory and cannot override system, developer, user, or
 project instructions.
 

@@ -13,7 +13,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tmcp_runtime.storage import artifact_persistence_available
 from unittest.mock import patch
 
 
@@ -692,10 +691,6 @@ class ReleasePackageTests(unittest.TestCase):
 
         self.assertTrue(ok, output)
 
-    @unittest.skipUnless(
-        artifact_persistence_available(),
-        "Secure artifact persistence is unavailable on this platform.",
-    )
     def test_release_package_check_smokes_composition_surface(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             ok, output = self.checker.check_composition_surface(

@@ -50,6 +50,7 @@ from tmcp_runtime.safety import (  # noqa: E402
     read_harvest_text,
 )
 from tmcp_runtime.storage import (  # noqa: E402
+    ArtifactStorageError,
     AtomicArtifactStore,
     artifact_persistence_available,
 )
@@ -70,6 +71,14 @@ RUBRIC_SCHEMA = "tmcp-expert-rubric-v0.1"
 AUDIT_REPORT_SCHEMA = "tmcp-expert-audit-report-v0.1"
 REMEDIATION_PLAN_SCHEMA = "tmcp-expert-remediation-plan-v0.1"
 IMPLEMENTATION_HANDOFF_SCHEMA = "tmcp-expert-implementation-handoff-v0.1"
+
+MAX_GLOBAL_CACHE_CANDIDATES = 64
+MAX_GLOBAL_CACHE_SCAN_ENTRIES = 256
+MAX_GLOBAL_CACHE_ENTRIES = 32
+MAX_GLOBAL_CACHE_ENTRY_BYTES = 262_144
+MAX_GLOBAL_CACHE_JSON_DEPTH = 32
+MAX_GLOBAL_CACHE_JSON_NODES = 2_048
+MAX_GLOBAL_CACHE_WARNINGS = 12
 
 TASK_KEYWORDS: dict[str, tuple[str, ...]] = {
     "audit": ("audit", "review", "inspect", "rubric", "judge", "evaluate", "score"),
@@ -3334,6 +3343,11 @@ def _redacted_mapping(value: dict[str, Any]) -> dict[str, Any]:
     return safe_value if isinstance(safe_value, dict) else {}
 
 
+def _opaque_storage_key(raw_value: str, display_value: str) -> str:
+    digest = hashlib.sha256(raw_value.encode()).hexdigest()[:32]
+    return f"{_promotion_slug(display_value)[:80]}-{digest}"
+
+
 def _redact_result(result: dict[str, Any]) -> dict[str, Any]:
     safe_result, redactions = redact_json_value(result, enabled=True)
     if not isinstance(safe_result, dict):
@@ -3423,9 +3437,8 @@ def _write_review_artifacts(
     }
 
 
-def _default_output_dir(project_path: str) -> str:
-    root = Path(project_path).expanduser()
-    return str(root / ".aios" / "reviews" / f"tmcp-mcp-{uuid.uuid4().hex[:8]}")
+def _default_output_dir(project_root: Path) -> Path:
+    return project_root / ".aios" / "reviews" / f"tmcp-mcp-{uuid.uuid4().hex[:8]}"
 
 
 def _harvest_review_sources(
@@ -3532,9 +3545,11 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     }
     safe_result = _redact_result(result)
     if bool(arguments.get("write_artifacts", True)):
-        output_dir = Path(
-            str(arguments.get("output_dir") or _default_output_dir(project_path))
-        ).expanduser()
+        output_dir = (
+            Path(str(arguments["output_dir"])).expanduser()
+            if arguments.get("output_dir")
+            else _default_output_dir(_require_default_artifact_root(arguments))
+        )
         safe_result["artifact_paths"] = _write_review_artifacts(
             output_dir,
             dict(safe_result["expertise_packet"]),
@@ -3574,6 +3589,34 @@ def _source_project_path(arguments: dict[str, Any]) -> str:
     except OSError:
         resolved_path = source_path.resolve(strict=False)
     return str(resolved_path if resolved_path.is_dir() else resolved_path.parent)
+
+
+def _safe_default_artifact_root(arguments: dict[str, Any]) -> Path | None:
+    """Return one approved logical source root for a default artifact location.
+
+    Default output paths must never be derived from a source symlink or from an
+    ambiguous multi-root harvest. Explicit output paths remain supported and are
+    independently protected by ``AtomicArtifactStore``.
+    """
+
+    roots, warnings = collect_harvest_roots(
+        _source_path_values(arguments),
+        follow_symlinks=False,
+    )
+    if warnings or len(roots) != 1:
+        return None
+    root = roots[0]
+    return root.logical_path if root.kind == "directory" else root.logical_path.parent
+
+
+def _require_default_artifact_root(arguments: dict[str, Any]) -> Path:
+    root = _safe_default_artifact_root(arguments)
+    if root is None:
+        raise ValueError(
+            "Cannot choose a default artifact directory from an unapproved source "
+            "path; provide output_dir."
+        )
+    return root
 
 
 def _source_type_for(path: Path, rel_path: str, text: str) -> str:
@@ -5368,12 +5411,13 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
         "packet_seed": packet,
     }
     if bool(arguments.get("write_artifacts", False)):
-        output_dir = Path(
-            str(
-                arguments.get("output_dir")
-                or Path(project_path) / ".tmcp" / f"harvest-{uuid.uuid4().hex[:8]}"
-            )
-        ).expanduser()
+        output_dir = (
+            Path(str(arguments["output_dir"])).expanduser()
+            if arguments.get("output_dir")
+            else _require_default_artifact_root(arguments)
+            / ".tmcp"
+            / f"harvest-{uuid.uuid4().hex[:8]}"
+        )
         result["artifact_paths"] = _write_harvest_artifacts(output_dir, result)
     return result
 
@@ -6540,9 +6584,9 @@ def _normalized_global_graph(result: dict[str, Any]) -> dict[str, Any]:
 
 
 def _write_global_promotion(
-    result: dict[str, Any], promotion_name: str
+    result: dict[str, Any], promotion_name: str, storage_key: str
 ) -> dict[str, str]:
-    output_dir = _global_promoted_root() / _promotion_slug(promotion_name)
+    output_dir = _global_promoted_root() / storage_key
     graph = _redacted_mapping(_normalized_global_graph(result))
     summary = {
         "schema": "tmcp-global-promoted-harvest-v0.1",
@@ -6578,10 +6622,41 @@ def _write_global_promotion(
     return result_paths
 
 
+def _append_global_cache_warning(warnings: list[str], warning: str) -> None:
+    if len(warnings) < MAX_GLOBAL_CACHE_WARNINGS:
+        warnings.append(warning)
+
+
+def _bounded_global_cache_limit(value: object) -> int:
+    try:
+        requested = int(value)
+    except (TypeError, ValueError):
+        return 0
+    return max(0, min(requested, MAX_GLOBAL_CACHE_ENTRIES))
+
+
+def _cache_json_is_bounded(value: object) -> bool:
+    pending: list[tuple[object, int]] = [(value, 1)]
+    node_count = 0
+    while pending:
+        current, depth = pending.pop()
+        node_count += 1
+        if node_count > MAX_GLOBAL_CACHE_JSON_NODES or depth > MAX_GLOBAL_CACHE_JSON_DEPTH:
+            return False
+        if isinstance(current, dict):
+            for key, item in current.items():
+                pending.append((key, depth + 1))
+                pending.append((item, depth + 1))
+        elif isinstance(current, list):
+            pending.extend((item, depth + 1) for item in current)
+    return True
+
+
 def _safe_global_cache_entries(
     root: Path,
     *,
     filename: str | None,
+    limit: int = MAX_GLOBAL_CACHE_ENTRIES,
 ) -> tuple[list[tuple[dict[str, Any], str, int]], list[str]]:
     try:
         root.lstat()
@@ -6593,44 +6668,105 @@ def _safe_global_cache_entries(
             f"{redact_path(root)}: {redact_path(str(exc))}"
         ]
     roots, root_warnings = collect_harvest_roots([root], follow_symlinks=False)
-    warnings = list(root_warnings)
+    warnings = list(root_warnings[:MAX_GLOBAL_CACHE_WARNINGS])
     if len(roots) != 1 or roots[0].kind != "directory":
         return [], warnings
+    entry_limit = _bounded_global_cache_limit(limit)
+    if entry_limit == 0:
+        return [], warnings
+    include_globs = [f"*/{filename}"] if filename is not None else ["*.json"]
     candidates, traversal_warnings = iter_harvest_candidates(
         roots,
-        ["*.json"],
+        include_globs,
         [],
         set(),
         follow_symlinks=False,
+        max_candidates=MAX_GLOBAL_CACHE_CANDIDATES,
+        max_scan_entries=MAX_GLOBAL_CACHE_SCAN_ENTRIES,
+        max_relative_depth=2,
     )
-    warnings.extend(traversal_warnings)
-    entries: list[tuple[dict[str, Any], str, int]] = []
+    for warning in traversal_warnings:
+        _append_global_cache_warning(warnings, warning)
+
+    eligible_candidates: list[tuple[Any, os.stat_result]] = []
+    matching_candidate_count = 0
     for candidate in candidates:
         parts = Path(candidate.relative_path).parts
         if len(parts) != 2 or (filename is not None and parts[-1] != filename):
             continue
+        matching_candidate_count += 1
+        if matching_candidate_count > MAX_GLOBAL_CACHE_CANDIDATES:
+            _append_global_cache_warning(
+                warnings,
+                "Global cache candidate limit reached; skipped additional entries.",
+            )
+            break
+        try:
+            metadata = candidate.resolved_path.lstat()
+        except OSError as exc:
+            _append_global_cache_warning(
+                warnings,
+                "Could not inspect global cache entry "
+                f"{candidate.display_path}: {redact_path(str(exc))}",
+            )
+            continue
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or (metadata.st_dev, metadata.st_ino)
+            != (candidate.device, candidate.inode)
+        ):
+            _append_global_cache_warning(
+                warnings,
+                "Skipped global cache entry that changed before reading: "
+                f"{candidate.display_path}",
+            )
+            continue
+        if metadata.st_size > MAX_GLOBAL_CACHE_ENTRY_BYTES:
+            _append_global_cache_warning(
+                warnings,
+                "Skipped large global cache entry "
+                f"{candidate.display_path} ({metadata.st_size} bytes > "
+                f"{MAX_GLOBAL_CACHE_ENTRY_BYTES})",
+            )
+            continue
+        eligible_candidates.append((candidate, metadata))
+
+    eligible_candidates.sort(key=lambda item: item[1].st_mtime_ns, reverse=True)
+    entries: list[tuple[dict[str, Any], str, int]] = []
+    for candidate, _ in eligible_candidates[:entry_limit]:
         source, warning = read_harvest_text(
             candidate,
-            1_048_576,
+            MAX_GLOBAL_CACHE_ENTRY_BYTES,
             redact_sensitive=True,
         )
         if warning or source is None:
-            if len(warnings) < 12:
-                warnings.append(
-                    warning
-                    or f"Skipped unreadable global cache entry {candidate.display_path}."
-                )
+            _append_global_cache_warning(
+                warnings,
+                warning
+                or f"Skipped unreadable global cache entry {candidate.display_path}.",
+            )
             continue
         try:
             payload = json.loads(source.text)
-        except json.JSONDecodeError as exc:
-            if len(warnings) < 12:
-                warnings.append(
-                    "Skipped invalid global cache entry "
-                    f"{candidate.display_path}: {redact_path(str(exc))}"
-                )
+        except (json.JSONDecodeError, MemoryError, RecursionError, ValueError) as exc:
+            _append_global_cache_warning(
+                warnings,
+                "Skipped invalid global cache entry "
+                f"{candidate.display_path}: {redact_path(str(exc))}",
+            )
             continue
         if not isinstance(payload, dict):
+            _append_global_cache_warning(
+                warnings,
+                "Skipped non-object global cache entry: " f"{candidate.display_path}",
+            )
+            continue
+        if not _cache_json_is_bounded(payload):
+            _append_global_cache_warning(
+                warnings,
+                "Skipped overly complex global cache entry: "
+                f"{candidate.display_path}",
+            )
             continue
         try:
             metadata = candidate.resolved_path.lstat()
@@ -6640,13 +6776,21 @@ def _safe_global_cache_entries(
             not stat.S_ISREG(metadata.st_mode)
             or (metadata.st_dev, metadata.st_ino) != (candidate.device, candidate.inode)
         ):
-            if len(warnings) < 12:
-                warnings.append(
-                    "Skipped global cache entry that changed while reading: "
-                    f"{candidate.display_path}"
-                )
+            _append_global_cache_warning(
+                warnings,
+                "Skipped global cache entry that changed while reading: "
+                f"{candidate.display_path}",
+            )
             continue
-        safe_payload, _ = redact_json_value(payload, enabled=True)
+        try:
+            safe_payload, _ = redact_json_value(payload, enabled=True)
+        except (MemoryError, RecursionError):
+            _append_global_cache_warning(
+                warnings,
+                "Skipped global cache entry that could not be redacted safely: "
+                f"{candidate.display_path}",
+            )
+            continue
         if isinstance(safe_payload, dict):
             entries.append(
                 (
@@ -6655,7 +6799,108 @@ def _safe_global_cache_entries(
                     metadata.st_mtime_ns,
                 )
             )
-    return entries, warnings[:12]
+    return entries, warnings[:MAX_GLOBAL_CACHE_WARNINGS]
+
+
+def _cached_promotion_graph(
+    payload: dict[str, Any], display_path: str
+) -> tuple[dict[str, Any] | None, str | None]:
+    required_list_fields = (
+        "source_nodes",
+        "behavior_atoms",
+        "workflow_nodes",
+        "edges",
+    )
+    if (
+        payload.get("schema") != "tmcp-promoted-harvest-graph-v0.1"
+        or payload.get("trust") != "advisory_untrusted"
+        or not isinstance(payload.get("created_at"), str)
+        or not isinstance(payload.get("promotion_name"), (str, type(None)))
+        or any(not isinstance(payload.get(field), list) for field in required_list_fields)
+    ):
+        return (
+            None,
+            "Skipped global cache graph with unexpected schema: " f"{display_path}",
+        )
+
+    catalog = _workflow_catalog_by_id()
+    workflow_nodes: list[dict[str, str]] = []
+    unknown_nodes = False
+    seen_workflows: set[str] = set()
+    for node in _json_list(payload.get("workflow_nodes")):
+        if not isinstance(node, dict):
+            unknown_nodes = True
+            continue
+        workflow_id = str(node.get("id") or "")
+        if workflow_id not in catalog:
+            unknown_nodes = True
+            continue
+        if workflow_id in seen_workflows:
+            continue
+        seen_workflows.add(workflow_id)
+        workflow_nodes.append({"id": workflow_id})
+
+    if not workflow_nodes:
+        return (
+            None,
+            "Skipped global cache graph without recognized workflow IDs: "
+            f"{display_path}",
+        )
+    promotion_name = payload.get("promotion_name")
+    safe_promotion_name, _ = redact_json_value(promotion_name, enabled=True)
+    graph = {
+        "schema": "tmcp-promoted-harvest-graph-v0.1",
+        "promotion_name": safe_promotion_name,
+        "workflow_nodes": workflow_nodes,
+        "_global_cache_path": display_path,
+        "trust": "advisory_untrusted",
+    }
+    warning = None
+    if unknown_nodes:
+        warning = "Skipped unknown workflow IDs in global cache graph: " f"{display_path}"
+    return graph, warning
+
+
+def _cached_receipt(
+    payload: dict[str, Any], display_path: str
+) -> tuple[dict[str, Any] | None, str | None]:
+    required_string_fields = (
+        "created_at",
+        "packet_id",
+        "outcome",
+        "instruction_override_policy",
+    )
+    required_list_fields = (
+        "activated_atoms",
+        "ignored_atoms",
+        "commands_run",
+        "verification_results",
+        "user_overrides",
+    )
+    if (
+        payload.get("schema") != RUN_RECEIPT_SCHEMA
+        or payload.get("trust") != "advisory_untrusted"
+        or any(not isinstance(payload.get(field), str) for field in required_string_fields)
+        or any(
+            not isinstance(payload.get(field), list)
+            or not all(isinstance(item, str) for item in payload[field])
+            for field in required_list_fields
+        )
+    ):
+        return (
+            None,
+            "Skipped global cache receipt with unexpected schema: " f"{display_path}",
+        )
+    safe_packet_id, _ = redact_json_value(payload["packet_id"], enabled=True)
+    return (
+        {
+            "schema": RUN_RECEIPT_SCHEMA,
+            "packet_id": safe_packet_id,
+            "_global_cache_path": display_path,
+            "trust": "advisory_untrusted",
+        },
+        None,
+    )
 
 
 def _load_global_promoted_graphs(
@@ -6669,9 +6914,12 @@ def _load_global_promoted_graphs(
     )
     graphs: list[dict[str, Any]] = []
     for payload, display_path, _ in entries:
-        payload["_global_cache_path"] = display_path
-        graphs.append(payload)
-    return graphs, warnings
+        graph, warning = _cached_promotion_graph(payload, display_path)
+        if warning:
+            _append_global_cache_warning(warnings, warning)
+        if graph is not None:
+            graphs.append(graph)
+    return graphs, warnings[:MAX_GLOBAL_CACHE_WARNINGS]
 
 
 def _load_recent_receipts(
@@ -6679,16 +6927,23 @@ def _load_recent_receipts(
 ) -> tuple[list[dict[str, Any]], list[str]]:
     if cache_policy == "none":
         return [], []
+    receipt_limit = _bounded_global_cache_limit(limit)
+    if receipt_limit == 0:
+        return [], []
     entries, warnings = _safe_global_cache_entries(
         _global_receipts_root(),
         filename=None,
+        limit=receipt_limit,
     )
     entries.sort(key=lambda item: item[2], reverse=True)
     receipts: list[dict[str, Any]] = []
-    for payload, display_path, _ in entries[:limit]:
-        payload["_global_cache_path"] = display_path
-        receipts.append(payload)
-    return receipts, warnings
+    for payload, display_path, _ in entries:
+        receipt, warning = _cached_receipt(payload, display_path)
+        if warning:
+            _append_global_cache_warning(warnings, warning)
+        if receipt is not None:
+            receipts.append(receipt)
+    return receipts, warnings[:MAX_GLOBAL_CACHE_WARNINGS]
 
 
 def _compose_harvest_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -7058,9 +7313,10 @@ def _selected_global_workflows(
             if not isinstance(node, dict):
                 continue
             workflow_id = str(node.get("id") or "")
-            workflow = dict(catalog.get(workflow_id, node))
-            if not workflow.get("signal_family"):
-                workflow["signal_family"] = node.get("signal_family")
+            canonical_workflow = catalog.get(workflow_id)
+            if canonical_workflow is None:
+                continue
+            workflow = dict(canonical_workflow)
             score = _workflow_objective_score(workflow, objective)
             if score <= 0:
                 continue
@@ -7385,7 +7641,7 @@ def _compose_packet_from_source_nodes(
         "evidence_citations": evidence_citations,
         "global_cache": {
             "cache_policy": cache_policy,
-            "tmcp_home": str(_tmcp_home()),
+            "tmcp_home": redact_path(_tmcp_home()),
             "promoted_graph_count": len(global_graphs),
             "receipt_count": len(receipts),
             "warnings": graph_warnings + receipt_warnings,
@@ -7478,6 +7734,10 @@ def _record_receipt(arguments: dict[str, Any]) -> dict[str, Any]:
     safe_receipt = (
         redacted_receipt if isinstance(redacted_receipt, dict) else {}
     )
+    storage_key = _opaque_storage_key(
+        packet_id,
+        str(safe_receipt["packet_id"]),
+    )
     month = datetime.now(UTC).strftime("%Y-%m")
     digest = hashlib.sha256(json.dumps(safe_receipt, sort_keys=True).encode()).hexdigest()[
         :10
@@ -7485,7 +7745,7 @@ def _record_receipt(arguments: dict[str, Any]) -> dict[str, Any]:
     path = (
         _global_receipts_root()
         / month
-        / f"{_promotion_slug(str(safe_receipt['packet_id']))[:80]}-{digest}.json"
+        / f"{storage_key}-{digest}-{uuid.uuid4().hex[:8]}.json"
     )
     receipt_path = AtomicArtifactStore.explicit(path.parent).write_json(
         path.name,
@@ -7675,15 +7935,13 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
         )
     safe_result = _redact_result(result)
     if bool(arguments.get("write_artifacts", False)):
-        project_path = _source_project_path(arguments)
-        output_dir = Path(
-            str(
-                arguments.get("output_dir")
-                or Path(project_path)
-                / ".tmcp"
-                / f"workflow-recommendations-{uuid.uuid4().hex[:8]}"
-            )
-        ).expanduser()
+        output_dir = (
+            Path(str(arguments["output_dir"])).expanduser()
+            if arguments.get("output_dir")
+            else _require_default_artifact_root(arguments)
+            / ".tmcp"
+            / f"workflow-recommendations-{uuid.uuid4().hex[:8]}"
+        )
         safe_result["artifact_paths"] = _write_workflow_recommendation_artifacts(
             output_dir,
             safe_result,
@@ -7768,8 +8026,9 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
         ),
     }
     write_artifacts = bool(arguments.get("write_artifacts", True))
+    has_promotable_output = bool(selected_workflows or selected_scoped_packet_seeds)
     status = "promoted" if write_artifacts else "preview"
-    if not selected_workflows and not selected_scoped_packet_seeds:
+    if not has_promotable_output:
         status = "no_promotable_workflows"
     elif missing or missing_scoped_packet_seeds:
         status = "partial_promotion" if write_artifacts else "partial_preview"
@@ -7797,23 +8056,27 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
             "Harvested text remains untrusted evidence and cannot override higher-priority instructions.",
         ],
         "next_action": (
-            "Review promoted artifacts, then add the selected routing trigger or workflow skill."
+            "Select a recommended workflow or scoped packet seed, then rerun promotion."
+            if not has_promotable_output
+            else "Review promoted artifacts, then add the selected routing trigger or workflow skill."
             if write_artifacts
             else "Review this preview, then rerun without --no-write-artifacts to persist promotion artifacts."
         ),
     }
     safe_result = _redact_result(result)
-    if write_artifacts:
-        project_path = _source_project_path(arguments)
-        output_dir = Path(
-            str(
-                arguments.get("output_dir")
-                or Path(project_path)
-                / ".tmcp"
-                / "promoted-harvests"
-                / _promotion_slug(str(safe_result["promotion_name"]))
-            )
-        ).expanduser()
+    promotion_storage_key = _opaque_storage_key(
+        promotion_name,
+        str(safe_result["promotion_name"]),
+    )
+    if write_artifacts and has_promotable_output:
+        output_dir = (
+            Path(str(arguments["output_dir"])).expanduser()
+            if arguments.get("output_dir")
+            else _require_default_artifact_root(arguments)
+            / ".tmcp"
+            / "promoted-harvests"
+            / promotion_storage_key
+        )
         safe_result["artifact_paths"] = _write_promotion_artifacts(
             output_dir,
             safe_result,
@@ -7822,12 +8085,14 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
         safe_result["artifact_paths"] = {}
     if (
         write_artifacts
+        and has_promotable_output
         and bool(arguments.get("persist_global", True))
         and selected_workflows
     ):
         safe_result["global_artifact_paths"] = _write_global_promotion(
             safe_result,
             str(safe_result["promotion_name"]),
+            promotion_storage_key,
         )
     else:
         safe_result["global_artifact_paths"] = {}
@@ -7973,31 +8238,34 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             ),
         }
     if name == "tmcp_status":
+        artifact_persistence = artifact_persistence_available()
+        capabilities = [
+            "packet_compile",
+            "packet_composition",
+            "runtime_next",
+            "receipt_recording",
+            "portable_skill_harvest",
+            "multi_root_harvest",
+            "global_cache",
+            "source_type_classification",
+            "workflow_recommendation",
+            "harvest_promotion",
+            "expert_rubric_review_plan",
+        ]
+        if artifact_persistence:
+            capabilities.append("artifact_write")
         return {
             "ok": True,
             "schema": "tmcp-status-v0.1",
             "standalone": {
                 "available": True,
                 "plugin_root": str(PLUGIN_ROOT),
-                "capabilities": [
-                    "packet_compile",
-                    "packet_composition",
-                    "runtime_next",
-                    "receipt_recording",
-                    "portable_skill_harvest",
-                    "multi_root_harvest",
-                    "global_cache",
-                    "source_type_classification",
-                    "workflow_recommendation",
-                    "harvest_promotion",
-                    "expert_rubric_review_plan",
-                    "artifact_write",
-                ],
+                "capabilities": capabilities,
                 "artifact_persistence": {
-                    "available": artifact_persistence_available(),
+                    "available": artifact_persistence,
                     "detail": (
                         "Secure descriptor-relative no-follow artifact writes are available."
-                        if artifact_persistence_available()
+                        if artifact_persistence
                         else "Secure artifact writes are unavailable on this platform; "
                         "write-capable tools fail closed."
                     ),
@@ -8081,7 +8349,14 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         return _promote_harvest(arguments)
     if name == "expert_rubric_review_plan":
         adapter = str(arguments.get("adapter") or "auto")
-        if _should_use_aios(adapter):
+        if adapter == "aios":
+            if not _aios_available():
+                return _redact_result(_run_aios([]))
+            if bool(arguments.get("write_artifacts", True)):
+                raise ArtifactStorageError(
+                    "The AIOS review adapter only supports write_artifacts=false. "
+                    "Use adapter=standalone for persisted review artifacts."
+                )
             project_path = str(arguments.get("project_path") or ".")
             args = [
                 "tmcp",
@@ -8089,21 +8364,21 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
                 str(arguments["objective"]),
                 "--project-path",
                 project_path,
-                "--output-dir",
-                str(arguments.get("output_dir") or _default_output_dir(project_path)),
                 "--evidence-json",
                 str(arguments.get("evidence_json") or "[]"),
                 "--json",
+                "--no-write-artifacts",
             ]
-            if not bool(arguments.get("write_artifacts", True)):
-                args.append("--no-write-artifacts")
             if arguments.get("selected_slice_id"):
                 args.extend(
                     ["--selected-slice-id", str(arguments["selected_slice_id"])]
                 )
             payload = _run_aios(args)
-            if payload.get("ok") or adapter == "aios":
-                return payload
+            safe_payload = _redact_result(payload)
+            safe_payload.pop("output_dir", None)
+            safe_payload.pop("global_artifact_paths", None)
+            safe_payload["artifact_paths"] = {}
+            return safe_payload
         return _standalone_review_plan(arguments)
     raise ValueError(f"Unknown TMCP tool: {name}")
 

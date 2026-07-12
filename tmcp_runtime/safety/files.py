@@ -101,6 +101,22 @@ def _trusted_system_alias_target(path: Path) -> Path | None:
     return target if stat.S_ISDIR(metadata.st_mode) else None
 
 
+def _is_link_or_reparse_point(metadata: os.stat_result) -> bool:
+    """Return whether no-follow metadata represents a link-like filesystem node.
+
+    Windows directory junctions are reparse points rather than POSIX-style
+    symlinks.  ``DirEntry.is_symlink()`` and ``stat.S_ISLNK`` do not reliably
+    identify them, so every untrusted path boundary must inspect the Windows
+    file attributes obtained with ``follow_symlinks=False`` as well.
+    """
+
+    if stat.S_ISLNK(metadata.st_mode):
+        return True
+    reparse_point = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+    attributes = getattr(metadata, "st_file_attributes", 0)
+    return bool(reparse_point and attributes & reparse_point)
+
+
 def _first_untrusted_symlink_component(path: Path) -> Path | None:
     current = Path(path.anchor)
     for part in path.parts[1:]:
@@ -111,7 +127,7 @@ def _first_untrusted_symlink_component(path: Path) -> Path | None:
             return None
         except OSError:
             return current
-        if not stat.S_ISLNK(metadata.st_mode):
+        if not _is_link_or_reparse_point(metadata):
             continue
         trusted_target = _trusted_system_alias_target(current)
         if trusted_target is None:
@@ -166,7 +182,7 @@ def collect_harvest_roots(
             )
             continue
 
-        is_symlink = stat.S_ISLNK(source_metadata.st_mode)
+        is_symlink = _is_link_or_reparse_point(source_metadata)
         if (
             is_symlink
             and not follow_symlinks
@@ -311,10 +327,10 @@ def _candidate_for(
     if resolved_key in seen_files:
         return None
     try:
-        metadata = resolved_path.stat()
+        metadata = resolved_path.lstat()
     except OSError:
         return None
-    if not stat.S_ISREG(metadata.st_mode):
+    if _is_link_or_reparse_point(metadata) or not stat.S_ISREG(metadata.st_mode):
         return None
     seen_files.add(resolved_key)
     return HarvestCandidate(
@@ -379,6 +395,9 @@ def iter_harvest_candidates(
     excluded_dir_names: set[str],
     *,
     follow_symlinks: bool,
+    max_candidates: int | None = None,
+    max_scan_entries: int | None = None,
+    max_relative_depth: int | None = None,
 ) -> tuple[list[HarvestCandidate], list[str]]:
     """Traverse only regular files contained by their selected source root."""
 
@@ -386,8 +405,39 @@ def iter_harvest_candidates(
     warnings: list[str] = []
     seen_files: set[str] = set()
     file_root_relative_paths = _file_root_relative_paths(roots)
+    candidate_limit = (
+        max(0, max_candidates) if max_candidates is not None else None
+    )
+    scan_entry_limit = (
+        max(0, max_scan_entries) if max_scan_entries is not None else None
+    )
+    relative_depth_limit = (
+        max(0, max_relative_depth) if max_relative_depth is not None else None
+    )
+    remaining_scan_entries = scan_entry_limit
+    candidate_limit_reached = False
+
+    if candidate_limit == 0:
+        _append_warning(
+            warnings,
+            "Harvest traversal candidate limit reached; skipped remaining paths.",
+        )
+        return candidates, warnings
+
+    def append_candidate(candidate: HarvestCandidate | None) -> None:
+        nonlocal candidate_limit_reached
+        if candidate is None:
+            return
+        if candidate_limit is not None and len(candidates) >= candidate_limit:
+            candidate_limit_reached = True
+            return
+        candidates.append(candidate)
+        if candidate_limit is not None and len(candidates) >= candidate_limit:
+            candidate_limit_reached = True
 
     for root in roots:
+        if candidate_limit_reached:
+            break
         if root.kind == "file":
             relative_path = file_root_relative_paths.get(root, root.logical_path.name)
             candidate = _candidate_for(
@@ -399,19 +449,31 @@ def iter_harvest_candidates(
                 include_globs=include_globs,
                 exclude_globs=exclude_globs,
             )
-            if candidate is not None:
-                candidates.append(candidate)
+            append_candidate(candidate)
             continue
 
         stack: list[tuple[Path, Path]] = [(root.resolved_path, Path())]
         visited_directories = {str(root.resolved_path)}
-        while stack:
+        while stack and not candidate_limit_reached:
+            if remaining_scan_entries is not None and remaining_scan_entries <= 0:
+                _append_warning(
+                    warnings,
+                    "Harvest traversal scan-entry limit reached; skipped remaining paths.",
+                )
+                break
             physical_directory, logical_relative_directory = stack.pop()
             try:
-                entries = sorted(
-                    list(os.scandir(physical_directory)),
-                    key=lambda entry: entry.name,
-                )
+                with os.scandir(physical_directory) as scan:
+                    if remaining_scan_entries is None:
+                        entries = sorted(list(scan), key=lambda entry: entry.name)
+                    else:
+                        entries = []
+                        for entry in scan:
+                            if remaining_scan_entries <= 0:
+                                break
+                            entries.append(entry)
+                            remaining_scan_entries -= 1
+                        entries.sort(key=lambda entry: entry.name)
             except OSError as exc:
                 _append_warning(
                     warnings,
@@ -425,10 +487,16 @@ def iter_harvest_candidates(
                 relative_path = (
                     logical_relative_directory / entry.name
                 ).as_posix()
+                relative_depth = len(Path(relative_path).parts)
+                if (
+                    relative_depth_limit is not None
+                    and relative_depth > relative_depth_limit
+                ):
+                    continue
                 logical_path = root.logical_path / relative_path
                 physical_path = Path(entry.path)
                 try:
-                    is_symlink = entry.is_symlink()
+                    metadata = entry.stat(follow_symlinks=False)
                 except OSError as exc:
                     _append_warning(
                         warnings,
@@ -436,6 +504,8 @@ def iter_harvest_candidates(
                         f"{redact_path(logical_path)}: {_safe_error(exc)}",
                     )
                     continue
+
+                is_symlink = _is_link_or_reparse_point(metadata)
 
                 if is_symlink:
                     if not follow_symlinks:
@@ -463,6 +533,11 @@ def iter_harvest_candidates(
                         )
                         continue
                     if stat.S_ISDIR(target_metadata.st_mode):
+                        if (
+                            relative_depth_limit is not None
+                            and relative_depth >= relative_depth_limit
+                        ):
+                            continue
                         if _directory_is_excluded(
                             relative_path,
                             logical_path,
@@ -509,19 +584,17 @@ def iter_harvest_candidates(
                         exclude_globs=exclude_globs,
                     )
                     if candidate is not None:
-                        candidates.append(candidate)
+                        append_candidate(candidate)
+                    if candidate_limit_reached:
+                        break
                     continue
 
-                try:
-                    metadata = entry.stat(follow_symlinks=False)
-                except OSError as exc:
-                    _append_warning(
-                        warnings,
-                        "Could not inspect source path "
-                        f"{redact_path(logical_path)}: {_safe_error(exc)}",
-                    )
-                    continue
                 if stat.S_ISDIR(metadata.st_mode):
+                    if (
+                        relative_depth_limit is not None
+                        and relative_depth >= relative_depth_limit
+                    ):
+                        continue
                     if _directory_is_excluded(
                         relative_path,
                         logical_path,
@@ -573,6 +646,21 @@ def iter_harvest_candidates(
                     exclude_globs=exclude_globs,
                 )
                 if candidate is not None:
-                    candidates.append(candidate)
+                    append_candidate(candidate)
+                if candidate_limit_reached:
+                    break
+            if candidate_limit_reached:
+                break
+            if remaining_scan_entries is not None and remaining_scan_entries <= 0:
+                _append_warning(
+                    warnings,
+                    "Harvest traversal scan-entry limit reached; skipped remaining paths.",
+                )
+                break
             stack.extend(reversed(nested_directories))
+    if candidate_limit_reached:
+        _append_warning(
+            warnings,
+            "Harvest traversal candidate limit reached; skipped remaining paths.",
+        )
     return candidates, warnings

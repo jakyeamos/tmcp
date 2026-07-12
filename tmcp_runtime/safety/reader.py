@@ -9,6 +9,7 @@ from scripts.tmcp_redaction import redact_sensitive_text
 from tmcp_runtime.safety.files import (
     HarvestCandidate,
     SafeText,
+    _is_link_or_reparse_point,
     _is_within,
     _safe_error,
 )
@@ -36,7 +37,7 @@ def read_harvest_text(
     )
     if (
         current_root != candidate.root.resolved_path
-        or stat.S_ISLNK(root_metadata.st_mode)
+        or _is_link_or_reparse_point(root_metadata)
         or not expected_root_mode(root_metadata.st_mode)
     ):
         return None, f"Skipped source root that changed: {candidate.root.display_path}"
@@ -57,8 +58,8 @@ def read_harvest_text(
         metadata = candidate.resolved_path.lstat()
     except OSError as exc:
         return None, f"Could not stat {candidate.display_path}: {_safe_error(exc)}"
-    if stat.S_ISLNK(metadata.st_mode):
-        return None, f"Skipped symlink source file: {candidate.display_path}"
+    if _is_link_or_reparse_point(metadata):
+        return None, f"Skipped symlink or reparse-point source file: {candidate.display_path}"
     if not stat.S_ISREG(metadata.st_mode):
         return None, f"Skipped non-regular source file: {candidate.display_path}"
 

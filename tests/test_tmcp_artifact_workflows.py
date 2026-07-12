@@ -9,6 +9,13 @@ from tests import test_tmcp_mcp_server as helpers
 from tmcp_runtime.storage import artifact_persistence_available
 
 
+def _symlink_or_skip(test_case: unittest.TestCase, link: Path, target: Path) -> None:
+    try:
+        link.symlink_to(target, target_is_directory=target.is_dir())
+    except (NotImplementedError, OSError) as exc:
+        test_case.skipTest(f"Symlinks are unavailable in this environment: {exc}")
+
+
 class TmcpArtifactWorkflowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -38,11 +45,92 @@ class TmcpArtifactWorkflowTests(unittest.TestCase):
                 },
             )
 
-            output_dir = root / ".tmcp" / "promoted-harvests" / "outside"
+            output_dir = Path(result["artifact_paths"]["promotion_graph_json"]).parent
 
             self.assertTrue(result["artifact_paths"])
             self.assertTrue((output_dir / "promotion-graph.json").exists())
+            self.assertEqual(
+                output_dir.parent.resolve(),
+                (root / ".tmcp" / "promoted-harvests").resolve(),
+            )
+            self.assertTrue(output_dir.name.startswith("outside-"))
             self.assertFalse((root / "outside").exists())
+
+    def test_default_recommendation_and_promotion_never_write_through_source_link(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox = Path(tmp)
+            real_root = sandbox / "real-project"
+            source_link = sandbox / "project-link"
+            real_root.mkdir()
+            (real_root / "SKILL.md").write_text(
+                "# Release Readiness\n\nUse release checks and package verification.\n",
+                encoding="utf-8",
+            )
+            _symlink_or_skip(self, source_link, real_root)
+
+            with self.assertRaisesRegex(ValueError, "provide output_dir"):
+                self.server._call_tool(
+                    "expert_rubric_review_plan",
+                    {
+                        "objective": "Review release safety",
+                        "project_path": str(source_link),
+                        "harvest_sources": False,
+                    },
+                )
+            with self.assertRaisesRegex(ValueError, "provide output_dir"):
+                self.server._call_tool(
+                    "tmcp_recommend_workflows",
+                    {
+                        "source_path": str(source_link),
+                        "follow_symlinks": True,
+                        "candidate_workflows": ["release_readiness"],
+                        "min_confidence": 0.1,
+                        "write_artifacts": True,
+                    },
+                )
+            with self.assertRaisesRegex(ValueError, "provide output_dir"):
+                self.server._call_tool(
+                    "tmcp_promote_harvest",
+                    {
+                        "source_path": str(source_link),
+                        "follow_symlinks": True,
+                        "candidate_workflows": ["release_readiness"],
+                        "selected_workflows": ["release_readiness_workflow"],
+                        "min_confidence": 0.1,
+                        "persist_global": False,
+                    },
+                )
+
+            self.assertFalse((real_root / ".tmcp").exists())
+            self.assertFalse((real_root / ".aios").exists())
+
+    def test_no_promotable_selection_does_not_persist_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "project"
+            output_dir = Path(tmp) / "promotion"
+            root.mkdir()
+            (root / "SKILL.md").write_text(
+                "# Unrelated\n\nDocument a local convention.\n",
+                encoding="utf-8",
+            )
+
+            result = self.server._call_tool(
+                "tmcp_promote_harvest",
+                {
+                    "source_path": str(root),
+                    "selected_workflows": ["does-not-exist"],
+                    "output_dir": str(output_dir),
+                },
+            )
+            output_exists = output_dir.exists()
+
+        self.assertEqual(result["status"], "no_promotable_workflows")
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["artifact_paths"], {})
+        self.assertEqual(result["global_artifact_paths"], {})
+        self.assertFalse(output_exists)
 
     @unittest.skipUnless(
         artifact_persistence_available(),
@@ -76,7 +164,7 @@ class TmcpArtifactWorkflowTests(unittest.TestCase):
         self.assertIn("[REDACTED:", receipt_text)
         self.assertGreater(result["redaction_summary"].get("openai_key", 0), 0)
 
-    def test_global_cache_read_redacts_legacy_payload_and_skips_symlinks(self) -> None:
+    def test_global_cache_rejects_legacy_payloads_and_skips_symlinks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             sandbox = Path(tmp)
             secret = "sk-" + "G" * 40
@@ -107,7 +195,8 @@ class TmcpArtifactWorkflowTests(unittest.TestCase):
                 setattr(self.server, "TMCP_HOME", original_home)
 
         serialized = json.dumps({"graphs": graphs, "warnings": warnings})
-        self.assertEqual(len(graphs), 1)
+        self.assertEqual(graphs, [])
         self.assertNotIn(secret, serialized)
         self.assertNotIn("EXTERNAL_ONLY", serialized)
-        self.assertIn("[REDACTED:", serialized)
+        self.assertTrue(any("unexpected schema" in warning for warning in warnings))
+        self.assertTrue(any("symlink" in warning.lower() for warning in warnings))

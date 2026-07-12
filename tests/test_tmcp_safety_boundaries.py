@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import json
 import os
+import stat
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
+import tmcp_runtime.safety.files as safety_files
 from tmcp_runtime.safety import (
     collect_harvest_roots,
     iter_harvest_candidates,
@@ -27,6 +31,23 @@ def _symlink_or_skip(test_case: unittest.TestCase, link: Path, target: Path) -> 
         link.symlink_to(target, target_is_directory=target.is_dir())
     except (NotImplementedError, OSError) as exc:
         test_case.skipTest(f"Symlinks are unavailable in this environment: {exc}")
+
+
+def _junction_or_skip(test_case: unittest.TestCase, link: Path, target: Path) -> None:
+    """Create a Windows directory junction without requiring symlink privileges."""
+
+    command = f'mklink /J "{link}" "{target}"'
+    result = subprocess.run(
+        ["cmd", "/d", "/c", command],
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    if result.returncode != 0:
+        test_case.skipTest(
+            "Windows junctions are unavailable in this environment: "
+            f"{result.stderr or result.stdout}"
+        )
 
 
 class TmcpSafetyBoundaryTests(unittest.TestCase):
@@ -69,6 +90,96 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
                     self.assertTrue(
                         any("symlink" in warning.lower() for warning in result["warnings"])
                     )
+
+    def test_reparse_point_metadata_is_treated_like_a_symlink(self) -> None:
+        reparse_point = 0x400
+        metadata = SimpleNamespace(
+            st_mode=stat.S_IFDIR,
+            st_file_attributes=reparse_point,
+        )
+        with patch.object(
+            safety_files.stat,
+            "FILE_ATTRIBUTE_REPARSE_POINT",
+            reparse_point,
+            create=True,
+        ):
+            self.assertTrue(safety_files._is_link_or_reparse_point(metadata))
+
+    @unittest.skipUnless(os.name == "nt", "Requires a Windows junction-capable host.")
+    def test_windows_junctions_follow_the_symlink_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox = Path(tmp)
+            real_root = sandbox / "real-project"
+            root_link = sandbox / "project-link"
+            outside = sandbox / "outside"
+            real_root.mkdir()
+            outside.mkdir()
+            (real_root / "SKILL.md").write_text(
+                "# Internal\n\nUse verification.\n",
+                encoding="utf-8",
+            )
+            (outside / "SKILL.md").write_text(
+                "# EXTERNAL_JUNCTION_CONTENT\n\nNever harvest this.\n",
+                encoding="utf-8",
+            )
+            _junction_or_skip(self, root_link, real_root)
+
+            roots, warnings = collect_harvest_roots(
+                [root_link],
+                follow_symlinks=False,
+            )
+            followed_roots, followed_warnings = collect_harvest_roots(
+                [root_link],
+                follow_symlinks=True,
+            )
+
+            self.assertEqual(roots, [])
+            self.assertTrue(any("source-root symlink" in warning for warning in warnings))
+            self.assertEqual(followed_warnings, [])
+            self.assertEqual(len(followed_roots), 1)
+
+            junction = real_root / "outside-junction"
+            _junction_or_skip(self, junction, outside)
+            result = self.server._harvest_skills(
+                {"source_path": str(real_root), "follow_symlinks": False}
+            )
+
+            reader_root = sandbox / "reader-project"
+            original_directory = reader_root / "sub"
+            original_directory.mkdir(parents=True)
+            (original_directory / "SKILL.md").write_text(
+                "# Original\n\nUse verification.\n",
+                encoding="utf-8",
+            )
+            reader_roots, reader_root_warnings = collect_harvest_roots(
+                [reader_root],
+                follow_symlinks=False,
+            )
+            candidates, candidate_warnings = iter_harvest_candidates(
+                reader_roots,
+                self.server.DEFAULT_HARVEST_INCLUDE_GLOBS,
+                self.server.DEFAULT_HARVEST_EXCLUDE_GLOBS,
+                self.server.DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
+                follow_symlinks=False,
+            )
+            self.assertEqual(reader_root_warnings + candidate_warnings, [])
+            self.assertEqual(len(candidates), 1)
+            original_directory.rename(reader_root / "sub-original")
+            _junction_or_skip(self, reader_root / "sub", outside)
+            source, reader_warning = read_harvest_text(
+                candidates[0],
+                4096,
+                redact_sensitive=True,
+            )
+
+        self.assertEqual(
+            [node["relative_path"] for node in result["source_nodes"]],
+            ["SKILL.md"],
+        )
+        self.assertNotIn("EXTERNAL_JUNCTION_CONTENT", json.dumps(result))
+        self.assertTrue(any("symlink" in warning.lower() for warning in result["warnings"]))
+        self.assertIsNone(source)
+        self.assertIn("outside source root", str(reader_warning))
 
     def test_directory_symlink_and_cycle_are_bounded(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -127,11 +238,21 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             followed_result = self.server._harvest_skills(
                 {"source_path": str(root_link), "follow_symlinks": True}
             )
+            with self.assertRaisesRegex(ValueError, "provide output_dir"):
+                self.server._harvest_skills(
+                    {
+                        "source_path": str(root_link),
+                        "follow_symlinks": True,
+                        "write_artifacts": True,
+                    }
+                )
+            self.assertFalse((real_root / ".tmcp").exists())
             followed_with_artifacts = self.server._harvest_skills(
                 {
                     "source_path": str(root_link),
                     "follow_symlinks": True,
                     "write_artifacts": True,
+                    "output_dir": str(sandbox / "explicit-artifacts"),
                 }
             )
             artifact_paths_exist = all(
@@ -525,6 +646,98 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
 
             self.assertFalse(output_dir.exists())
             self.assertFalse(bundle_dir.exists())
+
+    @unittest.skipIf(
+        artifact_persistence_available(),
+        "This platform provides descriptor-relative artifact persistence.",
+    )
+    def test_native_unsupported_platform_rejects_public_artifact_entrypoints(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "project"
+            tmcp_home = Path(tmp) / "tmcp-home"
+            root.mkdir()
+            skill = root / "SKILL.md"
+            skill.write_text(
+                "# Release\n\nUse package verification.\n",
+                encoding="utf-8",
+            )
+            original_home = getattr(self.server, "TMCP_HOME", None)
+            setattr(self.server, "TMCP_HOME", tmcp_home)
+            try:
+                with self.assertRaises(ArtifactStorageError):
+                    self.server._call_tool(
+                        "tmcp_record_receipt",
+                        {"packet_id": "packet-123", "outcome": "passed"},
+                    )
+                with self.assertRaises(ArtifactStorageError):
+                    self.server._call_tool(
+                        "expert_rubric_review_plan",
+                        {
+                            "objective": "Review release safety",
+                            "project_path": str(root),
+                            "harvest_sources": False,
+                            "output_dir": str(Path(tmp) / "review"),
+                        },
+                    )
+                with self.assertRaises(ArtifactStorageError):
+                    self.server._call_tool(
+                        "tmcp_recommend_workflows",
+                        {
+                            "source_path": str(root),
+                            "write_artifacts": True,
+                            "output_dir": str(Path(tmp) / "recommendation"),
+                        },
+                    )
+                with self.assertRaises(ArtifactStorageError):
+                    self.server._call_tool(
+                        "tmcp_promote_harvest",
+                        {
+                            "source_path": str(root),
+                            "candidate_workflows": ["release_readiness"],
+                            "selected_workflows": ["release_readiness_workflow"],
+                            "min_confidence": 0.1,
+                            "output_dir": str(Path(tmp) / "promotion"),
+                            "persist_global": False,
+                        },
+                    )
+                with self.assertRaises(ArtifactStorageError):
+                    self.server._call_tool(
+                        "tmcp_evaluate_skills",
+                        {
+                            "mode": "plan",
+                            "project_path": str(root),
+                            "skill_paths": [str(skill)],
+                            "task_fixtures": [
+                                {
+                                    "id": "release-check",
+                                    "prompt": "Verify the release package.",
+                                    "expected_observables": [
+                                        "package verification runs"
+                                    ],
+                                }
+                            ],
+                            "variants": ["original"],
+                            "write_artifacts": True,
+                            "output_dir": str(Path(tmp) / "evaluation"),
+                        },
+                    )
+                artifact_roots_exist = {
+                    "tmcp_home": tmcp_home.exists(),
+                    "review": (Path(tmp) / "review").exists(),
+                    "recommendation": (Path(tmp) / "recommendation").exists(),
+                    "promotion": (Path(tmp) / "promotion").exists(),
+                    "evaluation": (Path(tmp) / "evaluation").exists(),
+                }
+            finally:
+                setattr(self.server, "TMCP_HOME", original_home)
+
+            self.assertFalse(artifact_roots_exist["tmcp_home"])
+            self.assertFalse(artifact_roots_exist["review"])
+            self.assertFalse(artifact_roots_exist["recommendation"])
+            self.assertFalse(artifact_roots_exist["promotion"])
+            self.assertFalse(artifact_roots_exist["evaluation"])
 
     def test_default_receipt_write_fails_closed_without_safe_storage(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

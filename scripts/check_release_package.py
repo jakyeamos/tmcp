@@ -26,6 +26,7 @@ from scripts.tmcp_release_archive import (  # noqa: E402
     verify_reproducibility,
 )
 from scripts.release_package_compile import compile_command  # noqa: E402
+from tmcp_runtime.storage import artifact_persistence_available  # noqa: E402
 
 HARDCODED_USER_PATH_PATTERNS = (
     re.compile(r"/" r"Users/(?!example\b|you\b|your\b|name\b)[^\s)\"'`]+"),
@@ -498,13 +499,21 @@ def check_composition_surface(
         plugin_root,
         env,
     )
-    if not ok or receipt is None:
-        return False, output
-    if receipt.get("schema") != "tmcp-run-receipt-v0.1":
-        return False, f"unexpected receipt schema: {receipt.get('schema')}"
-    receipt_json = receipt.get("artifact_paths", {}).get("receipt_json")
-    if not isinstance(receipt_json, str) or not Path(receipt_json).exists():
-        return False, "record-receipt did not write receipt_json"
+    if artifact_persistence_available():
+        if not ok or receipt is None:
+            return False, output
+        if receipt.get("schema") != "tmcp-run-receipt-v0.1":
+            return False, f"unexpected receipt schema: {receipt.get('schema')}"
+        receipt_json = receipt.get("artifact_paths", {}).get("receipt_json")
+        if not isinstance(receipt_json, str) or not Path(receipt_json).exists():
+            return False, "record-receipt did not write receipt_json"
+    else:
+        if ok or receipt is not None:
+            return False, "record-receipt unexpectedly wrote an artifact on this platform"
+        if "Secure artifact persistence" not in output:
+            return False, f"record-receipt did not fail closed: {output}"
+        if tmcp_home.exists() and any(tmcp_home.rglob("*")):
+            return False, "record-receipt created artifacts despite unavailable persistence"
 
     ok, output, explain = run_json(
         [
@@ -551,7 +560,12 @@ def check_composition_surface(
         != "tmcp-composed-packet-v0.1"
     ):
         return False, "recommend --compose output missing composed packet"
-    return True, "\n".join([output, "composition surface smoke passed"])
+    persistence_mode = (
+        "persistent receipt smoke passed"
+        if artifact_persistence_available()
+        else "portable receipt denial smoke passed"
+    )
+    return True, "\n".join([output, persistence_mode, "composition surface smoke passed"])
 def failed_package_check(manifest_output: str) -> dict[str, Any]:
     return {
         **{check: "fail" for check in PACKAGE_CHECK_NAMES},

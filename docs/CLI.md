@@ -10,6 +10,10 @@ Use the Node launcher everywhere so Python discovery remains cross-platform. Wit
 
 ## Commands
 
+`record-receipt` requires `status` to report secure artifact persistence. It
+fails closed on portable-only hosts because a receipt is itself a durable
+artifact.
+
 ```bash
 node scripts/tmcp_launcher.mjs list-tools
 node scripts/tmcp_launcher.mjs doctor
@@ -31,7 +35,7 @@ node scripts/tmcp_launcher.mjs review-plan "Review release portability" --projec
 
 Use `tmcp_compose_packet` / `compose-packet` when an agent needs a small current-task packet instead of a workflow list. The output includes active instructions, required reads, tool/script prompts, verification gates, stop conditions, deferred atoms, ignored sources, conflicts, citations, and a receipt template.
 
-Use `tmcp_runtime_next` / `runtime-next` after changed files, failures, browser evidence, phase changes, or user redirects. Use `tmcp_record_receipt` / `record-receipt` after meaningful verification or outcome.
+Use `tmcp_runtime_next` / `runtime-next` after changed files, failures, browser evidence, phase changes, or user redirects. Use `tmcp_record_receipt` / `record-receipt` after meaningful verification or outcome when secure artifact persistence is available.
 
 `tmcp_explain --compose` and `tmcp_recommend_workflows --compose` preserve their legacy output and add a composed packet.
 
@@ -52,7 +56,7 @@ Running a review without `--evidence-json` returns `evidence_contract.starter_te
 
 `evaluate-skills` follows the safety boundary described in the README: pass explicit `SKILL.md` files, optionally constrain them with a project root, and use a new or empty directory when writing an initial evaluation plan.
 
-On secure-persistence hosts, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOME/promoted-harvests/<promotion-name>/`, or `~/.tmcp/promoted-harvests/<promotion-name>/` when `TMCP_HOME` is unset. Receipts are written under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions.
+On secure-persistence hosts, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOME/promoted-harvests/<opaque-promotion-key>/`, or `~/.tmcp/promoted-harvests/<opaque-promotion-key>/` when `TMCP_HOME` is unset. Receipts are written under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions.
 
 ## Argument Rules
 
@@ -100,4 +104,4 @@ Workflow outputs should include or cite:
 - recommendation or remediation plan
 - verification expectations
 
-AIOS remains optional. `--adapter auto` may use AIOS only when `AIOS_ROOT` points to an available checkout; `--adapter standalone` keeps execution inside this package.
+AIOS remains optional. `--adapter auto` may use AIOS for packet compilation only when `AIOS_ROOT` points to an available checkout; `--adapter standalone` keeps execution inside this package. Expert review keeps `adapter=auto` standalone so evidence is not forwarded implicitly. An explicit AIOS review is read-only (`--no-write-artifacts`); durable review artifacts always use the standalone protected store.
