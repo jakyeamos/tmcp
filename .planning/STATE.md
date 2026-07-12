@@ -6,18 +6,16 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Milestone 3 next domain-boundary mapping after the session
-slice, release-check cleanup, recompile/context/presentation/assembly policy,
-task-family routing/runtime transitions, declared-read selection, node ranking,
-standalone packet compilation, and packet-policy split
+**Current focus:** Milestone 3 review-profile catalog complete; extract the
+remaining evidence, audit, and remediation policy from the MCP adapter.
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
 contextual/selection composition policy, task-family routing/runtime transitions,
-declared-read selection, standalone packet compilation, and final packet-policy
-split complete; map the next adapter boundary
+declared-read selection, standalone packet compilation, final packet-policy
+split, and review-profile catalog complete; extract review evidence policy.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -26,8 +24,9 @@ split complete; map the next adapter boundary
 - **Slug:** `tmcp-modernization`
 - **Status:** Project-local session journey, focused release checks, pure
   recompile/contextual/selection policy, task-family routing/runtime transitions,
-  declared-read selection, standalone packet compilation, and final packet
-  construction/presentation split complete; map the next adapter boundary
+  declared-read selection, standalone packet compilation, final packet
+  construction/presentation, and review-profile catalog split complete; extract
+  review evidence policy.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -134,6 +133,10 @@ split complete; map the next adapter boundary
   packet assembly, and Markdown rendering into
   `tmcp_runtime/domain/standalone_packets.py`; the adapter now only orchestrates
   its three existing public call paths.
+- `7ed60d4` moves review profile dimensions, coverage requirements, profile
+  selection precedence, and fallback behavior into
+  `tmcp_runtime/domain/review_profiles.py`; standalone review and workflow
+  recommendation now consume one canonical catalog.
 
 ## Workflow Notes
 
@@ -167,6 +170,8 @@ split complete; map the next adapter boundary
   resolution and compose-node merging are now direct domain dependencies.
 - The legacy standalone packet compiler is domain-owned; harvest classification
   consumes its behavior-atom catalog rather than maintaining a second copy.
+- Review-profile vocabulary is domain-owned; standalone review and workflow
+  recommendation consume its canonical selection and fallback policy.
 - Composition provenance, shortcut eligibility, and rendering are domain-owned;
   recompile injects the domain renderer so both packet forms share one layout.
 
@@ -206,11 +211,13 @@ split complete; map the next adapter boundary
   final packet construction/presentation to close the required source-size gate;
   `32d6a9f` adds family runtime transition policy, and `6a3acc8` moves its
   declared-read dependency plus selected-node merging into sibling domains;
-  `775782e` moves standalone packet compilation into its own deterministic domain.
+  `775782e` moves standalone packet compilation into its own deterministic domain;
+  `7ed60d4` moves shared review-profile vocabulary and classification out of the
+  adapter before evidence/audit policy extraction.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the next deterministic policy boundary still owned by the MCP adapter.
+# Extract pure evidence, audit, and remediation policy from the MCP adapter.
 ```

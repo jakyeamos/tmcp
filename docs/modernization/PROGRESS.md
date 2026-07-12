@@ -5,8 +5,8 @@
 **Phase:** Milestone 3 composition/recompile session slice, release-check
 cleanup, pure recompile policy, contextual/selection composition policy,
 task-family routing/runtime transitions, declared-read selection, and final
-packet construction/presentation and standalone compiler splits complete; map
-the next adapter boundary.
+packet construction/presentation, standalone compiler, and review-profile
+catalog splits complete; extract review evidence policy.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -20,7 +20,8 @@ explicit project-local session persistence without changing the legacy inline
 packet path; pure recompile transformations, task-family routing/runtime
 transitions, declared-read selection, node ranking, and final packet
 construction/presentation are domain-owned. The legacy standalone compiler is
-also domain-owned while public MCP/CLI behavior remains stable.
+also domain-owned. Review profiles now have a shared domain owner for standalone
+review and workflow recommendation while public MCP/CLI behavior remains stable.
 
 ## Decisions recorded
 
@@ -133,6 +134,10 @@ also domain-owned while public MCP/CLI behavior remains stable.
   `tmcp_runtime/domain/standalone_packets.py`. Harvest classification consumes
   its shared atom catalog; 258 local tests pass with three expected platform
   skips.
+- `7ed60d4` moves review dimensions, coverage requirements, selection precedence,
+  and fallback behavior into `tmcp_runtime/domain/review_profiles.py`. Standalone
+  review and workflow recommendation consume that one catalog; 260 local tests
+  pass with three expected platform skips.
 
 ## Blockers and risks
 
@@ -144,5 +149,6 @@ also domain-owned while public MCP/CLI behavior remains stable.
 
 ## Next step
 
-Map the next deterministic policy boundary remaining in the MCP adapter, retain
-stable imports/behavior, then repeat package and adversarial validation.
+Extract the pure review evidence, audit, remediation, and rendering policy from
+the MCP adapter while retaining orchestration, harvest, redaction, and artifact
+persistence at the boundary; then repeat package and adversarial validation.
