@@ -7,8 +7,10 @@ from tmcp_runtime.services.harvest import (
 )
 from tmcp_runtime.services.recommendations import recommend_workflows
 from tmcp_runtime.services.promotion import promote_harvest
+from tmcp_runtime.services.review import build_review_plan
 
 __all__ = [
+    "build_review_plan",
     "harvest_skills",
     "promote_harvest",
     "recommend_workflows",

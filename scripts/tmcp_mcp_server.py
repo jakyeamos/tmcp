@@ -63,21 +63,12 @@ from tmcp_runtime.domain.harvest_nodes import (  # noqa: E402
     source_node_from_text as _domain_source_node_from_text,
 )
 from tmcp_runtime.domain.review_evidence import (  # noqa: E402
-    actionable_evidence_items as select_actionable_evidence_items,
-    build_audit_report,
-    evidence_contract as build_evidence_contract,
-    evidence_diagnostics as inspect_evidence,
-    evidence_remediation_contract as build_evidence_remediation_contract,
     parse_evidence,
-    synthesize_rubric,
 )
 from tmcp_runtime.domain.review_results import (  # noqa: E402
-    build_implementation_handoff,
-    build_remediation_plan,
     render_audit_markdown,
     render_remediation_plan_markdown,
     render_rubric_markdown,
-    review_validations,
 )
 from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     workflow_catalog_by_id,
@@ -129,6 +120,9 @@ from tmcp_runtime.services.recommendations import (  # noqa: E402
 )
 from tmcp_runtime.services.promotion import (  # noqa: E402
     promote_harvest as _runtime_promote_harvest,
+)
+from tmcp_runtime.services.review import (  # noqa: E402
+    build_review_plan as _runtime_build_review_plan,
 )
 
 AIOS_ROOT = (
@@ -653,81 +647,15 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
             objective,
             int(arguments.get("source_limit") or 24),
         )
-    packet = compile_standalone_packet(
+    result = _runtime_build_review_plan(
         objective=objective,
         project_path=str(Path(project_path).expanduser()),
-        phase="planning",
+        run_id=run_id,
+        evidence_items=evidence_items,
         harvested_nodes=harvested_nodes,
+        harvest_warnings=harvest_warnings,
+        selected_slice_id=str(arguments.get("selected_slice_id") or "") or None,
     )
-    rubric = synthesize_rubric(packet, run_id, objective)
-    evidence_contract = build_evidence_contract(rubric)
-    evidence_diagnostics = inspect_evidence(rubric, evidence_items)
-    actionable_evidence_items = select_actionable_evidence_items(
-        rubric, evidence_items
-    )
-    evidence_remediation_contract = (
-        build_evidence_remediation_contract(rubric, evidence_diagnostics)
-        if not evidence_items
-        or bool(_json_list(evidence_diagnostics.get("item_issues")))
-        else {}
-    )
-    audit_report = build_audit_report(rubric, actionable_evidence_items, run_id)
-    remediation_plan = build_remediation_plan(
-        audit_report,
-        run_id,
-        evidence_remediation_contract or None,
-    )
-    handoff = build_implementation_handoff(
-        remediation_plan,
-        run_id,
-        str(arguments.get("selected_slice_id") or "") or None,
-    )
-    invalid_items = bool(_json_list(evidence_diagnostics.get("item_issues")))
-    all_supplied_evidence_invalid = (
-        bool(evidence_items) and not actionable_evidence_items
-    )
-    status = "completed"
-    if all_supplied_evidence_invalid:
-        status = "failed_evidence_contract"
-    elif not evidence_items:
-        status = "needs_evidence"
-    elif invalid_items:
-        status = "completed_with_evidence_diagnostics"
-    result = {
-        "ok": not all_supplied_evidence_invalid,
-        "adapter": "standalone",
-        "schema": "tmcp-review-plan-result-v0.1",
-        "workflow_key": "expert_rubric_remediation_v1",
-        "run_id": run_id,
-        "status": status,
-        "output_contract": [
-            "sources inspected",
-            "skipped sources and why",
-            "packet summary",
-            "extracted behavior atoms",
-            "evidence gaps",
-            "recommendation or remediation plan",
-            "verification expectations",
-        ],
-        "validations": review_validations(
-            packet,
-            rubric,
-            audit_report,
-            remediation_plan,
-            evidence_diagnostics,
-        ),
-        "harvest_warnings": harvest_warnings,
-        "evidence_contract": evidence_contract,
-        "evidence_remediation_contract": evidence_remediation_contract,
-        "evidence_diagnostics": evidence_diagnostics,
-        "expertise_packet": packet,
-        "rubric": rubric,
-        "audit_report": audit_report,
-        "remediation_plan": remediation_plan,
-        "remediation_slices": remediation_plan["slices"],
-        "implementation_handoff": handoff,
-        "artifact_paths": {},
-    }
     safe_result = _redact_result(result)
     if bool(arguments.get("write_artifacts", True)):
         output_dir = (
