@@ -6,9 +6,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Move harvest advisory assembly behind the runtime boundary
-after the evaluator API, safe-input, persistence, scoring, rendering,
-orchestration, plan, and catalog cutovers.
+**Current focus:** Review evaluator/harvest runtime boundaries and map the next
+authority-limited adapter extraction after API, safe-input, persistence,
+scoring, rendering, orchestration, plan, catalog, and advisory cutovers.
 
 ## Milestone
 
@@ -19,8 +19,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
   read-only harvest/evaluator persistence plus packet-scoring policy, report,
   rendering/advisory, input, compose-failure, mode-orchestration, and
-  plan-construction, server renderer, policy-catalog, and runtime evaluator API
-  cutovers complete; map the remaining harvest-advisory boundary.
+  plan-construction, server renderer, policy-catalog, runtime evaluator API, and
+  harvest-advisory cutovers complete; map the next adapter boundary.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -176,8 +176,9 @@ _(truncated for length)_
   observable-contract policy pure over supplied text and pattern catalogs.
 - Keep trace normalization, dimension scoring, aggregation, guidebook feedback,
   and report assembly pure; the facade retains input loading/redaction.
-- Keep guidebook rendering, pattern-catalog merging, and advisory formatting pure;
-  fixed catalog file reads remain at the compatibility boundary.
+- Keep guidebook rendering, pattern-catalog merging, and advisory formatting
+  runtime-owned over safe source text; legacy script aliases must not become
+  server dependencies.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -293,5 +294,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Move harvest advisory assembly and its fixed catalog read behind a runtime service callback.
+# Review evaluator/harvest runtime boundaries and map the next adapter extraction.
 ```

@@ -8,8 +8,8 @@ fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, evaluator artifact
   persistence, packet/report assembly, policy, rendering, advisory, input,
   orchestration, plan, policy-catalog, and runtime evaluator API cutovers
-  complete; the server imports evaluator execution from runtime while harvest
-  advisories remain the compatibility boundary;
+  complete; the server imports evaluator execution and harvest advisories from
+  runtime while the script retains compatibility aliases;
   map the read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
@@ -44,8 +44,8 @@ orchestration. Evaluation scoring now receives a data-only composition callback
 from the MCP adapter; it no longer imports or introspects private server helpers.
 Harvest labels and source-node policy are now pure domain modules, while the
 runtime service owns safe traversal, redaction, scoped-seed projection, packet
-seeding, and artifact writes. The adapter injects only the evaluator-specific
-advisory callback and retains compatibility facades used by existing callers.
+seeding, and artifact writes. Harvest advisory classification and the fixed
+pattern catalog are runtime-owned; the script retains compatibility facades.
 Workflow recommendation assembly now has its own read-only runtime service. The
 adapter injects advisory and compose-preview callbacks, then retains result
 redaction, artifact persistence, promotion, and global-cache authority.
@@ -127,10 +127,11 @@ script aliases remain while the server uses runtime directly.
 - Treat skill-package, curated-template, and MCP-tool stability as distinct
   contracts with distinct owners: frontmatter/package validation, the workflow
   catalog, and the public tool registry.
-- Treat evaluator advisories as an explicit adapter-injected dependency of
-  harvest-node construction; pure runtime modules must not import the MCP adapter.
-- Treat the evaluator runtime API as the safe execution entrypoint. Keep legacy
-  script aliases and retain harvest advisory callbacks at the adapter boundary.
+- Treat harvest advisory classification and fixed catalog lookup as a runtime
+  service over safe source text; the adapter retains source acquisition/redaction.
+- Treat the evaluator runtime API and harvest-advisory service as safe runtime
+  entrypoints. Keep legacy script aliases while adapters supply only safe source
+  text and metadata.
 - Treat workflow recommendation as a read-only service. Compose preview remains
   adapter-injected, and result redaction plus all durable-write behavior remains
   adapter-owned.
@@ -236,10 +237,6 @@ script aliases remain while the server uses runtime directly.
   `tmcp_runtime/domain/standalone_packets.py`. Harvest classification consumes
   its shared atom catalog; 258 local tests pass with three expected platform
   skips.
-- `7ed60d4` moves review dimensions, coverage requirements, selection precedence,
-  and fallback behavior into `tmcp_runtime/domain/review_profiles.py`. Standalone
-  review and workflow recommendation consume that one catalog; 260 local tests
-  pass with three expected platform skips.
 - `516a497` completes the review-policy split: `review_evidence.py` owns evidence
   contracts, rubric synthesis, and audit scoring, while `review_results.py` owns
   remediation, handoff, validation, and Markdown rendering. The adapter retains
@@ -338,8 +335,9 @@ script aliases remain while the server uses runtime directly.
   mode orchestration; `e2f1005` extracts plan construction behind safe DTOs;
   `2cc955f` decouples server renderer imports; `f222f0c` centralizes policy
   catalog ownership; `371992d` moves the evaluator entrypoint into
-  `tmcp_runtime/api/evaluation.py`, leaving a compatibility facade. Full suite:
-  399 tests, three expected skips.
+  `tmcp_runtime/api/evaluation.py`, leaving a compatibility facade; `8085efa`
+  moves harvest advisory classification and catalog lookup into a runtime
+  service. Full suite: 400 tests, three expected skips.
 
 ## Blockers and risks
 
@@ -362,10 +360,10 @@ script aliases remain while the server uses runtime directly.
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
   evaluator persistence, packet scoring, report, policy, rendering, and advisory
-  boundaries are extracted; the remaining evaluator coupling is the harvest
-  advisory callback and its fixed catalog read in the compatibility script.
+  boundaries are extracted; the compatibility script remains only for legacy
+  evaluator and harvest-advisory aliases.
 
 ## Next step
 
-Move harvest advisory assembly and its fixed catalog read behind a runtime
-service callback, leaving the adapter with safe source acquisition only.
+Run an adversarial review of the evaluator/harvest runtime boundaries, then map
+the next authority-limited adapter extraction.
