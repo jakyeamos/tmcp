@@ -6,8 +6,8 @@
 construction/presentation, artifact manifests, semantic cache validation,
 fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, evaluator artifact
-  persistence, packet scoring, report assembly, and evaluator policy are complete;
-  map the next read-only boundary.
+  persistence, packet scoring, report assembly, policy, and rendering are complete;
+  map the read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -338,8 +338,9 @@ adapter-injected callback.
   same adapter boundary; `68fb7c4` extracts packet-inclusion lookup,
   compose-callback invocation, and composed-packet diffing into a pure service.
   `78081c4` extracts evaluator decomposition, static review, variants, and
-  observables; `931b9bb` extracts trace scoring and report assembly. Full suite:
-  376 tests, three expected skips
+  observables; `931b9bb` extracts trace scoring/report assembly; `a05a6aa`
+  extracts rendering, catalog merging, and advisory formatting. Full suite: 379
+  tests, three expected skips
 
 ## Blockers and risks
 
@@ -361,11 +362,10 @@ adapter-injected callback.
 - The legacy server and evaluator scripts remain broader than the target's thin
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
-  evaluator persistence, packet scoring, report, and policy boundaries are extracted;
+  evaluator persistence, packet scoring, report, policy, and rendering boundaries are extracted;
   map the next bounded cutover without moving root, write, or transport authority.
 
 ## Next step
 
-Map the next bounded evaluator rendering/advisory boundary, preserving safe input
-reads in the compatibility facade and adapter-owned roots, writes, redaction,
-sessions, and transport.
+Evaluator policy extraction is complete. Run an adversarial review of
+the evaluator/adapter boundary and remove remaining compatibility sediment

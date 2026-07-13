@@ -18,8 +18,8 @@ packet-scoring cutovers.
 service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
-  read-only harvest/evaluator persistence plus packet-scoring policy and report
-  assembly complete;
+  read-only harvest/evaluator persistence plus packet-scoring policy, report,
+  and rendering complete;
   map the next evaluator boundary after policy extraction.
 **Started:** 2026-07-10
 
@@ -224,7 +224,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   expectation lookup, compose-callback invocation, and packet diffing into a
   pure service; `78081c4` extracts evaluator decomposition, static review,
   variants, and observables; `931b9bb` extracts trace scoring and report
-  assembly. The full suite has 376 tests with three expected skips.
+  assembly; `a05a6aa` extracts rendering, catalog merging, and advisory
+  formatting. The full suite has 379 tests with three expected skips.
 
 ## Workflow Notes
 
@@ -250,6 +251,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   observable-contract policy pure over supplied text and pattern catalogs.
 - Keep trace normalization, dimension scoring, aggregation, guidebook feedback,
   and report assembly pure; the facade retains input loading/redaction.
+- Keep guidebook rendering, pattern-catalog merging, and advisory formatting pure;
+  fixed catalog file reads remain at the compatibility boundary.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -423,12 +426,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   persistence behind the same adapter-owned write boundary; `68fb7c4` extracts
   packet-inclusion scoring policy into a pure service over that callback;
   `78081c4` extracts decomposition/static-review policy into a pure service;
-  `931b9bb` extracts evaluator scoring/report assembly into a pure service.
+  `931b9bb` extracts evaluator scoring/report assembly into a pure service;
+  `a05a6aa` extracts evaluator rendering and advisory formatting.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the next bounded evaluator rendering/advisory boundary without weakening safe-input,
+# Run the next adversarial evaluator/adapter review without weakening safe-input,
 # storage/cache, or adapter write authority.
 ```
