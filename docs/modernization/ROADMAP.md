@@ -88,5 +88,7 @@ subprocess boundary.
 
 Runtime-state/recompile orchestration now lives behind an explicit service
 context with source, cache, and composition callbacks supplied by the adapter.
-The next major unit is to move remaining persistence/session orchestration and
-delete obsolete server paths.
+Project-local session lifecycle orchestration now lives in a runtime service
+over an injected storage protocol; the adapter retains the validated store
+factory and final redaction. The next major unit is to move remaining artifact
+persistence orchestration and delete obsolete server paths.

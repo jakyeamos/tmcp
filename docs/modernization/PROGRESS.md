@@ -6,7 +6,7 @@
 service, storage, safety, evaluator, and transport cutovers are complete; the
 server imports runtime evaluator/harvest services while retaining compatibility
 aliases. Typed dispatch/public selection are registry-owned; remaining work is
-runtime context and persistence ownership.
+artifact persistence ownership.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -19,8 +19,9 @@ stable; composition/runtime default to `cache_policy=none`, with global graphs
 and receipts explicit-only. Runtime owns pure domain reducers and services for
 composition, recompile finalization, evaluation, review, recommendations,
 promotion, redaction, diagnostics, and optional AIOS execution. Adapters retain
-source/cache/session/artifact acquisition, persistence, final redaction, and
-compatibility wiring. Typed registry dispatch lives in
+source/cache/artifact acquisition, persistence, final redaction, and
+compatibility wiring; runtime session services coordinate project-local
+lifecycles through injected storage protocols. Typed registry dispatch lives in
 `tmcp_runtime.adapters`; runtime-state/recompile orchestration lives in
 `tmcp_runtime.services.runtime` with source, cache-warning, and composition
 callbacks supplied by the compatibility adapter.
@@ -267,8 +268,9 @@ callbacks supplied by the compatibility adapter.
   restores the test-size gate; `7420a2b` moves transport into runtime adapters;
   `cb34594` adds typed request/result dispatch and registry-owned tool selection.
   `78c35a0` moves optional AIOS execution into a redaction-aware runtime adapter;
-  `489746d` moves runtime-state/recompile orchestration behind a callback context.
-  Full suite: 413 tests, three expected skips.
+  `489746d` moves runtime-state/recompile orchestration behind a callback context;
+  `a69b4ca` moves project-local session lifecycle orchestration behind an injected
+  storage protocol. Full suite: 416 tests, three expected skips.
 
 ## Blockers and risks
 
@@ -296,5 +298,5 @@ callbacks supplied by the compatibility adapter.
 
 ## Next step
 
-Continue adapter convergence: move remaining persistence/session orchestration
+Continue adapter convergence: move remaining artifact persistence orchestration
 behind explicit runtime services, then delete obsolete paths.
