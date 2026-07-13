@@ -43,7 +43,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `29284101047` reduced the residual failures to Windows path/newline contracts;
   `1a59e2f` normalizes those boundaries. Hosted run `29285497867` now passes all
   six matrix jobs for the 0.5.0 cutover, and final rerun `29285802846` passes.
-  Run the fresh adversarial review without tagging or publishing.
+  Fresh review closed malformed MCP transport input/notification defects and
+  packaged the compatibility note. Formatting/typecheck remain explicit P2
+  follow-ups: `ruff format --check` reports 93 files and `basedpyright` 76
+  errors; neither is in the hosted workflow. Do not tag or publish.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -354,5 +357,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Run the fresh adversarial review on the verified draft PR; do not publish.
+# Resolve or explicitly accept deferred formatting/typecheck gates before review.
 ```

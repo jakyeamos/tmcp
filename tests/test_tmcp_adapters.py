@@ -115,6 +115,61 @@ class RuntimeAdapterTests(unittest.TestCase):
         self.assertEqual(payload["name"], "echo")
         self.assertFalse(response["result"]["isError"])
 
+    def test_mcp_adapter_rejects_non_object_params(self) -> None:
+        response = handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 9,
+                "method": "initialize",
+                "params": ["invalid"],
+            },
+            server_info=self._server_info,
+            tools=self._tools,
+        )
+
+        self.assertEqual(response["error"]["code"], -32602)
+
+    def test_mcp_adapter_suppresses_responses_to_notifications(self) -> None:
+        response = handle_message(
+            {"jsonrpc": "2.0", "method": "tools/list"},
+            server_info=self._server_info,
+            tools=self._tools,
+        )
+
+        self.assertIsNone(response)
+
+    def test_mcp_stdio_returns_parse_error_for_invalid_frame(self) -> None:
+        incoming = io.BytesIO(b"Content-Length: nope\r\n\r\n{}")
+        outgoing = io.BytesIO()
+
+        run_stdio(
+            incoming,
+            outgoing,
+            call_tool=self._call_tool,
+            server_info=self._server_info,
+            tools=self._tools,
+        )
+
+        outgoing.seek(0)
+        response = read_message(outgoing)
+        self.assertEqual(response["error"]["code"], -32700)
+
+    def test_mcp_stdio_returns_parse_error_for_truncated_body(self) -> None:
+        incoming = io.BytesIO(b"Content-Length: 5\r\n\r\n{}")
+        outgoing = io.BytesIO()
+
+        run_stdio(
+            incoming,
+            outgoing,
+            call_tool=self._call_tool,
+            server_info=self._server_info,
+            tools=self._tools,
+        )
+
+        outgoing.seek(0)
+        response = read_message(outgoing)
+        self.assertEqual(response["error"]["code"], -32700)
+
     def test_mcp_stdio_adapter_round_trips_framed_messages(self) -> None:
         incoming = io.BytesIO(
             encode_message({"jsonrpc": "2.0", "id": 1, "method": "ping"})

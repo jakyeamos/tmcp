@@ -11,7 +11,7 @@ from tmcp_runtime.adapters.dispatch import (
     ToolRequest,
     ToolResult,
 )
-from tmcp_runtime.adapters.framing import read_message, write_message
+from tmcp_runtime.adapters.framing import FramingError, read_message, write_message
 
 
 LegacyToolHandler = Callable[[str, dict[str, Any]], dict[str, Any]]
@@ -41,6 +41,22 @@ def _error(request_id: Any, code: int, message: str) -> dict[str, Any]:
     }
 
 
+def _response_or_none(
+    request_id: Any, result: dict[str, Any]
+) -> dict[str, Any] | None:
+    if request_id is None:
+        return None
+    return _result(request_id, result)
+
+
+def _error_or_none(
+    request_id: Any, code: int, message: str
+) -> dict[str, Any] | None:
+    if request_id is None:
+        return None
+    return _error(request_id, code, message)
+
+
 def _dispatch(
     request: ToolRequest,
     *,
@@ -55,18 +71,32 @@ def _dispatch(
 
 
 def handle_message(
-    request: dict[str, Any],
+    request: object,
     *,
     dispatcher: ToolDispatcher | None = None,
     call_tool: LegacyToolHandler | None = None,
     server_info: ServerInfoProvider,
     tools: ToolListProvider,
 ) -> dict[str, Any] | None:
+    if not isinstance(request, dict):
+        return _error(None, -32600, "Invalid JSON-RPC request.")
     request_id = request.get("id")
+    if request.get("jsonrpc") != "2.0":
+        return _error(request_id, -32600, "Invalid JSON-RPC request.")
     method = request.get("method")
-    params = request.get("params") or {}
+    if not isinstance(method, str):
+        return _error(request_id, -32600, "JSON-RPC method must be a string.")
+    params = request.get("params")
+    if params is None:
+        params = {}
+    if not isinstance(params, dict):
+        return _error_or_none(
+            request_id,
+            -32602,
+            "JSON-RPC params must be an object.",
+        )
     if method == "initialize":
-        return _result(
+        return _response_or_none(
             request_id,
             {
                 "protocolVersion": params.get("protocolVersion", "2024-11-05"),
@@ -75,15 +105,17 @@ def handle_message(
             },
         )
     if method == "tools/list":
-        return _result(request_id, {"tools": tools()})
+        return _response_or_none(request_id, {"tools": tools()})
     if method in {"resources/list", "prompts/list"}:
         key = "resources" if method == "resources/list" else "prompts"
-        return _result(request_id, {key: []})
+        return _response_or_none(request_id, {key: []})
     if method == "tools/call":
         name = str(params.get("name") or "")
         arguments = params.get("arguments", {})
         if not isinstance(arguments, dict):
-            return _error(request_id, -32602, "Tool arguments must be an object.")
+            return _error_or_none(
+                request_id, -32602, "Tool arguments must be an object."
+            )
         try:
             tool_request = ToolRequest.from_parts(name, arguments)
             tool_payload = _dispatch(
@@ -91,9 +123,9 @@ def handle_message(
                 dispatcher=dispatcher,
                 call_tool=call_tool,
             ).to_payload()
-            return _result(request_id, tool_result(tool_payload))
+            return _response_or_none(request_id, tool_result(tool_payload))
         except Exception as exc:
-            return _error(request_id, -32000, str(exc))
+            return _error_or_none(request_id, -32000, str(exc))
     if method in {"notifications/initialized", "ping"}:
         if request_id is not None:
             return _result(request_id, {})
@@ -113,7 +145,11 @@ def run_stdio(
     tools: ToolListProvider,
 ) -> None:
     while True:
-        message = read_message(stdin)
+        try:
+            message = read_message(stdin)
+        except FramingError as exc:
+            write_message(stdout, _error(None, -32700, str(exc)))
+            return
         if message is None:
             return
         response = handle_message(

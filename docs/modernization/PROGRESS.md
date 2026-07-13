@@ -335,9 +335,17 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 - The post-cutover hosted matrix is green in PR run `29285497867`, and final
   evidence-pointer rerun `29285802846` also passes; the draft PR is ready for
   review.
+- The fresh adversarial review closed malformed MCP framing/params and
+  notification-response defects, and the 0.5.0 compatibility note is now in
+  release archives. Two quality gates remain explicit P2 follow-ups: `ruff
+  format --check` reports 93 existing files and `basedpyright` reports 76
+  existing basic-mode errors; neither is in the hosted workflow.
 - No tag or publication has occurred. The 0.5.0 compatibility process remains
   gated on the post-cutover hosted run because the stateless default and
   explicit-only AIOS behavior are material changes.
+- Formatting/typecheck gaps are intentionally deferred from this release
+  candidate and require a separate cleanup pass before claiming strict
+  formatting/typecheck exit criteria.
 - AIOS needs a protected request-input protocol before confidential explicit
   requests can safely use it; the current boundary denies known sensitive values
   rather than forwarding them through process arguments.
@@ -355,5 +363,5 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 
 ## Next step
 
-Run the fresh adversarial review on the verified draft PR, then decide whether
-to mark it ready; tagging and publication stay separate.
+Resolve or explicitly accept the deferred formatting/typecheck gates, then
+decide whether to mark the draft ready; tagging and publication stay separate.

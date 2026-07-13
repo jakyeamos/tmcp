@@ -666,6 +666,9 @@ class ReleasePackageTests(unittest.TestCase):
             (docs / "TIER_ONE_RELEASE_RUBRIC.md").write_text(
                 "# Rubric\n", encoding="utf-8"
             )
+            release_note = docs / "release-notes" / "v0.5.0-compatibility.md"
+            release_note.parent.mkdir()
+            release_note.write_text("# Compatibility\n", encoding="utf-8")
             output_path = Path(tmp) / "tmcp.tar.gz"
 
             commit_fixture(root)
@@ -682,6 +685,7 @@ class ReleasePackageTests(unittest.TestCase):
         self.assertNotIn("tmcp/docs/RELEASE_EVIDENCE.json", names)
         self.assertNotIn("tmcp/docs/VERIFICATION.md", names)
         self.assertIn("tmcp/docs/TIER_ONE_RELEASE_RUBRIC.md", names)
+        self.assertIn("tmcp/docs/release-notes/v0.5.0-compatibility.md", names)
 
     def test_release_package_check_smokes_adaptive_surface(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

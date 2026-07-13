@@ -70,6 +70,7 @@ SHIPPED_DOC_PATHS = {
     "docs/SKILL_WRITING_GUIDEBOOK.md",
     "docs/TIER_ONE_RELEASE_RUBRIC.md",
     "docs/TMCP_PACKET_SPEC.md",
+    "docs/release-notes/v0.5.0-compatibility.md",
     "docs/release-notes/v0.3.3-doi.md",
 }
 INTENTIONALLY_EXCLUDED_PATHS = {

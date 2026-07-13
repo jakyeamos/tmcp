@@ -14,13 +14,11 @@ from pathlib import Path
 from typing import Any
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-SCRIPT_DIR = Path(__file__).resolve().parent
 if str(PLUGIN_ROOT) not in sys.path:
     sys.path.insert(0, str(PLUGIN_ROOT))
 
 from tmcp_runtime.adapters.cli import run_cli as _runtime_run_cli  # noqa: E402
 from tmcp_runtime.adapters.aios import (  # noqa: E402
-    command_redactions as _runtime_aios_command_redactions,
     is_available as _runtime_aios_available,
     run as _runtime_run_aios,
     should_use as _runtime_should_use_aios,
@@ -162,10 +160,6 @@ def _aios_available() -> bool:
 
 def _should_use_aios(adapter: str) -> bool:
     return _runtime_should_use_aios(adapter)
-
-
-def _aios_command_redactions(args: list[str]) -> dict[str, int]:
-    return _runtime_aios_command_redactions(args)
 
 
 def _run_aios(args: list[str]) -> dict[str, Any]:
