@@ -344,6 +344,8 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
   across `scripts`, `tmcp_runtime`, and `tests` with zero errors.
 - The hosted workflow now installs pinned Ruff/Basedpyright quality tools and
   runs formatting, lint, and typecheck gates in a dedicated Ubuntu job.
+- Hosted run `29288492789` passes the quality job and all six platform jobs for
+  cleanup commit `03e543d`.
 - No tag or publication has occurred. The 0.5.0 compatibility process remains
   gated on the post-cutover hosted run because the stateless default and
   explicit-only AIOS behavior are material changes.
@@ -364,5 +366,5 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 
 ## Next step
 
-Run the hosted matrix with the new quality job, then decide whether to mark the
-draft ready; tagging and publication stay separate.
+Review the clean quality-gate evidence, then decide whether to mark the draft
+ready; tagging and publication stay separate.

@@ -1,7 +1,7 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.0",
-  "checked_at": "2026-07-13T21:45:38Z",
+  "checked_at": "2026-07-13T22:05:08Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
@@ -9,10 +9,10 @@
     "ref": "codex/tmcp-modernization-v2",
     "pr_number": 2,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29287154661,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29287154661",
-    "head_sha": "1fd10f42cdd521354578f4307b1f7a3ec3dddab5",
-    "notes": "Successful post-review 0.5.0 PR verify.yml run for the code-bearing commit; docs-only evidence rerun 29287368329 also passed, while the machine pointer remains bound to the reviewed code-bearing SHA."
+    "run_id": 29288492789,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29288492789",
+    "head_sha": "03e543d9d440e32153c40ab55408b1b4058cb38a",
+    "notes": "Successful post-cleanup 0.5.0 PR verify.yml run for the code-bearing commit; the pinned quality job and all six platform jobs passed, while the machine pointer remains bound to this reviewed code-bearing SHA."
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.5.0.tar.gz",
