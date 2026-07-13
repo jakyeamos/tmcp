@@ -6,7 +6,7 @@
 service, storage, safety, evaluator, and transport cutovers are complete; the
 server imports runtime evaluator/harvest services while retaining compatibility
 aliases. Typed dispatch/public selection are registry-owned; remaining work is
-artifact persistence ownership.
+artifact producer compatibility paths.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -24,7 +24,10 @@ compatibility wiring; runtime session services coordinate project-local
 lifecycles through injected storage protocols. Typed registry dispatch lives in
 `tmcp_runtime.adapters`; runtime-state/recompile orchestration lives in
 `tmcp_runtime.services.runtime` with source, cache-warning, and composition
-callbacks supplied by the compatibility adapter.
+callbacks supplied by the compatibility adapter. Generic artifact-bundle
+persistence now lives in `tmcp_runtime.services.artifact_persistence`; the
+adapter supplies redaction, path presentation, and verified storage callbacks
+while retaining output-root selection and capability checks.
 
 ## Decisions recorded
 
@@ -270,7 +273,9 @@ callbacks supplied by the compatibility adapter.
   `78c35a0` moves optional AIOS execution into a redaction-aware runtime adapter;
   `489746d` moves runtime-state/recompile orchestration behind a callback context;
   `a69b4ca` moves project-local session lifecycle orchestration behind an injected
-  storage protocol. Full suite: 416 tests, three expected skips.
+  storage protocol; `50f5758` moves generic artifact-bundle persistence behind
+  an explicit runtime service with adapter-owned redaction and verified-storage
+  callbacks. Full suite: 421 tests, three expected skips.
 
 ## Blockers and risks
 
@@ -291,12 +296,14 @@ callbacks supplied by the compatibility adapter.
   canonical RFC3339 grammar before timestamps gain ranking/retention meaning.
 - The legacy server and evaluator scripts remain broader than the target's thin
   compatibility adapter. Artifact planning, cache ingestion, CLI parsing, harvest
-  argument projection, safety hardening, diagnostics, harvest persistence, and
-  evaluator persistence, packet scoring, report, policy, rendering, and advisory
-  boundaries are extracted; compatibility scripts remain only for legacy
-  evaluator, harvest-advisory, redaction, and AIOS aliases.
+  argument projection, safety hardening, diagnostics, generic artifact-bundle
+  persistence, and evaluator persistence, packet scoring, report, policy,
+  rendering, and advisory boundaries are extracted; compatibility scripts retain
+  producer-specific output selection, receipt persistence, and legacy evaluator,
+  harvest-advisory, redaction, and AIOS aliases.
 
 ## Next step
 
-Continue adapter convergence: move remaining artifact persistence orchestration
-behind explicit runtime services, then delete obsolete paths.
+Continue adapter convergence: consolidate producer-specific artifact/receipt
+wrappers behind the explicit runtime boundary where useful, then delete obsolete
+server paths.

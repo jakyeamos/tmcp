@@ -23,8 +23,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   harvest-advisory, runtime-redaction, MCP/CLI transport, and typed
   request/result registry-dispatch cutovers complete; optional AIOS execution
   runtime-state/recompile orchestration and project-local session lifecycle are
-  now runtime-owned; continue thinning artifact persistence authority from the
-  compatibility adapter.
+  now runtime-owned; generic artifact-bundle persistence is now a runtime
+  service over adapter callbacks; continue thinning producer-specific artifact
+  and receipt compatibility paths.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -33,7 +34,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - **Slug:** `tmcp-modernization`
 - **Status:** Receipt/artifact construction and cache policy are pure-owned;
   storage owns bounded redacted cache reads, while adapter-owned roots, writes,
-  identity, clock, output selection, redaction, and transport remain intact.
+  identity, clock, output selection, redaction, and transport remain intact;
+  generic artifact-bundle persistence is runtime-owned through explicit storage
+  and redaction callbacks.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -186,8 +189,9 @@ _(truncated for length)_
 - Keep redaction primitives in `tmcp_runtime/safety`; the historical script
   module is a compatibility facade and must not be imported by runtime safety.
 - Keep MCP framing/JSON-RPC, CLI output/error translation, and typed registry
-  dispatch in `tmcp_runtime/adapters`; the next boundary is remaining server
-  artifact-persistence orchestration and context ownership.
+  dispatch in `tmcp_runtime/adapters`; generic artifact-bundle persistence is
+  runtime-owned while producer-specific output selection and capability checks
+  remain adapter-owned.
 - Keep optional AIOS execution in a redaction-aware runtime adapter; the legacy
   server may retain only compatibility wrappers and mutable test seams.
 - Keep runtime-state/recompile orchestration in `tmcp_runtime.services.runtime`;
@@ -196,6 +200,10 @@ _(truncated for length)_
 - Keep project-local session lifecycle orchestration in
   `tmcp_runtime.services.sessions`; inject the validated store factory and keep
   final response redaction at the adapter boundary.
+- Keep generic artifact-bundle persistence in
+  `tmcp_runtime.services.artifact_persistence`; inject redaction, path
+  presentation, and verified storage callbacks without moving output-root
+  selection or capability checks into the service.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -311,5 +319,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Move remaining artifact persistence orchestration behind explicit runtime services.
+# Consolidate producer-specific artifact and receipt wrappers, then delete obsolete server paths.
 ```

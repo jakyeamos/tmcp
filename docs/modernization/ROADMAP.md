@@ -91,4 +91,8 @@ context with source, cache, and composition callbacks supplied by the adapter.
 Project-local session lifecycle orchestration now lives in a runtime service
 over an injected storage protocol; the adapter retains the validated store
 factory and final redaction. The next major unit is to move remaining artifact
-persistence orchestration and delete obsolete server paths.
+bundle persistence orchestration into a runtime service. The adapter now
+supplies redaction, path presentation, and verified storage callbacks while
+retaining output-root selection and capability checks. The next major unit is
+to consolidate the remaining producer-specific receipt/artifact wrappers and
+delete obsolete server paths.
