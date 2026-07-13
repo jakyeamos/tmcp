@@ -304,7 +304,14 @@ contract in memory, with current graph files preferred and no source mutation.
   expected skips; Ruff is clean for the changed surface. `cae0563` centralizes
   the release compile inventory across workflow and package checks and expands
   install verification to all runtime modules; compile/install/contract checks
-  pass locally.
+  pass locally. `329e065` removes stale evaluator compatibility imports,
+  replaces a lambda with an explicit callback, and restores a clean full Ruff
+  gate.
+
+The legacy-artifact audit found only the supported promotion-summary migration
+boundary. Current promotion graphs win over legacy summaries in the same
+directory; receipts and project-local sessions have no alternate shipped schema
+and remain strict readers.
 
 ## Blockers and risks
 

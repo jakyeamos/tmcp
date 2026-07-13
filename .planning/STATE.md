@@ -31,8 +31,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   harvest-constant, and unused-schema seams; tests target runtime owners
   directly. The release compile/install inventory now covers every runtime
   module and is shared by the cross-platform workflow and package checks. The
-  first legacy promotion-summary reader is complete; continue advanced-
-  capability migration and release hardening.
+  first legacy promotion-summary reader is complete; the remaining shipped
+  receipt/session artifacts have no alternate schema and remain strict readers.
+  Continue advanced-capability migration and release hardening.
 **Started:** 2026-07-10
 
 ## Active Phase

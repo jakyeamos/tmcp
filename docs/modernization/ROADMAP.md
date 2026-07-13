@@ -107,3 +107,9 @@ the adapter retains global roots, persistence gating, opaque identity, and cache
  Horizon 4 release hardening. The release compile/install surface is now
  centralized and the cross-platform workflow invokes the same inventory used
  by package checks.
+
+The legacy-artifact audit found two supported promotion representations: the
+current `promotion-graph.json` and the legacy `promoted-harvest.json` summary;
+the latter now projects read-only into the former and is suppressed when a
+current graph is present. Receipts and project-local sessions have no alternate
+shipped schema in this tree and remain strict readers.
