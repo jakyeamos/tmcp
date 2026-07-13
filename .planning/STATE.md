@@ -26,7 +26,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   now runtime-owned; generic artifact-bundle persistence is now a runtime
   service over adapter callbacks; receipt recording is now runtime-owned over
   adapter callbacks; global-promotion manifest assembly is now runtime-owned;
-  continue the thin-adapter deletion pass and migration-reader work.
+  explain assembly and evidence parsing are now runtime-owned; continue the
+  thin-adapter deletion pass and migration-reader audit; the first legacy
+  promotion-summary reader is complete.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -40,7 +42,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   and redaction callbacks, and receipt recording is runtime-owned through
   explicit identity, path, redaction, and write callbacks; global-promotion
   manifest assembly is runtime-owned while roots and persistence gating remain
-  adapter-owned.
+  adapter-owned; explain assembly and review-evidence parsing are runtime-owned
+  while AIOS choice and final redaction remain adapter-owned.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -215,6 +218,12 @@ _(truncated for length)_
   `tmcp_runtime.services.global_promotion`; inject graph normalization,
   redaction, timestamp, and plan-building callbacks while retaining global-root
   selection, persistence gating, and cache authority in the adapter.
+- Keep explain packet assembly and review-evidence parsing in runtime services;
+  the adapter owns AIOS selection, source/cache access, persistence, and final
+  response redaction.
+- Treat legacy artifact migration as a read-only storage projection: normalize
+  known old summaries into current contracts, prefer current files, never delete
+  or rewrite source artifacts, and skip malformed inputs.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -330,5 +339,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Delete obsolete server ownership, then add artifact/cache migration readers.
+# Audit remaining legacy artifact formats, then begin Horizon 4 release hardening.
 ```

@@ -6,7 +6,7 @@
 service, storage, safety, evaluator, and transport cutovers are complete; the
 server imports runtime evaluator/harvest services while retaining compatibility
 aliases. Typed dispatch/public selection are registry-owned; remaining work is
-thin-adapter deletion and advanced-capability migration readers.
+thin-adapter deletion and advanced-capability migration completion.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -33,6 +33,11 @@ clock, opaque identity, path creation, redaction, and verified write.
 Global-promotion manifest assembly now lives in
 `tmcp_runtime.services.global_promotion`; the adapter retains global roots,
 persistence gating, opaque identity, and cache authority.
+Standalone explain packet assembly and review-evidence parsing now live in
+runtime services; the server retains transport, AIOS selection, safe roots,
+persistence callbacks, and compatibility seams.
+The storage reader now projects legacy promoted summaries into the current graph
+contract in memory, with current graph files preferred and no source mutation.
 
 ## Decisions recorded
 
@@ -284,7 +289,12 @@ persistence gating, opaque identity, and cache authority.
   service while preserving adapter-owned identity and path seams. Full suite:
   423 tests, three expected skips; `ac70786` moves global-promotion manifest
   assembly behind an explicit runtime service while preserving global-root and
-  persistence authority. Full suite: 426 tests, three expected skips.
+  persistence authority. Full suite: 426 tests, three expected skips;
+  `1850faa` moves standalone explain assembly and review-evidence parsing into
+  runtime services, reducing direct domain ownership in the server. Full suite:
+  429 tests, three expected skips; `a40476a` adds a read-only legacy promotion
+  summary migration reader with duplicate suppression. Full suite: 434 tests,
+  three expected skips.
 
 ## Blockers and risks
 
@@ -314,5 +324,5 @@ persistence gating, opaque identity, and cache authority.
 
 ## Next step
 
-Continue adapter convergence: delete obsolete server ownership and add the
-Horizon 3 artifact/cache migration readers before release hardening.
+Continue adapter convergence: finish the direct-domain ownership inventory,
+audit remaining legacy artifact formats, and begin Horizon 4 release hardening.

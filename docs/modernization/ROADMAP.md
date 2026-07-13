@@ -97,5 +97,10 @@ checks. Receipt recording now uses the same callback-driven runtime boundary
 while preserving adapter-owned clock, opaque identity, path, and write
 authority. Global-promotion manifest assembly now lives in a runtime service;
 the adapter retains global roots, persistence gating, opaque identity, and cache
-authority. The remaining Horizon 2 work is the thin-adapter deletion pass
-before Horizon 3 migration-reader work.
+ authority. The remaining Horizon 2 work is the thin-adapter deletion pass
+ before Horizon 3 migration-reader work. Explain packet assembly and review
+ evidence parsing now also live in runtime services; the server retains only
+ transport, AIOS selection, safe roots, persistence callbacks, and compatibility
+ seams. The first Horizon 3 migration reader now projects legacy promoted
+ summaries into the current graph contract without mutating source artifacts;
+ current graph files take precedence when both formats exist.
