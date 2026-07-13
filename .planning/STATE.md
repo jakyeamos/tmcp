@@ -7,7 +7,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Select the next authority-limited thin-adapter extraction
-after the compose service cutover and its release validation.
+after the recompile finalization cutover and its release validation.
 
 ## Milestone
 
@@ -21,8 +21,8 @@ workflow activation, stateless cache defaults, evaluator composition-service
 injection, stability-taxonomy clarification, domain-size enforcement,
 harvest/source-graph extraction, recommendation-service extraction,
 promotion-planning extraction, review-plan extraction, cache-policy extraction,
-runtime-state reduction, and compose-service cutover complete; continue the
-thin-adapter cutover.
+runtime-state reduction, compose-service cutover, and recompile finalization
+complete; continue the thin-adapter cutover.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -38,8 +38,8 @@ thin-adapter cutover.
   composition-service injection, stability-taxonomy clarification, domain-size
   enforcement, harvest/source-graph extraction, recommendation-service
 extraction, promotion-planning extraction, review-plan extraction, cache-policy
-extraction, runtime-state reduction, and compose-service cutover complete;
-continue the thin-adapter cutover.
+extraction, runtime-state reduction, compose-service cutover, and recompile
+finalization complete; continue the thin-adapter cutover.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -226,6 +226,10 @@ continue the thin-adapter cutover.
   service over adapter-supplied safe inputs. Cache reads, redaction, harvest,
   sessions, and transport remain adapter-owned; 317 local tests pass with three
   expected skips.
+- 57d3731 moves full recompile finalization into an in-memory service and fixes
+  validated route proposals being overwritten by the runtime identity. Raw-path
+  validation, composition, sessions, and final redaction remain adapter-owned;
+  321 local tests pass with three expected skips.
 
 ## Workflow Notes
 
@@ -297,10 +301,11 @@ continue the thin-adapter cutover.
 - Runtime-state reduction is pure and receives only preharvested source nodes and
   cache warnings. The adapter retains cache-policy gating and all filesystem
   authority.
-- Packet composition and source-node enrichment are pure service work over
-  adapter-supplied, already-redacted cache snapshots. cache_policy=none
-  discards injected cache inputs defensively; cache reads and TMCP_HOME
-  redaction remain adapter-owned.
+- Packet composition/source enrichment and recompile finalization are pure
+  service work over adapter-supplied safe data. cache_policy=none discards
+  injected cache inputs defensively; cache reads, TMCP_HOME redaction, raw-path
+  checks, sessions, and final response redaction remain adapter-owned. Apply the
+  runtime identity before validated proposals so accepted routes persist.
 - Public compose and explain results redact complete response trees after internal
   session work, while the protected session record retains its existing redaction
   guarantees.

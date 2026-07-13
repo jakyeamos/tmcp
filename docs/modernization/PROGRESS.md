@@ -9,8 +9,9 @@ packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
 global workflow-activation, stateless cache-default, evaluator composition-service,
 stability-taxonomy, domain-size-budget, harvest/source-graph, recommendation
-service, promotion-planning, review-plan, cache-policy, runtime-state, and
-compose-service splits complete; continue the thin-adapter cutover.
+service, promotion-planning, review-plan, cache-policy, runtime-state, compose
+service, and recompile-finalization splits complete; continue the thin-adapter
+cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -72,6 +73,11 @@ adapter-supplied harvested nodes and canonical cache snapshots. The adapter
 retains cache reads, path redaction, harvest, sessions, recompile, and transport;
 the service defensively discards any injected cache inputs under
 cache_policy=none.
+Full recompile finalization is also service-owned once the adapter has validated
+raw path precedence and built a fresh packet. The service merges runtime deltas,
+enriches required evidence, applies the authoritative runtime identity before
+validated proposals, then derives the diff and Markdown. Sessions and final
+response redaction remain adapter-owned.
 Public compose and standalone/auto explain responses now redact complete result
 trees only after their internal session/packet work is complete.
 
@@ -133,6 +139,11 @@ trees only after their internal session/packet work is complete.
   over adapter-supplied safe data. Cache reads, TMCP_HOME redaction, harvest,
   session persistence, and transport remain adapter authority; stateless policy
   rejects injected cache graphs, receipts, and warnings.
+- Treat full recompile finalization as an in-memory service over a prior packet,
+  runtime state, and a fresh adapter-composed packet. Keep path fallback checks,
+  composition, session persistence, and final redaction in the adapter; apply
+  the runtime identity before validated proposals so accepted route changes are
+  not discarded.
 
 ## Verified baseline
 
@@ -306,6 +317,11 @@ trees only after their internal session/packet work is complete.
   tmcp_runtime/services/compose.py. Direct boundary tests, the full local suite
   (317 tests, three expected skips), install, contract, and changed-line checks
   pass; cache and session authority remains in the compatibility adapter.
+- 57d3731 extracts full recompile finalization into
+  tmcp_runtime/services/recompile.py and fixes accepted add-route proposals
+  being overwritten by the runtime identity. Direct assembly/no-I/O tests and an
+  end-to-end regression pass; the full local suite has 321 tests with three
+  expected platform skips.
 
 ## Blockers and risks
 
