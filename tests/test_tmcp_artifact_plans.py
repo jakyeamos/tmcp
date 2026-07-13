@@ -9,6 +9,7 @@ from pathlib import Path
 import tmcp_runtime.services.artifact_plans as artifact_plans
 from tmcp_runtime.services.artifact_plans import (
     ArtifactPlan,
+    build_evaluation_artifact_plan,
     build_global_promotion_artifact_plan,
     build_promotion_artifact_plan,
     build_review_artifact_plan,
@@ -21,6 +22,51 @@ SERVER_PATH = PLUGIN_ROOT / "scripts" / "tmcp_mcp_server.py"
 
 
 class ArtifactPlanServiceTests(unittest.TestCase):
+    def test_evaluation_plan_has_expected_manifests_and_renderer_boundary(self) -> None:
+        evaluation_plan: dict[str, object] = {"schema": "plan"}
+        evaluation_report: dict[str, object] = {
+            "schema": "report",
+            "guidebook_entries": [{"title": "Example"}],
+        }
+
+        artifact_plan = build_evaluation_artifact_plan(
+            plan=evaluation_plan,
+            report=evaluation_report,
+            guidebook_markdown=lambda entries: f"guidebook:{len(entries)}",
+            pattern_catalog=lambda entries: {"patterns": entries},
+        )
+
+        self.assertEqual(
+            set(artifact_plan.json_artifacts),
+            {
+                "tmcp-skill-evaluation-plan.json",
+                "tmcp-skill-evaluation-report.json",
+                "skill-pattern-catalog.json",
+            },
+        )
+        self.assertEqual(
+            artifact_plan.text_artifacts,
+            {"skill-writing-guidebook.md": "guidebook:1"},
+        )
+        self.assertEqual(
+            artifact_plan.path_aliases,
+            {
+                "evaluation_plan": "tmcp-skill-evaluation-plan.json",
+                "evaluation_report": "tmcp-skill-evaluation-report.json",
+                "pattern_catalog": "skill-pattern-catalog.json",
+                "guidebook": "skill-writing-guidebook.md",
+            },
+        )
+
+    def test_evaluation_plan_rejects_malformed_guidebook_entries(self) -> None:
+        with self.assertRaises(ValueError):
+            build_evaluation_artifact_plan(
+                plan=None,
+                report={"guidebook_entries": ["not-an-object"]},
+                guidebook_markdown=lambda entries: "",
+                pattern_catalog=lambda entries: {},
+            )
+
     def test_review_plan_has_exact_manifests_aliases_and_no_input_mutation(self) -> None:
         expertise_packet: dict[str, object] = {"packet_id": "packet-123"}
         rubric: dict[str, object] = {

@@ -72,6 +72,8 @@ class SkillEvaluateTests(unittest.TestCase):
 
         self.assertNotIn("scripts.tmcp_mcp_server", source)
         self.assertNotIn("__globals__", source)
+        self.assertNotIn("tmcp_runtime.storage", source)
+        self.assertNotIn("AtomicArtifactStore", source)
 
     def test_plan_decomposes_fixture_skill(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
@@ -229,7 +231,8 @@ class SkillEvaluateTests(unittest.TestCase):
     def test_write_artifacts_emits_plan_and_report_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "eval"
-            plan = self.evaluate.evaluate_skills(
+            plan = self.server._call_tool(
+                "tmcp_evaluate_skills",
                 {
                     **self._plan_arguments(),
                     "mode": "plan",
@@ -238,7 +241,8 @@ class SkillEvaluateTests(unittest.TestCase):
                 }
             )
             self.assertIn("artifact_paths", plan)
-            report = self.evaluate.evaluate_skills(
+            report = self.server._call_tool(
+                "tmcp_evaluate_skills",
                 {
                     "mode": "score",
                     "evaluation_plan": plan,

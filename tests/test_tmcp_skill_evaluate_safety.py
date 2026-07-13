@@ -4,7 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from tests import test_tmcp_mcp_server as helpers
 from tests.test_tmcp_skill_evaluate import EVALUATE_PATH, FIXTURE_SKILL, load_module
@@ -60,7 +60,8 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
                 encoding="utf-8",
             )
             output_dir = project / "artifacts"
-            result = self.evaluate.evaluate_skills(
+            result = self.server._call_tool(
+                "tmcp_evaluate_skills",
                 {
                     "mode": "plan",
                     "project_path": str(project),
@@ -170,7 +171,8 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
                 row for row in plan["task_matrix"] if row["variant_id"] == "original"
             )
             original_row["skill_attachment"] = secret
-            result = self.evaluate.evaluate_skills(
+            result = self.server._call_tool(
+                "tmcp_evaluate_skills",
                 {
                     "mode": "score",
                     "evaluation_plan": plan,
@@ -211,12 +213,16 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
             )
             plan_path.write_text(json.dumps(plan), encoding="utf-8")
 
-            with patch.object(
-                self.evaluate,
-                "read_json_input",
-                wraps=self.evaluate.read_json_input,
-            ) as read_plan:
-                result = self.evaluate.evaluate_skills(
+            evaluator_read_json_input = self.server.evaluate_skills.__globals__[
+                "read_json_input"
+            ]
+            read_plan = Mock(wraps=evaluator_read_json_input)
+            with patch.dict(
+                self.server.evaluate_skills.__globals__,
+                {"read_json_input": read_plan},
+            ):
+                result = self.server._call_tool(
+                    "tmcp_evaluate_skills",
                     {
                         "mode": "score",
                         "project_path": str(root),
@@ -224,7 +230,7 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
                         "run_evidence_json": self._trace(),
                         "write_artifacts": True,
                         "output_dir": str(output_dir),
-                    }
+                    },
                 )
 
             self.assertEqual(read_plan.call_count, 1)
@@ -248,7 +254,8 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
                 self.skipTest(f"Symlinks are unavailable in this environment: {exc}")
 
             with self.assertRaises(ArtifactStorageError):
-                self.evaluate.evaluate_skills(
+                self.server._call_tool(
+                    "tmcp_evaluate_skills",
                     {
                         **self._plan_arguments(FIXTURE_SKILL),
                         "mode": "plan",

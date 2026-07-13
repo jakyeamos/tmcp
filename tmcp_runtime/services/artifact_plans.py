@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -23,6 +24,48 @@ class ArtifactPlan:
     json_artifacts: dict[str, Any]
     text_artifacts: dict[str, str]
     path_aliases: dict[str, str]
+
+
+def build_evaluation_artifact_plan(
+    *,
+    plan: dict[str, Any] | None,
+    report: dict[str, Any] | None,
+    guidebook_markdown: Callable[[list[dict[str, Any]]], str],
+    pattern_catalog: Callable[[list[dict[str, Any]]], dict[str, Any]],
+) -> ArtifactPlan:
+    """Build evaluator artifacts without choosing or touching a filesystem."""
+
+    json_artifacts: dict[str, Any] = {}
+    text_artifacts: dict[str, str] = {}
+    path_aliases: dict[str, str] = {}
+    if plan is not None:
+        plan_name = "tmcp-skill-evaluation-plan.json"
+        json_artifacts[plan_name] = dict(plan)
+        path_aliases["evaluation_plan"] = plan_name
+    if report is not None:
+        report_name = "tmcp-skill-evaluation-report.json"
+        catalog_name = "skill-pattern-catalog.json"
+        guidebook_name = "skill-writing-guidebook.md"
+        entries = report.get("guidebook_entries", [])
+        if not isinstance(entries, list) or not all(
+            isinstance(item, dict) for item in entries
+        ):
+            raise ValueError("Evaluation report guidebook_entries must be objects.")
+        json_artifacts[report_name] = dict(report)
+        json_artifacts[catalog_name] = pattern_catalog(entries)
+        text_artifacts[guidebook_name] = guidebook_markdown(entries)
+        path_aliases.update(
+            {
+                "evaluation_report": report_name,
+                "pattern_catalog": catalog_name,
+                "guidebook": guidebook_name,
+            }
+        )
+    return ArtifactPlan(
+        json_artifacts=json_artifacts,
+        text_artifacts=text_artifacts,
+        path_aliases=path_aliases,
+    )
 
 
 def build_review_artifact_plan(

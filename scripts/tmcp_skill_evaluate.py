@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import json
 import re
-import uuid
 from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,9 +15,7 @@ from tmcp_runtime.safety import (
     read_json_input,
     read_skill_inputs,
     redact_json_value,
-    redact_path,
 )
-from tmcp_runtime.storage import AtomicArtifactStore
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 UTC = datetime.now(timezone.utc)
@@ -29,6 +26,9 @@ EVAL_TRACE_SCHEMA = "tmcp-skill-eval-trace-v0.1"
 MAX_EVALUATION_PLAN_BYTES = 8_388_608
 
 ComposeEvaluationRow = Callable[[dict[str, Any], str | Path | None], dict[str, Any]]
+EvaluationArtifactWriter = Callable[
+    [dict[str, Any] | None, dict[str, Any] | None], dict[str, str]
+]
 
 DEFAULT_VARIANTS = (
     "baseline",
@@ -1844,62 +1844,11 @@ def _pattern_catalog(entries: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _write_artifacts(
-    output_dir: Path,
-    plan: dict[str, Any] | None,
-    report: dict[str, Any] | None,
-    *,
-    fresh_bundle: bool,
-) -> dict[str, str]:
-    contents: dict[str, str] = {}
-    artifact_names: dict[str, str] = {}
-    if plan is not None:
-        name = "tmcp-skill-evaluation-plan.json"
-        contents[name] = _json_text(plan, label="Evaluation plan artifact")
-        artifact_names["evaluation_plan"] = name
-    if report is not None:
-        report_name = "tmcp-skill-evaluation-report.json"
-        catalog_name = "skill-pattern-catalog.json"
-        guidebook_name = "skill-writing-guidebook.md"
-        guidebook_entries = report.get("guidebook_entries", [])
-        if not isinstance(guidebook_entries, list) or not all(
-            isinstance(item, dict) for item in guidebook_entries
-        ):
-            raise ValueError("Evaluation report guidebook_entries must be objects.")
-        contents[report_name] = _json_text(
-            report,
-            label="Evaluation report artifact",
-        )
-        contents[catalog_name] = _json_text(
-            _pattern_catalog(guidebook_entries),
-            label="Pattern catalog artifact",
-        )
-        contents[guidebook_name] = _guidebook_markdown(guidebook_entries)
-        artifact_names.update(
-            {
-                "evaluation_report": report_name,
-                "pattern_catalog": catalog_name,
-                "guidebook": guidebook_name,
-            }
-        )
-    if fresh_bundle:
-        written_paths = AtomicArtifactStore.write_text_bundle(output_dir, contents)
-    else:
-        store = AtomicArtifactStore.explicit(output_dir)
-        written_paths = {
-            name: str(store.write_text(name, content))
-            for name, content in contents.items()
-        }
-    return {
-        artifact_key: redact_path(written_paths[name])
-        for artifact_key, name in artifact_names.items()
-    }
-
-
 def evaluate_skills(
     arguments: dict[str, Any],
     *,
     compose_evaluation_row: ComposeEvaluationRow | None = None,
+    artifact_writer: EvaluationArtifactWriter | None = None,
 ) -> dict[str, Any]:
     mode = str(arguments.get("mode") or "auto")
     has_evidence = bool(arguments.get("run_evidence_json"))
@@ -1910,18 +1859,9 @@ def evaluate_skills(
         plan = build_evaluation_plan(arguments)
         result: dict[str, Any] = {"mode": "plan", **plan}
         if bool(arguments.get("write_artifacts", False)):
-            output_dir = Path(
-                str(
-                    arguments.get("output_dir")
-                    or Path(".").resolve() / ".tmcp" / f"skill-eval-{uuid.uuid4().hex[:8]}"
-                )
-            ).expanduser()
-            result["artifact_paths"] = _write_artifacts(
-                output_dir,
-                plan,
-                None,
-                fresh_bundle=True,
-            )
+            if artifact_writer is None:
+                raise ValueError("Evaluation artifact persistence requires the TMCP adapter.")
+            result["artifact_paths"] = artifact_writer(plan, None)
         return result
 
     if mode == "score":
@@ -1933,18 +1873,9 @@ def evaluate_skills(
         )
         result = {"mode": "score", **report}
         if bool(arguments.get("write_artifacts", False)):
-            output_dir = Path(
-                str(
-                    arguments.get("output_dir")
-                    or Path(".").resolve() / ".tmcp" / f"skill-eval-{uuid.uuid4().hex[:8]}"
-                )
-            ).expanduser()
-            result["artifact_paths"] = _write_artifacts(
-                output_dir,
-                plan,
-                report,
-                fresh_bundle=False,
-            )
+            if artifact_writer is None:
+                raise ValueError("Evaluation artifact persistence requires the TMCP adapter.")
+            result["artifact_paths"] = artifact_writer(plan, report)
         return result
 
     raise ValueError(f"Unsupported mode: {mode}")

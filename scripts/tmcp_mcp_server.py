@@ -45,7 +45,12 @@ from tmcp_runtime.domain.review_evidence import (  # noqa: E402
 from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     workflow_catalog_by_id,
 )
-from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
+from scripts.tmcp_skill_evaluate import (  # noqa: E402
+    _guidebook_markdown as _evaluation_guidebook_markdown,
+    _pattern_catalog as _evaluation_pattern_catalog,
+    evaluate_skills,
+    harvest_warnings_for_source,
+)
 from tmcp_runtime.api.cli import parse_cli_arguments as _parse_cli_arguments  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
     cli_usage as _cli_usage,
@@ -99,6 +104,7 @@ from tmcp_runtime.services.diagnostics import (  # noqa: E402
 )
 from tmcp_runtime.services.artifact_plans import (  # noqa: E402
     ArtifactPlan,
+    build_evaluation_artifact_plan as _runtime_build_evaluation_artifact_plan,
     build_global_promotion_artifact_plan as _runtime_build_global_promotion_artifact_plan,
     build_promotion_artifact_plan as _runtime_build_promotion_artifact_plan,
     build_review_artifact_plan as _runtime_build_review_artifact_plan,
@@ -399,6 +405,31 @@ def _persist_harvest_artifacts(
     if "tmcp-packet-seed.json" in paths:
         aliases["packet_seed"] = paths["tmcp-packet-seed.json"]
     return aliases
+
+
+def _persist_evaluation_artifacts(
+    arguments: dict[str, Any],
+    plan: dict[str, Any] | None,
+    report: dict[str, Any] | None,
+) -> dict[str, str]:
+    output_dir = (
+        Path(str(arguments["output_dir"])).expanduser()
+        if arguments.get("output_dir")
+        else _require_default_artifact_root(arguments)
+        / ".tmcp"
+        / f"skill-eval-{uuid.uuid4().hex[:8]}"
+    )
+    artifact_plan = _runtime_build_evaluation_artifact_plan(
+        plan=plan,
+        report=report,
+        guidebook_markdown=_evaluation_guidebook_markdown,
+        pattern_catalog=_evaluation_pattern_catalog,
+    )
+    return _persist_artifact_plan(
+        output_dir,
+        artifact_plan,
+        fresh_bundle=report is None,
+    )
 
 
 def _default_output_dir(project_root: Path) -> Path:
@@ -1010,6 +1041,11 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         return evaluate_skills(
             arguments,
             compose_evaluation_row=_compose_evaluation_row,
+            artifact_writer=lambda plan, report: _persist_evaluation_artifacts(
+                arguments,
+                plan,
+                report,
+            ),
         )
     if name == "tmcp_recommend_workflows":
         return _recommend_workflows(arguments)
