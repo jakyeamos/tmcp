@@ -4,7 +4,7 @@ import ast
 import unittest
 from pathlib import Path
 
-from tmcp_runtime.services.review import build_review_plan
+from tmcp_runtime.services.review import build_review_plan, parse_review_evidence
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -24,6 +24,12 @@ def _build(evidence_items: list[dict[str, object]]) -> dict[str, object]:
 
 
 class ReviewServiceTests(unittest.TestCase):
+    def test_evidence_parser_is_exposed_by_the_review_service(self) -> None:
+        self.assertEqual(
+            parse_review_evidence('{"dimension_id": "release"}'),
+            [{"dimension_id": "release"}],
+        )
+
     def test_empty_evidence_returns_a_deterministic_evidence_request(self) -> None:
         result = _build([])
 

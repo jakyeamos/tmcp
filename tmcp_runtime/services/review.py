@@ -11,6 +11,7 @@ from tmcp_runtime.domain.review_evidence import (
     evidence_contract,
     evidence_diagnostics,
     evidence_remediation_contract,
+    parse_evidence,
     synthesize_rubric,
 )
 from tmcp_runtime.domain.review_results import (
@@ -19,6 +20,12 @@ from tmcp_runtime.domain.review_results import (
     review_validations,
 )
 from tmcp_runtime.domain.standalone_packets import compile_standalone_packet
+
+
+def parse_review_evidence(raw: object) -> list[dict[str, Any]]:
+    """Parse review evidence at the runtime service boundary."""
+
+    return parse_evidence(raw)
 
 
 def build_review_plan(

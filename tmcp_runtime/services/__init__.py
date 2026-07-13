@@ -24,6 +24,7 @@ from tmcp_runtime.services.harvest import (
     require_default_artifact_root,
     source_project_path,
 )
+from tmcp_runtime.services.explain import ExplainService, ExplainServiceContext
 from tmcp_runtime.services.global_promotion import (
     GlobalPromotionArtifactService,
     GlobalPromotionContext,
@@ -32,7 +33,7 @@ from tmcp_runtime.services.recommendations import recommend_workflows
 from tmcp_runtime.services.promotion import promote_harvest
 from tmcp_runtime.services.recompile import finalize_recompiled_packet
 from tmcp_runtime.services.receipts import ReceiptService, ReceiptServiceContext
-from tmcp_runtime.services.review import build_review_plan
+from tmcp_runtime.services.review import build_review_plan, parse_review_evidence
 
 __all__ = [
     "ArtifactPlan",
@@ -40,6 +41,8 @@ __all__ = [
     "ArtifactPersistenceService",
     "GlobalPromotionArtifactService",
     "GlobalPromotionContext",
+    "ExplainService",
+    "ExplainServiceContext",
     "build_review_plan",
     "build_review_artifact_plan",
     "build_workflow_recommendation_artifact_plan",
@@ -57,4 +60,5 @@ __all__ = [
     "recommend_workflows",
     "require_default_artifact_root",
     "source_project_path",
+    "parse_review_evidence",
 ]

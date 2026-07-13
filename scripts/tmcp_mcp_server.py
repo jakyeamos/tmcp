@@ -44,15 +44,9 @@ from tmcp_runtime.domain.receipts import (  # noqa: E402
     build_recorded_receipt_result as _runtime_build_recorded_receipt_result,
     build_run_receipt as _runtime_build_run_receipt,
 )
-from tmcp_runtime.domain.standalone_packets import (  # noqa: E402
-    compile_standalone_packet,
-)
 from tmcp_runtime.domain.harvest_nodes import (  # noqa: E402
     routing_metadata_for as _domain_routing_metadata_for,
     source_node_from_text as _domain_source_node_from_text,
-)
-from tmcp_runtime.domain.review_evidence import (  # noqa: E402
-    parse_evidence,
 )
 from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     workflow_catalog_by_id,
@@ -103,6 +97,10 @@ from tmcp_runtime.services.global_promotion import (  # noqa: E402
     GlobalPromotionArtifactService,
     GlobalPromotionContext,
 )
+from tmcp_runtime.services.explain import (  # noqa: E402
+    ExplainService,
+    ExplainServiceContext,
+)
 from tmcp_runtime.services.evaluation_catalog import (  # noqa: E402
     EFFECTIVE_PATTERNS,
     EVIDENCE_LEVELS,
@@ -128,6 +126,7 @@ from tmcp_runtime.services.receipts import (  # noqa: E402
 )
 from tmcp_runtime.services.review import (  # noqa: E402
     build_review_plan as _runtime_build_review_plan,
+    parse_review_evidence as _runtime_parse_review_evidence,
 )
 from tmcp_runtime.services.diagnostics import (  # noqa: E402
     build_doctor_report as _runtime_build_doctor_report,
@@ -341,7 +340,9 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     objective = str(arguments["objective"])
     project_path = str(arguments.get("project_path") or ".")
     run_id = f"tmcp-review-plan-{uuid.uuid4().hex[:8]}"
-    evidence_items = parse_evidence(arguments.get("evidence_json") or "[]")
+    evidence_items = _runtime_parse_review_evidence(
+        arguments.get("evidence_json") or "[]"
+    )
     harvested_nodes: list[dict[str, Any]] = []
     harvest_warnings: list[str] = []
     if bool(arguments.get("harvest_sources", True)):
@@ -900,30 +901,9 @@ def _tool_explain(arguments: dict[str, Any]) -> dict[str, Any]:
                     }
                 )
             return _redact_result(payload)
-    result = {
-        "ok": True,
-        "adapter": "standalone",
-        "command": "tmcp-explain",
-        "data_status": "compiled",
-        "packet": compile_standalone_packet(
-            objective=str(arguments["objective"]),
-            project_path=str(arguments.get("project_path") or "."),
-            phase=str(arguments.get("phase") or "") or None,
-            domain=str(arguments.get("domain") or "") or None,
-        ),
-    }
-    if bool(arguments.get("compose", False)):
-        result["composed_packet"] = _compose_packet(
-            {
-                "objective": arguments["objective"],
-                "project_path": arguments.get("project_path") or ".",
-                "source_path": arguments.get("source_path")
-                or arguments.get("project_path")
-                or ".",
-                "phase": arguments.get("phase") or "start",
-                "cache_policy": arguments.get("cache_policy") or "none",
-            }
-        )
+    result = ExplainService(
+        ExplainServiceContext(compose_packet=_compose_packet)
+    ).standalone(arguments)
     return _redact_result(result)
 
 
