@@ -48,8 +48,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   Fresh review closed malformed MCP transport input/notification defects and
   packaged the compatibility note. Formatting and typecheck now pass across all
   148 tracked Python files and the `scripts`, `tmcp_runtime`, and `tests`
-  scopes; hosted run `29288492789` passes the pinned quality job and all six
-  platform jobs for `03e543d`. Do not tag or publish.
+  scopes; hosted tag run `29289138645` passes the pinned quality job and all
+  six platform jobs for merge commit `1fcda48`. The GitHub release and MCP
+  Registry publication are complete.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -360,5 +361,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Review the clean quality-gate evidence before deciding whether to mark the draft ready.
+# Monitor the published v0.5.0 release surfaces; no additional publication action is pending.
 ```

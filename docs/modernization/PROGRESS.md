@@ -346,9 +346,9 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
   runs formatting, lint, and typecheck gates in a dedicated Ubuntu job.
 - Hosted run `29288492789` passes the quality job and all six platform jobs for
   cleanup commit `03e543d`.
-- No tag or publication has occurred. The 0.5.0 compatibility process remains
-  gated on the post-cutover hosted run because the stateless default and
-  explicit-only AIOS behavior are material changes.
+- The 0.5.0 release is now merged, tagged, and published. GitHub release
+  `v0.5.0` carries the verified artifact, and MCP Registry publication for
+  `io.github.jakyeamos/tmcp` version `0.5.0` succeeded.
 - AIOS needs a protected request-input protocol before confidential explicit
   requests can safely use it; the current boundary denies known sensitive values
   rather than forwarding them through process arguments.
@@ -366,5 +366,5 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 
 ## Next step
 
-Review the clean quality-gate evidence, then decide whether to mark the draft
-ready; tagging and publication stay separate.
+Monitor the published release surfaces and handle any post-release reports;
+no additional tag or publication action is pending.
