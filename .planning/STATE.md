@@ -8,7 +8,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Map the next authority-limited adapter extraction after the
 CLI parser, harvest-argument, global-cache reader, adversarial safety
-hardening, and diagnostic-report cutovers.
+hardening, diagnostic-report, and harvest-persistence cutovers.
 
 ## Milestone
 
@@ -16,8 +16,8 @@ hardening, and diagnostic-report cutovers.
 **Status:** Milestone 3 adapter thinning and security hardening: pure domain,
 service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
-  boundaries plus CLI/harvest safety hardening and diagnostic-report assembly
-  complete; map the next read-only boundary.
+  boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
+  read-only harvest persistence complete; map the next read-only boundary.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -228,11 +228,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   authority boundaries; 350 local tests pass with three expected skips.
 - `a375cc0` and `8a0707c` extract pure CLI parsing and shared read-only
   harvest-argument projection. `f1e1d4f` adds schema-aware unknown-option
-  rejection, bounded harvest scan/read budgets, and fail-closed safe reads;
-  `ed9df02` extracts pure doctor/status report assembly into
-  `tmcp_runtime/services/diagnostics.py`, leaving probes, paths, redaction, and
-  transport in the adapter. The full suite has 364 tests with three expected
-  skips.
+  rejection, bounded scan/read budgets, and fail-closed safe reads; `ed9df02`
+  extracts pure doctor/status report assembly; `09857db` makes harvest services
+  read-only and keeps artifact output-root selection, persistence, and aliases
+  in the adapter. The full suite has 365 tests with three expected skips.
 
 ## Workflow Notes
 
@@ -248,6 +247,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   adapter authority.
 - Keep doctor/status report assembly pure and data-only; the adapter retains
   environment probes, path redaction, capability checks, and transport.
+- Keep harvest service orchestration read-only; the adapter owns output roots,
+  atomic persistence, artifact aliases, and final path redaction.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -415,12 +416,14 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `f1e1d4f` adds schema-aware unknown-option rejection, bounded harvest scan/read
   budgets, and fail-closed safe-reader behavior for platforms without no-follow
   open support; `ed9df02` extracts doctor/status report assembly into a pure
-  diagnostics service while keeping environment probes and redaction adapter-owned.
+  diagnostics service while keeping environment probes and redaction adapter-owned;
+  `09857db` makes harvest services read-only and moves harvest artifact persistence
+  back to the adapter boundary.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the next bounded adapter boundary after diagnostic extraction without weakening
+# Map the next bounded adapter boundary after harvest persistence extraction without weakening
 # storage/cache authority.
 ```

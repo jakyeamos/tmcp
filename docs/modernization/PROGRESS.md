@@ -334,10 +334,10 @@ changing the public receipt schema.
   The full local suite has 350 tests with three expected skips; boundary reviews pass.
 - `a375cc0` and `8a0707c` extract pure CLI parsing and shared read-only harvest
   argument projection. `f1e1d4f` adds schema-aware option rejection, bounded
-  harvest scan/read budgets, and fail-closed safe reads; `ed9df02` extracts pure
-  doctor/status report assembly into `services/diagnostics.py`, leaving probes,
-  paths, redaction, and transport in the adapter. The full suite has 364 tests
-  with three expected skips.
+  scan/read budgets, and fail-closed safe reads; `ed9df02` extracts pure
+  doctor/status report assembly; `09857db` makes harvest services read-only and
+  keeps artifact output-root selection, persistence, and path aliases in the
+  adapter. The full suite has 365 tests with three expected skips.
 
 ## Blockers and risks
 
@@ -358,11 +358,12 @@ changing the public receipt schema.
   canonical RFC3339 grammar before timestamps gain ranking/retention meaning.
 - The legacy server and evaluator scripts remain broader than the target's thin
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
-  argument projection, safety hardening, and diagnostics are extracted; map the
+  argument projection, safety hardening, diagnostics, and harvest persistence
+  boundary are extracted; map the
   next bounded cutover without moving root, write, or transport authority.
 
 ## Next step
 
-Map the next bounded adapter boundary after diagnostic extraction, preserving
+Map the next bounded adapter boundary after harvest persistence extraction, preserving
 storage-owned cache safety and adapter-owned roots, writes, redaction, sessions,
 and transport.
