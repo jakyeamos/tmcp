@@ -43,19 +43,8 @@ from tmcp_runtime.domain.harvest_nodes import (  # noqa: E402
 from tmcp_runtime.domain.review_evidence import (  # noqa: E402
     parse_evidence,
 )
-from tmcp_runtime.domain.review_results import (  # noqa: E402
-    render_audit_markdown,
-    render_remediation_plan_markdown,
-    render_rubric_markdown,
-)
 from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     workflow_catalog_by_id,
-)
-from tmcp_runtime.domain.workflow_promotion import (  # noqa: E402
-    render_promotion_markdown,
-)
-from tmcp_runtime.domain.workflow_adaptive import (  # noqa: E402
-    render_workflow_recommendations_markdown,
 )
 from scripts.tmcp_skill_evaluate import evaluate_skills, harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
@@ -111,6 +100,13 @@ from tmcp_runtime.services.recompile import (  # noqa: E402
 )
 from tmcp_runtime.services.review import (  # noqa: E402
     build_review_plan as _runtime_build_review_plan,
+)
+from tmcp_runtime.services.artifact_plans import (  # noqa: E402
+    ArtifactPlan,
+    build_global_promotion_artifact_plan as _runtime_build_global_promotion_artifact_plan,
+    build_promotion_artifact_plan as _runtime_build_promotion_artifact_plan,
+    build_review_artifact_plan as _runtime_build_review_artifact_plan,
+    build_workflow_recommendation_artifact_plan as _runtime_build_workflow_recommendation_artifact_plan,
 )
 
 AIOS_ROOT = (
@@ -383,49 +379,19 @@ def _persist_artifacts(
     return {name: redact_path(path) for name, path in paths.items()}
 
 
-def _write_review_artifacts(
+def _persist_artifact_plan(
     output_dir: Path,
-    packet: dict[str, Any],
-    rubric: dict[str, Any],
-    audit_report: dict[str, Any],
-    remediation_plan: dict[str, Any],
-    handoff: dict[str, Any],
+    plan: ArtifactPlan,
     *,
     fresh_bundle: bool,
 ) -> dict[str, str]:
-    safe_packet = _redacted_mapping(packet)
-    safe_rubric = _redacted_mapping(rubric)
-    safe_audit_report = _redacted_mapping(audit_report)
-    safe_remediation_plan = _redacted_mapping(remediation_plan)
-    safe_handoff = _redacted_mapping(handoff)
     paths = _persist_artifacts(
         output_dir,
-        json_artifacts={
-            "expertise-packet.json": safe_packet,
-            "rubric.json": safe_rubric,
-            "audit-report.json": safe_audit_report,
-            "remediation-plan.json": safe_remediation_plan,
-            "implementation-handoff.json": safe_handoff,
-        },
-        text_artifacts={
-            "rubric.md": render_rubric_markdown(safe_rubric),
-            "audit-report.md": render_audit_markdown(safe_audit_report),
-            "remediation-plan.md": render_remediation_plan_markdown(
-                safe_remediation_plan
-            ),
-        },
+        json_artifacts=plan.json_artifacts,
+        text_artifacts=plan.text_artifacts,
         fresh_bundle=fresh_bundle,
     )
-    return {
-        "expertise_packet": paths["expertise-packet.json"],
-        "rubric_json": paths["rubric.json"],
-        "rubric_markdown": paths["rubric.md"],
-        "audit_report_json": paths["audit-report.json"],
-        "audit_report_markdown": paths["audit-report.md"],
-        "remediation_plan_json": paths["remediation-plan.json"],
-        "remediation_plan_markdown": paths["remediation-plan.md"],
-        "implementation_handoff_json": paths["implementation-handoff.json"],
-    }
+    return {alias: paths[name] for alias, name in plan.path_aliases.items()}
 
 
 def _default_output_dir(project_root: Path) -> Path:
@@ -477,13 +443,16 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
             if arguments.get("output_dir")
             else _default_output_dir(_require_default_artifact_root(arguments))
         )
-        safe_result["artifact_paths"] = _write_review_artifacts(
+        artifact_plan = _runtime_build_review_artifact_plan(
+            expertise_packet=dict(safe_result["expertise_packet"]),
+            rubric=dict(safe_result["rubric"]),
+            audit_report=dict(safe_result["audit_report"]),
+            remediation_plan=dict(safe_result["remediation_plan"]),
+            implementation_handoff=dict(safe_result["implementation_handoff"]),
+        )
+        safe_result["artifact_paths"] = _persist_artifact_plan(
             output_dir,
-            dict(safe_result["expertise_packet"]),
-            dict(safe_result["rubric"]),
-            dict(safe_result["audit_report"]),
-            dict(safe_result["remediation_plan"]),
-            dict(safe_result["implementation_handoff"]),
+            artifact_plan,
             fresh_bundle=not bool(arguments.get("output_dir")),
         )
     return safe_result
@@ -563,75 +532,6 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-def _write_workflow_recommendation_artifacts(
-    output_dir: Path,
-    result: dict[str, Any],
-    *,
-    fresh_bundle: bool,
-) -> dict[str, str]:
-    safe_result = _redacted_mapping(result)
-    profile = safe_result.get("priority_profile")
-    json_artifacts: dict[str, Any] = {
-        "workflow-recommendations.json": safe_result,
-    }
-    if isinstance(profile, dict):
-        json_artifacts["priority-profile.json"] = profile
-    adaptive_pack = safe_result.get("adaptive_workflow_pack")
-    if isinstance(adaptive_pack, dict):
-        json_artifacts["adaptive-workflow-pack.json"] = adaptive_pack
-    paths = _persist_artifacts(
-        output_dir,
-        json_artifacts=json_artifacts,
-        text_artifacts={
-            "workflow-recommendations.md": render_workflow_recommendations_markdown(
-                safe_result
-            ),
-        },
-        fresh_bundle=fresh_bundle,
-    )
-    result_paths = {
-        "recommendation_json": paths["workflow-recommendations.json"],
-        "recommendation_markdown": paths["workflow-recommendations.md"],
-    }
-    if "priority-profile.json" in paths:
-        result_paths["priority_profile_json"] = paths["priority-profile.json"]
-    if "adaptive-workflow-pack.json" in paths:
-        result_paths["adaptive_pack_json"] = paths["adaptive-workflow-pack.json"]
-    return result_paths
-
-
-def _write_promotion_artifacts(
-    output_dir: Path, result: dict[str, Any]
-) -> dict[str, str]:
-    safe_result = _redacted_mapping(result)
-    graph = safe_result.get("promotion_graph")
-    json_artifacts: dict[str, Any] = {
-        "promoted-harvest.json": safe_result,
-    }
-    if isinstance(graph, dict):
-        json_artifacts["promotion-graph.json"] = graph
-    adaptive_pack = safe_result.get("adaptive_workflow_pack")
-    if isinstance(adaptive_pack, dict):
-        json_artifacts["adaptive-workflow-pack.json"] = adaptive_pack
-    paths = _persist_artifacts(
-        output_dir,
-        json_artifacts=json_artifacts,
-        text_artifacts={
-            "promoted-harvest.md": render_promotion_markdown(safe_result)
-        },
-        fresh_bundle=False,
-    )
-    result_paths = {
-        "promotion_json": paths["promoted-harvest.json"],
-        "promotion_markdown": paths["promoted-harvest.md"],
-    }
-    if "promotion-graph.json" in paths:
-        result_paths["promotion_graph_json"] = paths["promotion-graph.json"]
-    if "adaptive-workflow-pack.json" in paths:
-        result_paths["adaptive_pack_json"] = paths["adaptive-workflow-pack.json"]
-    return result_paths
-
-
 def _tmcp_home() -> Path:
     configured = globals().get("TMCP_HOME")
     if configured is None:
@@ -677,25 +577,20 @@ def _write_global_promotion(
     }
     safe_summary = _redacted_mapping(summary)
     adaptive_pack = result.get("adaptive_workflow_pack")
-    json_artifacts: dict[str, Any] = {
-        "promoted-harvest.json": safe_summary,
-        "promotion-graph.json": graph,
-    }
-    if isinstance(adaptive_pack, dict):
-        json_artifacts["adaptive-workflow-pack.json"] = _redacted_mapping(adaptive_pack)
-    paths = _persist_artifacts(
+    artifact_plan = _runtime_build_global_promotion_artifact_plan(
+        promotion_summary=safe_summary,
+        promotion_graph=graph,
+        adaptive_workflow_pack=(
+            _redacted_mapping(adaptive_pack)
+            if isinstance(adaptive_pack, dict)
+            else None
+        ),
+    )
+    return _persist_artifact_plan(
         output_dir,
-        json_artifacts=json_artifacts,
-        text_artifacts={},
+        artifact_plan,
         fresh_bundle=False,
     )
-    result_paths = {
-        "promotion_json": paths["promoted-harvest.json"],
-        "promotion_graph_json": paths["promotion-graph.json"],
-    }
-    if "adaptive-workflow-pack.json" in paths:
-        result_paths["adaptive_pack_json"] = paths["adaptive-workflow-pack.json"]
-    return result_paths
 
 
 def _append_global_cache_warning(warnings: list[str], warning: str) -> None:
@@ -1195,9 +1090,12 @@ def _recommend_workflows(arguments: dict[str, Any]) -> dict[str, Any]:
             / ".tmcp"
             / f"workflow-recommendations-{uuid.uuid4().hex[:8]}"
         )
-        safe_result["artifact_paths"] = _write_workflow_recommendation_artifacts(
+        artifact_plan = _runtime_build_workflow_recommendation_artifact_plan(
+            safe_result
+        )
+        safe_result["artifact_paths"] = _persist_artifact_plan(
             output_dir,
-            safe_result,
+            artifact_plan,
             fresh_bundle=not bool(arguments.get("output_dir")),
         )
     else:
@@ -1234,9 +1132,11 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
             / "promoted-harvests"
             / promotion_storage_key
         )
-        safe_result["artifact_paths"] = _write_promotion_artifacts(
+        artifact_plan = _runtime_build_promotion_artifact_plan(safe_result)
+        safe_result["artifact_paths"] = _persist_artifact_plan(
             output_dir,
-            safe_result,
+            artifact_plan,
+            fresh_bundle=False,
         )
     else:
         safe_result["artifact_paths"] = {}

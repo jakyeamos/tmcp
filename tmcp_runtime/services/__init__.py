@@ -4,6 +4,13 @@ from tmcp_runtime.services.compose import (
     compose_packet_from_source_nodes,
     enrich_packet_from_source_nodes,
 )
+from tmcp_runtime.services.artifact_plans import (
+    ArtifactPlan,
+    build_global_promotion_artifact_plan,
+    build_promotion_artifact_plan,
+    build_review_artifact_plan,
+    build_workflow_recommendation_artifact_plan,
+)
 from tmcp_runtime.services.harvest import (
     harvest_skills,
     require_default_artifact_root,
@@ -15,7 +22,12 @@ from tmcp_runtime.services.recompile import finalize_recompiled_packet
 from tmcp_runtime.services.review import build_review_plan
 
 __all__ = [
+    "ArtifactPlan",
     "build_review_plan",
+    "build_review_artifact_plan",
+    "build_workflow_recommendation_artifact_plan",
+    "build_promotion_artifact_plan",
+    "build_global_promotion_artifact_plan",
     "compose_packet_from_source_nodes",
     "enrich_packet_from_source_nodes",
     "harvest_skills",
