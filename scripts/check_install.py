@@ -60,6 +60,7 @@ REQUIRED_FILES = (
     "tmcp_runtime/storage/cache_policy.py",
     "tmcp_runtime/storage/sessions.py",
     "tmcp_runtime/services/__init__.py",
+    "tmcp_runtime/services/compose.py",
     "tmcp_runtime/services/harvest.py",
     "tmcp_runtime/services/promotion.py",
     "tmcp_runtime/services/recommendations.py",

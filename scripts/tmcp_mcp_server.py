@@ -21,11 +21,6 @@ if str(PLUGIN_ROOT) not in sys.path:
 
 from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
 from scripts.tmcp_redaction import merge_redactions  # noqa: E402
-from tmcp_runtime.domain.routes import derive_task_identity  # noqa: E402
-from tmcp_runtime.domain.families import compose_family_context  # noqa: E402
-from tmcp_runtime.domain.declared_loads import (  # noqa: E402
-    resolve_declared_load_nodes,
-)
 from tmcp_runtime.domain.recompile import (  # noqa: E402
     apply_validated_proposals,
     merge_packet_delta,
@@ -38,22 +33,13 @@ from tmcp_runtime.domain.recompile import (  # noqa: E402
 from tmcp_runtime.domain.runtime_state import (  # noqa: E402
     derive_runtime_state as _runtime_derive_runtime_state,
 )
-from tmcp_runtime.domain.composition import (  # noqa: E402
-    contextual_atoms_and_gates,
-    filter_source_verification_gates,
-    merge_composition_nodes,
-    matching_reference_reads,
-    select_composition_nodes,
-)
 from tmcp_runtime.domain.packets import (  # noqa: E402
-    build_composed_packet,
     render_composed_packet_markdown,
 )
 from tmcp_runtime.domain.standalone_packets import (  # noqa: E402
     compile_standalone_packet,
 )
 from tmcp_runtime.domain.harvest_nodes import (  # noqa: E402
-    node_signal_text as _domain_node_signal_text,
     routing_metadata_for as _domain_routing_metadata_for,
     source_node_from_text as _domain_source_node_from_text,
 )
@@ -67,10 +53,6 @@ from tmcp_runtime.domain.review_results import (  # noqa: E402
 )
 from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     workflow_catalog_by_id,
-)
-from tmcp_runtime.domain.workflow_activation import (  # noqa: E402
-    build_global_workflow_activation,
-    select_global_workflows,
 )
 from tmcp_runtime.domain.workflow_promotion import (  # noqa: E402
     render_promotion_markdown,
@@ -118,6 +100,10 @@ from tmcp_runtime.services.harvest import (  # noqa: E402
     require_default_artifact_root as _runtime_require_default_artifact_root,
     source_project_path as _runtime_source_project_path,
 )
+from tmcp_runtime.services.compose import (  # noqa: E402
+    compose_packet_from_source_nodes as _runtime_compose_packet_from_source_nodes,
+    enrich_packet_from_source_nodes as _runtime_enrich_packet_from_source_nodes,
+)
 from tmcp_runtime.services.recommendations import (  # noqa: E402
     recommend_workflows as _runtime_recommend_workflows,
 )
@@ -134,7 +120,6 @@ AIOS_ROOT = (
 TMCP_HOME = Path(os.environ.get("TMCP_HOME", "~/.tmcp")).expanduser()
 UTC = timezone.utc
 
-COMPOSED_PACKET_SCHEMA = "tmcp-composed-packet-v0.1"
 RUNTIME_NEXT_SCHEMA = "tmcp-runtime-next-v0.1"
 RECOMPILED_PACKET_SCHEMA = "tmcp-recompiled-packet-v0.1"
 RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
@@ -239,40 +224,6 @@ def _run_aios(args: list[str]) -> dict[str, Any]:
     return {"ok": True, "adapter": "aios", "data": payload}
 
 
-def _enrich_packet_from_source_nodes(
-    packet: dict[str, Any], source_nodes: list[dict[str, Any]], read_paths: list[str]
-) -> dict[str, Any]:
-    if not read_paths:
-        return packet
-    wanted_paths = set(read_paths)
-    citations = [
-        item
-        for item in _json_list(packet.get("evidence_citations"))
-        if isinstance(item, dict)
-    ]
-    cited_paths = {
-        str(item.get("source") or item.get("path") or "") for item in citations
-    }
-    active_instructions = _string_list(packet.get("active_instructions"))
-    for node in source_nodes:
-        rel_path = str(node.get("relative_path") or "")
-        if rel_path not in wanted_paths or rel_path in cited_paths:
-            continue
-        citations.append(
-            {
-                "source": rel_path,
-                "path": node.get("path"),
-                "trust": node.get("trust", "untrusted_harvested_text"),
-                "matched_atoms": _string_list(node.get("behavior_atoms"))[:5],
-            }
-        )
-        active_instructions.extend(_node_active_instructions(node))
-        cited_paths.add(rel_path)
-    packet["evidence_citations"] = citations
-    packet["active_instructions"] = _ordered_unique(active_instructions)[:10]
-    return packet
-
-
 def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
     source_nodes: list[dict[str, Any]] = []
     harvest_root = str(
@@ -348,7 +299,7 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
         for item in _json_list(state.get("source_nodes"))
         if isinstance(item, dict)
     ]
-    new_packet = _enrich_packet_from_source_nodes(
+    new_packet = _runtime_enrich_packet_from_source_nodes(
         new_packet,
         source_nodes,
         _string_list(packet_delta.get("newly_required_reads")),
@@ -637,10 +588,6 @@ def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
         arguments,
         source_advisories=_harvest_source_advisories,
     )
-
-
-def _node_signal_text(node: dict[str, Any]) -> str:
-    return _domain_node_signal_text(node)
 
 
 def _write_workflow_recommendation_artifacts(
@@ -1042,198 +989,21 @@ def _compose_harvest_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
     return harvest_args
 
 
-def _routing_metadata(node: dict[str, Any]) -> dict[str, Any]:
-    metadata = node.get("routing_metadata")
-    return metadata if isinstance(metadata, dict) else {}
-
-
-def _compose_context(arguments: dict[str, Any]) -> dict[str, Any]:
-    context = arguments.get("runtime_context")
-    return context if isinstance(context, dict) else {}
-
-
-def _node_active_instructions(node: dict[str, Any]) -> list[str]:
-    rel_path = str(node.get("relative_path") or node.get("path") or "source")
-    text = _node_signal_text(node)
-    instructions: list[str] = []
-    if "pnpm" in text:
-        instructions.append(
-            "Use pnpm for JavaScript dependency management, installs, and scripts."
-        )
-    if "read before modifying" in text or "read before" in text:
-        instructions.append("Read relevant project files before modifying behavior.")
-    if "existing behavior" in text or "existing implementation" in text:
-        instructions.append(
-            "Search existing behavior first and reuse established components or helpers."
-        )
-    if (
-        "brand or product register" in text
-        or "brand register" in text
-        or "product register" in text
-    ):
-        instructions.append(
-            "Choose the brand or product register before implementation decisions."
-        )
-    if "canonical spreadsheet" in text:
-        instructions.append(
-            "Maintain one canonical spreadsheet/status-machine source of truth with stable Feature IDs."
-        )
-    if "last tested commit" in text:
-        instructions.append("Record the last tested commit with verification evidence.")
-    if "contrast" in text or "reduced motion" in text or "responsive" in text:
-        instructions.append(
-            "Apply UI verification atoms for contrast, reduced motion, responsive behavior, and browser evidence."
-        )
-    if not instructions:
-        atoms = ", ".join(_string_list(node.get("behavior_atoms"))[:4])
-        if atoms:
-            instructions.append(
-                f"Apply relevant harvested behavior atoms from {rel_path}: {atoms}."
-            )
-    return instructions
-
-
 def _compose_packet_from_source_nodes(
     arguments: dict[str, Any],
     *,
     source_nodes: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    objective = str(arguments.get("objective") or "").strip()
-    if not objective:
-        raise ValueError("tmcp_compose_packet requires objective.")
-    phase = str(arguments.get("phase") or "start")
     cache_policy = str(arguments.get("cache_policy") or "none")
-    context = _compose_context(arguments)
-    identity_context = dict(context)
-    identity_context["latest_user_message"] = str(arguments.get("latest_user_message") or "")
-    preliminary_routes = _string_list(
-        derive_task_identity(objective, identity_context).get("active_routes")
-    )
-    family_context = compose_family_context(
-        source_nodes,
-        objective,
-        context=identity_context,
-        active_routes=preliminary_routes,
-        node_signal_text=_node_signal_text,
-    )
-    task_identity = derive_task_identity(
-        objective,
-        identity_context,
-        family_context if family_context else None,
-    )
-    active_routes = _string_list(task_identity.get("active_routes")) or preliminary_routes
-    selected_nodes = select_composition_nodes(
-        source_nodes,
-        objective,
-        phase,
-        context,
-        family_context=family_context,
-        active_routes=active_routes,
-        node_signal_text=_node_signal_text,
-    )
-    declared_load_paths, declared_load_nodes = resolve_declared_load_nodes(
-        selected_nodes=selected_nodes,
-        source_nodes=source_nodes,
-        objective=objective,
-        family_context=family_context,
-    )
-    selected_nodes = merge_composition_nodes(selected_nodes, declared_load_nodes)
     global_graphs, graph_warnings = _load_global_promoted_graphs(cache_policy)
     receipts, receipt_warnings = _load_recent_receipts(cache_policy)
-    selected_workflows = select_global_workflows(global_graphs, objective)
-    active_instructions: list[str] = []
-    required_reads: list[str] = []
-    tool_script_prompts: list[str] = []
-    verification_gates: list[str] = []
-    stop_conditions: list[str] = []
-    active_atoms: list[str] = []
-    evidence_citations: list[dict[str, Any]] = []
-
-    for node in selected_nodes:
-        metadata = _routing_metadata(node)
-        active_instructions.extend(_node_active_instructions(node))
-        required_reads.extend(_string_list(metadata.get("required_reads")))
-        tool_script_prompts.extend(_string_list(metadata.get("tool_script_prompts")))
-        verification_gates.extend(
-            filter_source_verification_gates(
-                _string_list(metadata.get("verification_gates")),
-                objective,
-                context,
-            )
-        )
-        stop_conditions.extend(_string_list(metadata.get("stop_conditions")))
-        active_atoms.extend(_string_list(node.get("behavior_atoms")))
-        evidence_citations.append(
-            {
-                "source": node.get("relative_path"),
-                "path": node.get("path"),
-                "trust": node.get("trust", "untrusted_harvested_text"),
-                "matched_atoms": _string_list(node.get("behavior_atoms"))[:5],
-            }
-        )
-
-    required_reads.extend(matching_reference_reads(source_nodes, objective))
-    required_reads.extend(declared_load_paths)
-    global_activation = build_global_workflow_activation(selected_workflows)
-    active_instructions.extend(global_activation["active_instructions"])
-    active_atoms.extend(global_activation["active_atoms"])
-    evidence_citations.extend(global_activation["evidence_citations"])
-
-    context_atoms, context_reads, context_gates = contextual_atoms_and_gates(
-        objective, phase, context
-    )
-    active_atoms.extend(context_atoms)
-    required_reads.extend(context_reads)
-    verification_gates.extend(context_gates)
-
-    ignored_sources = [
-        {
-            "source": node.get("relative_path"),
-            "reason": "No objective, phase, command, or runtime-context match for this packet.",
-        }
-        for node in source_nodes
-        if node not in selected_nodes
-    ][:12]
-    conflicts: list[dict[str, Any]] = []
-    selected_text = " ".join(_node_signal_text(node) for node in selected_nodes)
-    if "npm" in selected_text and "pnpm" in selected_text:
-        conflicts.append(
-            {
-                "id": "javascript_package_manager",
-                "detail": "Harvested sources mention npm and pnpm; higher-priority user/project rules decide.",
-            }
-        )
-
-    global_cache = {
-        "cache_policy": cache_policy,
-        "tmcp_home": redact_path(_tmcp_home()),
-        "promoted_graph_count": len(global_graphs),
-        "receipt_count": len(receipts),
-        "warnings": graph_warnings + receipt_warnings,
-        "trust": "advisory_untrusted",
-    }
-    return build_composed_packet(
-        composed_packet_schema=COMPOSED_PACKET_SCHEMA,
-        receipt_schema=RUN_RECEIPT_SCHEMA,
-        objective=objective,
-        project_path=str(arguments.get("project_path") or "."),
-        phase=phase,
-        task_identity=task_identity,
-        family_context=family_context,
+    return _runtime_compose_packet_from_source_nodes(
+        arguments,
         source_nodes=source_nodes,
-        selected_nodes=selected_nodes,
-        active_instructions=active_instructions,
-        required_reads=required_reads,
-        tool_script_prompts=tool_script_prompts,
-        verification_gates=verification_gates,
-        stop_conditions=stop_conditions,
-        active_atoms=active_atoms,
-        evidence_citations=evidence_citations,
-        conflicts=conflicts,
-        cache_policy=cache_policy,
-        global_cache=global_cache,
-        receipt_count=len(receipts),
-        user_overrides=_string_list(arguments.get("user_overrides")),
+        global_graphs=global_graphs,
+        receipts=receipts,
+        cache_warnings=graph_warnings + receipt_warnings,
+        cache_home=redact_path(_tmcp_home()),
     )
 
 
