@@ -6,7 +6,7 @@
 construction/presentation, artifact manifests, semantic cache validation,
 fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, evaluator artifact
-  persistence, and packet-inclusion scoring are complete; map the next bounded
+  persistence, packet scoring, and evaluator policy are complete; map the next
   read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
@@ -188,8 +188,7 @@ adapter-injected callback.
   expected platform skips; the clean committed tree at `fcbae5e` also passes
   reproducible package verification, including the packaged session smoke.
 - `6864350` moves composition, runtime, receipt, and session release dogfood
-  into focused helpers. The main release checker is below the repository source
-  size threshold, and its package/install/CI/local-validation surfaces are synchronized.
+  into focused helpers while keeping the release checker as an orchestrator.
 - `401e125` moves deterministic recompile behavior into
   `tmcp_runtime/domain/recompile.py`: previous-packet compatibility parsing,
   reason/detail selection, delta merge, diffing, proposal application, and
@@ -316,9 +315,8 @@ adapter-injected callback.
 - cb9ad0f closes public compose/explain project/source-path leaks with final
   adapter response redaction. Session persistence remains redacted internally.
 - 278a470 extracts packet composition and source-node enrichment into
-  tmcp_runtime/services/compose.py. Direct boundary tests, the full local suite
-  (317 tests, three expected skips), install, contract, and changed-line checks
-  pass; cache and session authority remains in the compatibility adapter.
+  tmcp_runtime/services/compose.py; cache and session authority remains in the
+  compatibility adapter.
 - 57d3731 extracts full recompile finalization into
   tmcp_runtime/services/recompile.py and fixes accepted add-route proposals
   being overwritten by the runtime identity. Direct assembly/no-I/O tests and an
@@ -339,7 +337,8 @@ adapter-injected callback.
   adapter; `d1f517e` moves evaluator artifact manifests and writes behind the
   same adapter boundary; `68fb7c4` extracts packet-inclusion lookup,
   compose-callback invocation, and composed-packet diffing into a pure service.
-  Full suite: 370 tests, three expected skips
+  `78081c4` extracts evaluator decomposition, static review, variants, and
+  observables. Full suite: 373 tests, three expected skips
 
 ## Blockers and risks
 
@@ -361,11 +360,11 @@ adapter-injected callback.
 - The legacy server and evaluator scripts remain broader than the target's thin
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
-  evaluator persistence and packet-scoring boundaries are extracted; map the
-  next bounded cutover without moving root, write, or transport authority.
+  evaluator persistence, packet scoring, and policy boundaries are extracted;
+  map the next bounded cutover without moving root, write, or transport authority.
 
 ## Next step
 
-Map the next bounded evaluator decomposition boundary, preserving safe input
+Map the next bounded evaluator scoring/report boundary, preserving safe input
 reads in the compatibility facade and adapter-owned roots, writes, redaction,
 sessions, and transport.

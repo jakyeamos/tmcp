@@ -19,7 +19,7 @@ service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
   read-only harvest/evaluator persistence and packet-scoring policy complete;
-  map the next evaluator boundary.
+  map the next evaluator boundary after policy extraction.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -54,14 +54,14 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   removing the test-size quality warning without changing behavior.
 - `3abe21c` moves harvest through `tmcp_runtime/safety` and its artifact output
   through descriptor-safe staged bundles. It adds 13 boundary tests; the full
-  suite now has 165 passing tests.
+  suite passes.
 - `42b922f` adds redacted, bounded exact-file inputs for evaluation and a single
   text/JSON artifact store with descriptor-relative writes, directory identity
   checks, and fail-closed behavior when those primitives are unavailable. The
-  full suite now has 171 passing tests.
+  evaluation/artifact boundary is covered.
 - `587b8c1` moves skill evaluation onto those boundaries: data-only variant
   composition, bounded/redacted plan and evidence inputs, safe artifact writes,
-  and one-read score persistence. The full suite now has 177 passing tests.
+  and one-read score persistence.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
@@ -72,24 +72,21 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   return/persistence; slugs implicit promotion directories; and publishes the
   storage capability through `doctor` and `status`.
 - `4c5877f` keeps the new artifact-safety coverage in a focused test module;
-  the full local suite now has 184 passing tests (the unsupported-platform
-  denial test is skipped locally because this host supports secure persistence).
+  unsupported-platform denial remains an expected local skip.
 - `3f4b74b` closes the adversarial boundary findings: review auto mode stays
   standalone; explicit AIOS review is preview-only; default writes reject
   symlink-derived roots; cache reads are bounded, schema-gated, and canonical;
   Windows junctions are link-like; artifact identities retain opaque collision
   resistance; and Windows runs the portable package smoke instead of skipping it.
 - `c31a9ee` moves MCP adapter/status safety coverage into its own test module,
-  restoring the repository test-source size gate; the full local suite has 203
-  passing tests with three expected platform skips.
+  restoring the repository test-source size gate.
 - Clean package reproducibility passes at `1b3697f`; the extracted package
   verifies portable receipt denial as well as persistence-capable receipt flow.
 - `2d04122` moves deterministic route inference into `tmcp_runtime/domain`,
   removing the first packet-domain owner from the legacy adapter.
 - `31a1d47` adds explicit, redacted project-local packet sessions with absolute
   project roots, opaque keys, revision-locked latest records, pinned recompile
-  lineage, portable denial, and CLI/MCP/package coverage. The local suite has
-  218 passing tests with three expected platform skips.
+  lineage, portable denial, and CLI/MCP/package coverage.
 - The clean committed tree at `fcbae5e` passes reproducible package verification,
   including the packaged session compose → recompile smoke.
 - `6864350` moves composition/runtime/session release dogfood into focused
@@ -163,12 +160,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   orchestration remain in the adapter.
 - `80835ef` changes composition and runtime routing to `cache_policy=none` by
   default, with global promoted graphs and receipts available only through an
-  explicit opt-in. The public fixture and CLI/MCP docs now record that behavior;
-  the full local suite has 277 passing tests with three expected platform skips.
+  explicit opt-in. The public fixture and CLI/MCP docs now record that behavior.
 - `2299f88` removes evaluation's dynamic import and `__globals__` traversal of
   private server helpers. The MCP adapter injects a data-only composition
   callback, with direct dependency, transport, and no-filesystem-read regression
-  coverage; the full local suite has 279 passing tests with three expected skips.
+  coverage.
 - `47f056c` removes the stale server `_string_sequence` helper and enforces the
   600-nonblank-line architecture budget for every domain module. Stability docs
   now distinguish stable skill packages, curated templates, and MCP tool
@@ -176,44 +172,36 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - 28b06ff moves harvest labels and source-node policy into pure domain modules
   and safe traversal, redaction, seed projection, and artifact orchestration into
   tmcp_runtime/services/harvest.py. The compatibility adapter now supplies only
-  the evaluator-specific advisory callback and retained compatibility facades;
-  the full local suite has 283 passing tests with three expected skips.
+  the evaluator-specific advisory callback and retained compatibility facades.
 - d9422dc moves workflow recommendation assembly into a read-only runtime
   service. The adapter injects harvest advisories and compose preview, then
-  retains redaction, artifact writes, and promotion/global-cache authority; the
-  full local suite has 286 passing tests with three expected skips.
+  retains redaction, artifact writes, and promotion/global-cache authority.
 - b167af6 moves promotion target selection, graph construction, and result/status
   assembly into a read-only service. The adapter retains redaction, opaque
   storage keys, output-root validation, all artifact writes, and global-cache
-  projection; the full local suite has 290 passing tests with three expected
-  skips.
+  projection.
 - e164875 moves in-memory standalone review-plan assembly into a pure service.
   The adapter retains source harvest, evidence parsing, redaction, output-root
-  approval, artifact persistence, and AIOS dispatch; the full local suite has
-  294 passing tests with three expected skips.
+  approval, artifact persistence, and AIOS dispatch.
 - 0e84678 moves bounded cache limits, JSON-depth checks, normalized global graph
   construction, and cache-record projections into a pure storage policy module.
   The adapter retains cache roots, safe reads, TOCTOU checks, redaction callbacks,
-  and all writes; the full local suite has 300 passing tests with three expected
-  skips.
+  and all writes.
 - 7112349 closes AIOS adapter output leaks: explain payloads are redacted after
   optional composition, doctor/status redact configured paths, and execution
-  failures return safe structured errors; the full local suite has 303 passing
-  tests with three expected skips.
+  failures return safe structured errors.
 - 22c0edf redacts both delta and full runtime-next responses only after internal
   recompile/session work. Inline recompiles of a redacted packet now require an
-  explicit real source or project path; the full local suite has 305 passing
-  tests with three expected skips.
+  explicit real source or project path.
 - 377bbdd moves runtime context normalization, family deltas, task identity,
   proposal validation, and state shaping into a pure domain reducer. The adapter
   retains root checks, safe harvest, cache reads, sessions, recompile, and
-  transport; the full local suite has 310 passing tests with three expected skips.
+  transport.
 - cb9ad0f redacts public compose and standalone/auto explain responses after
   internal session work, closing project/source path leaks.
 - 278a470 moves packet composition and source-node enrichment into an in-memory
   service over adapter-supplied safe inputs. Cache reads, redaction, harvest,
-  sessions, and transport remain adapter-owned; 317 local tests pass with three
-  expected skips.
+  sessions, and transport remain adapter-owned.
 - 57d3731 moves full recompile finalization into an in-memory service and fixes
   validated route proposals being overwritten by the runtime identity. Raw-path
   validation, composition, sessions, and final redaction remain adapter-owned.
@@ -233,7 +221,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   in the adapter; `d1f517e` moves evaluator artifact manifests and persistence
   behind the same adapter boundary; `68fb7c4` extracts packet-inclusion
   expectation lookup, compose-callback invocation, and packet diffing into a
-  pure service. The full suite has 370 tests with three expected skips.
+  pure service; `78081c4` extracts evaluator decomposition, static review,
+  variants, and observables. The full suite has 373 tests with three expected
+  skips.
 
 ## Workflow Notes
 
@@ -255,6 +245,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   adapter owns evaluator artifact manifests, atomic persistence, and path aliases.
 - Keep packet-inclusion expectations and composed-packet diffing pure; the
   evaluator injects only the adapter's data-only compose callback.
+- Keep evaluator decomposition, static review, variant generation, and
+  observable-contract policy pure over supplied text and pattern catalogs.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -426,12 +418,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `09857db` makes harvest services read-only and moves harvest artifact persistence
   back to the adapter boundary; `d1f517e` moves evaluator artifact manifests and
   persistence behind the same adapter-owned write boundary; `68fb7c4` extracts
-  packet-inclusion scoring policy into a pure service over that callback.
+  packet-inclusion scoring policy into a pure service over that callback;
+  `78081c4` extracts decomposition/static-review policy into a pure service.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the next bounded evaluator decomposition boundary without weakening safe-input,
+# Map the next bounded evaluator scoring/report boundary without weakening safe-input,
 # storage/cache, or adapter write authority.
 ```
