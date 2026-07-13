@@ -56,6 +56,41 @@ from tmcp_runtime.services.harvest_advisories import (
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 PATTERN_CATALOG_PATH = _RUNTIME_PATTERN_CATALOG_PATH
 
+__all__ = [
+    "EVAL_PLAN_SCHEMA",
+    "EVAL_REPORT_SCHEMA",
+    "EVAL_TRACE_SCHEMA",
+    "MAX_EVALUATION_INPUT_BYTES",
+    "MAX_EVALUATION_MATRIX_ROWS",
+    "MAX_EVALUATION_OBSERVATIONS_PER_TRACE",
+    "MAX_EVALUATION_PLAN_BYTES",
+    "MAX_EVALUATION_TASK_FIXTURES",
+    "MAX_EVALUATION_TRACES",
+    "MAX_EVALUATION_VARIANTS",
+    "ComposeEvaluationRow",
+    "EvaluationArtifactWriter",
+    "_iso_now",
+    "_json_text",
+    "_load_plan",
+    "_redact_output",
+    "_safe_bounded_json_value",
+    "_safe_json_value",
+    "DEFAULT_VARIANTS",
+    "EFFECTIVE_PATTERNS",
+    "EVIDENCE_LEVELS",
+    "V01_ANTI_PATTERNS",
+    "compose_packet_for_eval_row",
+    "diff_packet_inclusion",
+    "_expectations_for_plan_row",
+    "_task_matrix_row",
+    "_variant_inclusion_expectations",
+    "_build_pattern_catalog",
+    "_render_guidebook_markdown",
+    "_normalize_trace",
+    "score_traces",
+    "PATTERN_CATALOG_PATH",
+]
+
 
 def _with_compatibility_limits() -> dict[str, int]:
     previous: dict[str, int] = {}

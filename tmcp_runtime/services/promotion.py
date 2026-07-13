@@ -43,7 +43,8 @@ def promote_harvest(
     if bool(arguments.get("compose", False)):
         if compose_preview_for_objective is None:
             raise ValueError("Promotion compose preview requires adapter callback.")
-        compose_preview = lambda: compose_preview_for_objective(objective)
+        def compose_preview() -> dict[str, Any]:
+            return compose_preview_for_objective(objective)
     recommendation = recommend_workflows(
         recommendation_arguments,
         source_advisories=source_advisories,

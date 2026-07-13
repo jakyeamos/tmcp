@@ -15,13 +15,6 @@ from tmcp_runtime.services.evaluation_catalog import (
     V01_ANTI_PATTERNS,
 )
 from tmcp_runtime.services.evaluation_orchestration import evaluate_mode
-from tmcp_runtime.services.evaluation_packets import (
-    compose_packet_for_eval_row,
-    diff_packet_inclusion,
-    expectations_for_plan_row as _expectations_for_plan_row,
-    task_matrix_row as _task_matrix_row,
-    variant_inclusion_expectations as _variant_inclusion_expectations,
-)
 from tmcp_runtime.services.evaluation_plan import (
     EVAL_PLAN_SCHEMA,
     EvaluationSource,
