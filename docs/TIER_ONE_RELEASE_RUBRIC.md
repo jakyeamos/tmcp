@@ -29,9 +29,9 @@ A Tier One release requires:
 | Maintainability and modularity | 5 | 4 | 5 | Soft |
 | Release operations | 3 | 3 | 3 | Hard |
 
-Current score: 100/100 for the scoped `0.5.0` release candidate. The
-pre-cutover matrix passed in hosted PR run `29284679711`; post-cutover evidence
-is pending on the active release candidate.
+Current score: 100/100 for the scoped `0.5.0` release candidate. Post-cutover
+hosted PR run `29285497867` passed the complete matrix; the evidence-pointer
+rerun remains the final merge gate.
 
 ## Dimensions
 

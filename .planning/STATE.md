@@ -34,15 +34,15 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   first legacy promotion-summary reader is complete; the remaining shipped
   receipt/session artifacts have no alternate schema and remain strict readers.
   The 0.5.0 compatibility cutover note is active; all version surfaces now use
-  0.5.0 and the evidence record carries a transparent bootstrap pointer until
-  the post-cutover release-PR run and replacement verification.
+  0.5.0 and the evidence record points to successful post-cutover PR run
+  `29285497867`. The evidence-pointer rerun remains before merge.
   Draft PR #2's first hosted run passed Linux/macOS but failed Windows because
   exact-file read-only inputs rejected the missing O_NOFOLLOW primitive;
   `b99c58a` adds the validated Windows fallback. Follow-up run
   `29284101047` reduced the residual failures to Windows path/newline contracts;
-  `1a59e2f` normalizes those boundaries. Hosted run `29284457105` now passes all
-  six matrix jobs. The 0.5.0 version/evidence cutover is staged without tagging
-  or publishing; replace the bootstrap pointer after the post-cutover run.
+  `1a59e2f` normalizes those boundaries. Hosted run `29285497867` now passes all
+  six matrix jobs for the 0.5.0 cutover. Rerun the evidence-pointer commit
+  without tagging or publishing.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -353,5 +353,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Run the post-cutover 0.5.0 PR check, replace bootstrap evidence, and rerun.
+# Rerun the hosted evidence gate after recording 29285497867, without publishing.
 ```

@@ -1,7 +1,7 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.0",
-  "checked_at": "2026-07-13T21:04:31Z",
+  "checked_at": "2026-07-13T21:16:10Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
@@ -9,10 +9,10 @@
     "ref": "codex/tmcp-modernization-v2",
     "pr_number": 2,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29284679711,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29284679711",
-    "head_sha": "00daf00943e7e582f4878e58cd583db6511ca434",
-    "notes": "Bootstrap pointer from the successful pre-cutover PR matrix; replace with the post-cutover 0.5.0 PR run before merge."
+    "run_id": 29285497867,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29285497867",
+    "head_sha": "5836e19fd533d5784af37e1e7e158607e351c9ef",
+    "notes": "Successful post-cutover 0.5.0 PR verify.yml run; rerun the evidence-pointer commit before merge."
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.5.0.tar.gz",
@@ -32,6 +32,6 @@
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "Pre-cutover PR verification passed; post-cutover 0.5.0 evidence remains required before merge."
+    "result": "Post-cutover 0.5.0 PR verification passed; final evidence-pointer rerun remains required before merge."
   }
 }

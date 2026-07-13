@@ -58,9 +58,9 @@ projection to the current promotion graph. Current graph files take precedence,
 and migration never rewrites or deletes source artifacts. Receipts and
 project-local sessions have no alternate shipped schema and remain strict.
 
-The 0.5.0 release-candidate version surfaces are now updated together. The
-release is not merge-ready until the evidence record points to a successful
-post-cutover hosted pull-request run.
+The 0.5.0 release-candidate version surfaces are now updated together, and the
+evidence record points to successful post-cutover hosted PR run `29285497867`.
+The final evidence-pointer rerun is still required before merge.
 
 ## Known Gaps
 

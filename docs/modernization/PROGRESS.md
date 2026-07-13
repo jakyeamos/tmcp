@@ -315,9 +315,8 @@ and remain strict readers.
 
 The 0.5.0 compatibility note now records the preserved public surface,
 deliberate state-effect changes, migration/rollback behavior, and the
-evidence-bearing release-PR sequence. The active candidate surfaces are now
-0.5.0; the evidence record uses a transparent bootstrap pointer until the
-post-cutover hosted run replaces it.
+evidence-bearing release-PR sequence. The active candidate surfaces and
+evidence are now 0.5.0; hosted run `29285497867` passed the post-cutover matrix.
 
 Draft PR #2 run `29283834718` passed all Linux/macOS jobs but exposed Windows
 read-only exact-file failures caused by the missing `O_NOFOLLOW` primitive.
@@ -333,9 +332,8 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 - The primary checkout contains user-owned uncommitted work that is not included
   in this audit branch. Integrate or supersede it deliberately during approved
   implementation.
-- The pre-cutover hosted matrix is green in PR run `29284457105`; the active
-  0.5.0 candidate now needs a post-cutover run to replace the bootstrap
-  evidence pointer before merge.
+- The post-cutover hosted matrix is green in PR run `29285497867`; the final
+  evidence-pointer rerun remains before merge.
 - No tag or publication has occurred. The 0.5.0 compatibility process remains
   gated on the post-cutover hosted run because the stateless default and
   explicit-only AIOS behavior are material changes.
@@ -356,6 +354,5 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 
 ## Next step
 
-Run the post-cutover 0.5.0 hosted verification, replace the bootstrap evidence
-pointer with that run, and rerun the hosted gate before review; tagging and
-publication stay separate.
+Rerun the hosted gate after recording `29285497867` as the evidence-bearing
+0.5.0 run, then review the draft PR; tagging and publication stay separate.
