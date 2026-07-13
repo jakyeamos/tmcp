@@ -82,7 +82,9 @@ evaluation, harvest advisory, and redaction ownership are in the runtime. The
 first Horizon 2 slice is complete: MCP framing/JSON-RPC and CLI execution now
 live in runtime adapters. The typed request/result boundary and registry-owned
 tool dispatch are also complete; the legacy server now supplies handlers and
-compatibility wrappers without owning transport-level tool selection.
+compatibility wrappers without owning transport-level tool selection. Optional
+AIOS execution is now an explicit runtime adapter with its own redaction and
+subprocess boundary.
 
-The next major unit is to move remaining adapter-owned orchestration behind
-explicit runtime service/context boundaries, then delete obsolete server paths.
+The next major unit is to move runtime-state/recompile orchestration behind an
+explicit service context, then delete obsolete server paths.

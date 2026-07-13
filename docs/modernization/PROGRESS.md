@@ -92,8 +92,9 @@ adapter-injected callback.
 Runtime evaluator API owns safe inputs, redaction, scoring, and orchestration;
 script aliases remain while the server uses runtime directly.
 Runtime MCP/CLI transport, typed dispatch, and registry-owned tool selection now
-live in `tmcp_runtime/adapters`; the legacy script only supplies handlers and
-compatibility wrappers.
+live in `tmcp_runtime/adapters`; optional AIOS execution now has the same
+redaction-aware runtime boundary. The legacy script retains compatibility
+wrappers.
 
 ## Decisions recorded
 
@@ -336,7 +337,8 @@ compatibility wrappers.
   three expected skips; `d67dcc9` isolates the safety import boundary test and
   restores the test-size gate; `7420a2b` moves transport into runtime adapters;
   `cb34594` adds typed request/result dispatch and registry-owned tool selection.
-  Full suite: 409 tests, three expected skips.
+  `78c35a0` moves optional AIOS execution into a redaction-aware runtime adapter.
+  Full suite: 410 tests, three expected skips.
 
 ## Blockers and risks
 
@@ -360,9 +362,9 @@ compatibility wrappers.
   argument projection, safety hardening, diagnostics, harvest persistence, and
   evaluator persistence, packet scoring, report, policy, rendering, and advisory
   boundaries are extracted; compatibility scripts remain only for legacy
-  evaluator, harvest-advisory, and redaction aliases.
+  evaluator, harvest-advisory, redaction, and AIOS aliases.
 
 ## Next step
 
-Continue adapter convergence: move remaining server-owned orchestration behind
-explicit runtime service/context boundaries, then delete obsolete paths.
+Continue adapter convergence: move runtime-state/recompile orchestration behind
+an explicit service context, then delete obsolete paths.
