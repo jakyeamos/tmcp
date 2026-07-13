@@ -7,8 +7,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Map the next authority-limited adapter extraction after the
-CLI parser, harvest-argument, global-cache reader, and adversarial safety
-hardening cutovers.
+CLI parser, harvest-argument, global-cache reader, adversarial safety
+hardening, and diagnostic-report cutovers.
 
 ## Milestone
 
@@ -16,8 +16,8 @@ hardening cutovers.
 **Status:** Milestone 3 adapter thinning and security hardening: pure domain,
 service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
-  boundaries plus CLI/harvest safety hardening complete; map the next read-only
-  boundary.
+  boundaries plus CLI/harvest safety hardening and diagnostic-report assembly
+  complete; map the next read-only boundary.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -226,13 +226,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   service; `f34862c` validates cached receipt metadata; `390a2ec` moves bounded,
   redacted, TOCTOU-safe cache reads into storage. Adapter roots/writes remain
   authority boundaries; 350 local tests pass with three expected skips.
-- `a375cc0` moves pure CLI parsing into `tmcp_runtime/api/cli.py`, and `8a0707c`
-  centralizes shared read-only harvest-argument projection in
-  `tmcp_runtime/services/harvest.py`, preserving aliases, source precedence,
-  and preview-only writes. `f1e1d4f` adds schema-aware unknown-option rejection,
-  default harvest scan-entry/total-byte budgets with warnings, and fail-closed
-  safe reads when no no-follow open primitive exists; the full suite has 360
-  tests with three expected skips.
+- `a375cc0` and `8a0707c` extract pure CLI parsing and shared read-only
+  harvest-argument projection. `f1e1d4f` adds schema-aware unknown-option
+  rejection, bounded harvest scan/read budgets, and fail-closed safe reads;
+  `ed9df02` extracts pure doctor/status report assembly into
+  `tmcp_runtime/services/diagnostics.py`, leaving probes, paths, redaction, and
+  transport in the adapter. The full suite has 364 tests with three expected
+  skips.
 
 ## Workflow Notes
 
@@ -246,6 +246,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - Keep harvest argument projection read-only and service-owned, with bounded
   scan/read budgets; roots, writes, redaction, sessions, and transport remain
   adapter authority.
+- Keep doctor/status report assembly pure and data-only; the adapter retains
+  environment probes, path redaction, capability checks, and transport.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -412,12 +414,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   read-only harvest-argument projection while preserving adapter authority;
   `f1e1d4f` adds schema-aware unknown-option rejection, bounded harvest scan/read
   budgets, and fail-closed safe-reader behavior for platforms without no-follow
-  open support.
+  open support; `ed9df02` extracts doctor/status report assembly into a pure
+  diagnostics service while keeping environment probes and redaction adapter-owned.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the next bounded adapter boundary after safety hardening without weakening
+# Map the next bounded adapter boundary after diagnostic extraction without weakening
 # storage/cache authority.
 ```

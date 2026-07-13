@@ -5,7 +5,7 @@
 **Phase:** Milestone 3 adapter thinning and security hardening. Receipt
 construction/presentation, artifact manifests, semantic cache validation,
 fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
-argument projection, and adversarial safety hardening are
+argument projection, adversarial safety hardening, and diagnostic reports are
 complete; map the next bounded read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
@@ -332,14 +332,12 @@ changing the public receipt schema.
   service; `f34862c` validates cached receipt metadata; `390a2ec` moves cache
   ingestion into read-only storage. Adapter root/write authority is unchanged.
   The full local suite has 350 tests with three expected skips; boundary reviews pass.
-- `a375cc0` extracts pure CLI parsing into `tmcp_runtime/api/cli.py`, and
-  `8a0707c` centralizes shared read-only harvest-argument projection in
-  `services/harvest.py`, preserving aliases, source precedence, and preview-only
-  writes. `f1e1d4f` closes the first adversarial findings: CLI options outside
-  the selected schema now fail explicitly, harvest traversal has default
-  scan-entry/total-byte budgets with warnings, and safe reads fail
-  closed when no no-follow open primitive exists. The full suite has 360 tests
-  with three expected skips; the release smoke uses only explain options.
+- `a375cc0` and `8a0707c` extract pure CLI parsing and shared read-only harvest
+  argument projection. `f1e1d4f` adds schema-aware option rejection, bounded
+  harvest scan/read budgets, and fail-closed safe reads; `ed9df02` extracts pure
+  doctor/status report assembly into `services/diagnostics.py`, leaving probes,
+  paths, redaction, and transport in the adapter. The full suite has 364 tests
+  with three expected skips.
 
 ## Blockers and risks
 
@@ -360,11 +358,11 @@ changing the public receipt schema.
   canonical RFC3339 grammar before timestamps gain ranking/retention meaning.
 - The legacy server and evaluator scripts remain broader than the target's thin
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
-  argument projection, and first-pass safety hardening are extracted; map the
+  argument projection, safety hardening, and diagnostics are extracted; map the
   next bounded cutover without moving root, write, or transport authority.
 
 ## Next step
 
-Map the next bounded adapter boundary after the hardening pass, preserving
+Map the next bounded adapter boundary after diagnostic extraction, preserving
 storage-owned cache safety and adapter-owned roots, writes, redaction, sessions,
 and transport.
