@@ -149,9 +149,16 @@ def decompose_skill(path: str, text: str) -> dict[str, Any]:
     frontmatter = _frontmatter(text)
     sections = _sections(text)
     routing = _routing_slices(text)
+    path_name = str(path).replace("\\", "/").rstrip("/").rsplit("/", 1)[-1]
+    if path_name in {".", ".."} or (
+        path_name.startswith(".") and path_name.count(".") == 1
+    ):
+        path_stem = path_name
+    else:
+        path_stem = path_name.rsplit(".", 1)[0] if "." in path_name else path_name
     return {
         "skill_path": str(path),
-        "title": frontmatter.get("name") or path.stem,
+        "title": frontmatter.get("name") or path_stem,
         "frontmatter": frontmatter,
         "sections": sections,
         "routing_slices": routing,
@@ -577,4 +584,3 @@ def _observable_contract(
         }
     )
     return observables
-

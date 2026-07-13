@@ -69,6 +69,37 @@ class EvaluationRenderingServiceTests(unittest.TestCase):
         self.assertEqual(merged["p1"]["label"], "Catalog")
         self.assertIn("Needs a concrete gate.", warning)
 
+    def test_harvest_advisories_filter_and_format_supplied_findings(self) -> None:
+        findings = [
+            {
+                "pattern_id": "p1",
+                "classification": "anti_pattern",
+                "skill_path": "SKILL.md",
+                "message": "Needs a gate.",
+                "evidence_level": "static_review",
+            },
+            {"pattern_id": "p2", "classification": "effective_pattern"},
+        ]
+        advisories = evaluation_rendering.build_harvest_advisories(
+            findings,
+            {
+                "p1": {
+                    "pattern_id": "p1",
+                    "label": "A warning",
+                    "suggested_harvest_warning": "Needs a concrete gate.",
+                    "safe_to_auto_warn": True,
+                },
+                "p2": {
+                    "pattern_id": "p2",
+                    "safe_to_auto_warn": True,
+                },
+            },
+        )
+
+        self.assertEqual(len(advisories), 1)
+        self.assertEqual(advisories[0]["pattern_id"], "p1")
+        self.assertIn("Needs a concrete gate.", advisories[0]["warning"])
+
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_rendering))
         tree = ast.parse(source_path.read_text(encoding="utf-8"))

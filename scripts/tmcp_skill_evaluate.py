@@ -36,8 +36,7 @@ from tmcp_runtime.services.evaluation_scoring import (
 )
 from tmcp_runtime.services.evaluation_rendering import (
     build_pattern_catalog as _build_pattern_catalog,
-    format_harvest_warning,
-    matched_term as _matched_term,
+    build_harvest_advisories as _build_harvest_advisories,
     merge_pattern_catalog as _merge_pattern_catalog,
     render_guidebook_markdown as _render_guidebook_markdown,
 )
@@ -631,13 +630,15 @@ def is_evaluable_skill_source(
 
 
 def _pattern_lookup() -> dict[str, dict[str, Any]]:
-    discovered: object = []
-    if PATTERN_CATALOG_PATH.exists():
-        try:
-            payload = json.loads(PATTERN_CATALOG_PATH.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            payload = {}
-        discovered = payload.get("patterns", [])
+    discovered: list[dict[str, Any]] = []
+    try:
+        payload = json.loads(PATTERN_CATALOG_PATH.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        payload = {}
+    if isinstance(payload, dict):
+        candidate = payload.get("patterns", [])
+        if isinstance(candidate, list):
+            discovered = [item for item in candidate if isinstance(item, dict)]
     return _merge_pattern_catalog(V01_ANTI_PATTERNS, discovered)
 
 
@@ -659,26 +660,4 @@ def harvest_warnings_for_source(
         effective_patterns=EFFECTIVE_PATTERNS,
     )
     patterns = _pattern_lookup()
-    advisories: list[dict[str, Any]] = []
-    for finding in findings:
-        if finding.get("classification") != "anti_pattern":
-            continue
-        pattern = patterns.get(str(finding.get("pattern_id") or ""))
-        if not pattern or not pattern.get("safe_to_auto_warn", True):
-            continue
-        advisories.append(
-            {
-                "pattern_id": finding["pattern_id"],
-                "classification": finding["classification"],
-                "warning": format_harvest_warning(finding, pattern),
-                "suggested_harvest_warning": pattern.get("suggested_harvest_warning"),
-                "suggested_detection_terms": list(pattern.get("detection_terms") or ()),
-                "internal_atoms": list(
-                    finding.get("internal_atoms") or pattern.get("internal_atoms") or ()
-                ),
-                "safe_to_auto_warn": True,
-                "safe_to_auto_rewrite": False,
-                "evidence_level": finding.get("evidence_level", "static_review"),
-            }
-        )
-    return advisories
+    return _build_harvest_advisories(findings, patterns)

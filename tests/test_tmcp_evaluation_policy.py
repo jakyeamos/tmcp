@@ -52,6 +52,14 @@ Make sure everything works.
         self.assertIn("AGENTS.md", decomposition["routing_slices"]["required_reads"])
         self.assertEqual(findings[0]["pattern_id"], "verification.vague-quality-language")
 
+    def test_decomposition_derives_title_without_frontmatter(self) -> None:
+        decomposition = evaluation_policy.decompose_skill(
+            "skills/plain-skill.md",
+            "# Plain skill\n\nRun the command.\n",
+        )
+
+        self.assertEqual(decomposition["title"], "plain-skill")
+
     def test_variant_payloads_and_observables_preserve_contracts(self) -> None:
         decomposition = {
             "title": "example",

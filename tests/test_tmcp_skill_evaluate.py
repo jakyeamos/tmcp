@@ -5,6 +5,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
 from tests.tmcp_test_client import run_mcp_requests as run_hermetic_mcp_requests
@@ -329,6 +330,15 @@ class SkillEvaluateTests(unittest.TestCase):
             if str(item.get("path", "")).endswith("SKILL.md")
         )
         self.assertTrue(node.get("skill_eval_advisories"))
+
+    def test_pattern_lookup_falls_back_for_malformed_catalog_shapes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            catalog_path = Path(directory) / "catalog.json"
+            with patch.object(self.evaluate, "PATTERN_CATALOG_PATH", catalog_path):
+                for payload in ("[]", '{"patterns": null}', "not json"):
+                    catalog_path.write_text(payload, encoding="utf-8")
+                    patterns = self.evaluate._pattern_lookup()
+                    self.assertIn("verification.vague-quality-language", patterns)
 
     def test_plan_includes_packet_inclusion_contracts(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())

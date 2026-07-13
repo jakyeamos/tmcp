@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 
@@ -123,3 +123,34 @@ def format_harvest_warning(
         f"{pattern.get('suggested_harvest_warning') or finding.get('message')} "
         f"({finding.get('skill_path')})."
     )
+
+
+def build_harvest_advisories(
+    findings: Sequence[dict[str, Any]],
+    patterns: Mapping[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Build safe-to-emit harvest warnings from supplied findings and patterns."""
+
+    advisories: list[dict[str, Any]] = []
+    for finding in findings:
+        if finding.get("classification") != "anti_pattern":
+            continue
+        pattern = patterns.get(str(finding.get("pattern_id") or ""))
+        if not pattern or not pattern.get("safe_to_auto_warn", True):
+            continue
+        advisories.append(
+            {
+                "pattern_id": finding["pattern_id"],
+                "classification": finding["classification"],
+                "warning": format_harvest_warning(finding, pattern),
+                "suggested_harvest_warning": pattern.get("suggested_harvest_warning"),
+                "suggested_detection_terms": list(pattern.get("detection_terms") or ()),
+                "internal_atoms": list(
+                    finding.get("internal_atoms") or pattern.get("internal_atoms") or ()
+                ),
+                "safe_to_auto_warn": True,
+                "safe_to_auto_rewrite": False,
+                "evidence_level": finding.get("evidence_level", "static_review"),
+            }
+        )
+    return advisories
