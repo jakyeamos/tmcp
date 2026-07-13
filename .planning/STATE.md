@@ -7,14 +7,15 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Map the next authority-limited adapter extraction after the
-global-cache reader cutover.
+CLI parser and global-cache reader cutovers.
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 adapter thinning and security hardening: pure domain,
-service, artifact-manifest, receipt-cache, and storage-ingress cutovers;
-explicit-only AIOS, receipt, and cache-opt-in boundaries complete; map next.
+service, artifact-manifest, receipt-cache, storage-ingress, and CLI-parser
+cutovers; explicit-only AIOS, receipt, and cache-opt-in boundaries complete;
+map the next read-only argument boundary.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -223,6 +224,11 @@ explicit-only AIOS, receipt, and cache-opt-in boundaries complete; map next.
   service; `f34862c` validates cached receipt metadata; `390a2ec` moves bounded,
   redacted, TOCTOU-safe cache reads into storage. Adapter roots/writes remain
   authority boundaries; 350 local tests pass with three expected skips.
+- `a375cc0` moves CLI alias dispatch, positional/flag parsing, value decoding,
+  repeated-option handling, and schema-array normalization into
+  `tmcp_runtime/api/cli.py`; the adapter retains transport output and a
+  compatibility parser alias. The full suite has 353 tests with three expected
+  skips; focused security and architecture reviews found no P0–P3 issues.
 
 ## Workflow Notes
 
@@ -230,6 +236,8 @@ explicit-only AIOS, receipt, and cache-opt-in boundaries complete; map next.
   reproducibility check before publication.
 - Quality Runner remains advisory-only; the prior QR plan is parked.
 - Preserve public MCP/CLI contracts through a versioned compatibility adapter.
+- Keep the CLI parser pure and API-owned; do not move filesystem, environment,
+  process, redaction, storage, or transport authority into `tmcp_runtime/api/cli.py`.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -390,10 +398,14 @@ explicit-only AIOS, receipt, and cache-opt-in boundaries complete; map next.
   `f34862c` rejects ambiguous cached receipt metadata without changing the public
   receipt schema or cache mtime ordering; `390a2ec` moves all safe global-cache
   traversal, redaction, and projection into a read-only storage ingress.
+- 2026-07-13: `a375cc0` extracts pure CLI parsing into `tmcp_runtime/api/cli.py`,
+  preserving aliases and argument semantics while leaving output, dispatch, and
+  all side-effect authority in the adapter; next map is read-only harvest-argument
+  projection.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the next bounded adapter extraction without weakening storage/cache authority.
+# Map the read-only harvest-argument projection without weakening storage/cache authority.
 ```

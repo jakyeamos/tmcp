@@ -4,7 +4,8 @@
 
 **Phase:** Milestone 3 adapter thinning and security hardening. Receipt
 construction/presentation, artifact manifests, semantic cache validation,
-fail-closed cache opt-in, and storage cache ingestion are complete; map next.
+fail-closed cache opt-in, storage cache ingestion, and CLI parsing extraction
+are complete; map the next bounded read-only argument boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -96,6 +97,8 @@ changing the public receipt schema.
   successful release-PR run, then pass the evidence check before merge.
 - Own public version metadata, MCP initialize data, tool schemas, CLI aliases,
   defaults, and help aliases in `tmcp_runtime/api/registry.py`.
+- Keep CLI token parsing in `tmcp_runtime/api/cli.py` as a pure API boundary;
+  the adapter must not regain argument-decoding or schema-coercion ownership.
 - Own harvest root policy, traversal, bounded reads, redaction, and safe
   provenance display in `tmcp_runtime/safety`; own harvest bundle persistence
   in `tmcp_runtime/storage`.
@@ -332,6 +335,11 @@ changing the public receipt schema.
   service; `f34862c` validates cached receipt metadata; `390a2ec` moves cache
   ingestion into read-only storage. Adapter root/write authority is unchanged.
   The full local suite has 350 tests with three expected skips; boundary reviews pass.
+- `a375cc0` extracts CLI alias dispatch, positional/flag parsing, value decoding,
+  repeated-option handling, and schema-array normalization into
+  `tmcp_runtime/api/cli.py`. The adapter retains transport serialization and
+  `_parse_cli_arguments` compatibility; the full suite has 353 tests with three
+  expected skips, and focused boundary reviews found no P0–P3 issues.
 
 ## Blockers and risks
 
@@ -351,10 +359,11 @@ changing the public receipt schema.
   v0.1 stays permissive and cache still orders by safe file mtime. Require
   canonical RFC3339 grammar before timestamps gain ranking/retention meaning.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter. Artifact planning and cache ingestion are extracted; map the
-  next bounded cutover without moving root, write, or transport authority.
+  transport adapter. Artifact planning, cache ingestion, and CLI parsing are
+  extracted; map the next bounded cutover without moving root, write, or transport
+  authority.
 
 ## Next step
 
-Map the next bounded adapter extraction, preserving storage-owned cache safety
-and adapter-owned roots, writes, redaction, sessions, and transport.
+Map the read-only harvest-argument projection boundary, preserving storage-owned
+cache safety and adapter-owned roots, writes, redaction, sessions, and transport.
