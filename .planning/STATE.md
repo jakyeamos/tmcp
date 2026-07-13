@@ -8,7 +8,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Map the next authority-limited adapter extraction after the
 CLI parser, harvest-argument, global-cache reader, adversarial safety
-hardening, diagnostic-report, and harvest-persistence cutovers.
+hardening, diagnostic-report, harvest-persistence, and evaluator-persistence
+cutovers.
 
 ## Milestone
 
@@ -17,7 +18,8 @@ hardening, diagnostic-report, and harvest-persistence cutovers.
 service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
-  read-only harvest persistence complete; map the next read-only boundary.
+  read-only harvest/evaluator persistence complete; map the next evaluator
+  boundary.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -231,7 +233,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   rejection, bounded scan/read budgets, and fail-closed safe reads; `ed9df02`
   extracts pure doctor/status report assembly; `09857db` makes harvest services
   read-only and keeps artifact output-root selection, persistence, and aliases
-  in the adapter. The full suite has 365 tests with three expected skips.
+  in the adapter; `d1f517e` moves evaluator artifact manifests and persistence
+  behind the same adapter boundary. The full suite has 367 tests with three
+  expected skips.
 
 ## Workflow Notes
 
@@ -249,6 +253,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   environment probes, path redaction, capability checks, and transport.
 - Keep harvest service orchestration read-only; the adapter owns output roots,
   atomic persistence, artifact aliases, and final path redaction.
+- Keep evaluator planning/scoring free of storage and output-root authority; the
+  adapter owns evaluator artifact manifests, atomic persistence, and path aliases.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -418,12 +424,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   open support; `ed9df02` extracts doctor/status report assembly into a pure
   diagnostics service while keeping environment probes and redaction adapter-owned;
   `09857db` makes harvest services read-only and moves harvest artifact persistence
-  back to the adapter boundary.
+  back to the adapter boundary; `d1f517e` moves evaluator artifact manifests and
+  persistence behind the same adapter-owned write boundary.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the next bounded adapter boundary after harvest persistence extraction without weakening
-# storage/cache authority.
+# Map the next bounded evaluator boundary after persistence extraction without weakening
+# safe-input, storage/cache, or adapter write authority.
 ```

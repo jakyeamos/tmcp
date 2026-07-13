@@ -5,8 +5,9 @@
 **Phase:** Milestone 3 adapter thinning and security hardening. Receipt
 construction/presentation, artifact manifests, semantic cache validation,
 fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
-argument projection, adversarial safety hardening, and diagnostic reports are
-complete; map the next bounded read-only boundary.
+argument projection, adversarial safety hardening, diagnostic reports, and
+evaluator artifact persistence are complete; map the next bounded read-only
+boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -83,7 +84,9 @@ safe storage write, cache ingress, and final response redaction. Only literal
 Markdown rendering, and public path aliases are now pure service data; the adapter
 retains output-root selection, final redaction, and atomic persistence. Cached
 receipt projection requires nonblank IDs and timezone-aware timestamps without
-changing the public receipt schema.
+changing the public receipt schema. Evaluator artifact manifests are also pure
+service data; the evaluator is storage-free and the adapter alone selects roots,
+persists atomic bundles, and returns redacted path aliases.
 
 ## Decisions recorded
 
@@ -301,16 +304,13 @@ changing the public receipt schema.
   reviews pass.
 - 7112349 closes the optional AIOS adapter response boundary. Child success and
   failure payloads, compose output, status/doctor paths, missing-AIOS diagnostics,
-  and timeout errors are redacted or structured safely; the full local suite has
-  303 passing tests with three expected platform skips.
+  and timeout errors are redacted or structured safely.
 - 22c0edf redacts delta and full `tmcp_runtime_next` responses after internal
   state work, and rejects redacted previous-packet paths without an explicit
-  source/project replacement. The full local suite has 305 passing tests with
-  three expected platform skips.
+  source/project replacement.
 - 377bbdd extracts runtime state into domain/runtime_state.py. The reducer owns
   context/family deltas, identity, proposal validation, and state shaping over
-  injected safe data; the full local suite has 310 passing tests with three
-  expected platform skips.
+  injected safe data.
 - cb9ad0f closes public compose/explain project/source-path leaks with final
   adapter response redaction. Session persistence remains redacted internally;
   the full local suite has 311 passing tests with three expected platform skips.
@@ -330,14 +330,15 @@ changing the public receipt schema.
 - `679de6e` moves receipt construction/templates/acknowledgement into
   `domain/receipts.py`; `082bb3a` moves artifact manifests/aliases into a pure
   service; `f34862c` validates cached receipt metadata; `390a2ec` moves cache
-  ingestion into read-only storage. Adapter root/write authority is unchanged.
-  The full local suite has 350 tests with three expected skips; boundary reviews pass.
+  ingestion into read-only storage. Adapter root/write authority is unchanged;
+  boundary reviews pass.
 - `a375cc0` and `8a0707c` extract pure CLI parsing and shared read-only harvest
   argument projection. `f1e1d4f` adds schema-aware option rejection, bounded
   scan/read budgets, and fail-closed safe reads; `ed9df02` extracts pure
   doctor/status report assembly; `09857db` makes harvest services read-only and
   keeps artifact output-root selection, persistence, and path aliases in the
-  adapter. The full suite has 365 tests with three expected skips.
+  adapter; `d1f517e` moves evaluator artifact manifests and writes behind the
+  same adapter boundary. The full suite has 367 tests with three expected skips.
 
 ## Blockers and risks
 
@@ -358,12 +359,12 @@ changing the public receipt schema.
   canonical RFC3339 grammar before timestamps gain ranking/retention meaning.
 - The legacy server and evaluator scripts remain broader than the target's thin
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
-  argument projection, safety hardening, diagnostics, and harvest persistence
-  boundary are extracted; map the
-  next bounded cutover without moving root, write, or transport authority.
+  argument projection, safety hardening, diagnostics, harvest persistence, and
+  evaluator persistence boundaries are extracted; map the next bounded cutover
+  without moving root, write, or transport authority.
 
 ## Next step
 
-Map the next bounded adapter boundary after harvest persistence extraction, preserving
-storage-owned cache safety and adapter-owned roots, writes, redaction, sessions,
-and transport.
+Map the next bounded evaluator boundary after persistence extraction, preserving
+safe input reads in the compatibility facade and adapter-owned roots, writes,
+redaction, sessions, and transport.
