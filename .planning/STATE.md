@@ -6,41 +6,24 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Extract the next authority-limited thin-adapter contract
-after the explicit-only AIOS privacy boundary and its release validation.
+**Current focus:** Map the next authority-limited adapter extraction after the
+receipt contract and fail-closed cache opt-in hardening.
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 3 session slice, release-check cleanup, pure recompile,
-contextual/selection composition policy, task-family routing/runtime transitions,
-declared-read selection, standalone packet compilation, final packet-policy
-split, complete review policy extraction, workflow catalog/scoring extraction,
-adaptive workflow-pack construction, promotion-graph construction, global
-workflow activation, stateless cache defaults, evaluator composition-service
-injection, stability-taxonomy clarification, domain-size enforcement,
-harvest/source-graph extraction, recommendation-service extraction,
-promotion-planning extraction, review-plan extraction, cache-policy extraction,
-runtime-state reduction, compose-service cutover, recompile finalization, and
-explicit-only AIOS privacy boundary complete; continue the thin-adapter cutover.
+**Status:** Milestone 3 adapter thinning and security hardening: pure domain and
+service cutovers, explicit-only AIOS, receipt contract, and cache opt-in
+boundaries complete; select the next bounded extraction.
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
-- **Status:** Project-local session journey, focused release checks, pure
-  recompile/contextual/selection policy, task-family routing/runtime transitions,
-  declared-read selection, standalone packet compilation, final packet
-  construction/presentation, complete review-policy split, workflow catalog and
-  scoring extraction, adaptive workflow-pack construction, promotion-graph
-  construction, global workflow activation, stateless cache defaults, evaluator
-  composition-service injection, stability-taxonomy clarification, domain-size
-  enforcement, harvest/source-graph extraction, recommendation-service
-extraction, promotion-planning extraction, review-plan extraction, cache-policy
-extraction, runtime-state reduction, compose-service cutover, recompile
-finalization, and explicit-only AIOS privacy boundary complete; continue the
-thin-adapter cutover.
+- **Status:** Receipt construction, acknowledgement, and packet templates are
+  domain-owned; adapter-owned identity, clock, storage, cache ingress, redaction,
+  and transport boundaries remain intact. Continue adapter thinning.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -235,6 +218,10 @@ thin-adapter cutover.
   before they reach subprocess arguments, including JSON-escaped review evidence.
   Public schema/docs/contract fixture now describe the boundary; 327 local tests
   pass with three expected skips.
+- 679de6e moves receipt construction, templates, and acknowledgement into
+  `domain/receipts.py`; it derives the storage month from the receipt timestamp,
+  uses a full UUID nonce, and makes only literal `cache_policy=global` consume
+  shared cache. The local suite has 338 passing tests with three expected skips.
 
 ## Workflow Notes
 
@@ -286,6 +273,11 @@ thin-adapter cutover.
   recompile injects the domain renderer so both packet forms share one layout.
 - Global promoted graphs and receipts are explicit opt-ins; no compose or runtime
   route reads them under the default `cache_policy=none`.
+- Receipt construction and public acknowledgement are domain-owned. The adapter
+  retains raw-to-redacted opaque identity, one UTC clock for receipt/path month,
+  full nonce/path creation, persistence, cache ingress, and final redaction.
+- Only literal `cache_policy=global` enables shared-cache reads; every other
+  value is normalized to `none` before adapter, runtime, or compose use.
 - Evaluation scoring receives a data-only composition callback from the adapter;
   it has no reverse import or introspection dependency on server internals.
 - Skill-package, curated-template, and MCP-tool stability are separate scopes;
@@ -390,11 +382,13 @@ thin-adapter cutover.
   explicit-AIOS argument before launch, decoding review evidence first so escaped
   secret values cannot reach process metadata. A protected AIOS request-input
   protocol remains the prerequisite for confidential explicit requests.
+- 2026-07-12: `679de6e` centralizes receipt record/template/result construction,
+  keeps receipt identity and persistence adapter-owned, and makes invalid cache
+  policy values fail closed before shared artifacts can be read.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Extract receipt construction/presentation while preserving adapter-owned opaque
-# storage identity, clocks, artifact persistence, redaction, and transport.
+# Map remaining adapter orchestration and choose the next I/O-safe extraction.
 ```

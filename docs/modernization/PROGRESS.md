@@ -2,16 +2,9 @@
 
 ## Current state
 
-**Phase:** Milestone 3 composition/recompile session slice, release-check
-cleanup, pure recompile policy, contextual/selection composition policy,
-task-family routing/runtime transitions, declared-read selection, and final
-packet construction/presentation, standalone compiler, review-profile catalog,
-review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
-global workflow-activation, stateless cache-default, evaluator composition-service,
-stability-taxonomy, domain-size-budget, harvest/source-graph, recommendation
-service, promotion-planning, review-plan, cache-policy, runtime-state, compose
-service, recompile-finalization, and explicit-only AIOS privacy-boundary splits
-complete; continue the thin-adapter cutover.
+**Phase:** Milestone 3 adapter thinning and security hardening. Receipt
+construction/presentation and fail-closed cache opt-in are complete; map the
+next bounded extraction.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -84,6 +77,10 @@ AIOS is now an explicit-only adapter: `auto` stays inside TMCP, and known
 sensitive values are rejected before an explicit AIOS subprocess receives its
 arguments. Review evidence is decoded before that check so escaped sensitive
 values cannot bypass it.
+Run receipts are now built and acknowledged by a pure domain module. The adapter
+retains the UTC clock, raw-to-redacted opaque identity, filename digest/nonce,
+safe storage write, cache ingress, and final response redaction. Only literal
+`cache_policy=global` can consume shared graphs or receipts.
 
 ## Decisions recorded
 
@@ -151,24 +148,19 @@ values cannot bypass it.
   composition, session persistence, and final redaction in the adapter; apply
   the runtime identity before validated proposals so accepted route changes are
   not discarded.
+- Treat run-receipt construction, receipt templates, and public receipt
+  acknowledgements as pure domain data. Preserve raw-to-redacted identity,
+  timestamps, nonce/path creation, persistence, cache projection, and final
+  redaction in the adapter.
+- Treat only literal `cache_policy=global` as shared-cache consent. All other
+  values normalize to `none` before adapter reads, runtime warnings, or service
+  composition can consume cache data.
 
 ## Verified baseline
 
-- Milestone 1: 151 unit tests, compile, launcher syntax, install, release
-  evidence, and the live contract check pass with an isolated `TMCP_HOME`.
-- A frozen fixture covers all 11 MCP tools, 47 CLI aliases, defaults, help/list
-  pseudo-commands, schemas, output labels, and declared state effects.
-- Contract-fixture digests use explicit `sha256:` labels so release scanning
-  distinguishes deterministic checksums from secret-like values.
-- The redaction classifier recognizes code identifier assignments without
-  weakening opaque-token detection, so the extracted registry can ship.
-- Secret-like regression fixtures are assembled from short literals so package
-  scanning stays strict against the committed source tree.
-- The committed tree passes reproducible archive creation and extracted-package
-  verification (153 tests, with one source-metadata check intentionally skipped
-  in the excluded-registry package context).
-- CLI/launcher contract tests now have a dedicated module; the retained server
-  test module is below the repository source-size warning threshold.
+- Milestones 0–2 established reproducible release packaging, frozen MCP/CLI
+  contracts, safe file/storage boundaries, and portable fail-closed writes. The
+  detailed historical evidence remains in the execution plan and Git history.
 - `3abe21c` moves harvest onto root-contained, symlink-aware reads; it redacts
   text, decoded JSON, and path metadata before derivation or serialization.
   Harvest artifacts now use a staged atomic bundle with restrictive file modes
@@ -333,6 +325,10 @@ values cannot bypass it.
   including JSON-escaped review evidence, before external execution. The public
   tool contract, release guidance, install checks, and full local suite (327
   tests with three expected skips) pass.
+- 679de6e moves run receipt construction, templates, and acknowledgement into
+  `domain/receipts.py`; it derives receipt storage month from the same UTC
+  timestamp, uses a full UUID nonce, and accepts shared cache only through
+  literal `global`. The full local suite has 338 tests with three expected skips.
 
 ## Blockers and risks
 
@@ -348,6 +344,10 @@ values cannot bypass it.
 - AIOS needs a protected request-input protocol before confidential explicit
   requests can safely use it; the current boundary denies known sensitive values
   rather than forwarding them through process arguments.
+- Cache receipt validation is intentionally structural today. Before receipt
+  timestamps or IDs drive future ranking/retention semantics, require nonempty,
+  parseable values at cache ingress; current projection retains only a redacted
+  identifier, path, schema, and advisory trust.
 - The legacy server and evaluator scripts remain broader than the target's thin
   transport adapter. Shared artifact and dispatch orchestration still require
   bounded, security-first extractions; cache I/O must retain its current safety
@@ -355,6 +355,5 @@ values cannot bypass it.
 
 ## Next step
 
-Extract pure receipt construction and public receipt presentation, preserving
-adapter-owned opaque storage identity, clocks, artifact persistence, redaction,
-and transport authority.
+Map the remaining adapter orchestration and select the next I/O-safe extraction,
+preserving artifact, cache, session, redaction, and transport authority.
