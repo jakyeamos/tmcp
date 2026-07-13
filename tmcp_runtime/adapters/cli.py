@@ -1,4 +1,4 @@
-"""CLI transport adapter over canonical parsing and an injected tool handler."""
+"""CLI transport adapter over canonical parsing and typed runtime dispatch."""
 
 from __future__ import annotations
 
@@ -7,17 +7,32 @@ import sys
 from collections.abc import Callable
 from typing import Any, TextIO
 
+from tmcp_runtime.adapters.dispatch import ToolDispatcher, ToolRequest, ToolResult
 from tmcp_runtime.api.cli import parse_cli_arguments
 from tmcp_runtime.api.registry import cli_usage, mcp_tools
 
 
-ToolHandler = Callable[[str, dict[str, Any]], dict[str, Any]]
+LegacyToolHandler = Callable[[str, dict[str, Any]], dict[str, Any]]
+
+
+def _dispatch(
+    request: ToolRequest,
+    *,
+    dispatcher: ToolDispatcher | None,
+    call_tool: LegacyToolHandler | None,
+) -> ToolResult:
+    if dispatcher is not None:
+        return dispatcher.dispatch(request)
+    if call_tool is not None:
+        return ToolResult.from_payload(call_tool(request.name, request.arguments))
+    raise RuntimeError("CLI adapter has no tool dispatcher.")
 
 
 def run_cli(
     argv: list[str],
     *,
-    call_tool: ToolHandler,
+    dispatcher: ToolDispatcher | None = None,
+    call_tool: LegacyToolHandler | None = None,
     stdout: TextIO | None = None,
     stderr: TextIO | None = None,
 ) -> int:
@@ -35,7 +50,11 @@ def run_cli(
                 "tools": mcp_tools(),
             }
         else:
-            payload = call_tool(command, arguments)
+            payload = _dispatch(
+                ToolRequest.from_parts(command, arguments),
+                dispatcher=dispatcher,
+                call_tool=call_tool,
+            ).to_payload()
         print(
             json.dumps(
                 payload,

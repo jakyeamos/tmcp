@@ -1,4 +1,4 @@
-"""MCP JSON-RPC transport adapter over an injected tool handler."""
+"""MCP JSON-RPC transport adapter over typed runtime dispatch."""
 
 from __future__ import annotations
 
@@ -6,10 +6,15 @@ import json
 from collections.abc import Callable
 from typing import Any, BinaryIO
 
+from tmcp_runtime.adapters.dispatch import (
+    ToolDispatcher,
+    ToolRequest,
+    ToolResult,
+)
 from tmcp_runtime.adapters.framing import read_message, write_message
 
 
-ToolHandler = Callable[[str, dict[str, Any]], dict[str, Any]]
+LegacyToolHandler = Callable[[str, dict[str, Any]], dict[str, Any]]
 ServerInfoProvider = Callable[[], dict[str, Any]]
 ToolListProvider = Callable[[], list[dict[str, Any]]]
 
@@ -36,10 +41,24 @@ def _error(request_id: Any, code: int, message: str) -> dict[str, Any]:
     }
 
 
+def _dispatch(
+    request: ToolRequest,
+    *,
+    dispatcher: ToolDispatcher | None,
+    call_tool: LegacyToolHandler | None,
+) -> ToolResult:
+    if dispatcher is not None:
+        return dispatcher.dispatch(request)
+    if call_tool is not None:
+        return ToolResult.from_payload(call_tool(request.name, request.arguments))
+    raise RuntimeError("MCP adapter has no tool dispatcher.")
+
+
 def handle_message(
     request: dict[str, Any],
     *,
-    call_tool: ToolHandler,
+    dispatcher: ToolDispatcher | None = None,
+    call_tool: LegacyToolHandler | None = None,
     server_info: ServerInfoProvider,
     tools: ToolListProvider,
 ) -> dict[str, Any] | None:
@@ -66,7 +85,13 @@ def handle_message(
         if not isinstance(arguments, dict):
             return _error(request_id, -32602, "Tool arguments must be an object.")
         try:
-            return _result(request_id, tool_result(call_tool(name, arguments)))
+            tool_request = ToolRequest.from_parts(name, arguments)
+            tool_payload = _dispatch(
+                tool_request,
+                dispatcher=dispatcher,
+                call_tool=call_tool,
+            ).to_payload()
+            return _result(request_id, tool_result(tool_payload))
         except Exception as exc:
             return _error(request_id, -32000, str(exc))
     if method in {"notifications/initialized", "ping"}:
@@ -82,7 +107,8 @@ def run_stdio(
     stdin: BinaryIO,
     stdout: BinaryIO,
     *,
-    call_tool: ToolHandler,
+    dispatcher: ToolDispatcher | None = None,
+    call_tool: LegacyToolHandler | None = None,
     server_info: ServerInfoProvider,
     tools: ToolListProvider,
 ) -> None:
@@ -92,6 +118,7 @@ def run_stdio(
             return
         response = handle_message(
             message,
+            dispatcher=dispatcher,
             call_tool=call_tool,
             server_info=server_info,
             tools=tools,

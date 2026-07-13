@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 from tests.tmcp_test_client import TestWorkspace, run_mcp_requests as run_hermetic_mcp_requests
 from tmcp_runtime.domain import review_evidence, standalone_packets
+from tmcp_runtime.api.registry import PUBLIC_TOOL_NAMES
 from tmcp_runtime.storage import artifact_persistence_available
 
 
@@ -76,6 +77,10 @@ class TmcpMcpServerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.server = load_server_module()
+
+    def test_server_dispatch_registry_covers_every_public_tool(self) -> None:
+        self.assertEqual(set(self.server._TOOL_HANDLERS), PUBLIC_TOOL_NAMES)
+        self.assertEqual(self.server._TOOL_DISPATCHER.tool_names, PUBLIC_TOOL_NAMES)
 
     def test_expert_ui_rubric_routes_to_audit_packet(self) -> None:
         packet = standalone_packets.compile_standalone_packet(

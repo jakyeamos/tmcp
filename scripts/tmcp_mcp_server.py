@@ -19,6 +19,10 @@ if str(PLUGIN_ROOT) not in sys.path:
     sys.path.insert(0, str(PLUGIN_ROOT))
 
 from tmcp_runtime.adapters.cli import run_cli as _runtime_run_cli  # noqa: E402
+from tmcp_runtime.adapters.dispatch import (  # noqa: E402
+    ToolDispatcher,
+    ToolRequest,
+)
 from tmcp_runtime.adapters.framing import write_message as _runtime_write_message  # noqa: E402
 from tmcp_runtime.adapters.mcp import (  # noqa: E402
     handle_message as _runtime_handle_message,
@@ -962,159 +966,175 @@ def _promote_harvest(arguments: dict[str, Any]) -> dict[str, Any]:
     return safe_result
 
 
-def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
-    if name == "tmcp_doctor":
-        client = str(arguments.get("client") or "auto")
-        plugin_root = PLUGIN_ROOT
-        return _runtime_build_doctor_report(
-            client,
-            redact_path(plugin_root),
-            plugin_root_exists=plugin_root.exists(),
-            node_launcher_exists=(
-                plugin_root / "scripts" / "tmcp_launcher.mjs"
-            ).exists(),
-            node_available=bool(shutil.which("node")),
-            python_server_exists=(
-                plugin_root / "scripts" / "tmcp_mcp_server.py"
-            ).exists(),
-            python_available=bool(
-                shutil.which("python3")
-                or shutil.which("python")
-                or shutil.which("py")
-            ),
-            artifact_persistence=artifact_persistence_available(),
-            aios_available=_aios_available(),
-            aios_root_display=(
-                redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None
-            ),
+def _tool_doctor(arguments: dict[str, Any]) -> dict[str, Any]:
+    client = str(arguments.get("client") or "auto")
+    plugin_root = PLUGIN_ROOT
+    return _runtime_build_doctor_report(
+        client,
+        redact_path(plugin_root),
+        plugin_root_exists=plugin_root.exists(),
+        node_launcher_exists=(plugin_root / "scripts" / "tmcp_launcher.mjs").exists(),
+        node_available=bool(shutil.which("node")),
+        python_server_exists=(
+            plugin_root / "scripts" / "tmcp_mcp_server.py"
+        ).exists(),
+        python_available=bool(
+            shutil.which("python3")
+            or shutil.which("python")
+            or shutil.which("py")
+        ),
+        artifact_persistence=artifact_persistence_available(),
+        aios_available=_aios_available(),
+        aios_root_display=(
+            redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None
+        ),
+    )
+
+
+def _tool_status(arguments: dict[str, Any]) -> dict[str, Any]:
+    del arguments
+    return _runtime_build_status_report(
+        redact_path(PLUGIN_ROOT),
+        artifact_persistence_available(),
+        _aios_available(),
+        aios_root_display=(
+            redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None
+        ),
+    )
+
+
+def _tool_explain(arguments: dict[str, Any]) -> dict[str, Any]:
+    adapter = str(arguments.get("adapter") or "auto")
+    if _should_use_aios(adapter):
+        args = [
+            "tmcp",
+            "explain",
+            str(arguments["objective"]),
+            "--project-path",
+            str(arguments.get("project_path") or "."),
+            "--json",
+        ]
+        if arguments.get("phase"):
+            args.extend(["--phase", str(arguments["phase"])])
+        if arguments.get("domain"):
+            args.extend(["--domain", str(arguments["domain"])])
+        payload = _run_aios(args)
+        if payload.get("ok") or adapter == "aios":
+            if bool(arguments.get("compose", False)):
+                payload["composed_packet"] = _compose_packet(
+                    {
+                        "objective": arguments["objective"],
+                        "project_path": arguments.get("project_path") or ".",
+                        "source_path": arguments.get("source_path")
+                        or arguments.get("project_path")
+                        or ".",
+                        "phase": arguments.get("phase") or "start",
+                        "cache_policy": arguments.get("cache_policy") or "none",
+                    }
+                )
+            return _redact_result(payload)
+    result = {
+        "ok": True,
+        "adapter": "standalone",
+        "command": "tmcp-explain",
+        "data_status": "compiled",
+        "packet": compile_standalone_packet(
+            objective=str(arguments["objective"]),
+            project_path=str(arguments.get("project_path") or "."),
+            phase=str(arguments.get("phase") or "") or None,
+            domain=str(arguments.get("domain") or "") or None,
+        ),
+    }
+    if bool(arguments.get("compose", False)):
+        result["composed_packet"] = _compose_packet(
+            {
+                "objective": arguments["objective"],
+                "project_path": arguments.get("project_path") or ".",
+                "source_path": arguments.get("source_path")
+                or arguments.get("project_path")
+                or ".",
+                "phase": arguments.get("phase") or "start",
+                "cache_policy": arguments.get("cache_policy") or "none",
+            }
         )
-    if name == "tmcp_status":
-        artifact_persistence = artifact_persistence_available()
-        return _runtime_build_status_report(
-            redact_path(PLUGIN_ROOT),
-            artifact_persistence,
-            _aios_available(),
-            aios_root_display=(
-                redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None
-            ),
-        )
-    if name == "tmcp_explain":
-        adapter = str(arguments.get("adapter") or "auto")
-        if _should_use_aios(adapter):
-            args = [
-                "tmcp",
-                "explain",
-                str(arguments["objective"]),
-                "--project-path",
-                str(arguments.get("project_path") or "."),
-                "--json",
-            ]
-            if arguments.get("phase"):
-                args.extend(["--phase", str(arguments["phase"])])
-            if arguments.get("domain"):
-                args.extend(["--domain", str(arguments["domain"])])
-            payload = _run_aios(args)
-            if payload.get("ok") or adapter == "aios":
-                if bool(arguments.get("compose", False)):
-                    payload["composed_packet"] = _compose_packet(
-                        {
-                            "objective": arguments["objective"],
-                            "project_path": arguments.get("project_path") or ".",
-                            "source_path": arguments.get("source_path")
-                            or arguments.get("project_path")
-                            or ".",
-                            "phase": arguments.get("phase") or "start",
-                            "cache_policy": arguments.get("cache_policy") or "none",
-                        }
-                    )
-                return _redact_result(payload)
-        result = {
-            "ok": True,
-            "adapter": "standalone",
-            "command": "tmcp-explain",
-            "data_status": "compiled",
-            "packet": compile_standalone_packet(
-                objective=str(arguments["objective"]),
-                project_path=str(arguments.get("project_path") or "."),
-                phase=str(arguments.get("phase") or "") or None,
-                domain=str(arguments.get("domain") or "") or None,
-            ),
-        }
-        if bool(arguments.get("compose", False)):
-            result["composed_packet"] = _compose_packet(
-                {
-                    "objective": arguments["objective"],
-                    "project_path": arguments.get("project_path") or ".",
-                    "source_path": arguments.get("source_path")
-                    or arguments.get("project_path")
-                    or ".",
-                    "phase": arguments.get("phase") or "start",
-                    "cache_policy": arguments.get("cache_policy") or "none",
-                }
-            )
-        return _redact_result(result)
-    if name == "tmcp_harvest_skills":
-        return _harvest_skills(arguments)
-    if name == "tmcp_evaluate_skills":
-        return evaluate_skills(
+    return _redact_result(result)
+
+
+def _tool_evaluate_skills(arguments: dict[str, Any]) -> dict[str, Any]:
+    return evaluate_skills(
+        arguments,
+        compose_evaluation_row=_compose_evaluation_row,
+        artifact_writer=lambda plan, report: _persist_evaluation_artifacts(
             arguments,
-            compose_evaluation_row=_compose_evaluation_row,
-            artifact_writer=lambda plan, report: _persist_evaluation_artifacts(
-                arguments,
-                plan,
-                report,
-            ),
-        )
-    if name == "tmcp_recommend_workflows":
-        return _recommend_workflows(arguments)
-    if name == "tmcp_compose_packet":
-        return _redact_result(_compose_packet(arguments))
-    if name == "tmcp_runtime_next":
-        return _runtime_next(arguments)
-    if name == "tmcp_record_receipt":
-        return _record_receipt(arguments)
-    if name == "tmcp_promote_harvest":
-        return _promote_harvest(arguments)
-    if name == "expert_rubric_review_plan":
-        adapter = str(arguments.get("adapter") or "auto")
-        if adapter == "aios":
-            if not _aios_available():
-                return _redact_result(_run_aios([]))
-            if bool(arguments.get("write_artifacts", True)):
-                raise ArtifactStorageError(
-                    "The AIOS review adapter only supports write_artifacts=false. "
-                    "Use adapter=standalone for persisted review artifacts."
-                )
-            project_path = str(arguments.get("project_path") or ".")
-            args = [
-                "tmcp",
-                "review-plan",
-                str(arguments["objective"]),
-                "--project-path",
-                project_path,
-                "--evidence-json",
-                str(arguments.get("evidence_json") or "[]"),
-                "--json",
-                "--no-write-artifacts",
-            ]
-            if arguments.get("selected_slice_id"):
-                args.extend(
-                    ["--selected-slice-id", str(arguments["selected_slice_id"])]
-                )
-            payload = _run_aios(args)
-            safe_payload = _redact_result(payload)
-            safe_payload.pop("output_dir", None)
-            safe_payload.pop("global_artifact_paths", None)
-            safe_payload["artifact_paths"] = {}
-            return safe_payload
-        return _standalone_review_plan(arguments)
-    raise ValueError(f"Unknown TMCP tool: {name}")
+            plan,
+            report,
+        ),
+    )
+
+
+def _tool_compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
+    return _redact_result(_compose_packet(arguments))
+
+
+def _tool_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
+    adapter = str(arguments.get("adapter") or "auto")
+    if adapter == "aios":
+        if not _aios_available():
+            return _redact_result(_run_aios([]))
+        if bool(arguments.get("write_artifacts", True)):
+            raise ArtifactStorageError(
+                "The AIOS review adapter only supports write_artifacts=false. "
+                "Use adapter=standalone for persisted review artifacts."
+            )
+        project_path = str(arguments.get("project_path") or ".")
+        args = [
+            "tmcp",
+            "review-plan",
+            str(arguments["objective"]),
+            "--project-path",
+            project_path,
+            "--evidence-json",
+            str(arguments.get("evidence_json") or "[]"),
+            "--json",
+            "--no-write-artifacts",
+        ]
+        if arguments.get("selected_slice_id"):
+            args.extend(["--selected-slice-id", str(arguments["selected_slice_id"])])
+        payload = _run_aios(args)
+        safe_payload = _redact_result(payload)
+        safe_payload.pop("output_dir", None)
+        safe_payload.pop("global_artifact_paths", None)
+        safe_payload["artifact_paths"] = {}
+        return safe_payload
+    return _standalone_review_plan(arguments)
+
+
+_TOOL_HANDLERS = {
+    "tmcp_doctor": _tool_doctor,
+    "tmcp_status": _tool_status,
+    "tmcp_explain": _tool_explain,
+    "tmcp_harvest_skills": _harvest_skills,
+    "tmcp_evaluate_skills": _tool_evaluate_skills,
+    "tmcp_recommend_workflows": _recommend_workflows,
+    "tmcp_compose_packet": _tool_compose_packet,
+    "tmcp_runtime_next": _runtime_next,
+    "tmcp_record_receipt": _record_receipt,
+    "tmcp_promote_harvest": _promote_harvest,
+    "expert_rubric_review_plan": _tool_review_plan,
+}
+_TOOL_DISPATCHER = ToolDispatcher(_TOOL_HANDLERS)
+
+
+def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    return _TOOL_DISPATCHER.dispatch(
+        ToolRequest.from_parts(name, arguments)
+    ).to_payload()
 
 
 def _handle(request: dict[str, Any]) -> None:
     response = _runtime_handle_message(
         request,
-        call_tool=_call_tool,
+        dispatcher=_TOOL_DISPATCHER,
         server_info=mcp_server_info,
         tools=mcp_tools,
     )
@@ -1126,14 +1146,14 @@ def _run_mcp_stdio() -> None:
     _runtime_run_mcp_stdio(
         sys.stdin.buffer,
         sys.stdout.buffer,
-        call_tool=_call_tool,
+        dispatcher=_TOOL_DISPATCHER,
         server_info=mcp_server_info,
         tools=mcp_tools,
     )
 
 
 def _run_cli(argv: list[str]) -> int:
-    return _runtime_run_cli(argv, call_tool=_call_tool)
+    return _runtime_run_cli(argv, dispatcher=_TOOL_DISPATCHER)
 
 
 def main() -> None:
