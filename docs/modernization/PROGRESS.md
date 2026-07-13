@@ -6,8 +6,8 @@
 construction/presentation, artifact manifests, semantic cache validation,
 fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, evaluator artifact
-  persistence, packet/report assembly, policy, rendering, advisory, and input
-  hardening complete;
+  persistence, packet/report assembly, policy, rendering, advisory, input, and
+  mode-orchestration hardening complete;
   map the read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
@@ -338,8 +338,8 @@ adapter-injected callback.
   observables; `931b9bb` extracts trace scoring/report assembly; `a05a6aa`
   extracts rendering/catalog/advisory formatting; `4f68872` hardens advisory
   assembly and catalog/title handling; `6945416` bounds evaluator inputs/traces
-  and nested shapes; `d954658` surfaces compose failures. Full suite: 391 tests,
-  three expected skips
+  and nested shapes; `d954658` surfaces compose failures; `2c36f53` extracts
+  mode orchestration. Full suite: 394 tests, three expected skips
 
 ## Blockers and risks
 
@@ -362,9 +362,9 @@ adapter-injected callback.
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
   evaluator persistence, packet scoring, report, policy, rendering, and advisory
-  boundaries are extracted; mode orchestration remains to be cut over without
+  boundaries are extracted; plan construction remains to be cut over without
   moving root, write, or transport authority.
 
 ## Next step
 
-Extract evaluator mode orchestration without moving adapter authority.
+Move plan construction behind a safe-source DTO boundary.

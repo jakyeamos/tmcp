@@ -19,7 +19,8 @@ service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
   read-only harvest/evaluator persistence plus packet-scoring policy, report,
-  rendering/advisory, input, and compose-failure hardening complete;
+  rendering/advisory, input, compose-failure, and mode-orchestration hardening
+  complete;
   map the next evaluator boundary.
 **Started:** 2026-07-10
 
@@ -219,15 +220,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   rejection, bounded scan/read budgets, and fail-closed safe reads; `ed9df02`
   extracts pure doctor/status report assembly; `09857db` makes harvest services
   read-only and keeps artifact output-root selection, persistence, and aliases
-  in the adapter; `d1f517e` moves evaluator artifact manifests and persistence
-  behind the same adapter boundary; `68fb7c4` extracts packet-inclusion
-  expectation lookup, compose-callback invocation, and packet diffing into a
-  pure service; `78081c4` extracts evaluator decomposition, static review,
-  variants, and observables; `931b9bb` extracts trace scoring and report
-  assembly; `a05a6aa` extracts rendering/catalog/advisory formatting; `4f68872`
-  hardens advisory assembly and catalog/title handling; `6945416` bounds
-  evaluator inputs/traces and validates nested shapes; `d954658` surfaces
-  compose errors. The full suite has 391 tests with three expected skips.
+  in the adapter; `d1f517e`–`2c36f53` complete evaluator artifact, packet,
+  policy, scoring, rendering, advisory, input, failure, and mode-orchestration
+  cutovers. The full suite has 394 tests with three expected skips.
 
 ## Workflow Notes
 
@@ -431,10 +426,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `931b9bb` extracts evaluator scoring/report assembly into a pure service;
   `a05a6aa` extracts evaluator rendering/advisory formatting; `4f68872` hardens
   advisory assembly and the fixed catalog boundary; `6945416` bounds evaluator
-  inputs and validates nested traces/plans; `d954658` surfaces compose failures.
+  inputs and validates nested traces/plans; `d954658` surfaces compose failures;
+  `2c36f53` extracts mode orchestration.
 
 ## Next Command
 
 ```bash
-# Extract evaluator mode orchestration; keep adapter authority.
+# Move plan construction behind a safe-source DTO; keep adapter authority.
 ```
