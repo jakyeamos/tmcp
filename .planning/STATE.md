@@ -19,9 +19,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
   read-only harvest/evaluator persistence plus packet-scoring policy, report,
   rendering/advisory, input, compose-failure, mode-orchestration, and
-  plan-construction, server renderer, policy-catalog, runtime evaluator API, and
-  harvest-advisory, runtime-redaction, and MCP/CLI transport cutovers complete;
-  define typed request/result dispatch.
+  plan-construction, server renderer, policy-catalog, runtime evaluator API,
+  harvest-advisory, runtime-redaction, MCP/CLI transport, and typed
+  request/result registry-dispatch cutovers complete; continue thinning the
+  compatibility adapter.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -182,8 +183,9 @@ _(truncated for length)_
   server dependencies.
 - Keep redaction primitives in `tmcp_runtime/safety`; the historical script
   module is a compatibility facade and must not be imported by runtime safety.
-- Keep MCP framing/JSON-RPC and CLI output/error translation in
-  `tmcp_runtime/adapters`; the next boundary is registry-owned tool dispatch.
+- Keep MCP framing/JSON-RPC, CLI output/error translation, and typed registry
+  dispatch in `tmcp_runtime/adapters`; the next boundary is remaining server
+  orchestration/context ownership.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -299,5 +301,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Define typed adapter request/result dispatch and route the public tool registry through it.
+# Move remaining server-owned orchestration behind explicit runtime service/context boundaries.
 ```

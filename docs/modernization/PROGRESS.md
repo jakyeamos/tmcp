@@ -2,16 +2,11 @@
 
 ## Current state
 
-**Phase:** Milestone 3 adapter thinning and security hardening. Receipt
-construction/presentation, artifact manifests, semantic cache validation,
-fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
-  argument projection, safety hardening, diagnostics, evaluator artifact
-  persistence, packet/report assembly, policy, rendering, advisory, input,
-  orchestration, plan, policy-catalog, and runtime evaluator API cutovers
-  complete; the server imports evaluator execution and harvest advisories from
-  runtime while the script retains compatibility aliases. MCP/CLI transport now
-  lives in `tmcp_runtime/adapters/`;
-  map the read-only boundary.
+**Phase:** Milestone 3 adapter thinning and security hardening. Domain,
+service, storage, safety, evaluator, and transport cutovers are complete; the
+server imports runtime evaluator/harvest services while retaining compatibility
+aliases. Typed request/result dispatch and public tool selection are registry-
+owned in `tmcp_runtime/adapters/`; remaining work is the read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -96,8 +91,9 @@ expectation lookup and composed-packet diffing are now a pure service over an
 adapter-injected callback.
 Runtime evaluator API owns safe inputs, redaction, scoring, and orchestration;
 script aliases remain while the server uses runtime directly.
-Runtime MCP/CLI transport now lives in adapters over the existing tool handler;
-typed request/result dispatch is the next cutover.
+Runtime MCP/CLI transport, typed dispatch, and registry-owned tool selection now
+live in `tmcp_runtime/adapters`; the legacy script only supplies handlers and
+compatibility wrappers.
 
 ## Decisions recorded
 
@@ -338,8 +334,9 @@ typed request/result dispatch is the next cutover.
   service; `f1d5811` moves redaction primitives into `tmcp_runtime/safety` and
   leaves the script module as a compatibility facade. Full suite: 401 tests,
   three expected skips; `d67dcc9` isolates the safety import boundary test and
-  restores the test-size gate; `7420a2b` moves MCP framing/JSON-RPC and CLI
-  transport into runtime adapters. Full suite: 405 tests, three expected skips.
+  restores the test-size gate; `7420a2b` moves transport into runtime adapters;
+  `cb34594` adds typed request/result dispatch and registry-owned tool selection.
+  Full suite: 409 tests, three expected skips.
 
 ## Blockers and risks
 
@@ -359,7 +356,7 @@ typed request/result dispatch is the next cutover.
   v0.1 stays permissive and cache still orders by safe file mtime. Require
   canonical RFC3339 grammar before timestamps gain ranking/retention meaning.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
+  compatibility adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
   evaluator persistence, packet scoring, report, policy, rendering, and advisory
   boundaries are extracted; compatibility scripts remain only for legacy
@@ -367,5 +364,5 @@ typed request/result dispatch is the next cutover.
 
 ## Next step
 
-Complete adapter convergence: define the typed request/result boundary and
-route registry-owned tool dispatch through runtime adapters.
+Continue adapter convergence: move remaining server-owned orchestration behind
+explicit runtime service/context boundaries, then delete obsolete paths.

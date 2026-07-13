@@ -80,9 +80,9 @@ branch is deployable and the compatibility surface is documented.
 Horizon 1 is substantially implemented. Safety, storage, packet/recompile,
 evaluation, harvest advisory, and redaction ownership are in the runtime. The
 first Horizon 2 slice is complete: MCP framing/JSON-RPC and CLI execution now
-live in runtime adapters while the legacy server injects its existing tool
-handler.
+live in runtime adapters. The typed request/result boundary and registry-owned
+tool dispatch are also complete; the legacy server now supplies handlers and
+compatibility wrappers without owning transport-level tool selection.
 
-The next major unit is adapter convergence: define the typed adapter request /
-result boundary, route registry-owned tool dispatch through it, and remove the
-remaining monolithic dispatch branches as one coherent cutover.
+The next major unit is to move remaining adapter-owned orchestration behind
+explicit runtime service/context boundaries, then delete obsolete server paths.
