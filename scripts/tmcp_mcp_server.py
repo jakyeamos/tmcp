@@ -93,6 +93,10 @@ from tmcp_runtime.services.recompile import (  # noqa: E402
 from tmcp_runtime.services.review import (  # noqa: E402
     build_review_plan as _runtime_build_review_plan,
 )
+from tmcp_runtime.services.diagnostics import (  # noqa: E402
+    build_doctor_report as _runtime_build_doctor_report,
+    build_status_report as _runtime_build_status_report,
+)
 from tmcp_runtime.services.artifact_plans import (  # noqa: E402
     ArtifactPlan,
     build_global_promotion_artifact_plan as _runtime_build_global_promotion_artifact_plan,
@@ -884,182 +888,38 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "tmcp_doctor":
         client = str(arguments.get("client") or "auto")
         plugin_root = PLUGIN_ROOT
-        plugin_root_display = redact_path(plugin_root)
-        checks = [
-            {
-                "id": "plugin_root",
-                "status": "pass" if plugin_root.exists() else "fail",
-                "detail": plugin_root_display,
-            },
-            {
-                "id": "node_launcher",
-                "status": "pass"
-                if (plugin_root / "scripts" / "tmcp_launcher.mjs").exists()
-                else "fail",
-                "detail": "scripts/tmcp_launcher.mjs",
-            },
-            {
-                "id": "node_runtime",
-                "status": "pass" if shutil.which("node") else "fail",
-                "detail": "Install Node.js 20+ if the MCP host cannot launch node.",
-            },
-            {
-                "id": "python_server",
-                "status": "pass"
-                if (plugin_root / "scripts" / "tmcp_mcp_server.py").exists()
-                else "fail",
-                "detail": "scripts/tmcp_mcp_server.py",
-            },
-            {
-                "id": "python_runtime",
-                "status": "pass"
-                if (
-                    shutil.which("python3")
-                    or shutil.which("python")
-                    or shutil.which("py")
-                )
-                else "fail",
-                "detail": "Set TMCP_PYTHON if automatic Python discovery fails.",
-            },
-            {
-                "id": "secure_artifact_persistence",
-                "status": "pass"
-                if artifact_persistence_available()
-                else "limited",
-                "detail": (
-                    "Secure local artifact writes are available."
-                    if artifact_persistence_available()
-                    else "Secure artifact writes are unavailable on this platform; "
-                    "rerun write-capable tools with write_artifacts=false."
-                ),
-            },
-            {
-                "id": "aios_adapter",
-                "status": "pass" if _aios_available() else "optional",
-                "detail": (
-                    f"AIOS_ROOT={redact_path(AIOS_ROOT)}"
-                    if AIOS_ROOT is not None
-                    else "AIOS_ROOT is not set; standalone TMCP is available."
-                ),
-            },
-        ]
-        failed = [check for check in checks if check["status"] == "fail"]
-        install_paths = {
-            "skill_only": (
-                "Copy skills/tmcp into a skills directory. Use manual packet synthesis "
-                "unless the host also exposes this package's launcher."
+        return _runtime_build_doctor_report(
+            client,
+            redact_path(plugin_root),
+            plugin_root_exists=plugin_root.exists(),
+            node_launcher_exists=(
+                plugin_root / "scripts" / "tmcp_launcher.mjs"
+            ).exists(),
+            node_available=bool(shutil.which("node")),
+            python_server_exists=(
+                plugin_root / "scripts" / "tmcp_mcp_server.py"
+            ).exists(),
+            python_available=bool(
+                shutil.which("python3")
+                or shutil.which("python")
+                or shutil.which("py")
             ),
-            "repo_checkout": (
-                "Clone TMCP and run node scripts/tmcp_launcher.mjs doctor from the repo root."
+            artifact_persistence=artifact_persistence_available(),
+            aios_available=_aios_available(),
+            aios_root_display=(
+                redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None
             ),
-            "codex_plugin_cache": (
-                "Install as a Codex plugin; MCP config should launch relative "
-                "scripts/tmcp_launcher.mjs from the plugin root."
-            ),
-            "claude_code": "Run: claude plugin marketplace add jakyeamos/tmcp && claude plugin install tmcp@tmcp",
-            "claude_desktop": "Add the node launcher as a local stdio MCP server in claude_desktop_config.json.",
-            "plain_mcp": "Use command node with args [scripts/tmcp_launcher.mjs] and cwd set to the TMCP repo.",
-            "aios_backed": (
-                "Set AIOS_ROOT explicitly only when you want optional AIOS storage/adapter behavior."
-            ),
-        }
-        codex_tool_discovery = {
-            "known_gap": (
-                "Some Codex personal-plugin installs expose TMCP skills while deferred "
-                "tool discovery does not surface the plugin MCP tools. In that case, "
-                "the installed launcher can still be used directly."
-            ),
-            "symptom": (
-                "tool_search for tmcp_explain, tmcp_doctor, or "
-                "expert_rubric_review_plan returns no TMCP tools."
-            ),
-            "verify_launcher": [
-                "node scripts/tmcp_launcher.mjs doctor --client codex",
-                "node scripts/tmcp_launcher.mjs list-tools",
-            ],
-            "codex_mcp_config": {
-                "mcp_servers": {
-                    "tmcp": {
-                        "command": "node",
-                        "args": ["scripts/tmcp_launcher.mjs"],
-                        "cwd": plugin_root_display,
-                    }
-                }
-            },
-            "fallback": (
-                "Run the equivalent node scripts/tmcp_launcher.mjs CLI command from "
-                "the TMCP plugin root, then cite the generated JSON/artifacts in the "
-                "agent response."
-            ),
-        }
-        return {
-            "ok": not failed,
-            "schema": "tmcp-doctor-v0.1",
-            "client": client,
-            "plugin_root": plugin_root_display,
-            "checks": checks,
-            "recommended_install_paths": install_paths,
-            "codex_tool_discovery": codex_tool_discovery
-            if client in {"auto", "codex"}
-            else None,
-            "smoke_test": {
-                "tool": "tmcp_status",
-                "expected": "structuredContent.standalone.available == true",
-            },
-            "next_action": (
-                "Run tmcp_status, then tmcp_explain with your objective."
-                if not failed
-                else "Fix failing checks, then rerun tmcp_doctor."
-            ),
-            "missing_launcher_remediation": (
-                "If no MCP tool, local CLI, repo/plugin launcher, or AIOS adapter is available, "
-                "clone or copy TMCP, run node scripts/tmcp_launcher.mjs doctor from the TMCP root, "
-                "and set TMCP_PYTHON if Python discovery fails. Until then, synthesize packets "
-                "manually using sources inspected, skipped sources, packet summary, behavior atoms, "
-                "evidence gaps, recommendation/remediation, and verification expectations."
-            ),
-        }
+        )
     if name == "tmcp_status":
         artifact_persistence = artifact_persistence_available()
-        capabilities = [
-            "packet_compile",
-            "packet_composition",
-            "runtime_next",
-            "receipt_recording",
-            "portable_skill_harvest",
-            "multi_root_harvest",
-            "global_cache",
-            "source_type_classification",
-            "workflow_recommendation",
-            "harvest_promotion",
-            "expert_rubric_review_plan",
-        ]
-        if artifact_persistence:
-            capabilities.append("artifact_write")
-        return {
-            "ok": True,
-            "schema": "tmcp-status-v0.1",
-            "standalone": {
-                "available": True,
-                "plugin_root": redact_path(PLUGIN_ROOT),
-                "capabilities": capabilities,
-                "artifact_persistence": {
-                    "available": artifact_persistence,
-                    "detail": (
-                        "Secure descriptor-relative no-follow artifact writes are available."
-                        if artifact_persistence
-                        else "Secure artifact writes are unavailable on this platform; "
-                        "write-capable tools fail closed."
-                    ),
-                },
-            },
-            "aios_adapter": {
-                "available": _aios_available(),
-                "aios_root": redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None,
-                "configured": AIOS_ROOT is not None,
-                "role": "optional storage and adapter layer",
-            },
-        }
+        return _runtime_build_status_report(
+            redact_path(PLUGIN_ROOT),
+            artifact_persistence,
+            _aios_available(),
+            aios_root_display=(
+                redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None
+            ),
+        )
     if name == "tmcp_explain":
         adapter = str(arguments.get("adapter") or "auto")
         if _should_use_aios(adapter):

@@ -4,6 +4,10 @@ from tmcp_runtime.services.compose import (
     compose_packet_from_source_nodes,
     enrich_packet_from_source_nodes,
 )
+from tmcp_runtime.services.diagnostics import (
+    build_doctor_report,
+    build_status_report,
+)
 from tmcp_runtime.services.artifact_plans import (
     ArtifactPlan,
     build_global_promotion_artifact_plan,
@@ -28,6 +32,8 @@ __all__ = [
     "build_workflow_recommendation_artifact_plan",
     "build_promotion_artifact_plan",
     "build_global_promotion_artifact_plan",
+    "build_doctor_report",
+    "build_status_report",
     "compose_packet_from_source_nodes",
     "enrich_packet_from_source_nodes",
     "harvest_skills",
