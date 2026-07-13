@@ -122,6 +122,45 @@ class TmcpRecompilePacketTests(unittest.TestCase):
             added,
         )
 
+    def test_full_recompile_keeps_a_validated_route_proposal(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "AGENTS.md").write_text(
+                "Read before modifying behavior.\n",
+                encoding="utf-8",
+            )
+            previous_packet = self.server._compose_packet(
+                {
+                    "source_path": str(root),
+                    "objective": "Implement the onboarding page",
+                    "project_path": str(root),
+                    "phase": "start",
+                    "cache_policy": "none",
+                }
+            )
+            result = self.server._runtime_next(
+                {
+                    "source_path": str(root),
+                    "objective": "Implement the onboarding page",
+                    "project_path": str(root),
+                    "current_phase": "start",
+                    "previous_packet": previous_packet,
+                    "output_mode": "full",
+                    "cache_policy": "none",
+                    "proposed_changes": [
+                        {
+                            "action": "add_route",
+                            "route": "accessibility_validation",
+                            "reason": "The form needs an accessibility check.",
+                        }
+                    ],
+                }
+            )
+
+        active_routes = result["packet"]["task_identity"]["active_routes"]
+        self.assertIn("accessibility_validation", active_routes)
+        self.assertEqual(result["task_identity"], result["packet"]["task_identity"])
+
 
 if __name__ == "__main__":
     unittest.main()

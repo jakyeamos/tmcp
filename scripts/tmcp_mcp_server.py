@@ -21,20 +21,9 @@ if str(PLUGIN_ROOT) not in sys.path:
 
 from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
 from scripts.tmcp_redaction import merge_redactions  # noqa: E402
-from tmcp_runtime.domain.recompile import (  # noqa: E402
-    apply_validated_proposals,
-    merge_packet_delta,
-    packet_diff as build_packet_diff,
-    parse_previous_packet,
-    recompile_detail,
-    render_recompiled_packet_markdown,
-    resolve_recompile_reason,
-)
+from tmcp_runtime.domain.recompile import parse_previous_packet  # noqa: E402
 from tmcp_runtime.domain.runtime_state import (  # noqa: E402
     derive_runtime_state as _runtime_derive_runtime_state,
-)
-from tmcp_runtime.domain.packets import (  # noqa: E402
-    render_composed_packet_markdown,
 )
 from tmcp_runtime.domain.standalone_packets import (  # noqa: E402
     compile_standalone_packet,
@@ -102,13 +91,15 @@ from tmcp_runtime.services.harvest import (  # noqa: E402
 )
 from tmcp_runtime.services.compose import (  # noqa: E402
     compose_packet_from_source_nodes as _runtime_compose_packet_from_source_nodes,
-    enrich_packet_from_source_nodes as _runtime_enrich_packet_from_source_nodes,
 )
 from tmcp_runtime.services.recommendations import (  # noqa: E402
     recommend_workflows as _runtime_recommend_workflows,
 )
 from tmcp_runtime.services.promotion import (  # noqa: E402
     promote_harvest as _runtime_promote_harvest,
+)
+from tmcp_runtime.services.recompile import (  # noqa: E402
+    finalize_recompiled_packet as _runtime_finalize_recompiled_packet,
 )
 from tmcp_runtime.services.review import (  # noqa: E402
     build_review_plan as _runtime_build_review_plan,
@@ -121,7 +112,6 @@ TMCP_HOME = Path(os.environ.get("TMCP_HOME", "~/.tmcp")).expanduser()
 UTC = timezone.utc
 
 RUNTIME_NEXT_SCHEMA = "tmcp-runtime-next-v0.1"
-RECOMPILED_PACKET_SCHEMA = "tmcp-recompiled-packet-v0.1"
 RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
 PROMOTED_HARVEST_GRAPH_SCHEMA = "tmcp-promoted-harvest-graph-v0.1"
 MAX_GLOBAL_CACHE_CANDIDATES = 64
@@ -142,18 +132,6 @@ def _json_list(value: object) -> list[Any]:
 
 def _string_list(value: object) -> list[str]:
     return [str(item) for item in _json_list(value) if str(item)]
-
-
-def _ordered_unique(values: list[str]) -> list[str]:
-    seen: set[str] = set()
-    ordered: list[str] = []
-    for value in values:
-        item = str(value).strip()
-        if not item or item in seen:
-            continue
-        seen.add(item)
-        ordered.append(item)
-    return ordered
 
 
 def _aios_available() -> bool:
@@ -255,8 +233,6 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
         raise ValueError(
             "tmcp_runtime_next output_mode=full requires previous_packet as an object."
         )
-    packet_delta = dict(state.get("packet_delta") or {})
-    next_gates = _string_list(state.get("next_verification_gate"))
     target_phase = str(state.get("suggested_phase") or state.get("phase") or "start")
     session_project_path = (
         state.get("project_path")
@@ -292,31 +268,7 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
     ):
         if key in arguments:
             compose_arguments[key] = arguments[key]
-    new_packet = _compose_packet(compose_arguments)
-    new_packet = merge_packet_delta(new_packet, packet_delta, next_gates=next_gates)
-    source_nodes = [
-        item
-        for item in _json_list(state.get("source_nodes"))
-        if isinstance(item, dict)
-    ]
-    new_packet = _runtime_enrich_packet_from_source_nodes(
-        new_packet,
-        source_nodes,
-        _string_list(packet_delta.get("newly_required_reads")),
-    )
-    new_packet = apply_validated_proposals(
-        new_packet, _json_list(state.get("validated_changes"))
-    )
-    new_packet["task_identity"] = state.get("task_identity") or new_packet.get(
-        "task_identity"
-    )
-    recompile_reason = resolve_recompile_reason(arguments, state)
-    packet_change = build_packet_diff(
-        previous_packet,
-        new_packet,
-        packet_delta=packet_delta,
-        recompile_reason=recompile_reason,
-    )
+    composed_packet = _compose_packet(compose_arguments)
     if arguments.get("session_id") is not None:
         previous_packet_id = str(previous_packet.get("packet_id") or "")
     else:
@@ -325,33 +277,13 @@ def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[
             or previous_packet.get("packet_id")
             or ""
         )
-    recompiled = {
-        "ok": True,
-        "schema": RECOMPILED_PACKET_SCHEMA,
-        "previous_packet_id": previous_packet_id or None,
-        "recompile_reason": recompile_reason,
-        "recompile_detail": recompile_detail(recompile_reason),
-        "packet": new_packet,
-        "packet_diff": packet_change,
-        "agent_proposals": state.get("proposed_changes") or [],
-        "validated_changes": state.get("validated_changes") or [],
-        "suggested_phase": state.get("suggested_phase") or "",
-        "task_identity": state.get("task_identity"),
-        "task_identity_delta": state.get("task_identity_delta"),
-        "warnings": state.get("warnings") or [],
-        "safety": {
-            "stateless": True,
-            "cache_trust": "advisory_untrusted",
-            "instruction_override_policy": (
-                "Recompiled packets never override system, developer, user, or project instructions."
-            ),
-        },
-    }
-    new_packet["packet_markdown"] = render_recompiled_packet_markdown(
-        recompiled, compose_markdown=render_composed_packet_markdown
+    return _runtime_finalize_recompiled_packet(
+        arguments,
+        state,
+        previous_packet=previous_packet,
+        composed_packet=composed_packet,
+        previous_packet_id=previous_packet_id or None,
     )
-    recompiled["packet"] = new_packet
-    return recompiled
 
 
 def _redacted_mapping(value: dict[str, Any]) -> dict[str, Any]:
