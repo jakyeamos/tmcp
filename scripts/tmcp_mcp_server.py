@@ -18,7 +18,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(PLUGIN_ROOT) not in sys.path:
     sys.path.insert(0, str(PLUGIN_ROOT))
 
-from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
+from tmcp_runtime.adapters.cli import run_cli as _runtime_run_cli  # noqa: E402
+from tmcp_runtime.adapters.framing import write_message as _runtime_write_message  # noqa: E402
+from tmcp_runtime.adapters.mcp import (  # noqa: E402
+    handle_message as _runtime_handle_message,
+    run_stdio as _runtime_run_mcp_stdio,
+)
 from tmcp_runtime.safety.redaction import merge_redactions  # noqa: E402
 from tmcp_runtime.domain.composition import (  # noqa: E402
     normalize_cache_policy as _runtime_normalize_cache_policy,
@@ -46,12 +51,11 @@ from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     workflow_catalog_by_id,
 )
 from tmcp_runtime.api.evaluation import evaluate_skills  # noqa: E402
-from tmcp_runtime.api.cli import parse_cli_arguments as _parse_cli_arguments  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
-    cli_usage as _cli_usage,
     mcp_server_info,
     mcp_tools,
 )
+from tmcp_runtime.api.cli import parse_cli_arguments as _parse_cli_arguments  # noqa: E402
 from tmcp_runtime.safety import (  # noqa: E402
     redact_json_value,
     redact_path,
@@ -1107,115 +1111,29 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     raise ValueError(f"Unknown TMCP tool: {name}")
 
 
-def _result(request_id: Any, result: dict[str, Any]) -> None:
-    write_message(
-        sys.stdout.buffer, {"jsonrpc": "2.0", "id": request_id, "result": result}
-    )
-
-
-def _error(request_id: Any, code: int, message: str) -> None:
-    write_message(
-        sys.stdout.buffer,
-        {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "error": {"code": code, "message": message},
-        },
-    )
-
-
-def _tool_result(payload: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "content": [
-            {"type": "text", "text": json.dumps(payload, indent=2, sort_keys=True)}
-        ],
-        "structuredContent": payload,
-        "isError": not bool(payload.get("ok", True)),
-    }
-
-
 def _handle(request: dict[str, Any]) -> None:
-    request_id = request.get("id")
-    method = request.get("method")
-    params = request.get("params") or {}
-    if method == "initialize":
-        _result(
-            request_id,
-            {
-                "protocolVersion": params.get("protocolVersion", "2024-11-05"),
-                "serverInfo": mcp_server_info(),
-                "capabilities": {"tools": {}},
-            },
-        )
-        return
-    if method == "tools/list":
-        _result(
-            request_id,
-            {
-                "tools": mcp_tools(),
-            },
-        )
-        return
-    if method == "tools/call":
-        name = str(params.get("name") or "")
-        arguments = params.get("arguments", {})
-        if not isinstance(arguments, dict):
-            _error(request_id, -32602, "Tool arguments must be an object.")
-            return
-        try:
-            _result(request_id, _tool_result(_call_tool(name, arguments)))
-        except Exception as exc:
-            _error(request_id, -32000, str(exc))
-        return
-    if method in {"notifications/initialized", "ping"}:
-        if request_id is not None:
-            _result(request_id, {})
-        return
-    if method in {"resources/list", "prompts/list"}:
-        key = "resources" if method == "resources/list" else "prompts"
-        _result(request_id, {key: []})
-        return
-    if request_id is not None:
-        _error(request_id, -32601, f"Unsupported method: {method}")
+    response = _runtime_handle_message(
+        request,
+        call_tool=_call_tool,
+        server_info=mcp_server_info,
+        tools=mcp_tools,
+    )
+    if response is not None:
+        _runtime_write_message(sys.stdout.buffer, response)
 
 
 def _run_mcp_stdio() -> None:
-    while True:
-        message = read_message(sys.stdin.buffer)
-        if message is None:
-            break
-        _handle(message)
+    _runtime_run_mcp_stdio(
+        sys.stdin.buffer,
+        sys.stdout.buffer,
+        call_tool=_call_tool,
+        server_info=mcp_server_info,
+        tools=mcp_tools,
+    )
 
 
 def _run_cli(argv: list[str]) -> int:
-    try:
-        command, arguments, compact = _parse_cli_arguments(argv)
-        if command == "help":
-            print(_cli_usage())
-            return 0
-        if command == "list-tools":
-            payload: dict[str, Any] = {
-                "ok": True,
-                "schema": "tmcp-cli-tools-v0.1",
-                "tools": mcp_tools(),
-            }
-        else:
-            payload = _call_tool(command, arguments)
-        print(
-            json.dumps(
-                payload,
-                separators=(",", ":") if compact else None,
-                indent=None if compact else 2,
-                sort_keys=True,
-            )
-        )
-        return 0 if bool(payload.get("ok", True)) else 1
-    except Exception as exc:
-        print(
-            json.dumps({"ok": False, "error": str(exc)}, indent=2, sort_keys=True),
-            file=sys.stderr,
-        )
-        return 2
+    return _runtime_run_cli(argv, call_tool=_call_tool)
 
 
 def main() -> None:
