@@ -144,6 +144,15 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                         "objective": "run a repo behavior sweep",
                     },
                 )
+                invalid_policy_packet = self.server._call_tool(
+                    "tmcp_compose_packet",
+                    {
+                        "source_path": str(source),
+                        "project_path": str(source),
+                        "objective": "run a repo behavior sweep",
+                        "cache_policy": "globla",
+                    },
+                )
                 opted_in_packet = self.server._call_tool(
                     "tmcp_compose_packet",
                     {
@@ -162,11 +171,30 @@ class TmcpCacheHardeningTests(unittest.TestCase):
             "canonical spreadsheet",
             " ".join(default_packet["active_instructions"]).lower(),
         )
+        self.assertEqual(invalid_policy_packet["global_cache"]["cache_policy"], "none")
+        self.assertEqual(invalid_policy_packet["global_cache"]["promoted_graph_count"], 0)
+        self.assertNotIn(
+            "canonical spreadsheet",
+            " ".join(invalid_policy_packet["active_instructions"]).lower(),
+        )
         self.assertGreaterEqual(opted_in_packet["global_cache"]["promoted_graph_count"], 1)
         self.assertIn(
             "canonical spreadsheet",
             " ".join(opted_in_packet["active_instructions"]).lower(),
         )
+
+    def test_unknown_cache_policy_does_not_read_global_artifacts(self) -> None:
+        with patch.object(self.server, "_safe_global_cache_entries") as entries:
+            graphs, graph_warnings = self.server._load_global_promoted_graphs(
+                "globla"
+            )
+            receipts, receipt_warnings = self.server._load_recent_receipts("globla")
+
+        entries.assert_not_called()
+        self.assertEqual(graphs, [])
+        self.assertEqual(graph_warnings, [])
+        self.assertEqual(receipts, [])
+        self.assertEqual(receipt_warnings, [])
 
     def test_global_cache_rejects_deeply_nested_json_without_composition_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

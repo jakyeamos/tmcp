@@ -39,6 +39,7 @@ REQUIRED_FILES = (
     "tmcp_runtime/domain/harvest_labels.py",
     "tmcp_runtime/domain/harvest_nodes.py",
     "tmcp_runtime/domain/packets.py",
+    "tmcp_runtime/domain/receipts.py",
     "tmcp_runtime/domain/recompile.py",
     "tmcp_runtime/domain/review_evidence.py",
     "tmcp_runtime/domain/review_profiles.py",

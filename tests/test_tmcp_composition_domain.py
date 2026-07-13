@@ -12,6 +12,12 @@ def _node_signal_text(node: dict[str, object]) -> str:
 
 
 class CompositionDomainTests(unittest.TestCase):
+    def test_cache_policy_requires_explicit_global_opt_in(self) -> None:
+        self.assertEqual(composition.normalize_cache_policy("global"), "global")
+        for value in (None, "globla", " global", True):
+            with self.subTest(value=value):
+                self.assertEqual(composition.normalize_cache_policy(value), "none")
+
     def test_ui_classifiers_preserve_signal_boundaries_and_astro_support(self) -> None:
         self.assertTrue(composition.is_uiish_text("Design a responsive frontend dashboard."))
         self.assertFalse(composition.is_uiish_text("Build a guide for the API service."))
@@ -534,7 +540,6 @@ class CompositionDomainTests(unittest.TestCase):
         def build(objective: str) -> dict[str, object]:
             return packets.build_composed_packet(
                 composed_packet_schema="tmcp-composed-packet-v0.1",
-                receipt_schema="tmcp-run-receipt-v0.1",
                 objective=objective,
                 project_path="/project",
                 phase="implementation",

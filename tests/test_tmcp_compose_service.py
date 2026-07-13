@@ -165,6 +165,30 @@ class TmcpComposeServiceTests(unittest.TestCase):
             " ".join(injected["active_instructions"]).lower(),
         )
 
+    def test_unknown_cache_policy_discards_injected_cache_inputs(self) -> None:
+        packet = compose_packet_from_source_nodes(
+            {
+                "objective": "Run a repo behavior sweep",
+                "project_path": "[REDACTED:path]",
+                "phase": "start",
+                "cache_policy": "globla",
+            },
+            source_nodes=[],
+            global_graphs=[self._global_graph()],
+            receipts=[{"packet_id": "packet-1"}],
+            cache_warnings=["cache warning"],
+            cache_home="[REDACTED:path]",
+        )
+
+        self.assertEqual(packet["global_cache"]["cache_policy"], "none")
+        self.assertEqual(packet["global_cache"]["promoted_graph_count"], 0)
+        self.assertEqual(packet["global_cache"]["receipt_count"], 0)
+        self.assertEqual(packet["global_cache"]["warnings"], [])
+        self.assertNotIn(
+            "canonical spreadsheet",
+            " ".join(packet["active_instructions"]).lower(),
+        )
+
     def test_active_instruction_projection_and_enrichment_dedupe(self) -> None:
         rich_node = self._source_node(
             "guides/needed.md",

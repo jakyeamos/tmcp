@@ -17,6 +17,12 @@ from .routes import composition_route_boost, derive_task_identity
 Node = dict[str, Any]
 NodeSignalText = Callable[[Node], str]
 
+
+def normalize_cache_policy(value: object) -> str:
+    """Allow shared cache input only through the explicit global opt-in."""
+
+    return "global" if value == "global" else "none"
+
 UI_SIGNAL_TERMS = (
     "ui",
     "ux",

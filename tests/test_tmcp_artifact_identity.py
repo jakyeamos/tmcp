@@ -5,6 +5,8 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
 from tmcp_runtime.storage import artifact_persistence_available
@@ -68,6 +70,32 @@ class TmcpArtifactIdentityTests(unittest.TestCase):
             self.assertNotIn(packet_id, path.name)
             self.assertNotIn(packet_id, content)
             self.assertNotIn(packet_id, json.dumps(result))
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
+    def test_receipt_uses_a_full_uuid_nonce(self) -> None:
+        nonce = "a" * 32
+        with tempfile.TemporaryDirectory() as tmp:
+            tmcp_home = Path(tmp) / "tmcp-home"
+            original_home = getattr(self.server, "TMCP_HOME", None)
+            setattr(self.server, "TMCP_HOME", tmcp_home)
+            try:
+                with patch.object(
+                    self.server.uuid,
+                    "uuid4",
+                    return_value=SimpleNamespace(hex=nonce),
+                ):
+                    result = self.server._record_receipt(
+                        {"packet_id": "packet-123", "outcome": "passed"}
+                    )
+            finally:
+                setattr(self.server, "TMCP_HOME", original_home)
+
+            receipt_path = Path(result["artifact_paths"]["receipt_json"])
+
+        self.assertTrue(receipt_path.name.endswith(f"-{nonce}.json"))
 
     @unittest.skipUnless(
         artifact_persistence_available(),

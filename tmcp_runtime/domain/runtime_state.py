@@ -5,7 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from tmcp_runtime.domain.composition import contextual_atoms_and_gates
+from tmcp_runtime.domain.composition import (
+    contextual_atoms_and_gates,
+    normalize_cache_policy,
+)
 from tmcp_runtime.domain.families import (
     runtime_family_packet_delta,
     runtime_family_seed_context,
@@ -36,7 +39,7 @@ def derive_runtime_state(
     if not objective:
         raise ValueError("tmcp_runtime_next requires objective.")
     phase = str(arguments.get("current_phase") or "start")
-    cache_policy = str(arguments.get("cache_policy") or "none")
+    cache_policy = normalize_cache_policy(arguments.get("cache_policy"))
     latest_user_message = str(arguments.get("latest_user_message") or "")
     files_changed = string_list(arguments.get("files_changed"))
     failures = string_list(arguments.get("failures"))

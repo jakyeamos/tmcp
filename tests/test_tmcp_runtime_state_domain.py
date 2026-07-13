@@ -114,6 +114,19 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
         )
         self.assertEqual(state["validated_changes"], [])
 
+    def test_unknown_cache_policy_discards_cache_warnings(self) -> None:
+        state = derive_runtime_state(
+            {
+                "objective": "Implement onboarding",
+                "cache_policy": "globla",
+            },
+            source_nodes=[],
+            cache_warnings=["untrusted global cache warning"],
+        )
+
+        self.assertEqual(state["cache_policy"], "none")
+        self.assertNotIn("untrusted global cache warning", state["warnings"])
+
     def test_previous_packet_identity_is_used_when_no_explicit_identity_is_given(self) -> None:
         previous_identity = derive_task_identity("Debug the failing login test")
         state = derive_runtime_state(

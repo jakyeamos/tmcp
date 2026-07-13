@@ -848,6 +848,9 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
                         "outcome": "passed",
                     },
                 )
+                cached_receipts, cache_warnings = self.server._load_recent_receipts(
+                    "global"
+                )
             finally:
                 setattr(self.server, "TMCP_HOME", original_home)
 
@@ -859,6 +862,23 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         self.assertEqual(receipt["packet_id"], "packet-123")
         self.assertEqual(receipt["outcome"], "passed")
         self.assertEqual(receipt["trust"], "advisory_untrusted")
+        self.assertEqual(cache_warnings, [])
+        self.assertEqual(len(cached_receipts), 1)
+        self.assertEqual(
+            {
+                key: value
+                for key, value in cached_receipts[0].items()
+                if key != "_global_cache_path"
+            },
+            {
+                "schema": "tmcp-run-receipt-v0.1",
+                "packet_id": "packet-123",
+                "trust": "advisory_untrusted",
+            },
+        )
+        self.assertTrue(
+            str(cached_receipts[0]["_global_cache_path"]).endswith(receipt_path.name)
+        )
 
     def test_existing_tools_include_composed_packet_when_requested(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

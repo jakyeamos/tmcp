@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
 from tmcp_runtime.storage import artifact_persistence_available
@@ -163,6 +164,30 @@ class TmcpArtifactWorkflowTests(unittest.TestCase):
         self.assertNotIn(secret, receipt_path.name)
         self.assertIn("[REDACTED:", receipt_text)
         self.assertGreater(result["redaction_summary"].get("openai_key", 0), 0)
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
+    def test_receipt_directory_uses_the_receipt_timestamp_month(self) -> None:
+        created_at = "2026-08-01T00:00:00Z"
+        with tempfile.TemporaryDirectory() as tmp:
+            tmcp_home = Path(tmp) / "tmcp-home"
+            original_home = getattr(self.server, "TMCP_HOME", None)
+            setattr(self.server, "TMCP_HOME", tmcp_home)
+            try:
+                with patch.object(self.server, "_now_iso", return_value=created_at):
+                    result = self.server._record_receipt(
+                        {"packet_id": "packet-123", "outcome": "passed"}
+                    )
+            finally:
+                setattr(self.server, "TMCP_HOME", original_home)
+
+            receipt_path = Path(result["artifact_paths"]["receipt_json"])
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(receipt_path.parent.name, "2026-08")
+        self.assertEqual(receipt["created_at"], created_at)
 
     def test_global_cache_rejects_legacy_payloads_and_skips_symlinks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

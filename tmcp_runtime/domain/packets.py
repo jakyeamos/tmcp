@@ -6,6 +6,7 @@ import hashlib
 import json
 from typing import Any
 
+from .receipts import build_receipt_template
 from .routes import ROUTE_CATALOG_VERSION
 
 
@@ -226,7 +227,6 @@ def render_composed_packet_markdown(packet: dict[str, Any]) -> str:
 def build_composed_packet(
     *,
     composed_packet_schema: str,
-    receipt_schema: str,
     objective: str,
     project_path: str,
     phase: str,
@@ -324,16 +324,10 @@ def build_composed_packet(
         "conflicts": conflicts,
         "evidence_citations": evidence_citations,
         "global_cache": global_cache,
-        "receipt_template": {
-            "schema": receipt_schema,
-            "packet_id": packet_id,
-            "activated_atoms": normalized_atoms,
-            "ignored_atoms": [],
-            "commands_run": [],
-            "verification_results": [],
-            "user_overrides": [],
-            "outcome": "",
-        },
+        "receipt_template": build_receipt_template(
+            packet_id=packet_id,
+            activated_atoms=normalized_atoms,
+        ),
         "safety": {
             "harvested_text_trust": "untrusted_evidence_only",
             "does_not_execute_tools": True,

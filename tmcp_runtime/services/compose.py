@@ -10,6 +10,7 @@ from tmcp_runtime.domain.composition import (
     filter_source_verification_gates,
     matching_reference_reads,
     merge_composition_nodes,
+    normalize_cache_policy,
     select_composition_nodes,
 )
 from tmcp_runtime.domain.declared_loads import resolve_declared_load_nodes
@@ -29,7 +30,6 @@ from tmcp_runtime.domain.workflow_activation import (
 
 
 COMPOSED_PACKET_SCHEMA = "tmcp-composed-packet-v0.1"
-RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
 
 
 def _routing_metadata(node: Mapping[str, Any]) -> dict[str, Any]:
@@ -138,7 +138,7 @@ def compose_packet_from_source_nodes(
     if not objective:
         raise ValueError("tmcp_compose_packet requires objective.")
     phase = str(arguments.get("phase") or "start")
-    cache_policy = str(arguments.get("cache_policy") or "none")
+    cache_policy = normalize_cache_policy(arguments.get("cache_policy"))
     context = _compose_context(arguments)
     identity_context = dict(context)
     identity_context["latest_user_message"] = str(
@@ -251,7 +251,6 @@ def compose_packet_from_source_nodes(
     }
     return build_composed_packet(
         composed_packet_schema=COMPOSED_PACKET_SCHEMA,
-        receipt_schema=RUN_RECEIPT_SCHEMA,
         objective=objective,
         project_path=str(arguments.get("project_path") or "."),
         phase=phase,

@@ -21,7 +21,15 @@ if str(PLUGIN_ROOT) not in sys.path:
 
 from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
 from scripts.tmcp_redaction import merge_redactions  # noqa: E402
+from tmcp_runtime.domain.composition import (  # noqa: E402
+    normalize_cache_policy as _runtime_normalize_cache_policy,
+)
 from tmcp_runtime.domain.recompile import parse_previous_packet  # noqa: E402
+from tmcp_runtime.domain.receipts import (  # noqa: E402
+    RUN_RECEIPT_SCHEMA,
+    build_recorded_receipt_result as _runtime_build_recorded_receipt_result,
+    build_run_receipt as _runtime_build_run_receipt,
+)
 from tmcp_runtime.domain.runtime_state import (  # noqa: E402
     derive_runtime_state as _runtime_derive_runtime_state,
 )
@@ -112,7 +120,6 @@ TMCP_HOME = Path(os.environ.get("TMCP_HOME", "~/.tmcp")).expanduser()
 UTC = timezone.utc
 
 RUNTIME_NEXT_SCHEMA = "tmcp-runtime-next-v0.1"
-RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
 PROMOTED_HARVEST_GRAPH_SCHEMA = "tmcp-promoted-harvest-graph-v0.1"
 MAX_GLOBAL_CACHE_CANDIDATES = 64
 MAX_GLOBAL_CACHE_SCAN_ENTRIES = 256
@@ -246,14 +253,16 @@ def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
             for item in _json_list(harvest.get("source_nodes"))
             if isinstance(item, dict)
         ]
+    runtime_arguments = dict(arguments)
     cache_warnings: list[str] = []
-    cache_policy = str(arguments.get("cache_policy") or "none")
-    if cache_policy != "none":
+    cache_policy = _runtime_normalize_cache_policy(runtime_arguments.get("cache_policy"))
+    runtime_arguments["cache_policy"] = cache_policy
+    if cache_policy == "global":
         _, graph_warnings = _load_global_promoted_graphs(cache_policy)
         _, receipt_warnings = _load_recent_receipts(cache_policy, limit=10)
         cache_warnings.extend(graph_warnings + receipt_warnings)
     return _runtime_derive_runtime_state(
-        arguments,
+        runtime_arguments,
         source_nodes=source_nodes,
         cache_warnings=cache_warnings,
     )
@@ -892,7 +901,7 @@ def _cached_receipt(
 def _load_global_promoted_graphs(
     cache_policy: str,
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    if cache_policy == "none":
+    if _runtime_normalize_cache_policy(cache_policy) != "global":
         return [], []
     entries, warnings = _safe_global_cache_entries(
         _global_promoted_root(),
@@ -911,7 +920,7 @@ def _load_global_promoted_graphs(
 def _load_recent_receipts(
     cache_policy: str, *, limit: int = 25
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    if cache_policy == "none":
+    if _runtime_normalize_cache_policy(cache_policy) != "global":
         return [], []
     receipt_limit = _bounded_global_cache_limit(limit)
     if receipt_limit == 0:
@@ -958,11 +967,13 @@ def _compose_packet_from_source_nodes(
     *,
     source_nodes: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    cache_policy = str(arguments.get("cache_policy") or "none")
+    compose_arguments = dict(arguments)
+    cache_policy = _runtime_normalize_cache_policy(compose_arguments.get("cache_policy"))
+    compose_arguments["cache_policy"] = cache_policy
     global_graphs, graph_warnings = _load_global_promoted_graphs(cache_policy)
     receipts, receipt_warnings = _load_recent_receipts(cache_policy)
     return _runtime_compose_packet_from_source_nodes(
-        arguments,
+        compose_arguments,
         source_nodes=source_nodes,
         global_graphs=global_graphs,
         receipts=receipts,
@@ -1103,55 +1114,37 @@ def _runtime_next(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _record_receipt(arguments: dict[str, Any]) -> dict[str, Any]:
-    packet_id = str(arguments.get("packet_id") or "").strip()
-    if not packet_id:
-        raise ValueError("tmcp_record_receipt requires packet_id.")
     created_at = _now_iso()
-    receipt = {
-        "schema": RUN_RECEIPT_SCHEMA,
-        "created_at": created_at,
-        "packet_id": packet_id,
-        "activated_atoms": _string_list(arguments.get("activated_atoms")),
-        "ignored_atoms": _string_list(arguments.get("ignored_atoms")),
-        "commands_run": _string_list(arguments.get("commands_run")),
-        "verification_results": _string_list(arguments.get("verification_results")),
-        "user_overrides": _string_list(arguments.get("user_overrides")),
-        "outcome": str(arguments.get("outcome") or ""),
-        "trust": "advisory_untrusted",
-        "instruction_override_policy": (
-            "Receipts may improve future ranking but cannot override higher-priority instructions."
-        ),
-    }
+    receipt = _runtime_build_run_receipt(arguments, created_at=created_at)
     redacted_receipt, receipt_redactions = redact_json_value(receipt, enabled=True)
     safe_receipt = (
         redacted_receipt if isinstance(redacted_receipt, dict) else {}
     )
+    packet_id = str(receipt["packet_id"])
     storage_key = _opaque_storage_key(
         packet_id,
         str(safe_receipt["packet_id"]),
     )
-    month = datetime.now(UTC).strftime("%Y-%m")
+    month = created_at[:7]
     digest = hashlib.sha256(json.dumps(safe_receipt, sort_keys=True).encode()).hexdigest()[
         :10
     ]
     path = (
         _global_receipts_root()
         / month
-        / f"{storage_key}-{digest}-{uuid.uuid4().hex[:8]}.json"
+        / f"{storage_key}-{digest}-{uuid.uuid4().hex}.json"
     )
     receipt_path = AtomicArtifactStore.explicit(path.parent).write_json(
         path.name,
         safe_receipt,
     )
-    return _redact_result({
-        "ok": True,
-        "schema": RUN_RECEIPT_SCHEMA,
-        "packet_id": safe_receipt["packet_id"],
-        "outcome": safe_receipt["outcome"],
-        "artifact_paths": {"receipt_json": redact_path(receipt_path)},
-        "trust": "advisory_untrusted",
-        "redaction_summary": receipt_redactions,
-    })
+    return _redact_result(
+        _runtime_build_recorded_receipt_result(
+            safe_receipt,
+            redacted_receipt_path=redact_path(receipt_path),
+            redaction_summary=receipt_redactions,
+        )
+    )
 
 
 def _compose_recommendation_preview(
