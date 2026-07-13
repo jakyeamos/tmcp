@@ -86,12 +86,12 @@ def workflow_has_release_tags(plugin_root: Path) -> list[str]:
     try:
         text = workflow.read_text(encoding="utf-8")
     except FileNotFoundError:
-        return [f"missing workflow file: {WORKFLOW_PATH}"]
+        return [f"missing workflow file: {WORKFLOW_CONTRACT_PATH}"]
     errors: list[str] = []
     for pattern in REQUIRED_RELEASE_TAG_PATTERNS:
         if pattern not in text:
             errors.append(
-                f"{WORKFLOW_PATH} does not include tag trigger pattern {pattern!r}"
+                f"{WORKFLOW_CONTRACT_PATH} does not include tag trigger pattern {pattern!r}"
             )
     return errors
 
@@ -101,11 +101,13 @@ def workflow_has_release_evidence_gate(plugin_root: Path) -> list[str]:
     try:
         text = workflow.read_text(encoding="utf-8")
     except FileNotFoundError:
-        return [f"missing workflow file: {WORKFLOW_PATH}"]
+        return [f"missing workflow file: {WORKFLOW_CONTRACT_PATH}"]
     lines = text.splitlines()
     errors: list[str] = []
     if not any(line.strip() == "pull_request:" for line in lines):
-        errors.append(f"{WORKFLOW_PATH} must verify release evidence on pull requests")
+        errors.append(
+            f"{WORKFLOW_CONTRACT_PATH} must verify release evidence on pull requests"
+        )
     step_index = next(
         (
             index
@@ -116,7 +118,7 @@ def workflow_has_release_evidence_gate(plugin_root: Path) -> list[str]:
     )
     if step_index is None:
         return errors + [
-            f"{WORKFLOW_PATH} must define an {REQUIRED_RELEASE_EVIDENCE_STEP_NAME!r} step"
+            f"{WORKFLOW_CONTRACT_PATH} must define an {REQUIRED_RELEASE_EVIDENCE_STEP_NAME!r} step"
         ]
     next_step = next(
         (
@@ -131,11 +133,11 @@ def workflow_has_release_evidence_gate(plugin_root: Path) -> list[str]:
         line.strip() for line in step_lines
     }:
         errors.append(
-            f"{WORKFLOW_PATH} must run {REQUIRED_RELEASE_EVIDENCE_COMMAND!r}"
+            f"{WORKFLOW_CONTRACT_PATH} must run {REQUIRED_RELEASE_EVIDENCE_COMMAND!r}"
         )
     if any(line.strip().startswith("if:") for line in step_lines):
         errors.append(
-            f"{WORKFLOW_PATH} must run active release evidence on pull requests"
+            f"{WORKFLOW_CONTRACT_PATH} must run active release evidence on pull requests"
         )
     return errors
 

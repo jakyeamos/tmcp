@@ -116,6 +116,6 @@ def read_harvest_text(
         )
     if b"\x00" in data[:2048]:
         return None, f"Skipped likely binary file: {candidate.display_path}"
-    text = data.decode("utf-8", errors="replace")
+    text = data.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
     safe_text, redactions = redact_sensitive_text(text, enabled=redact_sensitive)
     return SafeText(text=safe_text, redactions=redactions), None

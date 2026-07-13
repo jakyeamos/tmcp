@@ -50,7 +50,7 @@ class ReceiptServiceTests(unittest.TestCase):
                 storage_key=storage_key,
                 build_path=build_path,
                 write_receipt=write_receipt,
-                present_path=lambda path: f"shown:{path}",
+                present_path=lambda path: f"shown:{Path(path).as_posix()}",
                 build_result=lambda safe, path, redactions: {
                     "safe": safe,
                     "path": path,

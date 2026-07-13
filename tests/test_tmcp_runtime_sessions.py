@@ -93,7 +93,7 @@ class RuntimeSessionServiceTests(unittest.TestCase):
         )
 
         self.assertEqual(build_arguments["previous_packet_id"], "old-packet")
-        self.assertEqual(build_arguments["project_path"], "/project")
+        self.assertEqual(build_arguments["project_path"], str(store.project_root))
         self.assertEqual(recompile_arguments["previous_packet"]["packet_id"], "old-packet")
         self.assertEqual(result["session"], {"revision": 2, "packet_id": "new-packet"})
         self.assertEqual(store.update_arguments["now"], "2026-07-13T12:00:00Z")

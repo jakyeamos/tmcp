@@ -51,7 +51,7 @@ class ArtifactPersistenceServiceTests(unittest.TestCase):
             ArtifactPersistenceContext(
                 redact_json=redact_json,
                 redact_text=lambda content: f"safe:{content}",
-                present_path=lambda path: f"shown:{path}",
+                present_path=lambda path: f"shown:{Path(path).as_posix()}",
                 write_bundle=write_bundle,
                 open_store=lambda _output_dir: _Store(),
             )
@@ -88,7 +88,7 @@ class ArtifactPersistenceServiceTests(unittest.TestCase):
             ArtifactPersistenceContext(
                 redact_json=lambda payload: payload,
                 redact_text=lambda content: content.upper(),
-                present_path=lambda path: str(path),
+                present_path=lambda path: Path(path).as_posix(),
                 write_bundle=lambda *_args: self.fail("bundle callback was used"),
                 open_store=lambda output_dir: store,
             )
@@ -116,7 +116,7 @@ class ArtifactPersistenceServiceTests(unittest.TestCase):
             ArtifactPersistenceContext(
                 redact_json=lambda payload: payload,
                 redact_text=lambda content: content,
-                present_path=lambda path: str(path),
+                present_path=lambda path: Path(path).as_posix(),
                 write_bundle=lambda output_dir, json_artifacts, text_artifacts: {
                     name: output_dir / name
                     for name in (*json_artifacts, *text_artifacts)
@@ -140,7 +140,7 @@ class ArtifactPersistenceServiceTests(unittest.TestCase):
             ArtifactPersistenceContext(
                 redact_json=lambda payload: payload,
                 redact_text=lambda content: content,
-                present_path=lambda path: str(path),
+                present_path=lambda path: Path(path).as_posix(),
                 write_bundle=lambda *_args: self.fail("bundle callback was used"),
                 open_store=lambda _output_dir: self.fail("store callback was used"),
             )
