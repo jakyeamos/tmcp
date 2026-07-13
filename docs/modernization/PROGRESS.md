@@ -335,7 +335,8 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 - The post-cutover hosted matrix is green in PR run `29285497867`, final
   evidence-pointer rerun `29285802846`, and the post-review transport/package
   fix run `29287154661`; the release evidence record now binds to the
-  code-bearing `1fd10f4` commit.
+  code-bearing `1fd10f4` commit. The resulting docs-only rerun `29287368329`
+  also passed all six jobs.
 - The fresh adversarial review closed malformed MCP framing/params and
   notification-response defects, and the 0.5.0 compatibility note is now in
   release archives. Two quality gates remain explicit P2 follow-ups: `ruff

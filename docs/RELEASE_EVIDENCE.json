@@ -1,7 +1,7 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.0",
-  "checked_at": "2026-07-13T21:41:48Z",
+  "checked_at": "2026-07-13T21:45:38Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
@@ -12,7 +12,7 @@
     "run_id": 29287154661,
     "url": "https://github.com/jakyeamos/tmcp/actions/runs/29287154661",
     "head_sha": "1fd10f42cdd521354578f4307b1f7a3ec3dddab5",
-    "notes": "Successful post-review 0.5.0 PR verify.yml run for the code-bearing commit; this evidence record update will trigger a docs-only rerun, while the machine pointer remains bound to the reviewed code-bearing SHA."
+    "notes": "Successful post-review 0.5.0 PR verify.yml run for the code-bearing commit; docs-only evidence rerun 29287368329 also passed, while the machine pointer remains bound to the reviewed code-bearing SHA."
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.5.0.tar.gz",
