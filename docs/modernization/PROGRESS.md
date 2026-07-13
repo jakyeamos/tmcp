@@ -4,8 +4,9 @@
 
 **Phase:** Milestone 3 adapter thinning and security hardening. Receipt
 construction/presentation, artifact manifests, semantic cache validation,
-fail-closed cache opt-in, storage cache ingestion, CLI parsing, and harvest
-argument projection are complete; map the next bounded read-only boundary.
+fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
+argument projection, and adversarial safety hardening are
+complete; map the next bounded read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -98,8 +99,9 @@ changing the public receipt schema.
 - Own public version metadata, MCP initialize data, tool schemas, CLI aliases,
   defaults, and help aliases in `tmcp_runtime/api/registry.py`.
 - Keep CLI token parsing in `tmcp_runtime/api/cli.py` as a pure API boundary;
-  the adapter must not regain argument-decoding or schema-coercion ownership.
-- Own harvest root policy, traversal, bounded reads, redaction, and safe
+  reject options outside the selected tool schema, and keep the adapter from
+  regaining argument-decoding or schema-coercion ownership.
+- Own harvest root policy, bounded traversal/read budgets, redaction, and safe
   provenance display in `tmcp_runtime/safety`; own harvest bundle persistence
   in `tmcp_runtime/storage`.
 - Keep optional AIOS review explicit and read-only; automatic review stays in
@@ -330,15 +332,14 @@ changing the public receipt schema.
   service; `f34862c` validates cached receipt metadata; `390a2ec` moves cache
   ingestion into read-only storage. Adapter root/write authority is unchanged.
   The full local suite has 350 tests with three expected skips; boundary reviews pass.
-- `a375cc0` extracts CLI alias dispatch, positional/flag parsing, value decoding,
-  repeated-option handling, and schema-array normalization into
-  `tmcp_runtime/api/cli.py`. The adapter retains transport serialization and
-  `_parse_cli_arguments` compatibility; the full suite has 353 tests with three
-  expected skips, and focused boundary reviews found no P0–P3 issues.
-- `8a0707c` centralizes the two adapter harvest-argument projections in
-  `services/harvest.py`, preserving source precedence while forcing preview-only
-  writes; the full suite has 357 tests with three expected skips and the focused
-  boundary review found no P0–P2 issues.
+- `a375cc0` extracts pure CLI parsing into `tmcp_runtime/api/cli.py`, and
+  `8a0707c` centralizes shared read-only harvest-argument projection in
+  `services/harvest.py`, preserving aliases, source precedence, and preview-only
+  writes. `f1e1d4f` closes the first adversarial findings: CLI options outside
+  the selected schema now fail explicitly, harvest traversal has default
+  scan-entry/total-byte budgets with warnings, and safe reads fail
+  closed when no no-follow open primitive exists. The full suite has 360 tests
+  with three expected skips; the release smoke uses only explain options.
 
 ## Blockers and risks
 
@@ -358,11 +359,12 @@ changing the public receipt schema.
   v0.1 stays permissive and cache still orders by safe file mtime. Require
   canonical RFC3339 grammar before timestamps gain ranking/retention meaning.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter. Artifact planning, cache ingestion, CLI parsing, and harvest
-  argument projection are extracted; map the next bounded cutover without moving
-  root, write, or transport authority.
+  transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
+  argument projection, and first-pass safety hardening are extracted; map the
+  next bounded cutover without moving root, write, or transport authority.
 
 ## Next step
 
-Map the next bounded adapter boundary, preserving storage-owned cache safety and
-adapter-owned roots, writes, redaction, sessions, and transport.
+Map the next bounded adapter boundary after the hardening pass, preserving
+storage-owned cache safety and adapter-owned roots, writes, redaction, sessions,
+and transport.

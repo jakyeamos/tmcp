@@ -7,7 +7,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Map the next authority-limited adapter extraction after the
-CLI parser, harvest-argument, and global-cache reader cutovers.
+CLI parser, harvest-argument, global-cache reader, and adversarial safety
+hardening cutovers.
 
 ## Milestone
 
@@ -15,7 +16,8 @@ CLI parser, harvest-argument, and global-cache reader cutovers.
 **Status:** Milestone 3 adapter thinning and security hardening: pure domain,
 service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
-boundaries complete; map the next read-only boundary.
+  boundaries plus CLI/harvest safety hardening complete; map the next read-only
+  boundary.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -224,15 +226,13 @@ boundaries complete; map the next read-only boundary.
   service; `f34862c` validates cached receipt metadata; `390a2ec` moves bounded,
   redacted, TOCTOU-safe cache reads into storage. Adapter roots/writes remain
   authority boundaries; 350 local tests pass with three expected skips.
-- `a375cc0` moves CLI alias dispatch, positional/flag parsing, value decoding,
-  repeated-option handling, and schema-array normalization into
-  `tmcp_runtime/api/cli.py`; the adapter retains transport output and a
-  compatibility parser alias. The full suite has 353 tests with three expected
-  skips; focused security and architecture reviews found no P0–P3 issues.
-- `8a0707c` moves shared read-only harvest-argument projection into
-  `tmcp_runtime/services/harvest.py`, preserving source precedence and forcing
-  `write_artifacts=False`; the full suite has 357 tests with three expected
-  skips and the focused boundary review found no P0–P2 issues.
+- `a375cc0` moves pure CLI parsing into `tmcp_runtime/api/cli.py`, and `8a0707c`
+  centralizes shared read-only harvest-argument projection in
+  `tmcp_runtime/services/harvest.py`, preserving aliases, source precedence,
+  and preview-only writes. `f1e1d4f` adds schema-aware unknown-option rejection,
+  default harvest scan-entry/total-byte budgets with warnings, and fail-closed
+  safe reads when no no-follow open primitive exists; the full suite has 360
+  tests with three expected skips.
 
 ## Workflow Notes
 
@@ -240,10 +240,12 @@ boundaries complete; map the next read-only boundary.
   reproducibility check before publication.
 - Quality Runner remains advisory-only; the prior QR plan is parked.
 - Preserve public MCP/CLI contracts through a versioned compatibility adapter.
-- Keep the CLI parser pure and API-owned; do not move filesystem, environment,
-  process, redaction, storage, or transport authority into `tmcp_runtime/api/cli.py`.
-- Keep harvest argument projection read-only and service-owned; roots, writes,
-  redaction, sessions, and transport remain adapter authority.
+- Keep the CLI parser pure and API-owned; reject options outside the selected
+  schema and do not move filesystem, environment, process, redaction, storage,
+  or transport authority into `tmcp_runtime/api/cli.py`.
+- Keep harvest argument projection read-only and service-owned, with bounded
+  scan/read budgets; roots, writes, redaction, sessions, and transport remain
+  adapter authority.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -407,11 +409,15 @@ boundaries complete; map the next read-only boundary.
 - 2026-07-13: `a375cc0` extracts pure CLI parsing into `tmcp_runtime/api/cli.py`,
   preserving aliases and argument semantics while leaving output, dispatch, and
   all side-effect authority in the adapter; `8a0707c` centralizes shared
-  read-only harvest-argument projection while preserving adapter authority.
+  read-only harvest-argument projection while preserving adapter authority;
+  `f1e1d4f` adds schema-aware unknown-option rejection, bounded harvest scan/read
+  budgets, and fail-closed safe-reader behavior for platforms without no-follow
+  open support.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the next bounded adapter boundary without weakening storage/cache authority.
+# Map the next bounded adapter boundary after safety hardening without weakening
+# storage/cache authority.
 ```
