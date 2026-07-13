@@ -9,7 +9,9 @@ storage, and output authority. Typed dispatch/public selection are
 registry-owned; the private CLI parser, AIOS subprocess, harvest-constant, and
 unused schema seams were deleted and their tests now target runtime owners.
 Remaining work is advanced-capability migration completion and Horizon 4 release
-hardening.
+hardening. The workflow now invokes the same complete runtime compile inventory
+used by extracted-package checks, and install verification requires every
+shipped runtime module.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -299,7 +301,10 @@ contract in memory, with current graph files preferred and no source mutation.
   summary migration reader with duplicate suppression. Full suite: 434 tests,
   three expected skips; `52f35ca` deletes private server compatibility seams and
   updates tests to target runtime owners directly. Focused suite: 66 tests, three
-  expected skips; Ruff is clean for the changed surface.
+  expected skips; Ruff is clean for the changed surface. `cae0563` centralizes
+  the release compile inventory across workflow and package checks and expands
+  install verification to all runtime modules; compile/install/contract checks
+  pass locally.
 
 ## Blockers and risks
 

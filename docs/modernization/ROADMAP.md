@@ -104,4 +104,6 @@ the adapter retains global roots, persistence gating, opaque identity, and cache
  projects legacy promoted summaries into the current graph contract without
  mutating source artifacts; current graph files take precedence when both
  formats exist. Remaining work is advanced-capability migration completion and
- Horizon 4 release hardening.
+ Horizon 4 release hardening. The release compile/install surface is now
+ centralized and the cross-platform workflow invokes the same inventory used
+ by package checks.

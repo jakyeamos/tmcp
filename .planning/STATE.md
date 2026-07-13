@@ -29,8 +29,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   explain assembly and evidence parsing are now runtime-owned; continue the
   thin-adapter deletion pass is complete for private CLI, AIOS subprocess,
   harvest-constant, and unused-schema seams; tests target runtime owners
-  directly. The first legacy promotion-summary reader is complete; continue
-  advanced-capability migration and release hardening.
+  directly. The release compile/install inventory now covers every runtime
+  module and is shared by the cross-platform workflow and package checks. The
+  first legacy promotion-summary reader is complete; continue advanced-
+  capability migration and release hardening.
 **Started:** 2026-07-10
 
 ## Active Phase
