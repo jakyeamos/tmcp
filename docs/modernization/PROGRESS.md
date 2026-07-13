@@ -4,9 +4,12 @@
 
 **Phase:** Milestone 3 adapter thinning and security hardening. Domain,
 service, storage, safety, evaluator, and transport cutovers are complete; the
-server imports runtime evaluator/harvest services while retaining compatibility
-aliases. Typed dispatch/public selection are registry-owned; remaining work is
-thin-adapter deletion and advanced-capability migration completion.
+server retains only the compatibility seams that still own source, cache,
+storage, and output authority. Typed dispatch/public selection are
+registry-owned; the private CLI parser, AIOS subprocess, harvest-constant, and
+unused schema seams were deleted and their tests now target runtime owners.
+Remaining work is advanced-capability migration completion and Horizon 4 release
+hardening.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -294,7 +297,9 @@ contract in memory, with current graph files preferred and no source mutation.
   runtime services, reducing direct domain ownership in the server. Full suite:
   429 tests, three expected skips; `a40476a` adds a read-only legacy promotion
   summary migration reader with duplicate suppression. Full suite: 434 tests,
-  three expected skips.
+  three expected skips; `52f35ca` deletes private server compatibility seams and
+  updates tests to target runtime owners directly. Focused suite: 66 tests, three
+  expected skips; Ruff is clean for the changed surface.
 
 ## Blockers and risks
 
@@ -324,5 +329,7 @@ contract in memory, with current graph files preferred and no source mutation.
 
 ## Next step
 
-Continue adapter convergence: finish the direct-domain ownership inventory,
-audit remaining legacy artifact formats, and begin Horizon 4 release hardening.
+Audit remaining legacy artifact formats, then run the Horizon 4 release gates:
+workflow compile inventory, full lint/type/test/package verification, and a
+fresh adversarial review before preparing the planned 0.5.0 compatibility
+process.

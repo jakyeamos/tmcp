@@ -27,8 +27,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   service over adapter callbacks; receipt recording is now runtime-owned over
   adapter callbacks; global-promotion manifest assembly is now runtime-owned;
   explain assembly and evidence parsing are now runtime-owned; continue the
-  thin-adapter deletion pass and migration-reader audit; the first legacy
-  promotion-summary reader is complete.
+  thin-adapter deletion pass is complete for private CLI, AIOS subprocess,
+  harvest-constant, and unused-schema seams; tests target runtime owners
+  directly. The first legacy promotion-summary reader is complete; continue
+  advanced-capability migration and release hardening.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -339,5 +341,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Audit remaining legacy artifact formats, then begin Horizon 4 release hardening.
+# Audit remaining legacy artifact formats, then run the Horizon 4 release gates.
 ```
