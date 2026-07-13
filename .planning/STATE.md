@@ -25,7 +25,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   runtime-state/recompile orchestration and project-local session lifecycle are
   now runtime-owned; generic artifact-bundle persistence is now a runtime
   service over adapter callbacks; receipt recording is now runtime-owned over
-  adapter callbacks; continue thinning global-promotion compatibility paths.
+  adapter callbacks; global-promotion manifest assembly is now runtime-owned;
+  continue the thin-adapter deletion pass and migration-reader work.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -37,7 +38,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   identity, clock, output selection, redaction, and transport remain intact;
   generic artifact-bundle persistence is runtime-owned through explicit storage
   and redaction callbacks, and receipt recording is runtime-owned through
-  explicit identity, path, redaction, and write callbacks.
+  explicit identity, path, redaction, and write callbacks; global-promotion
+  manifest assembly is runtime-owned while roots and persistence gating remain
+  adapter-owned.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -208,6 +211,10 @@ _(truncated for length)_
 - Keep receipt recording in `tmcp_runtime.services.receipts`; inject the clock,
   redaction, opaque identity, path creation, verified write, and public result
   callbacks while preserving adapter-owned seams.
+- Keep global-promotion manifest assembly in
+  `tmcp_runtime.services.global_promotion`; inject graph normalization,
+  redaction, timestamp, and plan-building callbacks while retaining global-root
+  selection, persistence gating, and cache authority in the adapter.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -323,5 +330,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Consolidate global-promotion artifact assembly, then delete obsolete server paths.
+# Delete obsolete server ownership, then add artifact/cache migration readers.
 ```

@@ -95,5 +95,7 @@ runtime service; the adapter supplies redaction, path presentation, and
 verified storage callbacks while retaining output-root selection and capability
 checks. Receipt recording now uses the same callback-driven runtime boundary
 while preserving adapter-owned clock, opaque identity, path, and write
-authority. The next major unit is to consolidate global-promotion artifact
-assembly and delete obsolete server paths.
+authority. Global-promotion manifest assembly now lives in a runtime service;
+the adapter retains global roots, persistence gating, opaque identity, and cache
+authority. The remaining Horizon 2 work is the thin-adapter deletion pass
+before Horizon 3 migration-reader work.

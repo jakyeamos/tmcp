@@ -6,7 +6,7 @@
 service, storage, safety, evaluator, and transport cutovers are complete; the
 server imports runtime evaluator/harvest services while retaining compatibility
 aliases. Typed dispatch/public selection are registry-owned; remaining work is
-global-promotion compatibility and obsolete server paths.
+thin-adapter deletion and advanced-capability migration readers.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -30,6 +30,9 @@ adapter supplies redaction, path presentation, and verified storage callbacks
 while retaining output-root selection and capability checks. Receipt recording
 now lives in `tmcp_runtime.services.receipts` with adapter callbacks for the
 clock, opaque identity, path creation, redaction, and verified write.
+Global-promotion manifest assembly now lives in
+`tmcp_runtime.services.global_promotion`; the adapter retains global roots,
+persistence gating, opaque identity, and cache authority.
 
 ## Decisions recorded
 
@@ -279,7 +282,9 @@ clock, opaque identity, path creation, redaction, and verified write.
   an explicit runtime service with adapter-owned redaction and verified-storage
   callbacks; `007d7ea` moves receipt recording behind the same explicit runtime
   service while preserving adapter-owned identity and path seams. Full suite:
-  423 tests, three expected skips.
+  423 tests, three expected skips; `ac70786` moves global-promotion manifest
+  assembly behind an explicit runtime service while preserving global-root and
+  persistence authority. Full suite: 426 tests, three expected skips.
 
 ## Blockers and risks
 
@@ -301,14 +306,13 @@ clock, opaque identity, path creation, redaction, and verified write.
 - The legacy server and evaluator scripts remain broader than the target's thin
   compatibility adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, generic artifact-bundle
-  persistence, receipt recording, and evaluator persistence, packet scoring,
-  report, policy, rendering, and advisory boundaries are extracted;
-  compatibility scripts retain producer-specific global-promotion assembly,
-  output selection, and legacy evaluator, harvest-advisory, redaction, and AIOS
-  aliases.
+  persistence, receipt recording, global-promotion manifest assembly, and
+  evaluator persistence, packet scoring, report, policy, rendering, and advisory
+  boundaries are extracted; compatibility scripts retain producer-specific
+  output selection, cache/persistence gating, and legacy evaluator,
+  harvest-advisory, redaction, and AIOS aliases.
 
 ## Next step
 
-Continue adapter convergence: consolidate global-promotion artifact assembly
-behind the explicit runtime boundary where useful, then delete obsolete server
-paths.
+Continue adapter convergence: delete obsolete server ownership and add the
+Horizon 3 artifact/cache migration readers before release hardening.
