@@ -3,8 +3,8 @@
 ## Current state
 
 **Phase:** Milestone 3 adapter thinning and security hardening. Receipt
-construction/presentation, artifact manifests, semantic cache validation, and
-fail-closed cache opt-in are complete; reassess the cache-reader boundary next.
+construction/presentation, artifact manifests, semantic cache validation,
+fail-closed cache opt-in, and storage cache ingestion are complete; map next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -49,10 +49,9 @@ also runtime-owned. The adapter retains opaque storage-key derivation, path
 approval, local/global writes, and all cache validation/projection.
 Standalone review-plan assembly is pure and runtime-owned. The adapter retains
 source harvest, evidence parsing, redaction, approved output selection, artifact
-persistence, and explicit AIOS dispatch. Global-cache bounds, record validation,
-and canonical-ID projection are now pure storage policy with injected schema,
-clock, catalog, and redaction dependencies; cache roots, safe reads, and all
-durable writes remain adapter-owned. Optional AIOS execution remains adapter-only
+persistence, and explicit AIOS dispatch. Global-cache policy remains pure;
+storage now owns bounded, redacted, TOCTOU-safe cache ingestion, while the adapter
+owns cache-root selection and durable writes. Optional AIOS execution remains adapter-only
 and redacts child payloads, configuration paths, composed output, and execution
 errors before returning transport results.
 Runtime context normalization, family transitions, identity deltas, proposal
@@ -60,8 +59,8 @@ validation, and state shaping are now a pure domain reducer over adapter-supplie
 source nodes and cache warnings; the adapter keeps source/cache acquisition,
 sessions, recompile, redaction, and transport authority.
 Packet composition and source-node enrichment are now an in-memory service over
-adapter-supplied harvested nodes and canonical cache snapshots. The adapter
-retains cache reads, path redaction, harvest, sessions, recompile, and transport;
+adapter-supplied harvested nodes and canonical cache snapshots. Storage supplies
+cache reads; the adapter retains path redaction, harvest, sessions, recompile, and transport;
 the service defensively discards any injected cache inputs under
 cache_policy=none.
 Full recompile finalization is also service-owned once the adapter has validated
@@ -124,11 +123,10 @@ changing the public receipt schema.
   authority.
 - Treat standalone review planning as a pure in-memory service. Source acquisition,
   evidence parsing, redaction, artifacts, and AIOS remain adapter-owned.
-- Treat global-cache validation and projection as pure storage policy. Inject its
-  schema, timestamp, canonical catalog, and redactor; keep cache root selection,
-  filesystem traversal, parsing, redaction authority, and persistence in the
-  adapter. Cached receipts must have nonblank IDs and unambiguous timestamps
-  before contributing advisory metadata.
+- Treat global-cache policy as pure storage policy and cache ingestion as a
+  bounded, redacted, TOCTOU-safe storage reader. Inject roots, schemas, and the
+  canonical catalog from the adapter; keep cache-root selection and persistence
+  adapter-owned. Cached receipts need nonblank IDs and unambiguous timestamps.
 - Treat optional AIOS subprocess output as untrusted adapter data: redact the
   complete response only after optional composition, redact status/doctor paths,
   and map launch/timeout failures to structured errors.
@@ -331,9 +329,9 @@ changing the public receipt schema.
   tests with three expected skips) pass.
 - `679de6e` moves receipt construction/templates/acknowledgement into
   `domain/receipts.py`; `082bb3a` moves artifact manifests/aliases into a pure
-  service; `f34862c` rejects ambiguous cached receipt IDs/timestamps. Adapter I/O,
-  redaction, and atomic writes are unchanged. The full local suite has 346 tests
-  with three expected skips; install, contract, compile, and boundary reviews pass.
+  service; `f34862c` validates cached receipt metadata; `390a2ec` moves cache
+  ingestion into read-only storage. Adapter root/write authority is unchanged.
+  The full local suite has 350 tests with three expected skips; boundary reviews pass.
 
 ## Blockers and risks
 
@@ -353,10 +351,10 @@ changing the public receipt schema.
   v0.1 stays permissive and cache still orders by safe file mtime. Require
   canonical RFC3339 grammar before timestamps gain ranking/retention meaning.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter. Artifact planning is pure-owned; remaining cache I/O must
-  retain its current safety boundary around the pure policy module.
+  transport adapter. Artifact planning and cache ingestion are extracted; map the
+  next bounded cutover without moving root, write, or transport authority.
 
 ## Next step
 
-Reassess the read-only cache-reader extraction without weakening TOCTOU,
-redaction, bounds, advisory-trust, or explicit-opt-in safety.
+Map the next bounded adapter extraction, preserving storage-owned cache safety
+and adapter-owned roots, writes, redaction, sessions, and transport.

@@ -6,24 +6,24 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Reassess the read-only global-cache boundary after semantic
-receipt-cache validation.
+**Current focus:** Map the next authority-limited adapter extraction after the
+global-cache reader cutover.
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 adapter thinning and security hardening: pure domain,
-service, artifact-manifest, and receipt-cache validation cutovers; explicit-only
-AIOS, receipt, and cache-opt-in boundaries complete; reassess cache reads next.
+service, artifact-manifest, receipt-cache, and storage-ingress cutovers;
+explicit-only AIOS, receipt, and cache-opt-in boundaries complete; map next.
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
-- **Status:** Receipt/artifact construction and semantic cache projection are
-  pure-owned; adapter-owned identity, clock, output selection, storage, cache
-  ingress, redaction, and transport boundaries remain intact. Continue thinning.
+- **Status:** Receipt/artifact construction and cache policy are pure-owned;
+  storage owns bounded redacted cache reads, while adapter-owned roots, writes,
+  identity, clock, output selection, redaction, and transport remain intact.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -220,9 +220,9 @@ AIOS, receipt, and cache-opt-in boundaries complete; reassess cache reads next.
   pass with three expected skips.
 - `679de6e` moves receipt construction/templates/acknowledgement into
   `domain/receipts.py`; `082bb3a` moves artifact manifests/aliases into a pure
-  service; `f34862c` makes cache receipt projection require nonblank IDs and
-  timezone-aware timestamps. Identity, I/O, redaction, and atomic writes remain
-  adapter-owned; 346 local tests pass with three expected skips.
+  service; `f34862c` validates cached receipt metadata; `390a2ec` moves bounded,
+  redacted, TOCTOU-safe cache reads into storage. Adapter roots/writes remain
+  authority boundaries; 350 local tests pass with three expected skips.
 
 ## Workflow Notes
 
@@ -287,9 +287,9 @@ AIOS, receipt, and cache-opt-in boundaries complete; reassess cache reads next.
 - The domain-module size budget is test-enforced. Harvest, recommendation,
   promotion-planning, and review-plan policy are runtime-owned; the adapter
   retains source acquisition, redaction, and all durable-write authority.
-- Optional-cache policy is runtime-owned and direct-tested, while cache roots,
-  bounded reads, canonical-catalog injection, redaction, and persistence remain
-  adapter-controlled authority boundaries.
+- Optional-cache policy is runtime-owned and direct-tested. The adapter controls
+  roots, catalog/schema injection, and persistence; storage owns bounded,
+  redacted, TOCTOU-safe advisory cache ingestion.
 - Optional AIOS execution remains adapter-only. Its child output, configured
   paths, optional composed packet, and execution errors are redacted before any
   MCP or CLI response is returned.
@@ -304,9 +304,8 @@ AIOS, receipt, and cache-opt-in boundaries complete; reassess cache reads next.
   authority.
 - Packet composition/source enrichment and recompile finalization are pure
   service work over adapter-supplied safe data. cache_policy=none discards
-  injected cache inputs defensively; cache reads, TMCP_HOME redaction, raw-path
-  checks, sessions, and final response redaction remain adapter-owned. Apply the
-  runtime identity before validated proposals so accepted routes persist.
+  injected cache inputs defensively; storage cache snapshots, TMCP_HOME redaction,
+  raw-path checks, sessions, and final response redaction preserve their boundaries.
 - Public compose and explain results redact complete response trees after internal
   session work, while the protected session record retains its existing redaction
   guarantees.
@@ -389,11 +388,12 @@ AIOS, receipt, and cache-opt-in boundaries complete; reassess cache reads next.
   redacted artifact manifests, Markdown rendering, and response aliases into a
   pure service without moving output-root, redaction, or write authority;
   `f34862c` rejects ambiguous cached receipt metadata without changing the public
-  receipt schema or cache mtime ordering.
+  receipt schema or cache mtime ordering; `390a2ec` moves all safe global-cache
+  traversal, redaction, and projection into a read-only storage ingress.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Reassess the read-only cache-reader extraction without weakening TOCTOU/redaction safety.
+# Map the next bounded adapter extraction without weakening storage/cache authority.
 ```
