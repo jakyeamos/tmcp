@@ -86,5 +86,7 @@ compatibility wrappers without owning transport-level tool selection. Optional
 AIOS execution is now an explicit runtime adapter with its own redaction and
 subprocess boundary.
 
-The next major unit is to move runtime-state/recompile orchestration behind an
-explicit service context, then delete obsolete server paths.
+Runtime-state/recompile orchestration now lives behind an explicit service
+context with source, cache, and composition callbacks supplied by the adapter.
+The next major unit is to move remaining persistence/session orchestration and
+delete obsolete server paths.

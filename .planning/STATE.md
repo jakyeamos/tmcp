@@ -22,7 +22,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   plan-construction, server renderer, policy-catalog, runtime evaluator API,
   harvest-advisory, runtime-redaction, MCP/CLI transport, and typed
   request/result registry-dispatch cutovers complete; optional AIOS execution
-  is now runtime-adapter-owned; continue thinning the compatibility adapter.
+  and runtime-state/recompile orchestration are now runtime-owned; continue
+  thinning persistence/session authority from the compatibility adapter.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -188,6 +189,9 @@ _(truncated for length)_
   runtime-state/recompile orchestration and context ownership.
 - Keep optional AIOS execution in a redaction-aware runtime adapter; the legacy
   server may retain only compatibility wrappers and mutable test seams.
+- Keep runtime-state/recompile orchestration in `tmcp_runtime.services.runtime`;
+  inject source, cache-warning, and packet-composition callbacks from the
+  adapter without moving filesystem or persistence authority into the service.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -303,5 +307,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Move runtime-state/recompile orchestration behind an explicit service context.
+# Move remaining persistence/session orchestration behind explicit runtime services.
 ```

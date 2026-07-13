@@ -5,96 +5,25 @@
 **Phase:** Milestone 3 adapter thinning and security hardening. Domain,
 service, storage, safety, evaluator, and transport cutovers are complete; the
 server imports runtime evaluator/harvest services while retaining compatibility
-aliases. Typed request/result dispatch and public tool selection are registry-
-owned in `tmcp_runtime/adapters/`; remaining work is the read-only boundary.
+aliases. Typed dispatch/public selection are registry-owned; remaining work is
+runtime context and persistence ownership.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
 **Baseline:** `72baf609a519bebdabc4287b2671f04554ef6c23` (`0.4.0`)
 
-**Implementation status:** Release safety, public compatibility, and the safe
-input/storage boundary are implemented in the isolated modernization worktree.
-Public aliases/output shapes remain stable; composition and runtime routing
-default to `cache_policy=none`, with global graphs and receipts explicit-only.
-The first vertical journey supports project-local session persistence without
-changing the legacy inline packet path; pure recompile transformations,
-task-family routing/runtime
-transitions, declared-read selection, node ranking, and final packet
-construction/presentation are domain-owned. The legacy standalone compiler is
-also domain-owned. Review profiles now have a shared domain owner for standalone
-review and workflow recommendation. Evidence, audit, remediation, validation,
-and Markdown review policy are also domain-owned while public MCP/CLI behavior
-remains stable. Curated workflow definitions and stability labels now have one
-domain owner shared by recommendation, promotion, and cache selection. Workflow
-recommendation scoring receives harvested-node text and guidance labels explicitly
-from the adapter, preserving dependency direction. Adaptive workflow-pack
-construction, scoped seed projection, custom-idea derivation, overlap/process-gap
-policy, and recommendation Markdown rendering now share one pure domain owner;
-the adapter still owns redaction and artifact persistence. Promotion target
-selection, scoped-seed precedence, graph construction, canonical catalog edges,
-and promotion Markdown rendering also share one pure domain owner; the adapter
-still owns persistence and global-cache activation. Global activation now owns
-objective scoring, canonical workflow rehydration, activation projection, and
-specialized instructions while the adapter retains cache validation and packet
-orchestration. Evaluation scoring now receives a data-only composition callback
-from the MCP adapter; it no longer imports or introspects private server helpers.
-Harvest labels and source-node policy are now pure domain modules, while the
-  runtime service owns safe traversal, redaction, scoped-seed projection, packet
-  seeding, and artifact writes. Harvest advisory classification and the fixed
-  pattern catalog are runtime-owned; the script retains compatibility facades.
-  Runtime safety now owns redaction primitives; `scripts/tmcp_redaction.py` is
-  a compatibility facade only.
-Workflow recommendation assembly now has its own read-only runtime service. The
-adapter injects advisory and compose-preview callbacks, then retains result
-redaction, artifact persistence, promotion, and global-cache authority.
-Promotion target selection, graph construction, and status/result assembly are
-also runtime-owned. The adapter retains opaque storage-key derivation, path
-approval, local/global writes, and all cache validation/projection.
-Standalone review-plan assembly is pure and runtime-owned. The adapter retains
-source harvest, evidence parsing, redaction, approved output selection, artifact
-persistence, and explicit AIOS dispatch. Global-cache policy remains pure;
-storage now owns bounded, redacted, TOCTOU-safe cache ingestion, while the adapter
-owns cache-root selection and durable writes. Optional AIOS execution remains adapter-only
-and redacts child payloads, configuration paths, composed output, and execution
-errors before returning transport results.
-Runtime context normalization, family transitions, identity deltas, proposal
-validation, and state shaping are now a pure domain reducer over adapter-supplied
-source nodes and cache warnings; the adapter keeps source/cache acquisition,
-sessions, recompile, redaction, and transport authority.
-Packet composition and source-node enrichment are now an in-memory service over
-adapter-supplied harvested nodes and canonical cache snapshots. Storage supplies
-cache reads; the adapter retains path redaction, harvest, sessions, recompile, and transport;
-the service defensively discards any injected cache inputs under
-cache_policy=none.
-Full recompile finalization is also service-owned once the adapter has validated
-raw path precedence and built a fresh packet. The service merges runtime deltas,
-enriches required evidence, applies the authoritative runtime identity before
-validated proposals, then derives the diff and Markdown. Sessions and final
-response redaction remain adapter-owned.
-Public compose and standalone/auto explain responses now redact complete result
-trees only after their internal session/packet work is complete.
-AIOS is now an explicit-only adapter: `auto` stays inside TMCP, and known
-sensitive values are rejected before an explicit AIOS subprocess receives its
-arguments. Review evidence is decoded before that check so escaped sensitive
-values cannot bypass it.
-Run receipts are now built and acknowledged by a pure domain module. The adapter
-retains the UTC clock, raw-to-redacted opaque identity, filename digest/nonce,
-safe storage write, cache ingress, and final response redaction. Only literal
-`cache_policy=global` can consume shared graphs or receipts. Artifact manifests,
-Markdown rendering, and public path aliases are now pure service data; the adapter
-retains output-root selection, final redaction, and atomic persistence. Cached
-receipt projection requires nonblank IDs and timezone-aware timestamps without
-changing the public receipt schema. Evaluator artifact manifests are also pure
-service data; the evaluator is storage-free and the adapter alone selects roots,
-persists atomic bundles, and returns redacted path aliases. Packet-inclusion
-expectation lookup and composed-packet diffing are now a pure service over an
-adapter-injected callback.
-Runtime evaluator API owns safe inputs, redaction, scoring, and orchestration;
-script aliases remain while the server uses runtime directly.
-Runtime MCP/CLI transport, typed dispatch, and registry-owned tool selection now
-live in `tmcp_runtime/adapters`; optional AIOS execution now has the same
-redaction-aware runtime boundary. The legacy script retains compatibility
-wrappers.
+**Implementation status:** Release safety, public compatibility, safe
+input/storage, domain policy, evaluator, harvest/recommendation/review/promotion,
+and transport cutovers are implemented. Public aliases and output shapes remain
+stable; composition/runtime default to `cache_policy=none`, with global graphs
+and receipts explicit-only. Runtime owns pure domain reducers and services for
+composition, recompile finalization, evaluation, review, recommendations,
+promotion, redaction, diagnostics, and optional AIOS execution. Adapters retain
+source/cache/session/artifact acquisition, persistence, final redaction, and
+compatibility wiring. Typed registry dispatch lives in
+`tmcp_runtime.adapters`; runtime-state/recompile orchestration lives in
+`tmcp_runtime.services.runtime` with source, cache-warning, and composition
+callbacks supplied by the compatibility adapter.
 
 ## Decisions recorded
 
@@ -337,8 +266,9 @@ wrappers.
   three expected skips; `d67dcc9` isolates the safety import boundary test and
   restores the test-size gate; `7420a2b` moves transport into runtime adapters;
   `cb34594` adds typed request/result dispatch and registry-owned tool selection.
-  `78c35a0` moves optional AIOS execution into a redaction-aware runtime adapter.
-  Full suite: 410 tests, three expected skips.
+  `78c35a0` moves optional AIOS execution into a redaction-aware runtime adapter;
+  `489746d` moves runtime-state/recompile orchestration behind a callback context.
+  Full suite: 413 tests, three expected skips.
 
 ## Blockers and risks
 
@@ -366,5 +296,5 @@ wrappers.
 
 ## Next step
 
-Continue adapter convergence: move runtime-state/recompile orchestration behind
-an explicit service context, then delete obsolete paths.
+Continue adapter convergence: move remaining persistence/session orchestration
+behind explicit runtime services, then delete obsolete paths.
