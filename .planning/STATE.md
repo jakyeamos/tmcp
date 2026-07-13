@@ -6,10 +6,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Split the safety boundary regression test, then review the
-evaluator/harvest/runtime safety boundaries after API, safe-input, persistence,
-scoring, rendering, orchestration, plan, catalog, advisory, and redaction
-cutovers.
+**Current focus:** Review the evaluator/harvest/runtime safety boundaries
+after API, safe-input, persistence, scoring, rendering, orchestration, plan,
+catalog, advisory, redaction, and test-gate cutovers.
 
 ## Milestone
 
@@ -298,5 +297,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Split the safety boundary regression test, then review evaluator/harvest/runtime safety boundaries.
+# Review evaluator/harvest/runtime safety boundaries.
 ```

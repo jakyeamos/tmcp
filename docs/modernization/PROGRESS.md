@@ -338,7 +338,8 @@ script aliases remain while the server uses runtime directly.
   moves harvest advisory classification and catalog lookup into a runtime
   service; `f1d5811` moves redaction primitives into `tmcp_runtime/safety` and
   leaves the script module as a compatibility facade. Full suite: 401 tests,
-  three expected skips.
+  three expected skips; `d67dcc9` isolates the safety import boundary test and
+  restores the test-size gate.
 
 ## Blockers and risks
 
@@ -366,5 +367,4 @@ script aliases remain while the server uses runtime directly.
 
 ## Next step
 
-Split the safety boundary regression test, then run an adversarial review of
-the evaluator/harvest/runtime safety boundaries.
+Run an adversarial review of the evaluator/harvest/runtime safety boundaries.
