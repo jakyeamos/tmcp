@@ -42,7 +42,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `b99c58a` adds the validated Windows fallback. Follow-up run
   `29284101047` reduced the residual failures to Windows path/newline contracts;
   `1a59e2f` normalizes those boundaries. Hosted run `29285497867` now passes all
-  six matrix jobs for the 0.5.0 cutover, and final rerun `29285802846` passes.
+  six matrix jobs for the 0.5.0 cutover, final rerun `29285802846` passes, and
+  post-review fix run `29287154661` passes for `1fd10f4`.
   Fresh review closed malformed MCP transport input/notification defects and
   packaged the compatibility note. Formatting/typecheck remain explicit P2
   follow-ups: `ruff format --check` reports 93 files and `basedpyright` 76
