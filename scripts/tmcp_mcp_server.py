@@ -46,8 +46,9 @@ from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     workflow_catalog_by_id,
 )
 from scripts.tmcp_skill_evaluate import (  # noqa: E402
-    _guidebook_markdown as _evaluation_guidebook_markdown,
-    _pattern_catalog as _evaluation_pattern_catalog,
+    EFFECTIVE_PATTERNS,
+    EVIDENCE_LEVELS,
+    V01_ANTI_PATTERNS,
     evaluate_skills,
     harvest_warnings_for_source,
 )
@@ -85,6 +86,10 @@ from tmcp_runtime.services.harvest import (  # noqa: E402
 )
 from tmcp_runtime.services.compose import (  # noqa: E402
     compose_packet_from_source_nodes as _runtime_compose_packet_from_source_nodes,
+)
+from tmcp_runtime.services.evaluation_rendering import (  # noqa: E402
+    build_pattern_catalog as _runtime_build_pattern_catalog,
+    render_guidebook_markdown as _runtime_render_guidebook_markdown,
 )
 from tmcp_runtime.services.recommendations import (  # noqa: E402
     recommend_workflows as _runtime_recommend_workflows,
@@ -422,8 +427,15 @@ def _persist_evaluation_artifacts(
     artifact_plan = _runtime_build_evaluation_artifact_plan(
         plan=plan,
         report=report,
-        guidebook_markdown=_evaluation_guidebook_markdown,
-        pattern_catalog=_evaluation_pattern_catalog,
+        guidebook_markdown=lambda entries: _runtime_render_guidebook_markdown(
+            entries,
+            evidence_levels=EVIDENCE_LEVELS,
+        ),
+        pattern_catalog=lambda entries: _runtime_build_pattern_catalog(
+            entries,
+            patterns=(*EFFECTIVE_PATTERNS, *V01_ANTI_PATTERNS),
+            created_at=_now_iso(),
+        ),
     )
     return _persist_artifact_plan(
         output_dir,
