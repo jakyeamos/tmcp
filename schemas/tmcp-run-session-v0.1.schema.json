@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-run-session-v0.1.schema.json",
+  "title": "TMCP Run Session v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "format_version",
+    "revision",
+    "created_at",
+    "updated_at",
+    "packet",
+    "last_recompile"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-run-session-v0.1"
+    },
+    "format_version": {
+      "const": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "packet": {
+      "$ref": "tmcp-composed-packet-v0.1.schema.json"
+    },
+    "last_recompile": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "previous_packet_id",
+            "recompile_reason",
+            "updated_at"
+          ],
+          "properties": {
+            "previous_packet_id": {
+              "type": ["string", "null"]
+            },
+            "recompile_reason": {
+              "type": "string"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "session_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_schema",
+        "key",
+        "path",
+        "revision",
+        "packet_id",
+        "state_effect"
+      ],
+      "properties": {
+        "record_schema": {
+          "const": "tmcp-run-session-v0.1"
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^session-[0-9a-f]{32}$"
+        },
+        "path": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "packet_id": {
+          "type": "string"
+        },
+        "state_effect": {
+          "const": "project_local_write"
+        }
+      }
+    }
+  }
+}

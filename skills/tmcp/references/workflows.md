@@ -8,23 +8,25 @@ For most adaptive agent runs, prefer a composed packet over a dedicated workflow
 
 1. Start with `tmcp_compose_packet` for the objective, project path, source paths, and phase.
 2. Follow only the packet's active instructions, required reads, tool/script prompts, verification gates, and stop conditions that fit the current task.
-3. Call `tmcp_runtime_next` when files changed, tests fail, browser evidence appears, the user redirects the goal, or the run enters verification/final.
+3. Call `tmcp_runtime_next` when files changed, tests fail, browser evidence appears, the user redirects the goal, or the run enters verification/final. For an explicit serialized project run, use the same `session_id` and absolute `project_path` from compose through full recompile; otherwise pass the previous packet inline.
 4. Call `tmcp_record_receipt` after meaningful verification or outcome so future ranking can learn from the run.
 
 Composed packets and receipts are advisory. They never override system, developer, user, or project instructions.
 
-## Stable Public Workflows
+## Stability Scopes
 
-- `skill-harvest`: harvest local skills, rules, prompts, and process docs into source nodes and behavior atoms.
-- `workflow-recommendation`: recommend workflows from harvested evidence and include stability metadata.
-- `expert-rubric-review`: produce an expertise packet, scored rubric, evidence audit, remediation plan, and verification expectations.
+- **Stable skill packages:** `tmcp`, `tmcp-skill-harvest`, `tmcp-workflow-recommendation`, `tmcp-release-readiness`, and `tmcp-dx-audit` are stable routing packages.
+- **Stable curated workflow templates:** `release-readiness` and `dx-audit` are the only stable recommendation-catalog templates.
+- **Stable MCP tool contracts:** `tmcp_doctor`, `tmcp_status`, `tmcp_explain`, `tmcp_compose_packet`, and `tmcp_runtime_next` are stable. `tmcp_harvest_skills`, `tmcp_evaluate_skills`, `tmcp_recommend_workflows`, `tmcp_promote_harvest`, `tmcp_record_receipt`, and `expert_rubric_review_plan` are experimental.
+
+Do not infer stability across these scopes. A stable skill package can route to an experimental tool, and an experimental tool can recommend a stable curated template.
+
+## Stable Public Workflows: Curated Templates
+
 - `release-readiness`: review release blockers, evidence gaps, package state, and verification expectations.
 - `dx-audit`: review setup, onboarding, command discoverability, validation loops, and maintainer handoff readiness.
-- `tmcp_compose_packet`: compose small task/phase packets from harvested instructions and promoted cache evidence.
-- `tmcp_runtime_next`: adapt packet deltas from runtime evidence.
-- `tmcp_record_receipt`: persist advisory run receipts under `TMCP_HOME` or `~/.tmcp`.
 
-## Experimental Workflows
+## Experimental Workflows: Curated Templates
 
 - UI rubric.
 - Security/privacy audit.

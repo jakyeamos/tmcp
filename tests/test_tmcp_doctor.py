@@ -24,6 +24,8 @@ class TmcpDoctorTests(unittest.TestCase):
         self.assertEqual(config["command"], "node")
         self.assertEqual(config["args"], ["scripts/tmcp_launcher.mjs"])
         self.assertEqual(config["cwd"], result["plugin_root"])
+        check_ids = {check["id"] for check in result["checks"]}
+        self.assertIn("secure_artifact_persistence", check_ids)
 
 
 if __name__ == "__main__":

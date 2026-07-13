@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from tests import test_tmcp_mcp_server as helpers
+from tmcp_runtime.domain import families
 
 
 def _product_design_family_seed() -> dict[str, object]:
@@ -128,9 +129,13 @@ def _write_product_design_family(root: Path) -> None:
     decisions = root / "product-decisions"
     (decisions / "surfaces").mkdir(parents=True)
     (decisions / "standards").mkdir(parents=True)
-    (decisions / "surfaces" / "onboarding.md").write_text("# Onboarding", encoding="utf-8")
+    (decisions / "surfaces" / "onboarding.md").write_text(
+        "# Onboarding", encoding="utf-8"
+    )
     (decisions / "surfaces" / "settings.md").write_text("# Settings", encoding="utf-8")
-    (decisions / "standards" / "ui-quality.md").write_text("# UI Quality", encoding="utf-8")
+    (decisions / "standards" / "ui-quality.md").write_text(
+        "# UI Quality", encoding="utf-8"
+    )
     (decisions / "coverage-gaps.md").write_text("# Coverage gaps", encoding="utf-8")
     (root / "EXAMPLE_WORKFLOW.md").write_text("# Example workflow", encoding="utf-8")
     (root / "INSTALL.md").write_text("# Install", encoding="utf-8")
@@ -150,7 +155,11 @@ class TmcpSkillFamilyComposeTests(unittest.TestCase):
             root = Path(tmp)
             _write_product_design_family(root)
             harvest = self.server._harvest_skills(
-                {"source_path": str(root), "limit": 30, "include_globs": ["scoped-packet-seeds.json"]}
+                {
+                    "source_path": str(root),
+                    "limit": 30,
+                    "include_globs": ["scoped-packet-seeds.json"],
+                }
             )
 
         seed = next(
@@ -166,7 +175,10 @@ class TmcpSkillFamilyComposeTests(unittest.TestCase):
                 "coverage-gaps.md",
             ],
         )
-        self.assertEqual(seed["chains_before"], ["ui-implementation", "ui-polish-verification", "ui-product-review"])
+        self.assertEqual(
+            seed["chains_before"],
+            ["ui-implementation", "ui-polish-verification", "ui-product-review"],
+        )
         self.assertEqual(seed["chains_after"], ["ui-implementation"])
         self.assertIn(
             "product-decisions/surfaces/**",
@@ -258,7 +270,11 @@ class TmcpSkillFamilyRuntimeTests(unittest.TestCase):
             root = Path(tmp)
             _write_product_design_family(root)
             harvest = self.server._harvest_skills(
-                {"source_path": str(root), "limit": 30, "include_globs": ["scoped-packet-seeds.json"]}
+                {
+                    "source_path": str(root),
+                    "limit": 30,
+                    "include_globs": ["scoped-packet-seeds.json"],
+                }
             )
 
         seed = next(
@@ -270,6 +286,40 @@ class TmcpSkillFamilyRuntimeTests(unittest.TestCase):
         self.assertEqual(
             seed["phase_transitions"]["runtime"]["activate_skills"],
             ["ui-implementation"],
+        )
+
+    def test_runtime_family_fallback_uses_transition_seed_below_compose_threshold(
+        self,
+    ) -> None:
+        source_nodes = [
+            {
+                "source_type": "scoped_packet_seed",
+                "seed_id": "runtime_only_seed",
+                "title": "Runtime-only seed",
+                "source_references": ["skills/product-design-runtime/SKILL.md"],
+                "phase_transitions": {
+                    "runtime": {
+                        "next_phases": ["implementation"],
+                        "activate_skills": ["ui-implementation"],
+                    }
+                },
+            }
+        ]
+
+        family_context, seed_node = families.runtime_family_seed_context(
+            source_nodes,
+            "Inspect unrelated service logs.",
+            "runtime",
+            node_signal_text=lambda node: str(node.get("signal") or ""),
+        )
+
+        assert seed_node is not None
+        assert family_context is not None
+        self.assertEqual(seed_node["seed_id"], "runtime_only_seed")
+        self.assertEqual(family_context["active_seed_id"], "runtime_only_seed")
+        self.assertEqual(
+            family_context["primary_source_patterns"],
+            ["skills/product-design-runtime/SKILL.md"],
         )
 
     def test_runtime_next_suggests_implementation_after_runtime_phase(self) -> None:
@@ -345,4 +395,6 @@ class TmcpSkillFamilyRuntimeTests(unittest.TestCase):
 
         self.assertEqual(result.get("suggested_phase"), "")
         self.assertEqual(result["packet_delta"].get("suggested_skills"), [])
-        self.assertIn("ui-browser-verification", result["packet_delta"]["activated_atoms"])
+        self.assertIn(
+            "ui-browser-verification", result["packet_delta"]["activated_atoms"]
+        )

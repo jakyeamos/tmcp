@@ -1,5 +1,5 @@
 {
-  "include": ["scripts", "tests"],
+  "include": ["scripts", "tmcp_runtime", "tests"],
   "pythonVersion": "3.10",
   "typeCheckingMode": "basic",
   "reportImplicitRelativeImport": "error"

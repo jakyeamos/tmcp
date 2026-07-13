@@ -27,6 +27,19 @@ Expected:
 - `.mcp.json` declares stdio MCP and launches `node scripts/tmcp_launcher.mjs` with `cwd` set to `.`
 - MCP `tools/list` succeeds with AIOS unavailable
 
+## Release Package Build
+
+`python3 scripts/check_release_package.py . --verify-reproducible` is a release-build
+command, not an install check. Run it only from a clean Git worktree: it reads the committed
+tree, excludes untracked and ignored local state, rejects unsafe tracked paths
+and secret-like content, and writes a deterministic archive with
+RELEASE_MANIFEST.json.
+
+Copied and extracted plugin packages are installation surfaces. Verify those
+with check_install.py, the launcher smoke commands, and the extracted-package
+checks performed by the release builder; do not try to rebuild a release archive
+without its Git source revision.
+
 ## First-Run Smoke Test
 
 ```bash
@@ -36,6 +49,11 @@ node scripts/tmcp_launcher.mjs list-tools
 ```
 
 Standalone mode should be available even when AIOS is not configured.
+
+The launcher can be available even when secure local artifact persistence is
+not. Check `doctor` or `status` before a workflow that writes artifacts, and
+use `--no-write-artifacts` for portable previews. See
+[Compatibility](COMPATIBILITY.md#secure-artifact-persistence) for the boundary.
 
 ## Codex Tool Discovery
 
@@ -84,4 +102,6 @@ The launcher finds Python in this order:
 
 ## AIOS Adapter
 
-AIOS is optional. If `AIOS_ROOT` is set and `adapter: "auto"` is used, TMCP may use AIOS for richer packet compilation. If AIOS is missing, `adapter: "auto"` falls back to standalone behavior. `adapter: "aios"` returns a clear remediation error when unavailable.
+AIOS is optional. `adapter: "auto"` and `adapter: "standalone"` stay inside TMCP even when `AIOS_ROOT` is configured. Use `adapter: "aios"` only when the caller explicitly opts into that local adapter; it returns a clear remediation error when unavailable. Explicit AIOS review is read-only.
+
+TMCP rejects known sensitive request values before passing an explicit AIOS request through process arguments. Use standalone mode until AIOS offers a protected request-input protocol.

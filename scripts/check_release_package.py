@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import gzip
 import json
 import os
 import re
@@ -13,26 +12,24 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-EXCLUDE_DIRS = {
-    "__pycache__",
-    ".aios",
-    ".codex",
-    ".git",
-    ".mypy_cache",
-    ".planning",
-    ".pre-cr",
-    ".pytest_cache",
-    ".quality-runner",
-    ".ruff_cache",
-    ".tmcp",
-    "mcp-registry",
-}
-EXCLUDE_PATHS = {
-    Path("docs") / "RELEASE_EVIDENCE.json",
-    Path("docs") / "VERIFICATION.md",
-}
-EXCLUDE_SUFFIXES = {".pyc", ".pyo"}
+from scripts.tmcp_release_archive import (  # noqa: E402
+    PACKAGE_POLICY_VERSION,
+    ReleasePackageError,
+    check_archive_manifest,
+    create_package,
+    safe_extractall,
+    should_include,
+    verify_reproducibility,
+)
+from scripts.release_package_compile import compile_command  # noqa: E402
+from scripts.release_package_composition import (  # noqa: E402
+    check_composition_surface as _check_composition_surface,
+)
+
 HARDCODED_USER_PATH_PATTERNS = (
     re.compile(r"/" r"Users/(?!example\b|you\b|your\b|name\b)[^\s)\"'`]+"),
     re.compile(r"~/" r"AIOS"),
@@ -64,45 +61,22 @@ EXPERIMENTAL_SKILLS = {
     "tmcp-test-strategy",
     "tmcp-ui-rubric",
 }
-
-
-def should_include(path: Path) -> bool:
-    if path in EXCLUDE_PATHS:
-        return False
-    if any(part in EXCLUDE_DIRS for part in path.parts):
-        return False
-    if path.suffix in EXCLUDE_SUFFIXES:
-        return False
-    return True
-
-
-def normalized_tarinfo(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo:
-    tarinfo.uid = 0
-    tarinfo.gid = 0
-    tarinfo.uname = ""
-    tarinfo.gname = ""
-    tarinfo.mtime = 0
-    return tarinfo
-
-
-def create_package(plugin_root: Path, output_path: Path) -> None:
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("wb") as raw_output:
-        with gzip.GzipFile(
-            filename="", fileobj=raw_output, mode="wb", mtime=0
-        ) as gzip_output:
-            with tarfile.open(fileobj=gzip_output, mode="w") as archive:
-                for path in sorted(plugin_root.rglob("*")):
-                    if path.is_symlink() or not path.is_file():
-                        continue
-                    relative = path.relative_to(plugin_root)
-                    if not should_include(relative):
-                        continue
-                    archive.add(
-                        path,
-                        arcname=(Path("tmcp") / relative).as_posix(),
-                        filter=normalized_tarinfo,
-                    )
+PACKAGE_CHECK_NAMES = (
+    "archive_manifest",
+    "install_check",
+    "tests",
+    "compile",
+    "launcher_syntax",
+    "frontmatter",
+    "hardcoded_user_paths",
+    "private_names",
+    "markdown_links",
+    "doctor_surface",
+    "sample_harvest",
+    "sample_expert_rubric",
+    "adaptive_workflow_surface",
+    "composition_surface",
+)
 
 
 def run(
@@ -422,193 +396,20 @@ def check_adaptive_workflow_surface(
 def check_composition_surface(
     plugin_root: Path, scratch_root: Path
 ) -> tuple[bool, str]:
-    source_root = scratch_root / "composition-release-surface"
-    tmcp_home = scratch_root / "tmcp-home"
-    skill_root = source_root / "skills" / "impeccable"
-    skill_root.mkdir(parents=True, exist_ok=True)
-    (source_root / "AGENTS.md").write_text(
-        "\n".join(
-            [
-                "# Agent Rules",
-                "Use pnpm only.",
-                "Read before modifying and search existing behavior first.",
-                "Release readiness requires CI evidence, package checks, changelog review, and hosted verification.",
-            ]
-        ),
-        encoding="utf-8",
-    )
-    (skill_root / "SKILL.md").write_text(
-        "\n".join(
-            [
-                "---",
-                "name: impeccable",
-                "---",
-                "# Impeccable",
-                "For craft commands, run scripts/context.mjs and choose the brand or product register.",
-                "Verify browser screenshots, contrast, reduced motion, and responsive behavior for UI work.",
-            ]
-        ),
-        encoding="utf-8",
-    )
-    env = {"TMCP_HOME": str(tmcp_home)}
-
-    ok, output, compose = run_json(
-        [
-            "node",
-            "scripts/tmcp_launcher.mjs",
-            "compose-packet",
-            "Improve release readiness before release",
-            "--project-path",
-            str(source_root),
-            "--source-path",
-            str(source_root),
-            "--phase",
-            "start",
-            "--cache-policy",
-            "none",
-            "--compact",
-        ],
-        plugin_root,
-        env,
-    )
-    if not ok or compose is None:
-        return False, output
-    if compose.get("schema") != "tmcp-composed-packet-v0.1":
-        return False, f"unexpected compose schema: {compose.get('schema')}"
-    if not isinstance(compose.get("receipt_template"), dict):
-        return False, "compose output missing receipt_template"
-    verification_text = " ".join(compose.get("verification_gates", [])).lower()
-    if "browser" in verification_text:
-        return False, "release composition smoke unexpectedly activated browser gate"
-
-    ok, output, runtime = run_json(
-        [
-            "node",
-            "scripts/tmcp_launcher.mjs",
-            "runtime-next",
-            "Fix the dashboard UI bug",
-            "--project-path",
-            str(source_root),
-            "--current-phase",
-            "final",
-            "--files-changed",
-            "app/page.tsx",
-            "--failures",
-            "vitest failed",
-            "--browser-evidence",
-            "screenshot shows overlap",
-            "--cache-policy",
-            "none",
-            "--compact",
-        ],
-        plugin_root,
-        env,
-    )
-    if not ok or runtime is None:
-        return False, output
-    if runtime.get("schema") != "tmcp-runtime-next-v0.1":
-        return False, f"unexpected runtime-next schema: {runtime.get('schema')}"
-    packet_delta = runtime.get("packet_delta")
-    if not isinstance(packet_delta, dict):
-        return False, "runtime-next output missing packet_delta"
-    activated = set(packet_delta.get("activated_atoms", []))
-    if not {
-        "ui-browser-verification",
-        "debugging-regression",
-        "verification-before-completion",
-    }.issubset(activated):
-        return False, "runtime-next smoke missing contextual activated atoms"
-
-    ok, output, receipt = run_json(
-        [
-            "node",
-            "scripts/tmcp_launcher.mjs",
-            "record-receipt",
-            str(compose.get("packet_id")),
-            "--activated-atoms",
-            "behavior-verification",
-            "--commands-run",
-            "python3 -m unittest",
-            "--verification-results",
-            "passed",
-            "--outcome",
-            "passed",
-            "--compact",
-        ],
-        plugin_root,
-        env,
-    )
-    if not ok or receipt is None:
-        return False, output
-    if receipt.get("schema") != "tmcp-run-receipt-v0.1":
-        return False, f"unexpected receipt schema: {receipt.get('schema')}"
-    receipt_json = receipt.get("artifact_paths", {}).get("receipt_json")
-    if not isinstance(receipt_json, str) or not Path(receipt_json).exists():
-        return False, "record-receipt did not write receipt_json"
-
-    ok, output, explain = run_json(
-        [
-            "node",
-            "scripts/tmcp_launcher.mjs",
-            "explain",
-            "Review release readiness",
-            "--project-path",
-            str(source_root),
-            "--source-path",
-            str(source_root),
-            "--compose",
-            "--compact",
-        ],
-        plugin_root,
-        env,
-    )
-    if not ok or explain is None:
-        return False, output
-    if explain.get("composed_packet", {}).get("schema") != "tmcp-composed-packet-v0.1":
-        return False, "explain --compose output missing composed packet"
-
-    ok, output, recommend = run_json(
-        [
-            "node",
-            "scripts/tmcp_launcher.mjs",
-            "recommend",
-            str(source_root),
-            "--candidate-workflows",
-            "release_readiness",
-            "--min-confidence",
-            "0.1",
-            "--no-write-artifacts",
-            "--compose",
-            "--compact",
-        ],
-        plugin_root,
-        env,
-    )
-    if not ok or recommend is None:
-        return False, output
-    if (
-        recommend.get("composed_packet", {}).get("schema")
-        != "tmcp-composed-packet-v0.1"
-    ):
-        return False, "recommend --compose output missing composed packet"
-    return True, "\n".join([output, "composition surface smoke passed"])
+    return _check_composition_surface(plugin_root, scratch_root, run_json)
 
 
-def safe_extractall(archive: tarfile.TarFile, target: Path) -> None:
-    target_root = target.resolve()
-    for member in archive.getmembers():
-        member_path = (target / member.name).resolve()
-        if member_path != target_root and target_root not in member_path.parents:
-            raise ValueError(f"Unsafe tar path: {member.name}")
-        if member.issym() or member.islnk():
-            raise ValueError(f"Refusing link in tar package: {member.name}")
-    try:
-        archive.extractall(target, filter="data")
-    except TypeError:
-        archive.extractall(target)
+def failed_package_check(manifest_output: str) -> dict[str, Any]:
+    return {
+        **{check: "fail" for check in PACKAGE_CHECK_NAMES},
+        "output": {"archive_manifest": manifest_output},
+    }
 
 
 def check_package(package_path: Path) -> dict[str, Any]:
+    manifest_ok, manifest_output = check_archive_manifest(package_path)
+    if not manifest_ok:
+        return failed_package_check(manifest_output)
     with tempfile.TemporaryDirectory(prefix="tmcp-package-check-") as tmp:
         tmp_path = Path(tmp)
         with tarfile.open(package_path, "r:gz") as archive:
@@ -626,18 +427,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
             package_env,
         )
         compile_ok, compile_output = run(
-            [
-                sys.executable,
-                "-m",
-                "py_compile",
-                "scripts/tmcp_mcp_server.py",
-                "scripts/check_install.py",
-                "scripts/check_release_package.py",
-                "scripts/check_release_evidence.py",
-                "scripts/pre_cr_coverage.py",
-                "scripts/tmcp_mcp_framing.py",
-                "scripts/tmcp_redaction.py",
-            ],
+            compile_command(sys.executable),
             plugin_root,
             package_env,
         )
@@ -662,6 +452,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
             plugin_root, tmp_path
         )
     return {
+        "archive_manifest": "pass",
         "install_check": "pass" if install_ok else "fail",
         "tests": "pass" if tests_ok else "fail",
         "compile": "pass" if compile_ok else "fail",
@@ -676,6 +467,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
         "adaptive_workflow_surface": "pass" if adaptive_ok else "fail",
         "composition_surface": "pass" if composition_ok else "fail",
         "output": {
+            "archive_manifest": manifest_output,
             "install": install_output,
             "tests": tests_output,
             "compile": compile_output,
@@ -701,40 +493,67 @@ def main() -> int:
         "plugin_root", nargs="?", default=".", help="Path to plugin root"
     )
     parser.add_argument("--output", help="Optional package output path")
+    parser.add_argument(
+        "--verify-reproducible",
+        action="store_true",
+        help="Build a second archive from the same Git tree and compare digests",
+    )
     args = parser.parse_args()
 
     plugin_root = Path(args.plugin_root).expanduser().resolve()
-    output_path = (
-        Path(args.output).expanduser().resolve()
-        if args.output
-        else Path(tempfile.gettempdir()) / "tmcp-release-check.tar.gz"
-    )
-    create_package(plugin_root, output_path)
-    result = {
-        "schema": "tmcp-release-package-check-v0.1",
-        "package_path": str(output_path),
-        **check_package(output_path),
-    }
-    print(json.dumps(result, indent=2, sort_keys=True))
-    ok = all(
-        result[key] == "pass"
-        for key in (
-            "install_check",
-            "tests",
-            "compile",
-            "launcher_syntax",
-            "frontmatter",
-            "hardcoded_user_paths",
-            "private_names",
-            "markdown_links",
-            "doctor_surface",
-            "sample_harvest",
-            "sample_expert_rubric",
-            "adaptive_workflow_surface",
-            "composition_surface",
+    generated_output = args.output is None
+    if args.output:
+        output_path = Path(args.output).expanduser()
+    else:
+        descriptor, temporary_output = tempfile.mkstemp(
+            prefix="tmcp-release-check-", suffix=".tar.gz"
         )
-    )
-    if not args.output:
+        os.close(descriptor)
+        output_path = Path(temporary_output)
+    try:
+        build = create_package(plugin_root, output_path)
+        result = {
+            "schema": "tmcp-release-package-check-v0.1",
+            "package_path": str(output_path),
+            "package_policy": PACKAGE_POLICY_VERSION,
+            "source_commit": build["source_commit"],
+            "source_tree": build["source_tree"],
+            "archive_digest": build["archive_digest"],
+            "manifest_path": build["manifest_path"],
+            "manifest_digest": build["manifest_digest"],
+            **check_package(output_path),
+        }
+        if args.verify_reproducible:
+            reproducibility = verify_reproducibility(plugin_root, build)
+            result["reproducibility"] = reproducibility["status"]
+            result["repeat_archive_digest"] = reproducibility.get(
+                "repeat_archive_digest"
+            )
+            result["repeat_manifest_digest"] = reproducibility.get(
+                "repeat_manifest_digest"
+            )
+            result["output"]["reproducibility"] = reproducibility["message"]
+    except ReleasePackageError as exc:
+        result = {
+            "schema": "tmcp-release-package-check-v0.1",
+            "package_path": str(output_path),
+            "package_policy": PACKAGE_POLICY_VERSION,
+            "package_build": "fail",
+            "errors": [str(exc)],
+        }
+        if generated_output:
+            try:
+                output_path.unlink()
+            except OSError:
+                pass
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 1
+    print(json.dumps(result, indent=2, sort_keys=True))
+    required_checks = PACKAGE_CHECK_NAMES
+    if args.verify_reproducible:
+        required_checks += ("reproducibility",)
+    ok = all(result[key] == "pass" for key in required_checks)
+    if generated_output:
         try:
             output_path.unlink()
         except OSError:

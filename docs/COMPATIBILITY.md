@@ -14,7 +14,7 @@ Current verification:
 
 - macOS: tested locally with Node and Python 3.
 - Linux: hosted GitHub Actions pass on `ubuntu-latest` with Node 20 and Python 3.10/3.13.
-- Windows: hosted GitHub Actions pass on `windows-latest` with Node 20 and Python 3.10/3.13. The launcher prefers the Windows `py -3` launcher before falling back to `python` and `python3`.
+- Windows: the launcher and non-persisting workflows are supported. The launcher prefers the Windows `py -3` launcher before falling back to `python` and `python3`.
 
 ## Filesystem Assumptions
 
@@ -27,6 +27,47 @@ Current verification:
 - Dependency, build, cache, VCS, coverage, and generated plugin-cache directories are pruned by default.
 - Adaptive workflow recommendations are derived from harvested text, frontmatter, paths, source types, keywords, behavior atoms, and source contribution labels. Overlapping labels are reported in adaptive workflow packs so duplicate sources can be consolidated or ranked. Recommendations remain advisory until the user selects a workflow.
 
+## Secure Artifact Persistence
+
+TMCP separates portable analysis from durable local artifacts. A host that exposes
+descriptor-relative, no-follow directory operations can safely persist harvests,
+evaluations, reviews, promotions, receipts, and explicitly requested packet
+sessions. On a host without those
+primitives, write-capable operations fail closed before creating an output path;
+continue with `write_artifacts=false` for preview and analysis workflows.
+
+`doctor` and `status` report this capability. A successful launcher check does
+not imply that the host can safely persist artifacts.
+
+Packet sessions additionally require an explicit absolute project path. They retain one
+redacted latest-packet record for a single serialized run under that project;
+they are not a portable fallback, history store, or concurrent-run registry.
+Use inline `previous_packet` data for full recompiles when durable writes are
+unavailable.
+
+## 0.5.0 Compatibility Preparation
+
+The planned 0.5.0 release preserves the public MCP tools, CLI aliases, launcher,
+and v0.1 packet schemas while changing implementation ownership and state-effect
+defaults. Composition and runtime adaptation default to `cache_policy=none`;
+global cache reads and durable writes are explicit opt-ins. `adapter=auto` stays
+standalone, and explicit AIOS requests fail closed for known sensitive values.
+
+Legacy `promoted-harvest.json` summaries remain readable through an in-memory
+projection to the current promotion graph. Current graph files take precedence,
+and migration never rewrites or deletes source artifacts. Receipts and
+project-local sessions have no alternate shipped schema and remain strict.
+
+The 0.5.0 release-candidate version surfaces are now updated together, and the
+evidence record points to successful post-cutover hosted PR run `29285497867`,
+and final rerun `29285802846` passed. The draft PR is ready for review.
+
 ## Known Gaps
 
-- Windows support has hosted CI coverage; manual end-user installation on a real Windows workstation is still recommended before treating it as field-proven.
+- The current storage implementation intentionally denies artifact persistence on
+  Windows rather than using a pathname-based fallback vulnerable to reparse-point
+  races. Read-only exact-file inputs use validated path reads on Windows because
+  the platform lacks `O_NOFOLLOW`; descriptor identity checks still close the
+  ordinary read path if a file changes before or during open. A dedicated, tested
+  Windows backend is required before durable artifact writes can be claimed
+  there; a manual install cannot remove that limitation.

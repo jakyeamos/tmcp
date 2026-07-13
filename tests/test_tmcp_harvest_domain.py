@@ -1,0 +1,139 @@
+from __future__ import annotations
+
+import ast
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+import tmcp_runtime.services.harvest as harvest_service
+from tests import test_tmcp_mcp_server as helpers
+from tmcp_runtime.domain.harvest_nodes import source_node_from_text
+
+
+PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+HARVEST_NODES_PATH = PLUGIN_ROOT / "tmcp_runtime" / "domain" / "harvest_nodes.py"
+HARVEST_SERVICE_PATH = PLUGIN_ROOT / "tmcp_runtime" / "services" / "harvest.py"
+
+
+class HarvestDomainTests(unittest.TestCase):
+    def test_source_node_uses_an_explicit_advisory_callback(self) -> None:
+        source_path = "/tmp/example/SKILL.md"
+        source_text = "# Skill\nUse browser evidence before release."
+        calls: list[tuple[Path, str, str, str]] = []
+
+        def source_advisories(
+            path: Path,
+            text: str,
+            relative_path: str,
+            source_type: str,
+        ) -> list[dict[str, object]]:
+            calls.append((path, text, relative_path, source_type))
+            return [{"pattern_id": "test", "warning": "advisory"}]
+
+        node = source_node_from_text(
+            root_path="/tmp/example",
+            source_path=source_path,
+            relative_path="SKILL.md",
+            text=source_text,
+            max_excerpt_chars=1200,
+            redactions={},
+            source_type="skill_definition",
+            source_advisories=source_advisories,
+        )
+
+        self.assertEqual(
+            calls,
+            [(Path(source_path), source_text, "SKILL.md", "skill_definition")],
+        )
+        self.assertEqual(
+            node["skill_eval_advisories"],
+            [{"pattern_id": "test", "warning": "advisory"}],
+        )
+
+    def test_server_adapts_keyword_only_evaluator_advisories(self) -> None:
+        server = helpers.load_server_module()
+        source_text = "# Skill\nKeep the review evidence grounded."
+        advisory = {"pattern_id": "test", "warning": "advisory"}
+
+        with tempfile.TemporaryDirectory() as directory:
+            source_path = Path(directory) / "SKILL.md"
+            source_path.write_text(source_text, encoding="utf-8")
+            with patch.object(
+                server,
+                "harvest_warnings_for_source",
+                return_value=[advisory],
+            ) as warnings_for_source:
+                result = server._harvest_skills(
+                    {
+                        "source_path": directory,
+                        "include_globs": ["**/SKILL.md"],
+                        "write_artifacts": False,
+                    }
+                )
+
+        warnings_for_source.assert_called_once_with(
+            source_path,
+            source_text,
+            rel_path="SKILL.md",
+            source_type="skill_definition",
+        )
+        self.assertEqual(
+            result["source_nodes"][0]["skill_eval_advisories"],
+            [advisory],
+        )
+
+    def test_harvest_node_policy_has_no_adapter_import(self) -> None:
+        module = ast.parse(HARVEST_NODES_PATH.read_text(encoding="utf-8"))
+        imported_modules = {
+            node.module
+            for node in ast.walk(module)
+            if isinstance(node, ast.ImportFrom) and node.module is not None
+        }
+        imported_modules.update(
+            alias.name
+            for node in ast.walk(module)
+            if isinstance(node, ast.Import)
+            for alias in node.names
+        )
+
+        self.assertFalse(
+            any(module_name.startswith("scripts") for module_name in imported_modules)
+        )
+
+    def test_harvest_service_is_read_only_and_has_no_storage_import(self) -> None:
+        module = ast.parse(HARVEST_SERVICE_PATH.read_text(encoding="utf-8"))
+        imported_modules = {
+            node.module
+            for node in ast.walk(module)
+            if isinstance(node, ast.ImportFrom) and node.module is not None
+        }
+        imported_modules.update(
+            alias.name
+            for node in ast.walk(module)
+            if isinstance(node, ast.Import)
+            for alias in node.names
+        )
+        self.assertFalse(
+            any(
+                module_name.startswith(("scripts", "tmcp_runtime.storage"))
+                for module_name in imported_modules
+            )
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "SKILL.md").write_text(
+                "# Skill\n\nUse verification.\n",
+                encoding="utf-8",
+            )
+            result = harvest_service.harvest_skills(
+                {"source_path": str(root), "write_artifacts": True}
+            )
+
+            self.assertNotIn("artifact_paths", result)
+            self.assertFalse((root / ".tmcp").exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

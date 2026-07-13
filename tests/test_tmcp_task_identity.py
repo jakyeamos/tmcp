@@ -4,7 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.tmcp_route_catalog import derive_task_identity, score_routes, task_identity_delta
+from tmcp_runtime.domain.routes import (
+    derive_task_identity,
+    score_routes,
+    task_identity_delta,
+)
 from tests import test_tmcp_mcp_server as helpers
 
 

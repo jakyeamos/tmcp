@@ -1,6 +1,6 @@
 # Packet Stability
 
-TMCP packets are intended to be stable enough for other tools to consume. The current public packet schema is `tmcp-skill-packet-v0.2`. Adaptive workflow-pack artifacts use `tmcp-adaptive-workflow-pack-v0.1`. Composable runtime artifacts use `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, `tmcp-run-receipt-v0.1`, and `tmcp-recompiled-packet-v0.1`. Promoted harvest graphs use `tmcp-promoted-harvest-graph-v0.1`. See [ADAPTIVE_PACKET_RUNTIME.md](ADAPTIVE_PACKET_RUNTIME.md).
+TMCP packets are intended to be stable enough for other tools to consume. The current public packet schema is `tmcp-skill-packet-v0.2`. Adaptive workflow-pack artifacts use `tmcp-adaptive-workflow-pack-v0.1`. Composable runtime artifacts use `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, `tmcp-run-receipt-v0.1`, `tmcp-recompiled-packet-v0.1`, and the explicit project-local `tmcp-run-session-v0.1`. Promoted harvest graphs use `tmcp-promoted-harvest-graph-v0.1`. See [ADAPTIVE_PACKET_RUNTIME.md](ADAPTIVE_PACKET_RUNTIME.md).
 
 ## Compatibility Promise
 
@@ -43,11 +43,12 @@ External tools can rely on these fields for composition/runtime schemas:
 - `tmcp-runtime-next-v0.1`: `packet_delta`, `next_verification_gate`, `warnings`, `task_identity`, optional `task_identity_delta`, and `safety`.
 - `tmcp-recompiled-packet-v0.1`: `packet`, `packet_diff`, `recompile_reason`, `recompile_detail`, `validated_changes`, and `warnings`.
 - `tmcp-run-receipt-v0.1`: `packet_id`, `activated_atoms`, `ignored_atoms`, `commands_run`, `verification_results`, `user_overrides`, `outcome`, and `trust`.
+- `tmcp-run-session-v0.1`: a redacted project-local latest-packet record; composed and recompiled responses may add a `session` reference when explicitly requested.
 - `tmcp-promoted-harvest-graph-v0.1`: `source_nodes`, `behavior_atoms`, `workflow_nodes`, `edges`, and `trust`.
 
 ## Machine-Readable Schema
 
-The packet JSON Schema draft lives at [schemas/tmcp-skill-packet-v0.2.schema.json](../schemas/tmcp-skill-packet-v0.2.schema.json). The adaptive workflow-pack schema lives at [schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json](../schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json). Composition schemas live at [schemas/tmcp-composed-packet-v0.1.schema.json](../schemas/tmcp-composed-packet-v0.1.schema.json), [schemas/tmcp-runtime-next-v0.1.schema.json](../schemas/tmcp-runtime-next-v0.1.schema.json), [schemas/tmcp-recompiled-packet-v0.1.schema.json](../schemas/tmcp-recompiled-packet-v0.1.schema.json), [schemas/tmcp-run-receipt-v0.1.schema.json](../schemas/tmcp-run-receipt-v0.1.schema.json), and [schemas/tmcp-promoted-harvest-graph-v0.1.schema.json](../schemas/tmcp-promoted-harvest-graph-v0.1.schema.json). These schemas are intentionally strict about required fields and permissive about additive fields.
+The packet JSON Schema draft lives at [schemas/tmcp-skill-packet-v0.2.schema.json](../schemas/tmcp-skill-packet-v0.2.schema.json). The adaptive workflow-pack schema lives at [schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json](../schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json). Composition schemas live at [schemas/tmcp-composed-packet-v0.1.schema.json](../schemas/tmcp-composed-packet-v0.1.schema.json), [schemas/tmcp-runtime-next-v0.1.schema.json](../schemas/tmcp-runtime-next-v0.1.schema.json), [schemas/tmcp-recompiled-packet-v0.1.schema.json](../schemas/tmcp-recompiled-packet-v0.1.schema.json), [schemas/tmcp-run-receipt-v0.1.schema.json](../schemas/tmcp-run-receipt-v0.1.schema.json), [schemas/tmcp-run-session-v0.1.schema.json](../schemas/tmcp-run-session-v0.1.schema.json), and [schemas/tmcp-promoted-harvest-graph-v0.1.schema.json](../schemas/tmcp-promoted-harvest-graph-v0.1.schema.json). These schemas are intentionally strict about required fields and permissive about additive fields.
 
 ## Migration Rules
 

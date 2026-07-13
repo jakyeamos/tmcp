@@ -27,17 +27,18 @@ This document covers four gaps between that thesis and the current implementatio
 | Primitive | Tool / function | Role today |
 | --- | --- | --- |
 | Intake compile | `tmcp_compose_packet` → `_compose_packet()` | Harvest sources, score nodes, emit composed JSON packet |
-| Route compile | `tmcp_explain` → `_compile_standalone_packet()` | Task routing to `@task:*` nodes with `packet_markdown` |
+| Route compile | `tmcp_explain` → `standalone_packets.compile_standalone_packet()` | Task routing to `@task:*` nodes with `packet_markdown` |
 | Runtime delta | `tmcp_runtime_next` → `_runtime_next()` | Phase-aware atom/read/gate deltas; family seed transitions |
+| Explicit session | `tmcp_compose_packet` / `tmcp_runtime_next` with `session_id` | Protected project-local latest packet for one serialized run |
 | Receipts | `tmcp_record_receipt` → `_record_receipt()` | Advisory run receipts under `~/.tmcp/receipts/` |
 | Family orchestration | `_compose_family_context()`, scoped seeds | Suppress sibling skills, chain phases, declared loads |
 | Cached shortcuts | Promoted harvest graphs, scoped packet seeds | Curated compile recipes; not yet full provenance chain |
 
-Schemas in play: `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, `tmcp-skill-packet-v0.2`, `tmcp-scoped-packet-seeds-v0.1`.
+Schemas in play: `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, `tmcp-recompiled-packet-v0.1`, `tmcp-run-session-v0.1`, `tmcp-skill-packet-v0.2`, `tmcp-scoped-packet-seeds-v0.1`.
 
 What works well and should be preserved:
 
-- Deterministic, stateless server functions (no hidden agent state in TMCP)
+- Deterministic server functions with no hidden agent state; session persistence is explicit and project-local
 - `ignored_sources`, `deferred_atoms`, `evidence_citations` as provenance hooks
 - `family_context` + `phase_transitions` for mid-run skill-family chains
 - Advisory trust model: packets never override system/developer/user instructions
@@ -91,7 +92,7 @@ Add `task_identity` as a structured, first-class field on composed and recompile
 3. When a scoped packet seed matches, seed `primary` from seed `id` / `name` and merge seed `behavior_atoms` into routes.
 4. On recompile, compare new `task_identity` to `previous_task_identity`; emit `task_identity_delta` when primary or secondary sets change.
 
-**Route catalog** (initial set, extensible in `scripts/tmcp_route_catalog.py`):
+**Route catalog** (initial set, extensible in `tmcp_runtime/domain/routes.py`):
 
 | Route ID | Trigger signals (objective / context) |
 | --- | --- |
@@ -121,7 +122,7 @@ Additive fields on `tmcp-runtime-next-v0.1`:
 
 | Step | Location | Work |
 | --- | --- | --- |
-| 1 | `scripts/tmcp_route_catalog.py` (new) | Route definitions, `_score_routes(objective, context) -> list[RouteScore]` |
+| 1 | `tmcp_runtime/domain/routes.py` | Route definitions, `_score_routes(objective, context) -> list[RouteScore]` |
 | 2 | `scripts/tmcp_mcp_server.py` | `_derive_task_identity()` called from `_compose_packet()` and `_runtime_next()` |
 | 3 | `scripts/tmcp_mcp_server.py` | Include `task_identity` in `packet_id` hash inputs when identity changes materially |
 | 4 | `schemas/tmcp-composed-packet-v0.1.schema.json` | Document optional `task_identity`, `compiled_from` |
@@ -215,20 +216,21 @@ TMCP validates each proposal against the route catalog and harvested skill graph
 
 | Step | Location | Work |
 | --- | --- | --- |
-| 1 | `scripts/tmcp_mcp_server.py` | Extract `_merge_packet_delta(base_packet, delta) -> composed_packet` |
-| 2 | `scripts/tmcp_mcp_server.py` | `_recompile_packet(arguments)`: load base by `previous_packet_id` or re-compose from stored inputs; apply delta; compute diff |
-| 3 | `scripts/tmcp_mcp_server.py` | `_packet_diff(previous, current) -> packet_diff` |
+| 1 | `tmcp_runtime/domain/recompile.py` | Parse compatibility input; resolve recompile reason; merge deltas; apply validated proposals; compute diff; render the recompile section |
+| 2 | `scripts/tmcp_mcp_server.py` | `_recompile_packet(arguments)`: preserve source/session selection, re-compose and enrich from harvested nodes, then delegate pure recompile policy |
+| 3 | `tmcp_runtime/domain/recompile.py` | `packet_diff(previous, current) -> packet_diff` |
 | 4 | `scripts/tmcp_mcp_server.py` | Wire `_runtime_next()` `output_mode=full` to `_recompile_packet()` |
 | 5 | `scripts/tmcp_launcher.mjs` | `runtime-next --output-mode full`; alias `recompile-packet` |
 | 6 | `schemas/tmcp-recompiled-packet-v0.1.schema.json` | New schema |
-| 7 | `tests/test_tmcp_recompile_packet.py` (new) | Product-design family: runtime → implementation → polish-verify full path |
+| 7 | `tests/test_tmcp_recompile_domain.py` | Direct policy coverage for parsing, reason priority, merge, diff, proposals, and rendering |
+| 8 | `tests/test_tmcp_recompile_packet.py` | Product-design family: runtime → implementation → polish-verify adapter path |
 
-**State note:** TMCP remains stateless. `previous_packet_id` recompile requires either:
-
-- (Phase 1) Agent passes `previous_packet` JSON inline in `arguments.previous_packet`, or
-- (Phase 2) Optional local packet cache under `.tmcp/runs/<packet_id>.json` when `write_artifacts: true`
-
-Default Phase 1 avoids new persistence requirements.
+**State note:** The default remains stateless: an agent passes `previous_packet`
+inline for a portable full recompile. When a caller explicitly supplies
+`session_id` and an absolute `project_path`, TMCP stores one redacted latest-packet record
+under that project and reloads it for a full recompile. This is a serialized
+single-run convenience, not a global cache, history, rollback mechanism, or
+automatic write path.
 
 ### Acceptance criteria
 
@@ -242,7 +244,7 @@ Default Phase 1 avoids new persistence requirements.
 
 ### Problem
 
-`tmcp_explain` produces `packet_markdown` via `_packet_markdown()` for routed skill packets. `tmcp_compose_packet` returns JSON only. Agents and users lack a single inspectable markdown operating contract for composed/recompiled runs.
+`tmcp_explain` produces `packet_markdown` through `tmcp_runtime.domain.standalone_packets.render_standalone_packet_markdown()` for routed skill packets. `tmcp_compose_packet` returns JSON only. Agents and users lack a single inspectable markdown operating contract for composed/recompiled runs.
 
 ### Design
 
@@ -250,7 +252,7 @@ Add `packet_markdown` to composed and recompiled packets, rendered from structur
 
 ### Markdown template
 
-Rendered by `_composed_packet_markdown(packet) -> str`:
+Rendered by `tmcp_runtime.domain.packets.render_composed_packet_markdown(packet)`:
 
 ```markdown
 # TMCP Packet
@@ -297,7 +299,7 @@ Section mapping:
 | Task Identity | `task_identity` (Gap 1) |
 | Active Routes | `task_identity.active_routes` |
 | Loaded Skill Sources | `evidence_citations` + selected node titles |
-| Selection Rationale | `_selection_rationale(packet)` from route scores + family_context |
+| Selection Rationale | `selection_rationale(packet)` from route scores + family context |
 | Excluded Skills | `ignored_sources` + `deferred_atoms` |
 | Operating Instructions | `active_instructions` |
 | Recompile Triggers | static catalog + `family_context.phase_transitions` keys |
@@ -322,10 +324,10 @@ Detail: Work moved from visual exploration into production implementation.
 
 | Step | Location | Work |
 | --- | --- | --- |
-| 1 | `scripts/tmcp_mcp_server.py` | `_composed_packet_markdown(packet) -> str` |
-| 2 | `scripts/tmcp_mcp_server.py` | `_selection_rationale(packet) -> str` (deterministic template from scores) |
-| 3 | `scripts/tmcp_mcp_server.py` | Set `packet["packet_markdown"]` in `_compose_packet()` return |
-| 4 | `scripts/tmcp_mcp_server.py` | `_recompiled_packet_markdown(recompiled) -> str` with diff section |
+| 1 | `tmcp_runtime/domain/packets.py` | `render_composed_packet_markdown(packet) -> str` |
+| 2 | `tmcp_runtime/domain/packets.py` | `selection_rationale(packet) -> str` (deterministic template from scores) |
+| 3 | `scripts/tmcp_mcp_server.py` | Set `packet["packet_markdown"]` from the domain renderer |
+| 4 | `tmcp_runtime/domain/recompile.py` | Prepend recompile diff to the injected composition renderer |
 | 5 | `schemas/tmcp-composed-packet-v0.1.schema.json` | Optional `packet_markdown` property |
 | 6 | `skills/tmcp/SKILL.md` | Require agents to surface `packet_markdown` in handoffs |
 | 7 | `tests/test_tmcp_composed_markdown.py` (new) | Snapshot tests for markdown sections |
@@ -405,7 +407,7 @@ Ship a reference seed at `examples/seeds/frontend-redesign-runtime.json` (not au
 
 #### Layer 4c — Cached shortcut packets (compiled views)
 
-Shortcut packets are **not** source of truth. They are memoized compile results.
+Shortcut candidates are **not** source of truth. They are advisory compile metadata; the current runtime emits them for provenance but does not reuse them as a memoized execution path.
 
 ```json
 {
@@ -431,17 +433,17 @@ Promotion path:
 
 1. Repeated successful runs record receipts (`tmcp_record_receipt`).
 2. `tmcp_promote_harvest` can promote a scoped seed + route pattern into global graph (existing).
-3. Compose checks `shortcut_candidate`; if `compiled_from` still matches current graph hash, pre-seed `task_identity` and `family_context` from shortcut metadata — then **still re-run full selection** to validate. Shortcut never skips validation.
+3. Compose currently emits `shortcut_candidate` provenance only. It does not read a prior candidate or pre-seed `task_identity` or `family_context`; full selection runs on every composition. A future explicit-opt-in reuse path must validate current graph provenance before it can influence selection.
 
 ### Implementation
 
 | Step | Location | Work |
 | --- | --- | --- |
-| 1 | `scripts/tmcp_route_catalog.py` | Route definitions with `source_boost()` |
+| 1 | `tmcp_runtime/domain/routes.py` | Route definitions with `source_boost()` |
 | 2 | `scripts/tmcp_mcp_server.py` | Thread `active_routes` into `_node_composition_score()` |
 | 3 | `scripts/tmcp_mcp_server.py` | Lower seed match threshold when route affinity overlaps ≥ 2 routes |
 | 4 | `examples/seeds/frontend-redesign-runtime.json` | Reference scoped seed |
-| 5 | `scripts/tmcp_mcp_server.py` | `_shortcut_candidate(packet, graph_version)` with `compiled_from` |
+| 5 | `tmcp_runtime/domain/packets.py` | `shortcut_candidate_for_composed_packet(...)` with `compiled_from` |
 | 6 | `tests/test_tmcp_route_inference.py` (new) | NL redesign prompt selects correct routes + seed |
 | 7 | `tests/test_tmcp_skill_family_compose.py` | Extend with frontend redesign seed fixture |
 
@@ -449,7 +451,7 @@ Promotion path:
 
 - Natural-language redesign prompt activates a matching scoped seed when `route_affinity` aligns, without naming the seed.
 - `selection_rationale` in markdown cites route scores, not only keyword luck.
-- Shortcut candidate includes `compiled_from.graph_version`; changing a harvested skill invalidates shortcut status.
+- Shortcut candidate includes `compiled_from.graph_version`; changing a harvested skill changes the provenance that any future reuse path must validate.
 
 ---
 
@@ -459,8 +461,8 @@ Promotion path:
 
 Low risk, additive schema fields, immediate inspectability win.
 
-1. `tmcp_route_catalog.py` + `_derive_task_identity()`
-2. `_composed_packet_markdown()` on every compose response
+1. `tmcp_runtime/domain/routes.py` + `_derive_task_identity()`
+2. `render_composed_packet_markdown()` on every compose response
 3. Tests + update `TMCP_PACKET_SPEC.md`
 
 ### Phase 2 — Full recompile (Gap 2)
@@ -513,7 +515,7 @@ Tool names remain stable:
 ```bash
 node scripts/tmcp_launcher.mjs compose-packet \
   "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
-  --project-path . --phase start
+  --project-path "$PWD" --phase start --session-id redesign-run
 ```
 
 Expected packet highlights:
@@ -533,9 +535,9 @@ Agent reads pages, finds React + design system.
 ```bash
 node scripts/tmcp_launcher.mjs runtime-next \
   "Redesign these pages..." \
+  --project-path "$PWD" \
   --current-phase runtime \
-  --previous-packet-id packet-abc123 \
-  --previous-packet @composed-packet.json \
+  --session-id redesign-run \
   --files-changed "app/page.tsx,components/Hero.tsx" \
   --output-mode full
 ```
@@ -571,13 +573,28 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 | File | Action |
 | --- | --- |
 | `docs/ADAPTIVE_PACKET_RUNTIME.md` | This document |
-| `scripts/tmcp_route_catalog.py` | New — route definitions and scoring |
+| `tmcp_runtime/domain/composition.py` | Contextual gates, node scoring/selection, selected-node merging, source verification-gate filtering, and reference-read selection |
+| `tmcp_runtime/domain/declared_loads.py` | Declared-read parsing, path normalization/matching, objective narrowing, and selected-source enrichment |
+| `tmcp_runtime/domain/families.py` | Scoped-seed/router family resolution, primary-source matching, sibling deferral, and runtime phase-transition policy |
+| `tmcp_runtime/domain/packets.py` | Final packet assembly, provenance, shortcut eligibility, and composed Markdown rendering |
+| `tmcp_runtime/domain/recompile.py` | Pure recompile policy and Markdown diff rendering |
+| `tmcp_runtime/domain/review_evidence.py` | Evidence parsing/contracts, rubric synthesis, and audit scoring/coverage policy |
+| `tmcp_runtime/domain/review_profiles.py` | Review dimensions, coverage requirements, profile classification, and fallback vocabulary shared by standalone review and workflow recommendation |
+| `tmcp_runtime/domain/review_results.py` | Remediation plans, implementation handoffs, review validations, and review-artifact Markdown rendering |
+| `tmcp_runtime/domain/routes.py` | Route definitions and scoring |
+| `tmcp_runtime/domain/standalone_packets.py` | Legacy standalone task/playbook packet compilation and Markdown rendering |
+| `tmcp_runtime/domain/workflow_activation.py` | Objective scoring, canonical workflow rehydration, activation projection, and specialized workflow instructions for validated promoted graphs |
+| `tmcp_runtime/domain/workflow_adaptive.py` | Scoped-seed projection, adaptive workflow-pack construction, custom-idea/overlap/process-gap policy, and recommendation Markdown rendering |
+| `tmcp_runtime/domain/workflow_catalog.py` | Curated workflow definitions, candidate filtering, stability labels, and ID lookup shared by recommendation, promotion, and cache selection |
+| `tmcp_runtime/domain/workflow_promotion.py` | Promotion target selection, scoped-seed precedence, canonical graph construction, and promotion Markdown rendering |
+| `tmcp_runtime/domain/workflow_recommendations.py` | Workflow signal scoring, reasons, rubric/template and candidate-instance construction, required-evidence guidance, and source-scope policy |
 | `scripts/tmcp_mcp_server.py` | Extend compose, runtime, markdown renderers |
 | `schemas/tmcp-recompiled-packet-v0.1.schema.json` | New |
 | `schemas/tmcp-composed-packet-v0.1.schema.json` | Add optional fields |
 | `schemas/tmcp-runtime-next-v0.1.schema.json` | Add optional `task_identity_delta`, `output_mode` response shape |
 | `examples/seeds/frontend-redesign-runtime.json` | New reference seed |
 | `tests/test_tmcp_task_identity.py` | New |
+| `tests/test_tmcp_recompile_domain.py` | Pure recompile policy coverage |
 | `tests/test_tmcp_recompile_packet.py` | New |
 | `tests/test_tmcp_composed_markdown.py` | New |
 | `tests/test_tmcp_route_inference.py` | New |

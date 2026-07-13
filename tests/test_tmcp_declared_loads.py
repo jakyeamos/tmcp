@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import copy
 import tempfile
 import unittest
 from pathlib import Path
 
 from tests import test_tmcp_mcp_server as helpers
+from tmcp_runtime.domain import declared_loads
 
 
 class TmcpDeclaredLoadsTests(unittest.TestCase):
@@ -60,8 +62,13 @@ class TmcpDeclaredLoadsTests(unittest.TestCase):
             },
         ]
 
-        paths, nodes = self.server._resolved_declared_load_nodes(
-            selected_nodes=[{"relative_path": "runtime/SKILL.md", "routing_metadata": {"declared_loads": patterns}}],
+        paths, nodes = declared_loads.resolve_declared_load_nodes(
+            selected_nodes=[
+                {
+                    "relative_path": "runtime/SKILL.md",
+                    "routing_metadata": {"declared_loads": patterns},
+                }
+            ],
             source_nodes=source_nodes,
             objective="Use product-design-runtime before implementing onboarding UI",
         )
@@ -73,6 +80,78 @@ class TmcpDeclaredLoadsTests(unittest.TestCase):
         self.assertEqual(
             {node["relative_path"] for node in nodes},
             set(paths),
+        )
+
+    def test_domain_parses_and_matches_declared_paths(self) -> None:
+        text = "\n".join(
+            [
+                "Search `guides/onboarding/` before editing.",
+                "Check `coverage-gaps.md` for unresolved work.",
+                "Open `guides/onboarding/` only when relevant.",
+            ]
+        )
+
+        self.assertEqual(
+            declared_loads.declared_load_patterns_from_text(text),
+            ["guides/onboarding/**", "coverage-gaps.md"],
+        )
+        self.assertTrue(
+            declared_loads.node_matches_declared_load_pattern(
+                ".\\guides\\onboarding\\welcome.md",
+                "./guides/onboarding/**",
+            )
+        )
+        self.assertTrue(
+            declared_loads.node_matches_declared_load_pattern(
+                "docs/coverage-gaps.md", "coverage-gaps.md"
+            )
+        )
+        self.assertFalse(
+            declared_loads.node_matches_declared_load_pattern(
+                "guides/settings.md", "guides/onboarding/**"
+            )
+        )
+
+    def test_domain_bounds_paths_and_excludes_selected_nodes(self) -> None:
+        source_nodes = [
+            {
+                "relative_path": "guides/runtime.md",
+                "routing_metadata": {"declared_loads": ["guides/**"]},
+            },
+            {"relative_path": "guides/one.md"},
+            {"relative_path": "guides/two.md"},
+            {"relative_path": "guides/three.md"},
+        ]
+        before = copy.deepcopy(source_nodes)
+        paths, nodes = declared_loads.resolve_declared_load_nodes(
+            selected_nodes=[source_nodes[0]],
+            source_nodes=source_nodes,
+            objective="Review guide coverage.",
+            family_context={"declared_loads": ["guides/**"]},
+            max_nodes=2,
+        )
+
+        self.assertEqual(
+            paths,
+            [
+                "guides/runtime.md",
+                "guides/one.md",
+                "guides/two.md",
+                "guides/three.md",
+            ],
+        )
+        self.assertEqual(
+            [node["relative_path"] for node in nodes],
+            ["guides/one.md", "guides/two.md"],
+        )
+        self.assertIs(nodes[0], source_nodes[1])
+        self.assertEqual(source_nodes, before)
+        self.assertEqual(
+            declared_loads.narrow_declared_load_paths(
+                [f"notes/{index}.md" for index in range(13)],
+                "Review the project.",
+            ),
+            [f"notes/{index}.md" for index in range(12)],
         )
 
     def test_compose_packet_includes_declared_product_decision_reads(self) -> None:
@@ -132,7 +211,9 @@ class TmcpDeclaredLoadsTests(unittest.TestCase):
         }
         self.assertIn("product-decisions/surfaces/onboarding.md", cited_sources)
 
-    def test_compose_packet_without_declared_loads_unchanged_for_references(self) -> None:
+    def test_compose_packet_without_declared_loads_unchanged_for_references(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             skill = root / "skills" / "impeccable"

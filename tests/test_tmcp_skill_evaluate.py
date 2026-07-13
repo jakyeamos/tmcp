@@ -2,16 +2,22 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from typing import cast
+from unittest.mock import patch
+
+from tests import test_tmcp_mcp_server as helpers
+from tests.tmcp_test_client import run_mcp_requests as run_hermetic_mcp_requests
+from tmcp_runtime.storage import artifact_persistence_available
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-SERVER_PATH = PLUGIN_ROOT / "scripts" / "tmcp_mcp_server.py"
 EVALUATE_PATH = PLUGIN_ROOT / "scripts" / "tmcp_skill_evaluate.py"
-LAUNCHER_PATH = PLUGIN_ROOT / "scripts" / "tmcp_launcher.mjs"
+HARVEST_ADVISORIES_PATH = (
+    PLUGIN_ROOT / "tmcp_runtime" / "services" / "harvest_advisories.py"
+)
 FIXTURE_SKILL = (
     PLUGIN_ROOT / "tests" / "fixtures" / "skills" / "approval-before-edit" / "SKILL.md"
 )
@@ -32,43 +38,14 @@ def load_module(path: Path, name: str):
     return module
 
 
-def run_mcp_requests(requests: list[dict]) -> list[dict]:
-    framing = load_module(PLUGIN_ROOT / "scripts" / "tmcp_mcp_framing.py", "framing")
-    raw = b"".join(framing.encode_message(request) for request in requests)
-    completed = subprocess.run(
-        ["node", str(LAUNCHER_PATH)],
-        input=raw,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=str(PLUGIN_ROOT),
-        check=False,
-    )
-    if completed.returncode != 0:
-        raise RuntimeError(completed.stderr.decode())
-    responses: list[dict] = []
-    stream = completed.stdout
-    position = 0
-    while position < len(stream):
-        header_end = stream.index(b"\r\n\r\n", position)
-        headers = stream[position:header_end].decode().split("\r\n")
-        length = int(
-            [
-                header.split(":", 1)[1].strip()
-                for header in headers
-                if header.lower().startswith("content-length:")
-            ][0]
-        )
-        body_start = header_end + 4
-        body = stream[body_start : body_start + length]
-        responses.append(json.loads(body.decode()))
-        position = body_start + length
-    return responses
+def run_mcp_requests(requests: list[dict[str, object]]) -> list[dict[str, object]]:
+    return run_hermetic_mcp_requests(requests, PLUGIN_ROOT)
 
 
 class SkillEvaluateTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.server = load_module(SERVER_PATH, "tmcp_mcp_server_skill_eval")
+        cls.server = helpers.load_server_module()
         cls.evaluate = load_module(EVALUATE_PATH, "tmcp_skill_evaluate")
 
     def _plan_arguments(self) -> dict:
@@ -91,9 +68,24 @@ class SkillEvaluateTests(unittest.TestCase):
         responses = run_mcp_requests(
             [{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}]
         )
-        tools = responses[0]["result"]["tools"]
+        result = cast(dict[str, object], responses[0]["result"])
+        tools = cast(list[dict[str, object]], result["tools"])
         tool_names = {tool["name"] for tool in tools}
         self.assertIn("tmcp_evaluate_skills", tool_names)
+
+    def test_evaluator_does_not_depend_on_private_server_helpers(self) -> None:
+        source = EVALUATE_PATH.read_text(encoding="utf-8")
+
+        self.assertNotIn("scripts.tmcp_mcp_server", source)
+        self.assertNotIn("__globals__", source)
+        self.assertNotIn("tmcp_runtime.storage", source)
+        self.assertNotIn("AtomicArtifactStore", source)
+
+    def test_harvest_advisories_service_does_not_import_adapter(self) -> None:
+        source = HARVEST_ADVISORIES_PATH.read_text(encoding="utf-8")
+
+        self.assertNotIn("scripts.tmcp_mcp_server", source)
+        self.assertNotIn("scripts.tmcp_skill_evaluate", source)
 
     def test_plan_decomposes_fixture_skill(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
@@ -107,6 +99,81 @@ class SkillEvaluateTests(unittest.TestCase):
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
         variant_ids = {row["variant_id"] for row in plan["task_matrix"]}
         self.assertEqual(variant_ids, {"baseline", "original", "negative_control"})
+
+    def test_plan_rejects_oversized_variant_input(self) -> None:
+        arguments = self._plan_arguments()
+        arguments["variants"] = ["variant"] * (
+            self.evaluate.MAX_EVALUATION_VARIANTS + 1
+        )
+
+        with self.assertRaisesRegex(ValueError, "variant count"):
+            self.evaluate.build_evaluation_plan(arguments)
+
+    def test_plan_rejects_oversized_serialized_fixture_input(self) -> None:
+        with patch.object(self.evaluate, "MAX_EVALUATION_INPUT_BYTES", 16):
+            with self.assertRaisesRegex(ValueError, "serialized size"):
+                self.evaluate.build_evaluation_plan(self._plan_arguments())
+
+    def test_plan_rejects_matrix_before_cartesian_expansion(self) -> None:
+        with patch.object(self.evaluate, "MAX_EVALUATION_MATRIX_ROWS", 1):
+            with self.assertRaisesRegex(ValueError, "matrix"):
+                self.evaluate.build_evaluation_plan(self._plan_arguments())
+
+    def test_score_rejects_oversized_evidence_input(self) -> None:
+        plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
+        trace = {
+            "task_id": "approval-before-edit",
+            "variant_id": "original",
+            "observations": [{"kind": "command_run", "value": "npm test"}],
+        }
+
+        with self.assertRaisesRegex(ValueError, "trace count"):
+            self.evaluate.score_evidence(
+                {
+                    "evaluation_plan": plan,
+                    "run_evidence_json": [trace]
+                    * (self.evaluate.MAX_EVALUATION_TRACES + 1),
+                }
+            )
+
+    def test_score_rejects_malformed_nested_plan_before_scoring(self) -> None:
+        plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
+        plan["evaluated_skills"][0]["static_findings"] = "bad"
+
+        with self.assertRaisesRegex(ValueError, "static_findings"):
+            self.evaluate.score_evidence(
+                {
+                    "evaluation_plan": plan,
+                    "run_evidence_json": [
+                        {
+                            "task_id": "approval-before-edit",
+                            "variant_id": "original",
+                            "observations": [
+                                {"kind": "command_run", "value": "npm test"}
+                            ],
+                        }
+                    ],
+                }
+            )
+
+    def test_score_rejects_oversized_inline_plan_input(self) -> None:
+        plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
+        with patch.object(self.evaluate, "MAX_EVALUATION_INPUT_BYTES", 16):
+            with self.assertRaisesRegex(ValueError, "evaluation_plan"):
+                self.evaluate.score_evidence(
+                    {
+                        "evaluation_plan": plan,
+                        "run_evidence_json": [
+                            {
+                                "task_id": "approval-before-edit",
+                                "variant_id": "original",
+                                "observations": [
+                                    {"kind": "command_run", "value": "npm test"}
+                                ],
+                            }
+                        ],
+                    }
+                )
 
     def test_score_rejects_evidence_without_observable_trace(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
@@ -244,19 +311,25 @@ class SkillEvaluateTests(unittest.TestCase):
         missing = [field for field in schema["required"] if field not in report]
         self.assertEqual(missing, [])
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_write_artifacts_emits_plan_and_report_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "eval"
-            plan = self.evaluate.evaluate_skills(
+            plan = self.server._call_tool(
+                "tmcp_evaluate_skills",
                 {
                     **self._plan_arguments(),
                     "mode": "plan",
                     "write_artifacts": True,
                     "output_dir": str(output_dir),
-                }
+                },
             )
             self.assertIn("artifact_paths", plan)
-            report = self.evaluate.evaluate_skills(
+            report = self.server._call_tool(
+                "tmcp_evaluate_skills",
                 {
                     "mode": "score",
                     "evaluation_plan": plan,
@@ -272,12 +345,10 @@ class SkillEvaluateTests(unittest.TestCase):
                     ],
                     "write_artifacts": True,
                     "output_dir": str(output_dir),
-                }
+                },
             )
             self.assertTrue((output_dir / "tmcp-skill-evaluation-plan.json").exists())
-            self.assertTrue(
-                (output_dir / "tmcp-skill-evaluation-report.json").exists()
-            )
+            self.assertTrue((output_dir / "tmcp-skill-evaluation-report.json").exists())
             self.assertTrue((output_dir / "skill-writing-guidebook.md").exists())
             self.assertTrue((output_dir / "skill-pattern-catalog.json").exists())
             self.assertIn("artifact_paths", report)
@@ -294,6 +365,34 @@ class SkillEvaluateTests(unittest.TestCase):
         self.assertEqual(result["mode"], "plan")
         self.assertEqual(result["schema"], "tmcp-skill-evaluation-plan-v0.1")
 
+    def test_mcp_tool_call_score_mode_injects_composition_service(self) -> None:
+        plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
+
+        result = self.server._call_tool(
+            "tmcp_evaluate_skills",
+            {
+                "mode": "score",
+                "evaluation_plan": plan,
+                "project_path": str(PLUGIN_ROOT),
+                "run_evidence_json": [
+                    {
+                        "task_id": "approval-before-edit",
+                        "variant_id": "original",
+                        "observations": [
+                            {"kind": "command_run", "value": "npm test"},
+                        ],
+                        "outcome": "passed",
+                    }
+                ],
+            },
+        )
+
+        self.assertEqual(result["mode"], "score")
+        self.assertEqual(
+            result["packet_inclusion_scores"][0]["confidence"],
+            "high",
+        )
+
     def test_harvest_emits_skill_eval_warnings_for_fixture_skill(self) -> None:
         result = self.server._harvest_skills(
             {
@@ -307,7 +406,9 @@ class SkillEvaluateTests(unittest.TestCase):
         self.assertIn("verification no-op", warning_text.lower())
         summary = result["skill_eval_advisory_summary"]
         self.assertGreater(summary["warning_count"], 0)
-        self.assertIn("verification.vague-quality-language", summary["patterns_detected"])
+        self.assertIn(
+            "verification.vague-quality-language", summary["patterns_detected"]
+        )
         self.assertEqual(summary["policy"], "advisory_only_no_auto_rewrite")
         node = next(
             item
@@ -315,6 +416,15 @@ class SkillEvaluateTests(unittest.TestCase):
             if str(item.get("path", "")).endswith("SKILL.md")
         )
         self.assertTrue(node.get("skill_eval_advisories"))
+
+    def test_pattern_lookup_falls_back_for_malformed_catalog_shapes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            catalog_path = Path(directory) / "catalog.json"
+            with patch.object(self.evaluate, "PATTERN_CATALOG_PATH", catalog_path):
+                for payload in ("[]", '{"patterns": null}', "not json"):
+                    catalog_path.write_text(payload, encoding="utf-8")
+                    patterns = self.evaluate._pattern_lookup()
+                    self.assertIn("verification.vague-quality-language", patterns)
 
     def test_plan_includes_packet_inclusion_contracts(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
@@ -326,13 +436,11 @@ class SkillEvaluateTests(unittest.TestCase):
     def test_packet_inclusion_diff_uses_compose_packet(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
         row = next(
-            item
-            for item in plan["task_matrix"]
-            if item["variant_id"] == "original"
+            item for item in plan["task_matrix"] if item["variant_id"] == "original"
         )
         composed = self.evaluate.compose_packet_for_eval_row(
             row,
-            self.server._compose_packet,
+            self.server._compose_evaluation_row,
             project_path=str(PLUGIN_ROOT),
         )
         contract = plan["packet_inclusion_contracts"][0]["expected"]
@@ -362,7 +470,8 @@ class SkillEvaluateTests(unittest.TestCase):
                         "outcome": "passed",
                     }
                 ],
-            }
+            },
+            compose_evaluation_row=self.server._compose_evaluation_row,
         )
         packet_score = report["packet_inclusion_scores"][0]
         self.assertEqual(packet_score["confidence"], "high")
@@ -376,13 +485,11 @@ class SkillEvaluateTests(unittest.TestCase):
     def test_baseline_variant_expects_skill_not_selected(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
         row = next(
-            item
-            for item in plan["task_matrix"]
-            if item["variant_id"] == "baseline"
+            item for item in plan["task_matrix"] if item["variant_id"] == "baseline"
         )
         composed = self.evaluate.compose_packet_for_eval_row(
             row,
-            self.server._compose_packet,
+            self.server._compose_evaluation_row,
             project_path=str(PLUGIN_ROOT),
         )
         contract = plan["packet_inclusion_contracts"][0]["expected"]
@@ -415,7 +522,8 @@ class SkillEvaluateTests(unittest.TestCase):
                         "outcome": "passed",
                     },
                 ],
-            }
+            },
+            compose_evaluation_row=self.server._compose_evaluation_row,
         )
         levels = {entry["evidence_level"] for entry in report["guidebook_entries"]}
         self.assertIn("controlled_multi_agent_eval", levels)

@@ -39,17 +39,15 @@ node scripts/tmcp_launcher.mjs
 
 Claude Desktop users can add the launcher as a local stdio MCP server. See [docs/CLAUDE_DESKTOP.md](docs/CLAUDE_DESKTOP.md).
 
-## Stable Public Workflows
+## Stability Scopes
 
-The first stable public workflow set is intentionally small:
+TMCP labels three independent surfaces:
 
-- `skill-harvest`
-- `workflow-recommendation`
-- `expert-rubric-review`
-- `release-readiness`
-- `dx-audit`
+- **Skill packages:** `tmcp`, `skill-harvest`, `workflow-recommendation`, `release-readiness`, and `dx-audit` are stable routing packages.
+- **Curated workflow templates:** `release-readiness` and `dx-audit` are the stable templates in the recommendation catalog.
+- **MCP tool contracts:** `doctor`, `status`, `explain`, `compose-packet`, and `runtime-next` are stable. Harvest, evaluation, recommendation, promotion, receipt, and expert-rubric tools remain experimental.
 
-Experimental workflows remain shipped and callable. They are labeled experimental in skill frontmatter, docs, and workflow recommendation output so users keep functionality without mistaking it for the stable first-release contract.
+Experimental templates and tools remain shipped and callable. They are labeled experimental in their own outputs and frontmatter so users do not confuse a stable package route with a stable tool contract or curated template.
 
 Experimental workflows include UI rubric, security/privacy, test strategy, adaptive workflow pack, custom rubric generation, routing policy, skill gap analysis, incident postmortem, architecture decision, migration readiness, agent handoff, PR risk, performance readiness, data integrity, public-sector readiness, and repo behavior spec loop.
 
@@ -62,15 +60,38 @@ Experimental workflows include UI rubric, security/privacy, test strategy, adapt
 | `tmcp_explain` | Compile a task-specific TMCP packet. |
 | `tmcp_compose_packet` | Compile a task/phase operating packet with `task_identity`, `packet_markdown`, and provenance. |
 | `tmcp_runtime_next` | Return packet deltas or a full recompiled packet (`output_mode: full`) after runtime evidence changes. |
-| `tmcp_record_receipt` | Write an advisory run receipt after verification or outcome. |
+| `tmcp_record_receipt` | Write an advisory run receipt after verification or outcome on a secure-persistence host. |
 | `tmcp_harvest_skills` | Harvest local skills, instructions, rules, docs, and workflows into source nodes. |
+| `tmcp_evaluate_skills` | Create or score a skill-evaluation plan from full `SKILL.md` inputs. |
 | `tmcp_recommend_workflows` | Recommend stable or experimental workflows from harvested evidence, with stability metadata. |
 | `tmcp_promote_harvest` | Explicitly promote reviewed harvest signals into durable source-to-atom and atom-to-workflow graph artifacts. |
 | `expert_rubric_review_plan` | Produce an expertise packet, scored rubric, evidence audit, remediation plan, and verification expectations. |
 
 ## Safety
 
-Harvest redacts sensitive-looking values by default and treats harvested instructions as untrusted text. Default harvest behavior excludes `.env*`, credentials, tokens, browser profiles, private caches, dependency trees, build outputs, VCS data, and generated TMCP/AIOS artifacts.
+Harvest redacts sensitive-looking values and secret-like provenance paths by default and treats harvested instructions as untrusted text. Default harvest behavior excludes `.env*`, credentials, tokens, browser profiles, private caches, dependency trees, build outputs, VCS data, and generated TMCP/AIOS artifacts. It does not follow source symlinks unless `follow_symlinks` is explicitly enabled; enabled links must still resolve inside the selected source root.
+
+On hosts with secure descriptor-relative filesystem operations, harvest artifacts
+are written as one staged, atomic bundle through a symlink-safe destination.
+Leave `output_dir` unset for a unique `.tmcp/harvest-*` directory, or provide an
+output directory that is new or empty.
+
+Skill evaluation accepts explicit regular `SKILL.md` inputs, can confine them to a supplied project root, and redacts source, plan, and evidence values before deriving reports. Its initial plan artifact is a staged bundle in a new or empty directory; evidence scoring may safely add its report to that same directory.
+
+Artifact persistence is deliberately unavailable where those secure filesystem
+operations do not exist. `doctor` and `status` report the capability; use
+`--no-write-artifacts` for portable analysis and see
+[Compatibility](docs/COMPATIBILITY.md#secure-artifact-persistence) for the
+boundary.
+
+`tmcp_record_receipt` has no non-persisting preview because the receipt is the
+artifact itself. Run it only when `status` reports artifact persistence
+available.
+
+Packet sessions are equally explicit: `compose-packet --session-id` writes one
+redacted, project-local latest-packet record only when secure persistence is
+available. They are for a single serialized run, not a global history or
+coordination service. See [the CLI session contract](docs/CLI.md#packet-sessions).
 
 If a harvested source tries to override system, developer, or user instructions, TMCP reports a warning. See [SECURITY.md](SECURITY.md).
 
@@ -88,21 +109,26 @@ Recommend workflows for a project:
 node scripts/tmcp_launcher.mjs recommend . --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose --no-write-artifacts
 ```
 
-Compose a current-task packet, recompile during the run, and record a receipt:
+Compose a current-task packet and recompile during the run. This session flow
+requires `status` to report artifact persistence available:
 
 ```bash
 node scripts/tmcp_launcher.mjs compose-packet \
   "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
-  --project-path . --phase start
+  --project-path "$PWD" --phase start --session-id redesign-run
 
 node scripts/tmcp_launcher.mjs recompile-packet \
   "Redesign these pages..." \
+  --project-path "$PWD" \
   --current-phase runtime \
-  --previous-packet "$(cat .tmcp/last-packet.json)" \
+  --session-id redesign-run \
   --files-changed app/page.tsx
 
 node scripts/tmcp_launcher.mjs record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
 ```
+
+When session persistence is unavailable, preserve the compatibility path by
+passing the prior composed JSON inline through `--previous-packet` instead.
 
 Legacy delta-only runtime routing:
 
@@ -118,7 +144,14 @@ Promote reviewed harvest signals into durable routing artifacts:
 node scripts/tmcp_launcher.mjs promote-harvest . --selected-workflows release_readiness_workflow --output-dir .tmcp/promoted-harvests/release-readiness
 ```
 
-Promotions also persist a redacted advisory graph under `TMCP_HOME/promoted-harvests/`, or `~/.tmcp/promoted-harvests/` when `TMCP_HOME` is unset. Receipts live under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override system, developer, user, or project instructions.
+On secure-persistence hosts, promotions also persist a redacted advisory graph
+under `TMCP_HOME/promoted-harvests/<opaque-promotion-key>/`, or
+`~/.tmcp/promoted-harvests/<opaque-promotion-key>/` when `TMCP_HOME` is unset.
+Receipts live under `TMCP_HOME/receipts/<yyyy-mm>/`.
+Global cache content is advisory and cannot override system, developer, user, or
+project instructions.
+Packet composition and runtime routing do not read that cache unless the caller
+explicitly passes `--cache-policy global`; their default policy is `none`.
 
 Run an expert rubric review from evidence snippets:
 
@@ -129,7 +162,7 @@ node scripts/tmcp_launcher.mjs review-plan "Review release portability" \
   --no-write-artifacts
 ```
 
-More examples live in [examples](examples). Stable examples are developer onboarding, release readiness, and skill-harvest workflow recommendation. Broader examples are retained as experimental examples.
+More examples live in [examples](examples). Developer onboarding and release readiness exercise stable curated templates; skill-harvest and recommendation examples remain available through experimental tool contracts.
 
 ## Validation
 
@@ -137,12 +170,22 @@ Before release:
 
 ```bash
 python3 -m unittest discover -s tests
-python3 -m py_compile scripts/tmcp_mcp_server.py scripts/check_install.py scripts/check_release_package.py scripts/check_release_evidence.py scripts/pre_cr_coverage.py scripts/tmcp_mcp_framing.py scripts/tmcp_redaction.py
+python3 scripts/release_package_compile.py .
 node --check scripts/tmcp_launcher.mjs
+python3 scripts/check_contracts.py .
 python3 scripts/check_install.py .
+python3 scripts/check_release_package.py . --verify-reproducible
 ```
 
-The release package check validates frontmatter, hardcoded local paths, private example names, links, extracted-package install shape, `doctor`, sample harvest, sample workflow recommendation, sample expert rubric planning, composition/runtime/receipt smoke coverage, and stable/experimental workflow labeling.
+The release package check builds from a clean, reviewed Git revision rather than
+the working directory. It ships only an explicit allowlist of committed files,
+rejects unsafe paths, symlinks, and secret-like content, then emits a
+deterministic RELEASE_MANIFEST.json plus archive digest. The CI release gate
+repeats the build from the same Git tree and requires both digests to match. It also validates
+frontmatter, hardcoded local paths, private example names, links,
+extracted-package install shape, doctor, sample harvest, sample workflow
+recommendation, sample expert rubric planning, composition/runtime/receipt smoke
+coverage, and stable/experimental workflow labeling.
 It is a DOI blocker until existing absolute user paths in release evidence docs are redacted or normalized.
 
 ## DOI-Ready Research Release

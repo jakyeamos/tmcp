@@ -6,9 +6,13 @@ The canonical portable launcher is:
 node scripts/tmcp_launcher.mjs doctor
 ```
 
-Use the Node launcher everywhere so Python discovery remains cross-platform. With no arguments, it starts the MCP stdio server. With arguments, it invokes the same implementations exposed through MCP tools and prints JSON.
+Use the Node launcher everywhere so Python discovery remains cross-platform. With no arguments, it starts the MCP stdio server. With arguments, it invokes the same implementations exposed through MCP tools and prints JSON. Launcher portability is separate from durable artifact persistence; see [Compatibility](COMPATIBILITY.md#secure-artifact-persistence).
 
 ## Commands
+
+`record-receipt` requires `status` to report secure artifact persistence. It
+fails closed on portable-only hosts because a receipt is itself a durable
+artifact.
 
 ```bash
 node scripts/tmcp_launcher.mjs list-tools
@@ -16,10 +20,12 @@ node scripts/tmcp_launcher.mjs doctor
 node scripts/tmcp_launcher.mjs status
 node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --adapter standalone
 node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --compose
-node scripts/tmcp_launcher.mjs compose-packet "Fix the dashboard UI bug" --project-path . --phase start
+node scripts/tmcp_launcher.mjs compose-packet "Fix the dashboard UI bug" --project-path "$PWD" --phase start --session-id dashboard-run
 node scripts/tmcp_launcher.mjs runtime-next "Fix the dashboard UI bug" --current-phase verification --files-changed app/page.tsx --failures "vitest failed"
+node scripts/tmcp_launcher.mjs recompile-packet "Fix the dashboard UI bug" --project-path "$PWD" --session-id dashboard-run --current-phase runtime
 node scripts/tmcp_launcher.mjs record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
 node scripts/tmcp_launcher.mjs harvest . --objective "Harvest reusable project workflow behavior" --limit 40
+node scripts/tmcp_launcher.mjs evaluate-skills --skill-paths path/to/SKILL.md --task-fixtures '[...]'
 node scripts/tmcp_launcher.mjs recommend . --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose
 node scripts/tmcp_launcher.mjs promote-harvest . --selected-workflows release_readiness_workflow --output-dir .tmcp/promoted-harvests/release-readiness
 node scripts/tmcp_launcher.mjs review-plan "Review release portability" --project-path . --evidence-json '[{"dimension_id":"source_grounding","severity":"warning","summary":"Release claims need fresh package evidence.","evidence":["python3 scripts/check_release_package.py ."],"recommended_fix":"Run and cite the release package check before publishing."}]'
@@ -29,11 +35,32 @@ node scripts/tmcp_launcher.mjs review-plan "Review release portability" --projec
 
 Use `tmcp_compose_packet` / `compose-packet` when an agent needs a small current-task packet instead of a workflow list. The output includes active instructions, required reads, tool/script prompts, verification gates, stop conditions, deferred atoms, ignored sources, conflicts, citations, and a receipt template.
 
-Use `tmcp_runtime_next` / `runtime-next` after changed files, failures, browser evidence, phase changes, or user redirects. Use `tmcp_record_receipt` / `record-receipt` after meaningful verification or outcome.
+Use `tmcp_runtime_next` / `runtime-next` after changed files, failures, browser evidence, phase changes, or user redirects. Use `tmcp_record_receipt` / `record-receipt` after meaningful verification or outcome when secure artifact persistence is available.
 
 `tmcp_explain --compose` and `tmcp_recommend_workflows --compose` preserve their legacy output and add a composed packet.
 
-The machine-readable contracts are `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, and `tmcp-run-receipt-v0.1`. Promoted harvest cache entries use `tmcp-promoted-harvest-graph-v0.1`.
+The machine-readable contracts are `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, `tmcp-recompiled-packet-v0.1`, `tmcp-run-receipt-v0.1`, and the project-local `tmcp-run-session-v0.1`. Promoted harvest cache entries use `tmcp-promoted-harvest-graph-v0.1`.
+
+## Packet Sessions
+
+Composition and runtime remain read-only unless `session_id` is supplied. A
+session requires an explicit absolute `project_path`; `compose-packet` creates one
+redacted latest-packet record beneath that project, and `recompile-packet` (or
+`runtime-next --output-mode full`) reloads and replaces that record. The result
+contains additive `session` metadata with an opaque key, record path, revision,
+and packet id.
+
+Sessions are deliberately narrow: the raw identifier is not persisted in the
+filename (identifiers are labels, not secrets), creation never replaces an existing session, and updates are
+serialized against the current revision. They have no automatic creation, global
+lookup, history, retention policy, rollback, or multi-agent coordination. Use a
+new identifier for a new run and serialize callers that share one. On a host
+without secure persistence, session operations fail before creating artifacts.
+
+`session_id` is valid only for a full recompile and cannot be combined with
+`previous_packet`. Existing inline `previous_packet` calls remain the portable
+compatibility path. `explain --compose` and `recommend --compose` do not accept
+or create packet sessions.
 
 Experimental workflows remain callable through existing aliases and `candidate_workflows`, for example:
 
@@ -44,9 +71,15 @@ node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path .
 
 Running a review without `--evidence-json` returns `evidence_contract.starter_template`; fill it with concrete citations and rerun before expecting scored findings.
 
-`promote-harvest` is the explicit persistence step after harvest/recommendation review. It writes a promoted graph with source-to-atom and atom-to-workflow edges. Use `--no-write-artifacts` for a preview; harvest and recommend do not reorganize durable routing state by themselves.
+`promote-harvest` is the explicit persistence step after harvest/recommendation review. It writes a promoted graph with source-to-atom and atom-to-workflow edges. Use `--no-write-artifacts` for a preview; harvest and recommend do not reorganize durable routing state by themselves. Where `status` reports artifact persistence unavailable, all durable writes fail closed and preview mode is the portable option.
 
-By default, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOME/promoted-harvests/<promotion-name>/`, or `~/.tmcp/promoted-harvests/<promotion-name>/` when `TMCP_HOME` is unset. Receipts are written under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions.
+`harvest` does not follow source symlinks by default. Set `--follow-symlinks` only when the linked targets are intentionally in scope; TMCP still rejects targets outside the selected source root and redacts secret-like path metadata. Harvest artifact output is an atomic bundle, so an explicit `--output-dir` must be new or empty; omit it to use a unique `.tmcp/harvest-*` directory.
+
+`evaluate-skills` follows the safety boundary described in the README: pass explicit `SKILL.md` files, optionally constrain them with a project root, and use a new or empty directory when writing an initial evaluation plan.
+
+On secure-persistence hosts, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOME/promoted-harvests/<opaque-promotion-key>/`, or `~/.tmcp/promoted-harvests/<opaque-promotion-key>/` when `TMCP_HOME` is unset. Receipts are written under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions.
+`compose-packet` and `runtime-next` use `cache_policy=none` by default; pass
+`--cache-policy global` only to opt into those advisory global artifacts.
 
 ## Argument Rules
 
@@ -56,6 +89,12 @@ By default, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOM
 - Repeat a flag to send an array.
 - Values that look like JSON objects, arrays, numbers, booleans, or `null` are decoded.
 - Use `--compact` when another tool will parse the output.
+
+`doctor`, `status`, `explain`, `harvest`, `evaluate-skills`, `recommend`,
+`promote-harvest`, `compose-packet`, `runtime-next`, `record-receipt`, and
+`review-plan` are the canonical CLI names. Compatibility aliases remain
+supported and are frozen in `tmcp_runtime/api/registry.py`; use `list-tools`
+for the live MCP schema surface.
 
 ## Fallback Order
 
@@ -88,4 +127,6 @@ Workflow outputs should include or cite:
 - recommendation or remediation plan
 - verification expectations
 
-AIOS remains optional. `--adapter auto` may use AIOS only when `AIOS_ROOT` points to an available checkout; `--adapter standalone` keeps execution inside this package.
+AIOS remains optional. `--adapter auto` and `--adapter standalone` keep execution inside this package; use `--adapter aios` only when the caller explicitly opts into the local AIOS adapter. Expert review keeps `adapter=auto` standalone so evidence is not forwarded implicitly. An explicit AIOS review is read-only (`--no-write-artifacts`); durable review artifacts always use the standalone protected store.
+
+Until AIOS supports protected request input, TMCP rejects known sensitive values before an AIOS command can receive them through process arguments. Use the standalone adapter for those requests.

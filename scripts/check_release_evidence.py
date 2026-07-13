@@ -7,11 +7,20 @@ import re
 import sys
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+PLUGIN_ROOT = SCRIPT_DIR.parent
+if str(PLUGIN_ROOT) not in sys.path:
+    sys.path.insert(0, str(PLUGIN_ROOT))
 
-VERSION_RE = re.compile(r"^(\d+\.\d+\.\d+)")
+from tmcp_runtime.api.registry import VERSION  # noqa: E402
+
+VERSION_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 EVIDENCE_PATH = Path("docs") / "RELEASE_EVIDENCE.json"
 WORKFLOW_PATH = Path(".github") / "workflows" / "verify.yml"
 WORKFLOW_CONTRACT_PATH = ".github/workflows/verify.yml"
+REQUIRED_RELEASE_TAG_PATTERNS = ("v*", "[0-9]*")
+REQUIRED_RELEASE_EVIDENCE_COMMAND = "python scripts/check_release_evidence.py ."
+REQUIRED_RELEASE_EVIDENCE_STEP_NAME = "Active release evidence"
 VERSION_SOURCES = (
     Path(".codex-plugin") / "plugin.json",
     Path(".claude-plugin") / "plugin.json",
@@ -40,10 +49,12 @@ def string_field(payload: dict[str, object], key: str, path: Path) -> str:
 
 
 def release_version(raw_version: str) -> str:
-    match = VERSION_RE.match(raw_version)
-    if match is None:
+    release, separator, build = raw_version.partition("+")
+    if separator and not build:
+        raise RuntimeError(f"version has empty build metadata: {raw_version}")
+    if VERSION_RE.fullmatch(release) is None:
         raise RuntimeError(f"version is not a semver release: {raw_version}")
-    return match.group(1)
+    return release
 
 
 def active_release_version(plugin_root: Path) -> tuple[str | None, list[str]]:
@@ -62,19 +73,72 @@ def active_release_version(plugin_root: Path) -> tuple[str | None, list[str]]:
     if len(unique_versions) != 1:
         errors.append(f"release version mismatch across manifests: {versions}")
         return None, errors
+    if unique_versions[0] != VERSION.release:
+        errors.append(
+            "release version does not match the canonical version descriptor: "
+            f"{unique_versions[0]} != {VERSION.release}"
+        )
     return unique_versions[0], errors
 
 
-def workflow_has_release_tags(plugin_root: Path, version: str) -> list[str]:
+def workflow_has_release_tags(plugin_root: Path) -> list[str]:
     workflow = plugin_root / WORKFLOW_PATH
     try:
         text = workflow.read_text(encoding="utf-8")
     except FileNotFoundError:
-        return [f"missing workflow file: {WORKFLOW_PATH}"]
+        return [f"missing workflow file: {WORKFLOW_CONTRACT_PATH}"]
     errors: list[str] = []
-    for tag in (version, f"v{version}"):
-        if tag not in text:
-            errors.append(f"{WORKFLOW_PATH} does not include tag trigger {tag!r}")
+    for pattern in REQUIRED_RELEASE_TAG_PATTERNS:
+        if pattern not in text:
+            errors.append(
+                f"{WORKFLOW_CONTRACT_PATH} does not include tag trigger pattern {pattern!r}"
+            )
+    return errors
+
+
+def workflow_has_release_evidence_gate(plugin_root: Path) -> list[str]:
+    workflow = plugin_root / WORKFLOW_PATH
+    try:
+        text = workflow.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return [f"missing workflow file: {WORKFLOW_CONTRACT_PATH}"]
+    lines = text.splitlines()
+    errors: list[str] = []
+    if not any(line.strip() == "pull_request:" for line in lines):
+        errors.append(
+            f"{WORKFLOW_CONTRACT_PATH} must verify release evidence on pull requests"
+        )
+    step_index = next(
+        (
+            index
+            for index, line in enumerate(lines)
+            if line.strip() == f"- name: {REQUIRED_RELEASE_EVIDENCE_STEP_NAME}"
+        ),
+        None,
+    )
+    if step_index is None:
+        return errors + [
+            f"{WORKFLOW_CONTRACT_PATH} must define an {REQUIRED_RELEASE_EVIDENCE_STEP_NAME!r} step"
+        ]
+    next_step = next(
+        (
+            index
+            for index in range(step_index + 1, len(lines))
+            if lines[index].startswith("      - ")
+        ),
+        len(lines),
+    )
+    step_lines = lines[step_index:next_step]
+    if f"run: {REQUIRED_RELEASE_EVIDENCE_COMMAND}" not in {
+        line.strip() for line in step_lines
+    }:
+        errors.append(
+            f"{WORKFLOW_CONTRACT_PATH} must run {REQUIRED_RELEASE_EVIDENCE_COMMAND!r}"
+        )
+    if any(line.strip().startswith("if:") for line in step_lines):
+        errors.append(
+            f"{WORKFLOW_CONTRACT_PATH} must run active release evidence on pull requests"
+        )
     return errors
 
 
@@ -137,7 +201,8 @@ def validate_hosted_evidence(
     else:
         errors.append("hosted_verification.source must be tag, pull_request, or main")
 
-    errors.extend(workflow_has_release_tags(plugin_root, version))
+    errors.extend(workflow_has_release_tags(plugin_root))
+    errors.extend(workflow_has_release_evidence_gate(plugin_root))
     return errors
 
 

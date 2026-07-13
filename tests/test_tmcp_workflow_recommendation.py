@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import importlib.util
-import hashlib
 import json
-import tarfile
 import tempfile
 import unittest
 from pathlib import Path
 
 from tests import test_tmcp_mcp_server as helpers
+from tmcp_runtime.storage import artifact_persistence_available
 
 
 ADAPTIVE_PACK_SCHEMA_PATH = (
@@ -128,6 +126,10 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         }
         self.assertIn("ui:buttons-controls", source_map_label_ids)
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_recommend_workflows_returns_adaptive_pack_and_custom_ideas(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -295,6 +297,10 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         missing = [field for field in schema["required"] if field not in pack]
         self.assertEqual(missing, [])
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_recommend_workflows_filters_candidates_and_writes_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -456,10 +462,17 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         self.assertIn("last tested commit", required_evidence)
         self.assertEqual(result["not_recommended"], [])
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_promote_harvest_writes_durable_graph_edges(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             output_dir = root / "promotion"
+            tmcp_home = root / "tmcp-home"
+            original_home = getattr(self.server, "TMCP_HOME", None)
+            setattr(self.server, "TMCP_HOME", tmcp_home)
             (root / "SKILL.md").write_text(
                 "\n".join(
                     [
@@ -479,17 +492,20 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            result = self.server._call_tool(
-                "tmcp_promote_harvest",
-                {
-                    "source_path": str(root),
-                    "candidate_workflows": ["repo_behavior_spec_loop"],
-                    "selected_workflows": ["repo_behavior_spec_loop_workflow"],
-                    "min_confidence": 0.1,
-                    "promotion_name": "repo-behavior-spec-loop",
-                    "output_dir": str(output_dir),
-                },
-            )
+            try:
+                result = self.server._call_tool(
+                    "tmcp_promote_harvest",
+                    {
+                        "source_path": str(root),
+                        "candidate_workflows": ["repo_behavior_spec_loop"],
+                        "selected_workflows": ["repo_behavior_spec_loop_workflow"],
+                        "min_confidence": 0.1,
+                        "promotion_name": "repo-behavior-spec-loop",
+                        "output_dir": str(output_dir),
+                    },
+                )
+            finally:
+                setattr(self.server, "TMCP_HOME", original_home)
 
             graph_path = Path(result["artifact_paths"]["promotion_graph_json"])
             self.assertTrue(graph_path.exists())
@@ -606,6 +622,10 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         self.assertIn("browser", verification)
         self.assertIn("ui-browser-verification", active_atoms)
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_compose_packet_consumes_global_promoted_graph(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "source"
@@ -805,6 +825,10 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         self.assertIn("hosted evidence", next_gate)
         self.assertIn("release", next_gate)
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_record_receipt_writes_global_cache(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmcp_home = Path(tmp) / "tmcp-home"
@@ -823,9 +847,12 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
                         "outcome": "passed",
                     },
                 )
+                snapshot = self.server._global_cache_snapshot("global")
             finally:
                 setattr(self.server, "TMCP_HOME", original_home)
 
+            cached_receipts = list(snapshot.receipts)
+            cache_warnings = list(snapshot.warnings)
             receipt_path = Path(result["artifact_paths"]["receipt_json"])
             receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
 
@@ -834,6 +861,23 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         self.assertEqual(receipt["packet_id"], "packet-123")
         self.assertEqual(receipt["outcome"], "passed")
         self.assertEqual(receipt["trust"], "advisory_untrusted")
+        self.assertEqual(cache_warnings, [])
+        self.assertEqual(len(cached_receipts), 1)
+        self.assertEqual(
+            {
+                key: value
+                for key, value in cached_receipts[0].items()
+                if key != "_global_cache_path"
+            },
+            {
+                "schema": "tmcp-run-receipt-v0.1",
+                "packet_id": "packet-123",
+                "trust": "advisory_untrusted",
+            },
+        )
+        self.assertTrue(
+            str(cached_receipts[0]["_global_cache_path"]).endswith(receipt_path.name)
+        )
 
     def test_existing_tools_include_composed_packet_when_requested(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -868,102 +912,3 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
         self.assertEqual(
             recommend["composed_packet"]["schema"], "tmcp-composed-packet-v0.1"
         )
-
-    def test_release_package_check_smokes_adaptive_surface(self) -> None:
-        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
-        spec = importlib.util.spec_from_file_location("check_release_package", path)
-        if spec is None or spec.loader is None:
-            raise RuntimeError("Could not load check_release_package module")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            ok, output = module.check_adaptive_workflow_surface(
-                helpers.PLUGIN_ROOT, Path(tmp)
-            )
-
-        self.assertTrue(ok, output)
-
-    def test_release_package_check_smokes_composition_surface(self) -> None:
-        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
-        spec = importlib.util.spec_from_file_location("check_release_package", path)
-        if spec is None or spec.loader is None:
-            raise RuntimeError("Could not load check_release_package module")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            ok, output = module.check_composition_surface(
-                helpers.PLUGIN_ROOT, Path(tmp)
-            )
-
-        self.assertTrue(ok, output)
-
-    def test_release_package_excludes_local_artifact_directories(self) -> None:
-        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
-        spec = importlib.util.spec_from_file_location("check_release_package", path)
-        if spec is None or spec.loader is None:
-            raise RuntimeError("Could not load check_release_package module")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "plugin"
-            root.mkdir()
-            (root / "README.md").write_text("# Plugin\n", encoding="utf-8")
-            (root / ".codex").mkdir()
-            (root / ".codex" / "config.toml").write_text("", encoding="utf-8")
-            aios_audit = root / ".aios" / "audit"
-            aios_audit.mkdir(parents=True)
-            (aios_audit / "gate-events.jsonl").write_text("", encoding="utf-8")
-            quality_run = root / ".quality-runner" / "runs" / "local"
-            quality_run.mkdir(parents=True)
-            (quality_run / "audit.json").write_text("{}", encoding="utf-8")
-            registry = root / "mcp-registry"
-            registry.mkdir()
-            (registry / "draft-server.json").write_text("{}", encoding="utf-8")
-            docs = root / "docs"
-            docs.mkdir()
-            (docs / "RELEASE_EVIDENCE.json").write_text("{}", encoding="utf-8")
-            (docs / "VERIFICATION.md").write_text("# Verification\n", encoding="utf-8")
-            (docs / "TIER_ONE_RELEASE_RUBRIC.md").write_text("# Rubric\n", encoding="utf-8")
-            output_path = Path(tmp) / "tmcp.tar.gz"
-
-            module.create_package(root, output_path)
-
-            with tarfile.open(output_path, "r:gz") as archive:
-                names = archive.getnames()
-
-        self.assertIn("tmcp/README.md", names)
-        self.assertNotIn("tmcp/.aios/audit/gate-events.jsonl", names)
-        self.assertNotIn("tmcp/.codex/config.toml", names)
-        self.assertNotIn("tmcp/.quality-runner/runs/local/audit.json", names)
-        self.assertNotIn("tmcp/mcp-registry/draft-server.json", names)
-        self.assertNotIn("tmcp/docs/RELEASE_EVIDENCE.json", names)
-        self.assertNotIn("tmcp/docs/VERIFICATION.md", names)
-        self.assertIn("tmcp/docs/TIER_ONE_RELEASE_RUBRIC.md", names)
-
-    def test_release_package_creation_is_deterministic(self) -> None:
-        path = helpers.PLUGIN_ROOT / "scripts" / "check_release_package.py"
-        spec = importlib.util.spec_from_file_location("check_release_package", path)
-        if spec is None or spec.loader is None:
-            raise RuntimeError("Could not load check_release_package module")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "plugin"
-            root.mkdir()
-            (root / "README.md").write_text("# Plugin\n", encoding="utf-8")
-            (root / "skills").mkdir()
-            (root / "skills" / "SKILL.md").write_text("# Skill\n", encoding="utf-8")
-            first = Path(tmp) / "first.tar.gz"
-            second = Path(tmp) / "second.tar.gz"
-
-            module.create_package(root, first)
-            module.create_package(root, second)
-
-            first_digest = hashlib.sha256(first.read_bytes()).hexdigest()
-            second_digest = hashlib.sha256(second.read_bytes()).hexdigest()
-
-        self.assertEqual(first_digest, second_digest)

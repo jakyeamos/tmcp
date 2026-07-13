@@ -100,6 +100,38 @@ class TmcpRouteInferenceTests(unittest.TestCase):
             result["compiled_from"]["route_catalog_version"],
         )
         self.assertIn("graph_version changes", shortcut["regenerate_when"])
+        composed_schema = json.loads(
+            (
+                PLUGIN_ROOT / "schemas" / "tmcp-composed-packet-v0.1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertTrue(set(composed_schema["required"]).issubset(result))
+        self.assertEqual(result["receipt_template"]["packet_id"], result["packet_id"])
+        self.assertTrue(result["safety"])
+        self.assertIn("tmcp_home", result["global_cache"])
+
+    def test_user_overrides_require_shortcut_revalidation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_frontend_redesign_family(root)
+            result = self.server._compose_packet(
+                {
+                    "source_path": str(root),
+                    "objective": REDESIGN_OBJECTIVE,
+                    "project_path": str(root),
+                    "phase": "start",
+                    "cache_policy": "none",
+                    "user_overrides": ["Keep the existing navigation labels."],
+                    "limit": 30,
+                }
+            )
+
+        shortcut = result["shortcut_candidate"]
+        self.assertEqual(shortcut["status"], "needs_revalidation")
+        self.assertFalse(shortcut["matched"])
+        self.assertEqual(
+            shortcut["reason"], "User overrides require full packet revalidation."
+        )
 
     def test_graph_version_change_invalidates_shortcut_match(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -124,7 +156,8 @@ class TmcpRouteInferenceTests(unittest.TestCase):
             second = self.server._compose_packet(
                 {
                     "source_path": str(root),
-                    "objective": REDESIGN_OBJECTIVE + " Include current trend research.",
+                    "objective": REDESIGN_OBJECTIVE
+                    + " Include current trend research.",
                     "project_path": str(root),
                     "phase": "start",
                     "cache_policy": "none",

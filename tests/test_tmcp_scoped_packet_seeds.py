@@ -149,9 +149,10 @@ class TmcpScopedPacketSeedTests(unittest.TestCase):
             ],
         )
         self.assertEqual(writing_node["promotion_status"], "proposal_not_promoted")
-        self.assertIn("writing:explore-fragments", {
-            label["id"] for label in writing_node["guidance_labels"]
-        })
+        self.assertIn(
+            "writing:explore-fragments",
+            {label["id"] for label in writing_node["guidance_labels"]},
+        )
 
     def test_recommend_workflows_returns_scoped_packet_seed_ids(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -241,7 +242,9 @@ class TmcpScopedPacketSeedTests(unittest.TestCase):
             )
         )
 
-    def test_raw_skill_harvest_does_not_create_scoped_seed_recommendations(self) -> None:
+    def test_raw_skill_harvest_does_not_create_scoped_seed_recommendations(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             for name in (

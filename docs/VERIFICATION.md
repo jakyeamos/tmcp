@@ -1,8 +1,24 @@
 # Verification Record
 
-Date: 2026-07-07
+## 2026-07-13 0.5.0 Compatibility Release Candidate
 
-Plugin version: `0.4.0+codex.20260707134500`
+The 0.5.0 compatibility candidate updates the canonical registry, Codex and
+Claude manifests, marketplace metadata, MCP Registry draft, citation metadata,
+and public-contract fixture together. The post-cutover hosted matrix passed in
+PR run `29285497867`; final evidence-pointer rerun `29285802846` also passed.
+
+```bash
+python3 -m unittest discover -s tests
+ruff check scripts tmcp_runtime tests
+python3 scripts/check_contracts.py .
+python3 scripts/check_install.py .
+python3 scripts/check_release_evidence.py .
+python3 scripts/check_release_package.py . --verify-reproducible
+```
+
+Date: 2026-07-13
+
+Plugin version: `0.5.0+codex.20260713210431`
 
 ## 2026-07-07 0.4.0 Release Candidate
 

@@ -21,8 +21,28 @@ Composable runtime packets (`tmcp-composed-packet-v0.1`) and the Adaptive Packet
 | `packet_markdown` | Human-readable operating contract rendered from structured packet fields. |
 | `shortcut_candidate` | Advisory compiled-route shortcut metadata with `compiled_from` provenance. |
 | `family_context` | Optional skill-family orchestration context from scoped seeds or router skills. |
+| `session` | Optional reference to one explicitly persisted project-local latest-packet record. |
 
 `tmcp_runtime_next` may also return `task_identity` for the current runtime state and `task_identity_delta` when `previous_task_identity` is supplied. With `output_mode: "full"` and `previous_packet`, TMCP returns `tmcp-recompiled-packet-v0.1` containing a full regenerated packet plus `packet_diff`.
+
+Composition and runtime routing are stateless by default: `cache_policy` defaults
+to `none`. Pass `cache_policy: "global"` only when the caller explicitly wants
+to read advisory promoted graphs and receipts from `TMCP_HOME`.
+
+## Packet Sessions
+
+`tmcp-run-session-v0.1` is a redacted, project-local record for the latest
+packet in one explicitly named run. It is not a public tool response schema:
+the composed or recompiled response carries a `session` reference instead. That
+reference identifies the record schema, opaque key, redacted path, revision, and
+current packet id without persisting the supplied raw session identifier. Session
+identifiers are labels, not secret material.
+
+Sessions require a secure-persistence host and an explicit absolute project path. Creation
+does not replace an existing record, and a full recompile serializes its update
+against the current revision. There is intentionally no automatic session,
+global lookup, history, rollback, or concurrent-agent protocol. Consumers that
+need a portable full recompile should pass `previous_packet` inline.
 
 ## Required Fields
 

@@ -6,6 +6,8 @@ status: stable
 
 # TMCP Skill Harvest
 
+Status: stable as a skill package. The `tmcp_harvest_skills` MCP tool is experimental, so its tool contract may evolve independently.
+
 Use this skill when the user asks to harvest skills, extract reusable agent behavior, compile a skill packet, inspect local instructions, turn process docs into reusable workflow material, or compare behavior across skill/rule files.
 
 This is a discovery and packet-compilation workflow. Do not use it for direct feature implementation unless the user explicitly asks to apply the harvested packet.

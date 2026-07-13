@@ -1,43 +1,37 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
-  "version": "0.4.0",
-  "checked_at": "2026-07-07T13:58:00Z",
+  "version": "0.5.0",
+  "checked_at": "2026-07-13T22:05:08Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "tag",
-    "ref": "v0.4.0",
-    "pr_number": null,
+    "source": "pull_request",
+    "ref": "codex/tmcp-modernization-v2",
+    "pr_number": 2,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 28871784926,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/28871784926",
-    "head_sha": "ed63ec796a48649b48e0dc2000c97f69569482b8",
-    "notes": "Successful v0.4.0 tag verify.yml run after recording release evidence and publishing the GitHub release asset."
+    "run_id": 29288492789,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29288492789",
+    "head_sha": "03e543d9d440e32153c40ab55408b1b4058cb38a",
+    "notes": "Successful post-cleanup 0.5.0 PR verify.yml run for the code-bearing commit; the pinned quality job and all six platform jobs passed, while the machine pointer remains bound to this reviewed code-bearing SHA."
   },
   "release_package": {
-    "path": "/private/tmp/tmcp-v0.4.0.tar.gz",
-    "sha256": "fab7d19af407c3c9ef41b3753545c9a48b83659214f18bac837e81d50187c5b7",
-    "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.4.0/tmcp-v0.4.0.tar.gz",
-    "notes": "GitHub release asset published from tag v0.4.0 at ed63ec796a48649b48e0dc2000c97f69569482b8."
+    "path": "/private/tmp/tmcp-v0.5.0.tar.gz",
+    "sha256": "pending-final-artifact",
+    "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.0/tmcp-v0.5.0.tar.gz",
+    "notes": "The release-candidate package is not published; record its digest with the final tag-hosted artifact."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
-    "remote_tag": "refs/tags/v0.4.0",
+    "remote_tag": "refs/heads/codex/tmcp-modernization-v2",
     "commands": [
       "gh pr merge 1 --merge",
       "git pull origin main",
       "gh run watch 28871545129 --repo jakyeamos/tmcp --exit-status",
-      "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.4.0.tar.gz",
-      "shasum -a 256 /private/tmp/tmcp-v0.4.0.tar.gz",
-      "git tag -a v0.4.0 -m \"TMCP 0.4.0\"",
-      "git push origin v0.4.0",
-      "gh release create v0.4.0 /private/tmp/tmcp-v0.4.0.tar.gz --repo jakyeamos/tmcp --title \"TMCP 0.4.0\"",
-      "gh run watch 28871784926 --repo jakyeamos/tmcp --exit-status",
-      "curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.4.0/tmcp-v0.4.0.tar.gz -o /private/tmp/tmcp-v0.4.0.release.tar.gz",
-      "shasum -a 256 /private/tmp/tmcp-v0.4.0.release.tar.gz",
+      "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.5.0.tar.gz",
+      "shasum -a 256 /private/tmp/tmcp-v0.5.0.tar.gz",
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "Successful v0.4.0 tag-hosted verify.yml run accepted for the published release."
+    "result": "Post-cutover 0.5.0 PR verification and final evidence-pointer rerun passed; merge, tagging, and publication remain separate."
   }
 }

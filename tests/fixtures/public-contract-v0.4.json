@@ -1,0 +1,146 @@
+{
+  "mcp_tools_sha256": "sha256:ff1646ba978a295cc126ef3f6fb98e9d04b0356ad446f256927708689d47777f",
+  "pseudo_commands": {
+    "help": ["help", "-h", "--help"],
+    "list_tools": ["list-tools", "tools", "tools-list"],
+    "stdio": "no arguments"
+  },
+  "schema": "tmcp-public-contract-fixture-v0.4",
+  "server": {
+    "name": "tmcp",
+    "version": "0.5.0"
+  },
+  "tools": [
+    {
+      "canonical_cli_command": "doctor",
+      "cli_aliases": ["doctor", "tmcp-doctor", "tmcp_doctor"],
+      "cli_defaults": {},
+      "description_sha256": "sha256:5b01b204c4099ff576f9e26eaf08af9cb317457c3352a72a627f63a5c434d267",
+      "input_schema_sha256": "sha256:dd2b4708f12508e154b1d7d8836cf2ad82257b93a958f45b5bc7028d524bccdd",
+      "name": "tmcp_doctor",
+      "output_schema_ids": ["tmcp-doctor-v0.1"],
+      "stability": "stable",
+      "state_effect": "read_only"
+    },
+    {
+      "canonical_cli_command": "status",
+      "cli_aliases": ["status", "tmcp-status", "tmcp_status"],
+      "cli_defaults": {},
+      "description_sha256": "sha256:74c6345953d30a8047f902a69934b0c2fb40866f4cdfcfea1b071c1a8dad7b95",
+      "input_schema_sha256": "sha256:efddc7bd8bbcef73a14eb1ace1ffdaec81e518ef1e13c1e9271d0b8acb694a49",
+      "name": "tmcp_status",
+      "output_schema_ids": ["tmcp-status-v0.1"],
+      "stability": "stable",
+      "state_effect": "read_only"
+    },
+    {
+      "canonical_cli_command": "explain",
+      "cli_aliases": ["explain", "tmcp-explain", "tmcp_explain"],
+      "cli_defaults": {},
+      "description_sha256": "sha256:30acd799025c55b2b2996bbcc3d0fb68a1733f7e9c664d3395c69cc1afab334f",
+      "input_schema_sha256": "sha256:41fd9e870143adbfb0ca8ad01fd9147ac912a61cd7144e59cd0786a1a3f6e543",
+      "name": "tmcp_explain",
+      "output_schema_ids": ["tmcp-skill-packet-v0.2", "tmcp-composed-packet-v0.1"],
+      "stability": "stable",
+      "state_effect": "read_only"
+    },
+    {
+      "canonical_cli_command": "harvest",
+      "cli_aliases": ["harvest", "harvest-skills", "tmcp-harvest-skills", "tmcp_harvest_skills"],
+      "cli_defaults": {},
+      "description_sha256": "sha256:56471f012a3f7faeb6c610bb936415e5a3e8e17811845f6f6f8b819a1603fc6f",
+      "input_schema_sha256": "sha256:dd7a1cc1b77b0d72a5267cd9f39978b9d885a048684e06a89721d9eccc7737e3",
+      "name": "tmcp_harvest_skills",
+      "output_schema_ids": ["tmcp-harvest-result-v0.1"],
+      "stability": "experimental",
+      "state_effect": "optional_write"
+    },
+    {
+      "canonical_cli_command": "evaluate-skills",
+      "cli_aliases": ["evaluate-skills", "evaluate", "tmcp-evaluate-skills", "tmcp_evaluate_skills"],
+      "cli_defaults": {},
+      "description_sha256": "sha256:aa3650435913eecf8c056f04360b994f500cc7682e80fc00b1762c35c45be04a",
+      "input_schema_sha256": "sha256:ce55ede71fc852d0f6605ad3420c1be14a8ae7d600f5d1dbc0ff5cfd8e35be68",
+      "name": "tmcp_evaluate_skills",
+      "output_schema_ids": ["tmcp-skill-evaluation-plan-v0.1", "tmcp-skill-evaluation-report-v0.1"],
+      "stability": "experimental",
+      "state_effect": "optional_write"
+    },
+    {
+      "canonical_cli_command": "recommend",
+      "cli_aliases": ["recommend", "recommend-workflows", "tmcp-recommend-workflows", "tmcp_recommend_workflows"],
+      "cli_defaults": {},
+      "description_sha256": "sha256:311b0f33334cfa1cebaae2326cda6cc6a77313c0922cc50f508935b116ad36f5",
+      "input_schema_sha256": "sha256:6a149202ba69b1cc22224d89407f746b3de0f3235ac4345dc6013204aa95cfca",
+      "name": "tmcp_recommend_workflows",
+      "output_schema_ids": ["tmcp-workflow-recommendation-v1"],
+      "stability": "experimental",
+      "state_effect": "optional_write"
+    },
+    {
+      "canonical_cli_command": "compose-packet",
+      "cli_aliases": ["compose", "compose-packet", "tmcp-compose-packet", "tmcp_compose_packet"],
+      "cli_defaults": {},
+      "description_sha256": "sha256:beac1193f576cba018f600ee033df19c51c0b06ab2f6cb005f721196b0a496be",
+      "input_schema_sha256": "sha256:08f87afa4194e0d66342f90d2590283b194b4db42d53aa89735f63e90c6826e1",
+      "name": "tmcp_compose_packet",
+      "output_schema_ids": ["tmcp-composed-packet-v0.1"],
+      "stability": "stable",
+      "state_effect": "optional_write"
+    },
+    {
+      "canonical_cli_command": "runtime-next",
+      "cli_aliases": ["runtime-next", "tmcp-runtime-next", "tmcp_runtime_next", "recompile-packet", "tmcp-recompile-packet"],
+      "cli_defaults": {
+        "recompile-packet": {"output_mode": "full"},
+        "tmcp-recompile-packet": {"output_mode": "full"}
+      },
+      "description_sha256": "sha256:765221fb63a755cb9f338c92b1449943a84d1d4294b2a056687512fe56da8f2f",
+      "input_schema_sha256": "sha256:457374260ee8afa3f0c247f842c055c55d7ba5b8e6eb7bdf7c5e91ad3d2438da",
+      "name": "tmcp_runtime_next",
+      "output_schema_ids": ["tmcp-runtime-next-v0.1", "tmcp-recompiled-packet-v0.1"],
+      "stability": "stable",
+      "state_effect": "optional_write"
+    },
+    {
+      "canonical_cli_command": "record-receipt",
+      "cli_aliases": ["record-receipt", "tmcp-record-receipt", "tmcp_record_receipt"],
+      "cli_defaults": {},
+      "description_sha256": "sha256:a2c76d40a1a61bd063a9b1b407458e8b66aea5919c17a49e16aa7abfc6dc2223",
+      "input_schema_sha256": "sha256:fddd36e255b51aa0434b29ba06d3330ae0797098245020a8c37b14aabfdab6aa",
+      "name": "tmcp_record_receipt",
+      "output_schema_ids": ["tmcp-run-receipt-v0.1"],
+      "stability": "experimental",
+      "state_effect": "default_write"
+    },
+    {
+      "canonical_cli_command": "promote-harvest",
+      "cli_aliases": ["promote", "promote-harvest", "promote-workflows", "tmcp-promote-harvest", "tmcp_promote_harvest"],
+      "cli_defaults": {},
+      "description_sha256": "sha256:fcec52a62b9e8441f8e7d71e1dc38c45bd0c535a231266fd5a9754af21257c77",
+      "input_schema_sha256": "sha256:3f87635baec8f212b7f13ed8b5e9177cd43d4d26401c670b534809e529fb1a04",
+      "name": "tmcp_promote_harvest",
+      "output_schema_ids": ["tmcp-harvest-promotion-v0.1"],
+      "stability": "experimental",
+      "state_effect": "default_write"
+    },
+    {
+      "canonical_cli_command": "review-plan",
+      "cli_aliases": ["review-plan", "expert-rubric", "expert-rubric-review-plan", "expert-ui-rubric", "expert-ui-review", "expert_rubric_review_plan", "tmcp-expert-ui-rubric", "tmcp-ui-rubric", "ui-rubric"],
+      "cli_defaults": {
+        "expert-ui-review": {"adapter": "standalone", "objective": "Use the TMCP expert UI rubric on this project."},
+        "expert-ui-rubric": {"adapter": "standalone", "objective": "Use the TMCP expert UI rubric on this project."},
+        "tmcp-expert-ui-rubric": {"adapter": "standalone", "objective": "Use the TMCP expert UI rubric on this project."},
+        "tmcp-ui-rubric": {"adapter": "standalone", "objective": "Use the TMCP expert UI rubric on this project."},
+        "ui-rubric": {"adapter": "standalone", "objective": "Use the TMCP expert UI rubric on this project."}
+      },
+      "description_sha256": "sha256:a42ad89925df2bc6b8b778c4f9b16c2bfcb8a3805988072dd808e36f68bbfd3a",
+      "input_schema_sha256": "sha256:b516ab175880fc69c145bc53ddd0bec435ec74a255614214f5d28e89944891e3",
+      "name": "expert_rubric_review_plan",
+      "output_schema_ids": ["tmcp-review-plan-result-v0.1"],
+      "stability": "experimental",
+      "state_effect": "default_write"
+    }
+  ],
+  "version": "0.5.0"
+}

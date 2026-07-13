@@ -1,0 +1,657 @@
+"""Filesystem boundaries for untrusted harvested source material."""
+
+from __future__ import annotations
+
+import fnmatch
+import os
+import stat
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Iterable, Sequence
+
+from tmcp_runtime.safety.redaction import merge_redactions, redact_sensitive_text
+
+
+@dataclass(frozen=True)
+class HarvestRoot:
+    """A user-selected source root and its canonical containment boundary."""
+
+    logical_path: Path
+    resolved_path: Path
+    display_path: str
+    kind: str
+
+
+@dataclass(frozen=True)
+class HarvestCandidate:
+    """A regular file selected within a verified harvest root."""
+
+    root: HarvestRoot
+    logical_path: Path
+    resolved_path: Path
+    relative_path: str
+    display_path: str
+    display_relative_path: str
+    device: int
+    inode: int
+
+
+@dataclass(frozen=True)
+class SafeText:
+    """Bounded source text after the requested redaction policy."""
+
+    text: str
+    redactions: dict[str, int]
+
+
+def redact_json_value(value: Any, *, enabled: bool) -> tuple[Any, dict[str, int]]:
+    """Redact decoded JSON values before callers derive or serialize metadata."""
+
+    if not enabled:
+        return value, {}
+    if isinstance(value, str):
+        return redact_sensitive_text(value, enabled=True)
+    if isinstance(value, list):
+        safe_list_values: list[Any] = []
+        list_redactions: dict[str, int] = {}
+        for item in value:
+            safe_item, item_redactions = redact_json_value(item, enabled=True)
+            safe_list_values.append(safe_item)
+            merge_redactions(list_redactions, item_redactions)
+        return safe_list_values, list_redactions
+    if isinstance(value, dict):
+        safe_dict_values: dict[str, Any] = {}
+        dict_redactions: dict[str, int] = {}
+        for raw_key, item in value.items():
+            safe_key, key_redactions = redact_sensitive_text(
+                str(raw_key),
+                enabled=True,
+            )
+            safe_item, item_redactions = redact_json_value(item, enabled=True)
+            safe_dict_values[safe_key] = safe_item
+            merge_redactions(dict_redactions, key_redactions)
+            merge_redactions(dict_redactions, item_redactions)
+        return safe_dict_values, dict_redactions
+    return value, {}
+
+
+def redact_path(value: str | Path) -> str:
+    """Return a provenance-safe path string without exposing secret-like names."""
+
+    safe_path, _ = redact_sensitive_text(str(value), enabled=True)
+    return safe_path
+
+
+def _safe_error(exc: OSError) -> str:
+    return redact_path(str(exc))
+
+
+def _absolute_path(value: str | Path) -> Path:
+    return Path(os.path.abspath(os.fspath(Path(value).expanduser())))
+
+
+def _trusted_system_alias_target(path: Path) -> Path | None:
+    if os.name != "posix" or path not in {Path("/tmp"), Path("/var")}:
+        return None
+    try:
+        target = path.resolve(strict=True)
+        metadata = target.lstat()
+    except OSError:
+        return None
+    return target if stat.S_ISDIR(metadata.st_mode) else None
+
+
+def _is_link_or_reparse_point(metadata: os.stat_result) -> bool:
+    """Return whether no-follow metadata represents a link-like filesystem node.
+
+    Windows directory junctions are reparse points rather than POSIX-style
+    symlinks.  ``DirEntry.is_symlink()`` and ``stat.S_ISLNK`` do not reliably
+    identify them, so every untrusted path boundary must inspect the Windows
+    file attributes obtained with ``follow_symlinks=False`` as well.
+    """
+
+    if stat.S_ISLNK(metadata.st_mode):
+        return True
+    reparse_point = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+    attributes = getattr(metadata, "st_file_attributes", 0)
+    return bool(reparse_point and attributes & reparse_point)
+
+
+def _first_untrusted_symlink_component(path: Path) -> Path | None:
+    current = Path(path.anchor)
+    for part in path.parts[1:]:
+        current = current / part
+        try:
+            metadata = current.lstat()
+        except FileNotFoundError:
+            return None
+        except OSError:
+            return current
+        if not _is_link_or_reparse_point(metadata):
+            continue
+        trusted_target = _trusted_system_alias_target(current)
+        if trusted_target is None:
+            return current
+        current = trusted_target
+    return None
+
+
+def _is_within(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def _append_warning(warnings: list[str], warning: str, *, limit: int = 20) -> None:
+    if len(warnings) < limit:
+        warnings.append(warning)
+
+
+def collect_harvest_roots(
+    raw_paths: Iterable[str | Path], *, follow_symlinks: bool
+) -> tuple[list[HarvestRoot], list[str]]:
+    """Validate user-selected harvest roots without resolving before policy checks."""
+
+    roots: list[HarvestRoot] = []
+    warnings: list[str] = []
+    seen: set[str] = set()
+    for raw_path in raw_paths:
+        logical_path = _absolute_path(raw_path)
+        display_path = redact_path(logical_path)
+        symlink_component = _first_untrusted_symlink_component(logical_path)
+        if symlink_component is not None and not follow_symlinks:
+            label = (
+                "source-root symlink"
+                if symlink_component.name == logical_path.name
+                else "source-path symlink component"
+            )
+            warnings.append(
+                f"Skipped {label} without follow_symlinks=true: {display_path}"
+            )
+            continue
+        try:
+            source_metadata = logical_path.lstat()
+        except FileNotFoundError:
+            warnings.append(f"Source path does not exist: {display_path}")
+            continue
+        except OSError as exc:
+            warnings.append(
+                f"Could not inspect source path {display_path}: {_safe_error(exc)}"
+            )
+            continue
+
+        is_symlink = _is_link_or_reparse_point(source_metadata)
+        if (
+            is_symlink
+            and not follow_symlinks
+            and _trusted_system_alias_target(logical_path) is None
+        ):
+            warnings.append(
+                "Skipped source-root symlink without follow_symlinks=true: "
+                f"{display_path}"
+            )
+            continue
+        try:
+            resolved_path = logical_path.resolve(strict=True)
+            target_metadata = resolved_path.stat()
+        except FileNotFoundError:
+            warnings.append(f"Source path does not exist: {display_path}")
+            continue
+        except OSError as exc:
+            warnings.append(
+                f"Could not resolve source path {display_path}: {_safe_error(exc)}"
+            )
+            continue
+
+        if stat.S_ISREG(target_metadata.st_mode):
+            kind = "file"
+        elif stat.S_ISDIR(target_metadata.st_mode):
+            kind = "directory"
+        else:
+            warnings.append(
+                f"Source path is not a regular file or directory: {display_path}"
+            )
+            continue
+        root_key = str(resolved_path)
+        if root_key in seen:
+            continue
+        seen.add(root_key)
+        roots.append(
+            HarvestRoot(
+                logical_path=logical_path,
+                resolved_path=resolved_path,
+                display_path=display_path,
+                kind=kind,
+            )
+        )
+    return roots, warnings
+
+
+def _expand_brace_glob(pattern: str) -> list[str]:
+    start = pattern.find("{")
+    if start == -1:
+        return [pattern]
+    end = pattern.find("}", start + 1)
+    if end == -1:
+        return [pattern]
+    before = pattern[:start]
+    after = pattern[end + 1 :]
+    return [
+        f"{before}{item.strip()}{after}" for item in pattern[start + 1 : end].split(",")
+    ]
+
+
+def _matches_glob(rel_path: str, path: Path, pattern: str) -> bool:
+    variants = [pattern]
+    if pattern.startswith("**/"):
+        variants.append(pattern[3:])
+    return any(
+        fnmatch.fnmatch(rel_path, variant)
+        or fnmatch.fnmatch(path.name, variant)
+        or fnmatch.fnmatch(f"/{rel_path}", f"/{variant}")
+        for variant in variants
+    )
+
+
+def _matches_any(rel_path: str, path: Path, patterns: Sequence[str]) -> bool:
+    return any(
+        _matches_glob(rel_path, path, expanded)
+        for pattern in patterns
+        for expanded in _expand_brace_glob(pattern)
+    )
+
+
+def _path_suffix(path: Path, depth: int) -> str:
+    parts = [part for part in path.parts if part and part != path.anchor]
+    return "/".join(parts[-depth:]) if parts else path.name
+
+
+def _file_root_relative_paths(roots: Sequence[HarvestRoot]) -> dict[HarvestRoot, str]:
+    file_roots = [root for root in roots if root.kind == "file"]
+    if not file_roots:
+        return {}
+    max_depth = max(len(root.logical_path.parts) for root in file_roots)
+    for depth in range(1, max_depth + 1):
+        labels = {root: _path_suffix(root.logical_path, depth) for root in file_roots}
+        if len(set(labels.values())) == len(labels):
+            return labels
+    return {root: str(root.logical_path) for root in file_roots}
+
+
+def _candidate_is_selected(
+    rel_path: str,
+    logical_path: Path,
+    include_globs: Sequence[str],
+    exclude_globs: Sequence[str],
+) -> bool:
+    return not _matches_any(rel_path, logical_path, exclude_globs) and _matches_any(
+        rel_path,
+        logical_path,
+        include_globs,
+    )
+
+
+def _candidate_for(
+    root: HarvestRoot,
+    logical_path: Path,
+    resolved_path: Path,
+    relative_path: str,
+    *,
+    seen_files: set[str],
+    include_globs: Sequence[str],
+    exclude_globs: Sequence[str],
+) -> HarvestCandidate | None:
+    if not _candidate_is_selected(
+        relative_path,
+        logical_path,
+        include_globs,
+        exclude_globs,
+    ):
+        return None
+    try:
+        resolved_relative_path = resolved_path.relative_to(
+            root.resolved_path
+        ).as_posix()
+    except ValueError:
+        return None
+    if _matches_any(resolved_relative_path, resolved_path, exclude_globs):
+        return None
+    resolved_key = str(resolved_path)
+    if resolved_key in seen_files:
+        return None
+    try:
+        metadata = resolved_path.lstat()
+    except OSError:
+        return None
+    if _is_link_or_reparse_point(metadata) or not stat.S_ISREG(metadata.st_mode):
+        return None
+    seen_files.add(resolved_key)
+    return HarvestCandidate(
+        root=root,
+        logical_path=logical_path,
+        resolved_path=resolved_path,
+        relative_path=relative_path,
+        display_path=redact_path(logical_path),
+        display_relative_path=redact_path(relative_path),
+        device=metadata.st_dev,
+        inode=metadata.st_ino,
+    )
+
+
+def _directory_is_excluded(
+    rel_path: str,
+    logical_path: Path,
+    excluded_dir_names: set[str],
+    exclude_globs: Sequence[str],
+) -> bool:
+    return logical_path.name in excluded_dir_names or _matches_any(
+        f"{rel_path}/",
+        logical_path,
+        exclude_globs,
+    )
+
+
+def _resolved_directory_is_excluded(
+    resolved_path: Path,
+    root: HarvestRoot,
+    excluded_dir_names: set[str],
+    exclude_globs: Sequence[str],
+) -> bool:
+    try:
+        resolved_relative_path = resolved_path.relative_to(
+            root.resolved_path
+        ).as_posix()
+    except ValueError:
+        return True
+    return _directory_is_excluded(
+        resolved_relative_path,
+        resolved_path,
+        excluded_dir_names,
+        exclude_globs,
+    )
+
+
+def _resolved_inside_root(path: Path, root: HarvestRoot) -> Path | None:
+    try:
+        resolved_path = path.resolve(strict=True)
+    except OSError:
+        return None
+    if not _is_within(resolved_path, root.resolved_path):
+        return None
+    return resolved_path
+
+
+def iter_harvest_candidates(
+    roots: Sequence[HarvestRoot],
+    include_globs: Sequence[str],
+    exclude_globs: Sequence[str],
+    excluded_dir_names: set[str],
+    *,
+    follow_symlinks: bool,
+    max_candidates: int | None = None,
+    max_scan_entries: int | None = None,
+    max_relative_depth: int | None = None,
+) -> tuple[list[HarvestCandidate], list[str]]:
+    """Traverse only regular files contained by their selected source root."""
+
+    candidates: list[HarvestCandidate] = []
+    warnings: list[str] = []
+    seen_files: set[str] = set()
+    file_root_relative_paths = _file_root_relative_paths(roots)
+    candidate_limit = max(0, max_candidates) if max_candidates is not None else None
+    scan_entry_limit = (
+        max(0, max_scan_entries) if max_scan_entries is not None else None
+    )
+    relative_depth_limit = (
+        max(0, max_relative_depth) if max_relative_depth is not None else None
+    )
+    remaining_scan_entries = scan_entry_limit
+    candidate_limit_reached = False
+
+    if candidate_limit == 0:
+        _append_warning(
+            warnings,
+            "Harvest traversal candidate limit reached; skipped remaining paths.",
+        )
+        return candidates, warnings
+
+    def append_candidate(candidate: HarvestCandidate | None) -> None:
+        nonlocal candidate_limit_reached
+        if candidate is None:
+            return
+        if candidate_limit is not None and len(candidates) >= candidate_limit:
+            candidate_limit_reached = True
+            return
+        candidates.append(candidate)
+        if candidate_limit is not None and len(candidates) >= candidate_limit:
+            candidate_limit_reached = True
+
+    for root in roots:
+        if candidate_limit_reached:
+            break
+        if root.kind == "file":
+            relative_path = file_root_relative_paths.get(root, root.logical_path.name)
+            candidate = _candidate_for(
+                root,
+                root.logical_path,
+                root.resolved_path,
+                relative_path,
+                seen_files=seen_files,
+                include_globs=include_globs,
+                exclude_globs=exclude_globs,
+            )
+            append_candidate(candidate)
+            continue
+
+        stack: list[tuple[Path, Path]] = [(root.resolved_path, Path())]
+        visited_directories = {str(root.resolved_path)}
+        while stack and not candidate_limit_reached:
+            if remaining_scan_entries is not None and remaining_scan_entries <= 0:
+                _append_warning(
+                    warnings,
+                    "Harvest traversal scan-entry limit reached; skipped remaining paths.",
+                )
+                break
+            physical_directory, logical_relative_directory = stack.pop()
+            try:
+                with os.scandir(physical_directory) as scan:
+                    if remaining_scan_entries is None:
+                        entries = sorted(list(scan), key=lambda entry: entry.name)
+                    else:
+                        entries = []
+                        for entry in scan:
+                            if remaining_scan_entries <= 0:
+                                break
+                            entries.append(entry)
+                            remaining_scan_entries -= 1
+                        entries.sort(key=lambda entry: entry.name)
+            except OSError as exc:
+                _append_warning(
+                    warnings,
+                    "Could not scan directory "
+                    f"{redact_path(physical_directory)}: {_safe_error(exc)}",
+                )
+                continue
+
+            nested_directories: list[tuple[Path, Path]] = []
+            for entry in entries:
+                relative_path = (logical_relative_directory / entry.name).as_posix()
+                relative_depth = len(Path(relative_path).parts)
+                if (
+                    relative_depth_limit is not None
+                    and relative_depth > relative_depth_limit
+                ):
+                    continue
+                logical_path = root.logical_path / relative_path
+                physical_path = Path(entry.path)
+                try:
+                    metadata = entry.stat(follow_symlinks=False)
+                except OSError as exc:
+                    _append_warning(
+                        warnings,
+                        "Could not inspect source path "
+                        f"{redact_path(logical_path)}: {_safe_error(exc)}",
+                    )
+                    continue
+
+                is_symlink = _is_link_or_reparse_point(metadata)
+
+                if is_symlink:
+                    if not follow_symlinks:
+                        _append_warning(
+                            warnings,
+                            "Skipped symlink without follow_symlinks=true: "
+                            f"{redact_path(logical_path)}",
+                        )
+                        continue
+                    resolved_path = _resolved_inside_root(physical_path, root)
+                    if resolved_path is None:
+                        _append_warning(
+                            warnings,
+                            "Skipped symlink outside source root or unresolved: "
+                            f"{redact_path(logical_path)}",
+                        )
+                        continue
+                    try:
+                        target_metadata = resolved_path.stat()
+                    except OSError as exc:
+                        _append_warning(
+                            warnings,
+                            "Could not inspect source path "
+                            f"{redact_path(logical_path)}: {_safe_error(exc)}",
+                        )
+                        continue
+                    if stat.S_ISDIR(target_metadata.st_mode):
+                        if (
+                            relative_depth_limit is not None
+                            and relative_depth >= relative_depth_limit
+                        ):
+                            continue
+                        if _directory_is_excluded(
+                            relative_path,
+                            logical_path,
+                            excluded_dir_names,
+                            exclude_globs,
+                        ) or _resolved_directory_is_excluded(
+                            resolved_path,
+                            root,
+                            excluded_dir_names,
+                            exclude_globs,
+                        ):
+                            _append_warning(
+                                warnings,
+                                f"Skipped directory: {redact_path(relative_path)}",
+                            )
+                            continue
+                        resolved_key = str(resolved_path)
+                        if resolved_key in visited_directories:
+                            _append_warning(
+                                warnings,
+                                "Skipped duplicate or cyclic symlink directory: "
+                                f"{redact_path(logical_path)}",
+                            )
+                            continue
+                        visited_directories.add(resolved_key)
+                        nested_directories.append(
+                            (resolved_path, logical_relative_directory / entry.name)
+                        )
+                        continue
+                    if not stat.S_ISREG(target_metadata.st_mode):
+                        _append_warning(
+                            warnings,
+                            "Skipped symlink to non-regular source: "
+                            f"{redact_path(logical_path)}",
+                        )
+                        continue
+                    candidate = _candidate_for(
+                        root,
+                        logical_path,
+                        resolved_path,
+                        relative_path,
+                        seen_files=seen_files,
+                        include_globs=include_globs,
+                        exclude_globs=exclude_globs,
+                    )
+                    if candidate is not None:
+                        append_candidate(candidate)
+                    if candidate_limit_reached:
+                        break
+                    continue
+
+                if stat.S_ISDIR(metadata.st_mode):
+                    if (
+                        relative_depth_limit is not None
+                        and relative_depth >= relative_depth_limit
+                    ):
+                        continue
+                    if _directory_is_excluded(
+                        relative_path,
+                        logical_path,
+                        excluded_dir_names,
+                        exclude_globs,
+                    ):
+                        _append_warning(
+                            warnings,
+                            f"Skipped directory: {redact_path(relative_path)}",
+                        )
+                        continue
+                    resolved_path = _resolved_inside_root(physical_path, root)
+                    if resolved_path is None:
+                        _append_warning(
+                            warnings,
+                            "Skipped directory outside source root or unresolved: "
+                            f"{redact_path(logical_path)}",
+                        )
+                        continue
+                    resolved_key = str(resolved_path)
+                    if resolved_key in visited_directories:
+                        _append_warning(
+                            warnings,
+                            f"Skipped duplicate directory: {redact_path(logical_path)}",
+                        )
+                        continue
+                    visited_directories.add(resolved_key)
+                    nested_directories.append(
+                        (resolved_path, logical_relative_directory / entry.name)
+                    )
+                    continue
+                if not stat.S_ISREG(metadata.st_mode):
+                    continue
+                resolved_path = _resolved_inside_root(physical_path, root)
+                if resolved_path is None:
+                    _append_warning(
+                        warnings,
+                        "Skipped source file outside source root or unresolved: "
+                        f"{redact_path(logical_path)}",
+                    )
+                    continue
+                candidate = _candidate_for(
+                    root,
+                    logical_path,
+                    resolved_path,
+                    relative_path,
+                    seen_files=seen_files,
+                    include_globs=include_globs,
+                    exclude_globs=exclude_globs,
+                )
+                if candidate is not None:
+                    append_candidate(candidate)
+                if candidate_limit_reached:
+                    break
+            if candidate_limit_reached:
+                break
+            if remaining_scan_entries is not None and remaining_scan_entries <= 0:
+                _append_warning(
+                    warnings,
+                    "Harvest traversal scan-entry limit reached; skipped remaining paths.",
+                )
+                break
+            stack.extend(reversed(nested_directories))
+    if candidate_limit_reached:
+        _append_warning(
+            warnings,
+            "Harvest traversal candidate limit reached; skipped remaining paths.",
+        )
+    return candidates, warnings

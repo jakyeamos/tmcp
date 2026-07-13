@@ -10,11 +10,19 @@ import unittest
 from collections.abc import Mapping
 from pathlib import Path
 from typing import cast
+from unittest.mock import patch
+
+from tests.tmcp_test_client import (
+    TestWorkspace,
+    run_mcp_requests as run_hermetic_mcp_requests,
+)
+from tmcp_runtime.domain import review_evidence, standalone_packets
+from tmcp_runtime.api.registry import PUBLIC_TOOL_NAMES
+from tmcp_runtime.storage import artifact_persistence_available
 
 
 SERVER_PATH = Path(__file__).resolve().parents[1] / "scripts" / "tmcp_mcp_server.py"
 PLUGIN_ROOT = SERVER_PATH.parents[1]
-LAUNCHER_PATH = PLUGIN_ROOT / "scripts" / "tmcp_launcher.mjs"
 CHECK_INSTALL_PATH = PLUGIN_ROOT / "scripts" / "check_install.py"
 GOLDEN_PACKETS_PATH = PLUGIN_ROOT / "tests" / "fixtures" / "golden_packets.json"
 PACKET_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-skill-packet-v0.2.schema.json"
@@ -25,9 +33,24 @@ RUNTIME_NEXT_SCHEMA_PATH = (
     PLUGIN_ROOT / "schemas" / "tmcp-runtime-next-v0.1.schema.json"
 )
 RUN_RECEIPT_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-run-receipt-v0.1.schema.json"
+RUN_SESSION_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-run-session-v0.1.schema.json"
 PROMOTED_GRAPH_SCHEMA_PATH = (
     PLUGIN_ROOT / "schemas" / "tmcp-promoted-harvest-graph-v0.1.schema.json"
 )
+_SERVER_RUNTIME = tempfile.TemporaryDirectory(prefix="tmcp-server-tests-")
+
+
+def _server_environment() -> dict[str, str]:
+    root = Path(_SERVER_RUNTIME.name)
+    home = root / "home"
+    tmcp_home = root / "tmcp-home"
+    home.mkdir(exist_ok=True)
+    tmcp_home.mkdir(exist_ok=True)
+    environment = os.environ.copy()
+    environment["HOME"] = str(home)
+    environment["TMCP_HOME"] = str(tmcp_home)
+    environment["AIOS_ROOT"] = str(root / "missing-aios")
+    return environment
 
 
 def load_server_module():
@@ -35,17 +58,8 @@ def load_server_module():
     if spec is None or spec.loader is None:
         raise RuntimeError("Could not load tmcp_mcp_server module")
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-def load_framing_module():
-    path = PLUGIN_ROOT / "scripts" / "tmcp_mcp_framing.py"
-    spec = importlib.util.spec_from_file_location("tmcp_mcp_framing", path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError("Could not load tmcp_mcp_framing module")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    with patch.dict(os.environ, _server_environment(), clear=False):
+        spec.loader.exec_module(module)
     return module
 
 
@@ -59,40 +73,7 @@ def load_check_install_module():
 
 
 def run_mcp_requests(requests: list[dict[str, object]]) -> list[dict[str, object]]:
-    raw = b""
-    framing = load_framing_module()
-    for request in requests:
-        raw += framing.encode_message(request)
-    env = os.environ.copy()
-    env["AIOS_ROOT"] = "/tmp/tmcp-aios-missing"
-    completed = subprocess.run(
-        ["node", str(LAUNCHER_PATH)],
-        input=raw,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=str(SERVER_PATH.parents[1]),
-        env=env,
-        check=False,
-    )
-    if completed.returncode != 0:
-        raise RuntimeError(completed.stderr.decode())
-    responses: list[dict[str, object]] = []
-    stream = completed.stdout
-    position = 0
-    while position < len(stream):
-        header_end = stream.index(b"\r\n\r\n", position)
-        headers = stream[position:header_end].decode().split("\r\n")
-        length = int(
-            [
-                header.split(":", 1)[1].strip()
-                for header in headers
-                if header.lower().startswith("content-length:")
-            ][0]
-        )
-        start = header_end + 4
-        responses.append(json.loads(stream[start : start + length]))
-        position = start + length
-    return responses
+    return run_hermetic_mcp_requests(requests, PLUGIN_ROOT)
 
 
 class TmcpMcpServerTests(unittest.TestCase):
@@ -100,19 +81,25 @@ class TmcpMcpServerTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.server = load_server_module()
 
+    def test_server_dispatch_registry_covers_every_public_tool(self) -> None:
+        self.assertEqual(set(self.server._TOOL_HANDLERS), PUBLIC_TOOL_NAMES)
+        self.assertEqual(self.server._TOOL_DISPATCHER.tool_names, PUBLIC_TOOL_NAMES)
+
     def test_expert_ui_rubric_routes_to_audit_packet(self) -> None:
-        packet = self.server._compile_standalone_packet(
+        packet = standalone_packets.compile_standalone_packet(
             objective="Use the TMCP expert UI rubric on Hoopscout",
             project_path="/tmp/hoopscout",
         )
 
         self.assertEqual(packet["task_id"], "audit")
         self.assertIn("@task:audit", packet["selected_nodes"])
-        rubric = self.server._synthesize_rubric(packet, "run-test", packet["objective"])
+        rubric = review_evidence.synthesize_rubric(
+            packet, "run-test", packet["objective"]
+        )
         self.assertEqual(rubric["profile"], "visual_polish")
 
     def test_packet_substance_check_flags_process_only_packets(self) -> None:
-        packet = self.server._compile_standalone_packet(
+        packet = standalone_packets.compile_standalone_packet(
             objective="Use TMCP to audit government readiness for CrimClock",
             project_path="/tmp/crimclock",
         )
@@ -190,21 +177,28 @@ class TmcpMcpServerTests(unittest.TestCase):
             secret = "sk-" + "A" * 40
             github_token = "ghp_" + "b" * 36
             aws_key = "AKIA" + "C" * 16
-            high_entropy = "A9b8C7d6E5f4G3h2I1j0K9l8M7n6O5p4Q3r2S1t0"
+            high_entropy = "A9b8C7d6E5f4G3h2I1j0" + "K9l8M7n6O5p4Q3r2S1t0"
+            openai_key_name = "OPENAI_" + "API_KEY"
+            github_token_name = "GITHUB_" + "TOKEN"
+            aws_key_name = "AWS_" + "ACCESS_KEY_ID"
+            client_secret_name = "CLIENT_" + "SECRET"
+            bearer_value = "abcdefghijklmnopqrstuvwxyz" + "123456"
+            private_key_label = "PRIVATE " + "KEY"
+            private_key_body = "abcdef0123456789abcdef" + "0123456789abcdef0123456789"
             (root / "AGENTS.md").write_text(
                 "\n".join(
                     [
                         "# Agent Contract",
                         "Keep docs/security-privacy-harvest-audit.md readable.",
-                        f"OPENAI_API_KEY={secret}",
-                        "Authorization: Bearer abcdefghijklmnopqrstuvwxyz123456",
-                        f"GITHUB_TOKEN={github_token}",
-                        f"AWS_ACCESS_KEY_ID={aws_key}",
-                        "CLIENT_SECRET=supersecretvalue",
+                        f"{openai_key_name}={secret}",
+                        f"Authorization: Bearer {bearer_value}",
+                        f"{github_token_name}={github_token}",
+                        f"{aws_key_name}={aws_key}",
+                        f"{client_secret_name}=supersecretvalue",
                         f"opaque={high_entropy}",
-                        "-----BEGIN PRIVATE KEY-----",
-                        "abcdef0123456789abcdef0123456789abcdef0123456789",
-                        "-----END PRIVATE KEY-----",
+                        f"-----BEGIN {private_key_label}-----",
+                        private_key_body,
+                        f"-----END {private_key_label}-----",
                     ]
                 ),
                 encoding="utf-8",
@@ -221,8 +215,8 @@ class TmcpMcpServerTests(unittest.TestCase):
             aws_key,
             high_entropy,
             "supersecretvalue",
-            "abcdef0123456789abcdef0123456789abcdef0123456789",
-            "abcdefghijklmnopqrstuvwxyz123456",
+            private_key_body,
+            bearer_value,
         ):
             self.assertNotIn(sensitive_value, serialized)
         self.assertIn("[REDACTED:", serialized)
@@ -283,7 +277,39 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "schemas/tmcp-composed-packet-v0.1.schema.json",
                 "schemas/tmcp-runtime-next-v0.1.schema.json",
                 "schemas/tmcp-run-receipt-v0.1.schema.json",
+                "schemas/tmcp-run-session-v0.1.schema.json",
                 "schemas/tmcp-promoted-harvest-graph-v0.1.schema.json",
+                "scripts/release_package_composition.py",
+                "scripts/release_package_sessions.py",
+                "tmcp_runtime/domain/declared_loads.py",
+                "tmcp_runtime/domain/composition.py",
+                "tmcp_runtime/domain/families.py",
+                "tmcp_runtime/domain/harvest_labels.py",
+                "tmcp_runtime/domain/harvest_nodes.py",
+                "tmcp_runtime/domain/packets.py",
+                "tmcp_runtime/domain/receipts.py",
+                "tmcp_runtime/domain/recompile.py",
+                "tmcp_runtime/domain/review_evidence.py",
+                "tmcp_runtime/domain/review_profiles.py",
+                "tmcp_runtime/domain/review_results.py",
+                "tmcp_runtime/domain/runtime_state.py",
+                "tmcp_runtime/domain/standalone_packets.py",
+                "tmcp_runtime/domain/workflow_activation.py",
+                "tmcp_runtime/domain/workflow_adaptive.py",
+                "tmcp_runtime/domain/workflow_catalog.py",
+                "tmcp_runtime/domain/workflow_promotion.py",
+                "tmcp_runtime/domain/workflow_recommendations.py",
+                "tmcp_runtime/api/cli.py",
+                "tmcp_runtime/storage/cache_policy.py",
+                "tmcp_runtime/storage/global_cache.py",
+                "tmcp_runtime/services/__init__.py",
+                "tmcp_runtime/services/artifact_plans.py",
+                "tmcp_runtime/services/compose.py",
+                "tmcp_runtime/services/harvest.py",
+                "tmcp_runtime/services/promotion.py",
+                "tmcp_runtime/services/recompile.py",
+                "tmcp_runtime/services/recommendations.py",
+                "tmcp_runtime/services/review.py",
             }.issubset(required_files)
         )
         self.assertTrue(
@@ -300,6 +326,7 @@ class TmcpMcpServerTests(unittest.TestCase):
             "tmcp-composed-packet-v0.1": COMPOSED_PACKET_SCHEMA_PATH,
             "tmcp-runtime-next-v0.1": RUNTIME_NEXT_SCHEMA_PATH,
             "tmcp-run-receipt-v0.1": RUN_RECEIPT_SCHEMA_PATH,
+            "tmcp-run-session-v0.1": RUN_SESSION_SCHEMA_PATH,
             "tmcp-promoted-harvest-graph-v0.1": PROMOTED_GRAPH_SCHEMA_PATH,
         }
         required_by_schema = {
@@ -320,6 +347,15 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "verification_results",
                 "outcome",
             },
+            "tmcp-run-session-v0.1": {
+                "schema",
+                "format_version",
+                "revision",
+                "created_at",
+                "updated_at",
+                "packet",
+                "last_recompile",
+            },
             "tmcp-promoted-harvest-graph-v0.1": {
                 "source_nodes",
                 "behavior_atoms",
@@ -336,6 +372,17 @@ class TmcpMcpServerTests(unittest.TestCase):
                     required_by_schema[schema_name].issubset(schema["required"])
                 )
 
+        session_schema = json.loads(RUN_SESSION_SCHEMA_PATH.read_text(encoding="utf-8"))
+        session_reference = session_schema["$defs"]["session_reference"]
+        self.assertEqual(
+            session_reference["properties"]["record_schema"]["const"],
+            "tmcp-run-session-v0.1",
+        )
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_review_plan_writes_expected_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "review"
@@ -377,6 +424,46 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "implementation-handoff.json",
             }
             self.assertEqual({path.name for path in output_dir.iterdir()}, expected)
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
+    def test_review_plan_redacts_direct_evidence_before_persistence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            secret = "sk-" + "R" * 40
+            project_path = Path(tmp) / secret
+            output_dir = Path(tmp) / "review"
+            project_path.mkdir()
+            result = self.server._standalone_review_plan(
+                {
+                    "objective": f"Review {secret}",
+                    "project_path": str(project_path),
+                    "output_dir": str(output_dir),
+                    "harvest_sources": False,
+                    "evidence_json": json.dumps(
+                        [
+                            {
+                                "dimension_id": "surface_hierarchy",
+                                "severity": "warning",
+                                "summary": secret,
+                                "evidence": [secret],
+                                "recommended_fix": secret,
+                            }
+                        ]
+                    ),
+                }
+            )
+            artifacts = "\n".join(
+                path.read_text(encoding="utf-8")
+                for path in output_dir.iterdir()
+                if path.is_file()
+            )
+
+        self.assertNotIn(secret, json.dumps(result))
+        self.assertNotIn(secret, artifacts)
+        self.assertIn("[REDACTED:", artifacts)
+        self.assertGreater(result["redaction_summary"].get("openai_key", 0), 0)
 
     def test_review_plan_reports_generic_evidence_shape_diagnostics(self) -> None:
         result = self.server._standalone_review_plan(
@@ -691,7 +778,7 @@ class TmcpMcpServerTests(unittest.TestCase):
 
     def test_packet_schema_required_fields_match_compiled_packet(self) -> None:
         schema = json.loads(PACKET_SCHEMA_PATH.read_text(encoding="utf-8"))
-        packet = self.server._compile_standalone_packet(
+        packet = standalone_packets.compile_standalone_packet(
             objective="Plan a release readiness roadmap for the plugin",
             project_path="/tmp/project",
         )
@@ -708,299 +795,21 @@ class TmcpMcpServerTests(unittest.TestCase):
                 copied,
                 ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
             )
-            completed = subprocess.run(
-                ["python3", "scripts/check_install.py", "."],
-                cwd=copied,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                check=False,
-            )
+            with TestWorkspace(copied) as workspace:
+                completed = subprocess.run(
+                    ["python3", "scripts/check_install.py", "."],
+                    cwd=copied,
+                    env=workspace.environment(),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    check=False,
+                )
 
         self.assertEqual(completed.returncode, 0, completed.stderr or completed.stdout)
         payload = json.loads(completed.stdout)
         self.assertEqual(payload["manifest"], "pass")
         self.assertEqual(payload["mcp_launch"], "pass")
-
-    def test_launcher_prefers_windows_python_launcher_on_windows(self) -> None:
-        completed = subprocess.run(
-            [
-                "node",
-                "--input-type=module",
-                "-e",
-                (
-                    "import { pythonCandidates } from './scripts/tmcp_launcher.mjs';"
-                    "console.log(JSON.stringify(pythonCandidates({}, 'win32')));"
-                ),
-            ],
-            cwd=PLUGIN_ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
-        )
-
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-        candidates = json.loads(completed.stdout)
-        self.assertEqual(candidates[0]["command"], "py")
-        self.assertEqual(candidates[0]["args"], ["-3"])
-
-    def test_launcher_respects_explicit_python_env(self) -> None:
-        completed = subprocess.run(
-            [
-                "node",
-                "--input-type=module",
-                "-e",
-                (
-                    "import { pythonCandidates } from './scripts/tmcp_launcher.mjs';"
-                    "console.log(JSON.stringify(pythonCandidates({ TMCP_PYTHON: '/opt/Python 3/python.exe' }, 'win32')));"
-                ),
-            ],
-            cwd=PLUGIN_ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
-        )
-
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-        candidates = json.loads(completed.stdout)
-        self.assertEqual(candidates[0]["command"], "/opt/Python 3/python.exe")
-        self.assertEqual(candidates[0]["source"], "TMCP_PYTHON")
-
-    def test_launcher_cli_status_calls_tool_directly(self) -> None:
-        completed = subprocess.run(
-            ["node", str(LAUNCHER_PATH), "status"],
-            cwd=PLUGIN_ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
-        )
-
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-        payload = json.loads(completed.stdout)
-        self.assertTrue(payload["standalone"]["available"])
-        self.assertIn("workflow_recommendation", payload["standalone"]["capabilities"])
-
-    def test_launcher_cli_explain_accepts_positional_objective(self) -> None:
-        completed = subprocess.run(
-            [
-                "node",
-                str(LAUNCHER_PATH),
-                "explain",
-                "Use the TMCP expert UI rubric on Hoopscout",
-                "--project-path",
-                "/tmp/hoopscout",
-                "--adapter",
-                "standalone",
-            ],
-            cwd=PLUGIN_ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
-        )
-
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-        payload = json.loads(completed.stdout)
-        self.assertEqual(payload["adapter"], "standalone")
-        self.assertEqual(payload["packet"]["task_id"], "audit")
-
-    def test_cli_parser_repeated_flags_become_lists(self) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
-            [
-                "harvest",
-                ".",
-                "--include-globs",
-                "**/SKILL.md",
-                "--include-globs",
-                "**/AGENTS.md",
-                "--write-artifacts",
-                "--no-redact-sensitive",
-                "--compact",
-            ]
-        )
-
-        self.assertEqual(tool_name, "tmcp_harvest_skills")
-        self.assertTrue(compact)
-        self.assertEqual(arguments["source_path"], ".")
-        self.assertEqual(arguments["include_globs"], ["**/SKILL.md", "**/AGENTS.md"])
-        self.assertTrue(arguments["write_artifacts"])
-        self.assertFalse(arguments["redact_sensitive"])
-
-    def test_cli_parser_schema_array_flags_accept_single_value(self) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
-            ["recommend", ".", "--candidate-workflows", "ui_quality"]
-        )
-
-        self.assertEqual(tool_name, "tmcp_recommend_workflows")
-        self.assertFalse(compact)
-        self.assertEqual(arguments["candidate_workflows"], ["ui_quality"])
-
-    def test_cli_parser_promote_harvest_accepts_source_and_selected_workflow(
-        self,
-    ) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
-            [
-                "promote-harvest",
-                ".",
-                "--selected-workflows",
-                "repo_behavior_spec_loop_workflow",
-                "--no-write-artifacts",
-            ]
-        )
-
-        self.assertEqual(tool_name, "tmcp_promote_harvest")
-        self.assertFalse(compact)
-        self.assertEqual(arguments["source_path"], ".")
-        self.assertEqual(
-            arguments["selected_workflows"], ["repo_behavior_spec_loop_workflow"]
-        )
-        self.assertFalse(arguments["write_artifacts"])
-
-    def test_cli_parser_accepts_composition_commands_and_flags(self) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
-            [
-                "compose-packet",
-                "Improve the dashboard UI",
-                "--project-path",
-                "/tmp/project",
-                "--phase",
-                "start",
-                "--cache-policy",
-                "global",
-                "--runtime-context",
-                '{"files_changed":["src/App.tsx"]}',
-                "--compact",
-            ]
-        )
-
-        self.assertEqual(tool_name, "tmcp_compose_packet")
-        self.assertTrue(compact)
-        self.assertEqual(arguments["objective"], "Improve the dashboard UI")
-        self.assertEqual(arguments["project_path"], "/tmp/project")
-        self.assertEqual(arguments["phase"], "start")
-        self.assertEqual(arguments["cache_policy"], "global")
-        self.assertEqual(
-            arguments["runtime_context"], {"files_changed": ["src/App.tsx"]}
-        )
-
-        tool_name, arguments, _ = self.server._parse_cli_arguments(
-            [
-                "runtime-next",
-                "Fix the dashboard bug",
-                "--project-path",
-                "/tmp/project",
-                "--current-phase",
-                "final",
-                "--files-changed",
-                "app/page.tsx",
-                "--failures",
-                "vitest failed",
-            ]
-        )
-
-        self.assertEqual(tool_name, "tmcp_runtime_next")
-        self.assertEqual(arguments["objective"], "Fix the dashboard bug")
-        self.assertEqual(arguments["current_phase"], "final")
-        self.assertEqual(arguments["files_changed"], ["app/page.tsx"])
-        self.assertEqual(arguments["failures"], ["vitest failed"])
-
-        tool_name, arguments, _ = self.server._parse_cli_arguments(
-            [
-                "record-receipt",
-                "packet-123",
-                "--activated-atoms",
-                "ui-browser-verification",
-                "--outcome",
-                "passed",
-            ]
-        )
-
-        self.assertEqual(tool_name, "tmcp_record_receipt")
-        self.assertEqual(arguments["packet_id"], "packet-123")
-        self.assertEqual(arguments["activated_atoms"], ["ui-browser-verification"])
-        self.assertEqual(arguments["outcome"], "passed")
-
-    def test_cli_parser_compose_flag_on_existing_tools(self) -> None:
-        tool_name, arguments, _ = self.server._parse_cli_arguments(
-            [
-                "explain",
-                "Review UI quality",
-                "--project-path",
-                "/tmp/project",
-                "--compose",
-            ]
-        )
-
-        self.assertEqual(tool_name, "tmcp_explain")
-        self.assertTrue(arguments["compose"])
-
-        tool_name, arguments, _ = self.server._parse_cli_arguments(
-            ["recommend", "/tmp/project", "--compose"]
-        )
-
-        self.assertEqual(tool_name, "tmcp_recommend_workflows")
-        self.assertTrue(arguments["compose"])
-
-    def test_agent_docs_cover_composition_runtime_and_receipts(self) -> None:
-        paths = [
-            PLUGIN_ROOT / "skills" / "tmcp" / "SKILL.md",
-            PLUGIN_ROOT / "skills" / "tmcp" / "references" / "cli.md",
-            PLUGIN_ROOT / "skills" / "tmcp" / "references" / "workflows.md",
-            PLUGIN_ROOT / "docs" / "CLI.md",
-            PLUGIN_ROOT / "README.md",
-        ]
-        docs = "\n".join(path.read_text(encoding="utf-8") for path in paths)
-
-        for expected in (
-            "tmcp_compose_packet",
-            "tmcp_runtime_next",
-            "tmcp_record_receipt",
-            "compose-packet",
-            "runtime-next",
-            "record-receipt",
-            "--compose",
-            "TMCP_HOME",
-            "advisory",
-        ):
-            with self.subTest(expected=expected):
-                self.assertIn(expected, docs)
-
-    def test_cli_expert_ui_rubric_alias_defaults_to_tmcp_workflow(self) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
-            [
-                "expert-ui-rubric",
-                "--project-path",
-                "/tmp/fantasy",
-                "--evidence-json",
-                "[]",
-            ]
-        )
-
-        self.assertEqual(tool_name, "expert_rubric_review_plan")
-        self.assertFalse(compact)
-        self.assertEqual(
-            arguments["objective"], "Use the TMCP expert UI rubric on this project."
-        )
-        self.assertEqual(arguments["adapter"], "standalone")
-        self.assertEqual(arguments["project_path"], "/tmp/fantasy")
-
-    def test_cli_expert_ui_rubric_alias_accepts_objective_override(self) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
-            [
-                "tmcp-expert-ui-rubric",
-                "Use the TMCP expert UI rubric workflow on Fantasy",
-            ]
-        )
-
-        self.assertEqual(tool_name, "expert_rubric_review_plan")
-        self.assertFalse(compact)
-        self.assertEqual(
-            arguments["objective"], "Use the TMCP expert UI rubric workflow on Fantasy"
-        )
-        self.assertEqual(arguments["adapter"], "standalone")
 
     def test_mcp_protocol_rejects_invalid_arguments(self) -> None:
         responses = run_mcp_requests(
@@ -1029,11 +838,11 @@ class TmcpMcpServerTests(unittest.TestCase):
         cases = json.loads(GOLDEN_PACKETS_PATH.read_text(encoding="utf-8"))
         for case in cases:
             with self.subTest(objective=case["objective"]):
-                packet = self.server._compile_standalone_packet(
+                packet = standalone_packets.compile_standalone_packet(
                     objective=case["objective"],
                     project_path="/tmp/project",
                 )
-                rubric = self.server._synthesize_rubric(
+                rubric = review_evidence.synthesize_rubric(
                     packet,
                     "run-golden",
                     case["objective"],
@@ -1073,58 +882,6 @@ class TmcpMcpServerTests(unittest.TestCase):
             ],
             result["evidence_contract"]["dimension_ids"],
         )
-
-    def test_aios_adapter_explicit_missing_returns_clear_error(self) -> None:
-        original_root = getattr(self.server, "AIOS_ROOT")
-        setattr(self.server, "AIOS_ROOT", Path("/tmp/tmcp-aios-definitely-missing"))
-        try:
-            result = self.server._call_tool(
-                "tmcp_explain",
-                {
-                    "objective": "Explain packet",
-                    "project_path": "/tmp/project",
-                    "adapter": "aios",
-                },
-            )
-        finally:
-            setattr(self.server, "AIOS_ROOT", original_root)
-
-        self.assertFalse(result["ok"])
-        self.assertEqual(result["adapter"], "aios")
-        self.assertIn("AIOS_ROOT", result["error"])
-        self.assertIn("--adapter standalone", result["remediation"])
-
-    def test_status_reports_aios_unconfigured_as_optional(self) -> None:
-        original_root = getattr(self.server, "AIOS_ROOT")
-        setattr(self.server, "AIOS_ROOT", None)
-        try:
-            result = self.server._call_tool("tmcp_status", {})
-        finally:
-            setattr(self.server, "AIOS_ROOT", original_root)
-
-        self.assertTrue(result["standalone"]["available"])
-        self.assertFalse(result["aios_adapter"]["available"])
-        self.assertFalse(result["aios_adapter"]["configured"])
-        self.assertIsNone(result["aios_adapter"]["aios_root"])
-
-    def test_aios_auto_missing_falls_back_to_standalone(self) -> None:
-        original_root = getattr(self.server, "AIOS_ROOT")
-        setattr(self.server, "AIOS_ROOT", Path("/tmp/tmcp-aios-definitely-missing"))
-        try:
-            result = self.server._call_tool(
-                "tmcp_explain",
-                {
-                    "objective": "Explain packet",
-                    "project_path": "/tmp/project",
-                    "adapter": "auto",
-                },
-            )
-        finally:
-            setattr(self.server, "AIOS_ROOT", original_root)
-
-        self.assertTrue(result["ok"])
-        self.assertEqual(result["adapter"], "standalone")
-        self.assertEqual(result["packet"]["schema"], "tmcp-skill-packet-v0.2")
 
 
 if __name__ == "__main__":

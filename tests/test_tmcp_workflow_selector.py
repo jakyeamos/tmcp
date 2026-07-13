@@ -63,9 +63,7 @@ class TmcpWorkflowSelectorTests(unittest.TestCase):
         self.assertEqual(evidence_paths, {"skills/ui/SKILL.md"})
 
         source_labels = {
-            node["relative_path"]: {
-                label["id"] for label in node["guidance_labels"]
-            }
+            node["relative_path"]: {label["id"] for label in node["guidance_labels"]}
             for node in result["adaptive_workflow_pack"]["harvested_source_map"]
         }
         self.assertNotIn("performance:readiness", source_labels["skills/data/SKILL.md"])

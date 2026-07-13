@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 - 2026-07-13
+
+- Changed AIOS dispatch so `auto` stays standalone, while explicit `aios` requests reject known sensitive values until a protected request-input protocol is available.
+- Completed the 0.5.0 compatibility migration: runtime ownership is converged
+  behind adapters and services, explicit state effects are documented, and
+  legacy promotion summaries have a read-only migration path.
 
 ## 0.4.0 - 2026-07-07
 - Added experimental `tmcp_evaluate_skills` with plan and score modes for full-skill behavioral evaluation, static anti-pattern review, A/B variant matrices, dimension scorecards, guidebook artifacts, and advisory harvest feedback without auto-promotion.

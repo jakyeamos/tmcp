@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.tmcp_route_catalog import validate_proposed_changes
+from tmcp_runtime.domain.routes import validate_proposed_changes
 from tests import test_tmcp_mcp_server as helpers
 from tests.test_tmcp_skill_family_compose import _write_product_design_family
 
@@ -75,7 +75,9 @@ class TmcpRecompilePacketTests(unittest.TestCase):
 
         self.assertEqual(result["schema"], "tmcp-recompiled-packet-v0.1")
         self.assertEqual(result["recompile_reason"], "phase_transition")
-        self.assertIn("phase_transitions.activate_skills", str(result["packet_diff"]["added"]))
+        self.assertIn(
+            "phase_transitions.activate_skills", str(result["packet_diff"]["added"])
+        )
         packet = result["packet"]
         self.assertEqual(packet["phase"], "implementation")
         selected = {item["source"] for item in packet["evidence_citations"]}
@@ -121,6 +123,45 @@ class TmcpRecompilePacketTests(unittest.TestCase):
             any(item.get("id") == "ui-polish-verification" for item in added),
             added,
         )
+
+    def test_full_recompile_keeps_a_validated_route_proposal(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "AGENTS.md").write_text(
+                "Read before modifying behavior.\n",
+                encoding="utf-8",
+            )
+            previous_packet = self.server._compose_packet(
+                {
+                    "source_path": str(root),
+                    "objective": "Implement the onboarding page",
+                    "project_path": str(root),
+                    "phase": "start",
+                    "cache_policy": "none",
+                }
+            )
+            result = self.server._runtime_next(
+                {
+                    "source_path": str(root),
+                    "objective": "Implement the onboarding page",
+                    "project_path": str(root),
+                    "current_phase": "start",
+                    "previous_packet": previous_packet,
+                    "output_mode": "full",
+                    "cache_policy": "none",
+                    "proposed_changes": [
+                        {
+                            "action": "add_route",
+                            "route": "accessibility_validation",
+                            "reason": "The form needs an accessibility check.",
+                        }
+                    ],
+                }
+            )
+
+        active_routes = result["packet"]["task_identity"]["active_routes"]
+        self.assertIn("accessibility_validation", active_routes)
+        self.assertEqual(result["task_identity"], result["packet"]["task_identity"])
 
 
 if __name__ == "__main__":

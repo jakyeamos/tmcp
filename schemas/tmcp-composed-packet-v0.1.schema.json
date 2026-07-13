@@ -126,6 +126,9 @@
       "type": "object",
       "additionalProperties": true
     },
+    "session": {
+      "$ref": "tmcp-run-session-v0.1.schema.json#/$defs/session_reference"
+    },
     "receipt_template": {
       "type": "object",
       "additionalProperties": true,
