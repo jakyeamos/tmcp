@@ -73,6 +73,34 @@ class EvaluationScoringServiceTests(unittest.TestCase):
             ["file_read", "command_run"],
         )
 
+    def test_normalize_trace_rejects_malformed_schema_trace(self) -> None:
+        with self.assertRaisesRegex(ValueError, "observations"):
+            evaluation_scoring._normalize_trace(
+                {
+                    "schema": "tmcp-skill-eval-trace-v0.1",
+                    "agent": "bad",
+                    "observations": ["not an object"],
+                }
+            )
+
+    def test_score_outcome_rejects_nonnumeric_human_quality(self) -> None:
+        with self.assertRaisesRegex(ValueError, "human_quality_score"):
+            evaluation_scoring.score_traces(
+                self._plan(),
+                [
+                    {
+                        "task_id": "task-1",
+                        "variant_id": "original",
+                        "observations": [{"kind": "assistant_message", "value": "done"}],
+                        "human_labels": [{"human_quality_score": "bad"}],
+                    }
+                ],
+                anti_pattern_catalog=[],
+                effective_patterns=[],
+                report_schema="report",
+                created_at="now",
+            )
+
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_scoring))
         tree = ast.parse(source_path.read_text(encoding="utf-8"))

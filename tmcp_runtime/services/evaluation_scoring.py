@@ -6,6 +6,7 @@ All filesystem access, input redaction, and callback wiring stay outside this mo
 from __future__ import annotations
 
 import json
+import math
 import re
 from collections.abc import Callable
 from typing import Any
@@ -26,6 +27,24 @@ def _path_name(value: str) -> str:
 
 def _normalize_trace(item: dict[str, Any]) -> dict[str, Any]:
     if item.get("schema") == EVAL_TRACE_SCHEMA:
+        observations = item.get("observations")
+        if not isinstance(observations, list) or not all(
+            isinstance(observation, dict) for observation in observations
+        ):
+            raise ValueError(
+                "Schema-tagged evaluation traces require observations as a list of objects."
+            )
+        agent = item.get("agent")
+        if agent is not None and not isinstance(agent, dict):
+            raise ValueError("Schema-tagged evaluation trace agent must be an object.")
+        human_labels = item.get("human_labels")
+        if human_labels is not None and (
+            not isinstance(human_labels, list)
+            or not all(isinstance(label, dict) for label in human_labels)
+        ):
+            raise ValueError(
+                "Schema-tagged evaluation trace human_labels must be a list of objects."
+            )
         return item
     observations: list[dict[str, Any]] = []
     if isinstance(item.get("observations"), list):
@@ -37,7 +56,7 @@ def _normalize_trace(item: dict[str, Any]) -> dict[str, Any]:
     elif isinstance(item.get("trace"), list):
         for line in item["trace"]:
             observations.append(_trace_line_to_observation(str(line)))
-    return {
+    normalized = {
         "schema": EVAL_TRACE_SCHEMA,
         "task_id": item.get("task_id"),
         "variant_id": item.get("variant_id"),
@@ -46,6 +65,11 @@ def _normalize_trace(item: dict[str, Any]) -> dict[str, Any]:
         "human_labels": list(item.get("human_labels") or []),
         "outcome": item.get("outcome"),
     }
+    if not all(isinstance(label, dict) for label in normalized["human_labels"]):
+        raise ValueError("Evaluation trace human_labels must be a list of objects.")
+    if not isinstance(normalized["agent"], dict):
+        raise ValueError("Evaluation trace agent must be an object.")
+    return normalized
 
 
 def _trace_line_to_observation(line: str) -> dict[str, str]:
@@ -251,14 +275,17 @@ def _score_adherence(trace: dict[str, Any]) -> dict[str, Any]:
 def _score_outcome(trace: dict[str, Any]) -> dict[str, Any]:
     outcome = str(trace.get("outcome") or "").lower()
     labels = _label_map(trace)
-    human_quality = next(
-        (
-            float(label.get("human_quality_score"))
-            for label in trace.get("human_labels", [])
-            if isinstance(label, dict) and label.get("human_quality_score") is not None
-        ),
-        None,
-    )
+    human_quality: float | None = None
+    for label in trace.get("human_labels", []):
+        if not isinstance(label, dict) or label.get("human_quality_score") is None:
+            continue
+        try:
+            human_quality = float(label["human_quality_score"])
+        except (TypeError, ValueError) as exc:
+            raise ValueError("human_quality_score must be numeric.") from exc
+        if not math.isfinite(human_quality):
+            raise ValueError("human_quality_score must be finite.")
+        break
     base = {
         "passed": 1.0,
         "partial": 0.5,

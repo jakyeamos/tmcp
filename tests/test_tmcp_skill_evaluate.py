@@ -89,6 +89,79 @@ class SkillEvaluateTests(unittest.TestCase):
         variant_ids = {row["variant_id"] for row in plan["task_matrix"]}
         self.assertEqual(variant_ids, {"baseline", "original", "negative_control"})
 
+    def test_plan_rejects_oversized_variant_input(self) -> None:
+        arguments = self._plan_arguments()
+        arguments["variants"] = [
+            "variant"
+        ] * (self.evaluate.MAX_EVALUATION_VARIANTS + 1)
+
+        with self.assertRaisesRegex(ValueError, "variant count"):
+            self.evaluate.build_evaluation_plan(arguments)
+
+    def test_plan_rejects_oversized_serialized_fixture_input(self) -> None:
+        with patch.object(self.evaluate, "MAX_EVALUATION_INPUT_BYTES", 16):
+            with self.assertRaisesRegex(ValueError, "serialized size"):
+                self.evaluate.build_evaluation_plan(self._plan_arguments())
+
+    def test_plan_rejects_matrix_before_cartesian_expansion(self) -> None:
+        with patch.object(self.evaluate, "MAX_EVALUATION_MATRIX_ROWS", 1):
+            with self.assertRaisesRegex(ValueError, "matrix"):
+                self.evaluate.build_evaluation_plan(self._plan_arguments())
+
+    def test_score_rejects_oversized_evidence_input(self) -> None:
+        plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
+        trace = {
+            "task_id": "approval-before-edit",
+            "variant_id": "original",
+            "observations": [{"kind": "command_run", "value": "npm test"}],
+        }
+
+        with self.assertRaisesRegex(ValueError, "trace count"):
+            self.evaluate.score_evidence(
+                {
+                    "evaluation_plan": plan,
+                    "run_evidence_json": [
+                        trace
+                    ]
+                    * (self.evaluate.MAX_EVALUATION_TRACES + 1),
+                }
+            )
+
+    def test_score_rejects_malformed_nested_plan_before_scoring(self) -> None:
+        plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
+        plan["evaluated_skills"][0]["static_findings"] = "bad"
+
+        with self.assertRaisesRegex(ValueError, "static_findings"):
+            self.evaluate.score_evidence(
+                {
+                    "evaluation_plan": plan,
+                    "run_evidence_json": [
+                        {
+                            "task_id": "approval-before-edit",
+                            "variant_id": "original",
+                            "observations": [{"kind": "command_run", "value": "npm test"}],
+                        }
+                    ],
+                }
+            )
+
+    def test_score_rejects_oversized_inline_plan_input(self) -> None:
+        plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
+        with patch.object(self.evaluate, "MAX_EVALUATION_INPUT_BYTES", 16):
+            with self.assertRaisesRegex(ValueError, "evaluation_plan"):
+                self.evaluate.score_evidence(
+                    {
+                        "evaluation_plan": plan,
+                        "run_evidence_json": [
+                            {
+                                "task_id": "approval-before-edit",
+                                "variant_id": "original",
+                                "observations": [{"kind": "command_run", "value": "npm test"}],
+                            }
+                        ],
+                    }
+                )
+
     def test_score_rejects_evidence_without_observable_trace(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
         with self.assertRaises(ValueError) as ctx:

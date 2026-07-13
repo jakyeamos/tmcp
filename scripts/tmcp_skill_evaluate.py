@@ -48,6 +48,12 @@ EVAL_PLAN_SCHEMA = "tmcp-skill-evaluation-plan-v0.1"
 EVAL_REPORT_SCHEMA = "tmcp-skill-evaluation-report-v0.1"
 EVAL_TRACE_SCHEMA = "tmcp-skill-eval-trace-v0.1"
 MAX_EVALUATION_PLAN_BYTES = 8_388_608
+MAX_EVALUATION_TASK_FIXTURES = 64
+MAX_EVALUATION_VARIANTS = 32
+MAX_EVALUATION_MATRIX_ROWS = 4096
+MAX_EVALUATION_TRACES = 256
+MAX_EVALUATION_OBSERVATIONS_PER_TRACE = 256
+MAX_EVALUATION_INPUT_BYTES = MAX_EVALUATION_PLAN_BYTES
 
 ComposeEvaluationRow = Callable[[dict[str, Any], str | Path | None], dict[str, Any]]
 EvaluationArtifactWriter = Callable[
@@ -254,6 +260,21 @@ def _safe_json_value(value: Any, redactions: dict[str, int]) -> Any:
     return safe_value
 
 
+def _safe_bounded_json_value(
+    value: Any,
+    *,
+    label: str,
+    redactions: dict[str, int],
+    max_bytes: int | None = None,
+) -> Any:
+    limit = MAX_EVALUATION_INPUT_BYTES if max_bytes is None else max_bytes
+    safe_value = _safe_json_value(value, redactions)
+    serialized_size = len(_json_text(safe_value, label=label).encode("utf-8"))
+    if serialized_size > limit:
+        raise ValueError(f"{label} exceeds the maximum serialized size of {limit} bytes.")
+    return safe_value
+
+
 def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     raw_skill_paths = arguments.get("skill_paths")
     if not isinstance(raw_skill_paths, list) or not raw_skill_paths:
@@ -261,6 +282,11 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     project_path = arguments.get("project_path")
     if project_path is not None and not isinstance(project_path, (str, Path)):
         raise ValueError("project_path must be a path string.")
+    if len(raw_skill_paths) > MAX_EVALUATION_TASK_FIXTURES:
+        raise ValueError(
+            "skill_paths exceeds the maximum evaluation source count of "
+            f"{MAX_EVALUATION_TASK_FIXTURES}."
+        )
     skill_inputs = read_skill_inputs(raw_skill_paths, project_path=project_path)
 
     redactions: dict[str, int] = {}
@@ -270,20 +296,38 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     raw_task_fixtures = arguments.get("task_fixtures")
     if not isinstance(raw_task_fixtures, list) or not raw_task_fixtures:
         raise ValueError("task_fixtures is required for evaluation plan generation.")
-    task_fixtures = _safe_json_value(raw_task_fixtures, redactions)
+    task_fixtures = _safe_bounded_json_value(
+        raw_task_fixtures,
+        label="task_fixtures",
+        redactions=redactions,
+    )
     if not isinstance(task_fixtures, list) or not all(
         isinstance(item, dict) for item in task_fixtures
     ):
         raise ValueError("task_fixtures must contain objects.")
+    if len(task_fixtures) > MAX_EVALUATION_TASK_FIXTURES:
+        raise ValueError(
+            "task_fixtures exceeds the maximum evaluation fixture count of "
+            f"{MAX_EVALUATION_TASK_FIXTURES}."
+        )
 
     raw_variants = arguments.get("variants") or list(DEFAULT_VARIANTS)
     if not isinstance(raw_variants, list):
         raise ValueError("variants must be a list of strings.")
-    variants = _safe_json_value(raw_variants, redactions)
+    variants = _safe_bounded_json_value(
+        raw_variants,
+        label="variants",
+        redactions=redactions,
+    )
     if not isinstance(variants, list) or not all(
         isinstance(item, str) for item in variants
     ):
         raise ValueError("variants must be a list of strings.")
+    if len(variants) > MAX_EVALUATION_VARIANTS:
+        raise ValueError(
+            "variants exceeds the maximum evaluation variant count of "
+            f"{MAX_EVALUATION_VARIANTS}."
+        )
 
     evaluated_skills: list[dict[str, Any]] = []
     task_matrix: list[dict[str, Any]] = []
@@ -326,6 +370,12 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
                 variant_entries.append(
                     _variant_payload(variant_id, decomposition, text)
                 )
+        projected_rows = len(task_matrix) + len(task_fixtures) * len(variant_entries)
+        if projected_rows > MAX_EVALUATION_MATRIX_ROWS:
+            raise ValueError(
+                "Evaluation task matrix exceeds the maximum row count of "
+                f"{MAX_EVALUATION_MATRIX_ROWS}."
+            )
         evaluated_skills.append(
             {
                 "skill_path": skill_path,
@@ -460,6 +510,23 @@ def _validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
         value = plan.get(key)
         if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
             raise ValueError(f"evaluation_plan {key} must be a list of objects.")
+    for index, skill in enumerate(plan["evaluated_skills"]):
+        findings = skill.get("static_findings")
+        if findings is not None and (
+            not isinstance(findings, list)
+            or not all(isinstance(item, dict) for item in findings)
+        ):
+            raise ValueError(
+                f"evaluation_plan evaluated_skills[{index}].static_findings "
+                "must be a list of objects."
+            )
+    for index, contract in enumerate(plan["packet_inclusion_contracts"]):
+        expected = contract.get("expected")
+        if expected is not None and not isinstance(expected, dict):
+            raise ValueError(
+                f"evaluation_plan packet_inclusion_contracts[{index}].expected "
+                "must be an object."
+            )
     return plan
 
 
@@ -470,7 +537,11 @@ def _load_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("project_path must be a path string.")
     redactions: dict[str, int] = {}
     if isinstance(plan_input, dict):
-        plan = _safe_json_value(plan_input, redactions)
+        plan = _safe_bounded_json_value(
+            plan_input,
+            label="evaluation_plan",
+            redactions=redactions,
+        )
         if not isinstance(plan, dict):
             raise ValueError("evaluation_plan must be a JSON object.")
     elif isinstance(plan_input, str):
@@ -516,11 +587,34 @@ def score_evidence(
     raw_evidence = arguments.get("run_evidence_json")
     if not isinstance(raw_evidence, list) or not raw_evidence:
         raise ValueError("run_evidence_json is required for evidence scoring.")
+    if len(raw_evidence) > MAX_EVALUATION_TRACES:
+        raise ValueError(
+            "run_evidence_json exceeds the maximum trace count of "
+            f"{MAX_EVALUATION_TRACES}."
+        )
+    if not all(isinstance(item, dict) for item in raw_evidence):
+        raise ValueError("run_evidence_json must contain trace objects.")
     redactions: dict[str, int] = {}
-    safe_evidence = _safe_json_value(raw_evidence, redactions)
+    safe_evidence = _safe_bounded_json_value(
+        raw_evidence,
+        label="run_evidence_json",
+        redactions=redactions,
+    )
     if not isinstance(safe_evidence, list):
         raise ValueError("run_evidence_json must contain trace objects.")
-    traces = [_normalize_trace(item) for item in safe_evidence if isinstance(item, dict)]
+    for index, item in enumerate(safe_evidence):
+        if not isinstance(item, dict):
+            raise ValueError("run_evidence_json must contain trace objects.")
+        for key in ("observations", "trace"):
+            observations = item.get(key)
+            if observations is not None and not isinstance(observations, list):
+                raise ValueError(f"run_evidence_json trace {index}.{key} must be a list.")
+            if isinstance(observations, list) and len(observations) > MAX_EVALUATION_OBSERVATIONS_PER_TRACE:
+                raise ValueError(
+                    f"run_evidence_json trace {index}.{key} exceeds the maximum observation count of "
+                    f"{MAX_EVALUATION_OBSERVATIONS_PER_TRACE}."
+                )
+    traces = [_normalize_trace(item) for item in safe_evidence]
     if not traces:
         raise ValueError("run_evidence_json must contain trace objects.")
     for trace in traces:
