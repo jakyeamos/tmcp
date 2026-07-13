@@ -127,4 +127,6 @@ Workflow outputs should include or cite:
 - recommendation or remediation plan
 - verification expectations
 
-AIOS remains optional. `--adapter auto` may use AIOS for packet compilation only when `AIOS_ROOT` points to an available checkout; `--adapter standalone` keeps execution inside this package. Expert review keeps `adapter=auto` standalone so evidence is not forwarded implicitly. An explicit AIOS review is read-only (`--no-write-artifacts`); durable review artifacts always use the standalone protected store.
+AIOS remains optional. `--adapter auto` and `--adapter standalone` keep execution inside this package; use `--adapter aios` only when the caller explicitly opts into the local AIOS adapter. Expert review keeps `adapter=auto` standalone so evidence is not forwarded implicitly. An explicit AIOS review is read-only (`--no-write-artifacts`); durable review artifacts always use the standalone protected store.
+
+Until AIOS supports protected request input, TMCP rejects known sensitive values before an AIOS command can receive them through process arguments. Use the standalone adapter for those requests.

@@ -174,7 +174,7 @@ Required evidence:
 Pass criteria:
 
 - AIOS adapter checks availability without hard failure.
-- Adapter failures fall back to standalone when adapter mode is `auto`.
+- `auto` and `standalone` stay inside TMCP; `aios` is an explicit opt-in.
 - Adapter mode `aios` reports clear errors when AIOS is unavailable.
 - Adapter output is normalized enough for callers to understand the source.
 

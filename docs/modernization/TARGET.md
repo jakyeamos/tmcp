@@ -181,6 +181,6 @@ They should be confirmed before implementation starts.
 | --- | --- | --- |
 | New default storage behavior | Stateless/no-cache; sessions and global cache are explicit opt-ins. | Improves privacy, reproducibility, and user trust; changes convenience semantics. |
 | Compatibility release | Ship as `0.5.0` with a documented compatibility adapter and deprecations. | The safe defaults and session workflow are material product changes. |
-| AIOS invocation | `adapter=auto` remains backward-compatible in legacy mode, but the new core defaults to standalone unless explicitly enabled. | Avoids unexpected local subprocess execution. |
+| AIOS invocation | `adapter=auto` always stays standalone; `adapter=aios` is an explicit opt-in. | Avoids unexpected local subprocess execution and makes data-forwarding consent explicit. |
 | Artifact writes | Review and receipt writes require explicit opt-in/path in the new flow; legacy aliases retain behavior with a visible warning until the next breaking release. | Balances safety with existing integrations. |
 | Stable catalog policy | Publish a small set of core primitives plus a separately versioned curated-workflow catalog. | Ends ambiguity between stable product APIs and experimental skill families. |

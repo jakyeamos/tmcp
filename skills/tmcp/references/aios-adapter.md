@@ -7,8 +7,9 @@ Use AIOS only when `AIOS_ROOT` is explicitly configured and the user or workflow
 ## Behavior
 
 - `--adapter standalone` stays inside the TMCP package.
-- `--adapter auto` may use AIOS when `AIOS_ROOT/bin/aios.py` exists, then falls back to standalone behavior.
+- `--adapter auto` always uses standalone behavior, even when AIOS is configured.
 - `--adapter aios` must return a clear remediation error when `AIOS_ROOT/bin/aios.py` is missing.
+- `--adapter aios` rejects known sensitive request values until AIOS supports a protected request-input protocol.
 
 ## Remediation
 

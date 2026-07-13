@@ -102,4 +102,6 @@ The launcher finds Python in this order:
 
 ## AIOS Adapter
 
-AIOS is optional. If `AIOS_ROOT` is set and `adapter: "auto"` is used, TMCP may use AIOS for richer packet compilation. Expert review keeps `adapter: "auto"` standalone so evidence is not forwarded implicitly. If AIOS is missing, `adapter: "auto"` falls back to standalone behavior. `adapter: "aios"` returns a clear remediation error when unavailable; explicit AIOS review is read-only.
+AIOS is optional. `adapter: "auto"` and `adapter: "standalone"` stay inside TMCP even when `AIOS_ROOT` is configured. Use `adapter: "aios"` only when the caller explicitly opts into that local adapter; it returns a clear remediation error when unavailable. Explicit AIOS review is read-only.
+
+TMCP rejects known sensitive request values before passing an explicit AIOS request through process arguments. Use standalone mode until AIOS offers a protected request-input protocol.

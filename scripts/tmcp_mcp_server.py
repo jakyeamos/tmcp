@@ -141,11 +141,28 @@ def _aios_available() -> bool:
 
 
 def _should_use_aios(adapter: str) -> bool:
-    if adapter == "standalone":
-        return False
-    if adapter == "aios":
-        return True
-    return _aios_available()
+    return adapter == "aios"
+
+
+def _aios_command_redactions(args: list[str]) -> dict[str, int]:
+    redactions: dict[str, int] = {}
+    index = 0
+    while index < len(args):
+        argument = args[index]
+        if argument == "--evidence-json" and index + 1 < len(args):
+            evidence_json = args[index + 1]
+            try:
+                evidence_value = json.loads(evidence_json)
+            except json.JSONDecodeError:
+                evidence_value = evidence_json
+            _, evidence_redactions = redact_json_value(evidence_value, enabled=True)
+            merge_redactions(redactions, evidence_redactions)
+            index += 2
+            continue
+        _, argument_redactions = redact_json_value(argument, enabled=True)
+        merge_redactions(redactions, argument_redactions)
+        index += 1
+    return redactions
 
 
 def _run_aios(args: list[str]) -> dict[str, Any]:
@@ -159,6 +176,21 @@ def _run_aios(args: list[str]) -> dict[str, Any]:
                 "Continue with --adapter standalone, or set AIOS_ROOT to an AIOS "
                 "checkout if you explicitly want the optional adapter."
             ),
+        }
+    command_redactions = _aios_command_redactions(args)
+    if command_redactions:
+        return {
+            "ok": False,
+            "adapter": "aios",
+            "error": (
+                "AIOS adapter cannot receive sensitive request values through "
+                "command arguments."
+            ),
+            "remediation": (
+                "Use --adapter standalone, or configure AIOS with a protected "
+                "request-input protocol."
+            ),
+            "redaction_summary": command_redactions,
         }
     command = (
         ["uv", "run", "python", "bin/aios.py", *args]

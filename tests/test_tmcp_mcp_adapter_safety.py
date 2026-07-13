@@ -68,6 +68,78 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertEqual(result["adapter"], "standalone")
         self.assertEqual(result["packet"]["schema"], "tmcp-skill-packet-v0.2")
 
+    def test_aios_auto_stays_standalone_when_the_adapter_is_available(self) -> None:
+        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
+            self.server,
+            "_run_aios",
+        ) as run_aios:
+            result = self.server._call_tool(
+                "tmcp_explain",
+                {
+                    "objective": "Explain packet",
+                    "project_path": "/tmp/project",
+                    "adapter": "auto",
+                },
+            )
+
+        run_aios.assert_not_called()
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["adapter"], "standalone")
+
+    def test_aios_rejects_sensitive_command_arguments_before_execution(self) -> None:
+        secret = "sk-" + "J" * 40
+        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
+            self.server.subprocess,
+            "run",
+        ) as run:
+            result = self.server._run_aios(
+                ["tmcp", "explain", secret, "--project-path", f"/tmp/{secret}"]
+            )
+
+        run.assert_not_called()
+        self.assertFalse(result["ok"])
+        self.assertNotIn(secret, json.dumps(result))
+        self.assertIn("redaction_summary", result)
+
+    def test_aios_explicitly_uses_the_optional_adapter(self) -> None:
+        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
+            self.server,
+            "_run_aios",
+            return_value={"ok": True, "adapter": "aios", "data": {}},
+        ) as run_aios:
+            result = self.server._call_tool(
+                "tmcp_explain",
+                {
+                    "objective": "Explain packet",
+                    "project_path": "/tmp/project",
+                    "adapter": "aios",
+                },
+            )
+
+        run_aios.assert_called_once()
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["adapter"], "aios")
+
+    def test_explain_explicit_aios_rejects_sensitive_values_before_execution(self) -> None:
+        secret = "sk-" + "K" * 40
+        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
+            self.server.subprocess,
+            "run",
+        ) as run:
+            result = self.server._call_tool(
+                "tmcp_explain",
+                {
+                    "objective": f"Explain {secret}",
+                    "project_path": f"/tmp/{secret}/project",
+                    "adapter": "aios",
+                },
+            )
+
+        run.assert_not_called()
+        self.assertFalse(result["ok"])
+        self.assertNotIn(secret, json.dumps(result))
+        self.assertIn("redaction_summary", result)
+
     def test_explain_aios_payloads_are_redacted_before_returning(self) -> None:
         secret = "sk-" + "B" * 40
         output_dir = f"/tmp/{secret}/aios-output"
@@ -319,6 +391,52 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertNotIn(output_dir, command)
         self.assertNotIn(secret, json.dumps(result))
         self.assertNotIn("output_dir", result)
+        self.assertEqual(result["artifact_paths"], {})
+
+    def test_review_explicit_aios_rejects_sensitive_evidence_before_execution(self) -> None:
+        secret = "sk-" + "L" * 40
+        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
+            self.server.subprocess,
+            "run",
+        ) as run:
+            result = self.server._call_tool(
+                "expert_rubric_review_plan",
+                {
+                    "objective": "Review release safety",
+                    "project_path": "/tmp/project",
+                    "adapter": "aios",
+                    "write_artifacts": False,
+                    "evidence_json": json.dumps({"token": secret}),
+                },
+            )
+
+        run.assert_not_called()
+        self.assertFalse(result["ok"])
+        self.assertNotIn(secret, json.dumps(result))
+        self.assertEqual(result["artifact_paths"], {})
+
+    def test_review_explicit_aios_rejects_escaped_sensitive_evidence_before_execution(
+        self,
+    ) -> None:
+        escaped_secret = "sk-" + "\\u004d" * 40
+        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
+            self.server.subprocess,
+            "run",
+        ) as run:
+            result = self.server._call_tool(
+                "expert_rubric_review_plan",
+                {
+                    "objective": "Review release safety",
+                    "project_path": "/tmp/project",
+                    "adapter": "aios",
+                    "write_artifacts": False,
+                    "evidence_json": '{"token":"' + escaped_secret + '"}',
+                },
+            )
+
+        run.assert_not_called()
+        self.assertFalse(result["ok"])
+        self.assertIn("redaction_summary", result)
         self.assertEqual(result["artifact_paths"], {})
 
     def test_status_omits_artifact_write_when_secure_persistence_is_unavailable(

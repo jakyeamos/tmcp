@@ -33,8 +33,8 @@ TOOLS: dict[str, dict[str, object]] = {
     },
     "tmcp_explain": {
         "description": (
-            "Compile and explain a task-specific TMCP skill packet. Uses AIOS when available "
-            "and requested, otherwise uses the plugin's standalone TMCP compiler."
+            "Compile and explain a task-specific TMCP skill packet. Uses the standalone compiler "
+            "by default; AIOS runs only when adapter=aios is explicitly requested."
         ),
         "inputSchema": {
             "type": "object",
