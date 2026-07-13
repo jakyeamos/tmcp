@@ -11,7 +11,7 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -19,6 +19,12 @@ if str(PLUGIN_ROOT) not in sys.path:
     sys.path.insert(0, str(PLUGIN_ROOT))
 
 from tmcp_runtime.adapters.cli import run_cli as _runtime_run_cli  # noqa: E402
+from tmcp_runtime.adapters.aios import (  # noqa: E402
+    command_redactions as _runtime_aios_command_redactions,
+    is_available as _runtime_aios_available,
+    run as _runtime_run_aios,
+    should_use as _runtime_should_use_aios,
+)
 from tmcp_runtime.adapters.dispatch import (  # noqa: E402
     ToolDispatcher,
     ToolRequest,
@@ -147,103 +153,23 @@ def _string_list(value: object) -> list[str]:
 
 
 def _aios_available() -> bool:
-    if AIOS_ROOT is None:
-        return False
-    return (AIOS_ROOT / "bin" / "aios.py").exists()
+    return _runtime_aios_available(AIOS_ROOT)
 
 
 def _should_use_aios(adapter: str) -> bool:
-    return adapter == "aios"
+    return _runtime_should_use_aios(adapter)
 
 
 def _aios_command_redactions(args: list[str]) -> dict[str, int]:
-    redactions: dict[str, int] = {}
-    index = 0
-    while index < len(args):
-        argument = args[index]
-        if argument == "--evidence-json" and index + 1 < len(args):
-            evidence_json = args[index + 1]
-            try:
-                evidence_value = json.loads(evidence_json)
-            except json.JSONDecodeError:
-                evidence_value = evidence_json
-            _, evidence_redactions = redact_json_value(evidence_value, enabled=True)
-            merge_redactions(redactions, evidence_redactions)
-            index += 2
-            continue
-        _, argument_redactions = redact_json_value(argument, enabled=True)
-        merge_redactions(redactions, argument_redactions)
-        index += 1
-    return redactions
+    return _runtime_aios_command_redactions(args)
 
 
 def _run_aios(args: list[str]) -> dict[str, Any]:
-    if not _aios_available():
-        return {
-            "ok": False,
-            "adapter": "aios",
-            "error": "AIOS adapter requested but AIOS_ROOT/bin/aios.py was not found.",
-            "aios_root": redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None,
-            "remediation": (
-                "Continue with --adapter standalone, or set AIOS_ROOT to an AIOS "
-                "checkout if you explicitly want the optional adapter."
-            ),
-        }
-    command_redactions = _aios_command_redactions(args)
-    if command_redactions:
-        return {
-            "ok": False,
-            "adapter": "aios",
-            "error": (
-                "AIOS adapter cannot receive sensitive request values through "
-                "command arguments."
-            ),
-            "remediation": (
-                "Use --adapter standalone, or configure AIOS with a protected "
-                "request-input protocol."
-            ),
-            "redaction_summary": command_redactions,
-        }
-    command = (
-        ["uv", "run", "python", "bin/aios.py", *args]
-        if shutil.which("uv")
-        else [sys.executable, "bin/aios.py", *args]
+    return _runtime_run_aios(
+        args,
+        root=AIOS_ROOT,
+        available=_aios_available(),
     )
-    try:
-        completed = subprocess.run(
-            command,
-            cwd=cast(Path, AIOS_ROOT),
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=120,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return {
-            "ok": False,
-            "adapter": "aios",
-            "error": "AIOS adapter command did not complete.",
-            "error_type": type(exc).__name__,
-        }
-    if completed.returncode != 0:
-        return {
-            "ok": False,
-            "adapter": "aios",
-            "returncode": completed.returncode,
-            "command": command,
-            "stdout": completed.stdout,
-            "stderr": completed.stderr,
-        }
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = {"stdout": completed.stdout, "stderr": completed.stderr}
-    if isinstance(payload, dict):
-        response = cast(dict[str, object], payload)
-        response.setdefault("ok", True)
-        response.setdefault("adapter", "aios")
-        return response
-    return {"ok": True, "adapter": "aios", "data": payload}
 
 
 def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:

@@ -5,7 +5,9 @@ import io
 import json
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from tmcp_runtime.adapters.aios import run as run_aios
 from tmcp_runtime.adapters.cli import run_cli
 from tmcp_runtime.adapters.dispatch import ToolDispatcher, ToolRequest
 from tmcp_runtime.adapters.framing import encode_message, read_message
@@ -79,6 +81,20 @@ class RuntimeAdapterTests(unittest.TestCase):
             response["result"]["structuredContent"]["arguments"],
             {"value": "ok"},
         )
+
+    def test_aios_adapter_blocks_sensitive_arguments_before_execution(self) -> None:
+        secret = "sk-" + "R" * 40
+        with patch("tmcp_runtime.adapters.aios.subprocess.run") as run:
+            result = run_aios(
+                ["tmcp", "explain", secret],
+                root=Path("/tmp/aios"),
+                available=True,
+            )
+
+        run.assert_not_called()
+        self.assertFalse(result["ok"])
+        self.assertIn("redaction_summary", result)
+        self.assertNotIn(secret, json.dumps(result))
 
     def test_mcp_message_adapter_preserves_tool_result_contract(self) -> None:
         response = handle_message(
