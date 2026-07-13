@@ -6,9 +6,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Review the evaluator/harvest/runtime safety boundaries
-after API, safe-input, persistence, scoring, rendering, orchestration, plan,
-catalog, advisory, redaction, and test-gate cutovers.
+**Current focus:** Complete runtime adapter convergence after API, safe-input,
+persistence, scoring, rendering, orchestration, plan, catalog, advisory,
+redaction, and transport cutovers.
 
 ## Milestone
 
@@ -20,8 +20,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   read-only harvest/evaluator persistence plus packet-scoring policy, report,
   rendering/advisory, input, compose-failure, mode-orchestration, and
   plan-construction, server renderer, policy-catalog, runtime evaluator API, and
-  harvest-advisory and runtime-redaction cutovers complete; review the next
-  adapter boundary.
+  harvest-advisory, runtime-redaction, and MCP/CLI transport cutovers complete;
+  define typed request/result dispatch.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -182,6 +182,8 @@ _(truncated for length)_
   server dependencies.
 - Keep redaction primitives in `tmcp_runtime/safety`; the historical script
   module is a compatibility facade and must not be imported by runtime safety.
+- Keep MCP framing/JSON-RPC and CLI output/error translation in
+  `tmcp_runtime/adapters`; the next boundary is registry-owned tool dispatch.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -297,5 +299,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Review evaluator/harvest/runtime safety boundaries.
+# Define typed adapter request/result dispatch and route the public tool registry through it.
 ```

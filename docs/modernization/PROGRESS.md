@@ -9,7 +9,8 @@ fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
   persistence, packet/report assembly, policy, rendering, advisory, input,
   orchestration, plan, policy-catalog, and runtime evaluator API cutovers
   complete; the server imports evaluator execution and harvest advisories from
-  runtime while the script retains compatibility aliases;
+  runtime while the script retains compatibility aliases. MCP/CLI transport now
+  lives in `tmcp_runtime/adapters/`;
   map the read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
@@ -95,6 +96,8 @@ expectation lookup and composed-packet diffing are now a pure service over an
 adapter-injected callback.
 Runtime evaluator API owns safe inputs, redaction, scoring, and orchestration;
 script aliases remain while the server uses runtime directly.
+Runtime MCP/CLI transport now lives in adapters over the existing tool handler;
+typed request/result dispatch is the next cutover.
 
 ## Decisions recorded
 
@@ -241,10 +244,6 @@ script aliases remain while the server uses runtime directly.
   `tmcp_runtime/domain/standalone_packets.py`. Harvest classification consumes
   its shared atom catalog; 258 local tests pass with three expected platform
   skips.
-- `55ddb54` moves the curated workflow catalog, candidate filtering, stability
-  labels, and ID lookup into `tmcp_runtime/domain/workflow_catalog.py`. Promotion
-  and global-cache activation share this owner; 265 local tests pass with three
-  expected platform skips.
 - `f6f50f3` moves workflow scoring, reasons, rubric/template and candidate-instance
   construction, required-evidence guidance, and source-scope policy into
   `tmcp_runtime/domain/workflow_recommendations.py`. The adapter injects source
@@ -339,7 +338,8 @@ script aliases remain while the server uses runtime directly.
   service; `f1d5811` moves redaction primitives into `tmcp_runtime/safety` and
   leaves the script module as a compatibility facade. Full suite: 401 tests,
   three expected skips; `d67dcc9` isolates the safety import boundary test and
-  restores the test-size gate.
+  restores the test-size gate; `7420a2b` moves MCP framing/JSON-RPC and CLI
+  transport into runtime adapters. Full suite: 405 tests, three expected skips.
 
 ## Blockers and risks
 
@@ -367,4 +367,5 @@ script aliases remain while the server uses runtime directly.
 
 ## Next step
 
-Run an adversarial review of the evaluator/harvest/runtime safety boundaries.
+Complete adapter convergence: define the typed request/result boundary and
+route registry-owned tool dispatch through runtime adapters.

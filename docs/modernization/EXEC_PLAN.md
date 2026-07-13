@@ -13,6 +13,11 @@ This is neither a clean-slate compatibility break nor permanent dual-runtime
 maintenance. The old server becomes progressively thinner and is reduced to a
 compatibility transport layer by the final cutover.
 
+The long-range sequencing is recorded in `docs/modernization/ROADMAP.md`:
+product contract reset, runtime/adapter convergence, advanced capability
+consolidation, and release transition. Work should advance toward those
+outcomes rather than accumulate isolated helper extractions.
+
 ## Precondition
 
 Do not publish another archive until Milestone 0 passes. The P0 packaging issue
@@ -164,15 +169,19 @@ docs, quality exceptions.
 **Implementation:**
 
 - Route MCP and CLI calls through `tmcp_runtime` only.
+- Keep MCP framing/JSON-RPC and CLI output/error translation in
+  `tmcp_runtime/adapters/`, with a typed request/result boundary for tool
+  dispatch.
 - Keep the historical script path as a small compatibility adapter.
 - Delete migrated server implementations, duplicate helpers, dynamic reverse
   imports, stale schemas/docs, and obsolete quality-gate exceptions.
 - Replace private-function tests with service contracts and end-to-end transport
   checks.
 
-**Completion criteria:** the compatibility adapter is small and transport-only;
-no domain feature imports it; code search finds no duplicate old paths; all
-public behavior is covered by service and end-to-end tests.
+**Completion criteria:** all public MCP and CLI calls enter through runtime
+adapters; the compatibility adapter is transport-only; no domain feature
+imports it; code search finds no duplicate old paths; all public behavior is
+covered by service and end-to-end tests.
 
 ### 7. Release hardening and adversarial review
 
