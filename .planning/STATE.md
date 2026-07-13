@@ -19,8 +19,8 @@ service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
   read-only harvest/evaluator persistence plus packet-scoring policy, report,
-  and rendering complete;
-  map the next evaluator boundary after policy extraction.
+  rendering/advisory hardening complete;
+  map the next evaluator boundary after review.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -224,8 +224,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   expectation lookup, compose-callback invocation, and packet diffing into a
   pure service; `78081c4` extracts evaluator decomposition, static review,
   variants, and observables; `931b9bb` extracts trace scoring and report
-  assembly; `a05a6aa` extracts rendering, catalog merging, and advisory
-  formatting. The full suite has 379 tests with three expected skips.
+  assembly; `a05a6aa` extracts rendering/catalog/advisory formatting; `4f68872`
+  hardens advisory assembly and catalog/title handling. The full suite has 382
+  tests with three expected skips.
 
 ## Workflow Notes
 
@@ -427,12 +428,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   packet-inclusion scoring policy into a pure service over that callback;
   `78081c4` extracts decomposition/static-review policy into a pure service;
   `931b9bb` extracts evaluator scoring/report assembly into a pure service;
-  `a05a6aa` extracts evaluator rendering and advisory formatting.
+  `a05a6aa` extracts evaluator rendering/advisory formatting; `4f68872` hardens
+  advisory assembly and the fixed catalog boundary.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Run the next adversarial evaluator/adapter review without weakening safe-input,
-# storage/cache, or adapter write authority.
+# Bound evaluator plan/evidence inputs before mode orchestration; keep adapter
+# safe-input, storage/cache, and write authority unchanged.
 ```
