@@ -40,6 +40,7 @@ from tmcp_runtime.services.evaluation_rendering import (
     merge_pattern_catalog as _merge_pattern_catalog,
     render_guidebook_markdown as _render_guidebook_markdown,
 )
+from tmcp_runtime.services.evaluation_orchestration import evaluate_mode
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 UTC = datetime.now(timezone.utc)
@@ -674,35 +675,17 @@ def evaluate_skills(
     compose_evaluation_row: ComposeEvaluationRow | None = None,
     artifact_writer: EvaluationArtifactWriter | None = None,
 ) -> dict[str, Any]:
-    mode = str(arguments.get("mode") or "auto")
-    has_evidence = bool(arguments.get("run_evidence_json"))
-    if mode == "auto":
-        mode = "score" if has_evidence else "plan"
-
-    if mode == "plan":
-        plan = build_evaluation_plan(arguments)
-        result: dict[str, Any] = {"mode": "plan", **plan}
-        if bool(arguments.get("write_artifacts", False)):
-            if artifact_writer is None:
-                raise ValueError("Evaluation artifact persistence requires the TMCP adapter.")
-            result["artifact_paths"] = artifact_writer(plan, None)
-        return result
-
-    if mode == "score":
-        plan = _load_plan(arguments)
-        report = score_evidence(
-            arguments,
+    return evaluate_mode(
+        arguments,
+        build_plan=build_evaluation_plan,
+        load_plan=_load_plan,
+        build_report=lambda score_arguments, plan: score_evidence(
+            score_arguments,
             plan=plan,
             compose_evaluation_row=compose_evaluation_row,
-        )
-        result = {"mode": "score", **report}
-        if bool(arguments.get("write_artifacts", False)):
-            if artifact_writer is None:
-                raise ValueError("Evaluation artifact persistence requires the TMCP adapter.")
-            result["artifact_paths"] = artifact_writer(plan, report)
-        return result
-
-    raise ValueError(f"Unsupported mode: {mode}")
+        ),
+        artifact_writer=artifact_writer,
+    )
 
 
 PATTERN_CATALOG_PATH = PLUGIN_ROOT / "docs" / "SKILL_PATTERN_CATALOG.json"
