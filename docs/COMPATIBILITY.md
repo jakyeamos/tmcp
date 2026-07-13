@@ -65,5 +65,8 @@ updated together and the hosted pull-request verification gate passes.
 
 - The current storage implementation intentionally denies artifact persistence on
   Windows rather than using a pathname-based fallback vulnerable to reparse-point
-  races. A dedicated, tested Windows backend is required before durable artifact
-  writes can be claimed there; a manual install cannot remove that limitation.
+  races. Read-only exact-file inputs use validated path reads on Windows because
+  the platform lacks `O_NOFOLLOW`; descriptor identity checks still close the
+  ordinary read path if a file changes before or during open. A dedicated, tested
+  Windows backend is required before durable artifact writes can be claimed
+  there; a manual install cannot remove that limitation.

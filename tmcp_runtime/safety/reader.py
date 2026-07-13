@@ -64,13 +64,16 @@ def read_harvest_text(
         return None, f"Skipped non-regular source file: {candidate.display_path}"
 
     no_follow_flag = getattr(os, "O_NOFOLLOW", None)
-    if no_follow_flag is None:
+    if no_follow_flag is None and os.name != "nt":
         return (
             None,
             "Cannot safely read source file because this platform lacks a "
             f"no-follow open primitive: {candidate.display_path}",
         )
-    flags = os.O_RDONLY | no_follow_flag
+    # Windows has no O_NOFOLLOW equivalent.  The boundary checks above reject
+    # links/reparse points and the descriptor identity check below still closes
+    # the ordinary read-only path if the file changes before or during open.
+    flags = os.O_RDONLY | (no_follow_flag or 0)
     try:
         descriptor = os.open(candidate.resolved_path, flags)
     except OSError as exc:

@@ -371,8 +371,12 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
                     redact_sensitive=True,
                 )
 
-        self.assertIsNone(source)
-        self.assertIn("lacks a no-follow open primitive", str(warning))
+        if os.name == "nt":
+            self.assertIsNotNone(source)
+            self.assertIsNone(warning)
+        else:
+            self.assertIsNone(source)
+            self.assertIn("lacks a no-follow open primitive", str(warning))
 
     def test_harvest_reports_scan_and_total_byte_limits(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
