@@ -101,6 +101,30 @@ class EvaluationScoringServiceTests(unittest.TestCase):
                 created_at="now",
             )
 
+    def test_compose_callback_failure_is_not_downgraded_to_trace_fallback(self) -> None:
+        def failing_compose(
+            row: dict[str, object], project_path: str | None
+        ) -> dict[str, object]:
+            raise ValueError("compose failed")
+
+        with self.assertRaisesRegex(ValueError, "compose failed"):
+            evaluation_scoring.score_traces(
+                self._plan(),
+                [
+                    {
+                        "task_id": "task-1",
+                        "variant_id": "original",
+                        "observations": [{"kind": "assistant_message", "value": "done"}],
+                    }
+                ],
+                compose_evaluation_row=failing_compose,
+                project_path="/project",
+                anti_pattern_catalog=[],
+                effective_patterns=[],
+                report_schema="report",
+                created_at="now",
+            )
+
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_scoring))
         tree = ast.parse(source_path.read_text(encoding="utf-8"))

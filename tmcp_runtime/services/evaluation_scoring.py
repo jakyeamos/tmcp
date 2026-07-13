@@ -197,7 +197,7 @@ def _score_packet_inclusion(
                 "packet_inclusion_diff": diff,
                 "notes": "Scored from the injected data-only tmcp_compose_packet service.",
             }
-        except (RuntimeError, TypeError, ValueError):
+        except RuntimeError:
             pass
 
     text = _observation_text(trace)
