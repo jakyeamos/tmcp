@@ -43,9 +43,11 @@ specialized instructions while the adapter retains cache validation and packet
 orchestration. Evaluation scoring now receives a data-only composition callback
 from the MCP adapter; it no longer imports or introspects private server helpers.
 Harvest labels and source-node policy are now pure domain modules, while the
-runtime service owns safe traversal, redaction, scoped-seed projection, packet
-seeding, and artifact writes. Harvest advisory classification and the fixed
-pattern catalog are runtime-owned; the script retains compatibility facades.
+  runtime service owns safe traversal, redaction, scoped-seed projection, packet
+  seeding, and artifact writes. Harvest advisory classification and the fixed
+  pattern catalog are runtime-owned; the script retains compatibility facades.
+  Runtime safety now owns redaction primitives; `scripts/tmcp_redaction.py` is
+  a compatibility facade only.
 Workflow recommendation assembly now has its own read-only runtime service. The
 adapter injects advisory and compose-preview callbacks, then retains result
 redaction, artifact persistence, promotion, and global-cache authority.
@@ -129,6 +131,8 @@ script aliases remain while the server uses runtime directly.
   catalog, and the public tool registry.
 - Treat harvest advisory classification and fixed catalog lookup as a runtime
   service over safe source text; the adapter retains source acquisition/redaction.
+- Treat redaction primitives as runtime safety ownership. Keep the historical
+  script module as a facade so package and caller aliases remain stable.
 - Treat the evaluator runtime API and harvest-advisory service as safe runtime
   entrypoints. Keep legacy script aliases while adapters supply only safe source
   text and metadata.
@@ -237,11 +241,6 @@ script aliases remain while the server uses runtime directly.
   `tmcp_runtime/domain/standalone_packets.py`. Harvest classification consumes
   its shared atom catalog; 258 local tests pass with three expected platform
   skips.
-- `516a497` completes the review-policy split: `review_evidence.py` owns evidence
-  contracts, rubric synthesis, and audit scoring, while `review_results.py` owns
-  remediation, handoff, validation, and Markdown rendering. The adapter retains
-  side effects and transport; 262 local tests pass with three expected platform
-  skips.
 - `55ddb54` moves the curated workflow catalog, candidate filtering, stability
   labels, and ID lookup into `tmcp_runtime/domain/workflow_catalog.py`. Promotion
   and global-cache activation share this owner; 265 local tests pass with three
@@ -337,7 +336,9 @@ script aliases remain while the server uses runtime directly.
   catalog ownership; `371992d` moves the evaluator entrypoint into
   `tmcp_runtime/api/evaluation.py`, leaving a compatibility facade; `8085efa`
   moves harvest advisory classification and catalog lookup into a runtime
-  service. Full suite: 400 tests, three expected skips.
+  service; `f1d5811` moves redaction primitives into `tmcp_runtime/safety` and
+  leaves the script module as a compatibility facade. Full suite: 401 tests,
+  three expected skips.
 
 ## Blockers and risks
 
@@ -360,10 +361,10 @@ script aliases remain while the server uses runtime directly.
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
   evaluator persistence, packet scoring, report, policy, rendering, and advisory
-  boundaries are extracted; the compatibility script remains only for legacy
-  evaluator and harvest-advisory aliases.
+  boundaries are extracted; compatibility scripts remain only for legacy
+  evaluator, harvest-advisory, and redaction aliases.
 
 ## Next step
 
-Run an adversarial review of the evaluator/harvest runtime boundaries, then map
-the next authority-limited adapter extraction.
+Split the safety boundary regression test, then run an adversarial review of
+the evaluator/harvest/runtime safety boundaries.
