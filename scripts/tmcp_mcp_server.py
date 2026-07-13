@@ -74,6 +74,7 @@ from tmcp_runtime.services.harvest import (  # noqa: E402
     DEFAULT_HARVEST_EXCLUDE_GLOBS,
     DEFAULT_HARVEST_INCLUDE_GLOBS,
     harvest_skills as _runtime_harvest_skills,
+    read_only_harvest_arguments as _runtime_read_only_harvest_arguments,
     require_default_artifact_root as _runtime_require_default_artifact_root,
     source_project_path as _runtime_source_project_path,
 )
@@ -450,22 +451,7 @@ def _require_default_artifact_root(arguments: dict[str, Any]) -> Path:
 
 
 def _runtime_harvest_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
-    source_paths = _string_list(arguments.get("source_paths"))
-    if not source_paths:
-        source_path = arguments.get("source_path") or arguments.get("project_path") or "."
-        source_paths = [str(source_path)]
-    return {
-        "objective": str(arguments.get("objective") or ""),
-        "source_paths": source_paths,
-        "include_globs": arguments.get("include_globs"),
-        "exclude_globs": arguments.get("exclude_globs"),
-        "limit": arguments.get("limit", 40),
-        "max_file_bytes": arguments.get("max_file_bytes", 262144),
-        "max_excerpt_chars": arguments.get("max_excerpt_chars", 1200),
-        "follow_symlinks": bool(arguments.get("follow_symlinks", False)),
-        "redact_sensitive": bool(arguments.get("redact_sensitive", True)),
-        "write_artifacts": False,
-    }
+    return _runtime_read_only_harvest_arguments(arguments)
 
 
 def _routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
@@ -593,24 +579,7 @@ def _write_global_promotion(
 
 
 def _compose_harvest_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
-    project_path = str(arguments.get("project_path") or ".")
-    source_paths = _string_list(arguments.get("source_paths"))
-    if not source_paths:
-        source_path = arguments.get("source_path")
-        source_paths = [str(source_path)] if source_path else [project_path]
-    harvest_args: dict[str, Any] = {
-        "objective": str(arguments.get("objective") or ""),
-        "source_paths": source_paths,
-        "include_globs": arguments.get("include_globs"),
-        "exclude_globs": arguments.get("exclude_globs"),
-        "limit": arguments.get("limit", 40),
-        "max_file_bytes": arguments.get("max_file_bytes", 262144),
-        "max_excerpt_chars": arguments.get("max_excerpt_chars", 1200),
-        "follow_symlinks": bool(arguments.get("follow_symlinks", False)),
-        "redact_sensitive": bool(arguments.get("redact_sensitive", True)),
-        "write_artifacts": False,
-    }
-    return harvest_args
+    return _runtime_read_only_harvest_arguments(arguments)
 
 
 def _compose_packet_from_source_nodes(

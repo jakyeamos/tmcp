@@ -16,6 +16,7 @@ from tmcp_runtime.domain.harvest_nodes import (
     node_harvest_sort_key,
     scoped_packet_seed_nodes,
     skill_eval_advisory_summary,
+    string_list,
     source_node_from_text,
     source_type_for,
 )
@@ -151,6 +152,28 @@ def source_path_values(arguments: Mapping[str, Any]) -> list[str]:
     if isinstance(raw_paths, list) and raw_paths:
         return [str(item) for item in raw_paths]
     return [str(arguments.get("source_path") or arguments.get("project_path") or ".")]
+
+
+def read_only_harvest_arguments(arguments: Mapping[str, Any]) -> dict[str, Any]:
+    """Project shared read-only harvest inputs without enabling artifact writes."""
+
+    project_path = str(arguments.get("project_path") or ".")
+    source_paths = string_list(arguments.get("source_paths"))
+    if not source_paths:
+        source_path = arguments.get("source_path") or project_path
+        source_paths = [str(source_path)]
+    return {
+        "objective": str(arguments.get("objective") or ""),
+        "source_paths": source_paths,
+        "include_globs": arguments.get("include_globs"),
+        "exclude_globs": arguments.get("exclude_globs"),
+        "limit": arguments.get("limit", 40),
+        "max_file_bytes": arguments.get("max_file_bytes", 262144),
+        "max_excerpt_chars": arguments.get("max_excerpt_chars", 1200),
+        "follow_symlinks": bool(arguments.get("follow_symlinks", False)),
+        "redact_sensitive": bool(arguments.get("redact_sensitive", True)),
+        "write_artifacts": False,
+    }
 
 
 def source_project_path(arguments: Mapping[str, Any]) -> str:
