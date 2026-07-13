@@ -19,7 +19,7 @@ service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
   read-only harvest/evaluator persistence plus packet-scoring policy, report,
-  rendering/advisory hardening complete;
+  rendering/advisory and evaluator input hardening complete;
   map the next evaluator boundary after review.
 **Started:** 2026-07-10
 
@@ -225,7 +225,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   pure service; `78081c4` extracts evaluator decomposition, static review,
   variants, and observables; `931b9bb` extracts trace scoring and report
   assembly; `a05a6aa` extracts rendering/catalog/advisory formatting; `4f68872`
-  hardens advisory assembly and catalog/title handling. The full suite has 382
+  hardens advisory assembly and catalog/title handling; `6945416` bounds
+  evaluator inputs/traces and validates nested shapes. The full suite has 390
   tests with three expected skips.
 
 ## Workflow Notes
@@ -245,7 +246,7 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - Keep harvest service orchestration read-only; the adapter owns output roots,
   atomic persistence, artifact aliases, and final path redaction.
 - Keep evaluator planning/scoring free of storage and output-root authority; the
-  adapter owns evaluator artifact manifests, atomic persistence, and path aliases.
+  adapter owns input budgets, artifact manifests, atomic persistence, and aliases.
 - Keep packet-inclusion expectations and composed-packet diffing pure; the
   evaluator injects only the adapter's data-only compose callback.
 - Keep evaluator decomposition, static review, variant generation, and
@@ -429,12 +430,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `78081c4` extracts decomposition/static-review policy into a pure service;
   `931b9bb` extracts evaluator scoring/report assembly into a pure service;
   `a05a6aa` extracts evaluator rendering/advisory formatting; `4f68872` hardens
-  advisory assembly and the fixed catalog boundary.
-- 2026-07-04: QR remediation planning initialized; preserved as parked context.
+  advisory assembly and the fixed catalog boundary; `6945416` bounds evaluator
+  inputs and validates nested traces/plans.
 
 ## Next Command
 
 ```bash
-# Bound evaluator plan/evidence inputs before mode orchestration; keep adapter
-# safe-input, storage/cache, and write authority unchanged.
+# Narrow composition-failure handling before evaluator mode orchestration; keep adapter authority unchanged.
 ```

@@ -6,8 +6,8 @@
 construction/presentation, artifact manifests, semantic cache validation,
 fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, evaluator artifact
-  persistence, packet/report assembly, policy, rendering, and advisory hardening
-  complete;
+  persistence, packet/report assembly, policy, rendering, advisory, and input
+  hardening complete;
   map the read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
@@ -318,10 +318,6 @@ adapter-injected callback.
 - 278a470 extracts packet composition and source-node enrichment into
   tmcp_runtime/services/compose.py; cache and session authority remains in the
   compatibility adapter.
-- 57d3731 extracts full recompile finalization into
-  tmcp_runtime/services/recompile.py and fixes accepted add-route proposals
-  being overwritten by the runtime identity. Direct assembly/no-I/O tests and an
-  end-to-end regression pass.
 - 1476d21 makes AIOS explicit-only and rejects known sensitive command values,
   including JSON-escaped review evidence, before external execution. The public
   tool contract, release guidance, and install checks pass.
@@ -341,8 +337,8 @@ adapter-injected callback.
   `78081c4` extracts evaluator decomposition, static review, variants, and
   observables; `931b9bb` extracts trace scoring/report assembly; `a05a6aa`
   extracts rendering/catalog/advisory formatting; `4f68872` hardens advisory
-  assembly and catalog/title handling. Full suite: 382
-  tests, three expected skips
+  assembly and catalog/title handling; `6945416` bounds evaluator inputs/traces
+  and validates nested shapes. Full suite: 390 tests, three expected skips
 
 ## Blockers and risks
 
@@ -365,9 +361,9 @@ adapter-injected callback.
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
   evaluator persistence, packet scoring, report, policy, rendering, and advisory
-  boundaries are extracted;
-  map the next bounded cutover without moving root, write, or transport authority.
+  boundaries are extracted; mode orchestration and composition-failure policy
+  remain to be cut over without moving root, write, or transport authority.
 
 ## Next step
 
-Bound plan/evidence inputs and nested shapes before mode orchestration.
+Narrow composition-failure handling before extracting evaluator mode orchestration.
