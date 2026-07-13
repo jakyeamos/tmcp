@@ -7,8 +7,8 @@ construction/presentation, artifact manifests, semantic cache validation,
 fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, evaluator artifact
   persistence, packet/report assembly, policy, rendering, advisory, input,
-  orchestration and plan cutover complete; server renderer now calls runtime
-  rendering directly;
+  orchestration, plan, and policy-catalog cutovers complete; server renderer now
+  calls runtime rendering directly;
   map the read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
@@ -338,8 +338,8 @@ adapter-injected callback.
   assembly and catalog/title handling; `6945416` bounds evaluator inputs/traces
   and nested shapes; `d954658` surfaces compose failures; `2c36f53` extracts
   mode orchestration; `e2f1005` extracts plan construction behind safe DTOs;
-  `2cc955f` decouples server renderer imports. Full suite: 397 tests, three
-  expected skips
+  `2cc955f` decouples server renderer imports; `f222f0c` centralizes policy
+  catalog ownership. Full suite: 399 tests, three expected skips
 
 ## Blockers and risks
 
@@ -362,9 +362,9 @@ adapter-injected callback.
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
   evaluator persistence, packet scoring, report, policy, rendering, and advisory
-  boundaries are extracted; server still imports evaluator entrypoint/catalog
-  data from the compatibility script.
+  boundaries are extracted; server still imports the evaluator entrypoint from
+  the compatibility script.
 
 ## Next step
 
-Move evaluator catalog and entrypoint ownership into runtime services.
+Move the evaluator entrypoint itself behind runtime service callbacks.

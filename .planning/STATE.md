@@ -20,7 +20,7 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
   read-only harvest/evaluator persistence plus packet-scoring policy, report,
   rendering/advisory, input, compose-failure, mode-orchestration, and
-  plan-construction hardening and server renderer decoupling complete;
+  plan-construction, server renderer, and policy-catalog cutovers complete;
   map the next evaluator boundary.
 **Started:** 2026-07-10
 
@@ -221,8 +221,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   extracts pure doctor/status report assembly; `09857db` makes harvest services
   read-only and keeps artifact output-root selection, persistence, and aliases
   in the adapter; `d1f517e`–`e2f1005` complete evaluator artifact, packet,
-  policy, scoring, rendering, advisory, input, failure, mode, plan, and server
-  renderer cutovers. The full suite has 397 tests with three expected skips.
+  policy, scoring, rendering, advisory, input, failure, mode, plan, server
+  renderer, and catalog cutovers. The full suite has 399 tests with three
+  expected skips.
 
 ## Workflow Notes
 
@@ -428,10 +429,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   advisory assembly and the fixed catalog boundary; `6945416` bounds evaluator
   inputs and validates nested traces/plans; `d954658` surfaces compose failures;
   `2c36f53` extracts mode orchestration; `e2f1005` extracts plan construction;
-  `2cc955f` decouples server renderer imports.
+  `2cc955f` decouples server renderer imports; `f222f0c` centralizes policy
+  catalog ownership.
 
 ## Next Command
 
 ```bash
-# Move evaluator catalog/entrypoint ownership into runtime services; keep adapter authority.
+# Move the evaluator entrypoint behind runtime service callbacks; keep adapter authority.
 ```
