@@ -6,10 +6,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Map the next authority-limited adapter extraction after the
-CLI parser, harvest-argument, global-cache reader, adversarial safety
-hardening, diagnostic-report, harvest-persistence, evaluator-persistence, and
-packet-scoring cutovers.
+**Current focus:** Move harvest advisory assembly behind the runtime boundary
+after the evaluator API, safe-input, persistence, scoring, rendering,
+orchestration, plan, and catalog cutovers.
 
 ## Milestone
 
@@ -20,8 +19,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
   read-only harvest/evaluator persistence plus packet-scoring policy, report,
   rendering/advisory, input, compose-failure, mode-orchestration, and
-  plan-construction, server renderer, and policy-catalog cutovers complete;
-  map the next evaluator boundary.
+  plan-construction, server renderer, policy-catalog, and runtime evaluator API
+  cutovers complete; map the remaining harvest-advisory boundary.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -149,81 +148,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   construction, required-evidence guidance, source-scope policy, and candidate
   instance construction into `tmcp_runtime/domain/workflow_recommendations.py`.
 - `03009f9` moves scoped-seed projection, custom workflow ideas, adaptive-pack
-  construction, duplicate-label analysis, process-gap policy, and recommendation
-  Markdown rendering into `tmcp_runtime/domain/workflow_adaptive.py`; the adapter
-  retains harvest, redaction, artifact persistence, and tool dispatch.
-- `5ac3e2a` moves promotion target selection, scoped-seed precedence, graph
-  construction, canonical catalog edges, and promotion Markdown rendering into
-  `tmcp_runtime/domain/workflow_promotion.py`; the adapter retains harvest,
-  redaction, artifact persistence, and global-cache activation.
-- `52ad06b` moves global workflow objective scoring, canonical catalog
-  rehydration, activation projection, and specialized workflow instructions into
-  `tmcp_runtime/domain/workflow_activation.py`; cache validation and packet
-  orchestration remain in the adapter.
-- `80835ef` changes composition and runtime routing to `cache_policy=none` by
-  default, with global promoted graphs and receipts available only through an
-  explicit opt-in. The public fixture and CLI/MCP docs now record that behavior.
-- `2299f88` removes evaluation's dynamic import and `__globals__` traversal of
-  private server helpers. The MCP adapter injects a data-only composition
-  callback, with direct dependency, transport, and no-filesystem-read regression
-  coverage.
-- `47f056c` removes the stale server `_string_sequence` helper and enforces the
-  600-nonblank-line architecture budget for every domain module. Stability docs
-  now distinguish stable skill packages, curated templates, and MCP tool
-  contracts; shortcut candidates are documented as provenance-only metadata.
-- 28b06ff moves harvest labels and source-node policy into pure domain modules
-  and safe traversal, redaction, seed projection, and artifact orchestration into
-  tmcp_runtime/services/harvest.py. The compatibility adapter now supplies only
-  the evaluator-specific advisory callback and retained compatibility facades.
-- d9422dc moves workflow recommendation assembly into a read-only runtime
-  service. The adapter injects harvest advisories and compose preview, then
-  retains redaction, artifact writes, and promotion/global-cache authority.
-- b167af6 moves promotion target selection, graph construction, and result/status
-  assembly into a read-only service. The adapter retains redaction, opaque
-  storage keys, output-root validation, all artifact writes, and global-cache
-  projection.
-- e164875 moves in-memory standalone review-plan assembly into a pure service.
-  The adapter retains source harvest, evidence parsing, redaction, output-root
-  approval, artifact persistence, and AIOS dispatch.
-- 0e84678 moves bounded cache limits, JSON-depth checks, normalized global graph
-  construction, and cache-record projections into a pure storage policy module.
-  The adapter retains cache roots, safe reads, TOCTOU checks, redaction callbacks,
-  and all writes.
-- 7112349 closes AIOS adapter output leaks: explain payloads are redacted after
-  optional composition, doctor/status redact configured paths, and execution
-  failures return safe structured errors.
-- 22c0edf redacts both delta and full runtime-next responses only after internal
-  recompile/session work. Inline recompiles of a redacted packet now require an
-  explicit real source or project path.
-- 377bbdd moves runtime context normalization, family deltas, task identity,
-  proposal validation, and state shaping into a pure domain reducer. The adapter
-  retains root checks, safe harvest, cache reads, sessions, recompile, and
-  transport.
-- cb9ad0f redacts public compose and standalone/auto explain responses after
-  internal session work, closing project/source path leaks.
-- 278a470 moves packet composition and source-node enrichment into an in-memory
-  service over adapter-supplied safe inputs. Cache reads, redaction, harvest,
-  sessions, and transport remain adapter-owned.
-- 57d3731 moves full recompile finalization into an in-memory service and fixes
-  validated route proposals being overwritten by the runtime identity. Raw-path
-  validation, composition, sessions, and final redaction remain adapter-owned.
-- 1476d21 makes AIOS execution explicit-only and denies known sensitive values
-  before they reach subprocess arguments, including JSON-escaped review evidence.
-  Public schema/docs/contract fixture now describe the boundary.
-- `679de6e` moves receipt construction/templates/acknowledgement into
-  `domain/receipts.py`; `082bb3a` moves artifact manifests/aliases into a pure
-  service; `f34862c` validates cached receipt metadata; `390a2ec` moves bounded,
-  redacted, TOCTOU-safe cache reads into storage. Adapter roots/writes remain
-  authority boundaries; 350 local tests pass with three expected skips.
-- `a375cc0` and `8a0707c` extract pure CLI parsing and shared read-only
-  harvest-argument projection. `f1e1d4f` adds schema-aware unknown-option
-  rejection, bounded scan/read budgets, and fail-closed safe reads; `ed9df02`
-  extracts pure doctor/status report assembly; `09857db` makes harvest services
-  read-only and keeps artifact output-root selection, persistence, and aliases
-  in the adapter; `d1f517e`–`e2f1005` complete evaluator artifact, packet,
-  policy, scoring, rendering, advisory, input, failure, mode, plan, server
-  renderer, and catalog cutovers. The full suite has 399 tests with three
-  expected skips.
+  construction, duplicate-label analysis, process-gap policy, and…
+
+_(truncated for length)_
 
 ## Workflow Notes
 
@@ -360,80 +287,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   adversarial pass closes relative-root and forged-lineage findings, then
   `6864350` separates its release dogfood into focused composition/session helpers;
   `401e125` moves deterministic recompile policy and `2eedd09` moves contextual
-  composition policy behind domain boundaries; `8b2cdb5` centralizes packet
-  provenance and presentation in that composition domain; `9cb3c8b` centralizes
-  final packet assembly there as well; `06defa0` extracts task-family routing
-  into a pure domain module; `9b6c47f` adds node ranking; `6cc0769` separates
-  final packet construction/presentation to close the required source-size gate;
-  `32d6a9f` adds family runtime transition policy, and `6a3acc8` moves its
-  declared-read dependency plus selected-node merging into sibling domains;
-  `775782e` moves standalone packet compilation into its own deterministic domain;
-  `7ed60d4` moves shared review-profile vocabulary and classification out of the
-  adapter; `516a497` completes review evidence, results, and rendering extraction;
-  `55ddb54` moves workflow catalog and stability policy into its own domain owner;
-  `f6f50f3` moves recommendation scoring and candidate construction behind an
-  explicit harvested-text boundary; `03009f9` moves adaptive workflow-pack
-  construction and recommendation Markdown rendering into a sibling pure domain;
-  `5ac3e2a` moves promotion graph policy behind the canonical workflow catalog;
-  `52ad06b` moves global activation behind the same canonical catalog boundary.
-- 2026-07-12: Final review confirmed the cache default contradicted the target;
-  `80835ef` restores the stateless default and adds an explicit-opt-in regression
-  test. The next confirmed issue is evaluator reverse-import coupling to the
-  transport adapter.
-- 2026-07-12: `2299f88` replaces evaluator reverse imports with an explicit
-  adapter-injected composition boundary. The remaining architecture work is the
-  broader thin-adapter cutover and workflow-stability taxonomy reconciliation.
-- 2026-07-12: `47f056c` removes a dead adapter helper and turns the former
-  domain-size claim into an executable budget. Docs now separate package,
-  template, and transport stability; shortcut candidates are provenance-only.
-- 2026-07-12: `0e84678` moves pure global-cache bounds and safe projections into
-  storage policy while retaining all cache I/O, redaction, and persistence in
-  the adapter; the next cutover must preserve that authority split.
-- 2026-07-12: `7112349` closes the AIOS response boundary so child output, path
-  diagnostics, compose output, and timeout failures cannot bypass redaction.
-- 2026-07-12: `22c0edf` redacts public runtime-next paths after internal state
-  work and turns a redacted inline-recompile fallback into a clear explicit-path
-  requirement.
-- 2026-07-12: `377bbdd` moves runtime-state derivation into a data-only domain
-  reducer, leaving source/cache acquisition and all persistent/transport state in
-  the compatibility adapter.
-- 2026-07-12: `cb9ad0f` closes public compose/explain path leaks by applying final
-  response redaction after any internal packet/session work.
-- 2026-07-12: `1476d21` makes `adapter=auto` reliably standalone and checks every
-  explicit-AIOS argument before launch, decoding review evidence first so escaped
-  secret values cannot reach process metadata. A protected AIOS request-input
-  protocol remains the prerequisite for confidential explicit requests.
-- 2026-07-12: `679de6e` centralizes receipt record/template/result construction,
-  keeps receipt identity and persistence adapter-owned, and makes invalid cache
-  policy values fail closed before shared artifacts can be read; `082bb3a` moves
-  redacted artifact manifests, Markdown rendering, and response aliases into a
-  pure service without moving output-root, redaction, or write authority;
-  `f34862c` rejects ambiguous cached receipt metadata without changing the public
-  receipt schema or cache mtime ordering; `390a2ec` moves all safe global-cache
-  traversal, redaction, and projection into a read-only storage ingress.
-- 2026-07-13: `a375cc0` extracts pure CLI parsing into `tmcp_runtime/api/cli.py`,
-  preserving aliases and argument semantics while leaving output, dispatch, and
-  all side-effect authority in the adapter; `8a0707c` centralizes shared
-  read-only harvest-argument projection while preserving adapter authority;
-  `f1e1d4f` adds schema-aware unknown-option rejection, bounded harvest scan/read
-  budgets, and fail-closed safe-reader behavior for platforms without no-follow
-  open support; `ed9df02` extracts doctor/status report assembly into a pure
-  diagnostics service while keeping environment probes and redaction adapter-owned;
-  `09857db` makes harvest services read-only and moves harvest artifact persistence
-  back to the adapter boundary; `d1f517e` moves evaluator artifact manifests and
-  persistence behind the same adapter-owned write boundary; `68fb7c4` extracts
-  packet-inclusion scoring policy into a pure service over that callback;
-  `78081c4` extracts decomposition/static-review policy into a pure service;
-  `931b9bb` extracts evaluator scoring/report assembly into a pure service;
-  `a05a6aa` extracts evaluator rendering/advisory formatting; `4f68872` hardens
-  advisory assembly and the fixed catalog boundary; `6945416` bounds evaluator
-  inputs and validates nested traces/plans; `d954658` surfaces compose failures;
-  `2c36f53` extracts mode orchestration; `e2f1005` extracts plan construction;
-  `2cc955f` decouples server renderer imports; `f222f0c` centralizes policy
-  catalog ownership.
+  composition policy behind domain boundaries;…
+_(truncated)_
 
 ## Next Command
 
 ```bash
-# Move the evaluator entrypoint behind runtime service callbacks; keep adapter authority.
+# Move harvest advisory assembly and its fixed catalog read behind a runtime service callback.
 ```

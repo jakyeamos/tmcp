@@ -7,8 +7,9 @@ construction/presentation, artifact manifests, semantic cache validation,
 fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, evaluator artifact
   persistence, packet/report assembly, policy, rendering, advisory, input,
-  orchestration, plan, and policy-catalog cutovers complete; server renderer now
-  calls runtime rendering directly;
+  orchestration, plan, policy-catalog, and runtime evaluator API cutovers
+  complete; the server imports evaluator execution from runtime while harvest
+  advisories remain the compatibility boundary;
   map the read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
@@ -17,12 +18,11 @@ fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
 
 **Implementation status:** Release safety, public compatibility, and the safe
 input/storage boundary are implemented in the isolated modernization worktree.
-The public runtime surface retains its aliases and output shapes while its
-documented cache behavior is intentionally safer: composition and runtime routing
-default to `cache_policy=none`, with global graphs and receipts available only by
-explicit opt-in. The first vertical journey now supports
-explicit project-local session persistence without changing the legacy inline
-packet path; pure recompile transformations, task-family routing/runtime
+Public aliases/output shapes remain stable; composition and runtime routing
+default to `cache_policy=none`, with global graphs and receipts explicit-only.
+The first vertical journey supports project-local session persistence without
+changing the legacy inline packet path; pure recompile transformations,
+task-family routing/runtime
 transitions, declared-read selection, node ranking, and final packet
 construction/presentation are domain-owned. The legacy standalone compiler is
 also domain-owned. Review profiles now have a shared domain owner for standalone
@@ -91,6 +91,8 @@ service data; the evaluator is storage-free and the adapter alone selects roots,
 persists atomic bundles, and returns redacted path aliases. Packet-inclusion
 expectation lookup and composed-packet diffing are now a pure service over an
 adapter-injected callback.
+Runtime evaluator API owns safe inputs, redaction, scoring, and orchestration;
+script aliases remain while the server uses runtime directly.
 
 ## Decisions recorded
 
@@ -127,6 +129,8 @@ adapter-injected callback.
   catalog, and the public tool registry.
 - Treat evaluator advisories as an explicit adapter-injected dependency of
   harvest-node construction; pure runtime modules must not import the MCP adapter.
+- Treat the evaluator runtime API as the safe execution entrypoint. Keep legacy
+  script aliases and retain harvest advisory callbacks at the adapter boundary.
 - Treat workflow recommendation as a read-only service. Compose preview remains
   adapter-injected, and result redaction plus all durable-write behavior remains
   adapter-owned.
@@ -213,12 +217,6 @@ adapter-injected callback.
   and declared-load normalization. The adapter retains source-signal text and
   runtime state; direct edge cases and existing integration paths pass with 242
   local tests and three expected platform skips.
-- `9b6c47f` moves composition node scoring and selection into
-  `tmcp_runtime/domain/composition.py`; the adapter now only injects source text
-  and enriches selected nodes. Direct policy tests plus the full suite pass with
-  247 local tests and three expected platform skips. The commit gate reports
-  that `composition.py` exceeds the 600-line production source limit, so its
-  responsibilities must be split before new feature work.
 - `6cc0769` closes that gate by moving final composed-packet assembly,
   provenance, shortcut eligibility, and Markdown rendering into
   `tmcp_runtime/domain/packets.py`. The server keeps callback-based recompile
@@ -339,7 +337,9 @@ adapter-injected callback.
   and nested shapes; `d954658` surfaces compose failures; `2c36f53` extracts
   mode orchestration; `e2f1005` extracts plan construction behind safe DTOs;
   `2cc955f` decouples server renderer imports; `f222f0c` centralizes policy
-  catalog ownership. Full suite: 399 tests, three expected skips
+  catalog ownership; `371992d` moves the evaluator entrypoint into
+  `tmcp_runtime/api/evaluation.py`, leaving a compatibility facade. Full suite:
+  399 tests, three expected skips.
 
 ## Blockers and risks
 
@@ -362,9 +362,10 @@ adapter-injected callback.
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
   evaluator persistence, packet scoring, report, policy, rendering, and advisory
-  boundaries are extracted; server still imports the evaluator entrypoint from
-  the compatibility script.
+  boundaries are extracted; the remaining evaluator coupling is the harvest
+  advisory callback and its fixed catalog read in the compatibility script.
 
 ## Next step
 
-Move the evaluator entrypoint itself behind runtime service callbacks.
+Move harvest advisory assembly and its fixed catalog read behind a runtime
+service callback, leaving the adapter with safe source acquisition only.
