@@ -58,8 +58,9 @@ projection to the current promotion graph. Current graph files take precedence,
 and migration never rewrites or deletes source artifacts. Receipts and
 project-local sessions have no alternate shipped schema and remain strict.
 
-The release is not active until the version surfaces and release evidence are
-updated together and the hosted pull-request verification gate passes.
+The 0.5.0 release-candidate version surfaces are now updated together. The
+release is not merge-ready until the evidence record points to a successful
+post-cutover hosted pull-request run.
 
 ## Known Gaps
 

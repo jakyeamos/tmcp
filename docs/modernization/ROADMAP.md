@@ -114,9 +114,9 @@ the latter now projects read-only into the former and is suppressed when a
 current graph is present. Receipts and project-local sessions have no alternate
 shipped schema in this tree and remain strict readers.
 
-The 0.5.0 compatibility cutover is now documented in
-`docs/release-notes/v0.5.0-compatibility.md`; active version metadata remains
-0.4.0 until the evidence-bearing release PR is run and verified.
+The 0.5.0 compatibility cutover is now active on the release-candidate branch
+in `docs/release-notes/v0.5.0-compatibility.md`; its evidence record carries a
+transparent bootstrap pointer until the post-cutover PR run is recorded.
 
 The first hosted PR run exposed a Windows read-only regression: exact-file
 inputs were rejected because Windows lacks `O_NOFOLLOW`. The reader now uses a
@@ -124,4 +124,5 @@ validated path-read fallback only for read-only inputs while durable writes
 remain fail-closed. A follow-up run reduced the remaining Windows failures to
 path/newline presentation contracts; `1a59e2f` normalizes those contracts and
 hosted run `29284457105` passes the complete six-job matrix, including both
-Windows package/evidence jobs. The 0.5.0 version/evidence cutover is next.
+Windows package/evidence jobs. The post-cutover 0.5.0 run and evidence
+replacement are next.

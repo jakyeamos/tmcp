@@ -313,10 +313,11 @@ boundary. Current promotion graphs win over legacy summaries in the same
 directory; receipts and project-local sessions have no alternate shipped schema
 and remain strict readers.
 
-The 0.5.0 compatibility preparation note now records the preserved public
-surface, deliberate state-effect changes, migration/rollback behavior, and the
-evidence-bearing release-PR sequence. The active version remains 0.4.0 until
-that sequence is executed.
+The 0.5.0 compatibility note now records the preserved public surface,
+deliberate state-effect changes, migration/rollback behavior, and the
+evidence-bearing release-PR sequence. The active candidate surfaces are now
+0.5.0; the evidence record uses a transparent bootstrap pointer until the
+post-cutover hosted run replaces it.
 
 Draft PR #2 run `29283834718` passed all Linux/macOS jobs but exposed Windows
 read-only exact-file failures caused by the missing `O_NOFOLLOW` primitive.
@@ -332,12 +333,12 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 - The primary checkout contains user-owned uncommitted work that is not included
   in this audit branch. Integrate or supersede it deliberately during approved
   implementation.
-- Hosted matrix evidence for the current active metadata is green in PR run
-  `29284457105`; the planned 0.5.0 version/evidence cutover remains pending.
-- The branch intentionally retains `0.4.0` release metadata while unpublished;
-  before release, use the target's planned `0.5.0` compatibility/version process
-  because the stateless default and explicit-only AIOS behavior are material
-  changes.
+- The pre-cutover hosted matrix is green in PR run `29284457105`; the active
+  0.5.0 candidate now needs a post-cutover run to replace the bootstrap
+  evidence pointer before merge.
+- No tag or publication has occurred. The 0.5.0 compatibility process remains
+  gated on the post-cutover hosted run because the stateless default and
+  explicit-only AIOS behavior are material changes.
 - AIOS needs a protected request-input protocol before confidential explicit
   requests can safely use it; the current boundary denies known sensitive values
   rather than forwarding them through process arguments.
@@ -355,6 +356,6 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 
 ## Next step
 
-Prepare the planned 0.5.0 version surfaces and evidence record together, then
-run the second hosted verification before review; tagging and publication stay
-separate.
+Run the post-cutover 0.5.0 hosted verification, replace the bootstrap evidence
+pointer with that run, and rerun the hosted gate before review; tagging and
+publication stay separate.

@@ -29,7 +29,9 @@ A Tier One release requires:
 | Maintainability and modularity | 5 | 4 | 5 | Soft |
 | Release operations | 3 | 3 | 3 | Hard |
 
-Current score: 100/100 for the scoped `0.4.0` release candidate. Hosted release evidence is recorded from successful `v0.4.0` tag `verify.yml` run `28871784926`.
+Current score: 100/100 for the scoped `0.5.0` release candidate. The
+pre-cutover matrix passed in hosted PR run `29284679711`; post-cutover evidence
+is pending on the active release candidate.
 
 ## Dimensions
 
