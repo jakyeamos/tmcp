@@ -10,8 +10,8 @@ review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph
 global workflow-activation, stateless cache-default, evaluator composition-service,
 stability-taxonomy, domain-size-budget, harvest/source-graph, recommendation
 service, promotion-planning, review-plan, cache-policy, runtime-state, compose
-service, and recompile-finalization splits complete; continue the thin-adapter
-cutover.
+service, recompile-finalization, and explicit-only AIOS privacy-boundary splits
+complete; continue the thin-adapter cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -80,6 +80,10 @@ validated proposals, then derives the diff and Markdown. Sessions and final
 response redaction remain adapter-owned.
 Public compose and standalone/auto explain responses now redact complete result
 trees only after their internal session/packet work is complete.
+AIOS is now an explicit-only adapter: `auto` stays inside TMCP, and known
+sensitive values are rejected before an explicit AIOS subprocess receives its
+arguments. Review evidence is decoded before that check so escaped sensitive
+values cannot bypass it.
 
 ## Decisions recorded
 
@@ -127,6 +131,9 @@ trees only after their internal session/packet work is complete.
 - Treat optional AIOS subprocess output as untrusted adapter data: redact the
   complete response only after optional composition, redact status/doctor paths,
   and map launch/timeout failures to structured errors.
+- Treat AIOS invocation as an explicit data-forwarding decision: `auto` is always
+  standalone, and explicit subprocess arguments—including decoded review
+  evidence—must fail closed on known sensitive values until protected input exists.
 - Redact `tmcp_runtime_next` only after internal compose/recompile/session work.
   A redacted packet cannot be an implicit filesystem locator for later inline
   recompiles; callers must supply an explicit real source or project path.
@@ -322,6 +329,10 @@ trees only after their internal session/packet work is complete.
   being overwritten by the runtime identity. Direct assembly/no-I/O tests and an
   end-to-end regression pass; the full local suite has 321 tests with three
   expected platform skips.
+- 1476d21 makes AIOS explicit-only and rejects known sensitive command values,
+  including JSON-escaped review evidence, before external execution. The public
+  tool contract, release guidance, install checks, and full local suite (327
+  tests with three expected skips) pass.
 
 ## Blockers and risks
 
@@ -332,7 +343,11 @@ trees only after their internal session/packet work is complete.
   tag-triggered run; local package and contract checks are current.
 - The branch intentionally retains `0.4.0` release metadata while unpublished;
   before release, use the target's planned `0.5.0` compatibility/version process
-  because the stateless default is a material behavior change.
+  because the stateless default and explicit-only AIOS behavior are material
+  changes.
+- AIOS needs a protected request-input protocol before confidential explicit
+  requests can safely use it; the current boundary denies known sensitive values
+  rather than forwarding them through process arguments.
 - The legacy server and evaluator scripts remain broader than the target's thin
   transport adapter. Shared artifact and dispatch orchestration still require
   bounded, security-first extractions; cache I/O must retain its current safety
@@ -340,6 +355,6 @@ trees only after their internal session/packet work is complete.
 
 ## Next step
 
-Map the remaining server orchestration and choose the next bounded extraction,
-preserving adapter-owned artifact, cache, session, redaction, and transport
-authority.
+Extract pure receipt construction and public receipt presentation, preserving
+adapter-owned opaque storage identity, clocks, artifact persistence, redaction,
+and transport authority.

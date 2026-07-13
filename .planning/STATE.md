@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Select the next authority-limited thin-adapter extraction
-after the recompile finalization cutover and its release validation.
+**Current focus:** Extract the next authority-limited thin-adapter contract
+after the explicit-only AIOS privacy boundary and its release validation.
 
 ## Milestone
 
@@ -21,8 +21,8 @@ workflow activation, stateless cache defaults, evaluator composition-service
 injection, stability-taxonomy clarification, domain-size enforcement,
 harvest/source-graph extraction, recommendation-service extraction,
 promotion-planning extraction, review-plan extraction, cache-policy extraction,
-runtime-state reduction, compose-service cutover, and recompile finalization
-complete; continue the thin-adapter cutover.
+runtime-state reduction, compose-service cutover, recompile finalization, and
+explicit-only AIOS privacy boundary complete; continue the thin-adapter cutover.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -38,8 +38,9 @@ complete; continue the thin-adapter cutover.
   composition-service injection, stability-taxonomy clarification, domain-size
   enforcement, harvest/source-graph extraction, recommendation-service
 extraction, promotion-planning extraction, review-plan extraction, cache-policy
-extraction, runtime-state reduction, compose-service cutover, and recompile
-finalization complete; continue the thin-adapter cutover.
+extraction, runtime-state reduction, compose-service cutover, recompile
+finalization, and explicit-only AIOS privacy boundary complete; continue the
+thin-adapter cutover.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -230,6 +231,10 @@ finalization complete; continue the thin-adapter cutover.
   validated route proposals being overwritten by the runtime identity. Raw-path
   validation, composition, sessions, and final redaction remain adapter-owned;
   321 local tests pass with three expected skips.
+- 1476d21 makes AIOS execution explicit-only and denies known sensitive values
+  before they reach subprocess arguments, including JSON-escaped review evidence.
+  Public schema/docs/contract fixture now describe the boundary; 327 local tests
+  pass with three expected skips.
 
 ## Workflow Notes
 
@@ -295,6 +300,9 @@ finalization complete; continue the thin-adapter cutover.
 - Optional AIOS execution remains adapter-only. Its child output, configured
   paths, optional composed packet, and execution errors are redacted before any
   MCP or CLI response is returned.
+- `adapter=auto` never starts AIOS. Explicit AIOS requests reject known sensitive
+  argument values until AIOS offers protected request input; decoded review
+  evidence is checked before subprocess execution.
 - Runtime state remains raw only inside the adapter until recompile/session work
   completes. Public runtime responses redact paths; callers must supply a real
   path instead of reusing a redacted packet location for an inline recompile.
@@ -378,10 +386,15 @@ finalization complete; continue the thin-adapter cutover.
   the compatibility adapter.
 - 2026-07-12: `cb9ad0f` closes public compose/explain path leaks by applying final
   response redaction after any internal packet/session work.
+- 2026-07-12: `1476d21` makes `adapter=auto` reliably standalone and checks every
+  explicit-AIOS argument before launch, decoding review evidence first so escaped
+  secret values cannot reach process metadata. A protected AIOS request-input
+  protocol remains the prerequisite for confidential explicit requests.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map remaining server orchestration and select the next I/O-safe extraction.
+# Extract receipt construction/presentation while preserving adapter-owned opaque
+# storage identity, clocks, artifact persistence, redaction, and transport.
 ```
