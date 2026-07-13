@@ -127,6 +127,7 @@ def normalize_cli_arguments(tool_name: str, arguments: dict[str, Any]) -> None:
     for key, value in list(arguments.items()):
         property_schema = properties.get(key)
         if not isinstance(property_schema, dict):
-            continue
+            option = f"--{key.replace('_', '-')}"
+            raise ValueError(f"Unknown TMCP option for {tool_name}: {option}")
         if property_schema.get("type") == "array" and not isinstance(value, list):
             arguments[key] = [value]

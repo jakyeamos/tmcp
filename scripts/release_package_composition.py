@@ -178,8 +178,6 @@ def check_composition_surface(
             "Review release readiness",
             "--project-path",
             str(source_root),
-            "--source-path",
-            str(source_root),
             "--compose",
             "--compact",
         ],

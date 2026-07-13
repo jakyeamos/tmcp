@@ -63,7 +63,14 @@ def read_harvest_text(
     if not stat.S_ISREG(metadata.st_mode):
         return None, f"Skipped non-regular source file: {candidate.display_path}"
 
-    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    no_follow_flag = getattr(os, "O_NOFOLLOW", None)
+    if no_follow_flag is None:
+        return (
+            None,
+            "Cannot safely read source file because this platform lacks a "
+            f"no-follow open primitive: {candidate.display_path}",
+        )
+    flags = os.O_RDONLY | no_follow_flag
     try:
         descriptor = os.open(candidate.resolved_path, flags)
     except OSError as exc:

@@ -134,6 +134,10 @@ DEFAULT_HARVEST_EXCLUDE_GLOBS = (
     "**/yarn.lock",
 )
 
+DEFAULT_HARVEST_MAX_SCAN_ENTRIES = 4096
+DEFAULT_HARVEST_MAX_TOTAL_BYTES = 8 * 1024 * 1024
+
+
 def normalize_string_list(
     value: object, fallback: tuple[str, ...] | list[str]
 ) -> list[str]:
@@ -287,10 +291,13 @@ def harvest_skills(
         exclude_globs,
         DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
         follow_symlinks=follow_symlinks,
+        max_scan_entries=DEFAULT_HARVEST_MAX_SCAN_ENTRIES,
     )
     warnings.extend(traversal_warnings)
     nodes: list[dict[str, Any]] = []
     redaction_totals: dict[str, int] = {}
+    harvested_bytes = 0
+    total_byte_limit_warned = False
     scoped_seed_json_paths = {
         str(candidate.resolved_path)
         for candidate in candidates
@@ -308,6 +315,33 @@ def harvest_skills(
             in scoped_seed_json_paths
         ):
             continue
+        try:
+            candidate_bytes = candidate.resolved_path.stat().st_size
+        except OSError as exc:
+            if len(warnings) < 50:
+                warnings.append(
+                    "Could not inspect source path "
+                    f"{candidate.display_path}: {redact_path(str(exc))}"
+                )
+            continue
+        if candidate_bytes > max_file_bytes:
+            _, warning = read_harvest_text(
+                candidate,
+                max_file_bytes,
+                redact_sensitive=redact_sensitive,
+            )
+            if warning and len(warnings) < 50:
+                warnings.append(warning)
+            continue
+        if harvested_bytes + candidate_bytes > DEFAULT_HARVEST_MAX_TOTAL_BYTES:
+            if not total_byte_limit_warned:
+                warnings.append(
+                    "Harvest total-byte budget would be exceeded; skipped source files "
+                    "that exceed the remaining budget."
+                )
+                total_byte_limit_warned = True
+            continue
+        harvested_bytes += candidate_bytes
         safe_source, warning = read_harvest_text(
             candidate,
             max_file_bytes,
@@ -399,6 +433,8 @@ def harvest_skills(
             "limit": limit,
             "max_file_bytes": max_file_bytes,
             "max_excerpt_chars": max_excerpt_chars,
+            "max_scan_entries": DEFAULT_HARVEST_MAX_SCAN_ENTRIES,
+            "max_total_bytes": DEFAULT_HARVEST_MAX_TOTAL_BYTES,
             "follow_symlinks": follow_symlinks,
             "redact_sensitive": redact_sensitive,
         },

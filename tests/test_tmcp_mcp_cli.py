@@ -110,6 +110,10 @@ class TmcpMcpCliTests(unittest.TestCase):
         with self.assertRaises(json.JSONDecodeError):
             cli.parse_cli_arguments(["explain", "Review UI quality", "--context", "{"])
 
+    def test_runtime_cli_parser_rejects_unknown_options(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Unknown TMCP option.*--bogus"):
+            cli.parse_cli_arguments(["status", "--bogus"])
+
     def test_runtime_cli_parser_has_no_adapter_or_io_authority(self) -> None:
         source_path = Path(cli.__file__ or "")
         tree = ast.parse(source_path.read_text(encoding="utf-8"))

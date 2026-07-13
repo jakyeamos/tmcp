@@ -11,7 +11,9 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
+import tmcp_runtime.services.harvest as harvest_service
 import tmcp_runtime.safety.files as safety_files
+import tmcp_runtime.safety.reader as safety_reader
 from tmcp_runtime.safety import (
     collect_harvest_roots,
     iter_harvest_candidates,
@@ -340,6 +342,69 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
         self.assertIsNone(source)
         self.assertIsNotNone(warning)
         self.assertIn("outside source root", str(warning))
+
+    def test_safe_reader_fails_closed_without_no_follow_open(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "project"
+            root.mkdir()
+            (root / "SKILL.md").write_text(
+                "# Skill\n\nUse verification.\n",
+                encoding="utf-8",
+            )
+            roots, root_warnings = collect_harvest_roots(
+                [root],
+                follow_symlinks=False,
+            )
+            candidates, candidate_warnings = iter_harvest_candidates(
+                roots,
+                self.server.DEFAULT_HARVEST_INCLUDE_GLOBS,
+                self.server.DEFAULT_HARVEST_EXCLUDE_GLOBS,
+                self.server.DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
+                follow_symlinks=False,
+            )
+            self.assertEqual(root_warnings + candidate_warnings, [])
+            self.assertEqual(len(candidates), 1)
+            with patch.object(safety_reader.os, "O_NOFOLLOW", None, create=True):
+                source, warning = read_harvest_text(
+                    candidates[0],
+                    4096,
+                    redact_sensitive=True,
+                )
+
+        self.assertIsNone(source)
+        self.assertIn("lacks a no-follow open primitive", str(warning))
+
+    def test_harvest_reports_scan_and_total_byte_limits(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "project"
+            root.mkdir()
+            (root / "a.md").write_text("# A\n", encoding="utf-8")
+            (root / "b.md").write_text("# B\n", encoding="utf-8")
+            with patch.object(harvest_service, "DEFAULT_HARVEST_MAX_SCAN_ENTRIES", 1):
+                scan_limited = self.server._harvest_skills(
+                    {"source_path": str(root)}
+                )
+            with patch.object(
+                harvest_service,
+                "DEFAULT_HARVEST_MAX_SCAN_ENTRIES",
+                16,
+            ), patch.object(
+                harvest_service,
+                "DEFAULT_HARVEST_MAX_TOTAL_BYTES",
+                6,
+            ):
+                byte_limited = self.server._harvest_skills(
+                    {"source_path": str(root)}
+                )
+
+        self.assertEqual(scan_limited["source_count"], 1)
+        self.assertTrue(
+            any("scan-entry limit" in warning for warning in scan_limited["warnings"])
+        )
+        self.assertEqual(byte_limited["source_count"], 1)
+        self.assertTrue(
+            any("total-byte" in warning for warning in byte_limited["warnings"])
+        )
 
     def test_source_path_with_symlinked_ancestor_requires_opt_in(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
