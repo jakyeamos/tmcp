@@ -3,8 +3,8 @@
 ## Current state
 
 **Phase:** Milestone 3 adapter thinning and security hardening. Receipt
-construction/presentation and fail-closed cache opt-in are complete; map the
-next bounded extraction.
+construction/presentation, artifact manifests, and fail-closed cache opt-in are
+complete; close semantic receipt-cache validation next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -37,8 +37,6 @@ objective scoring, canonical workflow rehydration, activation projection, and
 specialized instructions while the adapter retains cache validation and packet
 orchestration. Evaluation scoring now receives a data-only composition callback
 from the MCP adapter; it no longer imports or introspects private server helpers.
-Stability documentation now separates stable skill packages, stable curated
-templates, and stable MCP tool contracts, rather than conflating their labels.
 Harvest labels and source-node policy are now pure domain modules, while the
 runtime service owns safe traversal, redaction, scoped-seed projection, packet
 seeding, and artifact writes. The adapter injects only the evaluator-specific
@@ -80,7 +78,9 @@ values cannot bypass it.
 Run receipts are now built and acknowledged by a pure domain module. The adapter
 retains the UTC clock, raw-to-redacted opaque identity, filename digest/nonce,
 safe storage write, cache ingress, and final response redaction. Only literal
-`cache_policy=global` can consume shared graphs or receipts.
+`cache_policy=global` can consume shared graphs or receipts. Artifact manifests,
+Markdown rendering, and public path aliases are now pure service data; the adapter
+retains output-root selection, final redaction, and atomic persistence.
 
 ## Decisions recorded
 
@@ -117,8 +117,9 @@ safe storage write, cache ingress, and final response redaction. Only literal
 - Treat workflow recommendation as a read-only service. Compose preview remains
   adapter-injected, and result redaction plus all durable-write behavior remains
   adapter-owned.
-- Treat promotion planning as a read-only service. Global-cache persistence and
-  validation remain co-owned by the adapter until a dedicated storage/cache slice.
+- Treat promotion planning and artifact manifest/alias assembly as service work.
+  Preserve adapter-owned global-cache, output-root, redaction, and persistence
+  authority.
 - Treat standalone review planning as a pure in-memory service. Source acquisition,
   evidence parsing, redaction, artifacts, and AIOS remain adapter-owned.
 - Treat global-cache validation and projection as pure storage policy. Inject its
@@ -325,10 +326,11 @@ safe storage write, cache ingress, and final response redaction. Only literal
   including JSON-escaped review evidence, before external execution. The public
   tool contract, release guidance, install checks, and full local suite (327
   tests with three expected skips) pass.
-- 679de6e moves run receipt construction, templates, and acknowledgement into
-  `domain/receipts.py`; it derives receipt storage month from the same UTC
-  timestamp, uses a full UUID nonce, and accepts shared cache only through
-  literal `global`. The full local suite has 338 tests with three expected skips.
+- `679de6e` moves receipt construction/templates/acknowledgement into
+  `domain/receipts.py`; `082bb3a` moves artifact manifests, Markdown rendering,
+  and response aliases into a pure service. Adapter-owned identity, output-root,
+  redaction, and atomic writes are unchanged. The full local suite has 343 tests
+  with three expected skips; install, contract, compile, and boundary reviews pass.
 
 ## Blockers and risks
 
@@ -349,11 +351,10 @@ safe storage write, cache ingress, and final response redaction. Only literal
   parseable values at cache ingress; current projection retains only a redacted
   identifier, path, schema, and advisory trust.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter. Shared artifact and dispatch orchestration still require
-  bounded, security-first extractions; cache I/O must retain its current safety
-  boundary around the new pure policy module.
+  transport adapter. Artifact planning is pure-owned; remaining cache I/O must
+  retain its current safety boundary around the pure policy module.
 
 ## Next step
 
-Map the remaining adapter orchestration and select the next I/O-safe extraction,
-preserving artifact, cache, session, redaction, and transport authority.
+Harden semantic receipt-cache validation at the existing cache-policy boundary,
+then reassess the cache-reader extraction without weakening cache safety.

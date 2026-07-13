@@ -6,24 +6,24 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Map the next authority-limited adapter extraction after the
-receipt contract and fail-closed cache opt-in hardening.
+**Current focus:** Close semantic receipt-cache validation, then reassess the
+next authority-limited adapter extraction.
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 3 adapter thinning and security hardening: pure domain and
-service cutovers, explicit-only AIOS, receipt contract, and cache opt-in
-boundaries complete; select the next bounded extraction.
+**Status:** Milestone 3 adapter thinning and security hardening: pure domain,
+service, and artifact-manifest cutovers; explicit-only AIOS, receipt, and
+cache-opt-in boundaries complete; close semantic cache validation next.
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
-- **Status:** Receipt construction, acknowledgement, and packet templates are
-  domain-owned; adapter-owned identity, clock, storage, cache ingress, redaction,
-  and transport boundaries remain intact. Continue adapter thinning.
+- **Status:** Receipt and artifact-manifest construction are pure-owned;
+  adapter-owned identity, clock, output selection, storage, cache ingress,
+  redaction, and transport boundaries remain intact. Continue adapter thinning.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -218,10 +218,11 @@ boundaries complete; select the next bounded extraction.
   before they reach subprocess arguments, including JSON-escaped review evidence.
   Public schema/docs/contract fixture now describe the boundary; 327 local tests
   pass with three expected skips.
-- 679de6e moves receipt construction, templates, and acknowledgement into
-  `domain/receipts.py`; it derives the storage month from the receipt timestamp,
-  uses a full UUID nonce, and makes only literal `cache_policy=global` consume
-  shared cache. The local suite has 338 passing tests with three expected skips.
+- `679de6e` moves receipt construction, templates, and acknowledgement into
+  `domain/receipts.py`; `082bb3a` moves artifact manifests, Markdown rendering,
+  and public path aliases into a pure service. Identity, output selection,
+  redaction, and atomic persistence remain adapter-owned; 343 local tests pass
+  with three expected skips.
 
 ## Workflow Notes
 
@@ -384,11 +385,13 @@ boundaries complete; select the next bounded extraction.
   protocol remains the prerequisite for confidential explicit requests.
 - 2026-07-12: `679de6e` centralizes receipt record/template/result construction,
   keeps receipt identity and persistence adapter-owned, and makes invalid cache
-  policy values fail closed before shared artifacts can be read.
+  policy values fail closed before shared artifacts can be read; `082bb3a` moves
+  redacted artifact manifests, Markdown rendering, and response aliases into a
+  pure service without moving output-root, redaction, or write authority.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map remaining adapter orchestration and choose the next I/O-safe extraction.
+# Harden semantic receipt-cache validation, then reassess the cache-reader boundary.
 ```
