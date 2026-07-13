@@ -324,17 +324,16 @@ read-only exact-file failures caused by the missing `O_NOFOLLOW` primitive.
 durable-write boundary. Hosted run `29284101047` then reduced the Windows
 failures to ten path/newline contract cases; `1a59e2f` normalizes stable
 workflow error paths and harvested text newlines, and makes injected test
-path presentation portable. The focused local suite passes; another hosted
-run is required.
+path presentation portable. Hosted run `29284457105` now passes all six
+matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 
 ## Blockers and risks
 
 - The primary checkout contains user-owned uncommitted work that is not included
   in this audit branch. Integrate or supersede it deliberately during approved
   implementation.
-- Hosted matrix evidence is pending because the latest PR run still has
-  Windows-only path/newline contract failures; local package and contract
-  checks are current.
+- Hosted matrix evidence for the current active metadata is green in PR run
+  `29284457105`; the planned 0.5.0 version/evidence cutover remains pending.
 - The branch intentionally retains `0.4.0` release metadata while unpublished;
   before release, use the target's planned `0.5.0` compatibility/version process
   because the stateless default and explicit-only AIOS behavior are material
@@ -356,6 +355,6 @@ run is required.
 
 ## Next step
 
-Rerun the PR workflow after `1a59e2f`, then run the Horizon 4 release gates:
-full lint/type/test/package verification and a fresh adversarial review before
-preparing the planned 0.5.0 compatibility process.
+Prepare the planned 0.5.0 version surfaces and evidence record together, then
+run the second hosted verification before review; tagging and publication stay
+separate.

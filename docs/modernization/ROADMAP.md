@@ -123,4 +123,5 @@ inputs were rejected because Windows lacks `O_NOFOLLOW`. The reader now uses a
 validated path-read fallback only for read-only inputs while durable writes
 remain fail-closed. A follow-up run reduced the remaining Windows failures to
 path/newline presentation contracts; `1a59e2f` normalizes those contracts and
-is queued for another hosted verification.
+hosted run `29284457105` passes the complete six-job matrix, including both
+Windows package/evidence jobs. The 0.5.0 version/evidence cutover is next.

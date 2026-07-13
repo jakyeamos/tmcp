@@ -39,8 +39,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   exact-file read-only inputs rejected the missing O_NOFOLLOW primitive;
   `b99c58a` adds the validated Windows fallback. Follow-up run
   `29284101047` reduced the residual failures to Windows path/newline contracts;
-  `1a59e2f` normalizes those boundaries. Continue hosted verification without
-  tagging or publishing.
+  `1a59e2f` normalizes those boundaries. Hosted run `29284457105` now passes all
+  six matrix jobs. Prepare the 0.5.0 version/evidence cutover without tagging
+  or publishing.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -351,5 +352,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Push 1a59e2f and rerun the draft PR workflow; inspect the Windows matrix.
+# Prepare the 0.5.0 version/evidence cutover, then run its second PR check.
 ```
