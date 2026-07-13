@@ -19,8 +19,8 @@ service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
   read-only harvest/evaluator persistence plus packet-scoring policy, report,
-  rendering/advisory, input, compose-failure, and mode-orchestration hardening
-  complete;
+  rendering/advisory, input, compose-failure, mode-orchestration, and
+  plan-construction hardening complete;
   map the next evaluator boundary.
 **Started:** 2026-07-10
 
@@ -220,9 +220,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   rejection, bounded scan/read budgets, and fail-closed safe reads; `ed9df02`
   extracts pure doctor/status report assembly; `09857db` makes harvest services
   read-only and keeps artifact output-root selection, persistence, and aliases
-  in the adapter; `d1f517e`–`2c36f53` complete evaluator artifact, packet,
-  policy, scoring, rendering, advisory, input, failure, and mode-orchestration
-  cutovers. The full suite has 394 tests with three expected skips.
+  in the adapter; `d1f517e`–`e2f1005` complete evaluator artifact, packet,
+  policy, scoring, rendering, advisory, input, failure, mode, and plan cutovers.
+  The full suite has 397 tests with three expected skips.
 
 ## Workflow Notes
 
@@ -427,10 +427,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `a05a6aa` extracts evaluator rendering/advisory formatting; `4f68872` hardens
   advisory assembly and the fixed catalog boundary; `6945416` bounds evaluator
   inputs and validates nested traces/plans; `d954658` surfaces compose failures;
-  `2c36f53` extracts mode orchestration.
+  `2c36f53` extracts mode orchestration; `e2f1005` extracts plan construction.
 
 ## Next Command
 
 ```bash
-# Move plan construction behind a safe-source DTO; keep adapter authority.
+# Cut server evaluator imports over runtime service boundaries; keep adapter authority.
 ```
