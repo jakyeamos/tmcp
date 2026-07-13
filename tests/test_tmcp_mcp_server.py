@@ -292,6 +292,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "tmcp_runtime/domain/workflow_promotion.py",
                 "tmcp_runtime/domain/workflow_recommendations.py",
                 "tmcp_runtime/storage/cache_policy.py",
+                "tmcp_runtime/storage/global_cache.py",
                 "tmcp_runtime/services/__init__.py",
                 "tmcp_runtime/services/artifact_plans.py",
                 "tmcp_runtime/services/compose.py",

@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
+import tmcp_runtime.storage.global_cache as global_cache
 
 
 class TmcpCacheHardeningTests(unittest.TestCase):
@@ -81,7 +82,7 @@ class TmcpCacheHardeningTests(unittest.TestCase):
             original_home = self.server.TMCP_HOME
             self.server.TMCP_HOME = tmcp_home
             try:
-                graphs, warnings = self.server._load_global_promoted_graphs("global")
+                snapshot = self.server._global_cache_snapshot("global")
                 packet = self.server._call_tool(
                     "tmcp_compose_packet",
                     {
@@ -94,6 +95,8 @@ class TmcpCacheHardeningTests(unittest.TestCase):
             finally:
                 self.server.TMCP_HOME = original_home
 
+        graphs = list(snapshot.promoted_graphs)
+        warnings = list(snapshot.warnings)
         self.assertEqual(len(graphs), 1)
         self.assertEqual(
             graphs[0]["workflow_nodes"],
@@ -186,17 +189,13 @@ class TmcpCacheHardeningTests(unittest.TestCase):
         )
 
     def test_unknown_cache_policy_does_not_read_global_artifacts(self) -> None:
-        with patch.object(self.server, "_safe_global_cache_entries") as entries:
-            graphs, graph_warnings = self.server._load_global_promoted_graphs(
-                "globla"
-            )
-            receipts, receipt_warnings = self.server._load_recent_receipts("globla")
+        with patch.object(global_cache, "_safe_global_cache_entries") as entries:
+            snapshot = self.server._global_cache_snapshot("globla")
 
         entries.assert_not_called()
-        self.assertEqual(graphs, [])
-        self.assertEqual(graph_warnings, [])
-        self.assertEqual(receipts, [])
-        self.assertEqual(receipt_warnings, [])
+        self.assertEqual(snapshot.promoted_graphs, ())
+        self.assertEqual(snapshot.receipts, ())
+        self.assertEqual(snapshot.warnings, ())
 
     def test_global_cache_rejects_deeply_nested_json_without_composition_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -215,10 +214,12 @@ class TmcpCacheHardeningTests(unittest.TestCase):
             original_home = self.server.TMCP_HOME
             self.server.TMCP_HOME = tmcp_home
             try:
-                graphs, warnings = self.server._load_global_promoted_graphs("global")
+                snapshot = self.server._global_cache_snapshot("global")
             finally:
                 self.server.TMCP_HOME = original_home
 
+        graphs = list(snapshot.promoted_graphs)
+        warnings = list(snapshot.warnings)
         self.assertEqual(graphs, [])
         self.assertTrue(
             any(
@@ -261,10 +262,11 @@ class TmcpCacheHardeningTests(unittest.TestCase):
             original_home = self.server.TMCP_HOME
             self.server.TMCP_HOME = tmcp_home
             try:
-                graphs, _ = self.server._load_global_promoted_graphs("global")
+                snapshot = self.server._global_cache_snapshot("global")
             finally:
                 self.server.TMCP_HOME = original_home
 
+        graphs = list(snapshot.promoted_graphs)
         self.assertEqual(len(graphs), 1)
         self.assertEqual(
             graphs[0]["workflow_nodes"],
@@ -282,21 +284,22 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                     encoding="utf-8",
                 )
             original_home = self.server.TMCP_HOME
-            original_read = self.server.read_harvest_text
             self.server.TMCP_HOME = tmcp_home
             try:
                 with patch.object(
-                    self.server,
+                    global_cache,
                     "read_harvest_text",
-                    wraps=original_read,
+                    wraps=global_cache.read_harvest_text,
                 ) as read_harvest_text:
-                    receipts, warnings = self.server._load_recent_receipts(
+                    snapshot = self.server._global_cache_snapshot(
                         "global",
-                        limit=5,
+                        receipt_limit=5,
                     )
             finally:
                 self.server.TMCP_HOME = original_home
 
+        receipts = list(snapshot.receipts)
+        warnings = list(snapshot.warnings)
         self.assertEqual(len(receipts), 5)
         self.assertLessEqual(read_harvest_text.call_count, 5)
         self.assertTrue(any("candidate limit" in warning for warning in warnings))
@@ -322,10 +325,12 @@ class TmcpCacheHardeningTests(unittest.TestCase):
             original_home = self.server.TMCP_HOME
             self.server.TMCP_HOME = tmcp_home
             try:
-                receipts, warnings = self.server._load_recent_receipts("global")
+                snapshot = self.server._global_cache_snapshot("global")
             finally:
                 self.server.TMCP_HOME = original_home
 
+        receipts = list(snapshot.receipts)
+        warnings = list(snapshot.warnings)
         self.assertEqual(len(receipts), 1)
         self.assertEqual(receipts[0]["packet_id"], "packet-1")
         rendered = json.dumps({"receipts": receipts, "warnings": warnings})

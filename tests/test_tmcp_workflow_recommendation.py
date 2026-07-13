@@ -848,12 +848,12 @@ class TmcpWorkflowRecommendationTests(unittest.TestCase):
                         "outcome": "passed",
                     },
                 )
-                cached_receipts, cache_warnings = self.server._load_recent_receipts(
-                    "global"
-                )
+                snapshot = self.server._global_cache_snapshot("global")
             finally:
                 setattr(self.server, "TMCP_HOME", original_home)
 
+            cached_receipts = list(snapshot.receipts)
+            cache_warnings = list(snapshot.warnings)
             receipt_path = Path(result["artifact_paths"]["receipt_json"])
             receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
 

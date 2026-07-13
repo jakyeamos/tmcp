@@ -215,10 +215,12 @@ class TmcpArtifactWorkflowTests(unittest.TestCase):
             original_home = getattr(self.server, "TMCP_HOME", None)
             setattr(self.server, "TMCP_HOME", tmcp_home)
             try:
-                graphs, warnings = self.server._load_global_promoted_graphs("global")
+                snapshot = self.server._global_cache_snapshot("global")
             finally:
                 setattr(self.server, "TMCP_HOME", original_home)
 
+        graphs = list(snapshot.promoted_graphs)
+        warnings = list(snapshot.warnings)
         serialized = json.dumps({"graphs": graphs, "warnings": warnings})
         self.assertEqual(graphs, [])
         self.assertNotIn(secret, serialized)
