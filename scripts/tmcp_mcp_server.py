@@ -382,6 +382,25 @@ def _persist_artifact_plan(
     return {alias: paths[name] for alias, name in plan.path_aliases.items()}
 
 
+def _persist_harvest_artifacts(
+    output_dir: Path,
+    result: dict[str, Any],
+) -> dict[str, str]:
+    json_artifacts: dict[str, Any] = {"tmcp-harvest-result.json": result}
+    if isinstance(result.get("packet_seed"), dict):
+        json_artifacts["tmcp-packet-seed.json"] = result["packet_seed"]
+    paths = _persist_artifacts(
+        output_dir,
+        json_artifacts=json_artifacts,
+        text_artifacts={},
+        fresh_bundle=True,
+    )
+    aliases = {"harvest_result": paths["tmcp-harvest-result.json"]}
+    if "tmcp-packet-seed.json" in paths:
+        aliases["packet_seed"] = paths["tmcp-packet-seed.json"]
+    return aliases
+
+
 def _default_output_dir(project_root: Path) -> Path:
     return project_root / ".aios" / "reviews" / f"tmcp-mcp-{uuid.uuid4().hex[:8]}"
 
@@ -499,10 +518,20 @@ def _source_node_from_text(
 
 
 def _harvest_skills(arguments: dict[str, Any]) -> dict[str, Any]:
-    return _runtime_harvest_skills(
-        arguments,
+    result = _runtime_harvest_skills(
+        {**arguments, "write_artifacts": False},
         source_advisories=_harvest_source_advisories,
     )
+    if bool(arguments.get("write_artifacts", False)):
+        output_dir = (
+            Path(str(arguments["output_dir"])).expanduser()
+            if arguments.get("output_dir")
+            else _runtime_require_default_artifact_root(arguments)
+            / ".tmcp"
+            / f"harvest-{uuid.uuid4().hex[:8]}"
+        )
+        result["artifact_paths"] = _persist_harvest_artifacts(output_dir, result)
+    return result
 
 
 def _tmcp_home() -> Path:

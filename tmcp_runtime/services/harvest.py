@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import uuid
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -28,7 +27,6 @@ from tmcp_runtime.safety import (
     redact_path,
     read_harvest_text,
 )
-from tmcp_runtime.storage import AtomicArtifactStore
 
 
 def merge_redactions(target: dict[str, int], source: dict[str, int]) -> None:
@@ -215,24 +213,6 @@ def require_default_artifact_root(arguments: Mapping[str, Any]) -> Path:
             "path; provide output_dir."
         )
     return root
-
-
-def write_harvest_artifacts(
-    output_dir: Path, result: dict[str, Any]
-) -> dict[str, str]:
-    payloads: dict[str, Any] = {"tmcp-harvest-result.json": result}
-    packet = result.get("packet_seed")
-    if isinstance(packet, dict):
-        payloads["tmcp-packet-seed.json"] = packet
-    written_paths = AtomicArtifactStore.write_json_bundle(output_dir, payloads)
-    return {
-        "harvest_result": redact_path(written_paths["tmcp-harvest-result.json"]),
-        **(
-            {"packet_seed": redact_path(written_paths["tmcp-packet-seed.json"])}
-            if "tmcp-packet-seed.json" in written_paths
-            else {}
-        ),
-    }
 
 
 def scoped_packet_seed_payload(
@@ -454,13 +434,4 @@ def harvest_skills(
         "source_nodes": nodes,
         "packet_seed": packet,
     }
-    if bool(arguments.get("write_artifacts", False)):
-        output_dir = (
-            Path(str(arguments["output_dir"])).expanduser()
-            if arguments.get("output_dir")
-            else require_default_artifact_root(arguments)
-            / ".tmcp"
-            / f"harvest-{uuid.uuid4().hex[:8]}"
-        )
-        result["artifact_paths"] = write_harvest_artifacts(output_dir, result)
     return result
