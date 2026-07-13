@@ -38,14 +38,10 @@ from tmcp_runtime.safety.redaction import merge_redactions  # noqa: E402
 from tmcp_runtime.domain.composition import (  # noqa: E402
     normalize_cache_policy as _runtime_normalize_cache_policy,
 )
-from tmcp_runtime.domain.recompile import parse_previous_packet  # noqa: E402
 from tmcp_runtime.domain.receipts import (  # noqa: E402
     RUN_RECEIPT_SCHEMA,
     build_recorded_receipt_result as _runtime_build_recorded_receipt_result,
     build_run_receipt as _runtime_build_run_receipt,
-)
-from tmcp_runtime.domain.runtime_state import (  # noqa: E402
-    derive_runtime_state as _runtime_derive_runtime_state,
 )
 from tmcp_runtime.domain.standalone_packets import (  # noqa: E402
     compile_standalone_packet,
@@ -113,8 +109,9 @@ from tmcp_runtime.services.recommendations import (  # noqa: E402
 from tmcp_runtime.services.promotion import (  # noqa: E402
     promote_harvest as _runtime_promote_harvest,
 )
-from tmcp_runtime.services.recompile import (  # noqa: E402
-    finalize_recompiled_packet as _runtime_finalize_recompiled_packet,
+from tmcp_runtime.services.runtime import (  # noqa: E402
+    RuntimeService,
+    RuntimeServiceContext,
 )
 from tmcp_runtime.services.review import (  # noqa: E402
     build_review_plan as _runtime_build_review_plan,
@@ -169,92 +166,6 @@ def _run_aios(args: list[str]) -> dict[str, Any]:
         args,
         root=AIOS_ROOT,
         available=_aios_available(),
-    )
-
-
-def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
-    source_nodes: list[dict[str, Any]] = []
-    harvest_root = str(
-        arguments.get("source_path") or arguments.get("project_path") or ""
-    ).strip()
-    if harvest_root and Path(harvest_root).expanduser().exists():
-        harvest = _harvest_skills(_runtime_harvest_arguments(arguments))
-        source_nodes = [
-            item
-            for item in _json_list(harvest.get("source_nodes"))
-            if isinstance(item, dict)
-        ]
-    runtime_arguments = dict(arguments)
-    cache_warnings: list[str] = []
-    cache_policy = _runtime_normalize_cache_policy(runtime_arguments.get("cache_policy"))
-    runtime_arguments["cache_policy"] = cache_policy
-    if cache_policy == "global":
-        cache_warnings.extend(
-            _global_cache_snapshot(cache_policy, receipt_limit=10).warnings
-        )
-    return _runtime_derive_runtime_state(
-        runtime_arguments,
-        source_nodes=source_nodes,
-        cache_warnings=cache_warnings,
-    )
-
-
-def _recompile_packet(arguments: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
-    previous_packet = parse_previous_packet(arguments)
-    if not isinstance(previous_packet, dict):
-        raise ValueError(
-            "tmcp_runtime_next output_mode=full requires previous_packet as an object."
-        )
-    target_phase = str(state.get("suggested_phase") or state.get("phase") or "start")
-    session_project_path = (
-        state.get("project_path")
-        if arguments.get("session_id") is not None
-        else previous_packet.get("project_path") or state.get("project_path")
-    )
-    source_path = arguments.get("source_path") or arguments.get("project_path")
-    if not source_path and arguments.get("session_id") is None:
-        source_path = previous_packet.get("project_path")
-        if "[REDACTED:" in str(source_path):
-            raise ValueError(
-                "tmcp_runtime_next requires an explicit source_path or project_path "
-                "when previous_packet has a redacted project path."
-            )
-    compose_arguments = {
-        "objective": state.get("combined_objective") or state.get("objective"),
-        "project_path": session_project_path,
-        "source_path": source_path,
-        "phase": target_phase,
-        "cache_policy": state.get("cache_policy") or "none",
-        "runtime_context": state.get("context") or {},
-        "latest_user_message": state.get("latest_user_message") or "",
-        "limit": arguments.get("limit", 40),
-    }
-    for key in (
-        "source_paths",
-        "include_globs",
-        "exclude_globs",
-        "max_file_bytes",
-        "max_excerpt_chars",
-        "follow_symlinks",
-        "redact_sensitive",
-    ):
-        if key in arguments:
-            compose_arguments[key] = arguments[key]
-    composed_packet = _compose_packet(compose_arguments)
-    if arguments.get("session_id") is not None:
-        previous_packet_id = str(previous_packet.get("packet_id") or "")
-    else:
-        previous_packet_id = str(
-            arguments.get("previous_packet_id")
-            or previous_packet.get("packet_id")
-            or ""
-        )
-    return _runtime_finalize_recompiled_packet(
-        arguments,
-        state,
-        previous_packet=previous_packet,
-        composed_packet=composed_packet,
-        previous_packet_id=previous_packet_id or None,
     )
 
 
@@ -628,6 +539,40 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
     if store is not None:
         packet["session"] = store.create(packet).metadata()
     return packet
+
+
+def _runtime_source_nodes(arguments: dict[str, Any]) -> list[dict[str, Any]]:
+    harvest = _harvest_skills(_runtime_harvest_arguments(arguments))
+    return [
+        item
+        for item in _json_list(harvest.get("source_nodes"))
+        if isinstance(item, dict)
+    ]
+
+
+def _runtime_cache_warnings(cache_policy: str) -> list[str]:
+    return list(_global_cache_snapshot(cache_policy, receipt_limit=10).warnings)
+
+
+def _runtime_service() -> RuntimeService:
+    return RuntimeService(
+        RuntimeServiceContext(
+            source_exists=lambda path: Path(path).expanduser().exists(),
+            load_source_nodes=_runtime_source_nodes,
+            load_cache_warnings=_runtime_cache_warnings,
+            compose_packet=_compose_packet,
+        )
+    )
+
+
+def _build_runtime_state(arguments: dict[str, Any]) -> dict[str, Any]:
+    return _runtime_service().build_state(arguments)
+
+
+def _recompile_packet(
+    arguments: dict[str, Any], state: dict[str, Any]
+) -> dict[str, Any]:
+    return _runtime_service().recompile(arguments, state)
 
 
 def _compose_evaluation_row(
