@@ -25,6 +25,26 @@ def _redact(value: Any) -> Any:
     return f"safe:{value}"
 
 
+def _receipt_payload(
+    *,
+    created_at: str = "2026-07-12T00:00:00Z",
+    packet_id: str = "packet-123",
+) -> dict[str, Any]:
+    return {
+        "schema": RECEIPT_SCHEMA,
+        "created_at": created_at,
+        "packet_id": packet_id,
+        "activated_atoms": [],
+        "ignored_atoms": [],
+        "commands_run": [],
+        "verification_results": [],
+        "user_overrides": [],
+        "outcome": "passed",
+        "trust": "advisory_untrusted",
+        "instruction_override_policy": "Advisory only.",
+    }
+
+
 class TmcpCachePolicyTests(unittest.TestCase):
     def test_projected_graph_keeps_only_canonical_workflow_ids(self) -> None:
         payload: dict[str, Any] = {
@@ -95,19 +115,7 @@ class TmcpCachePolicyTests(unittest.TestCase):
         self.assertIn("unexpected schema", str(receipt_warning))
 
     def test_receipt_projection_redacts_the_only_retained_identifier(self) -> None:
-        payload: dict[str, Any] = {
-            "schema": RECEIPT_SCHEMA,
-            "created_at": "2026-07-12T00:00:00Z",
-            "packet_id": "sk-secret-packet",
-            "activated_atoms": [],
-            "ignored_atoms": [],
-            "commands_run": [],
-            "verification_results": [],
-            "user_overrides": [],
-            "outcome": "passed",
-            "trust": "advisory_untrusted",
-            "instruction_override_policy": "Advisory only.",
-        }
+        payload = _receipt_payload(packet_id="sk-secret-packet")
 
         receipt, warning = project_cached_receipt(
             payload,
@@ -126,6 +134,64 @@ class TmcpCachePolicyTests(unittest.TestCase):
                 "trust": "advisory_untrusted",
             },
         )
+
+    def test_receipt_projection_accepts_supported_timestamps_and_redacted_ids(
+        self,
+    ) -> None:
+        for created_at in (
+            "2026-07-12T00:00:00Z",
+            "2026-07-12T00:00:00+00:00",
+            "2026-07-12T05:30:00+05:30",
+        ):
+            with self.subTest(created_at=created_at):
+                receipt, warning = project_cached_receipt(
+                    _receipt_payload(
+                        created_at=created_at,
+                        packet_id="[REDACTED:openai_key]",
+                    ),
+                    "receipt.json",
+                    receipt_schema=RECEIPT_SCHEMA,
+                    redact_value=_redact,
+                )
+
+                self.assertIsNone(warning)
+                self.assertEqual(
+                    receipt,
+                    {
+                        "schema": RECEIPT_SCHEMA,
+                        "packet_id": "safe:[REDACTED:openai_key]",
+                        "_global_cache_path": "receipt.json",
+                        "trust": "advisory_untrusted",
+                    },
+                )
+
+    def test_receipt_projection_rejects_semantically_invalid_metadata(self) -> None:
+        invalid_metadata = (
+            {"packet_id": "   "},
+            {"created_at": ""},
+            {"created_at": "2026-02-30T00:00:00Z"},
+            {"created_at": "2026-07-12T00:00:00"},
+            {"created_at": "sk-" + "A" * 40},
+        )
+
+        for overrides in invalid_metadata:
+            with self.subTest(overrides=overrides):
+                payload = _receipt_payload()
+                payload.update(overrides)
+                receipt, warning = project_cached_receipt(
+                    payload,
+                    "receipt.json",
+                    receipt_schema=RECEIPT_SCHEMA,
+                    redact_value=_redact,
+                )
+
+                self.assertIsNone(receipt)
+                self.assertEqual(
+                    warning,
+                    "Skipped global cache receipt with invalid metadata: receipt.json",
+                )
+                if str(payload["created_at"]):
+                    self.assertNotIn(str(payload["created_at"]), str(warning))
 
     def test_normalized_global_graph_is_whitelisted_and_deterministic(self) -> None:
         result: dict[str, Any] = {
@@ -202,7 +268,9 @@ class TmcpCachePolicyTests(unittest.TestCase):
             for alias in node.names
         )
 
-        self.assertTrue({"collections", "typing"}.issubset(imported_modules))
+        self.assertTrue(
+            {"collections", "datetime", "typing"}.issubset(imported_modules)
+        )
         self.assertTrue(
             {"os", "pathlib", "scripts", "tmcp_runtime"}.isdisjoint(imported_modules)
         )

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Container
+from datetime import datetime
 from typing import Any
 
 
@@ -52,6 +53,15 @@ def cache_json_is_bounded(
         elif isinstance(current, list):
             pending.extend((item, depth + 1) for item in current)
     return True
+
+
+def _is_timezone_aware_iso_timestamp(value: str) -> bool:
+    normalized = f"{value[:-1]}+00:00" if value.endswith("Z") else value
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return False
+    return parsed.tzinfo is not None and parsed.utcoffset() is not None
 
 
 def normalize_promoted_graph(
@@ -236,6 +246,14 @@ def project_cached_receipt(
         return (
             None,
             "Skipped global cache receipt with unexpected schema: " f"{display_path}",
+        )
+    if (
+        not payload["packet_id"].strip()
+        or not _is_timezone_aware_iso_timestamp(payload["created_at"])
+    ):
+        return (
+            None,
+            "Skipped global cache receipt with invalid metadata: " f"{display_path}",
         )
     return (
         {

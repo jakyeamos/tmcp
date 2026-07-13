@@ -31,7 +31,9 @@ class TmcpCacheHardeningTests(unittest.TestCase):
     def _receipt_payload(index: int) -> dict[str, object]:
         return {
             "schema": "tmcp-run-receipt-v0.1",
-            "created_at": f"2026-07-11T00:00:{index:02d}+00:00",
+            "created_at": (
+                f"2026-07-11T00:{index // 60:02d}:{index % 60:02d}+00:00"
+            ),
             "packet_id": f"packet-{index}",
             "activated_atoms": [],
             "ignored_atoms": [],
@@ -298,6 +300,37 @@ class TmcpCacheHardeningTests(unittest.TestCase):
         self.assertEqual(len(receipts), 5)
         self.assertLessEqual(read_harvest_text.call_count, 5)
         self.assertTrue(any("candidate limit" in warning for warning in warnings))
+
+    def test_global_cache_skips_receipts_with_invalid_semantic_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmcp_home = Path(tmp) / "tmcp-home"
+            receipt_dir = tmcp_home / "receipts" / "2026-07"
+            receipt_dir.mkdir(parents=True)
+            valid = self._receipt_payload(1)
+            invalid = self._receipt_payload(2)
+            secret = "sk-" + "R" * 40
+            invalid["packet_id"] = secret
+            invalid["created_at"] = "2026-07-11T00:00:02"
+            (receipt_dir / "valid.json").write_text(
+                json.dumps(valid),
+                encoding="utf-8",
+            )
+            (receipt_dir / "invalid.json").write_text(
+                json.dumps(invalid),
+                encoding="utf-8",
+            )
+            original_home = self.server.TMCP_HOME
+            self.server.TMCP_HOME = tmcp_home
+            try:
+                receipts, warnings = self.server._load_recent_receipts("global")
+            finally:
+                self.server.TMCP_HOME = original_home
+
+        self.assertEqual(len(receipts), 1)
+        self.assertEqual(receipts[0]["packet_id"], "packet-1")
+        rendered = json.dumps({"receipts": receipts, "warnings": warnings})
+        self.assertNotIn(secret, rendered)
+        self.assertTrue(any("invalid metadata" in warning for warning in warnings))
 
     def test_compose_packet_redacts_tmcp_home_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
