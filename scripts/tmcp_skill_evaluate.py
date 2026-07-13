@@ -34,6 +34,13 @@ from tmcp_runtime.services.evaluation_scoring import (
     _normalize_trace,
     score_traces,
 )
+from tmcp_runtime.services.evaluation_rendering import (
+    build_pattern_catalog as _build_pattern_catalog,
+    format_harvest_warning,
+    matched_term as _matched_term,
+    merge_pattern_catalog as _merge_pattern_catalog,
+    render_guidebook_markdown as _render_guidebook_markdown,
+)
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 UTC = datetime.now(timezone.utc)
@@ -553,61 +560,19 @@ def score_evidence(
 
 
 def _guidebook_markdown(entries: list[dict[str, Any]]) -> str:
-    lines = [
-        "# TMCP Skill Writing Guidebook",
-        "",
-        "Experimental v0.1 artifact generated from skill evaluation findings.",
-        "",
-        "## Evidence levels",
-        "",
-        "Every pattern claim should carry an evidence level:",
-        "",
-    ]
-    for level in EVIDENCE_LEVELS:
-        lines.append(f"- `{level}`")
-    lines.extend(["", "## Patterns", ""])
-    for entry in entries:
-        lines.extend(
-            [
-                f"### {entry['title']}",
-                "",
-                f"**Status:** {entry['status']}",
-                f"**Evidence level:** {entry['evidence_level']}",
-                f"**Applies to:** {', '.join(entry.get('applies_to') or []) or 'skill_writing'}",
-                f"**Internal atoms:** {', '.join(entry.get('internal_atoms') or []) or 'none'}",
-                "",
-                "Prefer:",
-                "",
-                f"> {entry['prefer']}",
-                "",
-                "Avoid:",
-                "",
-                f"> {entry['avoid']}",
-                "",
-            ]
-        )
-    return "\n".join(lines) + "\n"
+    """Compatibility facade for adapter callers during renderer migration."""
+
+    return _render_guidebook_markdown(entries, evidence_levels=EVIDENCE_LEVELS)
 
 
 def _pattern_catalog(entries: list[dict[str, Any]]) -> dict[str, Any]:
-    return {
-        "schema": "tmcp-skill-pattern-catalog-v0.1",
-        "created_at": _iso_now(),
-        "patterns": [
-            {
-                "pattern_id": pattern["pattern_id"],
-                "label": pattern["label"],
-                "classification": pattern["classification"],
-                "evidence_level": "static_review",
-                "internal_atoms": list(pattern["internal_atoms"]),
-                "good_example": pattern.get("good_example"),
-                "weak_example": pattern.get("weak_example"),
-                "detection_terms": list(pattern.get("detection_terms") or ()),
-            }
-            for pattern in (*EFFECTIVE_PATTERNS, *V01_ANTI_PATTERNS)
-        ],
-        "guidebook_entries": entries,
-    }
+    """Compatibility facade for adapter callers during renderer migration."""
+
+    return _build_pattern_catalog(
+        entries,
+        patterns=(*EFFECTIVE_PATTERNS, *V01_ANTI_PATTERNS),
+        created_at=_iso_now(),
+    )
 
 
 def evaluate_skills(
@@ -666,47 +631,14 @@ def is_evaluable_skill_source(
 
 
 def _pattern_lookup() -> dict[str, dict[str, Any]]:
-    patterns: dict[str, dict[str, Any]] = {
-        str(item["pattern_id"]): dict(item) for item in V01_ANTI_PATTERNS
-    }
+    discovered: object = []
     if PATTERN_CATALOG_PATH.exists():
         try:
             payload = json.loads(PATTERN_CATALOG_PATH.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             payload = {}
-        for item in payload.get("patterns", []):
-            if not isinstance(item, dict):
-                continue
-            pattern_id = str(item.get("pattern_id") or "")
-            if not pattern_id:
-                continue
-            merged = dict(patterns.get(pattern_id, {}))
-            merged.update(item)
-            patterns[pattern_id] = merged
-    return patterns
-
-
-def _matched_term(finding: dict[str, Any], pattern: dict[str, Any]) -> str:
-    excerpt = str((finding.get("location") or {}).get("excerpt") or "").lower()
-    for term in pattern.get("detection_terms") or ():
-        if str(term).lower() in excerpt:
-            return str(term)
-    return str(pattern.get("weak_example") or pattern.get("label") or "pattern")
-
-
-def format_harvest_warning(finding: dict[str, Any], pattern: dict[str, Any]) -> str:
-    pattern_id = str(pattern.get("pattern_id") or "")
-    matched = _matched_term(finding, pattern)
-    if pattern_id == "verification.vague-quality-language":
-        return (
-            f"Skill may contain a verification no-op: '{matched}' has no concrete "
-            f"command or observable gate ({finding.get('skill_path')})."
-        )
-    return (
-        f"Skill may contain {str(pattern.get('label') or 'an anti-pattern').lower()}: "
-        f"{pattern.get('suggested_harvest_warning') or finding.get('message')} "
-        f"({finding.get('skill_path')})."
-    )
+        discovered = payload.get("patterns", [])
+    return _merge_pattern_catalog(V01_ANTI_PATTERNS, discovered)
 
 
 def harvest_warnings_for_source(
