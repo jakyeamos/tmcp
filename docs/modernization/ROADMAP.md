@@ -117,3 +117,8 @@ shipped schema in this tree and remain strict readers.
 The 0.5.0 compatibility cutover is now documented in
 `docs/release-notes/v0.5.0-compatibility.md`; active version metadata remains
 0.4.0 until the evidence-bearing release PR is run and verified.
+
+The first hosted PR run exposed a Windows read-only regression: exact-file
+inputs were rejected because Windows lacks `O_NOFOLLOW`. The reader now uses a
+validated path-read fallback only for read-only inputs while durable writes
+remain fail-closed.

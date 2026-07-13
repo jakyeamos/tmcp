@@ -35,7 +35,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   receipt/session artifacts have no alternate schema and remain strict readers.
   The 0.5.0 compatibility cutover note is prepared; active version metadata
   remains 0.4.0 until an evidence-bearing release PR and second verification.
-  Continue release cutover preparation without tagging or publishing.
+  Draft PR #2's first hosted run passed Linux/macOS but failed Windows because
+  exact-file read-only inputs rejected the missing O_NOFOLLOW primitive;
+  `b99c58a` adds the validated Windows fallback. Continue hosted verification
+  without tagging or publishing.
 **Started:** 2026-07-10
 
 ## Active Phase

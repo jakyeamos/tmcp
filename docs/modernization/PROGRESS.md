@@ -318,6 +318,12 @@ surface, deliberate state-effect changes, migration/rollback behavior, and the
 evidence-bearing release-PR sequence. The active version remains 0.4.0 until
 that sequence is executed.
 
+Draft PR #2 run `29283834718` passed all Linux/macOS jobs but exposed Windows
+read-only exact-file failures caused by the missing `O_NOFOLLOW` primitive.
+`b99c58a` adds a validated Windows path-read fallback without weakening the
+durable-write boundary; the focused local safety suite passes and the PR needs
+another hosted run.
+
 ## Blockers and risks
 
 - The primary checkout contains user-owned uncommitted work that is not included
