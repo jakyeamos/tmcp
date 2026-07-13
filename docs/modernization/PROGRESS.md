@@ -9,8 +9,8 @@ packet construction/presentation, standalone compiler, review-profile catalog,
 review-policy, workflow catalog/scoring, adaptive workflow-pack, promotion-graph,
 global workflow-activation, stateless cache-default, evaluator composition-service,
 stability-taxonomy, domain-size-budget, harvest/source-graph, recommendation
-service, promotion-planning, review-plan, cache-policy, and runtime-state splits
-complete; continue the thin-adapter cutover.
+service, promotion-planning, review-plan, cache-policy, runtime-state, and
+compose-service splits complete; continue the thin-adapter cutover.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -67,6 +67,11 @@ Runtime context normalization, family transitions, identity deltas, proposal
 validation, and state shaping are now a pure domain reducer over adapter-supplied
 source nodes and cache warnings; the adapter keeps source/cache acquisition,
 sessions, recompile, redaction, and transport authority.
+Packet composition and source-node enrichment are now an in-memory service over
+adapter-supplied harvested nodes and canonical cache snapshots. The adapter
+retains cache reads, path redaction, harvest, sessions, recompile, and transport;
+the service defensively discards any injected cache inputs under
+cache_policy=none.
 Public compose and standalone/auto explain responses now redact complete result
 trees only after their internal session/packet work is complete.
 
@@ -124,6 +129,10 @@ trees only after their internal session/packet work is complete.
   recompile, and transport in the adapter.
 - Redact public compose and standalone/auto explain responses at their final
   adapter return boundary, after any internal session creation or packet work.
+- Treat packet composition and source-node enrichment as an in-memory service
+  over adapter-supplied safe data. Cache reads, TMCP_HOME redaction, harvest,
+  session persistence, and transport remain adapter authority; stateless policy
+  rejects injected cache graphs, receipts, and warnings.
 
 ## Verified baseline
 
@@ -293,6 +302,10 @@ trees only after their internal session/packet work is complete.
 - cb9ad0f closes public compose/explain project/source-path leaks with final
   adapter response redaction. Session persistence remains redacted internally;
   the full local suite has 311 passing tests with three expected platform skips.
+- 278a470 extracts packet composition and source-node enrichment into
+  tmcp_runtime/services/compose.py. Direct boundary tests, the full local suite
+  (317 tests, three expected skips), install, contract, and changed-line checks
+  pass; cache and session authority remains in the compatibility adapter.
 
 ## Blockers and risks
 
@@ -311,5 +324,6 @@ trees only after their internal session/packet work is complete.
 
 ## Next step
 
-Review compose/recompile orchestration for the next bounded thin-adapter
-extraction, preserving adapter-owned artifact and cache I/O authority.
+Map the remaining server orchestration and choose the next bounded extraction,
+preserving adapter-owned artifact, cache, session, redaction, and transport
+authority.
