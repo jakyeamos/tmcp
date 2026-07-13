@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
-from scripts.tmcp_redaction import merge_redactions, redact_sensitive_text
+from tmcp_runtime.safety.redaction import merge_redactions, redact_sensitive_text
 
 
 @dataclass(frozen=True)

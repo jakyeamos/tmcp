@@ -19,7 +19,7 @@ if str(PLUGIN_ROOT) not in sys.path:
     sys.path.insert(0, str(PLUGIN_ROOT))
 
 from scripts.tmcp_mcp_framing import read_message, write_message  # noqa: E402
-from scripts.tmcp_redaction import merge_redactions  # noqa: E402
+from tmcp_runtime.safety.redaction import merge_redactions  # noqa: E402
 from tmcp_runtime.domain.composition import (  # noqa: E402
     normalize_cache_policy as _runtime_normalize_cache_policy,
 )

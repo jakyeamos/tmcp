@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
-from scripts.tmcp_redaction import merge_redactions
+from tmcp_runtime.safety.redaction import merge_redactions
 from tmcp_runtime.safety.files import (
     HarvestCandidate,
     HarvestRoot,

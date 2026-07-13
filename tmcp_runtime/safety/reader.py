@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import stat
 
-from scripts.tmcp_redaction import redact_sensitive_text
+from tmcp_runtime.safety.redaction import redact_sensitive_text
 from tmcp_runtime.safety.files import (
     HarvestCandidate,
     SafeText,
