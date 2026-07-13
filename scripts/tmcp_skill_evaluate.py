@@ -20,15 +20,12 @@ from tmcp_runtime.services.evaluation_packets import (
     compose_packet_for_eval_row,
     diff_packet_inclusion,
     expectations_for_plan_row as _expectations_for_plan_row,
-    packet_inclusion_expectations,
     task_matrix_row as _task_matrix_row,
     variant_inclusion_expectations as _variant_inclusion_expectations,
 )
 from tmcp_runtime.services.evaluation_policy import (
     decompose_skill,
     static_review,
-    _observable_contract,
-    _variant_payload,
 )
 from tmcp_runtime.services.evaluation_scoring import (
     _normalize_trace,
@@ -41,11 +38,15 @@ from tmcp_runtime.services.evaluation_rendering import (
     render_guidebook_markdown as _render_guidebook_markdown,
 )
 from tmcp_runtime.services.evaluation_orchestration import evaluate_mode
+from tmcp_runtime.services.evaluation_plan import (
+    EVAL_PLAN_SCHEMA,
+    EvaluationSource,
+    build_evaluation_plan_from_sources,
+)
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 UTC = datetime.now(timezone.utc)
 
-EVAL_PLAN_SCHEMA = "tmcp-skill-evaluation-plan-v0.1"
 EVAL_REPORT_SCHEMA = "tmcp-skill-evaluation-report-v0.1"
 EVAL_TRACE_SCHEMA = "tmcp-skill-eval-trace-v0.1"
 MAX_EVALUATION_PLAN_BYTES = 8_388_608
@@ -330,152 +331,19 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
             f"{MAX_EVALUATION_VARIANTS}."
         )
 
-    evaluated_skills: list[dict[str, Any]] = []
-    task_matrix: list[dict[str, Any]] = []
-    observable_contract: list[dict[str, Any]] = []
-    guidebook_candidates: list[dict[str, Any]] = []
-    packet_inclusion_contracts: list[dict[str, Any]] = []
-
-    for skill_input in skill_inputs:
-        text = skill_input.text
-        skill_path = skill_input.display_path
-        decomposition = decompose_skill(Path(skill_path), text)
-        static_findings = static_review(
-            decomposition,
-            text,
-            anti_patterns=V01_ANTI_PATTERNS,
-            effective_patterns=EFFECTIVE_PATTERNS,
-        )
-        skill_observables = _observable_contract(decomposition, static_findings)
-        observable_contract.extend(skill_observables)
-        guidebook_candidates.extend(
-            {
-                "pattern_id": item["pattern_id"],
-                "classification": item["classification"],
-                "evidence_level": item["evidence_level"],
-                "skill_path": item["skill_path"],
-                "message": item["message"],
-            }
-            for item in static_findings
-        )
-        variant_entries: list[dict[str, Any]] = []
-        for variant_id in variants:
-            if variant_id == "ablated":
-                for section in decomposition["sections"]:
-                    variant_entries.append(
-                        _variant_payload(
-                            "ablated", decomposition, text, section["id"]
-                        )
-                    )
-            else:
-                variant_entries.append(
-                    _variant_payload(variant_id, decomposition, text)
-                )
-        projected_rows = len(task_matrix) + len(task_fixtures) * len(variant_entries)
-        if projected_rows > MAX_EVALUATION_MATRIX_ROWS:
-            raise ValueError(
-                "Evaluation task matrix exceeds the maximum row count of "
-                f"{MAX_EVALUATION_MATRIX_ROWS}."
-            )
-        evaluated_skills.append(
-            {
-                "skill_path": skill_path,
-                "decomposition": decomposition,
-                "static_findings": static_findings,
-                "variants": variant_entries,
-            }
-        )
-        packet_inclusion_contracts.append(
-            {
-                "skill_path": skill_path,
-                "expected": packet_inclusion_expectations(decomposition),
-            }
-        )
-        for fixture in task_fixtures:
-            fixture_id = str(fixture.get("id") or "")
-            if not fixture_id:
-                raise ValueError("Each task fixture requires an id.")
-            expected_observables = fixture.get("expected_observables") or []
-            if not isinstance(expected_observables, list) or not all(
-                isinstance(item, str) for item in expected_observables
-            ):
-                raise ValueError(
-                    "Each task fixture expected_observables value must be a list of strings."
-                )
-            for variant in variant_entries:
-                task_matrix.append(
-                    {
-                        "task_id": fixture_id,
-                        "variant_id": variant["variant_id"],
-                        "ablation_section": variant.get("ablation_section"),
-                        "skill_path": skill_path,
-                        "prompt": fixture.get("prompt"),
-                        "expected_observables": expected_observables,
-                        "skill_attachment": variant["content"],
-                    }
-                )
-
-    plan = {
-        "ok": True,
-        "stability": "experimental",
-        "schema": EVAL_PLAN_SCHEMA,
-        "created_at": _iso_now(),
-        "evaluated_skills": [
-            {
-                "skill_path": item["skill_path"],
-                "title": item["decomposition"]["title"],
-                "behavior_atoms": item["decomposition"]["behavior_atoms"],
-                "static_findings": item["static_findings"],
-                "variant_ids": sorted(
-                    {
-                        variant["variant_id"]
-                        for variant in item["variants"]
-                    }
-                ),
-            }
-            for item in evaluated_skills
-        ],
-        "task_matrix": task_matrix,
-        "variants": sorted({entry["variant_id"] for entry in task_matrix}),
-        "observable_behavior_contract": _dedupe_observables(observable_contract),
-        "packet_inclusion_contracts": packet_inclusion_contracts,
-        "runner_instructions": [
-            "Run each task_matrix row in an isolated agent session.",
-            "Attach only the listed skill_attachment for the variant under test.",
-            "Record observations using schema tmcp-skill-eval-trace-v0.1.",
-            "Prefer structured observations over prose-only transcripts.",
-            "Do not auto-promote findings into durable routing state.",
-        ],
-        "evidence_contract": {
-            "trace_schema": EVAL_TRACE_SCHEMA,
-            "required_fields": ["task_id", "variant_id", "observations"],
-            "observation_kinds": [
-                "file_read",
-                "file_write",
-                "command_run",
-                "assistant_message",
-                "tool_call",
-                "human_label",
-            ],
-            "starter_template": {
-                "schema": EVAL_TRACE_SCHEMA,
-                "task_id": "example-task",
-                "variant_id": "original",
-                "agent": {"name": "unspecified", "model": "unspecified"},
-                "observations": [],
-                "human_labels": [],
-            },
-        },
-        "guidebook_candidate_patterns": guidebook_candidates,
-        "promotion_policy": {
-            "auto_promote": False,
-            "harvest_warnings_only": True,
-            "notes": (
-                "Evaluation findings are advisory. Harvest may warn or label; "
-                "they must not silently rewrite durable routing state."
-            ),
-        },
-    }
+    sources = tuple(
+        EvaluationSource(display_path=str(item.display_path), text=item.text)
+        for item in skill_inputs
+    )
+    plan = build_evaluation_plan_from_sources(
+        sources,
+        task_fixtures,
+        variants,
+        anti_patterns=V01_ANTI_PATTERNS,
+        effective_patterns=EFFECTIVE_PATTERNS,
+        created_at=_iso_now(),
+        max_matrix_rows=MAX_EVALUATION_MATRIX_ROWS,
+    )
     safe_plan = _redact_output(plan, redactions)
     if len(_json_text(safe_plan, label="Evaluation plan").encode("utf-8")) > (
         MAX_EVALUATION_PLAN_BYTES
