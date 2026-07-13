@@ -99,6 +99,10 @@ from tmcp_runtime.services.evaluation_rendering import (  # noqa: E402
 from tmcp_runtime.services.harvest_advisories import (  # noqa: E402
     harvest_warnings_for_source,
 )
+from tmcp_runtime.services.global_promotion import (  # noqa: E402
+    GlobalPromotionArtifactService,
+    GlobalPromotionContext,
+)
 from tmcp_runtime.services.evaluation_catalog import (  # noqa: E402
     EFFECTIVE_PATTERNS,
     EVIDENCE_LEVELS,
@@ -481,45 +485,34 @@ def _global_cache_snapshot(
     )
 
 
-def _normalized_global_graph(result: dict[str, Any]) -> dict[str, Any]:
-    return _runtime_normalize_promoted_graph(
-        result,
-        graph_schema=PROMOTED_HARVEST_GRAPH_SCHEMA,
-        created_at=_now_iso(),
-    )
-
-
 def _write_global_promotion(
     result: dict[str, Any], promotion_name: str, storage_key: str
 ) -> dict[str, str]:
     output_dir = _global_promoted_root() / storage_key
-    graph = _redacted_mapping(_normalized_global_graph(result))
-    summary = {
-        "schema": "tmcp-global-promoted-harvest-v0.1",
-        "promotion_name": promotion_name,
-        "created_at": _now_iso(),
-        "promoted_workflow_ids": _string_list(result.get("promoted_workflow_ids")),
-        "promoted_scoped_packet_seed_ids": _string_list(
-            result.get("promoted_scoped_packet_seed_ids")
-        ),
-        "promotion_graph": graph,
-        "trust": "advisory_untrusted",
-    }
-    safe_summary = _redacted_mapping(summary)
-    adaptive_pack = result.get("adaptive_workflow_pack")
-    artifact_plan = _runtime_build_global_promotion_artifact_plan(
-        promotion_summary=safe_summary,
-        promotion_graph=graph,
-        adaptive_workflow_pack=(
-            _redacted_mapping(adaptive_pack)
-            if isinstance(adaptive_pack, dict)
-            else None
-        ),
-    )
+    artifact_plan = _global_promotion_service().build(result, promotion_name)
     return _persist_artifact_plan(
         output_dir,
         artifact_plan,
         fresh_bundle=False,
+    )
+
+
+def _global_promotion_service() -> GlobalPromotionArtifactService:
+    return GlobalPromotionArtifactService(
+        GlobalPromotionContext(
+            normalize_graph=lambda result, created_at: _runtime_normalize_promoted_graph(
+                dict(result),
+                graph_schema=PROMOTED_HARVEST_GRAPH_SCHEMA,
+                created_at=created_at,
+            ),
+            redact_mapping=_redacted_mapping,
+            build_artifact_plan=lambda summary, graph, adaptive_pack: _runtime_build_global_promotion_artifact_plan(
+                promotion_summary=summary,
+                promotion_graph=graph,
+                adaptive_workflow_pack=adaptive_pack,
+            ),
+            now_iso=_now_iso,
+        )
     )
 
 
