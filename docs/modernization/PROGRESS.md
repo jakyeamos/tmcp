@@ -7,7 +7,8 @@ construction/presentation, artifact manifests, semantic cache validation,
 fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, evaluator artifact
   persistence, packet/report assembly, policy, rendering, advisory, input,
-  orchestration and plan cutover complete;
+  orchestration and plan cutover complete; server renderer now calls runtime
+  rendering directly;
   map the read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
@@ -318,9 +319,6 @@ adapter-injected callback.
 - 278a470 extracts packet composition and source-node enrichment into
   tmcp_runtime/services/compose.py; cache and session authority remains in the
   compatibility adapter.
-- 1476d21 makes AIOS explicit-only and rejects known sensitive command values,
-  including JSON-escaped review evidence, before external execution. The public
-  tool contract, release guidance, and install checks pass.
 - `679de6e` moves receipt construction/templates/acknowledgement into
   `domain/receipts.py`; `082bb3a` moves artifact manifests/aliases into a pure
   service; `f34862c` validates cached receipt metadata; `390a2ec` moves cache
@@ -339,8 +337,9 @@ adapter-injected callback.
   extracts rendering/catalog/advisory formatting; `4f68872` hardens advisory
   assembly and catalog/title handling; `6945416` bounds evaluator inputs/traces
   and nested shapes; `d954658` surfaces compose failures; `2c36f53` extracts
-  mode orchestration; `e2f1005` extracts plan construction behind safe DTOs.
-  Full suite: 397 tests, three expected skips
+  mode orchestration; `e2f1005` extracts plan construction behind safe DTOs;
+  `2cc955f` decouples server renderer imports. Full suite: 397 tests, three
+  expected skips
 
 ## Blockers and risks
 
@@ -363,9 +362,9 @@ adapter-injected callback.
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
   evaluator persistence, packet scoring, report, policy, rendering, and advisory
-  boundaries are extracted; server-to-script evaluator coupling remains to be
-  cut over without moving root, write, or transport authority.
+  boundaries are extracted; server still imports evaluator entrypoint/catalog
+  data from the compatibility script.
 
 ## Next step
 
-Cut server evaluator imports over runtime service boundaries.
+Move evaluator catalog and entrypoint ownership into runtime services.
