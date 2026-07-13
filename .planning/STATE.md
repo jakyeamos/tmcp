@@ -33,7 +33,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   module and is shared by the cross-platform workflow and package checks. The
   first legacy promotion-summary reader is complete; the remaining shipped
   receipt/session artifacts have no alternate schema and remain strict readers.
-  Continue advanced-capability migration and release hardening.
+  The 0.5.0 compatibility cutover note is prepared; active version metadata
+  remains 0.4.0 until an evidence-bearing release PR and second verification.
+  Continue release cutover preparation without tagging or publishing.
 **Started:** 2026-07-10
 
 ## Active Phase

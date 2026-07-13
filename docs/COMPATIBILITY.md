@@ -45,6 +45,22 @@ they are not a portable fallback, history store, or concurrent-run registry.
 Use inline `previous_packet` data for full recompiles when durable writes are
 unavailable.
 
+## 0.5.0 Compatibility Preparation
+
+The planned 0.5.0 release preserves the public MCP tools, CLI aliases, launcher,
+and v0.1 packet schemas while changing implementation ownership and state-effect
+defaults. Composition and runtime adaptation default to `cache_policy=none`;
+global cache reads and durable writes are explicit opt-ins. `adapter=auto` stays
+standalone, and explicit AIOS requests fail closed for known sensitive values.
+
+Legacy `promoted-harvest.json` summaries remain readable through an in-memory
+projection to the current promotion graph. Current graph files take precedence,
+and migration never rewrites or deletes source artifacts. Receipts and
+project-local sessions have no alternate shipped schema and remain strict.
+
+The release is not active until the version surfaces and release evidence are
+updated together and the hosted pull-request verification gate passes.
+
 ## Known Gaps
 
 - The current storage implementation intentionally denies artifact persistence on

@@ -113,3 +113,7 @@ current `promotion-graph.json` and the legacy `promoted-harvest.json` summary;
 the latter now projects read-only into the former and is suppressed when a
 current graph is present. Receipts and project-local sessions have no alternate
 shipped schema in this tree and remain strict readers.
+
+The 0.5.0 compatibility cutover is now documented in
+`docs/release-notes/v0.5.0-compatibility.md`; active version metadata remains
+0.4.0 until the evidence-bearing release PR is run and verified.

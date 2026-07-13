@@ -313,6 +313,11 @@ boundary. Current promotion graphs win over legacy summaries in the same
 directory; receipts and project-local sessions have no alternate shipped schema
 and remain strict readers.
 
+The 0.5.0 compatibility preparation note now records the preserved public
+surface, deliberate state-effect changes, migration/rollback behavior, and the
+evidence-bearing release-PR sequence. The active version remains 0.4.0 until
+that sequence is executed.
+
 ## Blockers and risks
 
 - The primary checkout contains user-owned uncommitted work that is not included
