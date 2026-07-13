@@ -15,6 +15,10 @@ from tmcp_runtime.services.artifact_plans import (
     build_review_artifact_plan,
     build_workflow_recommendation_artifact_plan,
 )
+from tmcp_runtime.services.artifact_persistence import (
+    ArtifactPersistenceContext,
+    ArtifactPersistenceService,
+)
 from tmcp_runtime.services.harvest import (
     harvest_skills,
     require_default_artifact_root,
@@ -27,6 +31,8 @@ from tmcp_runtime.services.review import build_review_plan
 
 __all__ = [
     "ArtifactPlan",
+    "ArtifactPersistenceContext",
+    "ArtifactPersistenceService",
     "build_review_plan",
     "build_review_artifact_plan",
     "build_workflow_recommendation_artifact_plan",

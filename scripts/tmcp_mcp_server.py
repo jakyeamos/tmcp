@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import uuid
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -132,6 +133,10 @@ from tmcp_runtime.services.artifact_plans import (  # noqa: E402
     build_review_artifact_plan as _runtime_build_review_artifact_plan,
     build_workflow_recommendation_artifact_plan as _runtime_build_workflow_recommendation_artifact_plan,
 )
+from tmcp_runtime.services.artifact_persistence import (  # noqa: E402
+    ArtifactPersistenceContext,
+    ArtifactPersistenceService,
+)
 
 AIOS_ROOT = (
     Path(os.environ["AIOS_ROOT"]).expanduser() if os.environ.get("AIOS_ROOT") else None
@@ -193,6 +198,38 @@ def _redact_result(result: dict[str, Any]) -> dict[str, Any]:
     return safe_result
 
 
+def _write_artifact_bundle(
+    output_dir: Path,
+    json_artifacts: Mapping[str, Any],
+    text_artifacts: Mapping[str, str],
+) -> Mapping[str, str]:
+    return AtomicArtifactStore.write_bundle(
+        output_dir,
+        json_artifacts=json_artifacts,
+        text_artifacts=text_artifacts,
+    )
+
+
+def _open_artifact_store(output_dir: Path) -> AtomicArtifactStore:
+    return AtomicArtifactStore.explicit(output_dir)
+
+
+def _redact_artifact_text(content: str) -> str:
+    return str(redact_json_value(content, enabled=True)[0])
+
+
+def _artifact_persistence_service() -> ArtifactPersistenceService:
+    return ArtifactPersistenceService(
+        ArtifactPersistenceContext(
+            redact_json=_redacted_mapping,
+            redact_text=_redact_artifact_text,
+            present_path=redact_path,
+            write_bundle=_write_artifact_bundle,
+            open_store=_open_artifact_store,
+        )
+    )
+
+
 def _persist_artifacts(
     output_dir: Path,
     *,
@@ -200,32 +237,12 @@ def _persist_artifacts(
     text_artifacts: dict[str, str],
     fresh_bundle: bool,
 ) -> dict[str, str]:
-    if set(json_artifacts).intersection(text_artifacts):
-        raise ValueError("Artifact names must be unique.")
-    safe_json = _redacted_mapping(json_artifacts)
-    safe_text = {
-        name: str(redact_json_value(content, enabled=True)[0])
-        for name, content in text_artifacts.items()
-    }
-    if fresh_bundle:
-        paths = AtomicArtifactStore.write_bundle(
-            output_dir,
-            json_artifacts=safe_json,
-            text_artifacts=safe_text,
-        )
-    else:
-        store = AtomicArtifactStore.explicit(output_dir)
-        paths = {
-            name: str(store.write_json(name, payload))
-            for name, payload in safe_json.items()
-        }
-        paths.update(
-            {
-                name: str(store.write_text(name, content))
-                for name, content in safe_text.items()
-            }
-        )
-    return {name: redact_path(path) for name, path in paths.items()}
+    return _artifact_persistence_service().persist(
+        output_dir,
+        json_artifacts=json_artifacts,
+        text_artifacts=text_artifacts,
+        fresh_bundle=fresh_bundle,
+    )
 
 
 def _persist_artifact_plan(
@@ -234,13 +251,11 @@ def _persist_artifact_plan(
     *,
     fresh_bundle: bool,
 ) -> dict[str, str]:
-    paths = _persist_artifacts(
+    return _artifact_persistence_service().persist_plan(
         output_dir,
-        json_artifacts=plan.json_artifacts,
-        text_artifacts=plan.text_artifacts,
+        plan,
         fresh_bundle=fresh_bundle,
     )
-    return {alias: paths[name] for alias, name in plan.path_aliases.items()}
 
 
 def _persist_harvest_artifacts(
