@@ -48,6 +48,21 @@ def _receipt_payload(packet_id: str) -> dict[str, object]:
     }
 
 
+def _legacy_summary_payload() -> dict[str, object]:
+    return {
+        "schema": "tmcp-global-promoted-harvest-v0.1",
+        "promotion_name": "legacy-release",
+        "created_at": "2026-07-12T00:00:00Z",
+        "promotion_graph": {
+            "source_nodes": [],
+            "behavior_atoms": [],
+            "workflow_nodes": [{"id": "release_readiness_workflow"}],
+            "edges": [],
+        },
+        "trust": "advisory_untrusted",
+    }
+
+
 class GlobalCacheReaderTests(unittest.TestCase):
     def _snapshot(self, root: Path, *, receipt_limit: object = 25):
         return read_global_cache_snapshot(
@@ -133,6 +148,54 @@ class GlobalCacheReaderTests(unittest.TestCase):
             [item["packet_id"] for item in snapshot.receipts],
             ["newer", "older"],
         )
+
+    def test_reader_migrates_legacy_summary_when_graph_file_is_absent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            summary_path = (
+                root
+                / "promoted-harvests"
+                / "legacy-release"
+                / "promoted-harvest.json"
+            )
+            summary_path.parent.mkdir(parents=True)
+            summary_path.write_text(
+                json.dumps(_legacy_summary_payload()),
+                encoding="utf-8",
+            )
+
+            snapshot = self._snapshot(root)
+
+        self.assertEqual(len(snapshot.promoted_graphs), 1)
+        self.assertEqual(
+            snapshot.promoted_graphs[0]["promotion_name"],
+            "legacy-release",
+        )
+        self.assertEqual(
+            snapshot.promoted_graphs[0]["_global_cache_path"],
+            str(summary_path),
+        )
+
+    def test_current_graph_file_wins_over_legacy_summary_in_same_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            directory = root / "promoted-harvests" / "release"
+            directory.mkdir(parents=True)
+            (directory / "promotion-graph.json").write_text(
+                json.dumps(_graph_payload()),
+                encoding="utf-8",
+            )
+            legacy = _legacy_summary_payload()
+            legacy["promotion_name"] = "legacy-duplicate"
+            (directory / "promoted-harvest.json").write_text(
+                json.dumps(legacy),
+                encoding="utf-8",
+            )
+
+            snapshot = self._snapshot(root)
+
+        self.assertEqual(len(snapshot.promoted_graphs), 1)
+        self.assertEqual(snapshot.promoted_graphs[0]["promotion_name"], "release")
 
     def test_reader_has_no_adapter_or_write_authority(self) -> None:
         source_path = Path(global_cache.__file__ or "")

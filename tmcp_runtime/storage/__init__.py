@@ -11,6 +11,10 @@ from tmcp_runtime.storage.sessions import (
     PacketSessionSnapshot,
     PacketSessionStore,
 )
+from tmcp_runtime.storage.migrations import (
+    LEGACY_GLOBAL_PROMOTION_SCHEMA,
+    migrate_legacy_promotion_summary,
+)
 
 __all__ = [
     "ArtifactStorageError",
@@ -20,4 +24,6 @@ __all__ = [
     "PacketSessionError",
     "PacketSessionSnapshot",
     "PacketSessionStore",
+    "LEGACY_GLOBAL_PROMOTION_SCHEMA",
+    "migrate_legacy_promotion_summary",
 ]

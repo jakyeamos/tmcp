@@ -26,6 +26,7 @@ from tmcp_runtime.storage.cache_policy import (
     project_cached_promotion_graph,
     project_cached_receipt,
 )
+from tmcp_runtime.storage.migrations import migrate_legacy_promotion_summary
 
 
 MAX_GLOBAL_CACHE_CANDIDATES = 64
@@ -229,6 +230,24 @@ def read_global_cache_snapshot(
         promoted_root,
         filename="promotion-graph.json",
     )
+    legacy_graph_entries, legacy_graph_warnings = _safe_global_cache_entries(
+        promoted_root,
+        filename="promoted-harvest.json",
+    )
+    graph_warnings.extend(legacy_graph_warnings)
+    current_graph_directories = {
+        str(Path(display_path).parent)
+        for _payload, display_path, _mtime in graph_entries
+    }
+    for payload, display_path, mtime in legacy_graph_entries:
+        if str(Path(display_path).parent) in current_graph_directories:
+            continue
+        migrated = migrate_legacy_promotion_summary(
+            payload,
+            graph_schema=graph_schema,
+        )
+        if migrated is not None:
+            graph_entries.append((migrated, display_path, mtime))
     promoted_graphs: list[dict[str, Any]] = []
     for payload, display_path, _ in graph_entries:
         graph, warning = project_cached_promotion_graph(
