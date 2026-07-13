@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -41,18 +40,21 @@ from tmcp_runtime.services.evaluation_packets import (
     task_matrix_row as _task_matrix_row,
     variant_inclusion_expectations as _variant_inclusion_expectations,
 )
-from tmcp_runtime.services.evaluation_policy import decompose_skill, static_review
 from tmcp_runtime.services.evaluation_rendering import (
-    build_harvest_advisories as _build_harvest_advisories,
     build_pattern_catalog as _build_pattern_catalog,
-    merge_pattern_catalog as _merge_pattern_catalog,
     render_guidebook_markdown as _render_guidebook_markdown,
 )
 from tmcp_runtime.services.evaluation_scoring import _normalize_trace, score_traces
+from tmcp_runtime.services.harvest_advisories import (
+    PATTERN_CATALOG_PATH as _RUNTIME_PATTERN_CATALOG_PATH,
+    harvest_warnings_for_source as _runtime_harvest_warnings_for_source,
+    is_evaluable_skill_source as _runtime_is_evaluable_skill_source,
+    pattern_catalog_from_path as _runtime_pattern_catalog_from_path,
+)
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-PATTERN_CATALOG_PATH = PLUGIN_ROOT / "docs" / "SKILL_PATTERN_CATALOG.json"
+PATTERN_CATALOG_PATH = _RUNTIME_PATTERN_CATALOG_PATH
 
 
 def _with_compatibility_limits() -> dict[str, int]:
@@ -139,27 +141,11 @@ def is_evaluable_skill_source(
     rel_path: str = "",
     source_type: str = "",
 ) -> bool:
-    skill_path = Path(path)
-    name = skill_path.name.lower()
-    rel = (rel_path or str(skill_path)).lower()
-    if source_type == "skill_definition" or name == "skill.md":
-        return True
-    if "/skills/" in f"/{rel}" or rel.startswith("skills/"):
-        return True
-    return False
+    return _runtime_is_evaluable_skill_source(path, rel_path, source_type)
 
 
 def _pattern_lookup() -> dict[str, dict[str, Any]]:
-    discovered: list[dict[str, Any]] = []
-    try:
-        payload = json.loads(PATTERN_CATALOG_PATH.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
-        payload = {}
-    if isinstance(payload, dict):
-        candidate = payload.get("patterns", [])
-        if isinstance(candidate, list):
-            discovered = [item for item in candidate if isinstance(item, dict)]
-    return _merge_pattern_catalog(V01_ANTI_PATTERNS, discovered)
+    return _runtime_pattern_catalog_from_path(PATTERN_CATALOG_PATH)
 
 
 def harvest_warnings_for_source(
@@ -169,14 +155,10 @@ def harvest_warnings_for_source(
     rel_path: str = "",
     source_type: str = "",
 ) -> list[dict[str, Any]]:
-    skill_path = Path(path)
-    if not is_evaluable_skill_source(skill_path, rel_path, source_type):
-        return []
-    decomposition = decompose_skill(skill_path, text)
-    findings = static_review(
-        decomposition,
+    return _runtime_harvest_warnings_for_source(
+        path,
         text,
-        anti_patterns=V01_ANTI_PATTERNS,
-        effective_patterns=EFFECTIVE_PATTERNS,
+        rel_path=rel_path,
+        source_type=source_type,
+        catalog_path=PATTERN_CATALOG_PATH,
     )
-    return _build_harvest_advisories(findings, _pattern_lookup())

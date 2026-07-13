@@ -14,6 +14,9 @@ from tmcp_runtime.storage import artifact_persistence_available
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 EVALUATE_PATH = PLUGIN_ROOT / "scripts" / "tmcp_skill_evaluate.py"
+HARVEST_ADVISORIES_PATH = (
+    PLUGIN_ROOT / "tmcp_runtime" / "services" / "harvest_advisories.py"
+)
 FIXTURE_SKILL = (
     PLUGIN_ROOT / "tests" / "fixtures" / "skills" / "approval-before-edit" / "SKILL.md"
 )
@@ -75,6 +78,12 @@ class SkillEvaluateTests(unittest.TestCase):
         self.assertNotIn("__globals__", source)
         self.assertNotIn("tmcp_runtime.storage", source)
         self.assertNotIn("AtomicArtifactStore", source)
+
+    def test_harvest_advisories_service_does_not_import_adapter(self) -> None:
+        source = HARVEST_ADVISORIES_PATH.read_text(encoding="utf-8")
+
+        self.assertNotIn("scripts.tmcp_mcp_server", source)
+        self.assertNotIn("scripts.tmcp_skill_evaluate", source)
 
     def test_plan_decomposes_fixture_skill(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())

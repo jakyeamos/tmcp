@@ -45,7 +45,6 @@ from tmcp_runtime.domain.review_evidence import (  # noqa: E402
 from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     workflow_catalog_by_id,
 )
-from scripts.tmcp_skill_evaluate import harvest_warnings_for_source  # noqa: E402
 from tmcp_runtime.api.evaluation import evaluate_skills  # noqa: E402
 from tmcp_runtime.api.cli import parse_cli_arguments as _parse_cli_arguments  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
@@ -85,6 +84,9 @@ from tmcp_runtime.services.compose import (  # noqa: E402
 from tmcp_runtime.services.evaluation_rendering import (  # noqa: E402
     build_pattern_catalog as _runtime_build_pattern_catalog,
     render_guidebook_markdown as _runtime_render_guidebook_markdown,
+)
+from tmcp_runtime.services.harvest_advisories import (  # noqa: E402
+    harvest_warnings_for_source,
 )
 from tmcp_runtime.services.evaluation_catalog import (  # noqa: E402
     EFFECTIVE_PATTERNS,
