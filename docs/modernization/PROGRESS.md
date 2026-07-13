@@ -4,8 +4,8 @@
 
 **Phase:** Milestone 3 adapter thinning and security hardening. Receipt
 construction/presentation, artifact manifests, semantic cache validation,
-fail-closed cache opt-in, storage cache ingestion, and CLI parsing extraction
-are complete; map the next bounded read-only argument boundary.
+fail-closed cache opt-in, storage cache ingestion, CLI parsing, and harvest
+argument projection are complete; map the next bounded read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -174,11 +174,6 @@ changing the public receipt schema.
   opt-in links, resolved exclusion bypasses, path metadata redaction,
   intermediate-directory swaps, output-directory swaps, and failed bundle
   commits. The full suite has 166 passing tests.
-- `8c7f498` splits the safe reader and extracted-package compile list into
-  focused modules; the repository commit gate is clean with no size exception.
-- Milestone 2 has 203 passing local tests with three expected platform skips;
-  the clean Git-tree package check and reproducibility check pass. It covers
-  portable receipt denial on hosts without secure artifact persistence.
 - `31a1d47` completes the first M3 vertical path: compose → protected session
   record → full recompile → revision update. It covers CLI and MCP transport,
   strict path/lineage rules, redaction, symlink denial, cooperative locking, and
@@ -340,6 +335,10 @@ changing the public receipt schema.
   `tmcp_runtime/api/cli.py`. The adapter retains transport serialization and
   `_parse_cli_arguments` compatibility; the full suite has 353 tests with three
   expected skips, and focused boundary reviews found no P0–P3 issues.
+- `8a0707c` centralizes the two adapter harvest-argument projections in
+  `services/harvest.py`, preserving source precedence while forcing preview-only
+  writes; the full suite has 357 tests with three expected skips and the focused
+  boundary review found no P0–P2 issues.
 
 ## Blockers and risks
 
@@ -359,11 +358,11 @@ changing the public receipt schema.
   v0.1 stays permissive and cache still orders by safe file mtime. Require
   canonical RFC3339 grammar before timestamps gain ranking/retention meaning.
 - The legacy server and evaluator scripts remain broader than the target's thin
-  transport adapter. Artifact planning, cache ingestion, and CLI parsing are
-  extracted; map the next bounded cutover without moving root, write, or transport
-  authority.
+  transport adapter. Artifact planning, cache ingestion, CLI parsing, and harvest
+  argument projection are extracted; map the next bounded cutover without moving
+  root, write, or transport authority.
 
 ## Next step
 
-Map the read-only harvest-argument projection boundary, preserving storage-owned
-cache safety and adapter-owned roots, writes, redaction, sessions, and transport.
+Map the next bounded adapter boundary, preserving storage-owned cache safety and
+adapter-owned roots, writes, redaction, sessions, and transport.

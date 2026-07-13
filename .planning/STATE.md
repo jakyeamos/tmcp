@@ -7,15 +7,15 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Map the next authority-limited adapter extraction after the
-CLI parser and global-cache reader cutovers.
+CLI parser, harvest-argument, and global-cache reader cutovers.
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 adapter thinning and security hardening: pure domain,
-service, artifact-manifest, receipt-cache, storage-ingress, and CLI-parser
-cutovers; explicit-only AIOS, receipt, and cache-opt-in boundaries complete;
-map the next read-only argument boundary.
+service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
+harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
+boundaries complete; map the next read-only boundary.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -229,6 +229,10 @@ map the next read-only argument boundary.
   `tmcp_runtime/api/cli.py`; the adapter retains transport output and a
   compatibility parser alias. The full suite has 353 tests with three expected
   skips; focused security and architecture reviews found no P0–P3 issues.
+- `8a0707c` moves shared read-only harvest-argument projection into
+  `tmcp_runtime/services/harvest.py`, preserving source precedence and forcing
+  `write_artifacts=False`; the full suite has 357 tests with three expected
+  skips and the focused boundary review found no P0–P2 issues.
 
 ## Workflow Notes
 
@@ -238,6 +242,8 @@ map the next read-only argument boundary.
 - Preserve public MCP/CLI contracts through a versioned compatibility adapter.
 - Keep the CLI parser pure and API-owned; do not move filesystem, environment,
   process, redaction, storage, or transport authority into `tmcp_runtime/api/cli.py`.
+- Keep harvest argument projection read-only and service-owned; roots, writes,
+  redaction, sessions, and transport remain adapter authority.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -400,12 +406,12 @@ map the next read-only argument boundary.
   traversal, redaction, and projection into a read-only storage ingress.
 - 2026-07-13: `a375cc0` extracts pure CLI parsing into `tmcp_runtime/api/cli.py`,
   preserving aliases and argument semantics while leaving output, dispatch, and
-  all side-effect authority in the adapter; next map is read-only harvest-argument
-  projection.
+  all side-effect authority in the adapter; `8a0707c` centralizes shared
+  read-only harvest-argument projection while preserving adapter authority.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the read-only harvest-argument projection without weakening storage/cache authority.
+# Map the next bounded adapter boundary without weakening storage/cache authority.
 ```
