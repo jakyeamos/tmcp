@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import ast
 import json
 import subprocess
 import unittest
+from pathlib import Path
 
 from tests import test_tmcp_mcp_server as helpers
 from tests.tmcp_test_client import TestWorkspace
+from tmcp_runtime.api import cli
 
 
 PLUGIN_ROOT = helpers.PLUGIN_ROOT
@@ -89,6 +92,63 @@ class TmcpMcpCliTests(unittest.TestCase):
         payload = json.loads(completed.stdout)
         self.assertEqual(payload["adapter"], "standalone")
         self.assertEqual(payload["packet"]["task_id"], "audit")
+
+    def test_adapter_uses_the_runtime_cli_parser(self) -> None:
+        self.assertIs(self.server._parse_cli_arguments, cli.parse_cli_arguments)
+
+    def test_runtime_cli_parser_preserves_session_ids_and_rejects_invalid_json(self) -> None:
+        _, arguments, _ = cli.parse_cli_arguments(
+            [
+                "compose-packet",
+                "Improve the dashboard UI",
+                "--session-id",
+                "00123",
+            ]
+        )
+
+        self.assertEqual(arguments["session_id"], "00123")
+        with self.assertRaises(json.JSONDecodeError):
+            cli.parse_cli_arguments(["explain", "Review UI quality", "--context", "{"])
+
+    def test_runtime_cli_parser_has_no_adapter_or_io_authority(self) -> None:
+        source_path = Path(cli.__file__ or "")
+        tree = ast.parse(source_path.read_text(encoding="utf-8"))
+        imported_modules = {
+            node.module or ""
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom)
+        }
+        imported_modules.update(
+            alias.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Import)
+            for alias in node.names
+        )
+        forbidden_prefixes = (
+            "os",
+            "pathlib",
+            "shutil",
+            "subprocess",
+            "sys",
+            "scripts",
+            "tmcp_runtime.safety",
+            "tmcp_runtime.services",
+            "tmcp_runtime.storage",
+        )
+
+        self.assertTrue(
+            all(
+                not module.startswith(prefix)
+                for module in imported_modules
+                for prefix in forbidden_prefixes
+            )
+        )
+        self.assertTrue(
+            {
+                "tmcp_runtime.api.registry",
+                "tmcp_runtime.api.tool_schemas",
+            }.issubset(imported_modules)
+        )
 
     def test_cli_parser_repeated_flags_become_lists(self) -> None:
         tool_name, arguments, compact = self.server._parse_cli_arguments(
