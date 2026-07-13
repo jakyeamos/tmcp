@@ -5,9 +5,9 @@
 **Phase:** Milestone 3 adapter thinning and security hardening. Receipt
 construction/presentation, artifact manifests, semantic cache validation,
 fail-closed cache opt-in, storage cache ingestion, CLI parsing, harvest
-argument projection, adversarial safety hardening, diagnostic reports, and
-evaluator artifact persistence are complete; map the next bounded read-only
-boundary.
+  argument projection, safety hardening, diagnostics, evaluator artifact
+  persistence, and packet-inclusion scoring are complete; map the next bounded
+  read-only boundary.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -86,7 +86,9 @@ retains output-root selection, final redaction, and atomic persistence. Cached
 receipt projection requires nonblank IDs and timezone-aware timestamps without
 changing the public receipt schema. Evaluator artifact manifests are also pure
 service data; the evaluator is storage-free and the adapter alone selects roots,
-persists atomic bundles, and returns redacted path aliases.
+persists atomic bundles, and returns redacted path aliases. Packet-inclusion
+expectation lookup and composed-packet diffing are now a pure service over an
+adapter-injected callback.
 
 ## Decisions recorded
 
@@ -312,8 +314,7 @@ persists atomic bundles, and returns redacted path aliases.
   context/family deltas, identity, proposal validation, and state shaping over
   injected safe data.
 - cb9ad0f closes public compose/explain project/source-path leaks with final
-  adapter response redaction. Session persistence remains redacted internally;
-  the full local suite has 311 passing tests with three expected platform skips.
+  adapter response redaction. Session persistence remains redacted internally.
 - 278a470 extracts packet composition and source-node enrichment into
   tmcp_runtime/services/compose.py. Direct boundary tests, the full local suite
   (317 tests, three expected skips), install, contract, and changed-line checks
@@ -321,12 +322,10 @@ persists atomic bundles, and returns redacted path aliases.
 - 57d3731 extracts full recompile finalization into
   tmcp_runtime/services/recompile.py and fixes accepted add-route proposals
   being overwritten by the runtime identity. Direct assembly/no-I/O tests and an
-  end-to-end regression pass; the full local suite has 321 tests with three
-  expected platform skips.
+  end-to-end regression pass.
 - 1476d21 makes AIOS explicit-only and rejects known sensitive command values,
   including JSON-escaped review evidence, before external execution. The public
-  tool contract, release guidance, install checks, and full local suite (327
-  tests with three expected skips) pass.
+  tool contract, release guidance, and install checks pass.
 - `679de6e` moves receipt construction/templates/acknowledgement into
   `domain/receipts.py`; `082bb3a` moves artifact manifests/aliases into a pure
   service; `f34862c` validates cached receipt metadata; `390a2ec` moves cache
@@ -338,7 +337,9 @@ persists atomic bundles, and returns redacted path aliases.
   doctor/status report assembly; `09857db` makes harvest services read-only and
   keeps artifact output-root selection, persistence, and path aliases in the
   adapter; `d1f517e` moves evaluator artifact manifests and writes behind the
-  same adapter boundary. The full suite has 367 tests with three expected skips.
+  same adapter boundary; `68fb7c4` extracts packet-inclusion lookup,
+  compose-callback invocation, and composed-packet diffing into a pure service.
+  Full suite: 370 tests, three expected skips
 
 ## Blockers and risks
 
@@ -360,11 +361,11 @@ persists atomic bundles, and returns redacted path aliases.
 - The legacy server and evaluator scripts remain broader than the target's thin
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
-  evaluator persistence boundaries are extracted; map the next bounded cutover
-  without moving root, write, or transport authority.
+  evaluator persistence and packet-scoring boundaries are extracted; map the
+  next bounded cutover without moving root, write, or transport authority.
 
 ## Next step
 
-Map the next bounded evaluator boundary after persistence extraction, preserving
-safe input reads in the compatibility facade and adapter-owned roots, writes,
-redaction, sessions, and transport.
+Map the next bounded evaluator decomposition boundary, preserving safe input
+reads in the compatibility facade and adapter-owned roots, writes, redaction,
+sessions, and transport.

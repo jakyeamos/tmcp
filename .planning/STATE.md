@@ -8,8 +8,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Map the next authority-limited adapter extraction after the
 CLI parser, harvest-argument, global-cache reader, adversarial safety
-hardening, diagnostic-report, harvest-persistence, and evaluator-persistence
-cutovers.
+hardening, diagnostic-report, harvest-persistence, evaluator-persistence, and
+packet-scoring cutovers.
 
 ## Milestone
 
@@ -18,8 +18,8 @@ cutovers.
 service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
 harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
-  read-only harvest/evaluator persistence complete; map the next evaluator
-  boundary.
+  read-only harvest/evaluator persistence and packet-scoring policy complete;
+  map the next evaluator boundary.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -209,20 +209,17 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   retains root checks, safe harvest, cache reads, sessions, recompile, and
   transport; the full local suite has 310 passing tests with three expected skips.
 - cb9ad0f redacts public compose and standalone/auto explain responses after
-  internal session work, closing project/source path leaks; the full local suite
-  has 311 passing tests with three expected skips.
+  internal session work, closing project/source path leaks.
 - 278a470 moves packet composition and source-node enrichment into an in-memory
   service over adapter-supplied safe inputs. Cache reads, redaction, harvest,
   sessions, and transport remain adapter-owned; 317 local tests pass with three
   expected skips.
 - 57d3731 moves full recompile finalization into an in-memory service and fixes
   validated route proposals being overwritten by the runtime identity. Raw-path
-  validation, composition, sessions, and final redaction remain adapter-owned;
-  321 local tests pass with three expected skips.
+  validation, composition, sessions, and final redaction remain adapter-owned.
 - 1476d21 makes AIOS execution explicit-only and denies known sensitive values
   before they reach subprocess arguments, including JSON-escaped review evidence.
-  Public schema/docs/contract fixture now describe the boundary; 327 local tests
-  pass with three expected skips.
+  Public schema/docs/contract fixture now describe the boundary.
 - `679de6e` moves receipt construction/templates/acknowledgement into
   `domain/receipts.py`; `082bb3a` moves artifact manifests/aliases into a pure
   service; `f34862c` validates cached receipt metadata; `390a2ec` moves bounded,
@@ -234,8 +231,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   extracts pure doctor/status report assembly; `09857db` makes harvest services
   read-only and keeps artifact output-root selection, persistence, and aliases
   in the adapter; `d1f517e` moves evaluator artifact manifests and persistence
-  behind the same adapter boundary. The full suite has 367 tests with three
-  expected skips.
+  behind the same adapter boundary; `68fb7c4` extracts packet-inclusion
+  expectation lookup, compose-callback invocation, and packet diffing into a
+  pure service. The full suite has 370 tests with three expected skips.
 
 ## Workflow Notes
 
@@ -255,6 +253,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   atomic persistence, artifact aliases, and final path redaction.
 - Keep evaluator planning/scoring free of storage and output-root authority; the
   adapter owns evaluator artifact manifests, atomic persistence, and path aliases.
+- Keep packet-inclusion expectations and composed-packet diffing pure; the
+  evaluator injects only the adapter's data-only compose callback.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -425,12 +425,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   diagnostics service while keeping environment probes and redaction adapter-owned;
   `09857db` makes harvest services read-only and moves harvest artifact persistence
   back to the adapter boundary; `d1f517e` moves evaluator artifact manifests and
-  persistence behind the same adapter-owned write boundary.
+  persistence behind the same adapter-owned write boundary; `68fb7c4` extracts
+  packet-inclusion scoring policy into a pure service over that callback.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Map the next bounded evaluator boundary after persistence extraction without weakening
-# safe-input, storage/cache, or adapter write authority.
+# Map the next bounded evaluator decomposition boundary without weakening safe-input,
+# storage/cache, or adapter write authority.
 ```
