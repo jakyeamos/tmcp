@@ -90,9 +90,10 @@ Runtime-state/recompile orchestration now lives behind an explicit service
 context with source, cache, and composition callbacks supplied by the adapter.
 Project-local session lifecycle orchestration now lives in a runtime service
 over an injected storage protocol; the adapter retains the validated store
-factory and final redaction. The next major unit is to move remaining artifact
-bundle persistence orchestration into a runtime service. The adapter now
-supplies redaction, path presentation, and verified storage callbacks while
-retaining output-root selection and capability checks. The next major unit is
-to consolidate the remaining producer-specific receipt/artifact wrappers and
-delete obsolete server paths.
+factory and final redaction. Generic artifact-bundle persistence now lives in a
+runtime service; the adapter supplies redaction, path presentation, and
+verified storage callbacks while retaining output-root selection and capability
+checks. Receipt recording now uses the same callback-driven runtime boundary
+while preserving adapter-owned clock, opaque identity, path, and write
+authority. The next major unit is to consolidate global-promotion artifact
+assembly and delete obsolete server paths.

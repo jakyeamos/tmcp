@@ -24,8 +24,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   request/result registry-dispatch cutovers complete; optional AIOS execution
   runtime-state/recompile orchestration and project-local session lifecycle are
   now runtime-owned; generic artifact-bundle persistence is now a runtime
-  service over adapter callbacks; continue thinning producer-specific artifact
-  and receipt compatibility paths.
+  service over adapter callbacks; receipt recording is now runtime-owned over
+  adapter callbacks; continue thinning global-promotion compatibility paths.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -36,7 +36,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   storage owns bounded redacted cache reads, while adapter-owned roots, writes,
   identity, clock, output selection, redaction, and transport remain intact;
   generic artifact-bundle persistence is runtime-owned through explicit storage
-  and redaction callbacks.
+  and redaction callbacks, and receipt recording is runtime-owned through
+  explicit identity, path, redaction, and write callbacks.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -204,6 +205,9 @@ _(truncated for length)_
   `tmcp_runtime.services.artifact_persistence`; inject redaction, path
   presentation, and verified storage callbacks without moving output-root
   selection or capability checks into the service.
+- Keep receipt recording in `tmcp_runtime.services.receipts`; inject the clock,
+  redaction, opaque identity, path creation, verified write, and public result
+  callbacks while preserving adapter-owned seams.
 - Release composition/runtime/session dogfood lives in focused helpers; the
   main release checker remains an orchestration boundary and its size gate is clean.
 - Artifact bundles accept only absent or empty destinations; reused artifact
@@ -319,5 +323,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Consolidate producer-specific artifact and receipt wrappers, then delete obsolete server paths.
+# Consolidate global-promotion artifact assembly, then delete obsolete server paths.
 ```
