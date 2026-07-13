@@ -159,9 +159,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             )
             candidates, candidate_warnings = iter_harvest_candidates(
                 reader_roots,
-                self.server.DEFAULT_HARVEST_INCLUDE_GLOBS,
-                self.server.DEFAULT_HARVEST_EXCLUDE_GLOBS,
-                self.server.DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
+                harvest_service.DEFAULT_HARVEST_INCLUDE_GLOBS,
+                harvest_service.DEFAULT_HARVEST_EXCLUDE_GLOBS,
+                harvest_service.DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
                 follow_symlinks=False,
             )
             self.assertEqual(reader_root_warnings + candidate_warnings, [])
@@ -323,9 +323,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             )
             candidates, candidate_warnings = iter_harvest_candidates(
                 roots,
-                self.server.DEFAULT_HARVEST_INCLUDE_GLOBS,
-                self.server.DEFAULT_HARVEST_EXCLUDE_GLOBS,
-                self.server.DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
+                harvest_service.DEFAULT_HARVEST_INCLUDE_GLOBS,
+                harvest_service.DEFAULT_HARVEST_EXCLUDE_GLOBS,
+                harvest_service.DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
                 follow_symlinks=False,
             )
             self.assertEqual(root_warnings + candidate_warnings, [])
@@ -357,9 +357,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             )
             candidates, candidate_warnings = iter_harvest_candidates(
                 roots,
-                self.server.DEFAULT_HARVEST_INCLUDE_GLOBS,
-                self.server.DEFAULT_HARVEST_EXCLUDE_GLOBS,
-                self.server.DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
+                harvest_service.DEFAULT_HARVEST_INCLUDE_GLOBS,
+                harvest_service.DEFAULT_HARVEST_EXCLUDE_GLOBS,
+                harvest_service.DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
                 follow_symlinks=False,
             )
             self.assertEqual(root_warnings + candidate_warnings, [])

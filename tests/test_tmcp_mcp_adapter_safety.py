@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
+import tmcp_runtime.adapters.aios as aios_adapter
 from tmcp_runtime.storage import ArtifactStorageError
 
 
@@ -89,7 +90,7 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
     def test_aios_rejects_sensitive_command_arguments_before_execution(self) -> None:
         secret = "sk-" + "J" * 40
         with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server.subprocess,
+            aios_adapter.subprocess,
             "run",
         ) as run:
             result = self.server._run_aios(
@@ -123,7 +124,7 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
     def test_explain_explicit_aios_rejects_sensitive_values_before_execution(self) -> None:
         secret = "sk-" + "K" * 40
         with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server.subprocess,
+            aios_adapter.subprocess,
             "run",
         ) as run:
             result = self.server._call_tool(
@@ -211,7 +212,7 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
     def test_explain_aios_timeout_returns_a_redacted_structured_error(self) -> None:
         secret = "sk-" + "D" * 40
         with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server.subprocess,
+            aios_adapter.subprocess,
             "run",
             side_effect=subprocess.TimeoutExpired(["aios", secret], 120),
         ):
@@ -396,7 +397,7 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
     def test_review_explicit_aios_rejects_sensitive_evidence_before_execution(self) -> None:
         secret = "sk-" + "L" * 40
         with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server.subprocess,
+            aios_adapter.subprocess,
             "run",
         ) as run:
             result = self.server._call_tool(
@@ -420,7 +421,7 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
     ) -> None:
         escaped_secret = "sk-" + "\\u004d" * 40
         with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server.subprocess,
+            aios_adapter.subprocess,
             "run",
         ) as run:
             result = self.server._call_tool(

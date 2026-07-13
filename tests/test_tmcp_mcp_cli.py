@@ -93,9 +93,6 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(payload["adapter"], "standalone")
         self.assertEqual(payload["packet"]["task_id"], "audit")
 
-    def test_adapter_uses_the_runtime_cli_parser(self) -> None:
-        self.assertIs(self.server._parse_cli_arguments, cli.parse_cli_arguments)
-
     def test_runtime_cli_parser_preserves_session_ids_and_rejects_invalid_json(self) -> None:
         _, arguments, _ = cli.parse_cli_arguments(
             [
@@ -155,7 +152,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         )
 
     def test_cli_parser_repeated_flags_become_lists(self) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
+        tool_name, arguments, compact = cli.parse_cli_arguments(
             [
                 "harvest",
                 ".",
@@ -177,7 +174,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertFalse(arguments["redact_sensitive"])
 
     def test_cli_parser_schema_array_flags_accept_single_value(self) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
+        tool_name, arguments, compact = cli.parse_cli_arguments(
             ["recommend", ".", "--candidate-workflows", "ui_quality"]
         )
 
@@ -188,7 +185,7 @@ class TmcpMcpCliTests(unittest.TestCase):
     def test_cli_parser_promote_harvest_accepts_source_and_selected_workflow(
         self,
     ) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
+        tool_name, arguments, compact = cli.parse_cli_arguments(
             [
                 "promote-harvest",
                 ".",
@@ -207,7 +204,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertFalse(arguments["write_artifacts"])
 
     def test_cli_parser_accepts_composition_commands_and_flags(self) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
+        tool_name, arguments, compact = cli.parse_cli_arguments(
             [
                 "compose-packet",
                 "Improve the dashboard UI",
@@ -236,7 +233,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         )
         self.assertEqual(arguments["session_id"], "123")
 
-        tool_name, arguments, _ = self.server._parse_cli_arguments(
+        tool_name, arguments, _ = cli.parse_cli_arguments(
             [
                 "runtime-next",
                 "Fix the dashboard bug",
@@ -258,7 +255,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(arguments["files_changed"], ["app/page.tsx"])
         self.assertEqual(arguments["failures"], ["vitest failed"])
 
-        tool_name, arguments, _ = self.server._parse_cli_arguments(
+        tool_name, arguments, _ = cli.parse_cli_arguments(
             [
                 "record-receipt",
                 "packet-123",
@@ -275,7 +272,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(arguments["outcome"], "passed")
 
     def test_cli_parser_compose_flag_on_existing_tools(self) -> None:
-        tool_name, arguments, _ = self.server._parse_cli_arguments(
+        tool_name, arguments, _ = cli.parse_cli_arguments(
             [
                 "explain",
                 "Review UI quality",
@@ -288,7 +285,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(tool_name, "tmcp_explain")
         self.assertTrue(arguments["compose"])
 
-        tool_name, arguments, _ = self.server._parse_cli_arguments(
+        tool_name, arguments, _ = cli.parse_cli_arguments(
             ["recommend", "/tmp/project", "--compose"]
         )
 
@@ -321,7 +318,7 @@ class TmcpMcpCliTests(unittest.TestCase):
                 self.assertIn(expected, docs)
 
     def test_cli_expert_ui_rubric_alias_defaults_to_tmcp_workflow(self) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
+        tool_name, arguments, compact = cli.parse_cli_arguments(
             [
                 "expert-ui-rubric",
                 "--project-path",
@@ -340,7 +337,7 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(arguments["project_path"], "/tmp/fantasy")
 
     def test_cli_expert_ui_rubric_alias_accepts_objective_override(self) -> None:
-        tool_name, arguments, compact = self.server._parse_cli_arguments(
+        tool_name, arguments, compact = cli.parse_cli_arguments(
             [
                 "tmcp-expert-ui-rubric",
                 "Use the TMCP expert UI rubric workflow on Fantasy",
