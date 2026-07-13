@@ -45,10 +45,8 @@ from tmcp_runtime.domain.review_evidence import (  # noqa: E402
 from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     workflow_catalog_by_id,
 )
-from scripts.tmcp_skill_evaluate import (  # noqa: E402
-    evaluate_skills,
-    harvest_warnings_for_source,
-)
+from scripts.tmcp_skill_evaluate import harvest_warnings_for_source  # noqa: E402
+from tmcp_runtime.api.evaluation import evaluate_skills  # noqa: E402
 from tmcp_runtime.api.cli import parse_cli_arguments as _parse_cli_arguments  # noqa: E402
 from tmcp_runtime.api.registry import (  # noqa: E402
     cli_usage as _cli_usage,
