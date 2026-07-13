@@ -27,6 +27,7 @@ from tmcp_runtime.services.harvest import (
 from tmcp_runtime.services.recommendations import recommend_workflows
 from tmcp_runtime.services.promotion import promote_harvest
 from tmcp_runtime.services.recompile import finalize_recompiled_packet
+from tmcp_runtime.services.receipts import ReceiptService, ReceiptServiceContext
 from tmcp_runtime.services.review import build_review_plan
 
 __all__ = [
@@ -45,6 +46,8 @@ __all__ = [
     "harvest_skills",
     "finalize_recompiled_packet",
     "promote_harvest",
+    "ReceiptService",
+    "ReceiptServiceContext",
     "recommend_workflows",
     "require_default_artifact_root",
     "source_project_path",

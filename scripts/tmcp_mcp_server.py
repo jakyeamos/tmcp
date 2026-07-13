@@ -118,6 +118,10 @@ from tmcp_runtime.services.sessions import (  # noqa: E402
     RUNTIME_NEXT_SCHEMA,
     RuntimeSessionService,
 )
+from tmcp_runtime.services.receipts import (  # noqa: E402
+    ReceiptService,
+    ReceiptServiceContext,
+)
 from tmcp_runtime.services.review import (  # noqa: E402
     build_review_plan as _runtime_build_review_plan,
 )
@@ -659,38 +663,67 @@ def _runtime_next(arguments: dict[str, Any]) -> dict[str, Any]:
     return _redact_result(service.run(arguments))
 
 
-def _record_receipt(arguments: dict[str, Any]) -> dict[str, Any]:
-    created_at = _now_iso()
-    receipt = _runtime_build_run_receipt(arguments, created_at=created_at)
-    redacted_receipt, receipt_redactions = redact_json_value(receipt, enabled=True)
-    safe_receipt = (
-        redacted_receipt if isinstance(redacted_receipt, dict) else {}
+def _redact_receipt(
+    receipt: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, int]]:
+    redacted_receipt, redactions = redact_json_value(receipt, enabled=True)
+    return (
+        redacted_receipt if isinstance(redacted_receipt, dict) else {},
+        redactions,
     )
-    packet_id = str(receipt["packet_id"])
-    storage_key = _opaque_storage_key(
-        packet_id,
-        str(safe_receipt["packet_id"]),
-    )
+
+
+def _receipt_path(
+    created_at: str,
+    storage_key: str,
+    safe_receipt: Mapping[str, Any],
+) -> Path:
     month = created_at[:7]
     digest = hashlib.sha256(json.dumps(safe_receipt, sort_keys=True).encode()).hexdigest()[
         :10
     ]
-    path = (
+    return (
         _global_receipts_root()
         / month
         / f"{storage_key}-{digest}-{uuid.uuid4().hex}.json"
     )
-    receipt_path = AtomicArtifactStore.explicit(path.parent).write_json(
+
+
+def _write_receipt(
+    path: Path,
+    safe_receipt: Mapping[str, Any],
+) -> Path:
+    return AtomicArtifactStore.explicit(path.parent).write_json(
         path.name,
         safe_receipt,
     )
-    return _redact_result(
-        _runtime_build_recorded_receipt_result(
-            safe_receipt,
-            redacted_receipt_path=redact_path(receipt_path),
-            redaction_summary=receipt_redactions,
+
+
+def _receipt_service() -> ReceiptService:
+    return ReceiptService(
+        ReceiptServiceContext(
+            build_receipt=lambda arguments, created_at: _runtime_build_run_receipt(
+                arguments,
+                created_at=created_at,
+            ),
+            redact_receipt=_redact_receipt,
+            storage_key=_opaque_storage_key,
+            build_path=_receipt_path,
+            write_receipt=_write_receipt,
+            present_path=redact_path,
+            build_result=lambda safe_receipt, path, redactions: _runtime_build_recorded_receipt_result(
+                safe_receipt,
+                redacted_receipt_path=path,
+                redaction_summary=redactions,
+            ),
+            redact_result=_redact_result,
+            now_iso=_now_iso,
         )
     )
+
+
+def _record_receipt(arguments: dict[str, Any]) -> dict[str, Any]:
+    return _receipt_service().record(arguments)
 
 
 def _compose_recommendation_preview(
