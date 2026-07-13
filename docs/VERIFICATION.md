@@ -5,7 +5,7 @@
 The 0.5.0 compatibility candidate updates the canonical registry, Codex and
 Claude manifests, marketplace metadata, MCP Registry draft, citation metadata,
 and public-contract fixture together. The post-cutover hosted matrix passed in
-PR run `29285497867`; the evidence-pointer rerun is the final merge gate.
+PR run `29285497867`; final evidence-pointer rerun `29285802846` also passed.
 
 ```bash
 python3 -m unittest discover -s tests

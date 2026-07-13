@@ -124,4 +124,5 @@ validated path-read fallback only for read-only inputs while durable writes
 remain fail-closed. A follow-up run reduced the remaining Windows failures to
 path/newline presentation contracts; `1a59e2f` normalizes those contracts and
 hosted run `29284457105` passes the complete six-job matrix, including both
-Windows package/evidence jobs. The final evidence-pointer rerun is next.
+Windows package/evidence jobs. Final evidence-pointer rerun `29285802846` also
+passes; a fresh adversarial review is next.

@@ -1,7 +1,7 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.0",
-  "checked_at": "2026-07-13T21:16:10Z",
+  "checked_at": "2026-07-13T21:20:12Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
@@ -12,7 +12,7 @@
     "run_id": 29285497867,
     "url": "https://github.com/jakyeamos/tmcp/actions/runs/29285497867",
     "head_sha": "5836e19fd533d5784af37e1e7e158607e351c9ef",
-    "notes": "Successful post-cutover 0.5.0 PR verify.yml run; rerun the evidence-pointer commit before merge."
+    "notes": "Successful post-cutover 0.5.0 PR verify.yml run; final evidence-pointer rerun 29285802846 also passed."
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.5.0.tar.gz",
@@ -32,6 +32,6 @@
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "Post-cutover 0.5.0 PR verification passed; final evidence-pointer rerun remains required before merge."
+    "result": "Post-cutover 0.5.0 PR verification and final evidence-pointer rerun passed; merge, tagging, and publication remain separate."
   }
 }

@@ -30,8 +30,8 @@ A Tier One release requires:
 | Release operations | 3 | 3 | 3 | Hard |
 
 Current score: 100/100 for the scoped `0.5.0` release candidate. Post-cutover
-hosted PR run `29285497867` passed the complete matrix; the evidence-pointer
-rerun remains the final merge gate.
+hosted PR run `29285497867` and final evidence-pointer rerun `29285802846`
+passed the complete matrix; the draft PR is ready for review.
 
 ## Dimensions
 

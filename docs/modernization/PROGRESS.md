@@ -332,8 +332,9 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 - The primary checkout contains user-owned uncommitted work that is not included
   in this audit branch. Integrate or supersede it deliberately during approved
   implementation.
-- The post-cutover hosted matrix is green in PR run `29285497867`; the final
-  evidence-pointer rerun remains before merge.
+- The post-cutover hosted matrix is green in PR run `29285497867`, and final
+  evidence-pointer rerun `29285802846` also passes; the draft PR is ready for
+  review.
 - No tag or publication has occurred. The 0.5.0 compatibility process remains
   gated on the post-cutover hosted run because the stateless default and
   explicit-only AIOS behavior are material changes.
@@ -354,5 +355,5 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 
 ## Next step
 
-Rerun the hosted gate after recording `29285497867` as the evidence-bearing
-0.5.0 run, then review the draft PR; tagging and publication stay separate.
+Run the fresh adversarial review on the verified draft PR, then decide whether
+to mark it ready; tagging and publication stay separate.

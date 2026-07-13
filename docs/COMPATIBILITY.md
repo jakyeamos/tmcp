@@ -59,8 +59,8 @@ and migration never rewrites or deletes source artifacts. Receipts and
 project-local sessions have no alternate shipped schema and remain strict.
 
 The 0.5.0 release-candidate version surfaces are now updated together, and the
-evidence record points to successful post-cutover hosted PR run `29285497867`.
-The final evidence-pointer rerun is still required before merge.
+evidence record points to successful post-cutover hosted PR run `29285497867`,
+and final rerun `29285802846` passed. The draft PR is ready for review.
 
 ## Known Gaps
 
