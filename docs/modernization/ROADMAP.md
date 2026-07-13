@@ -121,4 +121,6 @@ The 0.5.0 compatibility cutover is now documented in
 The first hosted PR run exposed a Windows read-only regression: exact-file
 inputs were rejected because Windows lacks `O_NOFOLLOW`. The reader now uses a
 validated path-read fallback only for read-only inputs while durable writes
-remain fail-closed.
+remain fail-closed. A follow-up run reduced the remaining Windows failures to
+path/newline presentation contracts; `1a59e2f` normalizes those contracts and
+is queued for another hosted verification.

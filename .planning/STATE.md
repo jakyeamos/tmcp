@@ -37,8 +37,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   remains 0.4.0 until an evidence-bearing release PR and second verification.
   Draft PR #2's first hosted run passed Linux/macOS but failed Windows because
   exact-file read-only inputs rejected the missing O_NOFOLLOW primitive;
-  `b99c58a` adds the validated Windows fallback. Continue hosted verification
-  without tagging or publishing.
+  `b99c58a` adds the validated Windows fallback. Follow-up run
+  `29284101047` reduced the residual failures to Windows path/newline contracts;
+  `1a59e2f` normalizes those boundaries. Continue hosted verification without
+  tagging or publishing.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -349,5 +351,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Audit remaining legacy artifact formats, then run the Horizon 4 release gates.
+# Push 1a59e2f and rerun the draft PR workflow; inspect the Windows matrix.
 ```
