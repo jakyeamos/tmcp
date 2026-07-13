@@ -338,7 +338,8 @@ adapter-injected callback.
   observables; `931b9bb` extracts trace scoring/report assembly; `a05a6aa`
   extracts rendering/catalog/advisory formatting; `4f68872` hardens advisory
   assembly and catalog/title handling; `6945416` bounds evaluator inputs/traces
-  and validates nested shapes. Full suite: 390 tests, three expected skips
+  and nested shapes; `d954658` surfaces compose failures. Full suite: 391 tests,
+  three expected skips
 
 ## Blockers and risks
 
@@ -361,9 +362,9 @@ adapter-injected callback.
   transport adapter. Artifact planning, cache ingestion, CLI parsing, harvest
   argument projection, safety hardening, diagnostics, harvest persistence, and
   evaluator persistence, packet scoring, report, policy, rendering, and advisory
-  boundaries are extracted; mode orchestration and composition-failure policy
-  remain to be cut over without moving root, write, or transport authority.
+  boundaries are extracted; mode orchestration remains to be cut over without
+  moving root, write, or transport authority.
 
 ## Next step
 
-Narrow composition-failure handling before extracting evaluator mode orchestration.
+Extract evaluator mode orchestration without moving adapter authority.
