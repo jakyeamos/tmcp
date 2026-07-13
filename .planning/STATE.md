@@ -6,24 +6,24 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Close semantic receipt-cache validation, then reassess the
-next authority-limited adapter extraction.
+**Current focus:** Reassess the read-only global-cache boundary after semantic
+receipt-cache validation.
 
 ## Milestone
 
 **Name:** TMCP Modernization
 **Status:** Milestone 3 adapter thinning and security hardening: pure domain,
-service, and artifact-manifest cutovers; explicit-only AIOS, receipt, and
-cache-opt-in boundaries complete; close semantic cache validation next.
+service, artifact-manifest, and receipt-cache validation cutovers; explicit-only
+AIOS, receipt, and cache-opt-in boundaries complete; reassess cache reads next.
 **Started:** 2026-07-10
 
 ## Active Phase
 
 - **Phase:** Compose and recompile vertical slice
 - **Slug:** `tmcp-modernization`
-- **Status:** Receipt and artifact-manifest construction are pure-owned;
-  adapter-owned identity, clock, output selection, storage, cache ingress,
-  redaction, and transport boundaries remain intact. Continue adapter thinning.
+- **Status:** Receipt/artifact construction and semantic cache projection are
+  pure-owned; adapter-owned identity, clock, output selection, storage, cache
+  ingress, redaction, and transport boundaries remain intact. Continue thinning.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
@@ -218,11 +218,11 @@ cache-opt-in boundaries complete; close semantic cache validation next.
   before they reach subprocess arguments, including JSON-escaped review evidence.
   Public schema/docs/contract fixture now describe the boundary; 327 local tests
   pass with three expected skips.
-- `679de6e` moves receipt construction, templates, and acknowledgement into
-  `domain/receipts.py`; `082bb3a` moves artifact manifests, Markdown rendering,
-  and public path aliases into a pure service. Identity, output selection,
-  redaction, and atomic persistence remain adapter-owned; 343 local tests pass
-  with three expected skips.
+- `679de6e` moves receipt construction/templates/acknowledgement into
+  `domain/receipts.py`; `082bb3a` moves artifact manifests/aliases into a pure
+  service; `f34862c` makes cache receipt projection require nonblank IDs and
+  timezone-aware timestamps. Identity, I/O, redaction, and atomic writes remain
+  adapter-owned; 346 local tests pass with three expected skips.
 
 ## Workflow Notes
 
@@ -387,11 +387,13 @@ cache-opt-in boundaries complete; close semantic cache validation next.
   keeps receipt identity and persistence adapter-owned, and makes invalid cache
   policy values fail closed before shared artifacts can be read; `082bb3a` moves
   redacted artifact manifests, Markdown rendering, and response aliases into a
-  pure service without moving output-root, redaction, or write authority.
+  pure service without moving output-root, redaction, or write authority;
+  `f34862c` rejects ambiguous cached receipt metadata without changing the public
+  receipt schema or cache mtime ordering.
 - 2026-07-04: QR remediation planning initialized; preserved as parked context.
 
 ## Next Command
 
 ```bash
-# Harden semantic receipt-cache validation, then reassess the cache-reader boundary.
+# Reassess the read-only cache-reader extraction without weakening TOCTOU/redaction safety.
 ```

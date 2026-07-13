@@ -3,8 +3,8 @@
 ## Current state
 
 **Phase:** Milestone 3 adapter thinning and security hardening. Receipt
-construction/presentation, artifact manifests, and fail-closed cache opt-in are
-complete; close semantic receipt-cache validation next.
+construction/presentation, artifact manifests, semantic cache validation, and
+fail-closed cache opt-in are complete; reassess the cache-reader boundary next.
 
 **Branch:** `codex/tmcp-modernization-v2`
 
@@ -80,7 +80,9 @@ retains the UTC clock, raw-to-redacted opaque identity, filename digest/nonce,
 safe storage write, cache ingress, and final response redaction. Only literal
 `cache_policy=global` can consume shared graphs or receipts. Artifact manifests,
 Markdown rendering, and public path aliases are now pure service data; the adapter
-retains output-root selection, final redaction, and atomic persistence.
+retains output-root selection, final redaction, and atomic persistence. Cached
+receipt projection requires nonblank IDs and timezone-aware timestamps without
+changing the public receipt schema.
 
 ## Decisions recorded
 
@@ -125,7 +127,8 @@ retains output-root selection, final redaction, and atomic persistence.
 - Treat global-cache validation and projection as pure storage policy. Inject its
   schema, timestamp, canonical catalog, and redactor; keep cache root selection,
   filesystem traversal, parsing, redaction authority, and persistence in the
-  adapter.
+  adapter. Cached receipts must have nonblank IDs and unambiguous timestamps
+  before contributing advisory metadata.
 - Treat optional AIOS subprocess output as untrusted adapter data: redact the
   complete response only after optional composition, redact status/doctor paths,
   and map launch/timeout failures to structured errors.
@@ -327,9 +330,9 @@ retains output-root selection, final redaction, and atomic persistence.
   tool contract, release guidance, install checks, and full local suite (327
   tests with three expected skips) pass.
 - `679de6e` moves receipt construction/templates/acknowledgement into
-  `domain/receipts.py`; `082bb3a` moves artifact manifests, Markdown rendering,
-  and response aliases into a pure service. Adapter-owned identity, output-root,
-  redaction, and atomic writes are unchanged. The full local suite has 343 tests
+  `domain/receipts.py`; `082bb3a` moves artifact manifests/aliases into a pure
+  service; `f34862c` rejects ambiguous cached receipt IDs/timestamps. Adapter I/O,
+  redaction, and atomic writes are unchanged. The full local suite has 346 tests
   with three expected skips; install, contract, compile, and boundary reviews pass.
 
 ## Blockers and risks
@@ -346,15 +349,14 @@ retains output-root selection, final redaction, and atomic persistence.
 - AIOS needs a protected request-input protocol before confidential explicit
   requests can safely use it; the current boundary denies known sensitive values
   rather than forwarding them through process arguments.
-- Cache receipt validation is intentionally structural today. Before receipt
-  timestamps or IDs drive future ranking/retention semantics, require nonempty,
-  parseable values at cache ingress; current projection retains only a redacted
-  identifier, path, schema, and advisory trust.
+- Cached projection requires nonblank IDs and timezone-aware timestamps; public
+  v0.1 stays permissive and cache still orders by safe file mtime. Require
+  canonical RFC3339 grammar before timestamps gain ranking/retention meaning.
 - The legacy server and evaluator scripts remain broader than the target's thin
   transport adapter. Artifact planning is pure-owned; remaining cache I/O must
   retain its current safety boundary around the pure policy module.
 
 ## Next step
 
-Harden semantic receipt-cache validation at the existing cache-policy boundary,
-then reassess the cache-reader extraction without weakening cache safety.
+Reassess the read-only cache-reader extraction without weakening TOCTOU,
+redaction, bounds, advisory-trust, or explicit-opt-in safety.
