@@ -73,13 +73,11 @@ def _workflow_objective_score(workflow: dict[str, Any], objective: str) -> float
             score += 2.0 if " " in keyword else 1.0
     if _contains_signal_term(objective_lower, signal_family.replace("_", " ")):
         score += 3.0
-    if (
-        _contains_signal_term(
-            objective_lower,
-            str(workflow.get("workflow_id") or "")
-            .replace("_workflow", "")
-            .replace("_", " "),
-        )
+    if _contains_signal_term(
+        objective_lower,
+        str(workflow.get("workflow_id") or "")
+        .replace("_workflow", "")
+        .replace("_", " "),
     ):
         score += 2.0
     workflow_signal_text = " ".join(

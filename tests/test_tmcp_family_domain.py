@@ -12,7 +12,9 @@ def _signal_text(node: dict[str, object]) -> str:
 
 
 class FamilyDomainTests(unittest.TestCase):
-    def test_seed_resolution_uses_threshold_then_stable_tie_break_without_mutation(self) -> None:
+    def test_seed_resolution_uses_threshold_then_stable_tie_break_without_mutation(
+        self,
+    ) -> None:
         first = {
             "source_type": "scoped_packet_seed",
             "seed_id": "alpha",
@@ -46,8 +48,11 @@ class FamilyDomainTests(unittest.TestCase):
             node_signal_text=_signal_text,
         )
 
+        assert family_context is not None
         self.assertEqual(family_context["active_seed_id"], "zeta")
-        self.assertEqual(family_context["primary_source_patterns"], ["skills/zeta/SKILL.md"])
+        self.assertEqual(
+            family_context["primary_source_patterns"], ["skills/zeta/SKILL.md"]
+        )
         self.assertEqual(family_context["declared_loads"], ["notes/**"])
         self.assertEqual(source_nodes, before)
 
@@ -70,6 +75,7 @@ class FamilyDomainTests(unittest.TestCase):
             node_signal_text=_signal_text,
         )
 
+        assert family_context is not None
         self.assertEqual(family_context["active_seed_id"], "redesign_seed")
         self.assertEqual(
             family_context["route_affinity"],
@@ -98,8 +104,11 @@ class FamilyDomainTests(unittest.TestCase):
             node_signal_text=_signal_text,
         )
 
+        assert family_context is not None
         self.assertEqual(family_context["kind"], "router_skill")
-        self.assertEqual(family_context["primary_skill_slugs"], ["product-design-runtime"])
+        self.assertEqual(
+            family_context["primary_skill_slugs"], ["product-design-runtime"]
+        )
         self.assertEqual(
             family_context["primary_source_patterns"],
             [".agents/skills/product-design-runtime/SKILL.md"],
@@ -135,7 +144,9 @@ class FamilyDomainTests(unittest.TestCase):
 
         self.assertIsNone(family_context)
 
-    def test_primary_sibling_and_support_document_deferral_respects_explicit_objective(self) -> None:
+    def test_primary_sibling_and_support_document_deferral_respects_explicit_objective(
+        self,
+    ) -> None:
         family_context = {
             "primary_skill_slugs": ["product-design-runtime"],
             "primary_source_patterns": ["skills/product-design-runtime/SKILL.md"],
@@ -194,16 +205,16 @@ class FamilyDomainTests(unittest.TestCase):
             "coverage-gaps.md",
         )
 
-    def test_runtime_seed_context_uses_phase_alias_for_transition_only_seed(self) -> None:
+    def test_runtime_seed_context_uses_phase_alias_for_transition_only_seed(
+        self,
+    ) -> None:
         source_nodes = [
             {
                 "source_type": "scoped_packet_seed",
                 "seed_id": "runtime_only",
                 "title": "Runtime only",
                 "source_references": ["skills/runtime/SKILL.md"],
-                "phase_transitions": {
-                    "runtime": {"next_phases": ["implementation"]}
-                },
+                "phase_transitions": {"runtime": {"next_phases": ["implementation"]}},
             }
         ]
 
@@ -214,13 +225,17 @@ class FamilyDomainTests(unittest.TestCase):
             node_signal_text=_signal_text,
         )
 
+        assert family_context is not None
+        assert seed_node is not None
         self.assertEqual(seed_node["seed_id"], "runtime_only")
         self.assertEqual(family_context["active_seed_id"], "runtime_only")
         self.assertEqual(
             family_context["primary_source_patterns"], ["skills/runtime/SKILL.md"]
         )
 
-    def test_runtime_delta_preserves_phase_and_read_order_without_mutation(self) -> None:
+    def test_runtime_delta_preserves_phase_and_read_order_without_mutation(
+        self,
+    ) -> None:
         family_context = {
             "active_seed_id": "runtime",
             "primary_skill_slugs": ["runtime"],
@@ -275,7 +290,9 @@ class FamilyDomainTests(unittest.TestCase):
     def test_runtime_delta_holds_before_resolving_declared_reads(self) -> None:
         with patch(
             "tmcp_runtime.domain.families.resolve_declared_load_paths",
-            side_effect=AssertionError("hold language must skip declared-read resolution"),
+            side_effect=AssertionError(
+                "hold language must skip declared-read resolution"
+            ),
         ):
             delta = families.runtime_family_packet_delta(
                 current_phase="runtime",
@@ -303,9 +320,7 @@ class FamilyDomainTests(unittest.TestCase):
             "primary_skill_slugs": ["runtime"],
             "deferred_skill_slugs": ["ui-implementation", "ui-review"],
         }
-        source_nodes = [
-            {"relative_path": "skills/ui-implementation/SKILL.md"}
-        ]
+        source_nodes = [{"relative_path": "skills/ui-implementation/SKILL.md"}]
         delta = families.runtime_family_packet_delta(
             current_phase="start",
             family_context=family_context,

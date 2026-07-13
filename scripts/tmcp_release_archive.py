@@ -236,9 +236,7 @@ def forbidden_path_reason(relative_path: PurePosixPath) -> str | None:
             return "environment files are never releasable"
         if lower_part in FORBIDDEN_FILE_NAMES:
             return f"forbidden credential filename {part!r}"
-        tokens = {
-            token for token in re.split(r"[-_.\s]+", lower_part) if token
-        }
+        tokens = {token for token in re.split(r"[-_.\s]+", lower_part) if token}
         forbidden_tokens = sorted(tokens & FORBIDDEN_PATH_NAME_TOKENS)
         if forbidden_tokens:
             return (
@@ -333,18 +331,19 @@ def read_git_blob(plugin_root: Path, object_id: str) -> bytes:
 
 def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     value = match.group(0)
-    if len(value) not in {40, 64, 96, 128} or not re.fullmatch(
-        r"[A-Fa-f0-9]+", value
-    ):
+    if len(value) not in {40, 64, 96, 128} or not re.fullmatch(r"[A-Fa-f0-9]+", value):
         return False
     line_start = text.rfind("\n", 0, match.start()) + 1
-    prefix = text[line_start:match.start()]
-    return re.search(
-        r"\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b"
-        r"(?:\s+(?:hash|digest))?\s*[:=]\s*$",
-        prefix,
-        flags=re.IGNORECASE,
-    ) is not None
+    prefix = text[line_start : match.start()]
+    return (
+        re.search(
+            r"\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b"
+            r"(?:\s+(?:hash|digest))?\s*[:=]\s*$",
+            prefix,
+            flags=re.IGNORECASE,
+        )
+        is not None
+    )
 
 
 def scan_release_content(relative_path: str, content: bytes) -> None:
@@ -372,12 +371,14 @@ def release_package_plan(
     plugin_root: Path,
 ) -> tuple[str, str, list[PackageEntry], list[dict[str, str]]]:
     require_clean_git_worktree(plugin_root)
-    commit = run_git(plugin_root, ["rev-parse", "--verify", "HEAD"]).decode(
-        "ascii"
-    ).strip()
-    tree = run_git(plugin_root, ["rev-parse", "--verify", "HEAD^{tree}"]).decode(
-        "ascii"
-    ).strip()
+    commit = (
+        run_git(plugin_root, ["rev-parse", "--verify", "HEAD"]).decode("ascii").strip()
+    )
+    tree = (
+        run_git(plugin_root, ["rev-parse", "--verify", "HEAD^{tree}"])
+        .decode("ascii")
+        .strip()
+    )
     raw_entries = run_git(plugin_root, ["ls-tree", "-r", "-z", tree])
     package_entries: list[PackageEntry] = []
     exclusions: list[dict[str, str]] = []
@@ -500,9 +501,9 @@ def create_package(plugin_root: Path, output_path: Path) -> dict[str, Any]:
         entries=entries,
         exclusions=exclusions,
     )
-    manifest_bytes = (
-        json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-    ).encode("utf-8")
+    manifest_bytes = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path: Path | None = None
     archive_digest = ""
@@ -540,9 +541,15 @@ def verify_reproducibility(
         second_path = Path(tmp) / "tmcp-release-second.tar.gz"
         second_build = create_package(plugin_root, second_path)
     if second_build["source_commit"] != first_build["source_commit"]:
-        return {"status": "fail", "message": "repeat package used a different source commit"}
+        return {
+            "status": "fail",
+            "message": "repeat package used a different source commit",
+        }
     if second_build["source_tree"] != first_build["source_tree"]:
-        return {"status": "fail", "message": "repeat package used a different source tree"}
+        return {
+            "status": "fail",
+            "message": "repeat package used a different source tree",
+        }
     if second_build["archive_digest"] != first_build["archive_digest"]:
         return {
             "status": "fail",
@@ -593,7 +600,10 @@ def check_archive_manifest(package_path: Path) -> tuple[bool, str]:
                 not member.isfile() or not member.name.startswith(f"{PACKAGE_ROOT}/")
                 for member in members
             ):
-                return False, "archive contains unexpected non-file or non-package member"
+                return (
+                    False,
+                    "archive contains unexpected non-file or non-package member",
+                )
             manifest_member = archive.getmember(manifest_name)
             if manifest_member.mode & 0o777 != 0o644:
                 return False, "release manifest mode must be 0644"
@@ -672,16 +682,15 @@ def check_archive_manifest(package_path: Path) -> tuple[bool, str]:
                 if forbidden_reason is not None:
                     return False, f"release manifest entry is unsafe: {path}"
                 if inclusion_reason(relative_path) is not None:
-                    return False, f"release manifest entry is outside the allowlist: {path}"
+                    return (
+                        False,
+                        f"release manifest entry is outside the allowlist: {path}",
+                    )
                 git_mode = raw_entry.get("git_mode")
                 if not isinstance(git_mode, str) or git_mode not in ALLOWED_GIT_MODES:
                     return False, f"release manifest mode is invalid for {path}"
                 size = raw_entry.get("size")
-                if (
-                    not isinstance(size, int)
-                    or isinstance(size, bool)
-                    or size < 0
-                ):
+                if not isinstance(size, int) or isinstance(size, bool) or size < 0:
                     return False, f"release manifest size is invalid for {path}"
                 digest = raw_entry.get("sha256")
                 if not isinstance(digest, str) or not re.fullmatch(

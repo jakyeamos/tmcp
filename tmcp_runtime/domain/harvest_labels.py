@@ -466,7 +466,12 @@ def guidance_labels_for(rel_path: str, text: str) -> list[dict[str, Any]]:
     haystack = f"{rel_path}\n{signal_text}"
     labels: list[dict[str, Any]] = []
     for rule in SOURCE_GUIDANCE_LABEL_RULES:
-        terms = tuple(str(term) for term in rule.get("terms", ()))
+        raw_terms = rule.get("terms")
+        terms = (
+            tuple(str(term) for term in raw_terms)
+            if isinstance(raw_terms, (tuple, list))
+            else ()
+        )
         matched_terms = matched_signal_terms(haystack, terms)
         if not matched_terms:
             continue

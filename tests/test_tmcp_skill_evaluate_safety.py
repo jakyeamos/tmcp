@@ -76,7 +76,7 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
                     "variants": ["original"],
                     "write_artifacts": True,
                     "output_dir": str(output_dir),
-                }
+                },
             )
             artifact_text = (output_dir / "tmcp-skill-evaluation-plan.json").read_text(
                 encoding="utf-8"
@@ -102,7 +102,9 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
             external_skill.write_text("# External\n", encoding="utf-8")
             oversized_skill = project / "nested" / "SKILL.md"
             oversized_skill.parent.mkdir()
-            oversized_skill.write_text("# Oversized\n" + "x" * 262_145, encoding="utf-8")
+            oversized_skill.write_text(
+                "# Oversized\n" + "x" * 262_145, encoding="utf-8"
+            )
 
             with self.assertRaises(ValueError):
                 self.evaluate.build_evaluation_plan(
@@ -160,7 +162,9 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
         artifact_persistence_available(),
         "Secure artifact persistence is unavailable on this platform.",
     )
-    def test_score_redacts_inline_plan_and_evidence_before_artifact_writes(self) -> None:
+    def test_score_redacts_inline_plan_and_evidence_before_artifact_writes(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "artifacts"
             secret = "sk-" + "D" * 40
@@ -186,7 +190,7 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
                     ],
                     "write_artifacts": True,
                     "output_dir": str(output_dir),
-                }
+                },
             )
             artifact_text = "\n".join(
                 path.read_text(encoding="utf-8")
@@ -203,7 +207,9 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
         artifact_persistence_available(),
         "Secure artifact persistence is unavailable on this platform.",
     )
-    def test_score_reads_a_persisted_plan_once_and_reuses_plan_output_directory(self) -> None:
+    def test_score_reads_a_persisted_plan_once_and_reuses_plan_output_directory(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             plan_path = root / "evaluation-plan.json"
@@ -234,12 +240,8 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
                 )
 
             self.assertEqual(read_plan.call_count, 1)
-            self.assertTrue(
-                (output_dir / "tmcp-skill-evaluation-plan.json").exists()
-            )
-            self.assertTrue(
-                (output_dir / "tmcp-skill-evaluation-report.json").exists()
-            )
+            self.assertTrue((output_dir / "tmcp-skill-evaluation-plan.json").exists())
+            self.assertTrue((output_dir / "tmcp-skill-evaluation-report.json").exists())
             self.assertIn("artifact_paths", result)
 
     def test_plan_artifacts_refuse_a_symlinked_output_directory(self) -> None:
@@ -261,7 +263,7 @@ class SkillEvaluateSafetyTests(unittest.TestCase):
                         "mode": "plan",
                         "write_artifacts": True,
                         "output_dir": str(output_link),
-                    }
+                    },
                 )
 
             self.assertEqual(list(outside.iterdir()), [])

@@ -3,7 +3,9 @@ from __future__ import annotations
 import ast
 import inspect
 import unittest
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 import tmcp_runtime.services.artifact_persistence as persistence_service
 from tmcp_runtime.services.artifact_persistence import (
@@ -29,7 +31,7 @@ class _Store:
 
 class ArtifactPersistenceServiceTests(unittest.TestCase):
     def test_fresh_bundle_uses_redacted_content_and_bundle_callback(self) -> None:
-        bundle_calls: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+        bundle_calls: list[tuple[Path, Mapping[str, Any], Mapping[str, str]]] = []
 
         def redact_json(payload: dict[str, object]) -> dict[str, object]:
             artifact = payload["result.json"]
@@ -38,13 +40,12 @@ class ArtifactPersistenceServiceTests(unittest.TestCase):
 
         def write_bundle(
             output_dir: Path,
-            json_artifacts: dict[str, object],
-            text_artifacts: dict[str, str],
-        ) -> dict[str, Path]:
+            json_artifacts: Mapping[str, Any],
+            text_artifacts: Mapping[str, str],
+        ) -> Mapping[str, Path]:
             bundle_calls.append((output_dir, json_artifacts, text_artifacts))
             return {
-                name: output_dir / name
-                for name in (*json_artifacts, *text_artifacts)
+                name: output_dir / name for name in (*json_artifacts, *text_artifacts)
             }
 
         service = ArtifactPersistenceService(

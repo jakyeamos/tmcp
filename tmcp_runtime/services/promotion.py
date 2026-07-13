@@ -15,6 +15,7 @@ from tmcp_runtime.services.recommendations import recommend_workflows
 
 
 ComposePreviewForObjective = Callable[[str], dict[str, Any]]
+ComposePreview = Callable[[], dict[str, Any]]
 NowIso = Callable[[], str]
 
 
@@ -39,16 +40,20 @@ def promote_harvest(
     recommendation_arguments = dict(arguments)
     recommendation_arguments["objective"] = objective
     recommendation_arguments["write_artifacts"] = False
-    compose_preview = None
+    compose_preview_callback: ComposePreview | None = None
     if bool(arguments.get("compose", False)):
         if compose_preview_for_objective is None:
             raise ValueError("Promotion compose preview requires adapter callback.")
+
         def compose_preview() -> dict[str, Any]:
             return compose_preview_for_objective(objective)
+
+        compose_preview_callback = compose_preview
+
     recommendation = recommend_workflows(
         recommendation_arguments,
         source_advisories=source_advisories,
-        compose_preview=compose_preview,
+        compose_preview=compose_preview_callback,
     )
     promotion_targets = select_promotion_targets(
         recommendation,
@@ -58,12 +63,8 @@ def promote_harvest(
     )
     selected_workflows = promotion_targets["selected_workflows"]
     missing_workflows = promotion_targets["missing_workflows"]
-    selected_scoped_packet_seeds = promotion_targets[
-        "selected_scoped_packet_seeds"
-    ]
-    missing_scoped_packet_seeds = promotion_targets[
-        "missing_scoped_packet_seeds"
-    ]
+    selected_scoped_packet_seeds = promotion_targets["selected_scoped_packet_seeds"]
+    missing_scoped_packet_seeds = promotion_targets["missing_scoped_packet_seeds"]
     adaptive_pack = dict(recommendation.get("adaptive_workflow_pack") or {})
     source_map = [
         item
@@ -79,9 +80,7 @@ def promote_harvest(
         str(item.get("id")) for item in selected_workflows if item.get("id")
     ]
     promoted_scoped_packet_seed_ids = [
-        str(item.get("id"))
-        for item in selected_scoped_packet_seeds
-        if item.get("id")
+        str(item.get("id")) for item in selected_scoped_packet_seeds if item.get("id")
     ]
     graph = build_promotion_graph(
         promotion_name=promotion_name,

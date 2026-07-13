@@ -159,7 +159,9 @@ def compose_packet_from_source_nodes(
         identity_context,
         family_context if family_context else None,
     )
-    active_routes = string_list(task_identity.get("active_routes")) or preliminary_routes
+    active_routes = (
+        string_list(task_identity.get("active_routes")) or preliminary_routes
+    )
     selected_nodes = select_composition_nodes(
         source_nodes,
         objective,

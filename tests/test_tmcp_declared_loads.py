@@ -63,7 +63,12 @@ class TmcpDeclaredLoadsTests(unittest.TestCase):
         ]
 
         paths, nodes = declared_loads.resolve_declared_load_nodes(
-            selected_nodes=[{"relative_path": "runtime/SKILL.md", "routing_metadata": {"declared_loads": patterns}}],
+            selected_nodes=[
+                {
+                    "relative_path": "runtime/SKILL.md",
+                    "routing_metadata": {"declared_loads": patterns},
+                }
+            ],
             source_nodes=source_nodes,
             objective="Use product-design-runtime before implementing onboarding UI",
         )
@@ -206,7 +211,9 @@ class TmcpDeclaredLoadsTests(unittest.TestCase):
         }
         self.assertIn("product-decisions/surfaces/onboarding.md", cited_sources)
 
-    def test_compose_packet_without_declared_loads_unchanged_for_references(self) -> None:
+    def test_compose_packet_without_declared_loads_unchanged_for_references(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             skill = root / "skills" / "impeccable"

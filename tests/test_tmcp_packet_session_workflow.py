@@ -5,10 +5,15 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from typing import cast
 
 from tests import test_tmcp_mcp_server as helpers
 from tests.tmcp_test_client import TestWorkspace
-from tmcp_runtime.storage import PacketSessionError, PacketSessionStore, artifact_persistence_available
+from tmcp_runtime.storage import (
+    PacketSessionError,
+    PacketSessionStore,
+    artifact_persistence_available,
+)
 
 
 class PacketSessionWorkflowTests(unittest.TestCase):
@@ -210,13 +215,17 @@ class PacketSessionWorkflowTests(unittest.TestCase):
                 ]
             )
 
-            compose = responses[0]["result"]["structuredContent"]
-            recompiled = responses[1]["result"]["structuredContent"]
+            compose_result = cast(dict[str, object], responses[0]["result"])
+            recompiled_result = cast(dict[str, object], responses[1]["result"])
+            compose = cast(dict[str, object], compose_result["structuredContent"])
+            recompiled = cast(dict[str, object], recompiled_result["structuredContent"])
             store = PacketSessionStore.open(project, "opaque-session-id-39")
             stored = store.load()
 
-        self.assertEqual(compose["session"]["revision"], 1)
-        self.assertEqual(recompiled["session"]["revision"], 2)
+        compose_session = cast(dict[str, object], compose["session"])
+        recompiled_session = cast(dict[str, object], recompiled["session"])
+        self.assertEqual(compose_session["revision"], 1)
+        self.assertEqual(recompiled_session["revision"], 2)
         self.assertEqual(stored.revision, 2)
         self.assertNotIn("opaque-session-id-39", json.dumps(stored.record))
 
@@ -227,7 +236,9 @@ class PacketSessionWorkflowTests(unittest.TestCase):
     def test_cli_sessions_require_an_absolute_target_path(self) -> None:
         with TestWorkspace() as workspace:
             if workspace.project is None or workspace.source is None:
-                self.fail("Test workspace did not create source and project directories.")
+                self.fail(
+                    "Test workspace did not create source and project directories."
+                )
             launcher = str(helpers.PLUGIN_ROOT / "scripts" / "tmcp_launcher.mjs")
             environment = workspace.environment()
             relative = subprocess.run(

@@ -70,13 +70,17 @@ class RuntimeService:
             raise ValueError(
                 "tmcp_runtime_next output_mode=full requires previous_packet as an object."
             )
-        target_phase = str(state.get("suggested_phase") or state.get("phase") or "start")
+        target_phase = str(
+            state.get("suggested_phase") or state.get("phase") or "start"
+        )
         session_project_path = (
             state.get("project_path")
             if argument_map.get("session_id") is not None
             else previous_packet.get("project_path") or state.get("project_path")
         )
-        source_path = argument_map.get("source_path") or argument_map.get("project_path")
+        source_path = argument_map.get("source_path") or argument_map.get(
+            "project_path"
+        )
         if not source_path and argument_map.get("session_id") is None:
             source_path = previous_packet.get("project_path")
             if "[REDACTED:" in str(source_path):

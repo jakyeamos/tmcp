@@ -96,7 +96,9 @@ def _router_child_slugs(node: Node, node_signal_text: NodeSignalText) -> list[st
 def _family_skills_root_from_sources(source_patterns: list[str]) -> str:
     if not source_patterns:
         return ""
-    normalized = [pattern.replace("\\", "/").lstrip("./") for pattern in source_patterns]
+    normalized = [
+        pattern.replace("\\", "/").lstrip("./") for pattern in source_patterns
+    ]
     if not normalized:
         return ""
     common = os.path.commonpath(normalized)
@@ -114,7 +116,9 @@ def family_context_from_seed_node(seed_node: Node, objective: str) -> FamilyCont
     matched_sources = [
         source_ref
         for source_ref in source_references
-        if _objective_names_skill_slug(objective, skill_slug_from_relative_path(source_ref))
+        if _objective_names_skill_slug(
+            objective, skill_slug_from_relative_path(source_ref)
+        )
     ]
     primary_source_patterns = matched_sources or source_references
     primary_skill_slugs = {
@@ -134,9 +138,7 @@ def family_context_from_seed_node(seed_node: Node, objective: str) -> FamilyCont
         for item in _string_list(seed_node.get("chains_before"))
         + _string_list(seed_node.get("do_not_activate_with"))
     }
-    deferred_skill_slugs -= {
-        normalize_skill_slug(slug) for slug in primary_skill_slugs
-    }
+    deferred_skill_slugs -= {normalize_skill_slug(slug) for slug in primary_skill_slugs}
     return {
         "kind": "scoped_packet_seed",
         "active_seed_id": str(seed_node.get("seed_id") or seed_node.get("id") or ""),
@@ -182,7 +184,10 @@ def _family_context_from_router(
     ]
     declared_loads: list[str] = []
     for node in source_nodes:
-        if skill_slug_from_relative_path(str(node.get("relative_path") or "")) != primary_slug:
+        if (
+            skill_slug_from_relative_path(str(node.get("relative_path") or ""))
+            != primary_slug
+        ):
             continue
         declared_loads.extend(
             _string_list(_routing_metadata(node).get("declared_loads"))
@@ -476,7 +481,9 @@ def runtime_family_packet_delta(
     ]
     activated_atoms = [f"skill:{slug}" for slug in activate_skills if slug]
     deactivated_atoms = [
-        f"skill:{slug}" for slug in sorted(primary_slugs) if slug not in activate_normalized
+        f"skill:{slug}"
+        for slug in sorted(primary_slugs)
+        if slug not in activate_normalized
     ]
 
     return {

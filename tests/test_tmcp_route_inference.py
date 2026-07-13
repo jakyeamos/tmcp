@@ -156,7 +156,8 @@ class TmcpRouteInferenceTests(unittest.TestCase):
             second = self.server._compose_packet(
                 {
                     "source_path": str(root),
-                    "objective": REDESIGN_OBJECTIVE + " Include current trend research.",
+                    "objective": REDESIGN_OBJECTIVE
+                    + " Include current trend research.",
                     "project_path": str(root),
                     "phase": "start",
                     "cache_policy": "none",

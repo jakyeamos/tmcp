@@ -47,9 +47,7 @@ class GlobalPromotionArtifactService:
             "schema": "tmcp-global-promoted-harvest-v0.1",
             "promotion_name": promotion_name,
             "created_at": created_at,
-            "promoted_workflow_ids": _string_list(
-                result.get("promoted_workflow_ids")
-            ),
+            "promoted_workflow_ids": _string_list(result.get("promoted_workflow_ids")),
             "promoted_scoped_packet_seed_ids": _string_list(
                 result.get("promoted_scoped_packet_seed_ids")
             ),

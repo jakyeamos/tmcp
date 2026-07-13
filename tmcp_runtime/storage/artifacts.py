@@ -146,7 +146,9 @@ def _validate_file_target(directory_fd: int, name: str) -> None:
     if metadata is None:
         return
     if stat.S_ISLNK(metadata.st_mode):
-        raise ArtifactStorageError(f"Refusing symlinked artifact file: {redact_path(name)}")
+        raise ArtifactStorageError(
+            f"Refusing symlinked artifact file: {redact_path(name)}"
+        )
     if not stat.S_ISREG(metadata.st_mode):
         raise ArtifactStorageError(
             f"Artifact destination is not a regular file: {redact_path(name)}"
@@ -363,8 +365,7 @@ class AtomicArtifactStore:
             metadata = os.fstat(directory_fd)
             if (metadata.st_dev, metadata.st_ino) != self.identity:
                 raise ArtifactStorageError(
-                    "Artifact directory changed during write: "
-                    f"{redact_path(self.root)}"
+                    f"Artifact directory changed during write: {redact_path(self.root)}"
                 )
             _write_text_at(directory_fd, name, content)
         finally:
@@ -390,7 +391,7 @@ class AtomicArtifactStore:
             metadata = os.fstat(directory_fd)
             if (metadata.st_dev, metadata.st_ino) != self.identity:
                 raise ArtifactStorageError(
-                    "Artifact directory changed during lock: " f"{redact_path(self.root)}"
+                    f"Artifact directory changed during lock: {redact_path(self.root)}"
                 )
             _validate_file_target(directory_fd, name)
             try:

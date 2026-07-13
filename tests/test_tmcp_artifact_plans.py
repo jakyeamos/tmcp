@@ -67,7 +67,9 @@ class ArtifactPlanServiceTests(unittest.TestCase):
                 pattern_catalog=lambda entries: {},
             )
 
-    def test_review_plan_has_exact_manifests_aliases_and_no_input_mutation(self) -> None:
+    def test_review_plan_has_exact_manifests_aliases_and_no_input_mutation(
+        self,
+    ) -> None:
         expertise_packet: dict[str, object] = {"packet_id": "packet-123"}
         rubric: dict[str, object] = {
             "objective": "Review the artifact boundary.",
@@ -130,7 +132,10 @@ class ArtifactPlanServiceTests(unittest.TestCase):
                 "implementation_handoff_json": "implementation-handoff.json",
             },
         )
-        self.assertIn("# Expert Rubric: Review the artifact boundary.", plan.text_artifacts["rubric.md"])
+        self.assertIn(
+            "# Expert Rubric: Review the artifact boundary.",
+            plan.text_artifacts["rubric.md"],
+        )
         self.assertEqual(
             {
                 "expertise_packet": expertise_packet,
@@ -217,7 +222,9 @@ class ArtifactPlanServiceTests(unittest.TestCase):
         self.assertEqual(recommendation, original_recommendation)
         self.assertEqual(promotion, original_promotion)
 
-    def test_global_promotion_plan_only_adds_the_optional_pack_when_present(self) -> None:
+    def test_global_promotion_plan_only_adds_the_optional_pack_when_present(
+        self,
+    ) -> None:
         summary: dict[str, object] = {"promotion_name": "release"}
         graph: dict[str, object] = {"schema": "tmcp-promoted-harvest-graph-v0.1"}
 

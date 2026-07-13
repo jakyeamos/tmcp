@@ -70,10 +70,13 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertEqual(result["packet"]["schema"], "tmcp-skill-packet-v0.2")
 
     def test_aios_auto_stays_standalone_when_the_adapter_is_available(self) -> None:
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server,
-            "_run_aios",
-        ) as run_aios:
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                self.server,
+                "_run_aios",
+            ) as run_aios,
+        ):
             result = self.server._call_tool(
                 "tmcp_explain",
                 {
@@ -89,10 +92,13 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
 
     def test_aios_rejects_sensitive_command_arguments_before_execution(self) -> None:
         secret = "sk-" + "J" * 40
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            aios_adapter.subprocess,
-            "run",
-        ) as run:
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                aios_adapter.subprocess,
+                "run",
+            ) as run,
+        ):
             result = self.server._run_aios(
                 ["tmcp", "explain", secret, "--project-path", f"/tmp/{secret}"]
             )
@@ -103,11 +109,14 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertIn("redaction_summary", result)
 
     def test_aios_explicitly_uses_the_optional_adapter(self) -> None:
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server,
-            "_run_aios",
-            return_value={"ok": True, "adapter": "aios", "data": {}},
-        ) as run_aios:
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                self.server,
+                "_run_aios",
+                return_value={"ok": True, "adapter": "aios", "data": {}},
+            ) as run_aios,
+        ):
             result = self.server._call_tool(
                 "tmcp_explain",
                 {
@@ -121,12 +130,17 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertTrue(result["ok"])
         self.assertEqual(result["adapter"], "aios")
 
-    def test_explain_explicit_aios_rejects_sensitive_values_before_execution(self) -> None:
+    def test_explain_explicit_aios_rejects_sensitive_values_before_execution(
+        self,
+    ) -> None:
         secret = "sk-" + "K" * 40
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            aios_adapter.subprocess,
-            "run",
-        ) as run:
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                aios_adapter.subprocess,
+                "run",
+            ) as run,
+        ):
             result = self.server._call_tool(
                 "tmcp_explain",
                 {
@@ -145,16 +159,19 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         secret = "sk-" + "B" * 40
         output_dir = f"/tmp/{secret}/aios-output"
         project_path = f"/tmp/{secret}/project"
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server,
-            "_run_aios",
-            return_value={
-                "ok": True,
-                "adapter": "aios",
-                "detail": secret,
-                "output_dir": output_dir,
-                "artifact_paths": {"packet": output_dir},
-            },
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                self.server,
+                "_run_aios",
+                return_value={
+                    "ok": True,
+                    "adapter": "aios",
+                    "detail": secret,
+                    "output_dir": output_dir,
+                    "artifact_paths": {"packet": output_dir},
+                },
+            ),
         ):
             success = self.server._call_tool(
                 "tmcp_explain",
@@ -165,16 +182,19 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
                     "compose": True,
                 },
             )
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server,
-            "_run_aios",
-            return_value={
-                "ok": False,
-                "adapter": "aios",
-                "command": ["aios", secret],
-                "stdout": secret,
-                "stderr": output_dir,
-            },
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                self.server,
+                "_run_aios",
+                return_value={
+                    "ok": False,
+                    "adapter": "aios",
+                    "command": ["aios", secret],
+                    "stdout": secret,
+                    "stderr": output_dir,
+                },
+            ),
         ):
             failure = self.server._call_tool(
                 "tmcp_explain",
@@ -188,7 +208,9 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertTrue(success["ok"])
         self.assertFalse(failure["ok"])
         self.assertNotIn(secret, json.dumps({"success": success, "failure": failure}))
-        self.assertNotIn(output_dir, json.dumps({"success": success, "failure": failure}))
+        self.assertNotIn(
+            output_dir, json.dumps({"success": success, "failure": failure})
+        )
         self.assertIn("redaction_summary", success)
         self.assertIn("redaction_summary", failure)
 
@@ -211,10 +233,13 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
 
     def test_explain_aios_timeout_returns_a_redacted_structured_error(self) -> None:
         secret = "sk-" + "D" * 40
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            aios_adapter.subprocess,
-            "run",
-            side_effect=subprocess.TimeoutExpired(["aios", secret], 120),
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                aios_adapter.subprocess,
+                "run",
+                side_effect=subprocess.TimeoutExpired(["aios", secret], 120),
+            ),
         ):
             result = self.server._call_tool(
                 "tmcp_explain",
@@ -259,7 +284,9 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertIn("redaction_summary", delta)
         self.assertIn("redaction_summary", full)
 
-    def test_runtime_next_requires_a_real_path_after_redacted_packet_output(self) -> None:
+    def test_runtime_next_requires_a_real_path_after_redacted_packet_output(
+        self,
+    ) -> None:
         with self.assertRaisesRegex(ValueError, "explicit source_path or project_path"):
             self.server._runtime_next(
                 {
@@ -298,18 +325,24 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
                 },
             )
 
-        self.assertNotIn(secret, json.dumps({"compose": compose, "standalone": standalone}))
+        self.assertNotIn(
+            secret, json.dumps({"compose": compose, "standalone": standalone})
+        )
         self.assertIn("redaction_summary", compose)
         self.assertIn("redaction_summary", standalone)
 
     def test_review_auto_never_uses_the_aios_adapter(self) -> None:
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server,
-            "_run_aios",
-        ) as run_aios, patch.object(
-            self.server,
-            "artifact_persistence_available",
-            return_value=False,
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                self.server,
+                "_run_aios",
+            ) as run_aios,
+            patch.object(
+                self.server,
+                "artifact_persistence_available",
+                return_value=False,
+            ),
         ):
             result = self.server._call_tool(
                 "expert_rubric_review_plan",
@@ -325,11 +358,16 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertTrue(result["ok"])
         self.assertEqual(result["adapter"], "standalone")
 
-    def test_review_explicit_aios_write_is_denied_before_external_execution(self) -> None:
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server,
-            "_run_aios",
-        ) as run_aios:
+    def test_review_explicit_aios_write_is_denied_before_external_execution(
+        self,
+    ) -> None:
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                self.server,
+                "_run_aios",
+            ) as run_aios,
+        ):
             with self.assertRaisesRegex(ArtifactStorageError, "write_artifacts=false"):
                 self.server._call_tool(
                     "expert_rubric_review_plan",
@@ -361,20 +399,25 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertEqual(result["adapter"], "aios")
         self.assertIn("--adapter standalone", result["remediation"])
 
-    def test_review_explicit_aios_preview_redacts_and_omits_output_directory(self) -> None:
+    def test_review_explicit_aios_preview_redacts_and_omits_output_directory(
+        self,
+    ) -> None:
         secret = "sk-" + "A" * 40
         output_dir = f"/tmp/{secret}/review"
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            self.server,
-            "_run_aios",
-            return_value={
-                "ok": True,
-                "adapter": "aios",
-                "detail": secret,
-                "output_dir": output_dir,
-                "artifact_paths": {"report": output_dir},
-            },
-        ) as run_aios:
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                self.server,
+                "_run_aios",
+                return_value={
+                    "ok": True,
+                    "adapter": "aios",
+                    "detail": secret,
+                    "output_dir": output_dir,
+                    "artifact_paths": {"report": output_dir},
+                },
+            ) as run_aios,
+        ):
             result = self.server._call_tool(
                 "expert_rubric_review_plan",
                 {
@@ -394,12 +437,17 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertNotIn("output_dir", result)
         self.assertEqual(result["artifact_paths"], {})
 
-    def test_review_explicit_aios_rejects_sensitive_evidence_before_execution(self) -> None:
+    def test_review_explicit_aios_rejects_sensitive_evidence_before_execution(
+        self,
+    ) -> None:
         secret = "sk-" + "L" * 40
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            aios_adapter.subprocess,
-            "run",
-        ) as run:
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                aios_adapter.subprocess,
+                "run",
+            ) as run,
+        ):
             result = self.server._call_tool(
                 "expert_rubric_review_plan",
                 {
@@ -420,10 +468,13 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self,
     ) -> None:
         escaped_secret = "sk-" + "\\u004d" * 40
-        with patch.object(self.server, "_aios_available", return_value=True), patch.object(
-            aios_adapter.subprocess,
-            "run",
-        ) as run:
+        with (
+            patch.object(self.server, "_aios_available", return_value=True),
+            patch.object(
+                aios_adapter.subprocess,
+                "run",
+            ) as run,
+        ):
             result = self.server._call_tool(
                 "expert_rubric_review_plan",
                 {

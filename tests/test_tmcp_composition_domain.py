@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import unittest
+from typing import cast
 
 from tmcp_runtime.domain import composition, packets
 from tmcp_runtime.domain.routes import ROUTE_CATALOG_VERSION
@@ -19,8 +20,12 @@ class CompositionDomainTests(unittest.TestCase):
                 self.assertEqual(composition.normalize_cache_policy(value), "none")
 
     def test_ui_classifiers_preserve_signal_boundaries_and_astro_support(self) -> None:
-        self.assertTrue(composition.is_uiish_text("Design a responsive frontend dashboard."))
-        self.assertFalse(composition.is_uiish_text("Build a guide for the API service."))
+        self.assertTrue(
+            composition.is_uiish_text("Design a responsive frontend dashboard.")
+        )
+        self.assertFalse(
+            composition.is_uiish_text("Build a guide for the API service.")
+        )
         self.assertTrue(composition.is_ui_file("app/page.astro"))
         self.assertTrue(composition.is_ui_file("src/styles/site.CSS"))
         self.assertFalse(composition.is_ui_file("src/service.py"))
@@ -43,7 +48,9 @@ class CompositionDomainTests(unittest.TestCase):
             "Do not claim release readiness until hosted evidence is recorded for release.",
             gates,
         )
-        self.assertIn("Run the highest-signal verification gate before final response.", gates)
+        self.assertIn(
+            "Run the highest-signal verification gate before final response.", gates
+        )
 
     def test_contextual_gates_cover_ui_files_and_browser_evidence(self) -> None:
         atoms, reads, gates = composition.contextual_atoms_and_gates(
@@ -55,8 +62,12 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertEqual(atoms, ["ui-browser-verification"])
         self.assertIn("UI/browser verification guidance for changed surfaces.", reads)
         self.assertIn("Verify contrast on visible UI states.", gates)
-        self.assertIn("Verify reduced motion behavior where animation is present.", gates)
-        self.assertIn("Verify responsive behavior across relevant viewport sizes.", gates)
+        self.assertIn(
+            "Verify reduced motion behavior where animation is present.", gates
+        )
+        self.assertIn(
+            "Verify responsive behavior across relevant viewport sizes.", gates
+        )
 
         evidence_atoms, _, evidence_gates = composition.contextual_atoms_and_gates(
             "Review the release notes.",
@@ -97,7 +108,10 @@ class CompositionDomainTests(unittest.TestCase):
                 "Polish the frontend dashboard.",
                 {"files_changed": ["app/page.tsx"]},
             ),
-            ["Verify browser screenshot after interaction.", "Run the focused unit test."],
+            [
+                "Verify browser screenshot after interaction.",
+                "Run the focused unit test.",
+            ],
         )
 
     def test_matching_reference_reads_selects_only_relevant_references(self) -> None:
@@ -131,7 +145,9 @@ class CompositionDomainTests(unittest.TestCase):
         deferred = {"relative_path": "skills/ui-implementation/SKILL.md"}
 
         def signal_must_not_run(_: dict[str, object]) -> str:
-            raise AssertionError("deferred family sibling should not require source text")
+            raise AssertionError(
+                "deferred family sibling should not require source text"
+            )
 
         self.assertEqual(
             composition.score_composition_node(
@@ -243,7 +259,9 @@ class CompositionDomainTests(unittest.TestCase):
         )
         self.assertEqual(source_nodes, before)
 
-    def test_node_selection_uses_specific_routing_metadata_but_ignores_generic_trigger(self) -> None:
+    def test_node_selection_uses_specific_routing_metadata_but_ignores_generic_trigger(
+        self,
+    ) -> None:
         plain = {
             "relative_path": "skills/a/SKILL.md",
             "source_type": "skill_definition",
@@ -394,7 +412,9 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertEqual(compiled["cache_policy"], "none")
         self.assertIsNone(no_seed["seed_id"])
 
-    def test_shortcut_candidate_uses_seed_then_identity_and_honors_overrides(self) -> None:
+    def test_shortcut_candidate_uses_seed_then_identity_and_honors_overrides(
+        self,
+    ) -> None:
         compiled = {"graph_version": "graph"}
         no_match = packets.shortcut_candidate_for_composed_packet(
             packet={},
@@ -458,7 +478,9 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertIn("ui_ux_redesign (4.5)", seeded)
         self.assertIn("design, dashboard", seeded)
 
-    def test_composed_markdown_preserves_sections_caps_and_trailing_newline(self) -> None:
+    def test_composed_markdown_preserves_sections_caps_and_trailing_newline(
+        self,
+    ) -> None:
         packet = {
             "objective": "Redesign the dashboard.",
             "phase": "implementation",
@@ -500,7 +522,9 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertIn("## Recompile Triggers", markdown)
         self.assertIn("## Required Receipts", markdown)
 
-    def test_build_composed_packet_owns_normalization_identity_and_receipt(self) -> None:
+    def test_build_composed_packet_owns_normalization_identity_and_receipt(
+        self,
+    ) -> None:
         selected = {
             "relative_path": "skills/selected/SKILL.md",
             "behavior_atoms": ["selected", "shared"],
@@ -591,26 +615,45 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertTrue(required_fields.issubset(first))
         self.assertEqual(first["packet_id"], same["packet_id"])
         self.assertNotEqual(first["packet_id"], changed["packet_id"])
-        self.assertEqual(first["active_instructions"], [f"instruction {index}" for index in range(10)])
-        self.assertEqual(first["required_reads"], [f"read {index}" for index in range(12)])
-        self.assertEqual(first["tool_script_prompts"], [f"prompt {index}" for index in range(10)])
-        self.assertEqual(first["verification_gates"], [f"gate {index}" for index in range(10)])
-        self.assertEqual(first["stop_conditions"], [f"stop {index}" for index in range(8)])
+        self.assertEqual(
+            first["active_instructions"],
+            [f"instruction {index}" for index in range(10)],
+        )
+        self.assertEqual(
+            first["required_reads"], [f"read {index}" for index in range(12)]
+        )
+        self.assertEqual(
+            first["tool_script_prompts"], [f"prompt {index}" for index in range(10)]
+        )
+        self.assertEqual(
+            first["verification_gates"], [f"gate {index}" for index in range(10)]
+        )
+        self.assertEqual(
+            first["stop_conditions"], [f"stop {index}" for index in range(8)]
+        )
         self.assertEqual(
             first["active_atoms"],
             ["selected", "shared", *[f"active-{index}" for index in range(14)]],
         )
-        self.assertEqual(first["deferred_atoms"], [f"deferred-{index}" for index in range(8)])
-        self.assertEqual(len(first["ignored_sources"]), 12)
-        self.assertEqual(first["ignored_sources"][0]["source"], "skills/deferred-0/SKILL.md")
+        self.assertEqual(
+            first["deferred_atoms"], [f"deferred-{index}" for index in range(8)]
+        )
+        ignored_sources = cast(list[dict[str, object]], first["ignored_sources"])
+        receipt_template = cast(dict[str, object], first["receipt_template"])
+        safety = cast(dict[str, object], first["safety"])
+        self.assertEqual(len(ignored_sources), 12)
+        self.assertEqual(ignored_sources[0]["source"], "skills/deferred-0/SKILL.md")
         self.assertEqual(first["global_cache"], global_cache)
         self.assertEqual(first["conflicts"], [{"id": "javascript_package_manager"}])
-        self.assertEqual(first["receipt_template"]["packet_id"], first["packet_id"])
-        self.assertEqual(first["receipt_template"]["activated_atoms"], first["active_atoms"])
-        self.assertEqual(first["receipt_template"]["user_overrides"], [])
-        self.assertEqual(first["safety"]["harvested_text_trust"], "untrusted_evidence_only")
-        self.assertIn(first["packet_id"], first["packet_markdown"])
-        self.assertEqual(first["packet_markdown"], packets.render_composed_packet_markdown(first))
+        self.assertEqual(receipt_template["packet_id"], first["packet_id"])
+        self.assertEqual(receipt_template["activated_atoms"], first["active_atoms"])
+        self.assertEqual(receipt_template["user_overrides"], [])
+        self.assertEqual(safety["harvested_text_trust"], "untrusted_evidence_only")
+        packet_markdown = cast(str, first["packet_markdown"])
+        self.assertIn(first["packet_id"], packet_markdown)
+        self.assertEqual(
+            first["packet_markdown"], packets.render_composed_packet_markdown(first)
+        )
         self.assertEqual(
             inputs_before,
             {

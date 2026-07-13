@@ -68,19 +68,25 @@ def check_manifest_metadata(plugin_root: Path) -> list[str]:
         if codex.get("name") != VERSION.server_name:
             errors.append("Codex manifest name does not match canonical server name")
         if codex.get("version") != VERSION.codex_plugin:
-            errors.append("Codex manifest version does not match canonical Codex version")
+            errors.append(
+                "Codex manifest version does not match canonical Codex version"
+            )
         if codex.get("mcpServers") != "./.mcp.json":
             errors.append("Codex manifest mcpServers must reference ./.mcp.json")
 
         claude = read_json_object(plugin_root / ".claude-plugin" / "plugin.json")
         if claude.get("version") != VERSION.release:
-            errors.append("Claude manifest version does not match canonical release version")
+            errors.append(
+                "Claude manifest version does not match canonical release version"
+            )
 
         marketplace = read_json_object(
             plugin_root / ".claude-plugin" / "marketplace.json"
         )
         if marketplace.get("version") != VERSION.release:
-            errors.append("Claude marketplace version does not match canonical release version")
+            errors.append(
+                "Claude marketplace version does not match canonical release version"
+            )
         plugins = marketplace.get("plugins")
         if not isinstance(plugins, list):
             raise RuntimeError("Claude marketplace plugins must be an array")
@@ -90,11 +96,15 @@ def check_manifest_metadata(plugin_root: Path) -> list[str]:
             if isinstance(plugin, dict) and plugin.get("name") == VERSION.server_name
         ]
         if len(matches) != 1 or matches[0].get("version") != VERSION.release:
-            errors.append("Claude marketplace TMCP plugin version does not match release")
+            errors.append(
+                "Claude marketplace TMCP plugin version does not match release"
+            )
 
         registry = read_json_object(plugin_root / "mcp-registry" / "draft-server.json")
         if registry.get("version") != VERSION.release:
-            errors.append("MCP registry version does not match canonical release version")
+            errors.append(
+                "MCP registry version does not match canonical release version"
+            )
         packages = registry.get("packages")
         if not isinstance(packages, list) or not packages:
             raise RuntimeError("MCP registry packages must be a non-empty array")
@@ -113,18 +123,26 @@ def check_manifest_metadata(plugin_root: Path) -> list[str]:
             "MCP registry runtime metadata",
         )
         if runtime.get("node") != VERSION.minimum_node:
-            errors.append("MCP registry Node policy does not match canonical version metadata")
+            errors.append(
+                "MCP registry Node policy does not match canonical version metadata"
+            )
         if runtime.get("python") != VERSION.minimum_python:
-            errors.append("MCP registry Python policy does not match canonical version metadata")
+            errors.append(
+                "MCP registry Python policy does not match canonical version metadata"
+            )
 
         citation_text = (plugin_root / "CITATION.cff").read_text(encoding="utf-8")
         citation_match = CITATION_VERSION_RE.search(citation_text)
         if citation_match is None or citation_match.group(1) != VERSION.release:
-            errors.append("CITATION.cff version does not match canonical release version")
+            errors.append(
+                "CITATION.cff version does not match canonical release version"
+            )
 
         evidence = read_json_object(plugin_root / "docs" / "RELEASE_EVIDENCE.json")
         if evidence.get("version") != VERSION.release:
-            errors.append("release evidence version does not match canonical release version")
+            errors.append(
+                "release evidence version does not match canonical release version"
+            )
     except RuntimeError as exc:
         errors.append(str(exc))
     except FileNotFoundError as exc:
@@ -177,6 +195,8 @@ def _mcp_responses(plugin_root: Path) -> list[dict[str, object]]:
         message = read_message(stream)
         if message is None:
             break
+        if not isinstance(message, dict):
+            raise RuntimeError("MCP launcher emitted a non-object response")
         responses.append(message)
     return responses
 
@@ -188,12 +208,16 @@ def check_transport(plugin_root: Path) -> list[str]:
     except (OSError, RuntimeError, subprocess.TimeoutExpired) as exc:
         return [str(exc)]
     if len(responses) != 2:
-        return [f"MCP launcher returned {len(responses)} contract responses; expected 2"]
+        return [
+            f"MCP launcher returned {len(responses)} contract responses; expected 2"
+        ]
     initialize_result = responses[0].get("result")
     if not isinstance(initialize_result, dict):
         return ["MCP initialize response does not contain an object result"]
     if initialize_result.get("serverInfo") != mcp_server_info():
-        errors.append("MCP initialize serverInfo does not match canonical version metadata")
+        errors.append(
+            "MCP initialize serverInfo does not match canonical version metadata"
+        )
     tools_result = responses[1].get("result")
     if not isinstance(tools_result, dict) or tools_result.get("tools") != mcp_tools():
         errors.append("MCP tools/list does not match the canonical tool registry")

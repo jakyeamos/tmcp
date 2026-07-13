@@ -11,7 +11,8 @@ import sys
 import tarfile
 import tempfile
 import unittest
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+from typing import Any, Protocol, cast
 
 from unittest.mock import patch
 
@@ -21,7 +22,34 @@ RELEASE_ARCHIVE_PATH = PLUGIN_ROOT / "scripts" / "tmcp_release_archive.py"
 CHECK_RELEASE_PACKAGE_PATH = PLUGIN_ROOT / "scripts" / "check_release_package.py"
 
 
-def load_release_archive_module():
+class _ReleaseArchiveModule(Protocol):
+    PACKAGE_MANIFEST_SCHEMA: str
+    PACKAGE_POLICY_VERSION: str
+    PACKAGE_MANIFEST_NAME: str
+    ReleasePackageError: type[RuntimeError]
+
+    def create_package(
+        self, plugin_root: Path, output_path: Path
+    ) -> dict[str, Any]: ...
+
+    def check_archive_manifest(self, package_path: Path) -> tuple[bool, str]: ...
+
+    def validate_tree_entry(
+        self, path_text: str, git_mode: str, object_type: str
+    ) -> None: ...
+
+    def _validate_relative_path(self, path_text: str) -> PurePosixPath: ...
+
+    def register_archive_path(self, seen: dict[str, str], path_text: str) -> None: ...
+
+    def forbidden_path_reason(self, relative_path: PurePosixPath) -> str | None: ...
+
+    def scan_release_content(self, relative_path: str, content: bytes) -> None: ...
+
+    def validate_output_path(self, plugin_root: Path, output_path: Path) -> Path: ...
+
+
+def load_release_archive_module() -> _ReleaseArchiveModule:
     spec = importlib.util.spec_from_file_location(
         "tmcp_release_archive", RELEASE_ARCHIVE_PATH
     )
@@ -29,7 +57,7 @@ def load_release_archive_module():
         raise RuntimeError("Could not load tmcp_release_archive module")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module
+    return cast(_ReleaseArchiveModule, module)
 
 
 def load_release_package_check_module():
@@ -65,9 +93,7 @@ def commit_fixture(root: Path, force_paths: tuple[str, ...] = ()) -> None:
         env=environment,
         check=True,
     )
-    subprocess.run(
-        ["git", "add", "--all"], cwd=root, env=environment, check=True
-    )
+    subprocess.run(["git", "add", "--all"], cwd=root, env=environment, check=True)
     if force_paths:
         subprocess.run(
             ["git", "add", "--force", *force_paths],
@@ -101,7 +127,9 @@ def synthetic_secret_assignment(separator: str = "=") -> str:
     return f'{key}{separator}"{value}"\n'
 
 
-def manifest_entry(path: str, content: bytes, git_mode: str = "100644") -> dict[str, object]:
+def manifest_entry(
+    path: str, content: bytes, git_mode: str = "100644"
+) -> dict[str, object]:
     return {
         "path": path,
         "git_mode": git_mode,
@@ -110,7 +138,9 @@ def manifest_entry(path: str, content: bytes, git_mode: str = "100644") -> dict[
     }
 
 
-def write_member(archive: tarfile.TarFile, name: str, content: bytes, mode: int) -> None:
+def write_member(
+    archive: tarfile.TarFile, name: str, content: bytes, mode: int
+) -> None:
     member = tarfile.TarInfo(name)
     member.mode = mode
     member.size = len(content)
@@ -118,7 +148,7 @@ def write_member(archive: tarfile.TarFile, name: str, content: bytes, mode: int)
 
 
 def write_test_archive(
-    package: object,
+    package: _ReleaseArchiveModule,
     archive_path: Path,
     payloads: list[tuple[str, bytes, int]],
     entries: list[dict[str, object]],
@@ -176,7 +206,7 @@ class ReleasePackageTests(unittest.TestCase):
             marker = Path(tmp) / "hook-ran"
             hook = hostile_template / "pre-commit"
             hook.write_text(
-                "#!/bin/sh\ntouch \"$TMCP_TEST_HOOK_MARKER\"\nexit 1\n",
+                '#!/bin/sh\ntouch "$TMCP_TEST_HOOK_MARKER"\nexit 1\n',
                 encoding="utf-8",
             )
             hook.chmod(0o755)
@@ -217,13 +247,11 @@ class ReleasePackageTests(unittest.TestCase):
 
             with tarfile.open(output_path, "r:gz") as archive:
                 names = archive.getnames()
-                manifest = json.loads(
-                    archive.extractfile(
-                        f"tmcp/{self.package.PACKAGE_MANIFEST_NAME}"
-                    )
-                    .read()
-                    .decode("utf-8")
+                manifest_file = archive.extractfile(
+                    f"tmcp/{self.package.PACKAGE_MANIFEST_NAME}"
                 )
+                assert manifest_file is not None
+                manifest = json.loads(manifest_file.read().decode("utf-8"))
 
         self.assertEqual(
             names,
@@ -262,9 +290,7 @@ class ReleasePackageTests(unittest.TestCase):
             root = Path(tmp) / "plugin"
             root.mkdir()
             (root / "README.md").write_text("# Plugin\n", encoding="utf-8")
-            (root / ".env").write_text(
-                synthetic_secret_assignment(), encoding="utf-8"
-            )
+            (root / ".env").write_text(synthetic_secret_assignment(), encoding="utf-8")
             commit_fixture(root, force_paths=(".env",))
 
             with self.assertRaisesRegex(
@@ -333,9 +359,7 @@ class ReleasePackageTests(unittest.TestCase):
 
     def test_package_scans_fine_grained_and_high_entropy_secrets(self) -> None:
         github_token = ("github" + "_pat_") + ("Ab1_" * 12)
-        raw_aws_secret = (
-            "AbCdEfGhIjKlMnOpQrSt" + "UvWxYz0123456789+/ab"
-        )
+        raw_aws_secret = "AbCdEfGhIjKlMnOpQrSt" + "UvWxYz0123456789+/ab"
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "github_fine_grained_token",
@@ -378,9 +402,7 @@ class ReleasePackageTests(unittest.TestCase):
             root.mkdir()
             (root / "README.md").write_text("# Plugin\n", encoding="utf-8")
             (root / "skills").mkdir()
-            (root / "skills" / "SKILL.md").write_text(
-                "# Skill\n", encoding="utf-8"
-            )
+            (root / "skills" / "SKILL.md").write_text("# Skill\n", encoding="utf-8")
             commit_fixture(root)
             first = Path(tmp) / "first.tar.gz"
             second = Path(tmp) / "second.tar.gz"
@@ -392,13 +414,11 @@ class ReleasePackageTests(unittest.TestCase):
             second_digest = hashlib.sha256(second.read_bytes()).hexdigest()
 
             with tarfile.open(first, "r:gz") as archive:
-                manifest = json.loads(
-                    archive.extractfile(
-                        f"tmcp/{self.package.PACKAGE_MANIFEST_NAME}"
-                    )
-                    .read()
-                    .decode("utf-8")
+                manifest_file = archive.extractfile(
+                    f"tmcp/{self.package.PACKAGE_MANIFEST_NAME}"
                 )
+                assert manifest_file is not None
+                manifest = json.loads(manifest_file.read().decode("utf-8"))
 
         self.assertTrue(manifest_ok, manifest_output)
         self.assertEqual(first_digest, second_digest)
@@ -408,7 +428,7 @@ class ReleasePackageTests(unittest.TestCase):
         )
 
     def test_cli_reports_reproducibility_digests(self) -> None:
-        checks = {
+        checks: dict[str, object] = {
             key: "pass"
             for key in (
                 "archive_manifest",
@@ -453,12 +473,8 @@ class ReleasePackageTests(unittest.TestCase):
         result = json.loads(stdout.getvalue())
         self.assertEqual(exit_code, 0)
         self.assertEqual(result["reproducibility"], "pass")
-        self.assertEqual(
-            result["archive_digest"], result["repeat_archive_digest"]
-        )
-        self.assertEqual(
-            result["manifest_digest"], result["repeat_manifest_digest"]
-        )
+        self.assertEqual(result["archive_digest"], result["repeat_archive_digest"])
+        self.assertEqual(result["manifest_digest"], result["repeat_manifest_digest"])
 
     def test_package_uses_its_own_git_worktree_when_git_env_is_overridden(
         self,
@@ -470,9 +486,7 @@ class ReleasePackageTests(unittest.TestCase):
             root.mkdir()
             other_root.mkdir()
             (root / "README.md").write_text("# Intended package\n", encoding="utf-8")
-            (other_root / "README.md").write_text(
-                "# Other package\n", encoding="utf-8"
-            )
+            (other_root / "README.md").write_text("# Other package\n", encoding="utf-8")
             (other_root / "scripts").mkdir()
             (other_root / "scripts" / "other.py").write_text(
                 "print('other')\n", encoding="utf-8"
@@ -697,9 +711,7 @@ class ReleasePackageTests(unittest.TestCase):
 
     def test_release_package_check_smokes_composition_surface(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            ok, output = self.checker.check_composition_surface(
-                PLUGIN_ROOT, Path(tmp)
-            )
+            ok, output = self.checker.check_composition_surface(PLUGIN_ROOT, Path(tmp))
 
         self.assertTrue(ok, output)
 

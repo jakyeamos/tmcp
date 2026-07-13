@@ -11,7 +11,9 @@ class RecompileDomainTests(unittest.TestCase):
     def test_parse_previous_packet_accepts_objects_and_json(self) -> None:
         packet = {"packet_id": "packet-1"}
 
-        self.assertIs(recompile.parse_previous_packet({"previous_packet": packet}), packet)
+        self.assertIs(
+            recompile.parse_previous_packet({"previous_packet": packet}), packet
+        )
         self.assertEqual(
             recompile.parse_previous_packet(
                 {"previous_packet": '{"packet_id": "packet-2"}'}
@@ -65,16 +67,16 @@ class RecompileDomainTests(unittest.TestCase):
             "implementation_phase_detected",
         )
         self.assertEqual(
-            recompile.resolve_recompile_reason(
-                {}, {"suggested_phase": "verification"}
-            ),
+            recompile.resolve_recompile_reason({}, {"suggested_phase": "verification"}),
             "phase_transition",
         )
         self.assertEqual(
             recompile.resolve_recompile_reason({"files_changed": ["app/page.tsx"]}, {}),
             "implementation_phase_detected",
         )
-        self.assertEqual(recompile.resolve_recompile_reason({}, {}), "runtime_context_changed")
+        self.assertEqual(
+            recompile.resolve_recompile_reason({}, {}), "runtime_context_changed"
+        )
 
     def test_packet_diff_records_sorted_changes_and_reasons(self) -> None:
         previous = {
@@ -138,7 +140,9 @@ class RecompileDomainTests(unittest.TestCase):
             ],
         )
         self.assertEqual(result["unchanged"], ["keep"])
-        self.assertEqual(result["phase_change"], {"from": "research", "to": "implementation"})
+        self.assertEqual(
+            result["phase_change"], {"from": "research", "to": "implementation"}
+        )
 
     def test_merge_packet_delta_preserves_order_limits_and_context(self) -> None:
         packet = {
@@ -213,7 +217,9 @@ class RecompileDomainTests(unittest.TestCase):
             return "# TMCP Packet\n\n## Base\n"
 
         self.assertEqual(
-            recompile.render_recompiled_packet_markdown({}, compose_markdown=compose_markdown),
+            recompile.render_recompiled_packet_markdown(
+                {}, compose_markdown=compose_markdown
+            ),
             "",
         )
         packet = {"packet_id": "packet-1"}

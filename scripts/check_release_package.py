@@ -62,12 +62,23 @@ EXPERIMENTAL_SKILLS = {
     "tmcp-ui-rubric",
 }
 PACKAGE_CHECK_NAMES = (
-    "archive_manifest", "install_check", "tests", "compile",
-    "launcher_syntax", "frontmatter", "hardcoded_user_paths",
-    "private_names", "markdown_links", "doctor_surface",
-    "sample_harvest", "sample_expert_rubric",
-    "adaptive_workflow_surface", "composition_surface",
+    "archive_manifest",
+    "install_check",
+    "tests",
+    "compile",
+    "launcher_syntax",
+    "frontmatter",
+    "hardcoded_user_paths",
+    "private_names",
+    "markdown_links",
+    "doctor_surface",
+    "sample_harvest",
+    "sample_expert_rubric",
+    "adaptive_workflow_surface",
+    "composition_surface",
 )
+
+
 def run(
     command: list[str], cwd: Path, extra_env: dict[str, str] | None = None
 ) -> tuple[bool, str]:
@@ -513,9 +524,7 @@ def main() -> int:
             **check_package(output_path),
         }
         if args.verify_reproducible:
-            reproducibility = verify_reproducibility(
-                plugin_root, build
-            )
+            reproducibility = verify_reproducibility(plugin_root, build)
             result["reproducibility"] = reproducibility["status"]
             result["repeat_archive_digest"] = reproducibility.get(
                 "repeat_archive_digest"
@@ -543,10 +552,7 @@ def main() -> int:
     required_checks = PACKAGE_CHECK_NAMES
     if args.verify_reproducible:
         required_checks += ("reproducibility",)
-    ok = all(
-        result[key] == "pass"
-        for key in required_checks
-    )
+    ok = all(result[key] == "pass" for key in required_checks)
     if generated_output:
         try:
             output_path.unlink()

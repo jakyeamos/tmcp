@@ -88,7 +88,10 @@ def check_session_surface(
         if not ok or recompile is None:
             return False, output
         updated_session = recompile.get("session")
-        if not isinstance(updated_session, dict) or updated_session.get("revision") != 2:
+        if (
+            not isinstance(updated_session, dict)
+            or updated_session.get("revision") != 2
+        ):
             return False, "session recompile did not update revision 2"
         serialized_session = Path(session_path).read_text(encoding="utf-8")
         if session_id in serialized_session:
@@ -100,5 +103,8 @@ def check_session_surface(
     if "Secure artifact persistence" not in output:
         return False, f"session compose did not fail closed: {output}"
     if (source_root / ".tmcp").exists():
-        return False, "session compose created artifacts despite unavailable persistence"
+        return (
+            False,
+            "session compose created artifacts despite unavailable persistence",
+        )
     return True, "portable session denial smoke passed"

@@ -52,7 +52,9 @@ class StandalonePacketDomainTests(unittest.TestCase):
             [node["id"] for node in first["source_skill_nodes"]],
             [f"@source:source-{index}" for index in range(8)],
         )
-        self.assertEqual(first["traversal_fingerprint"], second["traversal_fingerprint"])
+        self.assertEqual(
+            first["traversal_fingerprint"], second["traversal_fingerprint"]
+        )
         self.assertEqual(harvested_nodes, before)
 
     def test_substance_check_distinguishes_source_backed_playbooks(self) -> None:

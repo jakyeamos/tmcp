@@ -13,6 +13,7 @@ ADAPTIVE_PACK_SCHEMA_PATH = (
     helpers.PLUGIN_ROOT / "schemas" / "tmcp-adaptive-workflow-pack-v0.1.schema.json"
 )
 
+
 class TmcpWorkflowRecommendationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

@@ -66,9 +66,7 @@ def build_doctor_report(
             ),
         },
     ]
-    failed = [
-        check for check in normalized_checks if check.get("status") == "fail"
-    ]
+    failed = [check for check in normalized_checks if check.get("status") == "fail"]
     install_paths = {
         "skill_only": (
             "Copy skills/tmcp into a skills directory. Use manual packet synthesis "

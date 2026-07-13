@@ -5,6 +5,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from typing import cast
 from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
@@ -67,7 +68,8 @@ class SkillEvaluateTests(unittest.TestCase):
         responses = run_mcp_requests(
             [{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}]
         )
-        tools = responses[0]["result"]["tools"]
+        result = cast(dict[str, object], responses[0]["result"])
+        tools = cast(list[dict[str, object]], result["tools"])
         tool_names = {tool["name"] for tool in tools}
         self.assertIn("tmcp_evaluate_skills", tool_names)
 
@@ -100,9 +102,9 @@ class SkillEvaluateTests(unittest.TestCase):
 
     def test_plan_rejects_oversized_variant_input(self) -> None:
         arguments = self._plan_arguments()
-        arguments["variants"] = [
-            "variant"
-        ] * (self.evaluate.MAX_EVALUATION_VARIANTS + 1)
+        arguments["variants"] = ["variant"] * (
+            self.evaluate.MAX_EVALUATION_VARIANTS + 1
+        )
 
         with self.assertRaisesRegex(ValueError, "variant count"):
             self.evaluate.build_evaluation_plan(arguments)
@@ -129,9 +131,7 @@ class SkillEvaluateTests(unittest.TestCase):
             self.evaluate.score_evidence(
                 {
                     "evaluation_plan": plan,
-                    "run_evidence_json": [
-                        trace
-                    ]
+                    "run_evidence_json": [trace]
                     * (self.evaluate.MAX_EVALUATION_TRACES + 1),
                 }
             )
@@ -148,7 +148,9 @@ class SkillEvaluateTests(unittest.TestCase):
                         {
                             "task_id": "approval-before-edit",
                             "variant_id": "original",
-                            "observations": [{"kind": "command_run", "value": "npm test"}],
+                            "observations": [
+                                {"kind": "command_run", "value": "npm test"}
+                            ],
                         }
                     ],
                 }
@@ -165,7 +167,9 @@ class SkillEvaluateTests(unittest.TestCase):
                             {
                                 "task_id": "approval-before-edit",
                                 "variant_id": "original",
-                                "observations": [{"kind": "command_run", "value": "npm test"}],
+                                "observations": [
+                                    {"kind": "command_run", "value": "npm test"}
+                                ],
                             }
                         ],
                     }
@@ -321,7 +325,7 @@ class SkillEvaluateTests(unittest.TestCase):
                     "mode": "plan",
                     "write_artifacts": True,
                     "output_dir": str(output_dir),
-                }
+                },
             )
             self.assertIn("artifact_paths", plan)
             report = self.server._call_tool(
@@ -341,12 +345,10 @@ class SkillEvaluateTests(unittest.TestCase):
                     ],
                     "write_artifacts": True,
                     "output_dir": str(output_dir),
-                }
+                },
             )
             self.assertTrue((output_dir / "tmcp-skill-evaluation-plan.json").exists())
-            self.assertTrue(
-                (output_dir / "tmcp-skill-evaluation-report.json").exists()
-            )
+            self.assertTrue((output_dir / "tmcp-skill-evaluation-report.json").exists())
             self.assertTrue((output_dir / "skill-writing-guidebook.md").exists())
             self.assertTrue((output_dir / "skill-pattern-catalog.json").exists())
             self.assertIn("artifact_paths", report)
@@ -404,7 +406,9 @@ class SkillEvaluateTests(unittest.TestCase):
         self.assertIn("verification no-op", warning_text.lower())
         summary = result["skill_eval_advisory_summary"]
         self.assertGreater(summary["warning_count"], 0)
-        self.assertIn("verification.vague-quality-language", summary["patterns_detected"])
+        self.assertIn(
+            "verification.vague-quality-language", summary["patterns_detected"]
+        )
         self.assertEqual(summary["policy"], "advisory_only_no_auto_rewrite")
         node = next(
             item
@@ -432,9 +436,7 @@ class SkillEvaluateTests(unittest.TestCase):
     def test_packet_inclusion_diff_uses_compose_packet(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
         row = next(
-            item
-            for item in plan["task_matrix"]
-            if item["variant_id"] == "original"
+            item for item in plan["task_matrix"] if item["variant_id"] == "original"
         )
         composed = self.evaluate.compose_packet_for_eval_row(
             row,
@@ -483,9 +485,7 @@ class SkillEvaluateTests(unittest.TestCase):
     def test_baseline_variant_expects_skill_not_selected(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
         row = next(
-            item
-            for item in plan["task_matrix"]
-            if item["variant_id"] == "baseline"
+            item for item in plan["task_matrix"] if item["variant_id"] == "baseline"
         )
         composed = self.evaluate.compose_packet_for_eval_row(
             row,

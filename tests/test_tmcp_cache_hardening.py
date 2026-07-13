@@ -32,9 +32,7 @@ class TmcpCacheHardeningTests(unittest.TestCase):
     def _receipt_payload(index: int) -> dict[str, object]:
         return {
             "schema": "tmcp-run-receipt-v0.1",
-            "created_at": (
-                f"2026-07-11T00:{index // 60:02d}:{index % 60:02d}+00:00"
-            ),
+            "created_at": (f"2026-07-11T00:{index // 60:02d}:{index % 60:02d}+00:00"),
             "packet_id": f"packet-{index}",
             "activated_atoms": [],
             "ignored_atoms": [],
@@ -53,10 +51,7 @@ class TmcpCacheHardeningTests(unittest.TestCase):
             tmcp_home = sandbox / "tmcp-home"
             source.mkdir()
             graph_path = (
-                tmcp_home
-                / "promoted-harvests"
-                / "cache-test"
-                / "promotion-graph.json"
+                tmcp_home / "promoted-harvests" / "cache-test" / "promotion-graph.json"
             )
             graph_path.parent.mkdir(parents=True)
             graph_path.write_text(
@@ -80,7 +75,7 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                 encoding="utf-8",
             )
             original_home = self.server.TMCP_HOME
-            self.server.TMCP_HOME = tmcp_home
+            setattr(self.server, "TMCP_HOME", tmcp_home)
             try:
                 snapshot = self.server._global_cache_snapshot("global")
                 packet = self.server._call_tool(
@@ -93,7 +88,7 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                     },
                 )
             finally:
-                self.server.TMCP_HOME = original_home
+                setattr(self.server, "TMCP_HOME", original_home)
 
         graphs = list(snapshot.promoted_graphs)
         warnings = list(snapshot.warnings)
@@ -115,7 +110,9 @@ class TmcpCacheHardeningTests(unittest.TestCase):
         self.assertTrue(any("unknown workflow IDs" in warning for warning in warnings))
         rendered = json.dumps({"graphs": graphs, "packet": packet})
         self.assertNotIn("MALICIOUS", rendered)
-        self.assertIn("canonical spreadsheet", " ".join(packet["active_instructions"]).lower())
+        self.assertIn(
+            "canonical spreadsheet", " ".join(packet["active_instructions"]).lower()
+        )
 
     def test_composition_ignores_global_cache_without_explicit_opt_in(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -124,22 +121,17 @@ class TmcpCacheHardeningTests(unittest.TestCase):
             tmcp_home = sandbox / "tmcp-home"
             source.mkdir()
             graph_path = (
-                tmcp_home
-                / "promoted-harvests"
-                / "cache-test"
-                / "promotion-graph.json"
+                tmcp_home / "promoted-harvests" / "cache-test" / "promotion-graph.json"
             )
             graph_path.parent.mkdir(parents=True)
             graph_path.write_text(
                 json.dumps(
-                    self._graph_payload(
-                        [{"id": "repo_behavior_spec_loop_workflow"}]
-                    )
+                    self._graph_payload([{"id": "repo_behavior_spec_loop_workflow"}])
                 ),
                 encoding="utf-8",
             )
             original_home = self.server.TMCP_HOME
-            self.server.TMCP_HOME = tmcp_home
+            setattr(self.server, "TMCP_HOME", tmcp_home)
             try:
                 default_packet = self.server._call_tool(
                     "tmcp_compose_packet",
@@ -168,7 +160,7 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                     },
                 )
             finally:
-                self.server.TMCP_HOME = original_home
+                setattr(self.server, "TMCP_HOME", original_home)
 
         self.assertEqual(default_packet["global_cache"]["cache_policy"], "none")
         self.assertEqual(default_packet["global_cache"]["promoted_graph_count"], 0)
@@ -177,12 +169,16 @@ class TmcpCacheHardeningTests(unittest.TestCase):
             " ".join(default_packet["active_instructions"]).lower(),
         )
         self.assertEqual(invalid_policy_packet["global_cache"]["cache_policy"], "none")
-        self.assertEqual(invalid_policy_packet["global_cache"]["promoted_graph_count"], 0)
+        self.assertEqual(
+            invalid_policy_packet["global_cache"]["promoted_graph_count"], 0
+        )
         self.assertNotIn(
             "canonical spreadsheet",
             " ".join(invalid_policy_packet["active_instructions"]).lower(),
         )
-        self.assertGreaterEqual(opted_in_packet["global_cache"]["promoted_graph_count"], 1)
+        self.assertGreaterEqual(
+            opted_in_packet["global_cache"]["promoted_graph_count"], 1
+        )
         self.assertIn(
             "canonical spreadsheet",
             " ".join(opted_in_packet["active_instructions"]).lower(),
@@ -197,14 +193,13 @@ class TmcpCacheHardeningTests(unittest.TestCase):
         self.assertEqual(snapshot.receipts, ())
         self.assertEqual(snapshot.warnings, ())
 
-    def test_global_cache_rejects_deeply_nested_json_without_composition_failure(self) -> None:
+    def test_global_cache_rejects_deeply_nested_json_without_composition_failure(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmcp_home = Path(tmp) / "tmcp-home"
             graph_path = (
-                tmcp_home
-                / "promoted-harvests"
-                / "deep"
-                / "promotion-graph.json"
+                tmcp_home / "promoted-harvests" / "deep" / "promotion-graph.json"
             )
             graph_path.parent.mkdir(parents=True)
             graph_path.write_text(
@@ -212,11 +207,11 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                 encoding="utf-8",
             )
             original_home = self.server.TMCP_HOME
-            self.server.TMCP_HOME = tmcp_home
+            setattr(self.server, "TMCP_HOME", tmcp_home)
             try:
                 snapshot = self.server._global_cache_snapshot("global")
             finally:
-                self.server.TMCP_HOME = original_home
+                setattr(self.server, "TMCP_HOME", original_home)
 
         graphs = list(snapshot.promoted_graphs)
         warnings = list(snapshot.warnings)
@@ -242,29 +237,23 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                 )
                 junk_path.parent.mkdir(parents=True)
                 junk_path.write_text(
-                    json.dumps(
-                        self._graph_payload(
-                            [{"id": "unknown_cache_workflow"}]
-                        )
-                    ),
+                    json.dumps(self._graph_payload([{"id": "unknown_cache_workflow"}])),
                     encoding="utf-8",
                 )
             valid_path = promoted_root / "z-valid" / "promotion-graph.json"
             valid_path.parent.mkdir(parents=True)
             valid_path.write_text(
                 json.dumps(
-                    self._graph_payload(
-                        [{"id": "repo_behavior_spec_loop_workflow"}]
-                    )
+                    self._graph_payload([{"id": "repo_behavior_spec_loop_workflow"}])
                 ),
                 encoding="utf-8",
             )
             original_home = self.server.TMCP_HOME
-            self.server.TMCP_HOME = tmcp_home
+            setattr(self.server, "TMCP_HOME", tmcp_home)
             try:
                 snapshot = self.server._global_cache_snapshot("global")
             finally:
-                self.server.TMCP_HOME = original_home
+                setattr(self.server, "TMCP_HOME", original_home)
 
         graphs = list(snapshot.promoted_graphs)
         self.assertEqual(len(graphs), 1)
@@ -284,7 +273,7 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                     encoding="utf-8",
                 )
             original_home = self.server.TMCP_HOME
-            self.server.TMCP_HOME = tmcp_home
+            setattr(self.server, "TMCP_HOME", tmcp_home)
             try:
                 with patch.object(
                     global_cache,
@@ -296,7 +285,7 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                         receipt_limit=5,
                     )
             finally:
-                self.server.TMCP_HOME = original_home
+                setattr(self.server, "TMCP_HOME", original_home)
 
         receipts = list(snapshot.receipts)
         warnings = list(snapshot.warnings)
@@ -323,11 +312,11 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                 encoding="utf-8",
             )
             original_home = self.server.TMCP_HOME
-            self.server.TMCP_HOME = tmcp_home
+            setattr(self.server, "TMCP_HOME", tmcp_home)
             try:
                 snapshot = self.server._global_cache_snapshot("global")
             finally:
-                self.server.TMCP_HOME = original_home
+                setattr(self.server, "TMCP_HOME", original_home)
 
         receipts = list(snapshot.receipts)
         warnings = list(snapshot.warnings)
@@ -343,7 +332,7 @@ class TmcpCacheHardeningTests(unittest.TestCase):
             source = Path(tmp) / "source"
             source.mkdir()
             original_home = self.server.TMCP_HOME
-            self.server.TMCP_HOME = Path(tmp) / secret
+            setattr(self.server, "TMCP_HOME", Path(tmp) / secret)
             try:
                 packet = self.server._call_tool(
                     "tmcp_compose_packet",
@@ -355,7 +344,7 @@ class TmcpCacheHardeningTests(unittest.TestCase):
                     },
                 )
             finally:
-                self.server.TMCP_HOME = original_home
+                setattr(self.server, "TMCP_HOME", original_home)
 
         self.assertNotIn(secret, json.dumps(packet))
         self.assertIn("[REDACTED:", packet["global_cache"]["tmcp_home"])

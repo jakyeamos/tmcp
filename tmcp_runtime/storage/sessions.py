@@ -82,8 +82,11 @@ class PacketSessionSnapshot:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(
-        "+00:00", "Z"
+    return (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
     )
 
 
@@ -114,7 +117,9 @@ def _project_root(project_path: str | Path) -> Path:
             f"{redact_path('; '.join(warnings))}"
         )
     if len(roots) != 1 or roots[0].kind != "directory":
-        raise PacketSessionError("project_path must be one real directory for packet sessions.")
+        raise PacketSessionError(
+            "project_path must be one real directory for packet sessions."
+        )
     return roots[0].logical_path
 
 
@@ -144,7 +149,9 @@ def _composed_packet_is_valid(packet: object) -> bool:
     for field in _COMPOSED_PACKET_LIST_FIELDS:
         if not isinstance(packet.get(field), list):
             return False
-    return all(isinstance(packet.get(field), dict) for field in _COMPOSED_PACKET_OBJECT_FIELDS)
+    return all(
+        isinstance(packet.get(field), dict) for field in _COMPOSED_PACKET_OBJECT_FIELDS
+    )
 
 
 def _recompile_record_is_valid(value: object) -> bool:
@@ -164,11 +171,16 @@ def _recompile_record_is_valid(value: object) -> bool:
 
 def _record_snapshot(path: Path, payload: dict[str, Any]) -> PacketSessionSnapshot:
     if not _bounded_json(payload):
-        raise PacketSessionError("Packet session exceeds the supported JSON complexity.")
+        raise PacketSessionError(
+            "Packet session exceeds the supported JSON complexity."
+        )
     if payload.get("schema") != PACKET_SESSION_SCHEMA:
         raise PacketSessionError("Packet session has an unsupported schema.")
     format_version = payload.get("format_version")
-    if isinstance(format_version, bool) or format_version != PACKET_SESSION_FORMAT_VERSION:
+    if (
+        isinstance(format_version, bool)
+        or format_version != PACKET_SESSION_FORMAT_VERSION
+    ):
         raise PacketSessionError("Packet session has an unsupported format version.")
     revision = payload.get("revision")
     if isinstance(revision, bool) or not isinstance(revision, int) or revision < 1:
@@ -224,7 +236,7 @@ class PacketSessionStore:
             )
         except (MemoryError, RecursionError, ValueError) as exc:
             raise PacketSessionError(
-                "Could not load packet session: " f"{redact_path(str(exc))}"
+                f"Could not load packet session: {redact_path(str(exc))}"
             ) from exc
         return _record_snapshot(self.path, source.payload)
 
@@ -253,7 +265,9 @@ class PacketSessionStore:
         now: str | None = None,
     ) -> PacketSessionSnapshot:
         if snapshot.path != self.path:
-            raise PacketSessionError("Packet session snapshot belongs to another session.")
+            raise PacketSessionError(
+                "Packet session snapshot belongs to another session."
+            )
         created_at = snapshot.record.get("created_at")
         if not isinstance(created_at, str) or not created_at:
             raise PacketSessionError("Packet session is missing created_at.")
@@ -290,7 +304,9 @@ class PacketSessionStore:
             "last_recompile": last_recompile,
         }
         if not _bounded_json(record):
-            raise PacketSessionError("Packet session exceeds the supported JSON complexity.")
+            raise PacketSessionError(
+                "Packet session exceeds the supported JSON complexity."
+            )
         try:
             safe_record, _ = redact_json_value(record, enabled=True)
         except (MemoryError, RecursionError) as exc:

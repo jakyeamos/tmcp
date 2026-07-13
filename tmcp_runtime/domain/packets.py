@@ -114,9 +114,7 @@ def selection_rationale(packet: dict[str, Any]) -> str:
         if isinstance(item, dict)
     ]
     if not signals:
-        return (
-            f"TMCP inferred primary task identity `{primary}` from the objective and runtime context."
-        )
+        return f"TMCP inferred primary task identity `{primary}` from the objective and runtime context."
     top = signals[0]
     route = str(top.get("route") or primary)
     evidence = ", ".join(_string_list(top.get("evidence"))[:3])
@@ -184,7 +182,9 @@ def render_composed_packet_markdown(packet: dict[str, Any]) -> str:
         lines.extend(["", "## Excluded Skills"])
         for item in ignored[:10]:
             source = str(item.get("source") or "source")
-            reason = str(item.get("reason") or "No match for current objective or phase.")
+            reason = str(
+                item.get("reason") or "No match for current objective or phase."
+            )
             lines.append(f"- {source}: {reason}")
     deferred = _string_list(packet.get("deferred_atoms"))
     if deferred:

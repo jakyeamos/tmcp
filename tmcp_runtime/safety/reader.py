@@ -49,9 +49,8 @@ def read_harvest_text(
             "Could not verify source path "
             f"{candidate.display_path}: {_safe_error(exc)}",
         )
-    if (
-        current_path != candidate.resolved_path
-        or not _is_within(current_path, candidate.root.resolved_path)
+    if current_path != candidate.resolved_path or not _is_within(
+        current_path, candidate.root.resolved_path
     ):
         return None, f"Skipped source outside source root: {candidate.display_path}"
     try:
@@ -59,7 +58,10 @@ def read_harvest_text(
     except OSError as exc:
         return None, f"Could not stat {candidate.display_path}: {_safe_error(exc)}"
     if _is_link_or_reparse_point(metadata):
-        return None, f"Skipped symlink or reparse-point source file: {candidate.display_path}"
+        return (
+            None,
+            f"Skipped symlink or reparse-point source file: {candidate.display_path}",
+        )
     if not stat.S_ISREG(metadata.st_mode):
         return None, f"Skipped non-regular source file: {candidate.display_path}"
 
@@ -84,7 +86,10 @@ def read_harvest_text(
             descriptor = -1
             opened_metadata = os.fstat(source_file.fileno())
             if not stat.S_ISREG(opened_metadata.st_mode):
-                return None, f"Skipped non-regular source file: {candidate.display_path}"
+                return (
+                    None,
+                    f"Skipped non-regular source file: {candidate.display_path}",
+                )
             if (opened_metadata.st_dev, opened_metadata.st_ino) != (
                 candidate.device,
                 candidate.inode,
@@ -116,6 +121,8 @@ def read_harvest_text(
         )
     if b"\x00" in data[:2048]:
         return None, f"Skipped likely binary file: {candidate.display_path}"
-    text = data.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
+    text = (
+        data.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
+    )
     safe_text, redactions = redact_sensitive_text(text, enabled=redact_sensitive)
     return SafeText(text=safe_text, redactions=redactions), None

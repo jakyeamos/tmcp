@@ -25,16 +25,16 @@ class WorkflowCatalogDomainTests(unittest.TestCase):
                 if item["signal_family"] == "security_privacy"
             ],
         )
-        self.assertEqual(workflow_catalog.select_workflow_catalog(["  "]), all_workflows)
+        self.assertEqual(
+            workflow_catalog.select_workflow_catalog(["  "]), all_workflows
+        )
 
     def test_catalog_lookup_returns_unique_isolated_definitions(self) -> None:
         catalog = workflow_catalog.workflow_catalog()
         lookup = workflow_catalog.workflow_catalog_by_id()
 
         self.assertEqual(len(catalog), len(lookup))
-        self.assertEqual(
-            len({item["workflow_id"] for item in catalog}), len(catalog)
-        )
+        self.assertEqual(len({item["workflow_id"] for item in catalog}), len(catalog))
         catalog[0]["name"] = "Mutated"
         self.assertNotEqual(workflow_catalog.workflow_catalog()[0]["name"], "Mutated")
 

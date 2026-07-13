@@ -4,6 +4,7 @@ import ast
 import inspect
 import unittest
 from pathlib import Path
+from typing import Any, cast
 
 import tmcp_runtime.services.sessions as sessions_service
 from tmcp_runtime.services.sessions import RuntimeSessionService
@@ -11,12 +12,12 @@ from tmcp_runtime.services.sessions import RuntimeSessionService
 
 class _Snapshot:
     def __init__(self) -> None:
-        self.packet = {
+        self.packet: dict[str, Any] = {
             "packet_id": "old-packet",
             "project_path": "/project",
         }
 
-    def metadata(self) -> dict[str, object]:
+    def metadata(self) -> dict[str, Any]:
         return {"revision": 2, "packet_id": "new-packet"}
 
 
@@ -33,9 +34,9 @@ class _Store:
     def update(
         self,
         snapshot: _Snapshot,
-        packet: dict[str, object],
+        packet: dict[str, Any],
         *,
-        last_recompile: dict[str, object],
+        last_recompile: dict[str, Any],
         now: str,
     ) -> _Snapshot:
         self.update_arguments = {
@@ -94,8 +95,10 @@ class RuntimeSessionServiceTests(unittest.TestCase):
 
         self.assertEqual(build_arguments["previous_packet_id"], "old-packet")
         self.assertEqual(build_arguments["project_path"], str(store.project_root))
-        self.assertEqual(recompile_arguments["previous_packet"]["packet_id"], "old-packet")
-        self.assertEqual(result["session"], {"revision": 2, "packet_id": "new-packet"})
+        previous_packet = cast(dict[str, Any], recompile_arguments["previous_packet"])
+        self.assertEqual(previous_packet["packet_id"], "old-packet")
+        session = cast(dict[str, Any], result["session"])
+        self.assertEqual(session, {"revision": 2, "packet_id": "new-packet"})
         self.assertEqual(store.update_arguments["now"], "2026-07-13T12:00:00Z")
 
     def test_session_mode_rejects_inline_previous_packet(self) -> None:

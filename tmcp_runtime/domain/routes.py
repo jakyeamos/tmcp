@@ -39,9 +39,7 @@ def _ui_file_boost(context: dict[str, Any]) -> tuple[float, list[str]]:
     if not isinstance(files_changed, list):
         return 0.0, []
     ui_files = [
-        path
-        for path in files_changed
-        if str(path).lower().endswith(UI_FILE_SUFFIXES)
+        path for path in files_changed if str(path).lower().endswith(UI_FILE_SUFFIXES)
     ]
     if not ui_files:
         return 0.0, []
@@ -235,9 +233,7 @@ def seed_match_threshold(route_affinity_overlap: int) -> float:
     return SEED_MATCH_THRESHOLD
 
 
-def route_affinity_overlap(
-    seed_routes: list[str], active_routes: list[str]
-) -> int:
+def route_affinity_overlap(seed_routes: list[str], active_routes: list[str]) -> int:
     return len(set(seed_routes).intersection(active_routes))
 
 
@@ -271,7 +267,9 @@ def source_boost_for_node(
         if _pattern_matches_node(pattern, rel_lower, text_lower):
             boost += 2.5
     if route_id == "frontend_implementation" and source_type == "skill_definition":
-        if any(term in rel_lower for term in ("frontend", "react", "ui-implementation")):
+        if any(
+            term in rel_lower for term in ("frontend", "react", "ui-implementation")
+        ):
             boost += 1.5
     if route_id == "ui_ux_redesign" and source_type == "skill_definition":
         if any(term in rel_lower for term in ("ui-ux", "redesign", "design", "visual")):
@@ -320,7 +318,9 @@ def score_scoped_seed(
     for use_when in _string_list(seed.get("use_when")):
         use_terms = set(str(use_when).lower().split())
         score += float(len(objective_terms.intersection(use_terms))) * 1.5
-    for source_ref in _string_list(seed.get("source_references") or seed.get("sources")):
+    for source_ref in _string_list(
+        seed.get("source_references") or seed.get("sources")
+    ):
         slug = _skill_slug_from_path(source_ref)
         if slug and slug.replace("-", " ") in objective_lower.replace("-", " "):
             score += 6.0
@@ -350,7 +350,9 @@ def scoped_seed_threshold(
     )
     if overlap >= 2:
         return seed_match_threshold(overlap)
-    if _string_list(seed.get("use_when")) or _string_list(seed.get("objective_patterns")):
+    if _string_list(seed.get("use_when")) or _string_list(
+        seed.get("objective_patterns")
+    ):
         return LEGACY_SEED_MATCH_THRESHOLD
     return SEED_MATCH_THRESHOLD
 
@@ -366,7 +368,10 @@ def score_routes(
         combined = f"{combined} {latest}".strip()
     scores: list[dict[str, Any]] = []
     for route in ROUTE_DEFINITIONS:
-        evidence = [f"objective: {term}" for term in _terms_in_text(combined, route.objective_terms)]
+        evidence = [
+            f"objective: {term}"
+            for term in _terms_in_text(combined, route.objective_terms)
+        ]
         score = float(len(evidence)) * 1.5
         if route.context_boost is not None:
             boost, boost_evidence = route.context_boost(context)
@@ -433,7 +438,9 @@ def derive_task_identity(
     if not active_routes and signals:
         active_routes = [str(signals[0]["route"])]
     primary = _resolve_primary_route(active_routes) if active_routes else "general_task"
-    secondary = [route for route in active_routes if route != primary][:MAX_SECONDARY_ROUTES]
+    secondary = [route for route in active_routes if route != primary][
+        :MAX_SECONDARY_ROUTES
+    ]
     top_score = float(signals[0]["score"]) if signals else 0.0
     confidence = min(0.99, round(0.35 + (top_score / 10.0), 2)) if signals else 0.0
     return {

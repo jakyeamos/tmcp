@@ -289,8 +289,7 @@ def _promotion_workflow_edges(
                             item.get("relative_path")
                             for item in _json_list(workflow.get("evidence"))
                             if isinstance(item, dict)
-                            and atom
-                            in _string_list(item.get("matched_behavior_atoms"))
+                            and atom in _string_list(item.get("matched_behavior_atoms"))
                         ],
                     }
                 )

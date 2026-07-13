@@ -43,7 +43,10 @@ class ReviewProfilesDomainTests(unittest.TestCase):
 
     def test_catalog_preserves_dimension_and_coverage_contracts(self) -> None:
         self.assertEqual(
-            [item["id"] for item in review_profiles.profile_dimensions("general_review")],
+            [
+                item["id"]
+                for item in review_profiles.profile_dimensions("general_review")
+            ],
             [
                 "source_grounding",
                 "risk_priority",

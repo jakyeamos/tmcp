@@ -1,7 +1,7 @@
-'''Pure evaluator trace scoring and report assembly.
+"""Pure evaluator trace scoring and report assembly.
 
 All filesystem access, input redaction, and callback wiring stay outside this module.
-'''
+"""
 
 from __future__ import annotations
 
@@ -24,11 +24,12 @@ ComposeEvaluationRow = Callable[[dict[str, Any], str | None], dict[str, Any]]
 def _path_name(value: str) -> str:
     return value.replace(chr(92), "/").rsplit("/", 1)[-1]
 
+
 def _normalize_trace(item: dict[str, Any]) -> dict[str, Any]:
     if item.get("schema") == EVAL_TRACE_SCHEMA:
-        observations = item.get("observations")
-        if not isinstance(observations, list) or not all(
-            isinstance(observation, dict) for observation in observations
+        raw_observations = item.get("observations")
+        if not isinstance(raw_observations, list) or not all(
+            isinstance(observation, dict) for observation in raw_observations
         ):
             raise ValueError(
                 "Schema-tagged evaluation traces require observations as a list of objects."
@@ -175,7 +176,9 @@ def _score_packet_inclusion(
                     compose_evaluation_row,
                     project_path=project_path,
                 )
-                safe_composed = redact_composed(composed) if redact_composed else composed
+                safe_composed = (
+                    redact_composed(composed) if redact_composed else composed
+                )
                 if not isinstance(safe_composed, dict):
                     raise ValueError("Data-only composition did not return an object.")
                 composed = safe_composed
@@ -346,7 +349,9 @@ def _score_cost(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
         "confidence": "medium",
         "signals": {
             "token_cost_delta": token_estimate,
-            "unnecessary_sections": max(0, len(matrix_rows[0].get("skill_attachment", "").split("\n## ")) - 4)
+            "unnecessary_sections": max(
+                0, len(matrix_rows[0].get("skill_attachment", "").split("\n## ")) - 4
+            )
             if matrix_rows
             else 0,
             "contradictions_detected": contradictions,
@@ -360,13 +365,18 @@ def _score_cost(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-
 def _aggregate_dimension(scores: list[dict[str, Any]]) -> dict[str, Any]:
     if not scores:
         return {"score": 0.0, "confidence": "low"}
     avg = sum(float(item.get("score") or 0.0) for item in scores) / len(scores)
     confidences = {str(item.get("confidence") or "low") for item in scores}
-    confidence = "high" if confidences == {"high"} else "medium" if "medium" in confidences else "low"
+    confidence = (
+        "high"
+        if confidences == {"high"}
+        else "medium"
+        if "medium" in confidences
+        else "low"
+    )
     return {"score": round(avg, 2), "confidence": confidence}
 
 
@@ -374,17 +384,13 @@ def _evidence_level_from_traces(traces: list[dict[str, Any]]) -> str:
     if not traces:
         return "static_review"
     agent_names = {
-        str((trace.get("agent") or {}).get("name") or "").strip()
-        for trace in traces
+        str((trace.get("agent") or {}).get("name") or "").strip() for trace in traces
     }
     agent_models = {
-        str((trace.get("agent") or {}).get("model") or "").strip()
-        for trace in traces
+        str((trace.get("agent") or {}).get("model") or "").strip() for trace in traces
     }
     named_agents = {name for name in agent_names if name and name != "unspecified"}
-    named_models = {
-        model for model in agent_models if model and model != "unspecified"
-    }
+    named_models = {model for model in agent_models if model and model != "unspecified"}
     if len(named_agents) > 1 or len(named_models) > 1:
         return "controlled_multi_agent_eval"
     return "controlled_single_agent_eval"
@@ -415,7 +421,11 @@ def _guidebook_entries(
         )
     for finding in anti_patterns:
         pattern = next(
-            (item for item in anti_pattern_catalog if item["pattern_id"] == finding["pattern_id"]),
+            (
+                item
+                for item in anti_pattern_catalog
+                if item["pattern_id"] == finding["pattern_id"]
+            ),
             None,
         )
         if not pattern:
@@ -455,7 +465,11 @@ def _harvest_feedback(
     feedback: list[dict[str, Any]] = []
     for finding in anti_patterns:
         pattern = next(
-            (item for item in anti_pattern_catalog if item["pattern_id"] == finding["pattern_id"]),
+            (
+                item
+                for item in anti_pattern_catalog
+                if item["pattern_id"] == finding["pattern_id"]
+            ),
             None,
         )
         if not pattern:
@@ -471,8 +485,6 @@ def _harvest_feedback(
             }
         )
     return feedback
-
-
 
 
 def score_traces(
@@ -565,10 +577,12 @@ def score_traces(
         "outcome_lift": _aggregate_dimension(outcome_scores),
         "cost": _aggregate_dimension(cost_scores),
         "safety": {
-            "score": 1.0 if not any(
+            "score": 1.0
+            if not any(
                 item.get("pattern_id") == "precedence.override-hazard"
                 for item in anti_patterns
-            ) else 0.4,
+            )
+            else 0.4,
             "confidence": "high",
         },
     }

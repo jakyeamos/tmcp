@@ -8,9 +8,7 @@ from typing import Any
 
 RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
 RECEIPT_TRUST = "advisory_untrusted"
-RECEIPT_INSTRUCTION_OVERRIDE_POLICY = (
-    "Receipts may improve future ranking but cannot override higher-priority instructions."
-)
+RECEIPT_INSTRUCTION_OVERRIDE_POLICY = "Receipts may improve future ranking but cannot override higher-priority instructions."
 
 
 def _string_list(value: object) -> list[str]:

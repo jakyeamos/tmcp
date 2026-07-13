@@ -10,6 +10,7 @@ import tempfile
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 from scripts.tmcp_mcp_framing import encode_message, read_message
 
@@ -111,7 +112,9 @@ class TestWorkspace:
             response = read_message(stream)
             if response is None:
                 break
-            responses.append(response)
+            if not isinstance(response, dict):
+                raise RuntimeError("TMCP MCP response must be a JSON object")
+            responses.append(cast(dict[str, object], response))
         return responses
 
 

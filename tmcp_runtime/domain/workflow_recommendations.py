@@ -64,9 +64,7 @@ def score_workflow_signal(
     keywords = tuple(str(item).lower() for item in workflow.get("keywords", ()))
     expected_atoms = set(_string_sequence(workflow.get("behavior_atoms")))
     expected_label_ids = set(
-        signal_guidance_label_ids.get(
-            str(workflow.get("signal_family") or ""), ()
-        )
+        signal_guidance_label_ids.get(str(workflow.get("signal_family") or ""), ())
     )
     score = 0.0
     evidence_candidates: list[dict[str, Any]] = []

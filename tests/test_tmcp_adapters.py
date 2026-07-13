@@ -5,6 +5,7 @@ import io
 import json
 import unittest
 from pathlib import Path
+from typing import cast
 from unittest.mock import patch
 
 from tmcp_runtime.adapters.aios import run as run_aios
@@ -37,9 +38,7 @@ class RuntimeAdapterTests(unittest.TestCase):
             {"echo": self._typed_handler},
             allowed_names={"echo"},
         )
-        result = dispatcher.dispatch(
-            ToolRequest.from_parts("echo", {"value": "ok"})
-        )
+        result = dispatcher.dispatch(ToolRequest.from_parts("echo", {"value": "ok"}))
 
         self.assertEqual(result.to_payload()["arguments"], {"value": "ok"})
         with self.assertRaises(TypeError):
@@ -48,10 +47,7 @@ class RuntimeAdapterTests(unittest.TestCase):
             dispatcher.dispatch(ToolRequest.from_parts("missing", {}))
 
     def test_default_dispatch_registry_requires_every_public_tool(self) -> None:
-        handlers = {
-            name: self._typed_handler
-            for name in PUBLIC_TOOL_NAMES
-        }
+        handlers = {name: self._typed_handler for name in PUBLIC_TOOL_NAMES}
         dispatcher = ToolDispatcher(handlers)
 
         self.assertEqual(dispatcher.tool_names, PUBLIC_TOOL_NAMES)
@@ -127,7 +123,9 @@ class RuntimeAdapterTests(unittest.TestCase):
             tools=self._tools,
         )
 
-        self.assertEqual(response["error"]["code"], -32602)
+        assert response is not None
+        error = cast(dict[str, object], cast(dict[str, object], response)["error"])
+        self.assertEqual(error["code"], -32602)
 
     def test_mcp_adapter_suppresses_responses_to_notifications(self) -> None:
         response = handle_message(
@@ -152,7 +150,9 @@ class RuntimeAdapterTests(unittest.TestCase):
 
         outgoing.seek(0)
         response = read_message(outgoing)
-        self.assertEqual(response["error"]["code"], -32700)
+        assert response is not None
+        error = cast(dict[str, object], cast(dict[str, object], response)["error"])
+        self.assertEqual(error["code"], -32700)
 
     def test_mcp_stdio_returns_parse_error_for_truncated_body(self) -> None:
         incoming = io.BytesIO(b"Content-Length: 5\r\n\r\n{}")
@@ -168,7 +168,9 @@ class RuntimeAdapterTests(unittest.TestCase):
 
         outgoing.seek(0)
         response = read_message(outgoing)
-        self.assertEqual(response["error"]["code"], -32700)
+        assert response is not None
+        error = cast(dict[str, object], cast(dict[str, object], response)["error"])
+        self.assertEqual(error["code"], -32700)
 
     def test_mcp_stdio_adapter_round_trips_framed_messages(self) -> None:
         incoming = io.BytesIO(
@@ -186,7 +188,9 @@ class RuntimeAdapterTests(unittest.TestCase):
         )
 
         outgoing.seek(0)
-        self.assertEqual(read_message(outgoing), {"jsonrpc": "2.0", "id": 1, "result": {}})
+        self.assertEqual(
+            read_message(outgoing), {"jsonrpc": "2.0", "id": 1, "result": {}}
+        )
         self.assertEqual(
             read_message(outgoing),
             {"jsonrpc": "2.0", "id": 2, "result": {"resources": []}},
@@ -206,7 +210,9 @@ class RuntimeAdapterTests(unittest.TestCase):
         self.assertEqual(payload["arguments"]["objective"], "Build a packet")
 
     def test_adapters_do_not_import_legacy_scripts(self) -> None:
-        adapters_root = Path(__file__).resolve().parents[1] / "tmcp_runtime" / "adapters"
+        adapters_root = (
+            Path(__file__).resolve().parents[1] / "tmcp_runtime" / "adapters"
+        )
         imported_modules: set[str] = set()
         for path in adapters_root.glob("*.py"):
             module = ast.parse(path.read_text(encoding="utf-8"))
@@ -221,7 +227,9 @@ class RuntimeAdapterTests(unittest.TestCase):
                 if isinstance(node, ast.Import)
                 for alias in node.names
             )
-        self.assertFalse(any(module.startswith("scripts") for module in imported_modules))
+        self.assertFalse(
+            any(module.startswith("scripts") for module in imported_modules)
+        )
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
@@ -90,7 +91,10 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
                     )
                     self.assertNotIn("EXTERNAL_ONLY", json.dumps(result))
                     self.assertTrue(
-                        any("symlink" in warning.lower() for warning in result["warnings"])
+                        any(
+                            "symlink" in warning.lower()
+                            for warning in result["warnings"]
+                        )
                     )
 
     def test_reparse_point_metadata_is_treated_like_a_symlink(self) -> None:
@@ -105,7 +109,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             reparse_point,
             create=True,
         ):
-            self.assertTrue(safety_files._is_link_or_reparse_point(metadata))
+            self.assertTrue(
+                safety_files._is_link_or_reparse_point(cast(os.stat_result, metadata))
+            )
 
     @unittest.skipUnless(os.name == "nt", "Requires a Windows junction-capable host.")
     def test_windows_junctions_follow_the_symlink_policy(self) -> None:
@@ -136,7 +142,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             )
 
             self.assertEqual(roots, [])
-            self.assertTrue(any("source-root symlink" in warning for warning in warnings))
+            self.assertTrue(
+                any("source-root symlink" in warning for warning in warnings)
+            )
             self.assertEqual(followed_warnings, [])
             self.assertEqual(len(followed_roots), 1)
 
@@ -179,7 +187,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             ["SKILL.md"],
         )
         self.assertNotIn("EXTERNAL_JUNCTION_CONTENT", json.dumps(result))
-        self.assertTrue(any("symlink" in warning.lower() for warning in result["warnings"]))
+        self.assertTrue(
+            any("symlink" in warning.lower() for warning in result["warnings"])
+        )
         self.assertIsNone(source)
         self.assertIn("outside source root", str(reader_warning))
 
@@ -215,7 +225,10 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
                     )
                     self.assertNotIn("EXTERNAL_DIRECTORY", json.dumps(result))
                     self.assertTrue(
-                        any("symlink" in warning.lower() for warning in result["warnings"])
+                        any(
+                            "symlink" in warning.lower()
+                            for warning in result["warnings"]
+                        )
                     )
 
     @unittest.skipUnless(
@@ -264,7 +277,10 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
 
         self.assertEqual(default_result["source_count"], 0)
         self.assertTrue(
-            any("source-root symlink" in warning for warning in default_result["warnings"])
+            any(
+                "source-root symlink" in warning
+                for warning in default_result["warnings"]
+            )
         )
         self.assertEqual(followed_result["source_count"], 1)
         self.assertEqual(
@@ -285,9 +301,7 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             target.write_text("# In root\n\nUse a test gate.\n", encoding="utf-8")
             _symlink_or_skip(self, root / "00-alias.md", target)
 
-            default_result = self.server._harvest_skills(
-                {"source_path": str(root)}
-            )
+            default_result = self.server._harvest_skills({"source_path": str(root)})
             followed_result = self.server._harvest_skills(
                 {"source_path": str(root), "follow_symlinks": True}
             )
@@ -385,21 +399,20 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             (root / "a.md").write_text("# A\n", encoding="utf-8")
             (root / "b.md").write_text("# B\n", encoding="utf-8")
             with patch.object(harvest_service, "DEFAULT_HARVEST_MAX_SCAN_ENTRIES", 1):
-                scan_limited = self.server._harvest_skills(
-                    {"source_path": str(root)}
-                )
-            with patch.object(
-                harvest_service,
-                "DEFAULT_HARVEST_MAX_SCAN_ENTRIES",
-                16,
-            ), patch.object(
-                harvest_service,
-                "DEFAULT_HARVEST_MAX_TOTAL_BYTES",
-                6,
+                scan_limited = self.server._harvest_skills({"source_path": str(root)})
+            with (
+                patch.object(
+                    harvest_service,
+                    "DEFAULT_HARVEST_MAX_SCAN_ENTRIES",
+                    16,
+                ),
+                patch.object(
+                    harvest_service,
+                    "DEFAULT_HARVEST_MAX_TOTAL_BYTES",
+                    6,
+                ),
             ):
-                byte_limited = self.server._harvest_skills(
-                    {"source_path": str(root)}
-                )
+                byte_limited = self.server._harvest_skills({"source_path": str(root)})
 
         self.assertEqual(scan_limited["source_count"], 1)
         self.assertTrue(
@@ -433,7 +446,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
 
         self.assertEqual(default_result["source_count"], 0)
         self.assertTrue(
-            any("symlink component" in warning for warning in default_result["warnings"])
+            any(
+                "symlink component" in warning for warning in default_result["warnings"]
+            )
         )
         self.assertEqual(followed_result["source_count"], 1)
 
@@ -454,7 +469,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
 
         self.assertEqual(result["source_count"], 0)
         self.assertNotIn("EXCLUDED_DIRECTORY_CONTENT", json.dumps(result))
-        self.assertTrue(any("Skipped directory" in warning for warning in result["warnings"]))
+        self.assertTrue(
+            any("Skipped directory" in warning for warning in result["warnings"])
+        )
 
     @unittest.skipUnless(
         artifact_persistence_available(),
@@ -629,7 +646,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
                 with self.assertRaises(ArtifactStorageError):
                     store.write_json("artifact.json", {"state": "new"})
 
-            self.assertEqual(json.loads(target.read_text(encoding="utf-8")), {"state": "old"})
+            self.assertEqual(
+                json.loads(target.read_text(encoding="utf-8")), {"state": "old"}
+            )
             self.assertEqual(list(output_dir.glob(".artifact.json.*.tmp")), [])
             if os.name != "nt":
                 self.assertEqual(target.stat().st_mode & 0o777, 0o600)
@@ -814,10 +833,13 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             original_home = getattr(self.server, "TMCP_HOME", None)
             setattr(self.server, "TMCP_HOME", tmcp_home)
             try:
-                with patch(
-                    "tmcp_runtime.storage.artifacts._supports_descriptor_relative_operations",
-                    return_value=False,
-                ), self.assertRaises(ArtifactStorageError):
+                with (
+                    patch(
+                        "tmcp_runtime.storage.artifacts._supports_descriptor_relative_operations",
+                        return_value=False,
+                    ),
+                    self.assertRaises(ArtifactStorageError),
+                ):
                     self.server._record_receipt(
                         {"packet_id": "packet-123", "outcome": "passed"}
                     )
@@ -882,7 +904,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             self.assertEqual(set(paths), {"report.json", "report.md"})
             self.assertTrue(all(Path(path).exists() for path in paths.values()))
 
-    def test_exact_skill_inputs_are_bounded_to_real_skill_files_and_project(self) -> None:
+    def test_exact_skill_inputs_are_bounded_to_real_skill_files_and_project(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             sandbox = Path(tmp)
             project = sandbox / "project"
@@ -891,7 +915,9 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             outside.mkdir()
             secret = "sk-" + "A" * 40
             skill = project / "SKILL.md"
-            skill.write_text(f"# {secret}\n\nUse a verification gate.\n", encoding="utf-8")
+            skill.write_text(
+                f"# {secret}\n\nUse a verification gate.\n", encoding="utf-8"
+            )
             not_a_skill = project / "notes.md"
             not_a_skill.write_text("# Notes\n", encoding="utf-8")
             external_skill = outside / "SKILL.md"
@@ -946,12 +972,23 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
             real_replace = os.replace
             replace_calls = 0
 
-            def fail_second_replace(*args: object, **kwargs: object) -> None:
+            def fail_second_replace(
+                src: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+                dst: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+                *,
+                src_dir_fd: int | None = None,
+                dst_dir_fd: int | None = None,
+            ) -> None:
                 nonlocal replace_calls
                 replace_calls += 1
                 if replace_calls == 2:
                     raise OSError("second write failed")
-                real_replace(*args, **kwargs)
+                real_replace(
+                    src,
+                    dst,
+                    src_dir_fd=src_dir_fd,
+                    dst_dir_fd=dst_dir_fd,
+                )
 
             with patch(
                 "tmcp_runtime.storage.artifacts.os.replace",

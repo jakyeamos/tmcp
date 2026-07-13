@@ -28,6 +28,7 @@ class StorageMigrationTests(unittest.TestCase):
             graph_schema="tmcp-promoted-harvest-graph-v0.1",
         )
 
+        assert migrated is not None
         self.assertEqual(migrated["schema"], "tmcp-promoted-harvest-graph-v0.1")
         self.assertEqual(migrated["promotion_name"], "release")
         self.assertEqual(migrated["trust"], "advisory_untrusted")

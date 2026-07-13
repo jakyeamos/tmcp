@@ -54,7 +54,6 @@ class ToolContract:
     state_effect: StateEffect
 
 
-
 CLI_TOOL_ALIASES = {
     "doctor": "tmcp_doctor",
     "tmcp-doctor": "tmcp_doctor",
@@ -197,7 +196,9 @@ TOOL_OUTPUT_SCHEMA_IDS: Final[dict[str, tuple[str, ...]]] = {
 
 
 def _aliases_for(name: str) -> tuple[str, ...]:
-    return tuple(alias for alias, tool_name in CLI_TOOL_ALIASES.items() if tool_name == name)
+    return tuple(
+        alias for alias, tool_name in CLI_TOOL_ALIASES.items() if tool_name == name
+    )
 
 
 def _defaults_for(name: str) -> dict[str, Mapping[str, object]]:
@@ -241,10 +242,7 @@ def mcp_server_info() -> dict[str, str]:
 def mcp_tools() -> list[dict[str, object]]:
     """Return the exact public tool-list payload in stable name order."""
 
-    return [
-        {"name": name, **definition}
-        for name, definition in sorted(TOOLS.items())
-    ]
+    return [{"name": name, **definition} for name, definition in sorted(TOOLS.items())]
 
 
 def cli_usage() -> str:
@@ -256,18 +254,18 @@ def cli_usage() -> str:
 Usage:
   node scripts/tmcp_launcher.mjs                         # start MCP stdio server
   node scripts/tmcp_launcher.mjs list-tools
-  node scripts/tmcp_launcher.mjs {commands['tmcp_doctor']} [--client codex]
-  node scripts/tmcp_launcher.mjs {commands['tmcp_status']}
-  node scripts/tmcp_launcher.mjs {commands['tmcp_explain']} \"<objective>\" [--project-path .] [--adapter auto]
-  node scripts/tmcp_launcher.mjs {commands['tmcp_harvest_skills']} [source_path] [--objective \"...\"] [--write-artifacts --output-dir .tmcp/harvest]
-  node scripts/tmcp_launcher.mjs {commands['tmcp_evaluate_skills']} [--skill-paths path/to/SKILL.md] [--task-fixtures '[...]'] [--write-artifacts]
-  node scripts/tmcp_launcher.mjs {commands['tmcp_recommend_workflows']} [source_path] [--candidate-workflows ui_quality] [--write-artifacts]
-  node scripts/tmcp_launcher.mjs {commands['tmcp_promote_harvest']} [source_path] [--selected-workflows workflow_id] [--write-artifacts]
-  node scripts/tmcp_launcher.mjs {commands['tmcp_compose_packet']} \"<objective>\" [--project-path .] [--source-path .] [--session-id run-name --project-path /absolute/project]
-  node scripts/tmcp_launcher.mjs {commands['tmcp_runtime_next']} \"<objective>\" [--current-phase verification] [--files-changed app/page.tsx] [--output-mode full] [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project]
+  node scripts/tmcp_launcher.mjs {commands["tmcp_doctor"]} [--client codex]
+  node scripts/tmcp_launcher.mjs {commands["tmcp_status"]}
+  node scripts/tmcp_launcher.mjs {commands["tmcp_explain"]} \"<objective>\" [--project-path .] [--adapter auto]
+  node scripts/tmcp_launcher.mjs {commands["tmcp_harvest_skills"]} [source_path] [--objective \"...\"] [--write-artifacts --output-dir .tmcp/harvest]
+  node scripts/tmcp_launcher.mjs {commands["tmcp_evaluate_skills"]} [--skill-paths path/to/SKILL.md] [--task-fixtures '[...]'] [--write-artifacts]
+  node scripts/tmcp_launcher.mjs {commands["tmcp_recommend_workflows"]} [source_path] [--candidate-workflows ui_quality] [--write-artifacts]
+  node scripts/tmcp_launcher.mjs {commands["tmcp_promote_harvest"]} [source_path] [--selected-workflows workflow_id] [--write-artifacts]
+  node scripts/tmcp_launcher.mjs {commands["tmcp_compose_packet"]} \"<objective>\" [--project-path .] [--source-path .] [--session-id run-name --project-path /absolute/project]
+  node scripts/tmcp_launcher.mjs {commands["tmcp_runtime_next"]} \"<objective>\" [--current-phase verification] [--files-changed app/page.tsx] [--output-mode full] [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project]
   node scripts/tmcp_launcher.mjs recompile-packet \"<objective>\" [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project] [--current-phase runtime] [--files-changed app/page.tsx]
-  node scripts/tmcp_launcher.mjs {commands['tmcp_record_receipt']} packet-id [--activated-atoms atom] [--outcome passed]
-  node scripts/tmcp_launcher.mjs {commands['expert_rubric_review_plan']} \"<objective>\" [--project-path .] [--evidence-json '<dimension-mapped JSON>']
+  node scripts/tmcp_launcher.mjs {commands["tmcp_record_receipt"]} packet-id [--activated-atoms atom] [--outcome passed]
+  node scripts/tmcp_launcher.mjs {commands["expert_rubric_review_plan"]} \"<objective>\" [--project-path .] [--evidence-json '<dimension-mapped JSON>']
   node scripts/tmcp_launcher.mjs expert-ui-rubric [--project-path .] [--evidence-json '<dimension-mapped JSON>']
 
 Options:

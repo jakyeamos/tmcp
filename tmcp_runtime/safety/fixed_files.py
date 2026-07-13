@@ -73,8 +73,7 @@ def _candidate_for(
         ).as_posix()
     except ValueError as exc:
         raise ValueError(
-            "Input is outside the approved project path: "
-            f"{root.display_path}"
+            f"Input is outside the approved project path: {root.display_path}"
         ) from exc
     if boundary is None:
         raw_relative_path = root.logical_path.name
@@ -142,8 +141,7 @@ def read_skill_inputs(
         root = _file_root(path)
         if root.logical_path.name != "SKILL.md":
             raise ValueError(
-                "Evaluation accepts explicit SKILL.md files only: "
-                f"{root.display_path}"
+                f"Evaluation accepts explicit SKILL.md files only: {root.display_path}"
             )
         if root.resolved_path in seen:
             continue
@@ -151,7 +149,9 @@ def read_skill_inputs(
         try:
             file_size = root.resolved_path.stat().st_size
         except OSError as exc:
-            raise ValueError(f"Could not inspect input file: {root.display_path}") from exc
+            raise ValueError(
+                f"Could not inspect input file: {root.display_path}"
+            ) from exc
         if total_bytes + file_size > max_total_bytes:
             raise ValueError(
                 "skill_paths exceeds the total input budget of "

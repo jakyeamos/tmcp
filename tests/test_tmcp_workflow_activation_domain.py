@@ -75,7 +75,9 @@ class WorkflowActivationDomainTests(unittest.TestCase):
             )
         )
 
-    def test_activation_projects_specialized_instructions_atoms_and_citations(self) -> None:
+    def test_activation_projects_specialized_instructions_atoms_and_citations(
+        self,
+    ) -> None:
         catalog = workflow_catalog.workflow_catalog_by_id()
         selected = [
             {
@@ -111,7 +113,8 @@ class WorkflowActivationDomainTests(unittest.TestCase):
             activation["active_instructions"][0],
         )
         self.assertIn(
-            "UI-quality atoms", activation["active_instructions"][1],
+            "UI-quality atoms",
+            activation["active_instructions"][1],
         )
         self.assertEqual(
             activation["active_instructions"][2],
@@ -120,9 +123,7 @@ class WorkflowActivationDomainTests(unittest.TestCase):
         self.assertIn("repo_behavior_spec_loop_workflow", activation["active_atoms"])
         self.assertIn("expert_ui_rubric_workflow", activation["active_atoms"])
         self.assertIn("custom_workflow", activation["active_atoms"])
-        self.assertEqual(
-            activation["evidence_citations"][0]["source"], "repo.json"
-        )
+        self.assertEqual(activation["evidence_citations"][0]["source"], "repo.json")
         self.assertEqual(
             activation["evidence_citations"][2]["trust"], "advisory_untrusted"
         )

@@ -46,11 +46,15 @@ class EvaluationRenderingServiceTests(unittest.TestCase):
         self.assertIn("# TMCP Skill Writing Guidebook", markdown)
         self.assertIn("### Concrete gates", markdown)
         self.assertEqual(catalog["created_at"], "now")
-        self.assertEqual(catalog["patterns"][0]["pattern_id"], "verification.concrete-command")
+        self.assertEqual(
+            catalog["patterns"][0]["pattern_id"], "verification.concrete-command"
+        )
 
     def test_pattern_merge_and_warning_formatting_are_pure(self) -> None:
         builtins = [{"pattern_id": "p1", "label": "Built-in"}]
-        discovered = [{"pattern_id": "p1", "label": "Catalog", "detection_terms": ["make sure"]}]
+        discovered = [
+            {"pattern_id": "p1", "label": "Catalog", "detection_terms": ["make sure"]}
+        ]
         merged = evaluation_rendering.merge_pattern_catalog(builtins, discovered)
         warning = evaluation_rendering.format_harvest_warning(
             {

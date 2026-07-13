@@ -125,10 +125,9 @@ def _safe_global_cache_entries(
                 f"{candidate.display_path}: {redact_path(str(exc))}",
             )
             continue
-        if (
-            not stat.S_ISREG(metadata.st_mode)
-            or (metadata.st_dev, metadata.st_ino)
-            != (candidate.device, candidate.inode)
+        if not stat.S_ISREG(metadata.st_mode) or (metadata.st_dev, metadata.st_ino) != (
+            candidate.device,
+            candidate.inode,
         ):
             _append_warning(
                 warnings,
@@ -173,23 +172,22 @@ def _safe_global_cache_entries(
         if not isinstance(payload, dict):
             _append_warning(
                 warnings,
-                "Skipped non-object global cache entry: " f"{candidate.display_path}",
+                f"Skipped non-object global cache entry: {candidate.display_path}",
             )
             continue
         if not _json_is_bounded(payload):
             _append_warning(
                 warnings,
-                "Skipped overly complex global cache entry: "
-                f"{candidate.display_path}",
+                f"Skipped overly complex global cache entry: {candidate.display_path}",
             )
             continue
         try:
             metadata = candidate.resolved_path.lstat()
         except OSError:
             continue
-        if (
-            not stat.S_ISREG(metadata.st_mode)
-            or (metadata.st_dev, metadata.st_ino) != (candidate.device, candidate.inode)
+        if not stat.S_ISREG(metadata.st_mode) or (metadata.st_dev, metadata.st_ino) != (
+            candidate.device,
+            candidate.inode,
         ):
             _append_warning(
                 warnings,

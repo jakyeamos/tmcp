@@ -229,7 +229,9 @@ class ReleaseEvidenceTests(unittest.TestCase):
 
         self.assertEqual(result["hosted_release_evidence"], "fail")
         self.assertTrue(
-            any("version is not a semver release" in error for error in result["errors"])
+            any(
+                "version is not a semver release" in error for error in result["errors"]
+            )
         )
 
     def test_release_evidence_requires_premerge_ci_gate(self) -> None:

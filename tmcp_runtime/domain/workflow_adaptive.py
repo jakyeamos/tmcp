@@ -296,9 +296,7 @@ def build_adaptive_workflow_pack(
             "modes": node.get("modes", []),
             "minimum_spec_fields": node.get("minimum_spec_fields", []),
             "ticket_types": node.get("ticket_types", []),
-            "verification_expectations": node.get(
-                "verification_expectations", []
-            ),
+            "verification_expectations": node.get("verification_expectations", []),
             "promotion_status": node.get("promotion_status"),
             "promote_as_single_global_graph": node.get(
                 "promote_as_single_global_graph"

@@ -75,7 +75,9 @@ class TmcpRecompilePacketTests(unittest.TestCase):
 
         self.assertEqual(result["schema"], "tmcp-recompiled-packet-v0.1")
         self.assertEqual(result["recompile_reason"], "phase_transition")
-        self.assertIn("phase_transitions.activate_skills", str(result["packet_diff"]["added"]))
+        self.assertIn(
+            "phase_transitions.activate_skills", str(result["packet_diff"]["added"])
+        )
         packet = result["packet"]
         self.assertEqual(packet["phase"], "implementation")
         selected = {item["source"] for item in packet["evidence_citations"]}

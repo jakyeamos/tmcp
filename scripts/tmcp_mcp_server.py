@@ -142,6 +142,8 @@ TMCP_HOME = Path(os.environ.get("TMCP_HOME", "~/.tmcp")).expanduser()
 UTC = timezone.utc
 
 PROMOTED_HARVEST_GRAPH_SCHEMA = "tmcp-promoted-harvest-graph-v0.1"
+
+
 def _now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -487,16 +489,20 @@ def _write_global_promotion(
 def _global_promotion_service() -> GlobalPromotionArtifactService:
     return GlobalPromotionArtifactService(
         GlobalPromotionContext(
-            normalize_graph=lambda result, created_at: _runtime_normalize_promoted_graph(
-                dict(result),
-                graph_schema=PROMOTED_HARVEST_GRAPH_SCHEMA,
-                created_at=created_at,
+            normalize_graph=lambda result, created_at: (
+                _runtime_normalize_promoted_graph(
+                    dict(result),
+                    graph_schema=PROMOTED_HARVEST_GRAPH_SCHEMA,
+                    created_at=created_at,
+                )
             ),
             redact_mapping=_redacted_mapping,
-            build_artifact_plan=lambda summary, graph, adaptive_pack: _runtime_build_global_promotion_artifact_plan(
-                promotion_summary=summary,
-                promotion_graph=graph,
-                adaptive_workflow_pack=adaptive_pack,
+            build_artifact_plan=lambda summary, graph, adaptive_pack: (
+                _runtime_build_global_promotion_artifact_plan(
+                    promotion_summary=summary,
+                    promotion_graph=graph,
+                    adaptive_workflow_pack=adaptive_pack,
+                )
             ),
             now_iso=_now_iso,
         )
@@ -513,7 +519,9 @@ def _compose_packet_from_source_nodes(
     source_nodes: list[dict[str, Any]],
 ) -> dict[str, Any]:
     compose_arguments = dict(arguments)
-    cache_policy = _runtime_normalize_cache_policy(compose_arguments.get("cache_policy"))
+    cache_policy = _runtime_normalize_cache_policy(
+        compose_arguments.get("cache_policy")
+    )
     compose_arguments["cache_policy"] = cache_policy
     snapshot = _global_cache_snapshot(cache_policy)
     return _runtime_compose_packet_from_source_nodes(
@@ -612,7 +620,7 @@ def _compose_evaluation_row(
 
 
 def _open_packet_session(
-    project_path: str | Path,
+    project_path: object,
     session_id: object,
 ) -> PacketSessionStore:
     if isinstance(project_path, bool) or not isinstance(project_path, (str, Path)):
@@ -659,9 +667,9 @@ def _receipt_path(
     safe_receipt: Mapping[str, Any],
 ) -> Path:
     month = created_at[:7]
-    digest = hashlib.sha256(json.dumps(safe_receipt, sort_keys=True).encode()).hexdigest()[
-        :10
-    ]
+    digest = hashlib.sha256(
+        json.dumps(safe_receipt, sort_keys=True).encode()
+    ).hexdigest()[:10]
     return (
         _global_receipts_root()
         / month
@@ -691,10 +699,12 @@ def _receipt_service() -> ReceiptService:
             build_path=_receipt_path,
             write_receipt=_write_receipt,
             present_path=redact_path,
-            build_result=lambda safe_receipt, path, redactions: _runtime_build_recorded_receipt_result(
-                safe_receipt,
-                redacted_receipt_path=path,
-                redaction_summary=redactions,
+            build_result=lambda safe_receipt, path, redactions: (
+                _runtime_build_recorded_receipt_result(
+                    safe_receipt,
+                    redacted_receipt_path=path,
+                    redaction_summary=redactions,
+                )
             ),
             redact_result=_redact_result,
             now_iso=_now_iso,
@@ -829,19 +839,13 @@ def _tool_doctor(arguments: dict[str, Any]) -> dict[str, Any]:
         plugin_root_exists=plugin_root.exists(),
         node_launcher_exists=(plugin_root / "scripts" / "tmcp_launcher.mjs").exists(),
         node_available=bool(shutil.which("node")),
-        python_server_exists=(
-            plugin_root / "scripts" / "tmcp_mcp_server.py"
-        ).exists(),
+        python_server_exists=(plugin_root / "scripts" / "tmcp_mcp_server.py").exists(),
         python_available=bool(
-            shutil.which("python3")
-            or shutil.which("python")
-            or shutil.which("py")
+            shutil.which("python3") or shutil.which("python") or shutil.which("py")
         ),
         artifact_persistence=artifact_persistence_available(),
         aios_available=_aios_available(),
-        aios_root_display=(
-            redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None
-        ),
+        aios_root_display=(redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None),
     )
 
 
@@ -851,9 +855,7 @@ def _tool_status(arguments: dict[str, Any]) -> dict[str, Any]:
         redact_path(PLUGIN_ROOT),
         artifact_persistence_available(),
         _aios_available(),
-        aios_root_display=(
-            redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None
-        ),
+        aios_root_display=(redact_path(AIOS_ROOT) if AIOS_ROOT is not None else None),
     )
 
 

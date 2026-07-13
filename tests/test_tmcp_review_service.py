@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import unittest
 from pathlib import Path
+from typing import cast
 
 from tmcp_runtime.services.review import build_review_plan, parse_review_evidence
 
@@ -44,12 +45,15 @@ class ReviewServiceTests(unittest.TestCase):
 
         self.assertFalse(result["ok"])
         self.assertEqual(result["status"], "failed_evidence_contract")
-        self.assertTrue(result["evidence_diagnostics"]["item_issues"])
+        diagnostics = cast(dict[str, object], result["evidence_diagnostics"])
+        self.assertTrue(diagnostics["item_issues"])
         self.assertEqual(result["artifact_paths"], {})
 
     def test_dimension_mapped_evidence_is_actionable(self) -> None:
         empty_result = _build([])
-        dimension_id = empty_result["evidence_contract"]["dimension_ids"][0]
+        evidence_contract = cast(dict[str, object], empty_result["evidence_contract"])
+        dimension_ids = cast(list[str], evidence_contract["dimension_ids"])
+        dimension_id = dimension_ids[0]
 
         result = _build(
             [
@@ -64,7 +68,8 @@ class ReviewServiceTests(unittest.TestCase):
 
         self.assertTrue(result["ok"])
         self.assertEqual(result["status"], "completed")
-        self.assertFalse(result["evidence_diagnostics"]["item_issues"])
+        diagnostics = cast(dict[str, object], result["evidence_diagnostics"])
+        self.assertFalse(diagnostics["item_issues"])
 
     def test_service_has_no_adapter_or_persistence_import(self) -> None:
         module = ast.parse(SERVICE_PATH.read_text(encoding="utf-8"))

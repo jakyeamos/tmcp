@@ -93,7 +93,9 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(payload["adapter"], "standalone")
         self.assertEqual(payload["packet"]["task_id"], "audit")
 
-    def test_runtime_cli_parser_preserves_session_ids_and_rejects_invalid_json(self) -> None:
+    def test_runtime_cli_parser_preserves_session_ids_and_rejects_invalid_json(
+        self,
+    ) -> None:
         _, arguments, _ = cli.parse_cli_arguments(
             [
                 "compose-packet",

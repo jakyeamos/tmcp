@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Generic, Protocol, TypeVar
 
 
 RUNTIME_NEXT_SCHEMA = "tmcp-runtime-next-v0.1"
@@ -17,29 +17,32 @@ class SessionSnapshot(Protocol):
     def metadata(self) -> dict[str, Any]: ...
 
 
-class SessionStore(Protocol):
+SnapshotT = TypeVar("SnapshotT", bound=SessionSnapshot)
+
+
+class SessionStore(Protocol[SnapshotT]):
     @property
     def project_root(self) -> Path: ...
 
-    def load(self) -> SessionSnapshot: ...
+    def load(self) -> SnapshotT: ...
 
     def update(
         self,
-        snapshot: SessionSnapshot,
+        snapshot: SnapshotT,
         packet: dict[str, Any],
         *,
         last_recompile: dict[str, Any],
         now: str,
-    ) -> SessionSnapshot: ...
+    ) -> SnapshotT: ...
 
 
-SessionStoreFactory = Callable[[object, object], SessionStore]
+SessionStoreFactory = Callable[[object, object], SessionStore[SnapshotT]]
 StateBuilder = Callable[[dict[str, Any]], dict[str, Any]]
 PacketRecompiler = Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]
 Clock = Callable[[], str]
 
 
-class RuntimeSessionService:
+class RuntimeSessionService(Generic[SnapshotT]):
     """Coordinate stateless and project-local runtime-next flows."""
 
     def __init__(
@@ -62,8 +65,8 @@ class RuntimeSessionService:
         if session_id is not None and output_mode != "full":
             raise ValueError("session_id requires tmcp_runtime_next output_mode=full.")
         runtime_arguments = dict(argument_map)
-        session_snapshot: SessionSnapshot | None = None
-        session_store: SessionStore | None = None
+        session_snapshot: SnapshotT | None = None
+        session_store: SessionStore[SnapshotT] | None = None
         if session_id is not None:
             if "previous_packet" in argument_map:
                 raise ValueError("session_id cannot be combined with previous_packet.")
@@ -76,7 +79,9 @@ class RuntimeSessionService:
                 previous_packet_id is not None
                 and str(previous_packet_id) != stored_packet_id
             ):
-                raise ValueError("previous_packet_id must match the packet in session_id.")
+                raise ValueError(
+                    "previous_packet_id must match the packet in session_id."
+                )
             runtime_arguments["project_path"] = str(session_store.project_root)
             runtime_arguments.setdefault("source_path", str(session_store.project_root))
             runtime_arguments["previous_packet"] = session_snapshot.packet

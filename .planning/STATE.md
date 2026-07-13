@@ -46,9 +46,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   post-review fix run `29287154661` passes for `1fd10f4`; docs-only rerun
   `29287368329` also passes.
   Fresh review closed malformed MCP transport input/notification defects and
-  packaged the compatibility note. Formatting/typecheck remain explicit P2
-  follow-ups: `ruff format --check` reports 93 files and `basedpyright` 76
-  errors; neither is in the hosted workflow. Do not tag or publish.
+  packaged the compatibility note. Formatting and typecheck now pass across all
+  148 tracked Python files and the `scripts`, `tmcp_runtime`, and `tests`
+  scopes; the hosted workflow has a pinned quality job. Do not tag or publish.
 **Started:** 2026-07-10
 
 ## Active Phase
@@ -359,5 +359,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Resolve or explicitly accept deferred formatting/typecheck gates before review.
+# Run the hosted matrix with the pinned quality job before deciding whether to mark the draft ready.
 ```

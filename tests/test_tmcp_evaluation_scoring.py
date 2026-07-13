@@ -13,7 +13,11 @@ class EvaluationScoringServiceTests(unittest.TestCase):
         return {
             "schema": "tmcp-skill-evaluation-plan-v0.1",
             "evaluated_skills": [
-                {"skill_path": "/project/SKILL.md", "title": "example", "static_findings": []}
+                {
+                    "skill_path": "/project/SKILL.md",
+                    "title": "example",
+                    "static_findings": [],
+                }
             ],
             "task_matrix": [
                 {
@@ -39,7 +43,10 @@ class EvaluationScoringServiceTests(unittest.TestCase):
                 "task_id": "task-1",
                 "variant_id": "original",
                 "observations": [
-                    {"kind": "assistant_message", "value": "Run pnpm test and report pass."}
+                    {
+                        "kind": "assistant_message",
+                        "value": "Run pnpm test and report pass.",
+                    }
                 ],
                 "outcome": "passed",
             }
@@ -91,7 +98,9 @@ class EvaluationScoringServiceTests(unittest.TestCase):
                     {
                         "task_id": "task-1",
                         "variant_id": "original",
-                        "observations": [{"kind": "assistant_message", "value": "done"}],
+                        "observations": [
+                            {"kind": "assistant_message", "value": "done"}
+                        ],
                         "human_labels": [{"human_quality_score": "bad"}],
                     }
                 ],
@@ -114,7 +123,9 @@ class EvaluationScoringServiceTests(unittest.TestCase):
                     {
                         "task_id": "task-1",
                         "variant_id": "original",
-                        "observations": [{"kind": "assistant_message", "value": "done"}],
+                        "observations": [
+                            {"kind": "assistant_message", "value": "done"}
+                        ],
                     }
                 ],
                 compose_evaluation_row=failing_compose,

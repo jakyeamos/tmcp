@@ -510,6 +510,7 @@ WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
     },
 )
 
+
 def _string_list(value: object) -> list[str]:
     return [str(item) for item in value if str(item)] if isinstance(value, list) else []
 

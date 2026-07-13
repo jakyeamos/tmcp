@@ -78,7 +78,9 @@ class TmcpWorkflowOverlapTests(unittest.TestCase):
         overlap = result["adaptive_workflow_pack"]["overlap_analysis"]
         clusters = overlap["clusters"]
         release_cluster = next(
-            cluster for cluster in clusters if cluster["label_id"] == "release:readiness"
+            cluster
+            for cluster in clusters
+            if cluster["label_id"] == "release:readiness"
         )
         self.assertEqual(release_cluster["source_count"], 2)
         self.assertEqual(release_cluster["recommended_action"], "consolidate_or_rank")

@@ -4,6 +4,8 @@ import ast
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
+from collections.abc import Callable
+from typing import Any
 
 from tmcp_runtime.services import promotion
 
@@ -54,11 +56,12 @@ class PromotionServiceTests(unittest.TestCase):
             arguments: dict[str, object],
             *,
             source_advisories: object,
-            compose_preview: object,
+            compose_preview: Callable[[], dict[str, Any]] | None,
         ) -> dict[str, object]:
             self.assertFalse(arguments["write_artifacts"])
             self.assertIs(source_advisories, source_advisories_input)
             self.assertIsNotNone(compose_preview)
+            assert compose_preview is not None
             preview_results.append(compose_preview())
             return _recommendation()
 

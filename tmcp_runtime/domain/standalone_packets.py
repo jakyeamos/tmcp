@@ -174,8 +174,11 @@ def _estimate_tokens(value: str) -> int:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(
-        "+00:00", "Z"
+    return (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
     )
 
 
@@ -287,7 +290,9 @@ def packet_substance_check(
         has_required_anchor = not requested_anchor_terms or any(
             term in text for term in requested_anchor_terms
         )
-        has_substantive_type = str(node.get("source_type", "")) in SUBSTANTIVE_SOURCE_TYPES
+        has_substantive_type = (
+            str(node.get("source_type", "")) in SUBSTANTIVE_SOURCE_TYPES
+        )
         name_scope = " ".join(
             [
                 str(node.get("path", "")),

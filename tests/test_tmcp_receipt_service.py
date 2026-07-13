@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import inspect
 import unittest
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -14,12 +15,14 @@ class ReceiptServiceTests(unittest.TestCase):
     def test_record_redacts_before_building_storage_path_and_writing(self) -> None:
         calls: list[tuple[str, object]] = []
 
-        def build_receipt(arguments: dict[str, Any], created_at: str) -> dict[str, Any]:
+        def build_receipt(
+            arguments: Mapping[str, Any], created_at: str
+        ) -> dict[str, Any]:
             calls.append(("build", (arguments, created_at)))
             return {"packet_id": arguments["packet_id"], "outcome": "passed"}
 
         def redact_receipt(
-            receipt: dict[str, Any],
+            receipt: Mapping[str, Any],
         ) -> tuple[dict[str, Any], dict[str, int]]:
             calls.append(("redact", receipt))
             return (
@@ -34,12 +37,12 @@ class ReceiptServiceTests(unittest.TestCase):
         def build_path(
             created_at: str,
             key: str,
-            safe_receipt: dict[str, Any],
+            safe_receipt: Mapping[str, Any],
         ) -> Path:
             calls.append(("path", (created_at, key, safe_receipt)))
             return Path("/receipts/2026-07/safe-key.json")
 
-        def write_receipt(path: Path, payload: dict[str, Any]) -> Path:
+        def write_receipt(path: Path, payload: Mapping[str, Any]) -> Path:
             calls.append(("write", (path, payload)))
             return path
 

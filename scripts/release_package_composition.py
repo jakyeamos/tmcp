@@ -75,7 +75,10 @@ def check_composition_surface(
     if not isinstance(compose.get("shortcut_candidate"), dict):
         return False, "compose output missing shortcut_candidate"
     packet_markdown = compose.get("packet_markdown")
-    if not isinstance(packet_markdown, str) or "## Selection Rationale" not in packet_markdown:
+    if (
+        not isinstance(packet_markdown, str)
+        or "## Selection Rationale" not in packet_markdown
+    ):
         return False, "compose output missing packet_markdown rationale"
     packet_id = compose.get("packet_id")
     if compose["receipt_template"].get("packet_id") != packet_id:
@@ -164,11 +167,17 @@ def check_composition_surface(
             return False, "record-receipt did not write receipt_json"
     else:
         if ok or receipt is not None:
-            return False, "record-receipt unexpectedly wrote an artifact on this platform"
+            return (
+                False,
+                "record-receipt unexpectedly wrote an artifact on this platform",
+            )
         if "Secure artifact persistence" not in output:
             return False, f"record-receipt did not fail closed: {output}"
         if tmcp_home.exists() and any(tmcp_home.rglob("*")):
-            return False, "record-receipt created artifacts despite unavailable persistence"
+            return (
+                False,
+                "record-receipt created artifacts despite unavailable persistence",
+            )
 
     ok, output, explain = run_json(
         [

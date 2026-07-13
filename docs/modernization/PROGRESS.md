@@ -339,15 +339,14 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
   also passed all six jobs.
 - The fresh adversarial review closed malformed MCP framing/params and
   notification-response defects, and the 0.5.0 compatibility note is now in
-  release archives. Two quality gates remain explicit P2 follow-ups: `ruff
-  format --check` reports 93 existing files and `basedpyright` reports 76
-  existing basic-mode errors; neither is in the hosted workflow.
+  release archives. The formatting and typecheck gates are fixed: all 148
+  tracked Python files pass `ruff format --check`, and `basedpyright` passes
+  across `scripts`, `tmcp_runtime`, and `tests` with zero errors.
+- The hosted workflow now installs pinned Ruff/Basedpyright quality tools and
+  runs formatting, lint, and typecheck gates in a dedicated Ubuntu job.
 - No tag or publication has occurred. The 0.5.0 compatibility process remains
   gated on the post-cutover hosted run because the stateless default and
   explicit-only AIOS behavior are material changes.
-- Formatting/typecheck gaps are intentionally deferred from this release
-  candidate and require a separate cleanup pass before claiming strict
-  formatting/typecheck exit criteria.
 - AIOS needs a protected request-input protocol before confidential explicit
   requests can safely use it; the current boundary denies known sensitive values
   rather than forwarding them through process arguments.
@@ -365,5 +364,5 @@ matrix jobs, including Windows 3.10/3.13 package and evidence checks.
 
 ## Next step
 
-Resolve or explicitly accept the deferred formatting/typecheck gates, then
-decide whether to mark the draft ready; tagging and publication stay separate.
+Run the hosted matrix with the new quality job, then decide whether to mark the
+draft ready; tagging and publication stay separate.

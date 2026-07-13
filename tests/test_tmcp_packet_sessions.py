@@ -5,6 +5,7 @@ import multiprocessing
 import os
 import tempfile
 import unittest
+from typing import Protocol
 from pathlib import Path
 
 from tmcp_runtime.storage import (
@@ -47,16 +48,20 @@ def _symlink_or_skip(test_case: unittest.TestCase, link: Path, target: Path) -> 
         test_case.skipTest(f"Symlinks are unavailable in this environment: {exc}")
 
 
-def _hold_artifact_lock(root: str, entered: object, release: object) -> None:
+class _Event(Protocol):
+    def set(self) -> None: ...
+
+    def wait(self, timeout: float | None = None) -> bool: ...
+
+
+def _hold_artifact_lock(root: str, entered: _Event, release: _Event) -> None:
     store = AtomicArtifactStore.explicit(root)
     with store.locked("session.lock"):
         entered.set()
         release.wait(10)
 
 
-def _attempt_artifact_lock(
-    root: str, attempting: object, acquired: object
-) -> None:
+def _attempt_artifact_lock(root: str, attempting: _Event, acquired: _Event) -> None:
     store = AtomicArtifactStore.explicit(root)
     attempting.set()
     with store.locked("session.lock"):
@@ -74,7 +79,9 @@ class PacketSessionStoreTests(unittest.TestCase):
             project.mkdir()
             secret = "sk-" + "S" * 40
             store = PacketSessionStore.open(project, secret)
-            created = store.create(_packet(f"Review {secret}"), now="2026-07-11T00:00:00Z")
+            created = store.create(
+                _packet(f"Review {secret}"), now="2026-07-11T00:00:00Z"
+            )
             loaded = store.load()
             updated = store.update(
                 loaded,
@@ -96,7 +103,9 @@ class PacketSessionStoreTests(unittest.TestCase):
         self.assertEqual(payload["revision"], 2)
         self.assertEqual(payload["created_at"], "2026-07-11T00:00:00Z")
         self.assertEqual(payload["updated_at"], "2026-07-11T00:01:00Z")
-        self.assertEqual(payload["last_recompile"]["recompile_reason"], "phase_transition")
+        self.assertEqual(
+            payload["last_recompile"]["recompile_reason"], "phase_transition"
+        )
         self.assertNotIn(secret, json.dumps(payload))
         self.assertNotIn(secret, json.dumps(updated.metadata()))
         self.assertNotIn(secret, store.path.name)
@@ -126,7 +135,9 @@ class PacketSessionStoreTests(unittest.TestCase):
             project.mkdir()
             store = PacketSessionStore.open(project, "run-1")
             store.path.parent.mkdir(parents=True)
-            store.path.write_text(json.dumps({"schema": "unexpected"}), encoding="utf-8")
+            store.path.write_text(
+                json.dumps({"schema": "unexpected"}), encoding="utf-8"
+            )
             with self.assertRaises(PacketSessionError):
                 store.load()
 
@@ -241,9 +252,7 @@ class PacketSessionStoreTests(unittest.TestCase):
                 self.assertTrue(entered.wait(10), "holder did not acquire the lock")
                 waiter.start()
                 waiter_started = True
-                self.assertTrue(
-                    attempting.wait(10), "waiter did not attempt the lock"
-                )
+                self.assertTrue(attempting.wait(10), "waiter did not attempt the lock")
                 self.assertFalse(
                     acquired.wait(0.25), "second process acquired a held lock"
                 )

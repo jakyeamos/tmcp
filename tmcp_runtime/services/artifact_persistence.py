@@ -24,9 +24,11 @@ class ExplicitArtifactWriter(Protocol):
 
     def write_json(self, name: str, payload: Any) -> ArtifactPath:
         """Write one JSON artifact and return its path."""
+        ...
 
     def write_text(self, name: str, content: str) -> ArtifactPath:
         """Write one text artifact and return its path."""
+        ...
 
 
 StoreOpener = Callable[[Path], ExplicitArtifactWriter]
@@ -66,6 +68,7 @@ class ArtifactPersistenceService:
             name: self._context.redact_text(str(content))
             for name, content in text_artifacts.items()
         }
+        paths: Mapping[str, ArtifactPath]
         if fresh_bundle:
             paths = self._context.write_bundle(
                 output_dir,
@@ -74,19 +77,18 @@ class ArtifactPersistenceService:
             )
         else:
             store = self._context.open_store(output_dir)
-            paths: dict[str, ArtifactPath] = {
+            incremental_paths: dict[str, ArtifactPath] = {
                 name: store.write_json(name, payload)
                 for name, payload in safe_json.items()
             }
-            paths.update(
+            incremental_paths.update(
                 {
                     name: store.write_text(name, content)
                     for name, content in safe_text.items()
                 }
             )
-        return {
-            name: self._context.present_path(path) for name, path in paths.items()
-        }
+            paths = incremental_paths
+        return {name: self._context.present_path(path) for name, path in paths.items()}
 
     def persist_plan(
         self,

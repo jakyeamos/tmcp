@@ -56,9 +56,9 @@ class ReviewPolicyDomainTests(unittest.TestCase):
         )
         self.assertFalse(invalid_diagnostics["actionable"])
         self.assertEqual(
-            review_evidence.evidence_remediation_contract(
-                rubric, invalid_diagnostics
-            )["status"],
+            review_evidence.evidence_remediation_contract(rubric, invalid_diagnostics)[
+                "status"
+            ],
             "invalid_evidence_json",
         )
 
@@ -96,7 +96,9 @@ class ReviewPolicyDomainTests(unittest.TestCase):
         self.assertEqual(audit["findings"][0]["severity"], "blocker")
         self.assertEqual(audit["findings"][0]["dimension_id"], "product_evidence")
         self.assertTrue(audit["coverage_gaps"])
-        self.assertEqual(plan["slices"][0]["source_findings"], ["finding-product_evidence-2"])
+        self.assertEqual(
+            plan["slices"][0]["source_findings"], ["finding-product_evidence-2"]
+        )
         self.assertEqual(handoff["selected_slice_id"], "slice-2")
         self.assertTrue(validations["evidence_json_actionable"]["passed"])
         self.assertFalse(validations["profile_evidence_coverage"]["passed"])

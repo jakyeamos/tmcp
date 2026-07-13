@@ -92,4 +92,6 @@ def compile_command(python_executable: str) -> list[str]:
 
 
 if __name__ == "__main__":
-    raise SystemExit(subprocess.run(compile_command(sys.executable), check=False).returncode)
+    raise SystemExit(
+        subprocess.run(compile_command(sys.executable), check=False).returncode
+    )

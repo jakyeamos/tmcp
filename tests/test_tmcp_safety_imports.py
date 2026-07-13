@@ -22,7 +22,9 @@ class RuntimeSafetyImportTests(unittest.TestCase):
                 if isinstance(node, ast.Import)
                 for alias in node.names
             )
-        self.assertFalse(any(module.startswith("scripts") for module in imported_modules))
+        self.assertFalse(
+            any(module.startswith("scripts") for module in imported_modules)
+        )
 
 
 if __name__ == "__main__":

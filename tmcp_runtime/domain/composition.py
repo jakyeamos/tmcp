@@ -23,6 +23,7 @@ def normalize_cache_policy(value: object) -> str:
 
     return "global" if value == "global" else "none"
 
+
 UI_SIGNAL_TERMS = (
     "ui",
     "ux",

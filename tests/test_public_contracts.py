@@ -5,6 +5,7 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from typing import cast
 
 from tests.tmcp_test_client import TestWorkspace
 from tmcp_runtime.api.registry import (
@@ -69,18 +70,23 @@ class PublicContractTests(unittest.TestCase):
                     {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
                 ]
             )
-            self.assertEqual(responses[0]["result"]["serverInfo"], mcp_server_info())
-            self.assertEqual(responses[1]["result"]["tools"], mcp_tools())
+            initialize_result = cast(dict[str, object], responses[0]["result"])
+            tools_result = cast(dict[str, object], responses[1]["result"])
+            self.assertEqual(initialize_result["serverInfo"], mcp_server_info())
+            self.assertEqual(tools_result["tools"], mcp_tools())
 
             cli = workspace.run_cli(["list-tools", "--compact"])
             self.assertEqual(cli.returncode, 0, cli.stderr)
             cli_payload = cli.json()
             self.assertEqual(cli_payload["tools"], mcp_tools())
+            assert workspace.tmcp_home is not None
             self.assertEqual(list(workspace.tmcp_home.iterdir()), [])
 
     def test_source_metadata_and_live_transport_match_the_registry(self) -> None:
         if not (PLUGIN_ROOT / "mcp-registry").exists():
-            self.skipTest("source-only registry metadata is intentionally excluded from release archives")
+            self.skipTest(
+                "source-only registry metadata is intentionally excluded from release archives"
+            )
         with TestWorkspace() as workspace:
             completed = subprocess.run(
                 [sys.executable, "scripts/check_contracts.py", "."],

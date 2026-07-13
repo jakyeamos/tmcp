@@ -40,8 +40,11 @@ EvaluationArtifactWriter = Callable[
 
 
 def _iso_now() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(
-        "+00:00", "Z"
+    return (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
     )
 
 
@@ -88,7 +91,9 @@ def _safe_bounded_json_value(
     safe_value = _safe_json_value(value, redactions)
     serialized_size = len(_json_text(safe_value, label=label).encode("utf-8"))
     if serialized_size > limit:
-        raise ValueError(f"{label} exceeds the maximum serialized size of {limit} bytes.")
+        raise ValueError(
+            f"{label} exceeds the maximum serialized size of {limit} bytes."
+        )
     return safe_value
 
 
@@ -180,7 +185,9 @@ def _validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
         "packet_inclusion_contracts",
     ):
         value = plan.get(key)
-        if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
+        if not isinstance(value, list) or not all(
+            isinstance(item, dict) for item in value
+        ):
             raise ValueError(f"evaluation_plan {key} must be a list of objects.")
     for index, skill in enumerate(plan["evaluated_skills"]):
         findings = skill.get("static_findings")
@@ -280,8 +287,13 @@ def score_evidence(
         for key in ("observations", "trace"):
             observations = item.get(key)
             if observations is not None and not isinstance(observations, list):
-                raise ValueError(f"run_evidence_json trace {index}.{key} must be a list.")
-            if isinstance(observations, list) and len(observations) > MAX_EVALUATION_OBSERVATIONS_PER_TRACE:
+                raise ValueError(
+                    f"run_evidence_json trace {index}.{key} must be a list."
+                )
+            if (
+                isinstance(observations, list)
+                and len(observations) > MAX_EVALUATION_OBSERVATIONS_PER_TRACE
+            ):
                 raise ValueError(
                     f"run_evidence_json trace {index}.{key} exceeds the maximum observation count of "
                     f"{MAX_EVALUATION_OBSERVATIONS_PER_TRACE}."

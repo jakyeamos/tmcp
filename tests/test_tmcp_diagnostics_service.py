@@ -41,9 +41,9 @@ class TmcpDiagnosticsServiceTests(unittest.TestCase):
         )
         self.assertEqual(result["plugin_root"], "[REDACTED:path]")
         self.assertEqual(
-            result["codex_tool_discovery"]["codex_mcp_config"]["mcp_servers"][
-                "tmcp"
-            ]["cwd"],
+            result["codex_tool_discovery"]["codex_mcp_config"]["mcp_servers"]["tmcp"][
+                "cwd"
+            ],
             "[REDACTED:path]",
         )
         self.assertIn("[REDACTED:aios]", result["checks"][-1]["detail"])
@@ -106,8 +106,12 @@ class TmcpDiagnosticsServiceTests(unittest.TestCase):
             if isinstance(node, ast.Import)
             for alias in node.names
         )
-        self.assertFalse(any(module.startswith("scripts") for module in imported_modules))
-        self.assertFalse(any(module in {"os", "pathlib", "shutil"} for module in imported_modules))
+        self.assertFalse(
+            any(module.startswith("scripts") for module in imported_modules)
+        )
+        self.assertFalse(
+            any(module in {"os", "pathlib", "shutil"} for module in imported_modules)
+        )
 
 
 if __name__ == "__main__":

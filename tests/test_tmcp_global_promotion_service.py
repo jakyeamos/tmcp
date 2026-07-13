@@ -17,7 +17,9 @@ from tmcp_runtime.services.global_promotion import (
 class GlobalPromotionArtifactServiceTests(unittest.TestCase):
     def test_build_redacts_graph_summary_and_optional_pack_before_plan(self) -> None:
         redaction_calls: list[dict[str, Any]] = []
-        plan_inputs: list[tuple[dict[str, Any], dict[str, Any], dict[str, Any] | None]] = []
+        plan_inputs: list[
+            tuple[dict[str, Any], dict[str, Any], dict[str, Any] | None]
+        ] = []
 
         def redact_mapping(value: dict[str, Any]) -> dict[str, Any]:
             redaction_calls.append(value)
@@ -68,7 +70,9 @@ class GlobalPromotionArtifactServiceTests(unittest.TestCase):
             ["release_readiness_workflow", "2"],
         )
         self.assertEqual(plan_inputs[0][1]["created_at"], "2026-07-13T12:00:00Z")
-        self.assertTrue(plan_inputs[0][2]["safe"])
+        adaptive_pack = plan_inputs[0][2]
+        assert adaptive_pack is not None
+        self.assertTrue(adaptive_pack["safe"])
         self.assertNotIn("untrusted-source", repr(plan_inputs[0][1]))
         self.assertNotIn("untrusted-pack", repr(plan_inputs[0][2]))
 
@@ -79,8 +83,7 @@ class GlobalPromotionArtifactServiceTests(unittest.TestCase):
                 normalize_graph=lambda _result, _created_at: {},
                 redact_mapping=lambda value: value,
                 build_artifact_plan=lambda _summary, _graph, adaptive_pack: (
-                    captured.append(adaptive_pack)
-                    or ArtifactPlan({}, {}, {})
+                    captured.append(adaptive_pack) or ArtifactPlan({}, {}, {})
                 ),
                 now_iso=lambda: "now",
             )

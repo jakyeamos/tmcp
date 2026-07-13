@@ -1,14 +1,15 @@
-'''Pure evaluator decomposition, variant, and static-review policy.
+"""Pure evaluator decomposition, variant, and static-review policy.
 
 This module operates only on supplied text and pattern catalogs.
-'''
+"""
 
 from __future__ import annotations
 
 import json
 import re
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any
+
 
 def _frontmatter(text: str) -> dict[str, str]:
     if not text.startswith("---"):
@@ -191,8 +192,8 @@ def static_review(
     decomposition: dict[str, Any],
     text: str,
     *,
-    anti_patterns: Sequence[dict[str, Any]],
-    effective_patterns: Sequence[dict[str, Any]],
+    anti_patterns: Sequence[Mapping[str, Any]],
+    effective_patterns: Sequence[Mapping[str, Any]],
 ) -> list[dict[str, Any]]:
     skill_path = str(decomposition["skill_path"])
     lower = text.lower()
@@ -234,7 +235,9 @@ def static_review(
 
         if pattern_id == "trigger.overbroad-description":
             description = str(frontmatter.get("description") or "").lower()
-            if description and any(term in description for term in pattern["detection_terms"]):
+            if description and any(
+                term in description for term in pattern["detection_terms"]
+            ):
                 findings.append(
                     {
                         "pattern_id": pattern_id,
@@ -257,15 +260,23 @@ def static_review(
             continue
 
         if pattern_id == "output.missing-observable-contract":
-            mentions_output = "output" in lower or "return" in lower or "handoff" in lower
+            mentions_output = (
+                "output" in lower or "return" in lower or "handoff" in lower
+            )
             has_contract_section = any(
                 "output contract" in section["title"].lower()
                 for section in decomposition["sections"]
             )
             has_bulleted_contract = bool(
-                re.search(r"(?m)^\s*[-*]\s+.+(sources|summary|verification)", text, re.I)
+                re.search(
+                    r"(?m)^\s*[-*]\s+.+(sources|summary|verification)", text, re.I
+                )
             )
-            if mentions_output and not has_contract_section and not has_bulleted_contract:
+            if (
+                mentions_output
+                and not has_contract_section
+                and not has_bulleted_contract
+            ):
                 findings.append(
                     {
                         "pattern_id": pattern_id,
@@ -488,15 +499,15 @@ def _variant_payload(
     }
 
 
-def _rewrite_with_guidebook_patterns(
-    decomposition: dict[str, Any], text: str
-) -> str:
+def _rewrite_with_guidebook_patterns(decomposition: dict[str, Any], text: str) -> str:
     routing = decomposition["routing_slices"]
     lines = [
         f"# {decomposition['title']} (guidebook rewrite)",
         "",
         "## Trigger",
-        decomposition["frontmatter"].get("description", "Use for narrowly scoped tasks."),
+        decomposition["frontmatter"].get(
+            "description", "Use for narrowly scoped tasks."
+        ),
         "",
         "## Required reads",
     ]

@@ -54,7 +54,9 @@ class TmcpArtifactIdentityTests(unittest.TestCase):
             finally:
                 setattr(self.server, "TMCP_HOME", original_home)
 
-            paths = [Path(result["artifact_paths"]["receipt_json"]) for result in results]
+            paths = [
+                Path(result["artifact_paths"]["receipt_json"]) for result in results
+            ]
             contents = [path.read_text(encoding="utf-8") for path in paths]
             paths_exist = [path.exists() for path in paths]
 
@@ -131,7 +133,8 @@ class TmcpArtifactIdentityTests(unittest.TestCase):
                 setattr(self.server, "TMCP_HOME", original_home)
 
             local_paths = [
-                Path(result["artifact_paths"]["promotion_graph_json"]) for result in results
+                Path(result["artifact_paths"]["promotion_graph_json"])
+                for result in results
             ]
             global_paths = [
                 Path(result["global_artifact_paths"]["promotion_graph_json"])

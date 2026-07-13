@@ -131,9 +131,7 @@ class WorkflowAdaptiveDomainTests(unittest.TestCase):
             pack["overlap_analysis"]["clusters"][0]["label_id"],
             "release:readiness",
         )
-        self.assertEqual(
-            pack["overlap_analysis"]["clusters"][0]["source_count"], 2
-        )
+        self.assertEqual(pack["overlap_analysis"]["clusters"][0]["source_count"], 2)
         self.assertEqual(
             pack["next_workflow_selection"]["candidate_scoped_seed_ids"],
             ["release-packet"],
@@ -146,9 +144,7 @@ class WorkflowAdaptiveDomainTests(unittest.TestCase):
             pack["generated_custom_workflow_ideas"][0]["id"],
             "custom_source_traceability_workflow",
         )
-        self.assertEqual(
-            pack["documented_process_gaps"][0]["id"], "selection_required"
-        )
+        self.assertEqual(pack["documented_process_gaps"][0]["id"], "selection_required")
         self.assertIn(
             "Use release readiness for verified releases.",
             pack["suggested_routing_triggers"],
@@ -182,9 +178,7 @@ class WorkflowAdaptiveDomainTests(unittest.TestCase):
                         "why": "Release behavior is repeated.",
                     }
                 ],
-                "not_recommended": [
-                    {"id": "ui_workflow", "reason": "No UI evidence."}
-                ],
+                "not_recommended": [{"id": "ui_workflow", "reason": "No UI evidence."}],
             }
         )
 

@@ -78,7 +78,9 @@ class TmcpComposeServiceTests(unittest.TestCase):
         self.assertEqual(source_nodes, original_nodes)
         self.assertEqual(packet["schema"], "tmcp-composed-packet-v0.1")
         self.assertEqual(packet["phase"], "start")
-        self.assertIn("AGENTS.md", [item["source"] for item in packet["evidence_citations"]])
+        self.assertIn(
+            "AGENTS.md", [item["source"] for item in packet["evidence_citations"]]
+        )
         self.assertIn(
             "Use pnpm for JavaScript dependency management, installs, and scripts.",
             packet["active_instructions"],
@@ -219,7 +221,9 @@ class TmcpComposeServiceTests(unittest.TestCase):
         )
         self.assertEqual(
             active_instructions_for_source_node(fallback_node),
-            ["Apply relevant harvested behavior atoms from rules/fallback.md: alpha, beta."],
+            [
+                "Apply relevant harvested behavior atoms from rules/fallback.md: alpha, beta."
+            ],
         )
 
         packet = {

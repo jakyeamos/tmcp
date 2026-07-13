@@ -50,7 +50,9 @@ Make sure everything works.
 
         self.assertEqual(decomposition["title"], "approval-before-edit")
         self.assertIn("AGENTS.md", decomposition["routing_slices"]["required_reads"])
-        self.assertEqual(findings[0]["pattern_id"], "verification.vague-quality-language")
+        self.assertEqual(
+            findings[0]["pattern_id"], "verification.vague-quality-language"
+        )
 
     def test_decomposition_derives_title_without_frontmatter(self) -> None:
         decomposition = evaluation_policy.decompose_skill(
@@ -64,7 +66,9 @@ Make sure everything works.
         decomposition = {
             "title": "example",
             "frontmatter": {"description": "Use for a task."},
-            "sections": [{"id": "verification", "title": "Verification", "text": "Run tests."}],
+            "sections": [
+                {"id": "verification", "title": "Verification", "text": "Run tests."}
+            ],
             "routing_slices": {
                 "required_reads": ["AGENTS.md"],
                 "verification_gates": ["Run tests."],
@@ -80,7 +84,9 @@ Make sure everything works.
         observables = evaluation_policy._observable_contract(decomposition, [])
 
         self.assertEqual(variant["included_slices"], ["verification_gates"])
-        self.assertIn("read_required_file", {item["observable_id"] for item in observables})
+        self.assertIn(
+            "read_required_file", {item["observable_id"] for item in observables}
+        )
 
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_policy))

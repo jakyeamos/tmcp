@@ -79,7 +79,9 @@ def build_evaluation_plan_from_sources(
         for variant_id in variants:
             if variant_id == "ablated":
                 variant_entries.extend(
-                    _variant_payload("ablated", decomposition, source.text, section["id"])
+                    _variant_payload(
+                        "ablated", decomposition, source.text, section["id"]
+                    )
                     for section in decomposition["sections"]
                 )
             else:

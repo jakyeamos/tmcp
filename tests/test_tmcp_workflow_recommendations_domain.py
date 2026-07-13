@@ -27,9 +27,7 @@ class WorkflowRecommendationsDomainTests(unittest.TestCase):
             workflow,
             source_nodes,
             node_signal_text=lambda node: str(node["signal_text"]),
-            signal_guidance_label_ids={
-                "release_readiness": ("release:readiness",)
-            },
+            signal_guidance_label_ids={"release_readiness": ("release:readiness",)},
         )
 
         self.assertEqual(score["stability"], "stable")

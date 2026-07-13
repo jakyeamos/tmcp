@@ -186,7 +186,9 @@ def diff_packet_inclusion(
         if not skill_selected:
             included_behavior_atoms = False
         else:
-            included_behavior_atoms = all(atom in packet_atoms for atom in expected_atoms)
+            included_behavior_atoms = all(
+                atom in packet_atoms for atom in expected_atoms
+            )
     skill_selection_correct = skill_selected == should_select
     checks = [
         skill_selection_correct,
@@ -219,8 +221,7 @@ def diff_packet_inclusion(
             "stop_conditions": packet_stops,
             "active_atoms": packet_atoms,
             "selected_sources": [
-                str(item.get("source") or item.get("path") or "")
-                for item in citations
+                str(item.get("source") or item.get("path") or "") for item in citations
             ],
         },
     }

@@ -41,17 +41,13 @@ def _error(request_id: Any, code: int, message: str) -> dict[str, Any]:
     }
 
 
-def _response_or_none(
-    request_id: Any, result: dict[str, Any]
-) -> dict[str, Any] | None:
+def _response_or_none(request_id: Any, result: dict[str, Any]) -> dict[str, Any] | None:
     if request_id is None:
         return None
     return _result(request_id, result)
 
 
-def _error_or_none(
-    request_id: Any, code: int, message: str
-) -> dict[str, Any] | None:
+def _error_or_none(request_id: Any, code: int, message: str) -> dict[str, Any] | None:
     if request_id is None:
         return None
     return _error(request_id, code, message)

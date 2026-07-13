@@ -39,9 +39,7 @@ def finalize_recompiled_packet(
         next_gates=next_gates,
     )
     source_nodes = [
-        item
-        for item in json_list(state.get("source_nodes"))
-        if isinstance(item, dict)
+        item for item in json_list(state.get("source_nodes")) if isinstance(item, dict)
     ]
     new_packet = enrich_packet_from_source_nodes(
         new_packet,

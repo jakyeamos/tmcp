@@ -94,12 +94,7 @@ class GlobalCacheReaderTests(unittest.TestCase):
     def test_reader_returns_only_redacted_canonical_projections(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            graph_path = (
-                root
-                / "promoted-harvests"
-                / "release"
-                / "promotion-graph.json"
-            )
+            graph_path = root / "promoted-harvests" / "release" / "promotion-graph.json"
             receipt_path = root / "receipts" / "2026-07" / "receipt.json"
             graph_path.parent.mkdir(parents=True)
             receipt_path.parent.mkdir(parents=True)
@@ -128,7 +123,9 @@ class GlobalCacheReaderTests(unittest.TestCase):
         rendered = json.dumps(snapshot.__dict__)
         self.assertNotIn(secret, rendered)
         self.assertNotIn("MALICIOUS", rendered)
-        self.assertTrue(any("unknown workflow IDs" in item for item in snapshot.warnings))
+        self.assertTrue(
+            any("unknown workflow IDs" in item for item in snapshot.warnings)
+        )
 
     def test_reader_orders_receipts_by_mtime(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -139,8 +136,14 @@ class GlobalCacheReaderTests(unittest.TestCase):
             newer = receipt_dir / "newer.json"
             older.write_text(json.dumps(_receipt_payload("older")), encoding="utf-8")
             newer.write_text(json.dumps(_receipt_payload("newer")), encoding="utf-8")
-            os.utime(older, ns=(1_700_000_000_000_000_000,) * 2)
-            os.utime(newer, ns=(1_700_000_001_000_000_000,) * 2)
+            os.utime(
+                older,
+                ns=(1_700_000_000_000_000_000, 1_700_000_000_000_000_000),
+            )
+            os.utime(
+                newer,
+                ns=(1_700_000_001_000_000_000, 1_700_000_001_000_000_000),
+            )
 
             snapshot = self._snapshot(root)
 
@@ -153,10 +156,7 @@ class GlobalCacheReaderTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             summary_path = (
-                root
-                / "promoted-harvests"
-                / "legacy-release"
-                / "promoted-harvest.json"
+                root / "promoted-harvests" / "legacy-release" / "promoted-harvest.json"
             )
             summary_path.parent.mkdir(parents=True)
             summary_path.write_text(
@@ -176,7 +176,9 @@ class GlobalCacheReaderTests(unittest.TestCase):
             str(summary_path),
         )
 
-    def test_current_graph_file_wins_over_legacy_summary_in_same_directory(self) -> None:
+    def test_current_graph_file_wins_over_legacy_summary_in_same_directory(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             directory = root / "promoted-harvests" / "release"

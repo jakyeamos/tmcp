@@ -103,7 +103,7 @@ def derive_runtime_state(
         warnings.extend(cache_warnings)
     if not next_gates:
         next_gates.append("Read the next required source before changing behavior.")
-    identity_context = dict(context)
+    identity_context: dict[str, Any] = dict(context)
     identity_context["latest_user_message"] = latest_user_message
     resolved_family_context = family_context
     if not resolved_family_context:

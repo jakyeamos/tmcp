@@ -204,6 +204,8 @@ def recommend_workflows(
     }
     if bool(arguments.get("compose", False)):
         if compose_preview is None:
-            raise ValueError("Recommendation compose preview requires adapter callback.")
+            raise ValueError(
+                "Recommendation compose preview requires adapter callback."
+            )
         result["composed_packet"] = compose_preview()
     return result

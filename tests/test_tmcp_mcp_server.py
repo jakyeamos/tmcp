@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import cast
 from unittest.mock import patch
 
-from tests.tmcp_test_client import TestWorkspace, run_mcp_requests as run_hermetic_mcp_requests
+from tests.tmcp_test_client import (
+    TestWorkspace,
+    run_mcp_requests as run_hermetic_mcp_requests,
+)
 from tmcp_runtime.domain import review_evidence, standalone_packets
 from tmcp_runtime.api.registry import PUBLIC_TOOL_NAMES
 from tmcp_runtime.storage import artifact_persistence_available
@@ -879,6 +882,7 @@ class TmcpMcpServerTests(unittest.TestCase):
             ],
             result["evidence_contract"]["dimension_ids"],
         )
+
 
 if __name__ == "__main__":
     unittest.main()

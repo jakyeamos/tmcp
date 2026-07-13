@@ -52,26 +52,26 @@ def redact_json_value(value: Any, *, enabled: bool) -> tuple[Any, dict[str, int]
     if isinstance(value, str):
         return redact_sensitive_text(value, enabled=True)
     if isinstance(value, list):
-        safe_values: list[Any] = []
-        redactions: dict[str, int] = {}
+        safe_list_values: list[Any] = []
+        list_redactions: dict[str, int] = {}
         for item in value:
             safe_item, item_redactions = redact_json_value(item, enabled=True)
-            safe_values.append(safe_item)
-            merge_redactions(redactions, item_redactions)
-        return safe_values, redactions
+            safe_list_values.append(safe_item)
+            merge_redactions(list_redactions, item_redactions)
+        return safe_list_values, list_redactions
     if isinstance(value, dict):
-        safe_values: dict[str, Any] = {}
-        redactions: dict[str, int] = {}
+        safe_dict_values: dict[str, Any] = {}
+        dict_redactions: dict[str, int] = {}
         for raw_key, item in value.items():
             safe_key, key_redactions = redact_sensitive_text(
                 str(raw_key),
                 enabled=True,
             )
             safe_item, item_redactions = redact_json_value(item, enabled=True)
-            safe_values[safe_key] = safe_item
-            merge_redactions(redactions, key_redactions)
-            merge_redactions(redactions, item_redactions)
-        return safe_values, redactions
+            safe_dict_values[safe_key] = safe_item
+            merge_redactions(dict_redactions, key_redactions)
+            merge_redactions(dict_redactions, item_redactions)
+        return safe_dict_values, dict_redactions
     return value, {}
 
 
@@ -211,8 +211,7 @@ def collect_harvest_roots(
             kind = "directory"
         else:
             warnings.append(
-                "Source path is not a regular file or directory: "
-                f"{display_path}"
+                f"Source path is not a regular file or directory: {display_path}"
             )
             continue
         root_key = str(resolved_path)
@@ -240,8 +239,7 @@ def _expand_brace_glob(pattern: str) -> list[str]:
     before = pattern[:start]
     after = pattern[end + 1 :]
     return [
-        f"{before}{item.strip()}{after}"
-        for item in pattern[start + 1 : end].split(",")
+        f"{before}{item.strip()}{after}" for item in pattern[start + 1 : end].split(",")
     ]
 
 
@@ -276,10 +274,7 @@ def _file_root_relative_paths(roots: Sequence[HarvestRoot]) -> dict[HarvestRoot,
         return {}
     max_depth = max(len(root.logical_path.parts) for root in file_roots)
     for depth in range(1, max_depth + 1):
-        labels = {
-            root: _path_suffix(root.logical_path, depth)
-            for root in file_roots
-        }
+        labels = {root: _path_suffix(root.logical_path, depth) for root in file_roots}
         if len(set(labels.values())) == len(labels):
             return labels
     return {root: str(root.logical_path) for root in file_roots}
@@ -405,9 +400,7 @@ def iter_harvest_candidates(
     warnings: list[str] = []
     seen_files: set[str] = set()
     file_root_relative_paths = _file_root_relative_paths(roots)
-    candidate_limit = (
-        max(0, max_candidates) if max_candidates is not None else None
-    )
+    candidate_limit = max(0, max_candidates) if max_candidates is not None else None
     scan_entry_limit = (
         max(0, max_scan_entries) if max_scan_entries is not None else None
     )
@@ -484,9 +477,7 @@ def iter_harvest_candidates(
 
             nested_directories: list[tuple[Path, Path]] = []
             for entry in entries:
-                relative_path = (
-                    logical_relative_directory / entry.name
-                ).as_posix()
+                relative_path = (logical_relative_directory / entry.name).as_posix()
                 relative_depth = len(Path(relative_path).parts)
                 if (
                     relative_depth_limit is not None

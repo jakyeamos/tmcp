@@ -246,9 +246,7 @@ class TmcpCachePolicyTests(unittest.TestCase):
         self.assertEqual(warnings, ["first", "second"])
         self.assertEqual(bounded_cache_limit("5", maximum_entries=3), 3)
         self.assertEqual(bounded_cache_limit("not-a-number", maximum_entries=3), 0)
-        self.assertFalse(
-            cache_json_is_bounded(deep, maximum_nodes=20, maximum_depth=3)
-        )
+        self.assertFalse(cache_json_is_bounded(deep, maximum_nodes=20, maximum_depth=3))
         self.assertFalse(
             cache_json_is_bounded({"one": 1}, maximum_nodes=1, maximum_depth=3)
         )

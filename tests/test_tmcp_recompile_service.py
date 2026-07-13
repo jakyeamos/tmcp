@@ -176,8 +176,7 @@ class TmcpRecompileServiceTests(unittest.TestCase):
         self.assertEqual(result["task_identity"], result["packet"]["task_identity"])
         self.assertTrue(
             any(
-                item["kind"] == "route"
-                and item["id"] == "accessibility_validation"
+                item["kind"] == "route" and item["id"] == "accessibility_validation"
                 for item in result["packet_diff"]["added"]
             )
         )

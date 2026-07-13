@@ -185,7 +185,9 @@ def merge_packet_delta(
     )
     active_atoms = [
         atom
-        for atom in _ordered_unique(_string_list(merged.get("active_atoms")) + activated)
+        for atom in _ordered_unique(
+            _string_list(merged.get("active_atoms")) + activated
+        )
         if atom not in deactivated
     ]
     deferred_atoms = _ordered_unique(
@@ -257,10 +259,14 @@ def render_recompiled_packet_markdown(
     packet_delta = recompiled.get("packet_diff")
     if isinstance(packet_delta, dict):
         dropped = [
-            item for item in _json_list(packet_delta.get("dropped")) if isinstance(item, dict)
+            item
+            for item in _json_list(packet_delta.get("dropped"))
+            if isinstance(item, dict)
         ]
         added = [
-            item for item in _json_list(packet_delta.get("added")) if isinstance(item, dict)
+            item
+            for item in _json_list(packet_delta.get("added"))
+            if isinstance(item, dict)
         ]
         if dropped:
             lines.extend(["", "### Dropped"])

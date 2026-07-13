@@ -34,7 +34,9 @@ def is_evaluable_skill_source(
     return "/skills/" in f"/{rel}" or rel.startswith("skills/")
 
 
-def pattern_catalog_from_path(path: Path = PATTERN_CATALOG_PATH) -> dict[str, dict[str, Any]]:
+def pattern_catalog_from_path(
+    path: Path = PATTERN_CATALOG_PATH,
+) -> dict[str, dict[str, Any]]:
     discovered: list[dict[str, Any]] = []
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -58,7 +60,7 @@ def harvest_warnings_for_source(
     skill_path = Path(path)
     if not is_evaluable_skill_source(skill_path, rel_path, source_type):
         return []
-    decomposition = decompose_skill(skill_path, text)
+    decomposition = decompose_skill(str(skill_path), text)
     findings = static_review(
         decomposition,
         text,

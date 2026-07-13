@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Container
 from datetime import datetime
-from typing import Any
+from typing import Any, SupportsInt, cast
 
 
 def _json_list(value: object) -> list[Any]:
@@ -28,7 +28,7 @@ def bounded_cache_limit(value: object, *, maximum_entries: int) -> int:
     """Coerce an untrusted cache limit into the configured safe range."""
 
     try:
-        requested = int(value)
+        requested = int(cast(SupportsInt, value))
     except (TypeError, ValueError):
         return 0
     return max(0, min(requested, maximum_entries))
@@ -169,11 +169,13 @@ def project_cached_promotion_graph(
         or payload.get("trust") != "advisory_untrusted"
         or not isinstance(payload.get("created_at"), str)
         or not isinstance(payload.get("promotion_name"), (str, type(None)))
-        or any(not isinstance(payload.get(field), list) for field in required_list_fields)
+        or any(
+            not isinstance(payload.get(field), list) for field in required_list_fields
+        )
     ):
         return (
             None,
-            "Skipped global cache graph with unexpected schema: " f"{display_path}",
+            f"Skipped global cache graph with unexpected schema: {display_path}",
         )
 
     workflow_nodes: list[dict[str, str]] = []
@@ -207,7 +209,7 @@ def project_cached_promotion_graph(
     }
     warning = None
     if unknown_nodes:
-        warning = "Skipped unknown workflow IDs in global cache graph: " f"{display_path}"
+        warning = f"Skipped unknown workflow IDs in global cache graph: {display_path}"
     return graph, warning
 
 
@@ -236,7 +238,9 @@ def project_cached_receipt(
     if (
         payload.get("schema") != receipt_schema
         or payload.get("trust") != "advisory_untrusted"
-        or any(not isinstance(payload.get(field), str) for field in required_string_fields)
+        or any(
+            not isinstance(payload.get(field), str) for field in required_string_fields
+        )
         or any(
             not isinstance(payload.get(field), list)
             or not all(isinstance(item, str) for item in payload[field])
@@ -245,15 +249,14 @@ def project_cached_receipt(
     ):
         return (
             None,
-            "Skipped global cache receipt with unexpected schema: " f"{display_path}",
+            f"Skipped global cache receipt with unexpected schema: {display_path}",
         )
-    if (
-        not payload["packet_id"].strip()
-        or not _is_timezone_aware_iso_timestamp(payload["created_at"])
+    if not payload["packet_id"].strip() or not _is_timezone_aware_iso_timestamp(
+        payload["created_at"]
     ):
         return (
             None,
-            "Skipped global cache receipt with invalid metadata: " f"{display_path}",
+            f"Skipped global cache receipt with invalid metadata: {display_path}",
         )
     return (
         {

@@ -8,7 +8,10 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from .declared_loads import declared_load_patterns_from_text, normalize_declared_load_pattern
+from .declared_loads import (
+    declared_load_patterns_from_text,
+    normalize_declared_load_pattern,
+)
 from .harvest_labels import guidance_labels_for, positive_signal_text
 from .standalone_packets import MODULE_BEHAVIOR_ATOMS
 
@@ -324,7 +327,6 @@ def frontmatter_for(text: str) -> dict[str, str]:
 SCOPED_PACKET_SEEDS_SCHEMA = "tmcp-scoped-packet-seeds-v0.1"
 
 
-
 def scoped_seed_signal_text(seed: dict[str, Any]) -> str:
     pieces: list[str] = []
     for key in (
@@ -393,6 +395,7 @@ def scoped_packet_seed_nodes(
             normalize_declared_load_pattern(pattern)
             for pattern in string_list(seed.get("loads"))
         ]
+        phase_transitions = seed.get("phase_transitions")
         routing_metadata = routing_metadata_for(virtual_rel_path, signal_text)
         routing_metadata["declared_loads"] = ordered_unique(
             string_list(routing_metadata.get("declared_loads")) + seed_loads
@@ -430,8 +433,8 @@ def scoped_packet_seed_nodes(
                 "chains_after": string_list(seed.get("chains_after")),
                 "do_not_activate_with": string_list(seed.get("do_not_activate_with")),
                 "phase_transitions": (
-                    dict(seed.get("phase_transitions"))
-                    if isinstance(seed.get("phase_transitions"), dict)
+                    dict(phase_transitions)
+                    if isinstance(phase_transitions, dict)
                     else {}
                 ),
                 "use_when": string_list(seed.get("use_when")),

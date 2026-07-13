@@ -33,7 +33,9 @@ def evaluate_mode(
         result: dict[str, Any] = {"mode": "plan", **plan}
         if bool(arguments.get("write_artifacts", False)):
             if artifact_writer is None:
-                raise ValueError("Evaluation artifact persistence requires the TMCP adapter.")
+                raise ValueError(
+                    "Evaluation artifact persistence requires the TMCP adapter."
+                )
             result["artifact_paths"] = artifact_writer(plan, None)
         return result
 
@@ -43,7 +45,9 @@ def evaluate_mode(
         result = {"mode": "score", **report}
         if bool(arguments.get("write_artifacts", False)):
             if artifact_writer is None:
-                raise ValueError("Evaluation artifact persistence requires the TMCP adapter.")
+                raise ValueError(
+                    "Evaluation artifact persistence requires the TMCP adapter."
+                )
             result["artifact_paths"] = artifact_writer(plan, report)
         return result
 
