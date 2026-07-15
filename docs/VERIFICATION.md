@@ -1,5 +1,14 @@
 # Verification Record
 
+## 2026-07-15 0.5.4 Marketplace Provenance Candidate
+
+The 0.5.4 candidate pins the Claude marketplace TMCP source to the matching
+release tag and makes the central runtime reject mutable or missing marketplace
+provenance for new releases. The retained 0.5.3 metadata remains installable
+for offline rollback. Local focused runtime and release-evidence tests pass;
+hosted PR, clean tagged artifact, native client refresh, and MCP Registry
+publication evidence remain pending until the candidate is merged and tagged.
+
 ## 2026-07-15 0.5.3 Symlinked Launcher Fix
 
 The 0.5.3 patch fixes Node launcher execution through the central runtime's

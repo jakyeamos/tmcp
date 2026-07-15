@@ -91,6 +91,15 @@ launcher resolves its own real path before deciding whether to start the
 bundled Python CLI, so `doctor`, `status`, and `list-tools` remain functional
 after an atomic runtime cutover.
 
+## 0.5.4 Marketplace Provenance
+
+The 0.5.4 patch pins the Claude marketplace TMCP source to `v0.5.4` and records
+that ref in the central runtime manifest. New releases must use a GitHub source
+ref equal to their release tag; runtime installation fails closed when the
+marketplace source is missing or points at a mutable branch. Existing 0.5.3
+installs remain readable so an offline rollback can restore the previous
+release, but they are not release provenance for a new install.
+
 ## Known Gaps
 
 - The current storage implementation intentionally denies artifact persistence on

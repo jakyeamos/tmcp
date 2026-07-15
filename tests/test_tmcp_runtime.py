@@ -26,6 +26,26 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
         (package / ".claude-plugin" / "plugin.json").write_text(
             json.dumps({"name": "tmcp", "version": version}), encoding="utf-8"
         )
+        (package / ".claude-plugin" / "marketplace.json").write_text(
+            json.dumps(
+                {
+                    "name": "tmcp",
+                    "version": version,
+                    "plugins": [
+                        {
+                            "name": "tmcp",
+                            "version": version,
+                            "source": {
+                                "source": "github",
+                                "repo": "jakyeamos/tmcp",
+                                "ref": f"v{version}",
+                            },
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
         (package / ".codex-plugin" / "plugin.json").write_text(
             json.dumps({"name": "tmcp", "version": f"{version}+codex.test"}),
             encoding="utf-8",
@@ -137,6 +157,28 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
             codex_marketplace = root / "codex-marketplace"
             claude_marketplace = root / "claude-marketplace"
             skill_copy = root / "global-skills" / "tmcp" / "SKILL.md"
+            codex_config = root / "codex-config.toml"
+            claude_installed_record = root / "claude-installed.json"
+            codex_config.write_text(
+                '[marketplaces.tmcp]\nsource = "https://github.com/jakyeamos/tmcp.git"\nref = "v1.0.0"\n',
+                encoding="utf-8",
+            )
+            claude_installed_record.write_text(
+                json.dumps(
+                    {
+                        "plugins": {
+                            "tmcp@tmcp": [
+                                {
+                                    "version": "1.0.0",
+                                    "installPath": str(claude_cache / "1.0.0"),
+                                    "gitCommitSha": "commit-sync",
+                                }
+                            ]
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
 
             synced = self.run_manager(
                 "sync",
@@ -154,6 +196,10 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
                 str(claude_marketplace),
                 "--skill-path",
                 str(skill_copy),
+                "--codex-config",
+                str(codex_config),
+                "--claude-installed-record",
+                str(claude_installed_record),
             )
             self.assertTrue(synced["ok"])
             self.assertEqual(
@@ -175,10 +221,35 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
                 str(codex_marketplace),
                 "--claude-marketplace",
                 str(claude_marketplace),
+                "--codex-config",
+                str(codex_config),
+                "--claude-installed-record",
+                str(claude_installed_record),
                 "--skill-path",
                 str(skill_copy),
             )
             self.assertTrue(diagnosis["ok"])
+
+            codex_config.write_text(
+                codex_config.read_text(encoding="utf-8").replace(
+                    'ref = "v1.0.0"', 'ref = "main"'
+                ),
+                encoding="utf-8",
+            )
+            drifted = self.run_manager(
+                "doctor",
+                "--runtime-home",
+                str(runtime_home),
+                "--codex-config",
+                str(codex_config),
+            )
+            self.assertFalse(drifted["ok"])
+            self.assertTrue(
+                any(
+                    check.get("id") == "codex_config" and check.get("status") == "fail"
+                    for check in cast(list[JsonObject], drifted["checks"])
+                )
+            )
 
             skill_copy.write_text("stale skill\n", encoding="utf-8")
             stale = self.run_manager(
@@ -257,6 +328,46 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
             )
             self.assertNotEqual(rejected.returncode, 0)
             self.assertIn("SHA-256 mismatch", rejected.stdout)
+
+    def test_modern_package_rejects_unpinned_marketplace_source(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = self.make_package(root, "1.0.0", "unpinned")
+            marketplace_path = package / ".claude-plugin" / "marketplace.json"
+            marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
+            marketplace["plugins"][0]["source"]["ref"] = "main"
+            marketplace_path.write_text(json.dumps(marketplace), encoding="utf-8")
+
+            result = self.run_manager_process(
+                "install",
+                "--source",
+                str(package),
+                "--runtime-home",
+                str(root / "runtime"),
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("must be pinned to v1.0.0", result.stdout)
+
+    def test_legacy_package_can_remain_unpinned_for_rollback(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = self.make_package(root, "0.5.3", "legacy")
+            marketplace_path = package / ".claude-plugin" / "marketplace.json"
+            marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
+            marketplace["plugins"][0]["source"]["ref"] = "main"
+            marketplace_path.write_text(json.dumps(marketplace), encoding="utf-8")
+
+            installed = self.run_manager(
+                "install",
+                "--source",
+                str(package),
+                "--runtime-home",
+                str(root / "runtime"),
+                "--activate",
+            )
+
+            self.assertEqual(installed["version"], "0.5.3")
 
     def test_corrupt_state_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
