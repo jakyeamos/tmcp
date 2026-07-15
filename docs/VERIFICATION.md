@@ -22,10 +22,10 @@ python3 scripts/check_release_evidence.py .
 
 The focused runtime suite covers archive digest pinning, immutable install and
 activation, generated-surface refresh, skill mismatch detection, corrupt-state
-fail-closed behavior, and offline rollback. The evidence record currently uses
-the preceding successful hosted main run `29289581668` as the bootstrap pointer;
-the migration PR's successful hosted run must replace it before merge, followed
-by a second evidence-pointer verification.
+fail-closed behavior, and offline rollback. The first hosted migration PR matrix
+run `29450815213` passed all seven jobs across Ubuntu, macOS, and Windows for
+Python 3.10 and 3.13. The evidence record now points to that run; a second
+evidence-pointer verification is required before merge.
 
 A clean pre-tag package check at source commit `e2d7583` produced
 `/private/tmp/tmcp-v0.5.1-final.tar.gz` with SHA-256

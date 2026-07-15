@@ -1,18 +1,18 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.1",
-  "checked_at": "2026-07-15T21:30:00Z",
+  "checked_at": "2026-07-15T21:09:49Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "main",
-    "ref": "main",
-    "pr_number": null,
+    "source": "pull_request",
+    "ref": "codex/tmcp-central-runtime-migration",
+    "pr_number": 3,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29289581668,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29289581668",
-    "head_sha": "0dfd5497c97e014557cf2d8b1970954da8e514a1",
-    "notes": "Bootstrap release-owner pointer: successful hosted main verify.yml run for the preceding 0.5.0 release. Replace this pointer with the successful 0.5.1 migration PR run before merge."
+    "run_id": 29450815213,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29450815213",
+    "head_sha": "3ee3b51",
+    "notes": "Successful hosted 0.5.1 migration PR verify.yml matrix; the required second evidence-pointer rerun is still pending."
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.5.1.tar.gz",
