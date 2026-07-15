@@ -27,9 +27,11 @@ the preceding successful hosted main run `29289581668` as the bootstrap pointer;
 the migration PR's successful hosted run must replace it before merge, followed
 by a second evidence-pointer verification.
 
-Release artifact path and digest are intentionally pending until a clean,
-committed 0.5.1 tree is packaged. The GitHub Release and MCP Registry update
-are deferred until that artifact and hosted matrix pass.
+The clean package check now records
+`/private/tmp/tmcp-v0.5.1.tar.gz` with SHA-256
+`59e37d8144bca87d0a045bbce6b0f89af737eea33e25b92b865aaaed5a2ff00a`; a repeat
+build produced the same digest. The GitHub Release and MCP Registry publication
+remain deferred until hosted PR verification and review pass.
 
 ## 2026-07-13 0.5.0 Compatibility Release Candidate
 
