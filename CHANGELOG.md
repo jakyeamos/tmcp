@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.2 - 2026-07-15
+
+- Fixed central-runtime archive validation for deterministic release archives
+  that contain `tmcp/<file>` entries without an explicit `tmcp/` directory
+  member. The published 0.5.1 artifact remains retained for rollback evidence;
+  0.5.2 is the supported archive-install release.
+
 ## 0.5.1 - 2026-07-15
 
 - Added a version-pinned central runtime manager with immutable installs,

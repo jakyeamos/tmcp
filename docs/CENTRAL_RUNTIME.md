@@ -27,7 +27,7 @@ local update cannot silently replace the package with an unreviewed build:
 
 ```bash
 node scripts/tmcp_runtime.mjs install \
-  --source /path/to/tmcp-v0.5.1.tar.gz \
+  --source /path/to/tmcp-v0.5.2.tar.gz \
   --sha256 <release-sha256> \
   --source-commit <tagged-commit> \
   --runtime-home "$HOME/.tmcp/runtime" \
@@ -44,7 +44,7 @@ node scripts/tmcp_runtime.mjs sync \
   --claude-cache-root "$HOME/.claude/plugins/cache/tmcp/tmcp"
 node scripts/tmcp_runtime.mjs doctor \
   --runtime-home "$HOME/.tmcp/runtime" \
-  --expected-version 0.5.1
+  --expected-version 0.5.2
 ```
 
 `sync` only adds a new versioned cache entry or replaces a generated marketplace
