@@ -99,6 +99,19 @@ def check_manifest_metadata(plugin_root: Path) -> list[str]:
             errors.append(
                 "Claude marketplace TMCP plugin version does not match release"
             )
+        source = (
+            json_object(matches[0].get("source"), "Claude marketplace TMCP source")
+            if len(matches) == 1
+            else {}
+        )
+        if (
+            source.get("source") != "github"
+            or source.get("repo") != "jakyeamos/tmcp"
+            or source.get("ref") != f"v{VERSION.release}"
+        ):
+            errors.append(
+                "Claude marketplace TMCP source must be the canonical GitHub repository pinned to the release tag"
+            )
 
         registry = read_json_object(plugin_root / "mcp-registry" / "draft-server.json")
         if registry.get("version") != VERSION.release:

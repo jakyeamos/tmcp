@@ -27,7 +27,7 @@ local update cannot silently replace the package with an unreviewed build:
 
 ```bash
 node scripts/tmcp_runtime.mjs install \
-  --source /path/to/tmcp-v0.5.3.tar.gz \
+  --source /path/to/tmcp-v0.5.4.tar.gz \
   --sha256 <release-sha256> \
   --source-commit <tagged-commit> \
   --runtime-home "$HOME/.tmcp/runtime" \
@@ -44,15 +44,21 @@ node scripts/tmcp_runtime.mjs sync \
   --claude-cache-root "$HOME/.claude/plugins/cache/tmcp/tmcp"
 node scripts/tmcp_runtime.mjs doctor \
   --runtime-home "$HOME/.tmcp/runtime" \
-  --expected-version 0.5.3
+  --expected-version 0.5.4 \
+  --codex-config "$HOME/.codex/config.toml" \
+  --claude-installed-record "$HOME/.claude/plugins/installed_plugins.json"
 ```
 
 `sync` only adds a new versioned cache entry or replaces a generated marketplace
 snapshot after staging it. Existing version directories remain available. A
 marketplace checkout with uncommitted changes is rejected and left untouched;
 host metadata such as a Codex marketplace ref or Claude installed-plugin record
-must also name the same release and commit. `doctor` reports any cache or skill
-surface that does not match the active content digest.
+must also name the same release and commit. The Claude marketplace plugin
+source is pinned to the matching `v<release>` tag; modern packages with a
+missing or mutable source ref fail during install. `doctor` reports any cache or
+skill surface that does not match the active content digest, and optionally
+checks the native Codex config and Claude installed-plugin record when those
+paths are supplied.
 
 ## Automatic update pipeline
 
@@ -94,6 +100,9 @@ policy is in place; this package does not perform that cleanup automatically.
   stale and must not be treated as a current package contract.
 - A plugin cache with a different content digest is stale, even when its folder
   name looks current.
+- A modern package marketplace source must point at `v<release>`; `main`, a
+  missing ref, or another tag is a provenance mismatch. Legacy 0.5.3 metadata
+  remains accepted only so the retained rollback version can be activated.
 - Project-local instructions may intentionally differ from TMCP core; they are
   overlays, not mismatches.
 - The compatibility alias is valid only when it resolves to the active runtime

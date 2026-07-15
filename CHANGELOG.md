@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.4 - 2026-07-15
+
+- Pinned the Claude marketplace plugin source to the immutable release tag and
+  made the runtime manager reject unpinned marketplace sources for modern
+  releases.
+- Recorded marketplace provenance in each runtime manifest so generated cache
+  and marketplace surfaces cannot silently drift from the active package.
+- Preserved installation of 0.5.3 marketplace metadata for offline rollback
+  while requiring new releases to use release-tag provenance.
+
 ## 0.5.3 - 2026-07-15
 
 - Fixed the Node launcher entrypoint guard when the launcher is invoked through

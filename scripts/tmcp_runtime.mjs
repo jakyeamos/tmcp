@@ -9,6 +9,7 @@ import { spawn, spawnSync } from "node:child_process";
 const VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const STATE_SCHEMA = "tmcp-central-runtime-state-v0.1";
 const PACKAGE_SCHEMA = "tmcp-runtime-package-v0.1";
+const MARKETPLACE_PIN_MIN_RELEASE = "0.5.4";
 const SKIP_NAMES = new Set([
   ".aios",
   ".codex",
@@ -41,6 +42,9 @@ Surface options:
   --claude-cache-root <path>  Add the active package at <root>/<release version>.
   --codex-marketplace <path>  Replace a generated Codex marketplace snapshot.
   --claude-marketplace <path> Replace a generated Claude marketplace snapshot.
+  --codex-config <path>       Check the native Codex marketplace ref.
+  --claude-installed-record <path>
+                              Check native Claude version, path, and source commit.
   --skill-path <path>         Check or install the canonical skills/tmcp/SKILL.md copy.
 
 The runtime home defaults to TMCP_RUNTIME_HOME or ~/.tmcp/runtime. Installs are
@@ -116,6 +120,28 @@ async function readJson(filePath) {
   }
 }
 
+async function readOptionalJson(filePath) {
+  try {
+    return JSON.parse(await fs.readFile(filePath, "utf8"));
+  } catch (error) {
+    if (error.code === "ENOENT") return null;
+    fail(`could not read JSON ${filePath}: ${error.message}`);
+  }
+}
+
+function releaseTuple(version) {
+  return version.split(".").map((part) => Number(part));
+}
+
+function releaseAtLeast(version, minimum) {
+  const actual = releaseTuple(version);
+  const required = releaseTuple(minimum);
+  for (let index = 0; index < required.length; index += 1) {
+    if (actual[index] !== required[index]) return actual[index] > required[index];
+  }
+  return true;
+}
+
 async function writeJsonAtomic(filePath, value) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   const temporary = `${filePath}.tmp-${process.pid}-${randomUUID()}`;
@@ -183,10 +209,35 @@ async function readPackageMetadata(packageRoot) {
   const codexPlugin = String(codex.version ?? "");
   if (!VERSION_PATTERN.test(release)) fail(`package release is not strict semver: ${release}`);
   if (!codexPlugin.startsWith(`${release}+`)) fail(`Codex plugin version ${codexPlugin} does not match release ${release}`);
+  const marketplace = await readOptionalJson(path.join(packageRoot, ".claude-plugin", "marketplace.json"));
+  let marketplaceRef = null;
+  let marketplaceVersion = null;
+  let marketplacePluginVersion = null;
+  let marketplaceSource = null;
+  if (marketplace && typeof marketplace === "object" && !Array.isArray(marketplace)) {
+    marketplaceVersion = typeof marketplace.version === "string" ? marketplace.version : null;
+    const plugins = Array.isArray(marketplace.plugins) ? marketplace.plugins : [];
+    const plugin = plugins.find((candidate) => candidate && typeof candidate === "object" && candidate.name === codex.name);
+    marketplacePluginVersion = plugin && typeof plugin.version === "string" ? plugin.version : null;
+    const source = plugin && typeof plugin.source === "object" && !Array.isArray(plugin.source) ? plugin.source : null;
+    marketplaceSource = source;
+    marketplaceRef = source && typeof source.ref === "string" ? source.ref : null;
+  }
+  if (releaseAtLeast(release, MARKETPLACE_PIN_MIN_RELEASE)) {
+    if (marketplaceVersion !== release || marketplacePluginVersion !== release) {
+      fail(`Claude marketplace metadata must identify release ${release}`);
+    }
+    if (marketplaceSource?.source !== "github" || marketplaceSource.repo !== "jakyeamos/tmcp") {
+      fail("Claude marketplace plugin source must be the canonical GitHub repository");
+    }
+    if (marketplaceRef !== `v${release}`) {
+      fail(`Claude marketplace plugin source ref ${marketplaceRef ?? "<missing>"} must be pinned to v${release}`);
+    }
+  }
   const registrySource = await fs.readFile(path.join(packageRoot, "tmcp_runtime", "api", "registry.py"), "utf8");
   const registryMatch = registrySource.match(/release\s*=\s*["']([^"']+)["']/);
   if (!registryMatch || registryMatch[1] !== release) fail(`Python registry release does not match ${release}`);
-  return { release, codex_plugin: codexPlugin, server_name: String(codex.name ?? "") };
+  return { release, codex_plugin: codexPlugin, server_name: String(codex.name ?? ""), marketplace_ref: marketplaceRef };
 }
 
 function gitCommit(sourceRoot) {
@@ -273,7 +324,7 @@ async function validateInstalled(home, version) {
   const packageRoot = path.join(home, "versions", version);
   const metadata = await readPackageMetadata(packageRoot);
   const manifest = await readJson(path.join(packageRoot, "runtime-manifest.json"));
-  if (manifest.schema !== PACKAGE_SCHEMA || manifest.release !== metadata.release || manifest.codex_plugin !== metadata.codex_plugin) {
+  if (manifest.schema !== PACKAGE_SCHEMA || manifest.release !== metadata.release || manifest.codex_plugin !== metadata.codex_plugin || (manifest.marketplace_ref !== undefined && manifest.marketplace_ref !== metadata.marketplace_ref)) {
     fail(`runtime manifest mismatch for ${version}`);
   }
   const digest = await treeDigest(packageRoot);
@@ -345,6 +396,7 @@ async function install(options) {
         source_kind: sourceInfo.source_kind,
         source_sha256: sourceInfo.source_sha256,
         source_commit: optionString(options, "source_commit", sourceInfo.source_commit),
+        marketplace_ref: metadata.marketplace_ref,
         content_sha256: digest.sha256,
         file_count: digest.file_count,
         skills_sha256: skillsDigest.sha256,
@@ -433,6 +485,46 @@ async function skillCheck(target, activeRoot) {
   }
 }
 
+async function codexConfigCheck(target, active) {
+  if (!target) return { id: "codex_config", status: "skipped" };
+  try {
+    const content = await fs.readFile(target, "utf8");
+    const heading = "[marketplaces.tmcp]";
+    const start = content.indexOf(heading);
+    if (start < 0) return { id: "codex_config", status: "fail", detail: "native Codex config has no [marketplaces.tmcp] table", path: target };
+    const remainder = content.slice(start + heading.length);
+    const nextTable = remainder.search(/^\[/m);
+    const block = remainder.slice(0, nextTable < 0 ? remainder.length : nextTable);
+    const source = block.match(/^source\s*=\s*"([^"]+)"/m)?.[1];
+    const ref = block.match(/^ref\s*=\s*"([^"]+)"/m)?.[1];
+    const expectedRef = `v${active.metadata.release}`;
+    if (source !== "https://github.com/jakyeamos/tmcp.git" || ref !== expectedRef) {
+      return { id: "codex_config", status: "fail", detail: `expected canonical source and ref ${expectedRef}; got ${source ?? "<missing>"} ${ref ?? "<missing>"}`, path: target };
+    }
+    return { id: "codex_config", status: "pass", detail: expectedRef, path: target };
+  } catch (error) {
+    return { id: "codex_config", status: "fail", detail: `could not read native Codex config: ${error.message}`, path: target };
+  }
+}
+
+async function claudeInstalledRecordCheck(target, active, expectedPluginPath) {
+  if (!target) return { id: "claude_installed_record", status: "skipped" };
+  try {
+    const payload = await readJson(target);
+    const entries = payload.plugins?.["tmcp@tmcp"];
+    const installed = Array.isArray(entries) ? entries[0] : null;
+    const expectedPath = expectedPluginPath ? path.resolve(expectedPluginPath) : null;
+    const actualPath = installed && typeof installed.installPath === "string" ? path.resolve(installed.installPath) : null;
+    const expectedCommit = active.manifest.source_commit;
+    if (!installed || installed.version !== active.metadata.release || installed.gitCommitSha !== expectedCommit || (expectedPath && actualPath !== expectedPath)) {
+      return { id: "claude_installed_record", status: "fail", detail: `expected version ${active.metadata.release}, commit ${expectedCommit}, path ${expectedPath ?? "<not checked>"}; got ${installed ? `${installed.version ?? "<missing>"}, ${installed.gitCommitSha ?? "<missing>"}, ${actualPath ?? "<missing>"}` : "<missing>"}`, path: target };
+    }
+    return { id: "claude_installed_record", status: "pass", detail: active.metadata.release, path: target };
+  } catch (error) {
+    return { id: "claude_installed_record", status: "fail", detail: `could not read native Claude installed record: ${error.message}`, path: target };
+  }
+}
+
 async function doctor(options) {
   const home = runtimeHome(options);
   const state = await loadState(home);
@@ -460,6 +552,8 @@ async function doctor(options) {
     checks.push(await surfaceCheck("claude_marketplace", optionString(options, "claude_marketplace"), active.packageRoot, active.manifest));
     checks.push(await surfaceCheck("codex_plugin", optionString(options, "codex_plugin"), active.packageRoot, active.manifest));
     checks.push(await surfaceCheck("claude_plugin", optionString(options, "claude_plugin"), active.packageRoot, active.manifest));
+    checks.push(await codexConfigCheck(optionString(options, "codex_config"), active));
+    checks.push(await claudeInstalledRecordCheck(optionString(options, "claude_installed_record"), active, optionString(options, "claude_plugin")));
     checks.push(await skillCheck(optionString(options, "skill_path"), active.packageRoot));
   }
   const failed = checks.filter((check) => check.status === "fail");
