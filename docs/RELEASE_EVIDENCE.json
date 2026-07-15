@@ -1,28 +1,28 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.2",
-  "checked_at": "2026-07-15T21:24:14Z",
+  "checked_at": "2026-07-15T21:40:57Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "pull_request",
-    "ref": "codex/tmcp-0.5.2-archive-fix",
-    "pr_number": 4,
+    "source": "tag",
+    "ref": "v0.5.2",
+    "pr_number": null,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29452086899,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29452086899",
-    "head_sha": "637db91f743c817ca05efe26c188d08143507cff",
-    "notes": "Successful hosted 0.5.2 PR verify.yml matrix across Ubuntu, macOS, and Windows for Python 3.10 and 3.13; the required second evidence-pointer rerun is pending."
+    "run_id": 29452495677,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29452495677",
+    "head_sha": "ba093f5f1c0396d90bfcd7742a8cf3f62b4245b6",
+    "notes": "Successful hosted v0.5.2 tag verify.yml matrix across Ubuntu, macOS, and Windows for Python 3.10 and 3.13."
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.5.2.tar.gz",
-    "sha256": "pending-final-artifact",
+    "sha256": "f6e39ab52c82739474fc0a0c1942828f215f86dde8df84bb0b161fd241e5ec63",
     "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.2/tmcp-v0.5.2.tar.gz",
-    "notes": "Record the digest from the final merge-tag artifact after hosted verification. MCP Registry package metadata must use the same hash."
+    "notes": "Final artifact was built from the v0.5.2 tag and matches the public GitHub Release asset byte-for-byte. MCP Registry package metadata uses the same hash."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
-    "remote_tag": "refs/heads/codex/tmcp-0.5.2-archive-fix",
+    "remote_tag": "refs/tags/v0.5.2",
     "commands": [
       "gh pr create --repo jakyeamos/tmcp",
       "gh run watch <migration-pr-run> --repo jakyeamos/tmcp --exit-status",
@@ -34,6 +34,6 @@
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "The 0.5.1 GitHub Release is retained for rollback evidence. The 0.5.2 patch release and MCP Registry publication remain gated on clean-package, hosted, and final-install checks."
+    "result": "The v0.5.2 GitHub Release is published with the verified digest. MCP Registry publication remains gated on final metadata validation and the publisher credential state."
   }
 }
