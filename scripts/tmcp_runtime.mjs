@@ -205,7 +205,7 @@ async function validateArchive(archivePath) {
   const result = spawnSync("tar", ["-tzf", archivePath], { encoding: "utf8" });
   if (result.status !== 0) fail(`could not inspect release archive: ${result.stderr || result.stdout}`);
   const entries = result.stdout.split("\n").map((entry) => entry.trim()).filter(Boolean);
-  if (!entries.some((entry) => entry === "tmcp" || entry === "tmcp/")) fail("release archive must have a tmcp/ root");
+  if (!entries.some((entry) => entry === "tmcp" || entry === "tmcp/" || entry.startsWith("tmcp/"))) fail("release archive must have a tmcp/ root");
   for (const entry of entries) {
     if (entry === "tmcp" || entry === "tmcp/") continue;
     if (!entry.startsWith("tmcp/") || entry.split("/").some((part) => part === ".." || part === "" && entry.at(-1) !== "/")) {

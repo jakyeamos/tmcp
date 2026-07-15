@@ -1,5 +1,19 @@
 # Verification Record
 
+## 2026-07-15 0.5.2 Archive Install Fix
+
+The 0.5.2 patch fixes central-runtime validation for deterministic archives
+whose files are rooted at `tmcp/` without a standalone root-directory member.
+The focused regression test now creates that exact archive shape and verifies
+digest-pinned installation. The published 0.5.1 archive was installed with
+the patched validator as a pre-release smoke check; the 0.5.2 hosted PR,
+tagged artifact, and final active-runtime cutover remain pending.
+
+Bootstrap hosted evidence is the successful post-merge main run
+`29451182218` at `3553ca4c6fb120c74620f99626103e15a662c478`. The final record
+will add the successful 0.5.2 PR evidence-pointer rerun, tag run, artifact
+digest, GitHub Release asset digest, and MCP Registry result.
+
 ## 2026-07-15 0.5.1 Central Runtime Migration
 
 The 0.5.1 migration adds the versioned central runtime, immutable install
@@ -31,8 +45,13 @@ A clean pre-tag package check at source commit `e2d7583` produced
 `/private/tmp/tmcp-v0.5.1-final.tar.gz` with SHA-256
 `489bf65bc86062fff2e76a9660f54d7df5056f732f1c2af00d9161ec4da5828e`; its repeat
 build matched. Because the archive manifest embeds its source commit, the
-published artifact must be rebuilt from the final merge tag. The GitHub Release
-and MCP Registry digest remain deferred until then.
+published artifact must be rebuilt from the final merge tag. The final tagged
+artifact was published at
+`https://github.com/jakyeamos/tmcp/releases/tag/v0.5.1` with SHA-256
+`feafe836a8d1ac06611612ecca1aaca9b270091a39df6722fe4de7d598b881dd`.
+The first install attempt against that public artifact exposed the archive
+root-entry validation defect fixed by 0.5.2, so 0.5.1 is retained for rollback
+evidence and 0.5.2 is the supported install target.
 
 ## 2026-07-13 0.5.0 Compatibility Release Candidate
 

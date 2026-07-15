@@ -224,7 +224,10 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
             package = self.make_package(root, "1.2.0", "archive")
             archive = root / "tmcp-1.2.0.tar.gz"
             with tarfile.open(archive, "w:gz") as handle:
-                handle.add(package, arcname="tmcp")
+                for file_path in sorted(package.rglob("*")):
+                    if file_path.is_file():
+                        relative = file_path.relative_to(package).as_posix()
+                        handle.add(file_path, arcname=f"tmcp/{relative}")
             digest = hashlib.sha256(archive.read_bytes()).hexdigest()
 
             installed = self.run_manager(

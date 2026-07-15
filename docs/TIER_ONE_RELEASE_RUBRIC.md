@@ -29,10 +29,10 @@ A Tier One release requires:
 | Maintainability and modularity | 5 | 4 | 5 | Soft |
 | Release operations | 3 | 3 | 3 | Hard |
 
-Current score: 100/100 for the scoped `0.5.1` migration candidate. The
-0.5.0 release's hosted matrix remains the baseline; the 0.5.1 migration still
-requires its own successful hosted PR run, evidence-pointer rerun, and clean
-artifact checks before it can be called a published Tier One release.
+Current score: 100/100 for the scoped `0.5.2` archive-install patch candidate.
+The 0.5.1 central-runtime release exposed the archive-root defect during
+post-release installation; the 0.5.2 candidate remains gated on its own
+successful hosted matrix, clean artifact checks, and tag verification.
 
 ## Dimensions
 

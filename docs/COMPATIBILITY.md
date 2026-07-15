@@ -76,6 +76,13 @@ Codex and Claude caches are generated install surfaces. Repository-specific
 compatibility alias may continue serving existing absolute `.mcp.json` entries,
 but `tmcp_runtime.mjs doctor` must prove that it resolves to the active release.
 
+## 0.5.2 Archive Install Fix
+
+The 0.5.2 patch fixes archive-root validation for deterministic release
+archives that omit a standalone `tmcp/` directory entry while retaining
+`tmcp/<file>` paths. The runtime manager now accepts that valid archive shape
+and continues to reject unsafe paths and unpinned archive content.
+
 ## Known Gaps
 
 - The current storage implementation intentionally denies artifact persistence on
