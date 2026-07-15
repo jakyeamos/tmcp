@@ -90,6 +90,10 @@ function optionBoolean(options, key) {
   return value === true || value === "true";
 }
 
+function directoryLinkType() {
+  return process.platform === "win32" ? "junction" : "dir";
+}
+
 function runtimeHome(options) {
   return path.resolve(
     optionString(options, "runtime_home", process.env.TMCP_RUNTIME_HOME ?? path.join(os.homedir(), ".tmcp", "runtime")),
@@ -285,7 +289,7 @@ async function replaceActiveLink(home, version) {
   const activePath = path.join(home, "active");
   const temporary = `${activePath}.tmp-${process.pid}-${randomUUID()}`;
   await fs.rm(temporary, { force: true, recursive: true });
-  await fs.symlink(path.join("versions", version), temporary, "dir");
+  await fs.symlink(path.join("versions", version), temporary, directoryLinkType());
   await fs.rename(temporary, activePath);
 }
 
@@ -511,7 +515,7 @@ async function replaceSymlink(destination, target) {
   const temporary = `${destination}.tmp-${process.pid}-${randomUUID()}`;
   await fs.rm(temporary, { force: true, recursive: true });
   await fs.mkdir(path.dirname(destination), { recursive: true });
-  await fs.symlink(target, temporary, "dir");
+  await fs.symlink(target, temporary, directoryLinkType());
   await fs.rename(temporary, destination);
 }
 
