@@ -12,6 +12,24 @@ TMCP turns scattered agent instructions into task-specific packets. AIOS is opti
 
 **Slash commands are manual imports. TMCP is the compiler.** The user describes work in natural language. TMCP compiles the operating packet, recompiles when evidence changes, and records receipts. Skill names are provenance, not the user interface.
 
+## Runtime version contract
+
+The current package release is `0.5.1` (`0.5.1+codex.20260715202711`). The
+executable runtime is authoritative; a copied skill or plugin cache is only
+current when its content digest matches the active runtime manifest. For a
+shared local install, check the central runtime before relying on package
+behavior:
+
+```bash
+node scripts/tmcp_runtime.mjs status --runtime-home "$HOME/.tmcp/runtime"
+node scripts/tmcp_runtime.mjs doctor --runtime-home "$HOME/.tmcp/runtime"
+```
+
+If the skill, cache, and runtime releases disagree, report the mismatch and use
+the active runtime's release/commit as the source of executable truth. Keep
+project-local `AGENTS.md`, domain skills, evidence, and instruction overlays
+local; they are not TMCP core copies and should not be replaced by this skill.
+
 ## Routing
 
 - `TMCP expert rubric`, `expert rubric workflow`, and similar wording invoke `expert_rubric_review_plan`. Its MCP tool contract is experimental, so preserve that label in tool results even when a stable curated template uses it.

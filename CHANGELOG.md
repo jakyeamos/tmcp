@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.1 - 2026-07-15
+
+- Added a version-pinned central runtime manager with immutable installs,
+  atomic active/rollback switching, generated Codex/Claude cache sync, digest
+  parity checks, and skill/runtime mismatch diagnostics.
+- Kept repository-local instructions as overlays and documented the legacy
+  runtime alias as a checked compatibility surface.
+
 ## 0.5.0 - 2026-07-13
 
 - Changed AIOS dispatch so `auto` stays standalone, while explicit `aios` requests reject known sensitive values until a protected request-input protocol is available.

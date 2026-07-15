@@ -1,38 +1,39 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
-  "version": "0.5.0",
-  "checked_at": "2026-07-13T22:19:38Z",
+  "version": "0.5.1",
+  "checked_at": "2026-07-15T21:30:00Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "tag",
-    "ref": "v0.5.0",
+    "source": "main",
+    "ref": "main",
+    "pr_number": null,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29289138645,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29289138645",
-    "head_sha": "1fcda48582123e49853f9f2f0141fd3864124166",
-    "notes": "Successful v0.5.0 tag verify.yml run for the merged release commit; the pinned quality job and all six platform jobs passed."
+    "run_id": 29289581668,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29289581668",
+    "head_sha": "0dfd5497c97e014557cf2d8b1970954da8e514a1",
+    "notes": "Bootstrap release-owner pointer: successful hosted main verify.yml run for the preceding 0.5.0 release. Replace this pointer with the successful 0.5.1 migration PR run before merge."
   },
   "release_package": {
-    "path": "/private/tmp/tmcp-v0.5.0.tar.gz",
-    "sha256": "37c005b9b56f183d9d04ffb9caa803d391aa19f17fbe4f081fa0c4b7df00d2eb",
-    "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.0/tmcp-v0.5.0.tar.gz",
-    "notes": "Published GitHub release asset; checksum verified locally and against the uploaded asset. MCP Registry package metadata uses the same hash."
+    "path": "/private/tmp/tmcp-v0.5.1.tar.gz",
+    "sha256": "pending-final-artifact",
+    "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.1/tmcp-v0.5.1.tar.gz",
+    "notes": "The 0.5.1 artifact is not published; record its digest after the clean tagged package is built and verified. MCP Registry package metadata must use the same hash."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
-    "remote_tag": "refs/tags/v0.5.0",
+    "remote_tag": "refs/heads/codex/tmcp-central-runtime-migration",
     "commands": [
-      "gh pr ready 2 --repo jakyeamos/tmcp",
-      "gh pr merge 2 --merge --repo jakyeamos/tmcp",
-      "git tag -a v0.5.0 1fcda48582123e49853f9f2f0141fd3864124166 -m 'TMCP 0.5.0'",
-      "git push origin v0.5.0",
-      "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.5.0.tar.gz --verify-reproducible",
-      "shasum -a 256 /private/tmp/tmcp-v0.5.0.tar.gz",
-      "gh release create v0.5.0 /private/tmp/tmcp-v0.5.0.tar.gz --repo jakyeamos/tmcp --verify-tag",
+      "gh pr create --repo jakyeamos/tmcp",
+      "gh run watch <migration-pr-run> --repo jakyeamos/tmcp --exit-status",
+      "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.5.1.tar.gz --verify-reproducible",
+      "shasum -a 256 /private/tmp/tmcp-v0.5.1.tar.gz",
+      "git tag -a v0.5.1 -m 'TMCP 0.5.1'",
+      "git push origin v0.5.1",
+      "gh release create v0.5.1 /private/tmp/tmcp-v0.5.1.tar.gz --repo jakyeamos/tmcp --verify-tag",
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "PR merged, v0.5.0 tagged, GitHub release asset published, and MCP Registry server io.github.jakyeamos/tmcp version 0.5.0 published."
+    "result": "Migration PR and hosted evidence are pending; tag, GitHub Release, and MCP Registry publication remain gated on clean-package and review checks."
   }
 }

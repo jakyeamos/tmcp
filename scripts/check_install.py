@@ -29,6 +29,7 @@ REQUIRED_FILES = (
     "schemas/tmcp-run-session-v0.1.schema.json",
     "schemas/tmcp-runtime-next-v0.1.schema.json",
     "scripts/tmcp_launcher.mjs",
+    "scripts/tmcp_runtime.mjs",
     "scripts/tmcp_mcp_server.py",
     "scripts/check_contracts.py",
     "scripts/release_package_compile.py",

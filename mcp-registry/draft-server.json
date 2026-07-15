@@ -3,7 +3,7 @@
   "name": "io.github.jakyeamos/tmcp",
   "title": "TMCP",
   "description": "Composable skill packets, harvests, workflow routing, and release/audit rubrics over MCP.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "websiteUrl": "https://github.com/jakyeamos/tmcp#readme",
   "repository": {
     "url": "https://github.com/jakyeamos/tmcp",
@@ -13,8 +13,8 @@
   "packages": [
     {
       "registryType": "mcpb",
-      "identifier": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.0/tmcp-v0.5.0.tar.gz",
-      "version": "0.5.0",
+      "identifier": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.1/tmcp-v0.5.1.tar.gz",
+      "version": "0.5.1",
       "fileSha256": "37c005b9b56f183d9d04ffb9caa803d391aa19f17fbe4f081fa0c4b7df00d2eb",
       "transport": {
         "type": "stdio"
