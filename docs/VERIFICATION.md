@@ -1,5 +1,30 @@
 # Verification Record
 
+## 2026-07-15 0.5.3 Symlinked Launcher Fix
+
+The 0.5.3 patch fixes Node launcher execution through the central runtime's
+`active` symlink and the legacy compatibility alias. The focused regression
+test invokes the launcher through a file symlink and confirms that the CLI
+help surface executes. The full local suite ran 442 tests with 3 skips; Ruff,
+basedpyright, contract/install/evidence checks, and live registry validation
+passed.
+
+Hosted verification passed in PR matrix `29453838727`, evidence-pointer rerun
+`29453961243`, post-merge main run `29454112890`, and tag run `29454304750`.
+The merge/tag commit is `f0bf5a0bb9ba921b5c755608fc46b4e9668f65c0`.
+
+Final artifact proof:
+
+- `/private/tmp/tmcp-v0.5.3.tar.gz` SHA-256:
+  `02a6d4fde17d02cbaf3d889d6f3388f49ef7f0dad845aba2e175e8be9b3cd20e`.
+- GitHub Release: `https://github.com/jakyeamos/tmcp/releases/tag/v0.5.3`.
+- The downloaded public asset matched the local artifact byte-for-byte and
+  GitHub's asset digest.
+- `mcp-publisher validate mcp-registry/draft-server.json` passed with the same
+  `fileSha256`. `mcp-publisher publish` returned HTTP 401 because the local
+  Registry JWT is expired; publication remains the only external release
+  blocker.
+
 ## 2026-07-15 0.5.2 Archive Install Fix
 
 The 0.5.2 patch fixes central-runtime validation for deterministic archives

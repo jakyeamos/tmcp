@@ -1,24 +1,24 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.3",
-  "checked_at": "2026-07-15T21:58:00Z",
+  "checked_at": "2026-07-15T22:10:29Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "pull_request",
-    "ref": "codex/tmcp-0.5.3-launcher-symlink",
-    "pr_number": 6,
+    "source": "tag",
+    "ref": "v0.5.3",
+    "pr_number": null,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29453838727,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29453838727",
-    "head_sha": "f2605788f12f7afb9b5179836aa63199d3104603",
-    "notes": "Successful hosted v0.5.3 pull-request verify.yml matrix across Ubuntu, macOS, and Windows for Python 3.10 and 3.13."
+    "run_id": 29454304750,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29454304750",
+    "head_sha": "f0bf5a0bb9ba921b5c755608fc46b4e9668f65c0",
+    "notes": "Successful hosted v0.5.3 tag verify.yml matrix across Ubuntu, macOS, and Windows for Python 3.10 and 3.13."
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.5.3.tar.gz",
-    "sha256": "pending",
+    "sha256": "02a6d4fde17d02cbaf3d889d6f3388f49ef7f0dad845aba2e175e8be9b3cd20e",
     "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.3/tmcp-v0.5.3.tar.gz",
-    "notes": "The final v0.5.3 artifact and digest will be recorded after the hosted PR and tag checks pass."
+    "notes": "Final artifact was built from the v0.5.3 tag and matches the public GitHub Release asset byte-for-byte. MCP Registry metadata carries the same hash."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
@@ -34,6 +34,6 @@
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "The v0.5.3 release candidate is aligned to the successful main verification run; package, tag, and registry evidence remain pending."
+    "result": "The v0.5.3 GitHub Release is published with the verified digest. MCP Registry metadata is validated and carries the same fileSha256, but publication is blocked by the expired local Registry JWT."
   }
 }
