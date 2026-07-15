@@ -29,9 +29,10 @@ A Tier One release requires:
 | Maintainability and modularity | 5 | 4 | 5 | Soft |
 | Release operations | 3 | 3 | 3 | Hard |
 
-Current score: 100/100 for the scoped `0.5.0` release candidate. Post-cutover
-hosted PR run `29285497867` and final evidence-pointer rerun `29285802846`
-passed the complete matrix; the draft PR is ready for review.
+Current score: 100/100 for the scoped `0.5.1` migration candidate. The
+0.5.0 release's hosted matrix remains the baseline; the 0.5.1 migration still
+requires its own successful hosted PR run, evidence-pointer rerun, and clean
+artifact checks before it can be called a published Tier One release.
 
 ## Dimensions
 

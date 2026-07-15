@@ -10,12 +10,14 @@ Use this checklist before claiming a Tier One release.
 - [ ] `.claude-plugin/plugin.json` has current version.
 - [ ] `.claude-plugin/marketplace.json` points at the public GitHub repository.
 - [ ] `.mcp.json` declares stdio and launches the Node launcher with relative plugin-root paths.
+- [ ] `scripts/tmcp_runtime.mjs` installs immutable versions, switches atomically, and retains a rollback target.
 - [ ] Stable public workflows are labeled stable and documented.
 - [ ] Experimental workflows remain shipped, callable, and labeled experimental.
 - [ ] MCP `tools/list` includes `tmcp_recommend_workflows`, `tmcp_compose_packet`, `tmcp_runtime_next`, and `tmcp_record_receipt`.
 - [ ] Public schemas exist for skill packets, adaptive workflow packs, composed packets, runtime deltas, recompiled packets, explicit run sessions, run receipts, and promoted harvest graphs.
 - [ ] `python3 scripts/check_contracts.py .` confirms the canonical registry, manifests, installer, live MCP initialize response, and tool list agree.
 - [ ] `python3 scripts/check_install.py .` passes.
+- [ ] Runtime-manager install, sync, doctor, parity, mismatch, and rollback tests pass.
 - [ ] Clean-copy install check passes with no hardcoded local user paths.
 - [ ] Archive creation runs from a clean Git worktree with no staged or unstaged tracked changes.
 - [ ] The generated RELEASE_MANIFEST.json lists only approved committed files and matches every archive payload digest and mode.

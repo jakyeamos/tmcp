@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use TMCP or its workflow examples, please cite it using the metadata in this file."
 title: "TMCP"
-version: "0.5.0"
-date-released: "2026-07-13"
+version: "0.5.1"
+date-released: "2026-07-15"
 type: software
 authors:
   - family-names: Amos

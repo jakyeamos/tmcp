@@ -62,6 +62,20 @@ The 0.5.0 release-candidate version surfaces are now updated together, and the
 evidence record points to successful post-cutover hosted PR run `29285497867`,
 and final rerun `29285802846` passed. The draft PR is ready for review.
 
+## 0.5.1 Central Runtime Migration
+
+The 0.5.1 distribution surface adds a versioned local runtime manager without
+changing the public MCP tool names, packet schemas, or portable relative
+launcher contract. Runtime activation is local and explicit: a verified archive
+is installed under an immutable release directory, `state.json` records the
+active/previous releases, and `active` is switched atomically. The previous
+release remains available for offline rollback.
+
+Codex and Claude caches are generated install surfaces. Repository-specific
+`AGENTS.md`, domain skills, evidence, and project instructions remain local. A
+compatibility alias may continue serving existing absolute `.mcp.json` entries,
+but `tmcp_runtime.mjs doctor` must prove that it resolves to the active release.
+
 ## Known Gaps
 
 - The current storage implementation intentionally denies artifact persistence on

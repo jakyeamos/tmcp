@@ -35,6 +35,7 @@ node scripts/tmcp_launcher.mjs
 - Skill-only install: copy `skills/tmcp` into a skills directory. Use the skill for routing and manual packet synthesis unless the host also exposes the bundled launcher.
 - Repo checkout: clone the repo and run `node scripts/tmcp_launcher.mjs doctor` from the checkout root.
 - Codex plugin cache: install as a Codex plugin; MCP config launches relative `scripts/tmcp_launcher.mjs` from the plugin root.
+- Shared local runtime: install a verified archive with `scripts/tmcp_runtime.mjs` so all agent hosts use one pinned active release with offline rollback. See [Central runtime](docs/CENTRAL_RUNTIME.md).
 - AIOS-backed install: set `AIOS_ROOT` explicitly only when you want optional AIOS storage/adapter behavior.
 
 Claude Desktop users can add the launcher as a local stdio MCP server. See [docs/CLAUDE_DESKTOP.md](docs/CLAUDE_DESKTOP.md).
@@ -202,6 +203,7 @@ limits.
 - [CLI](docs/CLI.md)
 - [Install and package check](docs/INSTALL.md)
 - [Distribution](docs/DISTRIBUTION.md)
+- [Central runtime](docs/CENTRAL_RUNTIME.md)
 - [Packet stability](docs/PACKET_STABILITY.md)
 - [Adaptive packet runtime](docs/ADAPTIVE_PACKET_RUNTIME.md)
 - [Tier One release rubric](docs/TIER_ONE_RELEASE_RUBRIC.md)

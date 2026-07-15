@@ -1,5 +1,39 @@
 # Verification Record
 
+## 2026-07-15 0.5.1 Central Runtime Migration
+
+The 0.5.1 migration adds the versioned central runtime, immutable install
+manifests, generated cache synchronization, active/previous rollback state, and
+runtime/skill parity diagnostics. Public MCP tools and the portable relative
+launcher remain unchanged. Repository-local instructions and evidence remain
+consumer overlays.
+
+Local proof completed before hosted verification:
+
+```bash
+node --check scripts/tmcp_runtime.mjs
+python3 -m unittest tests.test_tmcp_runtime -v
+python3 -m unittest discover -s tests
+python3 scripts/release_package_compile.py .
+python3 scripts/check_install.py .
+python3 scripts/check_contracts.py .
+python3 scripts/check_release_evidence.py .
+```
+
+The focused runtime suite covers archive digest pinning, immutable install and
+activation, generated-surface refresh, skill mismatch detection, corrupt-state
+fail-closed behavior, and offline rollback. The first hosted migration PR matrix
+run `29450815213` passed all seven jobs across Ubuntu, macOS, and Windows for
+Python 3.10 and 3.13. The evidence record now points to that run; a second
+evidence-pointer verification is required before merge.
+
+A clean pre-tag package check at source commit `e2d7583` produced
+`/private/tmp/tmcp-v0.5.1-final.tar.gz` with SHA-256
+`489bf65bc86062fff2e76a9660f54d7df5056f732f1c2af00d9161ec4da5828e`; its repeat
+build matched. Because the archive manifest embeds its source commit, the
+published artifact must be rebuilt from the final merge tag. The GitHub Release
+and MCP Registry digest remain deferred until then.
+
 ## 2026-07-13 0.5.0 Compatibility Release Candidate
 
 The 0.5.0 compatibility candidate updates the canonical registry, Codex and

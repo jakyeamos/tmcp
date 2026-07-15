@@ -29,6 +29,20 @@ The release sequence is:
 Plugin caches and copied packages are valid installation targets, not release
 sources.
 
+## Versioned Central Runtime
+
+For a local workspace with multiple agent hosts, install the verified archive
+through `scripts/tmcp_runtime.mjs`. It keeps immutable release directories under
+`~/.tmcp/runtime/versions/`, records the active and previous releases in
+`state.json`, and exposes the active package through a checked compatibility
+symlink. See [CENTRAL_RUNTIME.md](CENTRAL_RUNTIME.md) for the update, parity, and
+rollback contract.
+
+The legacy `$HOME/plugins/tmcp` alias may remain as a generated compatibility
+surface for existing repository `.mcp.json` files. It must resolve to the
+versioned runtime's `active` symlink and must pass `tmcp_runtime.mjs doctor`; it
+is not a source checkout or an independent server.
+
 ## Codex Plugin
 
 Codex uses:

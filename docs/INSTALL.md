@@ -11,6 +11,7 @@ node scripts/tmcp_launcher.mjs doctor
 - Skill-only install: copy `skills/tmcp`; use manual packet synthesis unless the host also exposes this package's launcher.
 - Repo checkout: clone TMCP and run commands from the checkout root.
 - Codex plugin cache: install as a Codex plugin; MCP config launches `scripts/tmcp_launcher.mjs` relative to the plugin root.
+- Central local runtime: install a verified archive into `~/.tmcp/runtime/versions/<release>` and activate it through `scripts/tmcp_runtime.mjs`; generated Codex/Claude caches and compatibility aliases must be parity-checked.
 - AIOS-backed install: set `AIOS_ROOT` explicitly only when optional AIOS adapter behavior is wanted.
 
 ## Local Source Check
@@ -46,6 +47,8 @@ without its Git source revision.
 node scripts/tmcp_launcher.mjs doctor --client codex
 node scripts/tmcp_launcher.mjs status
 node scripts/tmcp_launcher.mjs list-tools
+node scripts/tmcp_runtime.mjs status --runtime-home "$HOME/.tmcp/runtime"
+node scripts/tmcp_runtime.mjs doctor --runtime-home "$HOME/.tmcp/runtime"
 ```
 
 Standalone mode should be available even when AIOS is not configured.
@@ -91,6 +94,11 @@ Portable MCP config should use relative launcher paths when the host supports `c
 ```
 
 Do not hardcode a home directory, user path, or AIOS checkout path in the generic package config.
+
+For shared local agent access, use the central runtime manager and keep the
+project `.mcp.json` as a consumer overlay. Do not copy `skills/tmcp` into each
+repository. The runtime's release and content digests are authoritative when a
+skill or cache copy disagrees.
 
 ## Python Discovery
 

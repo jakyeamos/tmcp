@@ -60,6 +60,7 @@ SHIPPED_DOC_PATHS = {
     "docs/CLAUDE_DESKTOP.md",
     "docs/CLI.md",
     "docs/COMPATIBILITY.md",
+    "docs/CENTRAL_RUNTIME.md",
     "docs/DISTRIBUTION.md",
     "docs/INSTALL.md",
     "docs/MARKETPLACE_MATRIX.md",
@@ -71,6 +72,7 @@ SHIPPED_DOC_PATHS = {
     "docs/TIER_ONE_RELEASE_RUBRIC.md",
     "docs/TMCP_PACKET_SPEC.md",
     "docs/release-notes/v0.5.0-compatibility.md",
+    "docs/release-notes/v0.5.1-central-runtime.md",
     "docs/release-notes/v0.3.3-doi.md",
 }
 INTENTIONALLY_EXCLUDED_PATHS = {
