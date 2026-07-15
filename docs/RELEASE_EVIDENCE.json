@@ -16,9 +16,9 @@
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.5.1.tar.gz",
-    "sha256": "59e37d8144bca87d0a045bbce6b0f89af737eea33e25b92b865aaaed5a2ff00a",
+    "sha256": "pending-final-artifact",
     "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.1/tmcp-v0.5.1.tar.gz",
-    "notes": "Clean committed 0.5.1 archive built and reproducibility-checked locally; publication remains gated on hosted PR verification and review. MCP Registry package metadata uses the same hash."
+    "notes": "The release-candidate package is not published; record the digest from the final merge-tag artifact after hosted verification and review. MCP Registry package metadata must use the same hash."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",

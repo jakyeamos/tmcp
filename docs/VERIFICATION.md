@@ -27,11 +27,12 @@ the preceding successful hosted main run `29289581668` as the bootstrap pointer;
 the migration PR's successful hosted run must replace it before merge, followed
 by a second evidence-pointer verification.
 
-The clean package check now records
-`/private/tmp/tmcp-v0.5.1.tar.gz` with SHA-256
-`59e37d8144bca87d0a045bbce6b0f89af737eea33e25b92b865aaaed5a2ff00a`; a repeat
-build produced the same digest. The GitHub Release and MCP Registry publication
-remain deferred until hosted PR verification and review pass.
+A clean pre-tag package check at source commit `e2d7583` produced
+`/private/tmp/tmcp-v0.5.1-final.tar.gz` with SHA-256
+`489bf65bc86062fff2e76a9660f54d7df5056f732f1c2af00d9161ec4da5828e`; its repeat
+build matched. Because the archive manifest embeds its source commit, the
+published artifact must be rebuilt from the final merge tag. The GitHub Release
+and MCP Registry digest remain deferred until then.
 
 ## 2026-07-13 0.5.0 Compatibility Release Candidate
 
