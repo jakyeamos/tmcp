@@ -6,8 +6,10 @@ The 0.5.2 patch fixes central-runtime validation for deterministic archives
 whose files are rooted at `tmcp/` without a standalone root-directory member.
 The focused regression test now creates that exact archive shape and verifies
 digest-pinned installation. The published 0.5.1 archive was installed with
-the patched validator as a pre-release smoke check; the 0.5.2 hosted PR,
-tagged artifact, and final active-runtime cutover remain pending.
+the patched validator as a pre-release smoke check. The 0.5.2 hosted PR
+matrix `29452086899` passed across Ubuntu, macOS, and Windows for Python 3.10
+and 3.13; the evidence-pointer rerun, tagged artifact, and final active-runtime
+cutover remain pending.
 
 Bootstrap hosted evidence is the successful post-merge main run
 `29451182218` at `3553ca4c6fb120c74620f99626103e15a662c478`. The final record

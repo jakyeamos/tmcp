@@ -5,14 +5,14 @@
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "main",
-    "ref": "main",
-    "pr_number": null,
+    "source": "pull_request",
+    "ref": "codex/tmcp-0.5.2-archive-fix",
+    "pr_number": 4,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29451182218,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29451182218",
-    "head_sha": "3553ca4c6fb120c74620f99626103e15a662c478",
-    "notes": "Bootstrap evidence from the successful post-merge 0.5.1 main matrix; 0.5.2 PR, tag, and final artifact evidence remain pending."
+    "run_id": 29452086899,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29452086899",
+    "head_sha": "637db91f743c817ca05efe26c188d08143507cff",
+    "notes": "Successful hosted 0.5.2 PR verify.yml matrix across Ubuntu, macOS, and Windows for Python 3.10 and 3.13; the required second evidence-pointer rerun is pending."
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.5.2.tar.gz",
