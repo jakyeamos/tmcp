@@ -156,7 +156,9 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
                 str(skill_copy),
             )
             self.assertTrue(synced["ok"])
-            self.assertTrue(legacy_alias.is_symlink())
+            self.assertEqual(
+                legacy_alias.resolve(), (runtime_home / "active").resolve()
+            )
             self.assertTrue(skill_copy.exists())
 
             diagnosis = self.run_manager(

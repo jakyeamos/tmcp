@@ -285,8 +285,24 @@ async function validateInstalled(home, version) {
   return { packageRoot, metadata, manifest, digest, skillDigest };
 }
 
+async function removeExistingLink(target) {
+  try {
+    const stats = await fs.lstat(target);
+    if (!stats.isSymbolicLink()) fail(`refusing to replace a non-link surface: ${target}`);
+  } catch (error) {
+    if (error.code === "ENOENT") return;
+    throw error;
+  }
+  await fs.rm(target, { force: true, recursive: true });
+}
+
 async function replaceActiveLink(home, version) {
   const activePath = path.join(home, "active");
+  if (process.platform === "win32") {
+    await removeExistingLink(activePath);
+    await fs.symlink(path.join("versions", version), activePath, directoryLinkType());
+    return;
+  }
   const temporary = `${activePath}.tmp-${process.pid}-${randomUUID()}`;
   await fs.rm(temporary, { force: true, recursive: true });
   await fs.symlink(path.join("versions", version), temporary, directoryLinkType());
@@ -512,6 +528,12 @@ async function updateCodexMarketplaceMetadata(destination, active) {
 }
 
 async function replaceSymlink(destination, target) {
+  if (process.platform === "win32") {
+    await removeExistingLink(destination);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.symlink(target, destination, directoryLinkType());
+    return;
+  }
   const temporary = `${destination}.tmp-${process.pid}-${randomUUID()}`;
   await fs.rm(temporary, { force: true, recursive: true });
   await fs.mkdir(path.dirname(destination), { recursive: true });

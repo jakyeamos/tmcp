@@ -11,7 +11,7 @@ not alternate TMCP source trees.
 | Source | The TMCP Git repository and tagged release commit | Maintained and reviewed source of truth. |
 | Package | The deterministic release archive and its SHA-256 | Immutable input to installation. |
 | Runtime | `$TMCP_RUNTIME_HOME/versions/<release>` | One directory per release; never overwrite a version. |
-| Active switch | `$TMCP_RUNTIME_HOME/state.json` plus `active` | The active symlink swap is atomic, state records the selected release, and the prior version is retained; `doctor` detects an interrupted switch. |
+| Active switch | `$TMCP_RUNTIME_HOME/state.json` plus `active` | POSIX uses an atomic symlink swap; Windows uses a guarded junction replacement, state records the selected release, and `doctor` detects an interrupted switch. |
 | Plugin caches | Codex and Claude generated cache snapshots | Refreshed from the active runtime and checked for parity. |
 | Project overlays | Repository-local `AGENTS.md`, domain skills, evidence, and `.mcp.json` | Keep project behavior local; do not copy TMCP core skills into projects. |
 
@@ -105,4 +105,8 @@ The manager rejects unsafe archive paths and package symlinks, requires a digest
 for archives, stages copies before replacement, and never overwrites an existing
 release version with different content. Installing from a previously verified
 local archive and rolling back require no network. Network publication and host
-marketplace refresh remain separate from the local activation step.
+marketplace refresh remain separate from the local activation step. Windows
+junction replacement has a brief guarded gap because the platform does not
+replace directory links atomically through Node's portable rename API; the
+version directories and state file remain intact and `doctor` is the recovery
+check.
