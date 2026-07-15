@@ -1,7 +1,7 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.4",
-  "checked_at": "2026-07-15T23:30:00Z",
+  "checked_at": "2026-07-15T23:35:00Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
@@ -35,6 +35,6 @@
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "Hosted tag, reproducible archive, GitHub Release, native runtime, cache parity, and rollback evidence pass. MCP Registry metadata validates; publication is blocked only by the expired local Registry JWT and must be retried after mcp-publisher login github."
+    "result": "Hosted tag, reproducible archive, GitHub Release, native runtime, cache parity, rollback, and MCP Registry publication evidence pass. The Registry published io.github.jakyeamos/tmcp version 0.5.4 with the recorded artifact digest after GitHub device authentication."
   }
 }

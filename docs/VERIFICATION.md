@@ -19,8 +19,8 @@ Final artifact proof:
 - The downloaded public asset matched the local artifact byte-for-byte.
 - `mcp-publisher validate mcp-registry/draft-server.json` passed with the same
   `fileSha256`.
-- `mcp-publisher publish` remains credential-gated by the expired local JWT;
-  rerun `mcp-publisher login github`, then publish the unchanged metadata.
+- `mcp-publisher publish mcp-registry/draft-server.json` passed and published
+  `io.github.jakyeamos/tmcp` version `0.5.4`.
 
 Installed-surface proof:
 
