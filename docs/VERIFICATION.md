@@ -1,32 +1,42 @@
 # Verification Record
 
-## 2026-07-15 0.5.4 Marketplace Provenance Candidate
+## 2026-07-15 0.5.4 Marketplace Provenance Hardening
 
-The 0.5.4 candidate pins the Claude marketplace TMCP source to the matching
-release tag and makes the central runtime reject mutable or missing marketplace
-provenance for new releases. The retained 0.5.3 metadata remains installable
-for offline rollback. Local focused runtime and release-evidence tests pass;
-hosted PR verification now passes; clean tagged artifact, native client
-refresh, and MCP Registry publication evidence remain pending until the
-candidate is merged and tagged.
+v0.5.4 pins Claude marketplace provenance to `v0.5.4`, rejects mutable or
+missing marketplace refs for new releases, validates native Codex/Claude
+metadata, and retains prior runtime versions for offline rollback. The merged
+and tagged source commit is
+`9ce7ea43543a0a78255f403c03cfdd19748dfc01`.
 
-Implementation commit: `0de9007` (`fix: pin runtime marketplace provenance`).
-The commit's pre-CR readiness hook passed; it retained the existing runtime
-manager source-size warning as a non-blocking maintainability follow-up.
+Hosted tag verification passed in run `29457771330` across all seven Ubuntu,
+macOS, and Windows Python 3.10/3.13 matrix jobs.
 
-Candidate clean-tree package check passed from source commit
-`3d73a7b109ac54ce8f14c8768363b733df5a7a4d`:
+Final artifact proof:
 
-- Archive: `/private/tmp/tmcp-v0.5.4-candidate.tar.gz`
-- SHA-256: `713a6f84d8a992146526d692c2d45adfbdb264b763667561cb9bf8929ee36b59`
-- Repeat archive and manifest digests matched.
-- Package checks, compile, install, launcher, doctor, harvest, recommendation,
-  expert-rubric, composition, and 444-test suite passed.
+- `/private/tmp/tmcp-v0.5.4.tar.gz` SHA-256:
+  `4e3e7837147a92803516675cf3e1cd0ef8f8ec8b72dbde7b9e9194b86e687d7f`.
+- GitHub Release: `https://github.com/jakyeamos/tmcp/releases/tag/v0.5.4`.
+- The downloaded public asset matched the local artifact byte-for-byte.
+- `mcp-publisher validate mcp-registry/draft-server.json` passed with the same
+  `fileSha256`.
+- `mcp-publisher publish` remains credential-gated by the expired local JWT;
+  rerun `mcp-publisher login github`, then publish the unchanged metadata.
 
-Hosted PR verification passed in run `29457482036` at head
-`fbc32110fcca754729bfd8eeee273aa1c3582ed5`, across all seven matrix jobs.
-The evidence pointer now records that run; a second pointer verification is
-required before merge.
+Installed-surface proof:
+
+- Central runtime: v0.5.4 active, v0.5.3 previous; content digest
+  `3275f0e94b7b968c00314875572894e8230eb79937cd9f9cb1349e50159b5d99`.
+- Full runtime doctor passed for the alias, generated Codex/Claude caches and
+  marketplaces, global skill, Codex config ref `v0.5.4`, and Claude record
+  commit `9ce7ea4`.
+- Runtime rollback to v0.5.3 passed, including alias status smoke, then v0.5.4
+  was restored and resynchronized.
+- Installed launcher `list-tools`, `doctor`, `status`, and dimension-mapped
+  expert-review smoke checks passed; the review reported one non-blocking
+  general-coverage warning from the generic rubric profile.
+
+The pre-CR hook passed with the existing runtime-manager source-size warning
+retained as a non-blocking maintainability follow-up.
 
 ## 2026-07-15 0.5.3 Symlinked Launcher Fix
 

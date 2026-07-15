@@ -1,39 +1,40 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.4",
-  "checked_at": "2026-07-15T23:08:00Z",
+  "checked_at": "2026-07-15T23:30:00Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "pull_request",
-    "ref": "codex/tmcp-0.5.4-risk-hardening",
+    "source": "tag",
+    "ref": "v0.5.4",
     "pr_number": 8,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29457482036,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29457482036",
-    "head_sha": "fbc32110fcca754729bfd8eeee273aa1c3582ed5",
-    "notes": "Successful hosted 0.5.4 PR verify.yml matrix across Ubuntu, macOS, and Windows for Python 3.10 and 3.13. A second evidence-pointer run must pass before merge."
+    "run_id": 29457771330,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29457771330",
+    "head_sha": "9ce7ea43543a0a78255f403c03cfdd19748dfc01",
+    "notes": "Successful hosted v0.5.4 tag verify.yml matrix across Ubuntu, macOS, and Windows for Python 3.10 and 3.13."
   },
   "release_package": {
-    "path": null,
-    "sha256": null,
-    "public_asset": null,
-    "notes": "Pending the clean v0.5.4 tag build; final evidence must record the public asset digest."
+    "path": "/private/tmp/tmcp-v0.5.4.tar.gz",
+    "sha256": "4e3e7837147a92803516675cf3e1cd0ef8f8ec8b72dbde7b9e9194b86e687d7f",
+    "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.4/tmcp-v0.5.4.tar.gz",
+    "source_commit": "9ce7ea43543a0a78255f403c03cfdd19748dfc01",
+    "notes": "Reproducible package check passed from the tagged merge commit; the downloaded GitHub Release asset matched byte-for-byte."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
-    "remote_tag": "refs/tags/v0.5.3",
+    "remote_tag": "refs/tags/v0.5.4",
     "commands": [
-      "gh pr create --repo jakyeamos/tmcp",
-      "gh run watch <migration-pr-run> --repo jakyeamos/tmcp --exit-status",
-      "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.5.3.tar.gz --verify-reproducible",
-      "shasum -a 256 /private/tmp/tmcp-v0.5.3.tar.gz",
+      "gh run view 29457771330 --repo jakyeamos/tmcp --exit-status",
+      "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.5.4.tar.gz --verify-reproducible",
+      "shasum -a 256 /private/tmp/tmcp-v0.5.4.tar.gz",
       "git tag -a v0.5.4 -m 'TMCP 0.5.4'",
       "git push origin v0.5.4",
       "gh release create v0.5.4 /private/tmp/tmcp-v0.5.4.tar.gz --repo jakyeamos/tmcp --verify-tag",
+      "curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.5.4/tmcp-v0.5.4.tar.gz -o /private/tmp/tmcp-v0.5.4.public.tar.gz",
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "The 0.5.4 release candidate is being hardened for marketplace provenance. Replace this bootstrap record with exact hosted, archive, GitHub Release, and MCP Registry evidence before publication."
+    "result": "Hosted tag, reproducible archive, GitHub Release, native runtime, cache parity, and rollback evidence pass. MCP Registry metadata validates; publication is blocked only by the expired local Registry JWT and must be retried after mcp-publisher login github."
   }
 }

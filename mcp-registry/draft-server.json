@@ -15,6 +15,7 @@
       "registryType": "mcpb",
       "identifier": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.4/tmcp-v0.5.4.tar.gz",
       "version": "0.5.4",
+      "fileSha256": "4e3e7837147a92803516675cf3e1cd0ef8f8ec8b72dbde7b9e9194b86e687d7f",
       "transport": {
         "type": "stdio"
       }
