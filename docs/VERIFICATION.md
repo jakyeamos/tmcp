@@ -13,6 +13,15 @@ Implementation commit: `0de9007` (`fix: pin runtime marketplace provenance`).
 The commit's pre-CR readiness hook passed; it retained the existing runtime
 manager source-size warning as a non-blocking maintainability follow-up.
 
+Candidate clean-tree package check passed from source commit
+`3d73a7b109ac54ce8f14c8768363b733df5a7a4d`:
+
+- Archive: `/private/tmp/tmcp-v0.5.4-candidate.tar.gz`
+- SHA-256: `713a6f84d8a992146526d692c2d45adfbdb264b763667561cb9bf8929ee36b59`
+- Repeat archive and manifest digests matched.
+- Package checks, compile, install, launcher, doctor, harvest, recommendation,
+  expert-rubric, composition, and 444-test suite passed.
+
 ## 2026-07-15 0.5.3 Symlinked Launcher Fix
 
 The 0.5.3 patch fixes Node launcher execution through the central runtime's
