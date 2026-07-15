@@ -9,6 +9,10 @@ for offline rollback. Local focused runtime and release-evidence tests pass;
 hosted PR, clean tagged artifact, native client refresh, and MCP Registry
 publication evidence remain pending until the candidate is merged and tagged.
 
+Implementation commit: `0de9007` (`fix: pin runtime marketplace provenance`).
+The commit's pre-CR readiness hook passed; it retained the existing runtime
+manager source-size warning as a non-blocking maintainability follow-up.
+
 ## 2026-07-15 0.5.3 Symlinked Launcher Fix
 
 The 0.5.3 patch fixes Node launcher execution through the central runtime's
