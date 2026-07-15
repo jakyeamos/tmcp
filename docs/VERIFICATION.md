@@ -6,8 +6,9 @@ The 0.5.4 candidate pins the Claude marketplace TMCP source to the matching
 release tag and makes the central runtime reject mutable or missing marketplace
 provenance for new releases. The retained 0.5.3 metadata remains installable
 for offline rollback. Local focused runtime and release-evidence tests pass;
-hosted PR, clean tagged artifact, native client refresh, and MCP Registry
-publication evidence remain pending until the candidate is merged and tagged.
+hosted PR verification now passes; clean tagged artifact, native client
+refresh, and MCP Registry publication evidence remain pending until the
+candidate is merged and tagged.
 
 Implementation commit: `0de9007` (`fix: pin runtime marketplace provenance`).
 The commit's pre-CR readiness hook passed; it retained the existing runtime
@@ -21,6 +22,11 @@ Candidate clean-tree package check passed from source commit
 - Repeat archive and manifest digests matched.
 - Package checks, compile, install, launcher, doctor, harvest, recommendation,
   expert-rubric, composition, and 444-test suite passed.
+
+Hosted PR verification passed in run `29457482036` at head
+`fbc32110fcca754729bfd8eeee273aa1c3582ed5`, across all seven matrix jobs.
+The evidence pointer now records that run; a second pointer verification is
+required before merge.
 
 ## 2026-07-15 0.5.3 Symlinked Launcher Fix
 

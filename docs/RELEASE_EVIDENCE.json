@@ -1,18 +1,18 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.4",
-  "checked_at": "2026-07-15T22:58:00Z",
+  "checked_at": "2026-07-15T23:08:00Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "main",
-    "ref": "main",
-    "pr_number": null,
+    "source": "pull_request",
+    "ref": "codex/tmcp-0.5.4-risk-hardening",
+    "pr_number": 8,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29454112890,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29454112890",
-    "head_sha": "f0bf5a0bb9ba921b5c755608fc46b4e9668f65c0",
-    "notes": "Bootstrap pointer only while the 0.5.4 release PR runs; replace with a successful 0.5.4 PR or tag run before merge."
+    "run_id": 29457482036,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29457482036",
+    "head_sha": "fbc32110fcca754729bfd8eeee273aa1c3582ed5",
+    "notes": "Successful hosted 0.5.4 PR verify.yml matrix across Ubuntu, macOS, and Windows for Python 3.10 and 3.13. A second evidence-pointer run must pass before merge."
   },
   "release_package": {
     "path": null,
