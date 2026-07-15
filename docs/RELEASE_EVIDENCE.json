@@ -1,18 +1,18 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.3",
-  "checked_at": "2026-07-15T21:55:00Z",
+  "checked_at": "2026-07-15T21:58:00Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "main",
-    "ref": "main",
-    "pr_number": null,
+    "source": "pull_request",
+    "ref": "codex/tmcp-0.5.3-launcher-symlink",
+    "pr_number": 6,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29453060825,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29453060825",
-    "head_sha": "c517166d51d9720e30a1ea7ac3ffca0e705849d4",
-    "notes": "Bootstrap successful hosted main verify.yml matrix before the v0.5.3 launcher fix."
+    "run_id": 29453838727,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29453838727",
+    "head_sha": "f2605788f12f7afb9b5179836aa63199d3104603",
+    "notes": "Successful hosted v0.5.3 pull-request verify.yml matrix across Ubuntu, macOS, and Windows for Python 3.10 and 3.13."
   },
   "release_package": {
     "path": "/private/tmp/tmcp-v0.5.3.tar.gz",
