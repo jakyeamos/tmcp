@@ -74,6 +74,7 @@ SHIPPED_DOC_PATHS = {
     "docs/release-notes/v0.5.0-compatibility.md",
     "docs/release-notes/v0.5.1-central-runtime.md",
     "docs/release-notes/v0.5.2-archive-install.md",
+    "docs/release-notes/v0.5.3-launcher-symlink.md",
     "docs/release-notes/v0.3.3-doi.md",
 }
 INTENTIONALLY_EXCLUDED_PATHS = {

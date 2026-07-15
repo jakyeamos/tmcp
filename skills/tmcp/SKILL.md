@@ -14,7 +14,7 @@ TMCP turns scattered agent instructions into task-specific packets. AIOS is opti
 
 ## Runtime version contract
 
-The current package release is `0.5.2` (`0.5.2+codex.20260715212414`). The
+The current package release is `0.5.3` (`0.5.3+codex.20260715215428`). The
 executable runtime is authoritative; a copied skill or plugin cache is only
 current when its content digest matches the active runtime manifest. For a
 shared local install, check the central runtime before relying on package

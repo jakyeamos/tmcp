@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.3 - 2026-07-15
+
+- Fixed the Node launcher entrypoint guard when the launcher is invoked through
+  the versioned runtime's `active` symlink or a compatibility alias.
+- Added a regression test for symlinked launcher execution so status, doctor,
+  and list-tools commands reach the bundled Python CLI.
+
 ## 0.5.2 - 2026-07-15
 
 - Fixed central-runtime archive validation for deterministic release archives
