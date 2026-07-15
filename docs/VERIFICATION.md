@@ -7,14 +7,20 @@ whose files are rooted at `tmcp/` without a standalone root-directory member.
 The focused regression test now creates that exact archive shape and verifies
 digest-pinned installation. The published 0.5.1 archive was installed with
 the patched validator as a pre-release smoke check. The 0.5.2 hosted PR
-matrix `29452086899` passed across Ubuntu, macOS, and Windows for Python 3.10
-and 3.13; the evidence-pointer rerun, tagged artifact, and final active-runtime
-cutover remain pending.
+matrix `29452086899` and the evidence-pointer rerun `29452217943` passed across
+Ubuntu, macOS, and Windows for Python 3.10 and 3.13. The tagged artifact was
+then verified by tag run `29452495677` at merge commit
+`ba093f5f1c0396d90bfcd7742a8cf3f62b4245b6`.
 
-Bootstrap hosted evidence is the successful post-merge main run
-`29451182218` at `3553ca4c6fb120c74620f99626103e15a662c478`. The final record
-will add the successful 0.5.2 PR evidence-pointer rerun, tag run, artifact
-digest, GitHub Release asset digest, and MCP Registry result.
+Final artifact proof:
+
+- `/private/tmp/tmcp-v0.5.2.tar.gz` SHA-256:
+  `f6e39ab52c82739474fc0a0c1942828f215f86dde8df84bb0b161fd241e5ec63`.
+- GitHub Release: `https://github.com/jakyeamos/tmcp/releases/tag/v0.5.2`.
+- Downloaded public asset matched the local artifact byte-for-byte and GitHub's
+  asset digest.
+- MCP Registry draft now carries the same `fileSha256`; publication is the
+  remaining external release step.
 
 ## 2026-07-15 0.5.1 Central Runtime Migration
 

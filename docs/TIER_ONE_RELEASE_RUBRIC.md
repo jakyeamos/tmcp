@@ -29,10 +29,11 @@ A Tier One release requires:
 | Maintainability and modularity | 5 | 4 | 5 | Soft |
 | Release operations | 3 | 3 | 3 | Hard |
 
-Current score: 100/100 for the scoped `0.5.2` archive-install patch candidate.
+Current score: 100/100 for the scoped `0.5.2` archive-install patch release.
 The 0.5.1 central-runtime release exposed the archive-root defect during
-post-release installation; the 0.5.2 candidate remains gated on its own
-successful hosted matrix, clean artifact checks, and tag verification.
+post-release installation; 0.5.2 passed its hosted PR, evidence-pointer, main,
+tag, and clean-artifact gates. MCP Registry publication is tracked separately
+from the package-quality score.
 
 ## Dimensions
 
