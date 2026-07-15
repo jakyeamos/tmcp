@@ -1,6 +1,6 @@
 {
   "name": "tmcp",
-  "version": "0.5.2+codex.20260715212414",
+  "version": "0.5.3+codex.20260715215428",
   "description": "Expose standalone TMCP skill-packet workflows, adaptive workflow discovery, focused routers, skill harvesting, workflow recommendations, packet substance checks, and expert rubric remediation to Codex.",
   "author": {
     "name": "Jakye Amos"

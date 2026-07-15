@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import json
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -64,6 +65,26 @@ class TmcpMcpCliTests(unittest.TestCase):
         candidates = json.loads(completed.stdout)
         self.assertEqual(candidates[0]["command"], "/opt/Python 3/python.exe")
         self.assertEqual(candidates[0]["source"], "TMCP_PYTHON")
+
+    def test_launcher_executes_when_invoked_through_symlink(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            entrypoint = Path(temporary_directory) / "tmcp_launcher.mjs"
+            try:
+                entrypoint.symlink_to(PLUGIN_ROOT / "scripts" / "tmcp_launcher.mjs")
+            except OSError as error:
+                self.skipTest(f"symlink creation unavailable: {error}")
+
+            completed = subprocess.run(
+                ["node", str(entrypoint), "--help"],
+                cwd=PLUGIN_ROOT,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("TMCP command surface", completed.stdout)
 
     def test_launcher_cli_status_calls_tool_directly(self) -> None:
         with TestWorkspace() as workspace:

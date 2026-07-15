@@ -83,6 +83,14 @@ archives that omit a standalone `tmcp/` directory entry while retaining
 `tmcp/<file>` paths. The runtime manager now accepts that valid archive shape
 and continues to reject unsafe paths and unpinned archive content.
 
+## 0.5.3 Symlinked Launcher Invocation
+
+The 0.5.3 patch fixes the Node launcher entrypoint guard for execution through
+the central runtime's `active` symlink or a legacy compatibility alias. The
+launcher resolves its own real path before deciding whether to start the
+bundled Python CLI, so `doctor`, `status`, and `list-tools` remain functional
+after an atomic runtime cutover.
+
 ## Known Gaps
 
 - The current storage implementation intentionally denies artifact persistence on
