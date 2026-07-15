@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.5 - 2026-07-15
+
+- Treat a clean Codex native marketplace checkout pinned to the active release
+  ref and commit as a valid marketplace surface even when the checkout has
+  Codex's install marker and non-package source files.
+- Preserve native marketplace ownership during runtime sync, reject stale or
+  dirty native checkout provenance, and keep generated-snapshot parity checks
+  for non-native surfaces.
+
 ## 0.5.4 - 2026-07-15
 
 - Pinned the Claude marketplace plugin source to the immutable release tag and

@@ -28,8 +28,8 @@ class VersionDescriptor:
 
 
 VERSION: Final = VersionDescriptor(
-    release="0.5.4",
-    codex_plugin="0.5.4+codex.20260715225404",
+    release="0.5.5",
+    codex_plugin="0.5.5+codex.20260715234751",
     server_name="tmcp",
     minimum_node=">=20",
     minimum_python=">=3.10",

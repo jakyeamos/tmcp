@@ -10,10 +10,12 @@ const VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const STATE_SCHEMA = "tmcp-central-runtime-state-v0.1";
 const PACKAGE_SCHEMA = "tmcp-runtime-package-v0.1";
 const MARKETPLACE_PIN_MIN_RELEASE = "0.5.4";
+const CODEX_MARKETPLACE_MARKER = ".codex-marketplace-install.json";
+const CODEX_MARKETPLACE_SOURCE = "https://github.com/jakyeamos/tmcp.git";
 const SKIP_NAMES = new Set([
   ".aios",
   ".codex",
-  ".codex-marketplace-install.json",
+  CODEX_MARKETPLACE_MARKER,
   ".git",
   ".planning",
   ".pre-cr",
@@ -467,9 +469,41 @@ async function surfaceCheck(label, target, activeRoot, activeManifest) {
   if (resolved === activeResolved) return { label, status: "pass", mode: "active-symlink", path: target };
   const stats = await fs.stat(target);
   if (!stats.isDirectory()) return { label, status: "fail", detail: "surface is not a directory", path: target };
+  if (label === "codex_marketplace") {
+    const nativeCheck = await nativeCodexMarketplaceCheck(target, activeManifest);
+    if (nativeCheck) return nativeCheck;
+  }
   const digest = await treeDigest(target);
   if (digest.sha256 !== activeManifest.content_sha256) return { label, status: "fail", detail: `content digest ${digest.sha256} does not match active ${activeManifest.content_sha256}`, path: target };
   return { label, status: "pass", mode: "generated-copy", path: target };
+}
+
+async function nativeCodexMarketplaceCheck(target, activeManifest) {
+  const gitStatus = gitSurfaceStatus(target);
+  if (gitStatus === null) return null;
+  let metadata;
+  try {
+    metadata = await readOptionalJson(path.join(target, CODEX_MARKETPLACE_MARKER));
+  } catch (error) {
+    return { label: "codex_marketplace", status: "fail", detail: error.message, path: target };
+  }
+  if (!metadata) return null;
+  const expectedRef = activeManifest.marketplace_ref;
+  const expectedRevision = activeManifest.source_commit;
+  const issues = [];
+  if (metadata.source_type !== "git") issues.push(`source_type ${metadata.source_type ?? "<missing>"}`);
+  if (metadata.source !== CODEX_MARKETPLACE_SOURCE) issues.push(`source ${metadata.source ?? "<missing>"}`);
+  if (metadata.ref_name !== expectedRef) issues.push(`ref ${metadata.ref_name ?? "<missing>"}`);
+  if (metadata.revision !== expectedRevision) issues.push(`revision ${metadata.revision ?? "<missing>"}`);
+  const dirty = nonMarkerGitSurfaceStatus(target);
+  if (dirty) issues.push(`dirty Git checkout: ${dirty}`);
+  const revision = spawnSync("git", ["-C", target, "rev-parse", "HEAD"], { encoding: "utf8" });
+  const checkoutRevision = revision.status === 0 ? revision.stdout.trim() : "<unavailable>";
+  if (/^[0-9a-f]{40}$/i.test(expectedRevision) && checkoutRevision !== expectedRevision) issues.push(`checkout revision ${checkoutRevision}`);
+  if (issues.length > 0) {
+    return { label: "codex_marketplace", status: "fail", detail: `native Codex marketplace provenance mismatch: ${issues.join(", ")}`, path: target };
+  }
+  return { label: "codex_marketplace", status: "pass", mode: "native-git", ref: expectedRef, revision: expectedRevision, path: target };
 }
 
 async function skillCheck(target, activeRoot) {
@@ -604,13 +638,22 @@ function gitSurfaceStatus(destination) {
   return result.stdout.trim();
 }
 
-async function assertSafeMarketplaceReplacement(destination) {
+function nonMarkerGitSurfaceStatus(destination) {
   const status = gitSurfaceStatus(destination);
+  if (!status) return status;
+  return status
+    .split("\n")
+    .filter((line) => line.trim() && !line.trim().endsWith(CODEX_MARKETPLACE_MARKER))
+    .join("\n");
+}
+
+async function assertSafeMarketplaceReplacement(destination) {
+  const status = nonMarkerGitSurfaceStatus(destination);
   if (status) fail(`refusing to replace dirty marketplace surface: ${destination}`);
 }
 
 async function updateCodexMarketplaceMetadata(destination, active) {
-  const metadataPath = path.join(destination, ".codex-marketplace-install.json");
+  const metadataPath = path.join(destination, CODEX_MARKETPLACE_MARKER);
   try {
     const metadata = await readJson(metadataPath);
     metadata.ref_name = `v${active.metadata.release}`;
@@ -680,8 +723,16 @@ async function sync(options) {
       const destination = optionString(options, optionKey);
       if (destination) {
         const resolvedDestination = path.resolve(destination);
+        if (key === "codex_marketplace") {
+          const native = await nativeCodexMarketplaceCheck(resolvedDestination, active.manifest);
+          if (native?.status === "pass") {
+            surfaces[key] = native;
+            continue;
+          }
+          if (native?.status === "fail") fail(native.detail);
+        }
         await assertSafeMarketplaceReplacement(resolvedDestination);
-        const backup = await replaceDirectory(resolvedDestination, active.packageRoot, home, [".git", ".codex-marketplace-install.json"]);
+        const backup = await replaceDirectory(resolvedDestination, active.packageRoot, home, [".git", CODEX_MARKETPLACE_MARKER]);
         if (key === "codex_marketplace") await updateCodexMarketplaceMetadata(resolvedDestination, active);
         surfaces[key] = { path: resolvedDestination, mode: "generated-copy", backup };
       }

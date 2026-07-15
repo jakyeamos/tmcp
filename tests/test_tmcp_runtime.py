@@ -329,6 +329,123 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
             self.assertNotEqual(rejected.returncode, 0)
             self.assertIn("SHA-256 mismatch", rejected.stdout)
 
+    def test_native_codex_marketplace_provenance_is_a_valid_surface(self) -> None:
+        if shutil.which("git") is None:
+            self.skipTest("git is required by the native marketplace test")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            runtime_home = root / "runtime"
+            package = self.make_package(root, "1.0.0", "native")
+            self.run_manager(
+                "install",
+                "--source",
+                str(package),
+                "--source-commit",
+                "commit-native",
+                "--runtime-home",
+                str(runtime_home),
+                "--activate",
+            )
+            marketplace = root / "codex-marketplace"
+            self.run_manager(
+                "sync",
+                "--runtime-home",
+                str(runtime_home),
+                "--codex-marketplace",
+                str(marketplace),
+            )
+            marker = {
+                "source_type": "git",
+                "source": "https://github.com/jakyeamos/tmcp.git",
+                "ref_name": "v1.0.0",
+                "revision": "commit-native",
+            }
+            (marketplace / ".codex-marketplace-install.json").write_text(
+                json.dumps(marker), encoding="utf-8"
+            )
+            generated_diagnosis = self.run_manager(
+                "doctor",
+                "--runtime-home",
+                str(runtime_home),
+                "--codex-marketplace",
+                str(marketplace),
+            )
+            self.assertTrue(generated_diagnosis["ok"])
+            generated_check = next(
+                check
+                for check in cast(list[JsonObject], generated_diagnosis["checks"])
+                if check.get("label") == "codex_marketplace"
+            )
+            self.assertEqual(generated_check["mode"], "generated-copy")
+
+            (marketplace / "native-only.md").write_text(
+                "Codex native checkout content\n", encoding="utf-8"
+            )
+            git = ["git", "-C", str(marketplace)]
+            subprocess.run([*git, "init", "--quiet"], check=True)
+            subprocess.run([*git, "config", "user.name", "TMCP Test"], check=True)
+            subprocess.run(
+                [*git, "config", "user.email", "tmcp@example.invalid"], check=True
+            )
+            hooks = root / "hooks"
+            hooks.mkdir()
+            subprocess.run([*git, "config", "core.hooksPath", str(hooks)], check=True)
+            subprocess.run([*git, "add", "-A"], check=True)
+            subprocess.run(
+                [
+                    *git,
+                    "-c",
+                    "user.name=TMCP Test",
+                    "-c",
+                    "user.email=tmcp@example.invalid",
+                    "commit",
+                    "--quiet",
+                    "-m",
+                    "native checkout",
+                ],
+                check=True,
+            )
+            diagnosis = self.run_manager(
+                "doctor",
+                "--runtime-home",
+                str(runtime_home),
+                "--codex-marketplace",
+                str(marketplace),
+            )
+            self.assertTrue(diagnosis["ok"])
+            codex_check = next(
+                check
+                for check in cast(list[JsonObject], diagnosis["checks"])
+                if check.get("label") == "codex_marketplace"
+            )
+            self.assertEqual(codex_check["mode"], "native-git")
+
+            synced = self.run_manager(
+                "sync",
+                "--runtime-home",
+                str(runtime_home),
+                "--codex-marketplace",
+                str(marketplace),
+            )
+            self.assertTrue(synced["ok"])
+            self.assertTrue((marketplace / "native-only.md").exists())
+
+            marker["ref_name"] = "main"
+            (marketplace / ".codex-marketplace-install.json").write_text(
+                json.dumps(marker), encoding="utf-8"
+            )
+            drifted = self.run_manager_process(
+                "sync",
+                "--runtime-home",
+                str(runtime_home),
+                "--codex-marketplace",
+                str(marketplace),
+            )
+            self.assertNotEqual(drifted.returncode, 0)
+            self.assertIn(
+                "native Codex marketplace provenance mismatch", drifted.stdout
+            )
+
     def test_modern_package_rejects_unpinned_marketplace_source(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

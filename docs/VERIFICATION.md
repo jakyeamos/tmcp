@@ -1,5 +1,24 @@
 # Verification Record
 
+## 2026-07-15 0.5.5 Native Codex Marketplace Candidate
+
+The 0.5.5 candidate closes the native Codex marketplace parity gap exposed by
+the 0.5.4 installed-surface doctor. A clean Codex Git checkout with its
+generated install marker is accepted only when the canonical source, release
+ref, recorded revision, and non-marker Git state match the active runtime.
+Valid native checkouts remain owned by Codex during sync; stale or dirty
+checkouts fail closed. Generated plugin caches and Claude marketplace snapshots
+continue to require deterministic content-digest parity.
+
+Implementation is based on merged main commit `21e2f1908f00dc249679023be90efe55807297d0`.
+Focused native-marketplace runtime tests pass: 7 tests, including tagged
+native-checkout acceptance, sync ownership, and stale-ref rejection.
+
+Package, hosted PR, tag, public-asset, native-surface, rollback, and MCP
+Registry evidence are pending for the 0.5.5 candidate. The release evidence
+file contains a bootstrap hosted pointer and must be rebound to the successful
+v0.5.5 PR run before merge.
+
 ## 2026-07-15 0.5.4 Marketplace Provenance Hardening
 
 v0.5.4 pins Claude marketplace provenance to `v0.5.4`, rejects mutable or
