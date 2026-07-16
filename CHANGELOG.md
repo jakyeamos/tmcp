@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.6 - 2026-07-15
+
+- Recognize Codex native Git marketplace checkouts that do not emit Codex's
+  optional install marker by verifying the canonical remote, exact release
+  tag, exact source commit, and clean checkout state.
+- Keep marker-backed provenance support and require a checkout-root match so a
+  parent repository cannot be mistaken for a native marketplace.
+
 ## 0.5.5 - 2026-07-15
 
 - Treat a clean Codex native marketplace checkout pinned to the active release

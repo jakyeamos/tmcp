@@ -77,6 +77,7 @@ SHIPPED_DOC_PATHS = {
     "docs/release-notes/v0.5.3-launcher-symlink.md",
     "docs/release-notes/v0.5.4-runtime-provenance.md",
     "docs/release-notes/v0.5.5-native-marketplace.md",
+    "docs/release-notes/v0.5.6-native-git-inference.md",
     "docs/release-notes/v0.3.3-doi.md",
 }
 INTENTIONALLY_EXCLUDED_PATHS = {

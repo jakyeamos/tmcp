@@ -110,6 +110,15 @@ revision drift, and other local edits fail closed. Valid native checkouts stay
 owned by Codex during runtime sync instead of being replaced by a package
 snapshot.
 
+## 0.5.6 Native Git Provenance Inference
+
+The 0.5.6 runtime supports Codex clients that do not create the optional
+`.codex-marketplace-install.json` marker. It identifies those native surfaces
+from the checkout root, canonical Git remote, exact release tag, exact source
+commit, and clean non-marker state. Marker-backed checkouts remain supported;
+the marker is an additional consistency record rather than the only way to
+recognize a native checkout.
+
 ## Known Gaps
 
 - The current storage implementation intentionally denies artifact persistence on
