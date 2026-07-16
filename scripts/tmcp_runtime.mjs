@@ -481,7 +481,8 @@ async function surfaceCheck(label, target, activeRoot, activeManifest) {
 async function nativeCodexMarketplaceCheck(target, activeManifest) {
   const gitStatus = gitSurfaceStatus(target);
   const targetRealpath = await realpathIfExists(target);
-  if (gitStatus === null || !targetRealpath || gitSurfaceRoot(target) !== targetRealpath) return null;
+  const gitRoot = gitSurfaceRoot(target);
+  if (gitStatus === null || !targetRealpath || !gitRoot || !pathsEquivalent(gitRoot, targetRealpath)) return null;
   let metadata;
   try {
     metadata = await readOptionalJson(path.join(target, CODEX_MARKETPLACE_MARKER));
@@ -650,6 +651,12 @@ function gitSurfaceRoot(destination) {
   const result = spawnSync("git", ["-C", destination, "rev-parse", "--show-toplevel"], { encoding: "utf8" });
   if (result.status !== 0) return null;
   return result.stdout.trim();
+}
+
+function pathsEquivalent(left, right) {
+  const normalizedLeft = path.normalize(path.resolve(left));
+  const normalizedRight = path.normalize(path.resolve(right));
+  return process.platform === "win32" ? normalizedLeft.toLowerCase() === normalizedRight.toLowerCase() : normalizedLeft === normalizedRight;
 }
 
 function nonMarkerGitSurfaceStatus(destination) {
