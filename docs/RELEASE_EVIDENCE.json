@@ -1,7 +1,7 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.6",
-  "checked_at": "2026-07-16T00:20:55Z",
+  "checked_at": "2026-07-16T00:32:38Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
@@ -9,10 +9,10 @@
     "ref": "codex/tmcp-0.5.6-native-inference",
     "pr_number": 12,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29460507456,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29460507456",
-    "head_sha": "40ef429",
-    "notes": "Bootstrap pointer for PR #12; replace with the successful v0.5.6 evidence-pointer run before merge."
+    "run_id": 29461610777,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29461610777",
+    "head_sha": "c9137745e85b729d09eed56f6ed80f4536140e72",
+    "notes": "PR #12 hosted verification passed all seven matrix and quality jobs at the recorded head."
   },
   "release_package": {
     "path": null,

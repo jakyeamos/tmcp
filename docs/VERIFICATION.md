@@ -15,10 +15,10 @@ Focused runtime tests cover
 generated marker fallback, marker-backed native acceptance, markerless native
 inference, sync ownership, and stale-ref rejection.
 
-Hosted PR, tag, package, public-asset, native-surface, rollback, and MCP
-Registry evidence are pending for the 0.5.6 candidate. The release evidence
-file contains a bootstrap hosted pointer and must be rebound to the successful
-v0.5.6 PR run before merge.
+Hosted PR verification run `29461610777` passed all seven jobs across Ubuntu,
+macOS, and Windows for Python 3.10 and 3.13. Tag, package, public-asset,
+native-surface, rollback, and MCP Registry evidence remain pending for the
+0.5.6 candidate.
 
 ## 2026-07-16 0.5.5 Native Codex Marketplace Release
 
