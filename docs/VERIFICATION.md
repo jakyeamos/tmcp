@@ -1,6 +1,6 @@
 # Verification Record
 
-## 2026-07-15 0.5.5 Native Codex Marketplace Candidate
+## 2026-07-16 0.5.5 Native Codex Marketplace Release
 
 The 0.5.5 candidate closes the native Codex marketplace parity gap exposed by
 the 0.5.4 installed-surface doctor. A clean Codex Git checkout with its
@@ -11,15 +11,23 @@ checkouts fail closed. Generated plugin caches and Claude marketplace snapshots
 continue to require deterministic content-digest parity.
 
 Implementation commit: `b934e85` (`fix: preserve native Codex marketplace provenance`),
-based on merged main commit `21e2f1908f00dc249679023be90efe55807297d0`.
+merged and tagged at `2bb4996a41fb2cc127dc70cdf9d191a0b885e229`.
 Focused native-marketplace runtime tests pass: 7 tests, including generated
 marker fallback, tagged native-checkout acceptance, sync ownership, and
 stale-ref rejection.
 
-Hosted PR verification run `29460214253` passed all seven jobs across Ubuntu,
-macOS, and Windows for Python 3.10 and 3.13. Package, tag, public-asset,
-native-surface, rollback, and MCP Registry evidence remain pending for the
-0.5.5 candidate.
+Hosted tag verification run `29460507456` passed all seven jobs across Ubuntu,
+macOS, and Windows for Python 3.10 and 3.13.
+
+Final artifact proof:
+
+- `/private/tmp/tmcp-v0.5.5.tar.gz` SHA-256:
+  `bd3b42e53d0c4148d708d4449449681e2e2aa0464b3e755579d1aed426428b3a`.
+- GitHub Release: `https://github.com/jakyeamos/tmcp/releases/tag/v0.5.5`.
+- The downloaded public asset matched the local artifact byte-for-byte and
+  GitHub's asset digest.
+- MCP Registry metadata now carries the same `fileSha256`; publication and
+  installed-surface parity are recorded after the cutover.
 
 ## 2026-07-15 0.5.4 Marketplace Provenance Hardening
 
