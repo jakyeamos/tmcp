@@ -10,7 +10,7 @@ from pathlib import Path, PureWindowsPath
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 CHECK_RELEASE_EVIDENCE_PATH = PLUGIN_ROOT / "scripts" / "check_release_evidence.py"
-ACTIVE_RELEASE_VERSION = "0.5.6"
+ACTIVE_RELEASE_VERSION = "0.5.7"
 
 
 def load_check_release_evidence_module():
@@ -185,7 +185,7 @@ class ReleaseEvidenceTests(unittest.TestCase):
             workflow = root / ".github" / "workflows" / "verify.yml"
             workflow.write_text(
                 workflow.read_text(encoding="utf-8").replace(
-                    '      - "v*"', '      - "v0.5.6"'
+                    '      - "v*"', '      - "v0.5.7"'
                 ),
                 encoding="utf-8",
             )

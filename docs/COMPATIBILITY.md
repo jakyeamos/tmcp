@@ -119,6 +119,15 @@ commit, and clean non-marker state. Marker-backed checkouts remain supported;
 the marker is an additional consistency record rather than the only way to
 recognize a native checkout.
 
+## 0.5.7 Rubric Coverage And Launcher Mode
+
+The 0.5.7 patch accepts in-memory tuple vocabulary when matching expert-review
+profile coverage requirements. This keeps the coverage gate consistent with
+its JSON-facing list contract and prevents a permanent generic coverage warning
+when the required evidence is present. The packaged Node launcher is also
+executable for direct shell invocation; the `node scripts/tmcp_launcher.mjs`
+form remains portable and supported.
+
 ## Known Gaps
 
 - The current storage implementation intentionally denies artifact persistence on

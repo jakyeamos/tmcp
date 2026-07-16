@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.7 - 2026-07-16
+
+- Fixed profile-coverage matching for rubric definitions represented as
+  in-memory tuples so the expert-review coverage gate reports real evidence
+  gaps instead of a permanent generic warning.
+- Marked the Node launcher executable in the canonical package so direct shell
+  invocation works in installed and generated surfaces as well as through
+  `node`.
+
 ## 0.5.6 - 2026-07-15
 
 - Recognize Codex native Git marketplace checkouts that do not emit Codex's

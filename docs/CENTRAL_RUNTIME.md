@@ -27,7 +27,7 @@ local update cannot silently replace the package with an unreviewed build:
 
 ```bash
 node scripts/tmcp_runtime.mjs install \
-  --source /path/to/tmcp-v0.5.6.tar.gz \
+  --source /path/to/tmcp-v0.5.7.tar.gz \
   --sha256 <release-sha256> \
   --source-commit <tagged-commit> \
   --runtime-home "$HOME/.tmcp/runtime" \
@@ -46,7 +46,7 @@ node scripts/tmcp_runtime.mjs sync \
   --claude-cache-root "$HOME/.claude/plugins/cache/tmcp/tmcp"
 node scripts/tmcp_runtime.mjs doctor \
   --runtime-home "$HOME/.tmcp/runtime" \
-  --expected-version 0.5.6 \
+  --expected-version 0.5.7 \
   --codex-config "$HOME/.codex/config.toml" \
   --claude-installed-record "$HOME/.claude/plugins/installed_plugins.json"
 ```

@@ -29,9 +29,9 @@ A Tier One release requires:
 | Maintainability and modularity | 5 | 4 | 5 | Soft |
 | Release operations | 3 | 3 | 3 | Hard |
 
-Current score: 100/100 for the scoped `0.5.6` native-Git provenance inference,
-0.5.5 native-marketplace provenance, 0.5.4 marketplace-provenance, and
-symlinked-launcher patch candidate.
+Current score: 100/100 for the scoped `0.5.7` rubric-coverage and executable-
+launcher fixes, 0.5.6 native-Git provenance inference, 0.5.5 native-marketplace
+provenance, and 0.5.4 marketplace-provenance.
 The 0.5.1 central-runtime release exposed the archive-root defect during
 post-release installation; the 0.5.2 release fixed that defect, and the 0.5.3
 candidate is gated on its own successful hosted matrix, clean artifact checks,
