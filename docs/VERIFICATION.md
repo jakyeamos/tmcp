@@ -12,13 +12,14 @@ continue to require deterministic content-digest parity.
 
 Implementation commit: `b934e85` (`fix: preserve native Codex marketplace provenance`),
 based on merged main commit `21e2f1908f00dc249679023be90efe55807297d0`.
-Focused native-marketplace runtime tests pass: 7 tests, including tagged
-native-checkout acceptance, sync ownership, and stale-ref rejection.
+Focused native-marketplace runtime tests pass: 7 tests, including generated
+marker fallback, tagged native-checkout acceptance, sync ownership, and
+stale-ref rejection.
 
-Package, hosted PR, tag, public-asset, native-surface, rollback, and MCP
-Registry evidence are pending for the 0.5.5 candidate. The release evidence
-file contains a bootstrap hosted pointer and must be rebound to the successful
-v0.5.5 PR run before merge.
+Hosted PR verification run `29460214253` passed all seven jobs across Ubuntu,
+macOS, and Windows for Python 3.10 and 3.13. Package, tag, public-asset,
+native-surface, rollback, and MCP Registry evidence remain pending for the
+0.5.5 candidate.
 
 ## 2026-07-15 0.5.4 Marketplace Provenance Hardening
 

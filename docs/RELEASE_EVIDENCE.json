@@ -1,7 +1,7 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.5",
-  "checked_at": "2026-07-15T23:50:00Z",
+  "checked_at": "2026-07-16T00:02:48Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
@@ -9,10 +9,10 @@
     "ref": "codex/tmcp-0.5.5-native-marketplace",
     "pr_number": 10,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29459165628,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29459165628",
-    "head_sha": "21e2f1908f00dc249679023be90efe55807297d0",
-    "notes": "Bootstrap pointer for PR #10; replace with the successful v0.5.5 evidence-pointer run before merge."
+    "run_id": 29460214253,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29460214253",
+    "head_sha": "00acc779b2233686b25a7eb7646c072ff5c6f85c",
+    "notes": "PR #10 hosted verification passed all seven matrix and quality jobs at the recorded head."
   },
   "release_package": {
     "path": null,
