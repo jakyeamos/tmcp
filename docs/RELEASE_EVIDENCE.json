@@ -58,7 +58,14 @@
     "status": "pending_authorization",
     "validation": "pass",
     "descriptor": "mcp-registry/draft-server.json",
-    "notes": "The descriptor is bound to the release asset SHA-256. Publication remains blocked by MCP Registry GitHub device authorization."
+    "publish_attempt": {
+      "command": "mcp-publisher publish mcp-registry/draft-server.json",
+      "status": "blocked",
+      "http_status": 401,
+      "error": "Invalid or expired Registry JWT token",
+      "login_attempt": "mcp-publisher login github failed with incorrect_device_code"
+    },
+    "notes": "The descriptor is bound to the release asset SHA-256. Publication is blocked by the expired local Registry JWT; a fresh GitHub device-login attempt also failed with incorrect_device_code."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
@@ -75,6 +82,6 @@
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "Hosted tag verification, exact release artifact, installed parity, and offline rollback are complete; MCP Registry publication is pending publisher authorization."
+    "result": "Hosted tag verification, exact release artifact, installed parity, and offline rollback are complete; MCP Registry validation passed, while publication returned HTTP 401 for an expired Registry JWT."
   }
 }
