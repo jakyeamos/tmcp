@@ -1,39 +1,41 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.5",
-  "checked_at": "2026-07-16T00:02:48Z",
+  "checked_at": "2026-07-16T00:10:00Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "pull_request",
-    "ref": "codex/tmcp-0.5.5-native-marketplace",
-    "pr_number": 10,
+    "source": "tag",
+    "ref": "v0.5.5",
+    "pr_number": null,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29460214253,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29460214253",
-    "head_sha": "00acc779b2233686b25a7eb7646c072ff5c6f85c",
-    "notes": "PR #10 hosted verification passed all seven matrix and quality jobs at the recorded head."
+    "run_id": 29460507456,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29460507456",
+    "head_sha": "2bb4996a41fb2cc127dc70cdf9d191a0b885e229",
+    "notes": "Hosted v0.5.5 tag verification passed all seven matrix and quality jobs."
   },
   "release_package": {
-    "path": null,
-    "sha256": null,
-    "public_asset": null,
-    "notes": "Pending the clean v0.5.5 tag build; final evidence must record the public asset digest."
+    "path": "/private/tmp/tmcp-v0.5.5.tar.gz",
+    "sha256": "bd3b42e53d0c4148d708d4449449681e2e2aa0464b3e755579d1aed426428b3a",
+    "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.5/tmcp-v0.5.5.tar.gz",
+    "source_commit": "2bb4996a41fb2cc127dc70cdf9d191a0b885e229",
+    "notes": "Reproducible local artifact matched the downloaded GitHub Release asset byte-for-byte and GitHub's asset digest."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
     "remote_tag": "refs/tags/v0.5.5",
     "commands": [
-      "gh run view 29459165628 --repo jakyeamos/tmcp --exit-status",
+      "gh run view 29460507456 --repo jakyeamos/tmcp --exit-status",
       "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.5.5.tar.gz --verify-reproducible",
       "shasum -a 256 /private/tmp/tmcp-v0.5.5.tar.gz",
       "git tag -a v0.5.5 -m 'TMCP 0.5.5'",
       "git push origin v0.5.5",
       "gh release create v0.5.5 /private/tmp/tmcp-v0.5.5.tar.gz --repo jakyeamos/tmcp --verify-tag",
       "curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.5.5/tmcp-v0.5.5.tar.gz -o /private/tmp/tmcp-v0.5.5.public.tar.gz",
+      "cmp /private/tmp/tmcp-v0.5.5.tar.gz /private/tmp/tmcp-v0.5.5.public.tar.gz",
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "The 0.5.5 candidate adds native Codex marketplace provenance checks and is awaiting its own hosted matrix, tagged package, installed-surface parity, rollback, and Registry publication evidence."
+    "result": "The 0.5.5 tag, reproducible package, public GitHub Release asset, and exact artifact digest are verified; MCP Registry validation/publication and installed-surface parity remain pending."
   }
 }
