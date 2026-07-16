@@ -21,8 +21,10 @@ Local and hosted proof:
   `3b9e448e65b6c35273126ee38f0c0ee31c98463e8a4b0f0f27518318f225edac`.
   The public GitHub asset matched byte-for-byte and its GitHub asset digest.
 - MCP Registry metadata is bound to the same `fileSha256`; descriptor
-  validation passed. Publication remains pending publisher device
-  authorization.
+  validation passed. `mcp-publisher publish mcp-registry/draft-server.json`
+  returned HTTP 401 because the local Registry JWT is expired. A fresh
+  `mcp-publisher login github` attempt failed with `incorrect_device_code`.
+  Publication remains the only external release blocker.
 
 Installed-surface proof:
 
