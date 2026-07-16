@@ -1,6 +1,6 @@
 # Verification Record
 
-## 2026-07-16 0.5.6 Native Git Provenance Candidate
+## 2026-07-16 0.5.6 Native Git Provenance Release
 
 The 0.5.6 candidate closes the markerless Codex marketplace gap found during
 the v0.5.5 cutover. A native Codex checkout is now accepted when it is the
@@ -9,16 +9,25 @@ source commit, and clean non-marker state. Marker-backed native checkouts
 remain supported and are checked against the same Git facts.
 
 Implementation commits: `2edf694` (`fix: infer markerless native Codex checkouts`)
-and `40ef429` (`fix: normalize native checkout roots`), based on merged main
-commit `dc7b4de0a083643252db2c420ae5d5ce09b3b034`.
+and `40ef429` (`fix: normalize native checkout roots`), with truth/evidence
+commits `7dd6f46`, `c913774`, and `6fd3eea`, merged and tagged at
+`759a3df565717028536a8f95e6d9a278a96f173e`.
 Focused runtime tests cover
 generated marker fallback, marker-backed native acceptance, markerless native
 inference, sync ownership, and stale-ref rejection.
 
-Hosted PR verification run `29461610777` passed all seven jobs across Ubuntu,
-macOS, and Windows for Python 3.10 and 3.13. Tag, package, public-asset,
-native-surface, rollback, and MCP Registry evidence remain pending for the
-0.5.6 candidate.
+Hosted tag verification run `29461870960` passed all seven jobs across Ubuntu,
+macOS, and Windows for Python 3.10 and 3.13.
+
+Release artifact proof:
+
+- `/private/tmp/tmcp-v0.5.6.tar.gz` SHA-256:
+  `7e68dfad53fabb826cb3695f60b5d53a334b895771ce5341bcd4b0baf6cad073`.
+- GitHub Release: `https://github.com/jakyeamos/tmcp/releases/tag/v0.5.6`.
+- The downloaded public asset matched the local artifact byte-for-byte and
+  GitHub's asset digest.
+- MCP Registry metadata is now bound to the same `fileSha256`; publication and
+  installed-surface parity are recorded after the cutover.
 
 ## 2026-07-16 0.5.5 Native Codex Marketplace Release
 
