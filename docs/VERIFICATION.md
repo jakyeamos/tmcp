@@ -8,8 +8,9 @@ checkout root with the canonical Git remote, exact active release tag, exact
 source commit, and clean non-marker state. Marker-backed native checkouts
 remain supported and are checked against the same Git facts.
 
-Implementation is based on merged main commit
-`dc7b4de0a083643252db2c420ae5d5ce09b3b034`. Focused runtime tests cover
+Implementation commit: `2edf694` (`fix: infer markerless native Codex checkouts`),
+based on merged main commit `dc7b4de0a083643252db2c420ae5d5ce09b3b034`.
+Focused runtime tests cover
 generated marker fallback, marker-backed native acceptance, markerless native
 inference, sync ownership, and stale-ref rejection.
 
