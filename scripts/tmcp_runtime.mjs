@@ -480,21 +480,29 @@ async function surfaceCheck(label, target, activeRoot, activeManifest) {
 
 async function nativeCodexMarketplaceCheck(target, activeManifest) {
   const gitStatus = gitSurfaceStatus(target);
-  if (gitStatus === null) return null;
+  const targetRealpath = await realpathIfExists(target);
+  if (gitStatus === null || !targetRealpath || gitSurfaceRoot(target) !== targetRealpath) return null;
   let metadata;
   try {
     metadata = await readOptionalJson(path.join(target, CODEX_MARKETPLACE_MARKER));
   } catch (error) {
     return { label: "codex_marketplace", status: "fail", detail: error.message, path: target };
   }
-  if (!metadata) return null;
   const expectedRef = activeManifest.marketplace_ref;
   const expectedRevision = activeManifest.source_commit;
   const issues = [];
-  if (metadata.source_type !== "git") issues.push(`source_type ${metadata.source_type ?? "<missing>"}`);
-  if (metadata.source !== CODEX_MARKETPLACE_SOURCE) issues.push(`source ${metadata.source ?? "<missing>"}`);
-  if (metadata.ref_name !== expectedRef) issues.push(`ref ${metadata.ref_name ?? "<missing>"}`);
-  if (metadata.revision !== expectedRevision) issues.push(`revision ${metadata.revision ?? "<missing>"}`);
+  if (metadata) {
+    if (metadata.source_type !== "git") issues.push(`source_type ${metadata.source_type ?? "<missing>"}`);
+    if (metadata.source !== CODEX_MARKETPLACE_SOURCE) issues.push(`source ${metadata.source ?? "<missing>"}`);
+    if (metadata.ref_name !== expectedRef) issues.push(`ref ${metadata.ref_name ?? "<missing>"}`);
+    if (metadata.revision !== expectedRevision) issues.push(`revision ${metadata.revision ?? "<missing>"}`);
+  }
+  const remote = spawnSync("git", ["-C", target, "remote", "get-url", "origin"], { encoding: "utf8" });
+  const remoteSource = remote.status === 0 ? remote.stdout.trim() : "<unavailable>";
+  if (remoteSource !== CODEX_MARKETPLACE_SOURCE) issues.push(`remote ${remoteSource}`);
+  const taggedRef = spawnSync("git", ["-C", target, "describe", "--tags", "--exact-match", "HEAD"], { encoding: "utf8" });
+  const checkoutRef = taggedRef.status === 0 ? taggedRef.stdout.trim() : "<unavailable>";
+  if (checkoutRef !== expectedRef) issues.push(`checkout ref ${checkoutRef}`);
   const dirty = nonMarkerGitSurfaceStatus(target);
   if (dirty) issues.push(`dirty Git checkout: ${dirty}`);
   const revision = spawnSync("git", ["-C", target, "rev-parse", "HEAD"], { encoding: "utf8" });
@@ -503,7 +511,7 @@ async function nativeCodexMarketplaceCheck(target, activeManifest) {
   if (issues.length > 0) {
     return { label: "codex_marketplace", status: "fail", detail: `native Codex marketplace provenance mismatch: ${issues.join(", ")}`, path: target };
   }
-  return { label: "codex_marketplace", status: "pass", mode: "native-git", ref: expectedRef, revision: expectedRevision, path: target };
+  return { label: "codex_marketplace", status: "pass", mode: "native-git", provenance: metadata ? "marker" : "git", ref: expectedRef, revision: expectedRevision, path: target };
 }
 
 async function skillCheck(target, activeRoot) {
@@ -634,6 +642,12 @@ async function replaceDirectory(destination, source, home, preserveEntries = [])
 
 function gitSurfaceStatus(destination) {
   const result = spawnSync("git", ["-C", destination, "status", "--porcelain"], { encoding: "utf8" });
+  if (result.status !== 0) return null;
+  return result.stdout.trim();
+}
+
+function gitSurfaceRoot(destination) {
+  const result = spawnSync("git", ["-C", destination, "rev-parse", "--show-toplevel"], { encoding: "utf8" });
   if (result.status !== 0) return null;
   return result.stdout.trim();
 }

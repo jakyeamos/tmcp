@@ -1,5 +1,23 @@
 # Verification Record
 
+## 2026-07-16 0.5.6 Native Git Provenance Candidate
+
+The 0.5.6 candidate closes the markerless Codex marketplace gap found during
+the v0.5.5 cutover. A native Codex checkout is now accepted when it is the
+checkout root with the canonical Git remote, exact active release tag, exact
+source commit, and clean non-marker state. Marker-backed native checkouts
+remain supported and are checked against the same Git facts.
+
+Implementation is based on merged main commit
+`dc7b4de0a083643252db2c420ae5d5ce09b3b034`. Focused runtime tests cover
+generated marker fallback, marker-backed native acceptance, markerless native
+inference, sync ownership, and stale-ref rejection.
+
+Hosted PR, tag, package, public-asset, native-surface, rollback, and MCP
+Registry evidence are pending for the 0.5.6 candidate. The release evidence
+file contains a bootstrap hosted pointer and must be rebound to the successful
+v0.5.6 PR run before merge.
+
 ## 2026-07-16 0.5.5 Native Codex Marketplace Release
 
 The 0.5.5 candidate closes the native Codex marketplace parity gap exposed by

@@ -390,6 +390,16 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
             hooks = root / "hooks"
             hooks.mkdir()
             subprocess.run([*git, "config", "core.hooksPath", str(hooks)], check=True)
+            subprocess.run(
+                [
+                    *git,
+                    "remote",
+                    "add",
+                    "origin",
+                    "https://github.com/jakyeamos/tmcp.git",
+                ],
+                check=True,
+            )
             subprocess.run([*git, "add", "-A"], check=True)
             subprocess.run(
                 [
@@ -405,6 +415,7 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
                 ],
                 check=True,
             )
+            subprocess.run([*git, "tag", "v1.0.0"], check=True)
             diagnosis = self.run_manager(
                 "doctor",
                 "--runtime-home",
@@ -419,6 +430,25 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
                 if check.get("label") == "codex_marketplace"
             )
             self.assertEqual(codex_check["mode"], "native-git")
+
+            (marketplace / ".codex-marketplace-install.json").unlink()
+            inferred = self.run_manager(
+                "doctor",
+                "--runtime-home",
+                str(runtime_home),
+                "--codex-marketplace",
+                str(marketplace),
+            )
+            self.assertTrue(inferred["ok"])
+            inferred_check = next(
+                check
+                for check in cast(list[JsonObject], inferred["checks"])
+                if check.get("label") == "codex_marketplace"
+            )
+            self.assertEqual(inferred_check["provenance"], "git")
+            (marketplace / ".codex-marketplace-install.json").write_text(
+                json.dumps(marker), encoding="utf-8"
+            )
 
             synced = self.run_manager(
                 "sync",
