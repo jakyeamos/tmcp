@@ -8,7 +8,7 @@
   "schema": "tmcp-public-contract-fixture-v0.4",
   "server": {
     "name": "tmcp",
-    "version": "0.5.4"
+    "version": "0.5.5"
   },
   "tools": [
     {
@@ -142,5 +142,5 @@
       "state_effect": "default_write"
     }
   ],
-  "version": "0.5.4"
+  "version": "0.5.5"
 }

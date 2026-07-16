@@ -100,6 +100,16 @@ marketplace source is missing or points at a mutable branch. Existing 0.5.3
 installs remain readable so an offline rollback can restore the previous
 release, but they are not release provenance for a new install.
 
+## 0.5.5 Native Codex Marketplace
+
+The 0.5.5 runtime recognizes Codex's native Git marketplace checkout as a
+separate managed surface. It accepts the checkout only when the canonical
+source, release ref, recorded revision, and clean Git state match the active
+runtime. The Codex install marker is ignored as generated metadata; stale refs,
+revision drift, and other local edits fail closed. Valid native checkouts stay
+owned by Codex during runtime sync instead of being replaced by a package
+snapshot.
+
 ## Known Gaps
 
 - The current storage implementation intentionally denies artifact persistence on
