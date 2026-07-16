@@ -11,7 +11,7 @@
     "workflow": ".github/workflows/verify.yml",
     "run_id": 29460507456,
     "url": "https://github.com/jakyeamos/tmcp/actions/runs/29460507456",
-    "head_sha": "2edf694",
+    "head_sha": "40ef429",
     "notes": "Bootstrap pointer for PR #12; replace with the successful v0.5.6 evidence-pointer run before merge."
   },
   "release_package": {
