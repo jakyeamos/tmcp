@@ -1,7 +1,7 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.7",
-  "checked_at": "2026-07-16T00:58:35Z",
+  "checked_at": "2026-07-16T01:07:24Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
@@ -9,10 +9,10 @@
     "ref": "codex/tmcp-0.5.7-risk-fixes",
     "pr_number": 14,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29461870960,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29461870960",
-    "head_sha": "ef8a66fb98660fcc14e4cc77ba0a8f4abe0a27ce",
-    "notes": "Candidate bootstrap record; replace with the v0.5.7 pull-request run after hosted verification."
+    "run_id": 29463233399,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29463233399",
+    "head_sha": "5c9c838e3c65d2d47ab79e1d1b66829fa7570919",
+    "notes": "PR #14 hosted verification passed all seven matrix and quality jobs across Ubuntu, macOS, and Windows."
   },
   "release_package": {
     "path": null,
@@ -25,7 +25,7 @@
     "remote": "git@github.com:jakyeamos/tmcp.git",
     "remote_tag": "refs/tags/v0.5.7",
     "commands": [
-      "gh run view <v0.5.7-pr-run> --repo jakyeamos/tmcp --exit-status",
+      "gh run view 29463233399 --repo jakyeamos/tmcp --exit-status",
       "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.5.7.tar.gz --verify-reproducible",
       "shasum -a 256 /private/tmp/tmcp-v0.5.7.tar.gz",
       "git tag -a v0.5.7 -m 'TMCP 0.5.7'",
@@ -36,6 +36,6 @@
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "The 0.5.7 candidate adds real profile-coverage matching and an executable launcher mode; it is awaiting hosted verification, package, installed parity, rollback, and Registry evidence."
+    "result": "PR hosted verification is complete; the v0.5.7 tag package, installed parity, rollback, and Registry publication remain to be recorded."
   }
 }
