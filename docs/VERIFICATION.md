@@ -45,6 +45,10 @@ Installed-surface proof:
 - Claude marketplace was recreated cleanly after its client installer produced
   a staged/generated mutation. The runtime manager synchronized it as a
   generated copy and retained a backup for rollback/audit.
+- After consumer inventory confirmed only v0.5.7 was active, eight unreferenced
+  old Codex/Claude generated cache directories were removed. Only the v0.5.7
+  cache remains for each client; immutable central runtime versions 0.5.1
+  through 0.5.7 and runtime backups were retained for rollback.
 
 ## 2026-07-16 0.5.6 Native Git Provenance Release
 
