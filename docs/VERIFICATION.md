@@ -10,7 +10,8 @@ Valid native checkouts remain owned by Codex during sync; stale or dirty
 checkouts fail closed. Generated plugin caches and Claude marketplace snapshots
 continue to require deterministic content-digest parity.
 
-Implementation is based on merged main commit `21e2f1908f00dc249679023be90efe55807297d0`.
+Implementation commit: `b934e85` (`fix: preserve native Codex marketplace provenance`),
+based on merged main commit `21e2f1908f00dc249679023be90efe55807297d0`.
 Focused native-marketplace runtime tests pass: 7 tests, including tagged
 native-checkout acceptance, sync ownership, and stale-ref rejection.
 
