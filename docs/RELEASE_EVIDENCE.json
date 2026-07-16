@@ -1,7 +1,7 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.7",
-  "checked_at": "2026-07-16T01:21:05Z",
+  "checked_at": "2026-07-16T01:38:55Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
@@ -52,7 +52,22 @@
       "restored_to": "0.5.7",
       "final_doctor": "pass"
     },
-    "notes": "Claude marketplace was recreated cleanly after its client installer produced a staged/generated mutation; the runtime manager then synchronized it as a generated copy and retained backups."
+    "notes": "Claude marketplace was recreated cleanly after its client installer produced a staged/generated mutation; the runtime manager then synchronized it as a generated copy and retained backups.",
+    "cleanup": {
+      "removed_generated_cache_count": 8,
+      "removed_generated_cache_versions": [
+        "Codex 0.5.5+codex.20260715234751",
+        "Codex 0.5.6+codex.20260715202055",
+        "Claude 0.3.2",
+        "Claude 0.3.3",
+        "Claude 0.5.2",
+        "Claude 0.5.3",
+        "Claude 0.5.4",
+        "Claude 0.5.6"
+      ],
+      "consumer_proof": "Claude and Codex active plugin records report only v0.5.7; active config and marketplace metadata contain no references to the removed snapshots; full runtime doctor passed after cleanup.",
+      "retained_for_rollback": "Central runtime versions 0.5.1 through 0.5.7 and runtime backup directories were retained."
+    }
   },
   "registry_publication": {
     "status": "pending_authorization",
