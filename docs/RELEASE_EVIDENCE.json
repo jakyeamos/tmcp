@@ -1,31 +1,70 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.7",
-  "checked_at": "2026-07-16T01:07:24Z",
+  "checked_at": "2026-07-16T01:21:05Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "pull_request",
-    "ref": "codex/tmcp-0.5.7-risk-fixes",
-    "pr_number": 14,
+    "source": "tag",
+    "ref": "v0.5.7",
+    "pr_number": null,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29463233399,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29463233399",
-    "head_sha": "5c9c838e3c65d2d47ab79e1d1b66829fa7570919",
-    "notes": "PR #14 hosted verification passed all seven matrix and quality jobs across Ubuntu, macOS, and Windows."
+    "run_id": 29463457072,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29463457072",
+    "head_sha": "5ae3d8b0e3d6fd9330a674536fdde18cb9ee0279",
+    "notes": "The v0.5.7 tag hosted verification passed all seven matrix and quality jobs across Ubuntu, macOS, and Windows."
   },
   "release_package": {
-    "path": null,
-    "sha256": null,
-    "public_asset": null,
-    "source_commit": null,
-    "notes": "Pending the clean v0.5.7 tag build; final evidence must record the public asset digest."
+    "path": "/private/tmp/tmcp-v0.5.7.tar.gz",
+    "sha256": "3b9e448e65b6c35273126ee38f0c0ee31c98463e8a4b0f0f27518318f225edac",
+    "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.7/tmcp-v0.5.7.tar.gz",
+    "source_commit": "5ae3d8b0e3d6fd9330a674536fdde18cb9ee0279",
+    "notes": "The public GitHub asset matched the local reproducible build byte-for-byte and GitHub's asset digest."
+  },
+  "installed_verification": {
+    "runtime_home": "/Users/jakyeamos/.tmcp/runtime",
+    "active_version": "0.5.7",
+    "previous_version": "0.5.6",
+    "content_sha256": "4033aa99af3aa263e6806a5651912ca4c3a36fdad531013af664a6f0509cc304",
+    "skills_sha256": "5bf3733ca8041e31193574939c2891f471ed44be3d67950f4dbef144e3007458",
+    "codex_plugin": "0.5.7+codex.20260716005835",
+    "codex_marketplace": {
+      "mode": "native-git",
+      "provenance": "git",
+      "ref": "v0.5.7",
+      "revision": "5ae3d8b0e3d6fd9330a674536fdde18cb9ee0279"
+    },
+    "claude_plugin": {
+      "version": "0.5.7",
+      "revision": "5ae3d8b0e3d6fd9330a674536fdde18cb9ee0279"
+    },
+    "launcher_mode": "100755 across active, alias, Codex cache, Claude cache, and Claude marketplace",
+    "doctor": "pass",
+    "launcher": {
+      "direct_doctor": "pass",
+      "status": "pass",
+      "expert_review": "pass; four dimensions scored 3/4 with no profile coverage gaps"
+    },
+    "rollback": {
+      "rolled_back_to": "0.5.6",
+      "doctor": "pass",
+      "launcher_status": "pass",
+      "restored_to": "0.5.7",
+      "final_doctor": "pass"
+    },
+    "notes": "Claude marketplace was recreated cleanly after its client installer produced a staged/generated mutation; the runtime manager then synchronized it as a generated copy and retained backups."
+  },
+  "registry_publication": {
+    "status": "pending_authorization",
+    "validation": "pass",
+    "descriptor": "mcp-registry/draft-server.json",
+    "notes": "The descriptor is bound to the release asset SHA-256. Publication remains blocked by MCP Registry GitHub device authorization."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
     "remote_tag": "refs/tags/v0.5.7",
     "commands": [
-      "gh run view 29463233399 --repo jakyeamos/tmcp --exit-status",
+      "gh run view 29463457072 --repo jakyeamos/tmcp --exit-status",
       "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.5.7.tar.gz --verify-reproducible",
       "shasum -a 256 /private/tmp/tmcp-v0.5.7.tar.gz",
       "git tag -a v0.5.7 -m 'TMCP 0.5.7'",
@@ -36,6 +75,6 @@
       "mcp-publisher validate mcp-registry/draft-server.json",
       "mcp-publisher publish mcp-registry/draft-server.json"
     ],
-    "result": "PR hosted verification is complete; the v0.5.7 tag package, installed parity, rollback, and Registry publication remain to be recorded."
+    "result": "Hosted tag verification, exact release artifact, installed parity, and offline rollback are complete; MCP Registry publication is pending publisher authorization."
   }
 }

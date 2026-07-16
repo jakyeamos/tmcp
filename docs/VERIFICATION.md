@@ -1,25 +1,48 @@
 # Verification Record
 
-## 2026-07-16 0.5.7 Rubric Coverage and Launcher Mode Candidate
+## 2026-07-16 0.5.7 Risk-Closure Release
 
 The 0.5.7 patch fixes the expert-review profile coverage matcher so in-memory
 tuple vocabulary is checked the same way as JSON list vocabulary. It also marks
 `scripts/tmcp_launcher.mjs` executable so direct shell invocation is supported
 by the package in addition to the documented `node` form.
 
-Focused local proof:
+Implementation commit `5c9c838` and evidence pointer `8b45bc9` were merged and
+tagged at `5ae3d8b0e3d6fd9330a674536fdde18cb9ee0279`.
 
-- `python3 -m unittest tests.test_tmcp_review_policy_domain -v` passed all 3
-  tests, including tuple-term coverage regression proof.
-- `ruff check` passed for the changed runtime and test files.
-- Direct `./scripts/tmcp_launcher.mjs doctor --client codex` passed from the
-  clean v0.5.7 worktree.
-- Dimension-mapped expert-review smoke passed all four dimensions at 3/4 with
-  high confidence, including the `profile_evidence_coverage` validation with
-  no coverage gaps.
+Local and hosted proof:
 
-Hosted verification, package digest, installed-surface parity, rollback, and
-MCP Registry publication remain pending for this candidate.
+- The full local suite passed 446 tests with 3 skips; compile, Ruff format and
+  lint, basedpyright, contract, install, release-evidence, and Node syntax
+  checks all passed.
+- Hosted tag verification run `29463457072` passed all seven quality and
+  Python 3.10/3.13 Ubuntu/macOS/Windows jobs.
+- Release artifact `/private/tmp/tmcp-v0.5.7.tar.gz` has SHA-256
+  `3b9e448e65b6c35273126ee38f0c0ee31c98463e8a4b0f0f27518318f225edac`.
+  The public GitHub asset matched byte-for-byte and its GitHub asset digest.
+- MCP Registry metadata is bound to the same `fileSha256`; descriptor
+  validation passed. Publication remains pending publisher device
+  authorization.
+
+Installed-surface proof:
+
+- Central runtime `/Users/jakyeamos/.tmcp/runtime` is active at v0.5.7 with
+  v0.5.6 retained as previous; content SHA-256 is
+  `4033aa99af3aa263e6806a5651912ca4c3a36fdad531013af664a6f0509cc304` and
+  skills SHA-256 is
+  `5bf3733ca8041e31193574939c2891f471ed44be3d67950f4dbef144e3007458`.
+- Codex is a clean native Git checkout at exact ref `v0.5.7` and revision
+  `5ae3d8b0e3d6fd9330a674536fdde18cb9ee0279`. Claude's installed record and
+  generated cache point to v0.5.7 at the same revision.
+- The active runtime, legacy alias, Codex cache, Claude cache, and Claude
+  marketplace launcher are all executable mode `100755`. Full runtime doctor,
+  direct launcher doctor/status, and dimension-mapped expert-review smoke all
+  passed; the four dimensions scored 3/4 with no profile coverage gaps.
+- Offline rollback to v0.5.6 passed doctor and launcher status, then v0.5.7
+  was restored and final doctor passed.
+- Claude marketplace was recreated cleanly after its client installer produced
+  a staged/generated mutation. The runtime manager synchronized it as a
+  generated copy and retained a backup for rollback/audit.
 
 ## 2026-07-16 0.5.6 Native Git Provenance Release
 
