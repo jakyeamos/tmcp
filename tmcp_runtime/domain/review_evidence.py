@@ -21,7 +21,9 @@ def _json_list(value: object) -> list[Any]:
 
 
 def _string_list(value: object) -> list[str]:
-    return [str(item) for item in _json_list(value) if str(item)]
+    if isinstance(value, (list, tuple)):
+        return [str(item) for item in value if str(item)]
+    return []
 
 
 def parse_evidence(raw: object) -> list[dict[str, Any]]:

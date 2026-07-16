@@ -35,6 +35,33 @@ class ReviewPolicyDomainTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "JSON object or array"):
             review_evidence.parse_evidence('["not an object"]')
 
+    def test_general_profile_coverage_accepts_tuple_terms(self) -> None:
+        rubric = review_evidence.synthesize_rubric(
+            self._packet(), "run-general", "Review release portability"
+        )
+        evidence = [
+            {
+                "dimension_id": "source_grounding",
+                "severity": "observation",
+                "summary": "The review records a warning and explicit scope.",
+                "evidence": ["release command test evidence", "source record"],
+                "recommended_fix": "Verify the deferred risk gap.",
+            }
+        ]
+
+        audit = review_evidence.build_audit_report(
+            rubric,
+            review_evidence.actionable_evidence_items(rubric, evidence),
+            "run-general",
+        )
+
+        self.assertFalse(
+            any(
+                item.get("coverage_id") == "general_review_coverage"
+                for item in audit["coverage_gaps"]
+            )
+        )
+
     def test_evidence_to_remediation_pipeline_preserves_contracts(self) -> None:
         rubric = review_evidence.synthesize_rubric(
             self._packet(),

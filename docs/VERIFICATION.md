@@ -1,5 +1,26 @@
 # Verification Record
 
+## 2026-07-16 0.5.7 Rubric Coverage and Launcher Mode Candidate
+
+The 0.5.7 patch fixes the expert-review profile coverage matcher so in-memory
+tuple vocabulary is checked the same way as JSON list vocabulary. It also marks
+`scripts/tmcp_launcher.mjs` executable so direct shell invocation is supported
+by the package in addition to the documented `node` form.
+
+Focused local proof:
+
+- `python3 -m unittest tests.test_tmcp_review_policy_domain -v` passed all 3
+  tests, including tuple-term coverage regression proof.
+- `ruff check` passed for the changed runtime and test files.
+- Direct `./scripts/tmcp_launcher.mjs doctor --client codex` passed from the
+  clean v0.5.7 worktree.
+- Dimension-mapped expert-review smoke passed all four dimensions at 3/4 with
+  high confidence, including the `profile_evidence_coverage` validation with
+  no coverage gaps.
+
+Hosted verification, package digest, installed-surface parity, rollback, and
+MCP Registry publication remain pending for this candidate.
+
 ## 2026-07-16 0.5.6 Native Git Provenance Release
 
 The 0.5.6 candidate closes the markerless Codex marketplace gap found during
