@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
 from tests.tmcp_test_client import run_mcp_requests as run_hermetic_mcp_requests
-from tmcp_runtime.services.evaluation_evidence import trace_source_digest
+from tmcp_runtime.services.evaluation_cost_rejudge import trace_source_digest
 from tmcp_runtime.storage import artifact_persistence_available
 
 

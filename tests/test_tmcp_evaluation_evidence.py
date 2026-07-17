@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import tmcp_runtime.services.evaluation_evidence as evaluation_evidence
+import tmcp_runtime.services.evaluation_cost_rejudge as cost_rejudge
 import tmcp_runtime.services.evaluation_guidebook as evaluation_guidebook
 import tmcp_runtime.services.evaluation_plan as evaluation_plan
 
@@ -366,11 +367,11 @@ class EvaluationEvidenceServiceTests(unittest.TestCase):
         traces = self._traces(self._plan())
         trace = traces[0]
         payload = {
-            "schema": evaluation_evidence.COST_REJUDGMENT_SCHEMA,
+            "schema": cost_rejudge.COST_REJUDGMENT_SCHEMA,
             "rejudgments": [
                 {
                     "trace_id": trace["trace_id"],
-                    "source_trace_digest": evaluation_evidence.trace_source_digest(
+                    "source_trace_digest": cost_rejudge.trace_source_digest(
                         trace
                     ),
                     "cost_regression": False,
@@ -394,7 +395,7 @@ class EvaluationEvidenceServiceTests(unittest.TestCase):
         }
 
         with self.assertRaisesRegex(ValueError, "coverage"):
-            evaluation_evidence.validate_cost_rejudgments(traces, payload)
+            cost_rejudge.validate_cost_rejudgments(traces, payload)
 
     def test_multi_agent_promotion_rejects_configuration_reversal(self) -> None:
         plan = self._plan(fixture_count=6)

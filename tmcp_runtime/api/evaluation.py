@@ -28,7 +28,7 @@ from tmcp_runtime.services.evaluation_plan import (
     section_ablation_content,
 )
 from tmcp_runtime.services.evaluation_scoring import _normalize_trace, score_traces
-from tmcp_runtime.services.evaluation_evidence import validate_cost_rejudgments
+from tmcp_runtime.services.evaluation_cost_rejudge import validate_cost_rejudgments
 
 
 EVAL_REPORT_SCHEMA = "tmcp-skill-evaluation-report-v0.2"

@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from typing import Any
 
 from tmcp_runtime.services.evaluation_catalog import EVIDENCE_RANK
+from tmcp_runtime.services.evaluation_cost_rejudge import (
+    cost_rejudge_requirement as cost_rejudge_coverage_requirement,
+)
 from tmcp_runtime.services.evaluation_statistics import (
     DEFAULT_THRESHOLDS as DEFAULT_THRESHOLDS,
     clustered_analysis_policy_for_plan,
@@ -17,99 +18,10 @@ from tmcp_runtime.services.evaluation_statistics import (
     promotion_gaps,
     thresholds_for_plan,
 )
-
-
-COST_REJUDGMENT_SCHEMA = "tmcp-skill-eval-cost-rejudgment-v0.1"
-
-
-def trace_source_digest(trace: Mapping[str, Any]) -> str:
-    """Return the stable digest that binds a cost rejudgment to one trace."""
-
-    encoded = json.dumps(trace, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    return "sha256:" + hashlib.sha256(encoded).hexdigest()
-
-
-def validate_cost_rejudgments(
-    traces: Sequence[Mapping[str, Any]], payload: Mapping[str, Any] | None
-) -> dict[str, bool] | None:
-    """Validate complete, blind cost adjudications without touching raw verdicts."""
-
-    if payload is None:
-        return None
-    if payload.get("schema") != COST_REJUDGMENT_SCHEMA:
-        raise ValueError(f"cost_rejudgments_json must use {COST_REJUDGMENT_SCHEMA}.")
-    entries = payload.get("rejudgments")
-    if not isinstance(entries, list):
-        raise ValueError("cost_rejudgments_json.rejudgments must be a list.")
-    trace_by_id = {
-        str(trace.get("trace_id") or ""): trace
-        for trace in traces
-        if str(trace.get("trace_id") or "")
-    }
-    if len(trace_by_id) != len(traces):
-        raise ValueError(
-            "cost rejudgment requires a non-empty trace_id for every trace."
-        )
-    if len(entries) != len(trace_by_id):
-        raise ValueError(
-            "cost rejudgment coverage must include every supplied trace exactly once."
-        )
-    verdicts: dict[str, bool] = {}
-    for entry in entries:
-        if not isinstance(entry, Mapping):
-            raise ValueError("cost rejudgments must be objects.")
-        trace_id = str(entry.get("trace_id") or "")
-        if not trace_id or trace_id not in trace_by_id or trace_id in verdicts:
-            raise ValueError(
-                "cost rejudgments must use unique supplied trace_id values."
-            )
-        if entry.get("source_trace_digest") != trace_source_digest(
-            trace_by_id[trace_id]
-        ):
-            raise ValueError(
-                "cost rejudgment source_trace_digest does not match supplied trace."
-            )
-        cost_regression = entry.get("cost_regression")
-        if not isinstance(cost_regression, bool):
-            raise ValueError("cost rejudgment cost_regression must be boolean.")
-        rationale = entry.get("rationale")
-        if not isinstance(rationale, str) or not rationale.strip():
-            raise ValueError("cost rejudgment rationale must be non-empty.")
-        evidence = entry.get("evidence")
-        if not isinstance(evidence, list) or not evidence:
-            raise ValueError("cost rejudgment evidence must be a non-empty list.")
-        c1_statuses: set[str] = set()
-        for item in evidence:
-            if not isinstance(item, Mapping):
-                raise ValueError("cost rejudgment evidence entries must be objects.")
-            if not str(item.get("citation") or "").strip():
-                raise ValueError("cost rejudgment evidence requires a citation.")
-            criterion = str(item.get("criterion") or "")
-            if criterion == "C1" or criterion.startswith("C1:"):
-                status = str(item.get("status") or "")
-                if status in {"necessary", "materially_unnecessary"}:
-                    c1_statuses.add(status)
-        expected_status = "materially_unnecessary" if cost_regression else "necessary"
-        if c1_statuses != {expected_status}:
-            raise ValueError(
-                "cost rejudgment C1 status must agree with cost_regression."
-            )
-        provenance = entry.get("provenance")
-        if not isinstance(provenance, Mapping) or not all(
-            provenance.get(field) is True
-            for field in (
-                "judge_blinded",
-                "isolated_session",
-                "fresh_session",
-                "condition_hidden",
-                "source_artifact_only",
-            )
-        ):
-            raise ValueError(
-                "cost rejudgment provenance must prove fresh blinded review."
-            )
-        verdicts[trace_id] = cost_regression
-    return verdicts
+from tmcp_runtime.services.evaluation_trace_evidence import (
+    records_for_plan,
+    validated_case_verdict,
+)
 
 
 def scorecard_claim_boundary() -> dict[str, Any]:
@@ -130,53 +42,6 @@ def scorecard_claim_boundary() -> dict[str, Any]:
             "and must not be read as causal effects."
         ),
     }
-
-
-def _cost_rejudge_requirement(
-    plan: Mapping[str, Any],
-    traces: Sequence[Mapping[str, Any]],
-    cost_rejudgments: Mapping[str, bool] | None,
-) -> dict[str, Any]:
-    """Report whether a plan-preregistered cost sidecar covers its source traces."""
-
-    experiment = plan.get("experiment")
-    policy = (
-        experiment.get("cost_rejudge_policy")
-        if isinstance(experiment, Mapping)
-        else None
-    )
-    if (
-        not isinstance(policy, Mapping)
-        or policy.get("complete_before_promotion") is not True
-    ):
-        return {"required": False, "status": "not_required"}
-
-    expected_trace_count = policy.get("expected_trace_count")
-    if not isinstance(expected_trace_count, int) or expected_trace_count < 1:
-        return {
-            "required": True,
-            "status": "invalid_policy",
-            "expected_trace_count": expected_trace_count,
-        }
-    trace_ids = [str(trace.get("trace_id") or "") for trace in traces]
-    adjudicated_trace_count = len(cost_rejudgments) if cost_rejudgments is not None else 0
-    result: dict[str, Any] = {
-        "required": True,
-        "expected_trace_count": expected_trace_count,
-        "source_trace_count": len(trace_ids),
-        "adjudicated_trace_count": adjudicated_trace_count,
-    }
-    if (
-        len(trace_ids) != expected_trace_count
-        or len(set(trace_ids)) != expected_trace_count
-        or "" in trace_ids
-    ):
-        return {**result, "status": "incomplete_source_traces"}
-    if cost_rejudgments is None:
-        return {**result, "status": "missing"}
-    if set(cost_rejudgments) != set(trace_ids):
-        return {**result, "status": "incomplete"}
-    return {**result, "status": "complete"}
 
 
 def _baseline_reliability_policy(plan: Mapping[str, Any]) -> Mapping[str, Any] | None:
@@ -225,7 +90,7 @@ def baseline_reliability_summary(
 
     records = [
         record
-        for record in _records(plan, traces)
+        for record in records_for_plan(plan, traces)
         if str(record["row"].get("variant_id") or "") == control_variant
     ]
     by_fixture: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -356,131 +221,6 @@ def baseline_reliability_summary(
     }
 
 
-def validated_case_verdict(
-    trace: Mapping[str, Any],
-) -> tuple[bool | None, list[str]]:
-    verdict = trace.get("case_verdict")
-    gaps: list[str] = []
-    if not isinstance(verdict, Mapping):
-        return None, ["case_verdict is missing"]
-    passed = verdict.get("passed")
-    if not isinstance(passed, bool):
-        gaps.append("case_verdict.passed must be boolean")
-    evidence = verdict.get("evidence")
-    if not isinstance(evidence, list) or not evidence:
-        gaps.append("case_verdict.evidence must be a non-empty list")
-    elif not all(
-        isinstance(item, Mapping) or (isinstance(item, str) and item.strip())
-        for item in evidence
-    ):
-        gaps.append("case_verdict.evidence contains an invalid item")
-    return (passed if isinstance(passed, bool) else None), gaps
-
-
-def _controlled_trace_gaps(
-    trace: Mapping[str, Any], row: Mapping[str, Any]
-) -> list[str]:
-    gaps: list[str] = []
-    supplied = trace.get("_controlled_fields_supplied")
-    for field in ("trace_id", "experiment_id", "matrix_row_id", "replicate_id"):
-        explicitly_missing = (
-            isinstance(supplied, Mapping) and supplied.get(field) is False
-        )
-        if (
-            explicitly_missing
-            or trace.get(field) is None
-            or str(trace.get(field)).strip() == ""
-        ):
-            gaps.append(f"{field} is missing")
-    agent = trace.get("agent")
-    if (
-        not isinstance(agent, Mapping)
-        or not str(agent.get("configuration_id") or "").strip()
-    ):
-        gaps.append("agent.configuration_id is missing")
-    provenance = trace.get("provenance")
-    for field in ("runner_blinded", "judge_blinded", "isolated_session"):
-        if not isinstance(provenance, Mapping) or provenance.get(field) is not True:
-            gaps.append(f"provenance.{field} must be true")
-    if (
-        row.get("pattern_id") == "composition.source-bundle-inclusion"
-        and (
-            not isinstance(provenance, Mapping)
-            or provenance.get("composition_provenance")
-            != row.get("composition_provenance")
-        )
-    ):
-        gaps.append("provenance.composition_provenance does not match matrix row")
-    _, verdict_gaps = validated_case_verdict(trace)
-    gaps.extend(verdict_gaps)
-    return gaps
-
-
-def _row_by_id(plan: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
-    return {
-        str(row.get("matrix_row_id")): dict(row)
-        for row in plan.get("task_matrix", [])
-        if isinstance(row, Mapping) and str(row.get("matrix_row_id") or "")
-    }
-
-
-def _configuration_id(trace: Mapping[str, Any], *, controlled: bool) -> str:
-    agent = trace.get("agent")
-    if isinstance(agent, Mapping):
-        configured = str(agent.get("configuration_id") or "").strip()
-        if configured:
-            return configured
-        if not controlled:
-            name = str(agent.get("name") or "unspecified")
-            model = str(agent.get("model") or "unspecified")
-            return f"{name}:{model}"
-    return "uncontrolled"
-
-
-def _records(
-    plan: Mapping[str, Any], traces: Sequence[Mapping[str, Any]]
-) -> list[dict[str, Any]]:
-    rows = _row_by_id(plan)
-    records: list[dict[str, Any]] = []
-    seen_cells: set[tuple[str, str, str]] = set()
-    for trace in traces:
-        row_id = str(trace.get("matrix_row_id") or "")
-        row = rows.get(row_id)
-        if row is None:
-            continue
-        controlled_gaps = _controlled_trace_gaps(trace, row)
-        controlled = not controlled_gaps
-        configuration_id = _configuration_id(trace, controlled=controlled)
-        agent = trace.get("agent")
-        runner_model = (
-            str(agent.get("model") or "").strip() if isinstance(agent, Mapping) else ""
-        )
-        replicate_id = str(trace.get("replicate_id") or "")
-        if controlled:
-            cell = (row_id, configuration_id, replicate_id)
-            if cell in seen_cells:
-                raise ValueError(
-                    "Duplicate controlled evaluation cell: "
-                    f"matrix_row_id={row_id}, configuration_id={configuration_id}, "
-                    f"replicate_id={replicate_id}."
-                )
-            seen_cells.add(cell)
-        passed, verdict_gaps = validated_case_verdict(trace)
-        records.append(
-            {
-                "trace": trace,
-                "row": row,
-                "passed": passed,
-                "verdict_gaps": verdict_gaps,
-                "controlled": controlled,
-                "controlled_gaps": controlled_gaps,
-                "configuration_id": configuration_id,
-                "runner_model": runner_model,
-            }
-        )
-    return records
-
-
 def _cross_model_confirmation(
     plan: Mapping[str, Any],
     records: Sequence[Mapping[str, Any]],
@@ -598,7 +338,7 @@ def case_scores(
     """Expose fixture-specific judge verdicts without replacing them with heuristics."""
 
     result: list[dict[str, Any]] = []
-    for record in _records(plan, traces):
+    for record in records_for_plan(plan, traces):
         row = record["row"]
         result.append(
             {
@@ -628,8 +368,8 @@ def analyze_pattern_evidence(
     if is_baseline_reliability_plan(plan):
         return []
 
-    records = _records(plan, traces)
-    cost_rejudge_requirement = _cost_rejudge_requirement(
+    records = records_for_plan(plan, traces)
+    cost_rejudge_requirement = cost_rejudge_coverage_requirement(
         plan, traces, cost_rejudgments
     )
     thresholds = thresholds_for_plan(plan)
