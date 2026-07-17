@@ -38,6 +38,19 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - Keep source artifacts immutable. A blind sidecar may adjudicate a narrow concern
   such as cost, but it must cover every trace and bind each source digest.
 
+## Composition checks
+
+- Test a TMCP composition packet before treating a skill pair as a behavioral
+  campaign candidate. The packet must retain the specialized source citations,
+  required reads, stop conditions, and verification gates that define the pair.
+- Treat pre-action language as negative routing evidence: “before implementing”
+  or “stop before implementation” must not activate an implementation route.
+  A route-selection probe can catch this cheaply before it contaminates a live
+  behavioral campaign.
+- A packet-level pass proves only that routing and source projection held. It
+  does not prove the pair changes agent behavior; that still requires approved
+  golden cases, fresh blind runners, and separate judges.
+
 ## Promotion rules
 
 - Report raw and adjudicated safety/cost verdicts separately. Never rewrite the

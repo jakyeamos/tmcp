@@ -71,6 +71,20 @@ class TmcpRouteCatalogTests(unittest.TestCase):
         self.assertIn("frontend_implementation", routes)
         self.assertIn("motion_interaction", routes)
 
+    def test_pre_action_implementation_language_does_not_activate_frontend_route(
+        self,
+    ) -> None:
+        objective = (
+            "Before any implementation, map the task's unknowns with the user and "
+            "stop before implementing fixes."
+        )
+
+        routes = {item["route"] for item in score_routes(objective)}
+        identity = derive_task_identity(objective)
+
+        self.assertNotIn("frontend_implementation", routes)
+        self.assertEqual(identity["primary"], "general_task")
+
     def test_intended_prefix_compounds_have_explicit_routes(self) -> None:
         cases = {
             "Rebuild the webpage.": "frontend_implementation",

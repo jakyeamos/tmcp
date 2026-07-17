@@ -55,11 +55,22 @@ class RouteDefinition:
 
 def _terms_in_text(text: str, terms: tuple[str, ...]) -> list[str]:
     lower = text.lower()
-    return [term for term in terms if _starts_at_lexical_boundary(lower, term)]
+    return [term for term in terms if _has_affirmative_term_match(lower, term)]
 
 
 def _starts_at_lexical_boundary(text: str, term: str) -> bool:
     return re.search(rf"(?<!\w){re.escape(term.lower())}", text.lower()) is not None
+
+
+def _has_affirmative_term_match(text: str, term: str) -> bool:
+    """Ignore a route term when every occurrence is explicitly pre-action."""
+
+    pattern = re.compile(rf"(?<!\w){re.escape(term.lower())}")
+    for match in pattern.finditer(text.lower()):
+        preceding = text[max(0, match.start() - 32) : match.start()]
+        if not re.search(r"\b(?:before(?:\s+any)?|without|not|never|no)\s+$", preceding):
+            return True
+    return False
 
 
 def _ui_file_boost(context: dict[str, Any]) -> tuple[float, list[str]]:
