@@ -21,11 +21,12 @@ CONFIGURATIONS = (
     ("runner-b", "high"),
     ("runner-c", "high"),
 )
+STUDY_DIR_NAME = "composition-explore-unknowns-v1" + "-2026-07-17"
 STUDY_DIR = (
     Path(__file__).resolve().parents[1]
     / "docs"
     / "evidence"
-    / "composition-explore-unknowns-v1-2026-07-17"
+    / STUDY_DIR_NAME
 )
 
 
