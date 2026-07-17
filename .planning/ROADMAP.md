@@ -77,7 +77,7 @@ outcomes while preserving deterministic compatibility.
   authority, multi-root identity, and phase-local read gaps; `a70fd04` adds
   provenance-bound manifest-first indexing, lazy block hydration, compact
   always-on context, and compatibility-safe preflight extensions. Task identity
-  hardening remains.
+  hardening remains; `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, plan preservation,
