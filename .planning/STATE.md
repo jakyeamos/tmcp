@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Restore the package-check/test source-size gate, then replace
+**Current focus:** Correct a dogfood-discovered fallback activation, then replace
 the current non-isolated context metric with verified phase capsules. Reviewed
 release evidence is content-bound; keep 0.5.7 active.
 
@@ -29,8 +29,9 @@ actual runtime receipt lineage, safe receipt projection, and direct-domain size
 limits. `6fdf9de` restores the hard domain-size gate through
 compatibility-preserving benchmark and behavior-manifest splits. Release-bound
 bundle verification is in `f688c1e`: it requires an exact replayed canonical
-bundle but remains advisory evidence. Package-check/test source-size cleanup,
-honest phase-capsule context accounting, and real host-run proof remain.
+bundle but remains advisory evidence. `338f55e` completes package-check/test
+source-size cleanup. Dogfood routing correction, honest phase-capsule context
+accounting, and real host-run proof remain.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -43,6 +44,11 @@ honest phase-capsule context accounting, and real host-run proof remain.
 
 ## Completed Scope
 
+- `338f55e` moves canonical benchmark bundle resolution/replay into a bounded
+  package helper and moves its focused tests out of the broad package suite.
+  Package behavior is unchanged; the checker and test owners are below the hard
+  source-size limits, with focused package, contract, install, and compile
+  checks passing.
 - `f688c1e` adds a Git-clean six-artifact benchmark bundle, archive exclusion,
   secret scanning, source-before-extraction package replay, exact summary/review
   binding, and adversarial release tests. The feature tests pass; the commit

@@ -98,9 +98,10 @@ outcomes while preserving deterministic compatibility.
   behind compatibility facades, restoring the hard module-size gate. `f688c1e`
   binds canonical Git-clean release evidence to six replayed artifacts, keeps
   raw host/evaluator data out of archives, and requires exact reviewed replay.
-  A package-check/test responsibility split and honest phase-capsule context
-  accounting are next. `9f26520` keeps preflight coverage below the test-size
-  gate.
+  `338f55e` moves benchmark package checks and their focused coverage behind
+  bounded owners, restoring the release source-size gate. A dogfood routing
+  correction and honest phase-capsule context accounting are next. `9f26520`
+  keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, graph-bound typed
@@ -115,4 +116,4 @@ outcomes while preserving deterministic compatibility.
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for canonical benchmark release evidence*
+*Last updated: 2026-07-17 for release-package ownership splitting*
