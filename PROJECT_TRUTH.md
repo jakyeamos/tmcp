@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `73bcfe0` shortens a test identifier that triggered the release package's high-entropy scanner.
-- Verification: 20 focused evidence tests and the prior 493-test full suite passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
+- Last completed change: `9b50778` removes the remaining high-entropy false positives from evaluator test identifiers.
+- Verification: 35 focused evaluator API tests and the prior 493-test full suite passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
 
 ## Current Position
 
@@ -17,7 +17,7 @@
 
 ## Next Step
 
-- Run the reproducible release-package and final branch gates, record the TMCP receipt, and push the completed branch.
+- Move inherited evaluator test command fixtures to pnpm, rerun the reproducible release-package and final branch gates, record the TMCP receipt, and push the completed branch.
 
 ## Blockers
 
