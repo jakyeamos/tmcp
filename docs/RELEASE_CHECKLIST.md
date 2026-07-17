@@ -17,6 +17,7 @@ Use this checklist before claiming a Tier One release.
 - [ ] Public schemas exist for skill packets, adaptive workflow packs, composed packets, runtime deltas, recompiled packets, explicit run sessions, run receipts, and promoted harvest graphs.
 - [ ] `python3 scripts/check_contracts.py .` confirms the canonical registry, manifests, installer, live MCP initialize response, and tool list agree.
 - [ ] `python3 scripts/check_install.py .` passes.
+- [ ] `tmcp --help`, `tmcp --version`, and `tmcp doctor --compact` pass from the package root.
 - [ ] Runtime-manager install, sync, doctor, parity, mismatch, and rollback tests pass.
 - [ ] Clean-copy install check passes with no hardcoded local user paths.
 - [ ] Archive creation runs from a clean Git worktree with no staged or unstaged tracked changes.
@@ -27,6 +28,7 @@ Use this checklist before claiming a Tier One release.
 ## Verification
 
 - [ ] `python3 scripts/release_package_compile.py .` passes.
+- [ ] `node --check tmcp` passes.
 - [ ] `node --check scripts/tmcp_launcher.mjs` passes.
 - [ ] `python3 -m unittest discover -s tests` passes.
 - [ ] JSON syntax check passes for plugin, MCP, marketplace, and fixtures.

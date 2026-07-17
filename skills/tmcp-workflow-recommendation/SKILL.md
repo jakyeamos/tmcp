@@ -22,7 +22,7 @@ Do not use it when the user has already chosen a workflow and wants immediate ex
 3. If MCP tools are not exposed, use the CLI from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs recommend "<source-path>" --objective "Recommend custom TMCP workflows from harvested skill signals" --write-artifacts
+tmcp recommend "<source-path>" --objective "Recommend custom TMCP workflows from harvested skill signals" --write-artifacts
 ```
 
 4. Recommend only workflows supported by harvested evidence.

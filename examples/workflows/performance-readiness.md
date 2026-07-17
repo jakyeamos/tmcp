@@ -11,7 +11,7 @@ Use this when optimization work needs measurement-first planning.
 ## CLI
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review performance risks and verification signals" \
+tmcp review-plan "Review performance risks and verification signals" \
   --project-path . \
   --write-artifacts \
   --output-dir .tmcp/performance-readiness

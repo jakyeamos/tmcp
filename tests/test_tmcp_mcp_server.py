@@ -810,6 +810,7 @@ class TmcpMcpServerTests(unittest.TestCase):
         payload = json.loads(completed.stdout)
         self.assertEqual(payload["manifest"], "pass")
         self.assertEqual(payload["mcp_launch"], "pass")
+        self.assertEqual(payload["canonical_launcher"], "pass")
 
     def test_mcp_protocol_rejects_invalid_arguments(self) -> None:
         responses = run_mcp_requests(

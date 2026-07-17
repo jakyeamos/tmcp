@@ -71,25 +71,29 @@ Stability has distinct scopes. Stable skill packages are `tmcp`, `skill-harvest`
 When MCP tools are not exposed, use the bundled launcher from the TMCP root:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor
-node scripts/tmcp_launcher.mjs status
-node scripts/tmcp_launcher.mjs compose-packet "<objective>" --project-path "<project-path>" --phase start --session-id "run-name"
-node scripts/tmcp_launcher.mjs recompile-packet "<objective>" --project-path "<project-path>" --current-phase runtime --session-id "run-name" --files-changed "app/page.tsx"
-node scripts/tmcp_launcher.mjs runtime-next "<objective>" --current-phase verification --files-changed "app/page.tsx"
-node scripts/tmcp_launcher.mjs record-receipt "<packet-id>" --activated-atoms "ui-browser-verification" --outcome passed
-node scripts/tmcp_launcher.mjs explain "<objective>" --project-path "<project-path>" --compose
-node scripts/tmcp_launcher.mjs harvest "<source-path>" --objective "Harvest reusable skill behavior"
-node scripts/tmcp_launcher.mjs recommend "<source-path>" --objective "Recommend TMCP workflows from harvested skill signals" --compose
-node scripts/tmcp_launcher.mjs promote-harvest "<source-path>" --selected-workflows "<workflow-id>"
-node scripts/tmcp_launcher.mjs review-plan "<objective>" --project-path "<project-path>" --evidence-json '<dimension-mapped JSON>'
+tmcp doctor
+tmcp status
+tmcp compose-packet "<objective>" --project-path "<project-path>" --phase start --session-id "run-name"
+tmcp recompile-packet "<objective>" --project-path "<project-path>" --current-phase runtime --session-id "run-name" --files-changed "app/page.tsx"
+tmcp runtime-next "<objective>" --current-phase verification --files-changed "app/page.tsx"
+tmcp record-receipt "<packet-id>" --activated-atoms "ui-browser-verification" --outcome passed
+tmcp explain "<objective>" --project-path "<project-path>" --compose
+tmcp harvest "<source-path>" --objective "Harvest reusable skill behavior"
+tmcp recommend "<source-path>" --objective "Recommend TMCP workflows from harvested skill signals" --compose
+tmcp promote-harvest "<source-path>" --selected-workflows "<workflow-id>"
+tmcp review-plan "<objective>" --project-path "<project-path>" --evidence-json '<dimension-mapped JSON>'
 ```
 
-With no arguments, `node scripts/tmcp_launcher.mjs` starts the MCP stdio server. If evidence is not ready, run `review-plan` without `--evidence-json`, fill the returned `evidence_contract.starter_template`, then rerun with concrete citations.
+With no arguments, `tmcp` starts the MCP stdio server. Use `./tmcp` when the
+package root is not on `PATH`. The existing `node scripts/tmcp_launcher.mjs`
+invocation remains supported for MCP configurations and compatibility scripts.
+If evidence is not ready, run `review-plan` without `--evidence-json`, fill the
+returned `evidence_contract.starter_template`, then rerun with concrete citations.
 
 Fallback order:
 
 1. Exposed MCP tools.
-2. Local `node scripts/tmcp_launcher.mjs ...` CLI. Use this path when `tool_search` returns no TMCP tools even though TMCP skills are installed; that means Codex did not expose the plugin MCP server in the current tool surface.
+2. Local `tmcp ...` CLI. Use this path when `tool_search` returns no TMCP tools even though TMCP skills are installed; that means Codex did not expose the plugin MCP server in the current tool surface.
 3. Repo or plugin launcher script discovered relative to the installed skill/plugin root.
 4. Explicit AIOS adapter only when `AIOS_ROOT` is configured and requested.
 5. Manual packet synthesis using the same output contract.
@@ -97,13 +101,13 @@ Fallback order:
 Codex discovery diagnostic:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor --client codex
-node scripts/tmcp_launcher.mjs list-tools
+tmcp doctor --client codex
+tmcp list-tools
 ```
 
 If those pass but `tool_search` still cannot find `tmcp_explain` or `expert_rubric_review_plan`, report a Codex MCP discovery gap and continue through the CLI-generated JSON/artifacts.
 
-If no launcher is found, stop with a remediation path: clone or copy TMCP, run `node scripts/tmcp_launcher.mjs doctor` from the TMCP root, and set `TMCP_PYTHON` if Python discovery fails.
+If no launcher is found, stop with a remediation path: clone or copy TMCP, run `tmcp doctor` from the TMCP root, and set `TMCP_PYTHON` if Python discovery fails.
 
 ## Safety
 

@@ -20,7 +20,7 @@ Use systematic debugging first when the failure has not been reproduced or isola
 4. If MCP tools are unavailable, run from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Create an incident postmortem packet for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
+tmcp review-plan "Create an incident postmortem packet for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
 ```
 
 ## Output Contract

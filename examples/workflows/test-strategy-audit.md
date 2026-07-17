@@ -11,7 +11,7 @@ Use this when a repo needs behavior-focused test strategy instead of low-value c
 ## CLI
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review test strategy and regression risk" \
+tmcp review-plan "Review test strategy and regression risk" \
   --project-path . \
   --write-artifacts \
   --output-dir .tmcp/test-strategy

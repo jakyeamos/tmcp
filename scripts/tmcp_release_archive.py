@@ -40,6 +40,7 @@ SHIPPED_ROOT_FILES = {
     "README.md",
     "RESEARCH_READY.md",
     "SECURITY.md",
+    "tmcp",
     "marketplace.example.json",
     "pyrightconfig.json",
 }

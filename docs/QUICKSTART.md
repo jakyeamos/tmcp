@@ -1,28 +1,30 @@
 # TMCP Quickstart
 
-TMCP should prove itself without personal paths or an AIOS setup. The canonical command is:
+TMCP should prove itself without personal paths or an AIOS setup. The canonical command is the package-root executable:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor
+tmcp doctor
 ```
 
-Run it from the TMCP repo checkout, copied plugin root, or installed plugin cache.
+Run it from the TMCP repo checkout, copied plugin root, or installed plugin cache. Use `./tmcp` when the package root is not on `PATH`.
 
 ## 1. Pick An Install Layout
 
 | Layout | How It Works |
 | --- | --- |
 | Skill-only install | Copy `skills/tmcp`; use manual packet synthesis unless a launcher is also available. |
-| Repo checkout | Run `node scripts/tmcp_launcher.mjs ...` from the checkout root. |
-| Codex plugin cache | MCP config launches relative `scripts/tmcp_launcher.mjs` from the plugin root. |
+| Repo checkout | Run `tmcp ...` from the checkout root. |
+| Codex plugin cache | Human-facing commands use `tmcp`; MCP config retains its relative compatibility launcher. |
 | AIOS-backed install | Set `AIOS_ROOT` explicitly only when optional adapter behavior is wanted. |
-| Plain MCP client | Configure command `node`, args `["scripts/tmcp_launcher.mjs"]`, and cwd as the TMCP root. |
+| Plain MCP client | Configure a stdio MCP entry with the TMCP root as its working directory. |
 
 ## 2. Run Doctor And Status
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor
-node scripts/tmcp_launcher.mjs status
+tmcp --help
+tmcp --version
+tmcp doctor
+tmcp status
 ```
 
 Expected:
@@ -32,10 +34,16 @@ Expected:
 - AIOS may be unconfigured; that is not a failure
 - artifact persistence is either available or explicitly marked limited
 
+To inspect a task without selecting an experimental workflow, use `explain`:
+
+```bash
+tmcp explain "Review this agent run" --project-path . --adapter standalone
+```
+
 ## 3. Harvest Local Skills
 
 ```bash
-node scripts/tmcp_launcher.mjs harvest ./skills \
+tmcp harvest ./skills \
   --objective "Harvest reusable skill behavior" \
   --limit 20 \
   --no-write-artifacts
@@ -53,7 +61,7 @@ Expected:
 Natural-language objective at intake:
 
 ```bash
-node scripts/tmcp_launcher.mjs compose-packet \
+tmcp compose-packet \
   "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
   --project-path "$PWD" \
   --phase start
@@ -71,13 +79,13 @@ confirm that `status` reports secure artifact persistence. Then give both calls
 the same project path and session identifier:
 
 ```bash
-node scripts/tmcp_launcher.mjs compose-packet \
+tmcp compose-packet \
   "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
   --project-path "$PWD" \
   --phase start \
   --session-id redesign-run
 
-node scripts/tmcp_launcher.mjs recompile-packet \
+tmcp recompile-packet \
   "Redesign these pages..." \
   --project-path "$PWD" \
   --current-phase runtime \
@@ -89,7 +97,7 @@ Recompile after runtime evidence changes without persistence by using the
 compatible inline-packet path:
 
 ```bash
-node scripts/tmcp_launcher.mjs recompile-packet \
+tmcp recompile-packet \
   "Redesign these pages..." \
   --current-phase runtime \
   --previous-packet '<paste prior compose JSON>' \
@@ -110,7 +118,7 @@ Record a receipt after verification only when `status` reports artifact
 persistence available:
 
 ```bash
-node scripts/tmcp_launcher.mjs record-receipt packet-abc123 \
+tmcp record-receipt packet-abc123 \
   --activated-atoms ui-browser-verification \
   --outcome passed
 ```
@@ -120,7 +128,7 @@ Reference seed template: [examples/seeds/frontend-redesign-runtime.json](../exam
 ## 5. Recommend Curated Workflows
 
 ```bash
-node scripts/tmcp_launcher.mjs recommend ./skills \
+tmcp recommend ./skills \
   --candidate-workflows release_readiness \
   --candidate-workflows developer_experience \
   --min-confidence 0.1 \
@@ -137,7 +145,7 @@ Expected:
 ## 6. Run Expert Rubric Review
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review release portability" \
+tmcp review-plan "Review release portability" \
   --project-path . \
   --evidence-json '[{"dimension_id":"source_grounding","severity":"warning","summary":"Release claims need fresh package evidence.","evidence":["python3 scripts/check_release_package.py ."],"recommended_fix":"Run and cite the release package check before publishing."}]' \
   --no-write-artifacts

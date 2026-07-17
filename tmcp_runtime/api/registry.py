@@ -130,6 +130,7 @@ CLI_COMMAND_DEFAULT_ARGUMENTS = {
 }
 
 CLI_HELP_ALIASES: Final[tuple[str, ...]] = ("help", "-h", "--help")
+CLI_VERSION_ALIASES: Final[tuple[str, ...]] = ("-V", "--version", "version")
 CLI_LIST_TOOLS_ALIASES: Final[tuple[str, ...]] = ("list-tools", "tools", "tools-list")
 CLI_CANONICAL_COMMANDS: Final[dict[str, str]] = {
     "tmcp_doctor": "doctor",
@@ -252,21 +253,22 @@ def cli_usage() -> str:
     return f"""TMCP command surface
 
 Usage:
-  node scripts/tmcp_launcher.mjs                         # start MCP stdio server
-  node scripts/tmcp_launcher.mjs list-tools
-  node scripts/tmcp_launcher.mjs {commands["tmcp_doctor"]} [--client codex]
-  node scripts/tmcp_launcher.mjs {commands["tmcp_status"]}
-  node scripts/tmcp_launcher.mjs {commands["tmcp_explain"]} \"<objective>\" [--project-path .] [--adapter auto]
-  node scripts/tmcp_launcher.mjs {commands["tmcp_harvest_skills"]} [source_path] [--objective \"...\"] [--write-artifacts --output-dir .tmcp/harvest]
-  node scripts/tmcp_launcher.mjs {commands["tmcp_evaluate_skills"]} [--skill-paths path/to/SKILL.md] [--task-fixtures '[...]'] [--write-artifacts]
-  node scripts/tmcp_launcher.mjs {commands["tmcp_recommend_workflows"]} [source_path] [--candidate-workflows ui_quality] [--write-artifacts]
-  node scripts/tmcp_launcher.mjs {commands["tmcp_promote_harvest"]} [source_path] [--selected-workflows workflow_id] [--write-artifacts]
-  node scripts/tmcp_launcher.mjs {commands["tmcp_compose_packet"]} \"<objective>\" [--project-path .] [--source-path .] [--session-id run-name --project-path /absolute/project]
-  node scripts/tmcp_launcher.mjs {commands["tmcp_runtime_next"]} \"<objective>\" [--current-phase verification] [--files-changed app/page.tsx] [--output-mode full] [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project]
-  node scripts/tmcp_launcher.mjs recompile-packet \"<objective>\" [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project] [--current-phase runtime] [--files-changed app/page.tsx]
-  node scripts/tmcp_launcher.mjs {commands["tmcp_record_receipt"]} packet-id [--activated-atoms atom] [--outcome passed]
-  node scripts/tmcp_launcher.mjs {commands["expert_rubric_review_plan"]} \"<objective>\" [--project-path .] [--evidence-json '<dimension-mapped JSON>']
-  node scripts/tmcp_launcher.mjs expert-ui-rubric [--project-path .] [--evidence-json '<dimension-mapped JSON>']
+  tmcp                                                    # start MCP stdio server
+  tmcp --version
+  tmcp list-tools
+  tmcp {commands["tmcp_doctor"]} [--client codex]
+  tmcp {commands["tmcp_status"]}
+  tmcp {commands["tmcp_explain"]} \"<objective>\" [--project-path .] [--adapter auto]
+  tmcp {commands["tmcp_harvest_skills"]} [source_path] [--objective \"...\"] [--write-artifacts --output-dir .tmcp/harvest]
+  tmcp {commands["tmcp_evaluate_skills"]} [--skill-paths path/to/SKILL.md] [--task-fixtures '[...]'] [--write-artifacts]
+  tmcp {commands["tmcp_recommend_workflows"]} [source_path] [--candidate-workflows ui_quality] [--write-artifacts]
+  tmcp {commands["tmcp_promote_harvest"]} [source_path] [--selected-workflows workflow_id] [--write-artifacts]
+  tmcp {commands["tmcp_compose_packet"]} \"<objective>\" [--project-path .] [--source-path .] [--session-id run-name --project-path /absolute/project]
+  tmcp {commands["tmcp_runtime_next"]} \"<objective>\" [--current-phase verification] [--files-changed app/page.tsx] [--output-mode full] [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project]
+  tmcp recompile-packet \"<objective>\" [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project] [--current-phase runtime] [--files-changed app/page.tsx]
+  tmcp {commands["tmcp_record_receipt"]} packet-id [--activated-atoms atom] [--outcome passed]
+  tmcp {commands["expert_rubric_review_plan"]} \"<objective>\" [--project-path .] [--evidence-json '<dimension-mapped JSON>']
+  tmcp expert-ui-rubric [--project-path .] [--evidence-json '<dimension-mapped JSON>']
 
 Options:
   --key value             Set a tool argument. Kebab-case maps to snake_case.
@@ -274,6 +276,7 @@ Options:
   --no-flag               Set a boolean false argument.
   --compact               Print compact JSON.
   --help                  Show this help.
+  --version               Show the TMCP release version.
 
 Argument values that look like JSON objects, arrays, numbers, true, false, or null are decoded.
 Repeat an option to send a list, for example --include-globs \"**/SKILL.md\" --include-globs \"**/AGENTS.md\".

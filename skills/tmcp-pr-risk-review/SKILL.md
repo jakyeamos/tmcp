@@ -20,7 +20,7 @@ Do not use it as a replacement for normal code review findings; use it to struct
 4. If MCP tools are unavailable, run from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review PR risk and merge readiness for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
+tmcp review-plan "Review PR risk and merge readiness for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
 ```
 
 ## Output Contract

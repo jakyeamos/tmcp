@@ -20,7 +20,7 @@ Do not use it for immediate implementation unless the user has already approved 
 4. If MCP tools are unavailable, run from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review this architecture decision for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
+tmcp review-plan "Review this architecture decision for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
 ```
 
 ## Output Contract

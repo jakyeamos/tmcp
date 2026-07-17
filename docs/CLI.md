@@ -3,10 +3,18 @@
 The canonical portable launcher is:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor
+tmcp doctor
 ```
 
-Use the Node launcher everywhere so Python discovery remains cross-platform. With no arguments, it starts the MCP stdio server. With arguments, it invokes the same implementations exposed through MCP tools and prints JSON. Launcher portability is separate from durable artifact persistence; see [Compatibility](COMPATIBILITY.md#secure-artifact-persistence).
+Use the package-root `tmcp` executable (or `./tmcp` when the root is not on
+`PATH`) so Python discovery remains cross-platform. With no arguments, it starts
+the MCP stdio server. With arguments, it invokes the same implementations
+exposed through MCP tools and prints JSON. Launcher portability is separate from
+durable artifact persistence; see [Compatibility](COMPATIBILITY.md#secure-artifact-persistence).
+
+`node scripts/tmcp_launcher.mjs` remains supported for existing MCP
+configurations and compatibility scripts; new human-facing commands should use
+`tmcp`.
 
 ## Commands
 
@@ -15,20 +23,22 @@ fails closed on portable-only hosts because a receipt is itself a durable
 artifact.
 
 ```bash
-node scripts/tmcp_launcher.mjs list-tools
-node scripts/tmcp_launcher.mjs doctor
-node scripts/tmcp_launcher.mjs status
-node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --adapter standalone
-node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --compose
-node scripts/tmcp_launcher.mjs compose-packet "Fix the dashboard UI bug" --project-path "$PWD" --phase start --session-id dashboard-run
-node scripts/tmcp_launcher.mjs runtime-next "Fix the dashboard UI bug" --current-phase verification --files-changed app/page.tsx --failures "vitest failed"
-node scripts/tmcp_launcher.mjs recompile-packet "Fix the dashboard UI bug" --project-path "$PWD" --session-id dashboard-run --current-phase runtime
-node scripts/tmcp_launcher.mjs record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
-node scripts/tmcp_launcher.mjs harvest . --objective "Harvest reusable project workflow behavior" --limit 40
-node scripts/tmcp_launcher.mjs evaluate-skills --skill-paths path/to/SKILL.md --task-fixtures '[...]'
-node scripts/tmcp_launcher.mjs recommend . --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose
-node scripts/tmcp_launcher.mjs promote-harvest . --selected-workflows release_readiness_workflow --output-dir .tmcp/promoted-harvests/release-readiness
-node scripts/tmcp_launcher.mjs review-plan "Review release portability" --project-path . --evidence-json '[{"dimension_id":"source_grounding","severity":"warning","summary":"Release claims need fresh package evidence.","evidence":["python3 scripts/check_release_package.py ."],"recommended_fix":"Run and cite the release package check before publishing."}]'
+tmcp --help
+tmcp --version
+tmcp list-tools
+tmcp doctor
+tmcp status
+tmcp explain "Review developer onboarding commands" --project-path . --adapter standalone
+tmcp explain "Review developer onboarding commands" --project-path . --compose
+tmcp compose-packet "Fix the dashboard UI bug" --project-path "$PWD" --phase start --session-id dashboard-run
+tmcp runtime-next "Fix the dashboard UI bug" --current-phase verification --files-changed app/page.tsx --failures "vitest failed"
+tmcp recompile-packet "Fix the dashboard UI bug" --project-path "$PWD" --session-id dashboard-run --current-phase runtime
+tmcp record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
+tmcp harvest . --objective "Harvest reusable project workflow behavior" --limit 40
+tmcp evaluate-skills --skill-paths path/to/SKILL.md --task-fixtures '[...]'
+tmcp recommend . --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose
+tmcp promote-harvest . --selected-workflows release_readiness_workflow --output-dir .tmcp/promoted-harvests/release-readiness
+tmcp review-plan "Review release portability" --project-path . --evidence-json '[{"dimension_id":"source_grounding","severity":"warning","summary":"Release claims need fresh package evidence.","evidence":["python3 scripts/check_release_package.py ."],"recommended_fix":"Run and cite the release package check before publishing."}]'
 ```
 
 ## Composable Packets
@@ -65,8 +75,8 @@ or create packet sessions.
 Experimental workflows remain callable through existing aliases and `candidate_workflows`, for example:
 
 ```bash
-node scripts/tmcp_launcher.mjs recommend . --candidate-workflows agent_handoff --min-confidence 0.1
-node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path .
+tmcp recommend . --candidate-workflows agent_handoff --min-confidence 0.1
+tmcp expert-ui-rubric --project-path .
 ```
 
 Running a review without `--evidence-json` returns `evidence_contract.starter_template`; fill it with concrete citations and rerun before expecting scored findings.
@@ -99,7 +109,7 @@ for the live MCP schema surface.
 ## Fallback Order
 
 1. Exposed MCP tools.
-2. Local `node scripts/tmcp_launcher.mjs ...` CLI. Use this when `tool_search` returns no TMCP tools even though TMCP skills are installed.
+2. Local `tmcp ...` CLI. Use this when `tool_search` returns no TMCP tools even though TMCP skills are installed.
 3. Repo or plugin launcher script discovered relative to the installed skill/plugin root.
 4. Explicit AIOS adapter only when `AIOS_ROOT` is configured and requested.
 5. Manual packet synthesis using the same output contract.
@@ -107,13 +117,13 @@ for the live MCP schema surface.
 For Codex discovery issues, run:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor --client codex
-node scripts/tmcp_launcher.mjs list-tools
+tmcp doctor --client codex
+tmcp list-tools
 ```
 
 If those pass but Codex still cannot find `tmcp_explain` or `expert_rubric_review_plan` through `tool_search`, report a Codex MCP discovery gap and continue through CLI-generated JSON/artifacts.
 
-If no launcher is found, clone or copy TMCP, run `node scripts/tmcp_launcher.mjs doctor` from the TMCP root, and set `TMCP_PYTHON` if Python discovery fails.
+If no launcher is found, clone or copy TMCP, run `tmcp doctor` from the TMCP root, and set `TMCP_PYTHON` if Python discovery fails.
 
 ## Output Contract
 

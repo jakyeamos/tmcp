@@ -10,6 +10,7 @@ from tmcp_runtime.api.registry import (
     CLI_COMMAND_DEFAULT_ARGUMENTS,
     CLI_HELP_ALIASES,
     CLI_LIST_TOOLS_ALIASES,
+    CLI_VERSION_ALIASES,
     CLI_TOOL_ALIASES,
 )
 from tmcp_runtime.api.tool_schemas import TOOLS
@@ -51,6 +52,8 @@ def parse_cli_arguments(argv: list[str]) -> tuple[str, dict[str, Any], bool]:
         return "help", {}, False
     if argv[0] in CLI_LIST_TOOLS_ALIASES:
         return "list-tools", {}, False
+    if argv[0] in CLI_VERSION_ALIASES:
+        return "version", {}, False
 
     command = argv[0]
     tool_name = CLI_TOOL_ALIASES.get(command)

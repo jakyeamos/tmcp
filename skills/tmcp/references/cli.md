@@ -3,7 +3,7 @@
 The canonical portable launcher is:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor --client codex
+tmcp doctor --client codex
 ```
 
 Run it from a TMCP repo checkout, copied plugin root, or installed plugin cache. With no arguments, the same launcher starts the MCP stdio server.
@@ -11,17 +11,17 @@ Run it from a TMCP repo checkout, copied plugin root, or installed plugin cache.
 ## Common Commands
 
 ```bash
-node scripts/tmcp_launcher.mjs list-tools
-node scripts/tmcp_launcher.mjs doctor
-node scripts/tmcp_launcher.mjs status
-node scripts/tmcp_launcher.mjs compose-packet "<objective>" --project-path "<project-path>" --phase start --session-id "run-name"
-node scripts/tmcp_launcher.mjs recompile-packet "<objective>" --project-path "<project-path>" --current-phase runtime --session-id "run-name"
-node scripts/tmcp_launcher.mjs runtime-next "<objective>" --current-phase verification --files-changed "app/page.tsx"
-node scripts/tmcp_launcher.mjs record-receipt "<packet-id>" --activated-atoms "ui-browser-verification" --outcome passed
-node scripts/tmcp_launcher.mjs explain "<objective>" --project-path "<project-path>" --compose
-node scripts/tmcp_launcher.mjs harvest "<source-path>" --objective "Harvest reusable skill behavior"
-node scripts/tmcp_launcher.mjs recommend "<source-path>" --objective "Recommend TMCP workflows from harvested skill signals" --compose
-node scripts/tmcp_launcher.mjs review-plan "<objective>" --project-path "<project-path>" --evidence-json '<dimension-mapped JSON>'
+tmcp list-tools
+tmcp doctor
+tmcp status
+tmcp compose-packet "<objective>" --project-path "<project-path>" --phase start --session-id "run-name"
+tmcp recompile-packet "<objective>" --project-path "<project-path>" --current-phase runtime --session-id "run-name"
+tmcp runtime-next "<objective>" --current-phase verification --files-changed "app/page.tsx"
+tmcp record-receipt "<packet-id>" --activated-atoms "ui-browser-verification" --outcome passed
+tmcp explain "<objective>" --project-path "<project-path>" --compose
+tmcp harvest "<source-path>" --objective "Harvest reusable skill behavior"
+tmcp recommend "<source-path>" --objective "Recommend TMCP workflows from harvested skill signals" --compose
+tmcp review-plan "<objective>" --project-path "<project-path>" --evidence-json '<dimension-mapped JSON>'
 ```
 
 ## Composition Commands
@@ -43,7 +43,7 @@ with `previous_packet`, and has no history or global lookup. Keep the inline
 ## Fallback Order
 
 1. Exposed MCP tools.
-2. Local `node scripts/tmcp_launcher.mjs ...` CLI. Use this when `tool_search` returns no TMCP tools even though TMCP skills are installed.
+2. Local `tmcp ...` CLI. Use this when `tool_search` returns no TMCP tools even though TMCP skills are installed.
 3. Repo or plugin launcher script discovered relative to the installed skill/plugin root.
 4. Explicit AIOS adapter only when `AIOS_ROOT` is configured and requested.
 5. Manual packet synthesis using the same output contract.
@@ -51,17 +51,17 @@ with `previous_packet`, and has no history or global lookup. Keep the inline
 Codex discovery diagnostic:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor --client codex
-node scripts/tmcp_launcher.mjs list-tools
+tmcp doctor --client codex
+tmcp list-tools
 ```
 
 If those commands pass but Codex still cannot find `tmcp_explain` or `expert_rubric_review_plan` through `tool_search`, report a Codex MCP discovery gap and continue through CLI-generated JSON/artifacts.
 
-If no launcher is found, report: clone or copy TMCP, run `node scripts/tmcp_launcher.mjs doctor` from the TMCP root, and set `TMCP_PYTHON` if Python discovery fails.
+If no launcher is found, report: clone or copy TMCP, run `tmcp doctor` from the TMCP root, and set `TMCP_PYTHON` if Python discovery fails.
 
 ## Install Layouts
 
 - Skill-only install: use the skill text for routing and manual packet synthesis unless the host also exposes the bundled plugin root.
 - Repo checkout: run commands from the checkout root.
-- Codex plugin cache: run commands from the installed plugin root; MCP config should use relative `scripts/tmcp_launcher.mjs`.
+- Codex plugin cache: run commands from the installed plugin root with `tmcp`; MCP config should use its relative compatibility launcher.
 - AIOS-backed install: configure `AIOS_ROOT` explicitly and use `--adapter aios` only when the user wants the adapter.

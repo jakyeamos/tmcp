@@ -19,7 +19,7 @@ Do not use it for normal test failures or active debugging unless the user asks 
 3. If MCP tools are not exposed, use the CLI from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review release readiness for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
+tmcp review-plan "Review release readiness for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
 ```
 
 4. Treat missing evidence as a finding, not as permission to assume readiness.

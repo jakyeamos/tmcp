@@ -29,7 +29,10 @@ def build_doctor_report(
         {
             "id": "node_launcher",
             "status": "pass" if node_launcher_exists else "fail",
-            "detail": "scripts/tmcp_launcher.mjs",
+            "detail": (
+                "tmcp (package-root executable); scripts/tmcp_launcher.mjs remains "
+                "the compatibility path."
+            ),
         },
         {
             "id": "node_runtime",
@@ -72,16 +75,14 @@ def build_doctor_report(
             "Copy skills/tmcp into a skills directory. Use manual packet synthesis "
             "unless the host also exposes this package's launcher."
         ),
-        "repo_checkout": (
-            "Clone TMCP and run node scripts/tmcp_launcher.mjs doctor from the repo root."
-        ),
+        "repo_checkout": ("Clone TMCP and run tmcp doctor from the repo root."),
         "codex_plugin_cache": (
-            "Install as a Codex plugin; MCP config should launch relative "
-            "scripts/tmcp_launcher.mjs from the plugin root."
+            "Install as a Codex plugin and run tmcp from the plugin root; MCP config "
+            "retains its relative compatibility launcher."
         ),
         "claude_code": "Run: claude plugin marketplace add jakyeamos/tmcp && claude plugin install tmcp@tmcp",
-        "claude_desktop": "Add the node launcher as a local stdio MCP server in claude_desktop_config.json.",
-        "plain_mcp": "Use command node with args [scripts/tmcp_launcher.mjs] and cwd set to the TMCP repo.",
+        "claude_desktop": "Add the package-root tmcp executable as a local stdio MCP server in claude_desktop_config.json.",
+        "plain_mcp": "Use the package-root tmcp executable for CLI checks and configure the host's stdio MCP entry from the package root.",
         "aios_backed": (
             "Set AIOS_ROOT explicitly only when you want optional AIOS storage/adapter behavior."
         ),
@@ -97,8 +98,8 @@ def build_doctor_report(
             "expert_rubric_review_plan returns no TMCP tools."
         ),
         "verify_launcher": [
-            "node scripts/tmcp_launcher.mjs doctor --client codex",
-            "node scripts/tmcp_launcher.mjs list-tools",
+            "tmcp doctor --client codex",
+            "tmcp list-tools",
         ],
         "codex_mcp_config": {
             "mcp_servers": {
@@ -110,8 +111,8 @@ def build_doctor_report(
             }
         },
         "fallback": (
-            "Run the equivalent node scripts/tmcp_launcher.mjs CLI command from "
-            "the TMCP plugin root, then cite the generated JSON/artifacts in the "
+            "Run the equivalent tmcp CLI command from the TMCP plugin root, then "
+            "cite the generated JSON/artifacts in the "
             "agent response."
         ),
     }
@@ -136,7 +137,7 @@ def build_doctor_report(
         ),
         "missing_launcher_remediation": (
             "If no MCP tool, local CLI, repo/plugin launcher, or AIOS adapter is available, "
-            "clone or copy TMCP, run node scripts/tmcp_launcher.mjs doctor from the TMCP root, "
+            "clone or copy TMCP, run tmcp doctor from the TMCP root, "
             "and set TMCP_PYTHON if Python discovery fails. Until then, synthesize packets "
             "manually using sources inspected, skipped sources, packet summary, behavior atoms, "
             "evidence gaps, recommendation/remediation, and verification expectations."

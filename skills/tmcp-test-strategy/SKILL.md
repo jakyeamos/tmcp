@@ -20,7 +20,7 @@ Do not use it to debug a failing test unless the user asks for a test strategy o
 4. If MCP tools are unavailable, run from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review test strategy and regression risk for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
+tmcp review-plan "Review test strategy and regression risk for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
 ```
 
 ## Output Contract

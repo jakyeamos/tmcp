@@ -837,7 +837,10 @@ def _tool_doctor(arguments: dict[str, Any]) -> dict[str, Any]:
         client,
         redact_path(plugin_root),
         plugin_root_exists=plugin_root.exists(),
-        node_launcher_exists=(plugin_root / "scripts" / "tmcp_launcher.mjs").exists(),
+        node_launcher_exists=(
+            (plugin_root / "tmcp").exists()
+            or (plugin_root / "scripts" / "tmcp_launcher.mjs").exists()
+        ),
         node_available=bool(shutil.which("node")),
         python_server_exists=(plugin_root / "scripts" / "tmcp_mcp_server.py").exists(),
         python_available=bool(

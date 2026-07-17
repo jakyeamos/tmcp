@@ -19,7 +19,7 @@ Do not use it for active bug debugging unless the user asks for an audit or reme
 3. If MCP tools are not exposed, use the CLI from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review developer experience and onboarding for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
+tmcp review-plan "Review developer experience and onboarding for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
 ```
 
 4. Treat missing setup or verification evidence as an audit finding.

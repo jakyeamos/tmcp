@@ -11,7 +11,7 @@ Use this when correctness depends on schemas, migrations, pipelines, invariants,
 ## CLI
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review data integrity, migrations, and pipeline correctness" \
+tmcp review-plan "Review data integrity, migrations, and pipeline correctness" \
   --project-path . \
   --write-artifacts \
   --output-dir .tmcp/data-integrity

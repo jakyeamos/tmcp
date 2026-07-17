@@ -19,7 +19,7 @@ Produce a verified behavior specification for the current repo. The spreadsheet 
 ## CLI
 
 ```bash
-node scripts/tmcp_launcher.mjs recommend . \
+tmcp recommend . \
   --candidate-workflows repo_behavior_spec_loop \
   --min-confidence 0.1 \
   --write-artifacts \

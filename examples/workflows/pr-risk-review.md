@@ -11,7 +11,7 @@ Use this when a PR or branch needs risk-oriented merge readiness beyond normal c
 ## CLI
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review PR risk and merge readiness" \
+tmcp review-plan "Review PR risk and merge readiness" \
   --project-path . \
   --write-artifacts \
   --output-dir .tmcp/pr-risk-review

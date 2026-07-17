@@ -11,7 +11,7 @@ Use this when a project needs an ADR-style decision packet before implementation
 ## CLI
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review this architecture decision" \
+tmcp review-plan "Review this architecture decision" \
   --project-path . \
   --write-artifacts \
   --output-dir .tmcp/architecture-decision

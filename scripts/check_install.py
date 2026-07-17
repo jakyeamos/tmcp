@@ -19,6 +19,7 @@ from tmcp_runtime.api.registry import PUBLIC_TOOL_NAMES  # noqa: E402
 
 
 REQUIRED_FILES = (
+    "tmcp",
     ".codex-plugin/plugin.json",
     ".mcp.json",
     "examples/workflows/adaptive-workflow-pack.md",
@@ -239,6 +240,37 @@ def check_mcp_launch(plugin_root: Path) -> tuple[bool, str]:
     return True, "MCP tools/list passed without AIOS"
 
 
+def check_canonical_launcher(plugin_root: Path) -> tuple[bool, str]:
+    launcher = plugin_root / "tmcp"
+    if not launcher.is_file():
+        return False, "canonical tmcp launcher is missing"
+    if not (launcher.stat().st_mode & 0o111):
+        return False, "canonical tmcp launcher is not executable"
+    env = os.environ.copy()
+    env["AIOS_ROOT"] = "/tmp/tmcp-aios-missing"
+    completed = subprocess.run(
+        ["./tmcp", "doctor", "--compact"],
+        cwd=plugin_root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+        text=True,
+        check=False,
+        timeout=30,
+    )
+    if completed.returncode != 0:
+        return False, completed.stderr or completed.stdout
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        return False, f"canonical launcher returned invalid JSON: {exc}"
+    if not isinstance(payload, dict):
+        return False, "canonical launcher doctor output must be an object"
+    if payload.get("schema") != "tmcp-doctor-v0.1":
+        return False, f"unexpected canonical doctor schema: {payload.get('schema')}"
+    return True, "canonical tmcp launcher passed doctor smoke"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check TMCP plugin install shape.")
     parser.add_argument(
@@ -248,16 +280,24 @@ def main() -> int:
     plugin_root = Path(args.plugin_root).expanduser().resolve()
     errors = check_plugin_root(plugin_root)
     ok, message = check_mcp_launch(plugin_root) if not errors else (False, "")
+    canonical_ok, canonical_message = (
+        check_canonical_launcher(plugin_root) if not errors else (False, "")
+    )
     result = {
         "schema": "tmcp-install-check-v0.1",
         "plugin_root": str(plugin_root),
         "manifest": "pass" if not errors else "fail",
         "mcp_launch": "pass" if ok else "fail",
-        "message": message,
+        "canonical_launcher": "pass" if canonical_ok else "fail",
+        "message": "; ".join(
+            message_part
+            for message_part in (message, canonical_message)
+            if message_part
+        ),
         "errors": errors,
     }
     print(json.dumps(result, indent=2, sort_keys=True))
-    return 0 if not errors and ok else 1
+    return 0 if not errors and ok and canonical_ok else 1
 
 
 if __name__ == "__main__":

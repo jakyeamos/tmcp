@@ -22,7 +22,7 @@ Do not use it as a substitute for exploit development or invasive testing. Keep 
 3. If MCP tools are not exposed, use the CLI from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review security and privacy readiness for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
+tmcp review-plan "Review security and privacy readiness for <project>" --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
 ```
 
 4. Preserve redaction summaries and report evidence gaps explicitly.

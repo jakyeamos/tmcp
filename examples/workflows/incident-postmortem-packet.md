@@ -11,7 +11,7 @@ Use this after a failure has enough evidence to turn debugging results into dura
 ## CLI
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Create an incident postmortem packet" \
+tmcp review-plan "Create an incident postmortem packet" \
   --project-path . \
   --write-artifacts \
   --output-dir .tmcp/incident-postmortem

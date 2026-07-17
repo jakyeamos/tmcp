@@ -3,14 +3,14 @@
 TMCP must work from a fresh checkout or copied package without user-specific paths. The canonical first command is:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor
+tmcp doctor
 ```
 
 ## Supported Layouts
 
 - Skill-only install: copy `skills/tmcp`; use manual packet synthesis unless the host also exposes this package's launcher.
 - Repo checkout: clone TMCP and run commands from the checkout root.
-- Codex plugin cache: install as a Codex plugin; MCP config launches `scripts/tmcp_launcher.mjs` relative to the plugin root.
+- Codex plugin cache: install as a Codex plugin; use the package-root `tmcp` executable for human-facing commands. MCP config retains its relative compatibility launcher.
 - Central local runtime: install a verified archive into `~/.tmcp/runtime/versions/<release>` and activate it through `scripts/tmcp_runtime.mjs`; generated Codex/Claude caches and compatibility aliases must be parity-checked.
 - AIOS-backed install: set `AIOS_ROOT` explicitly only when optional AIOS adapter behavior is wanted.
 
@@ -25,7 +25,7 @@ python3 scripts/check_install.py .
 Expected:
 
 - `.codex-plugin/plugin.json` points to `./.mcp.json`
-- `.mcp.json` declares stdio MCP and launches `node scripts/tmcp_launcher.mjs` with `cwd` set to `.`
+- `.mcp.json` declares stdio MCP and retains the relative compatibility launcher with `cwd` set to `.`
 - MCP `tools/list` succeeds with AIOS unavailable
 
 ## Release Package Build
@@ -44,14 +44,20 @@ without its Git source revision.
 ## First-Run Smoke Test
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor --client codex
-node scripts/tmcp_launcher.mjs status
-node scripts/tmcp_launcher.mjs list-tools
+tmcp --help
+tmcp --version
+tmcp doctor --client codex
+tmcp status
+tmcp list-tools
 node scripts/tmcp_runtime.mjs status --runtime-home "$HOME/.tmcp/runtime"
 node scripts/tmcp_runtime.mjs doctor --runtime-home "$HOME/.tmcp/runtime"
 ```
 
 Standalone mode should be available even when AIOS is not configured.
+
+Invoking `tmcp` with no arguments starts the MCP stdio server. Existing MCP
+configurations may continue to launch `node scripts/tmcp_launcher.mjs`; that
+compatibility path is preserved.
 
 The launcher can be available even when secure local artifact persistence is
 not. Check `doctor` or `status` before a workflow that writes artifacts, and

@@ -21,7 +21,7 @@ This is a discovery and packet-compilation workflow. Do not use it for direct fe
 3. If MCP tools are not exposed, use the CLI from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs harvest "<source-path>" --objective "Harvest reusable skill behavior" --write-artifacts
+tmcp harvest "<source-path>" --objective "Harvest reusable skill behavior" --write-artifacts
 ```
 
 4. Preserve redaction behavior and report warnings as evidence, including any `skill_eval_advisories` surfaced by the evaluation anti-pattern catalog.

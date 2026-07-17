@@ -58,6 +58,7 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
         (package / "scripts" / "tmcp_launcher.mjs").write_text(
             f"console.log({marker!r});\n", encoding="utf-8"
         )
+        (package / "tmcp").write_text(f"console.log({marker!r});\n", encoding="utf-8")
         (package / "skills" / "tmcp" / "SKILL.md").write_text(
             f"# TMCP {version} {marker}\n", encoding="utf-8"
         )
@@ -515,6 +516,30 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
             )
 
             self.assertEqual(installed["version"], "0.5.3")
+
+    def test_legacy_runtime_without_root_launcher_uses_compatibility_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            runtime_home = root / "runtime"
+            package = self.make_package(root, "0.5.3", "legacy-launcher")
+            (package / "tmcp").unlink()
+
+            self.run_manager(
+                "install",
+                "--source",
+                str(package),
+                "--runtime-home",
+                str(runtime_home),
+                "--activate",
+            )
+            run_result = self.run_manager_process(
+                "run",
+                "--runtime-home",
+                str(runtime_home),
+            )
+
+            self.assertEqual(run_result.returncode, 0, run_result.stderr)
+            self.assertIn("legacy-launcher", run_result.stdout)
 
     def test_corrupt_state_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

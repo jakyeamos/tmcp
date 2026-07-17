@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import ast
+import io
 import json
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from typing import cast
 
 from tests import test_tmcp_mcp_server as helpers
+from scripts.tmcp_mcp_framing import encode_message, read_message
 from tests.tmcp_test_client import TestWorkspace
 from tmcp_runtime.api import cli
 
@@ -85,6 +88,70 @@ class TmcpMcpCliTests(unittest.TestCase):
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("TMCP command surface", completed.stdout)
+
+    def test_canonical_launcher_help_and_version(self) -> None:
+        with TestWorkspace() as workspace:
+            help_completed = subprocess.run(
+                ["./tmcp", "--help"],
+                cwd=PLUGIN_ROOT,
+                env=workspace.environment(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            version_completed = subprocess.run(
+                ["./tmcp", "--version"],
+                cwd=PLUGIN_ROOT,
+                env=workspace.environment(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            status_completed = subprocess.run(
+                ["./tmcp", "status", "--compact"],
+                cwd=PLUGIN_ROOT,
+                env=workspace.environment(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+
+        self.assertEqual(help_completed.returncode, 0, help_completed.stderr)
+        self.assertIn("tmcp doctor", help_completed.stdout)
+        self.assertIn("tmcp --version", help_completed.stdout)
+        self.assertEqual(version_completed.returncode, 0, version_completed.stderr)
+        self.assertEqual(version_completed.stdout.strip(), "0.5.7")
+        self.assertEqual(status_completed.returncode, 0, status_completed.stderr)
+        self.assertEqual(
+            json.loads(status_completed.stdout)["schema"], "tmcp-status-v0.1"
+        )
+
+    def test_canonical_launcher_defaults_to_mcp_stdio(self) -> None:
+        request = encode_message(
+            {"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}
+        )
+        with TestWorkspace() as workspace:
+            completed = subprocess.run(
+                ["./tmcp"],
+                cwd=PLUGIN_ROOT,
+                env=workspace.environment(),
+                input=request,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+                timeout=30,
+            )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr.decode())
+        response = read_message(io.BytesIO(completed.stdout))
+        self.assertIsInstance(response, dict)
+        response_map = cast(dict[str, object], response)
+        result = cast(dict[str, object], response_map["result"])
+        tools = cast(list[dict[str, object]], result["tools"])
+        self.assertIn("tmcp_status", {tool["name"] for tool in tools})
 
     def test_launcher_cli_status_calls_tool_directly(self) -> None:
         with TestWorkspace() as workspace:

@@ -334,8 +334,17 @@ async function validateInstalled(home, version) {
   const skillRoot = path.join(packageRoot, "skills");
   const skillDigest = await treeDigest(skillRoot);
   if (skillDigest.sha256 !== manifest.skills_sha256) fail(`runtime skill digest mismatch for ${version}`);
-  await fs.access(path.join(packageRoot, "scripts", "tmcp_launcher.mjs"));
-  return { packageRoot, metadata, manifest, digest, skillDigest };
+  const compatibilityLauncher = path.join(packageRoot, "scripts", "tmcp_launcher.mjs");
+  await fs.access(compatibilityLauncher);
+  const canonicalLauncher = path.join(packageRoot, "tmcp");
+  let launcher = compatibilityLauncher;
+  try {
+    await fs.access(canonicalLauncher);
+    launcher = canonicalLauncher;
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  return { packageRoot, metadata, manifest, digest, skillDigest, launcher };
 }
 
 async function removeExistingLink(target) {
@@ -403,7 +412,7 @@ async function install(options) {
         file_count: digest.file_count,
         skills_sha256: skillsDigest.sha256,
         installed_at: new Date().toISOString(),
-        launcher: "scripts/tmcp_launcher.mjs",
+        launcher: "tmcp",
       };
       const versionRoot = path.join(home, "versions", metadata.release);
       await fs.mkdir(path.dirname(versionRoot), { recursive: true });
@@ -779,7 +788,7 @@ async function runActive(options, passthrough) {
   const state = await loadState(home);
   if (!state.active_version) fail("run requires an active runtime version");
   const active = await validateInstalled(home, state.active_version);
-  const child = spawn(process.execPath, [path.join(active.packageRoot, "scripts", "tmcp_launcher.mjs"), ...passthrough], {
+  const child = spawn(process.execPath, [active.launcher, ...passthrough], {
     stdio: "inherit",
     env: { ...process.env, TMCP_RUNTIME_VERSION: active.metadata.release },
   });

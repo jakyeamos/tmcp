@@ -21,7 +21,7 @@ This is TMCP's broad adaptive workflow. It treats fixed workflows as templates, 
 5. If MCP tools are unavailable, run from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs recommend "<source-path>" --objective "Build an adaptive TMCP workflow pack from harvested skill signals" --write-artifacts
+tmcp recommend "<source-path>" --objective "Build an adaptive TMCP workflow pack from harvested skill signals" --write-artifacts
 ```
 
 ## Output Contract

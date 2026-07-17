@@ -513,7 +513,7 @@ Tool names remain stable:
 ### 1. Intake compile
 
 ```bash
-node scripts/tmcp_launcher.mjs compose-packet \
+tmcp compose-packet \
   "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
   --project-path "$PWD" --phase start --session-id redesign-run
 ```
@@ -533,7 +533,7 @@ Agent reads pages, finds React + design system.
 ### 3. Mid-run recompile
 
 ```bash
-node scripts/tmcp_launcher.mjs runtime-next \
+tmcp runtime-next \
   "Redesign these pages..." \
   --project-path "$PWD" \
   --current-phase runtime \
@@ -552,7 +552,7 @@ Expected:
 ### 4. Receipt
 
 ```bash
-node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
+tmcp record-receipt packet-def456 \
   --activated-atoms "ui-implementation,ui-browser-verification" \
   --outcome passed
 ```

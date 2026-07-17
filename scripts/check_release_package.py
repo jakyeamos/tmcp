@@ -64,6 +64,7 @@ EXPERIMENTAL_SKILLS = {
 PACKAGE_CHECK_NAMES = (
     "archive_manifest",
     "install_check",
+    "canonical_launcher",
     "tests",
     "compile",
     "launcher_syntax",
@@ -194,7 +195,7 @@ def iter_shipped_text_files(plugin_root: Path) -> list[Path]:
         for path in sorted(plugin_root.rglob("*"))
         if path.is_file()
         and should_include(path.relative_to(plugin_root))
-        and path.suffix in suffixes
+        and (path.suffix in suffixes or path.name == "tmcp")
     ]
 
 
@@ -261,6 +262,39 @@ def check_doctor_surface(plugin_root: Path) -> tuple[bool, str]:
         if key not in install_paths:
             return False, f"doctor output missing install layout {key}"
     return True, output
+
+
+def check_canonical_launcher(plugin_root: Path) -> tuple[bool, str]:
+    help_ok, help_output = run(["./tmcp", "--help"], plugin_root)
+    if not help_ok:
+        return False, help_output
+    if "tmcp --version" not in help_output:
+        return False, "canonical launcher help does not advertise --version"
+    version_ok, version_output = run(["./tmcp", "--version"], plugin_root)
+    if not version_ok:
+        return False, version_output
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version_output.strip()):
+        return False, f"canonical launcher returned invalid version: {version_output}"
+    status_ok, status_output, status_payload = run_json(
+        ["./tmcp", "status", "--compact"],
+        plugin_root,
+    )
+    if not status_ok or status_payload is None:
+        return False, status_output
+    if status_payload.get("schema") != "tmcp-status-v0.1":
+        return (
+            False,
+            f"unexpected canonical status schema: {status_payload.get('schema')}",
+        )
+    doctor_ok, doctor_output, payload = run_json(
+        ["./tmcp", "doctor", "--compact"],
+        plugin_root,
+    )
+    if not doctor_ok or payload is None:
+        return False, doctor_output
+    if payload.get("schema") != "tmcp-doctor-v0.1":
+        return False, f"unexpected canonical doctor schema: {payload.get('schema')}"
+    return True, help_output + version_output + status_output + doctor_output
 
 
 def check_sample_harvest(plugin_root: Path) -> tuple[bool, str]:
@@ -431,10 +465,22 @@ def check_package(package_path: Path) -> dict[str, Any]:
             plugin_root,
             package_env,
         )
-        launcher_ok, launcher_output = run(
+        compatibility_launcher_ok, compatibility_launcher_output = run(
             ["node", "--check", "scripts/tmcp_launcher.mjs"],
             plugin_root,
             package_env,
+        )
+        canonical_launcher_syntax_ok, canonical_launcher_syntax_output = run(
+            ["node", "--check", "tmcp"],
+            plugin_root,
+            package_env,
+        )
+        launcher_ok = compatibility_launcher_ok and canonical_launcher_syntax_ok
+        launcher_output = (
+            compatibility_launcher_output + canonical_launcher_syntax_output
+        )
+        canonical_launcher_ok, canonical_launcher_output = check_canonical_launcher(
+            plugin_root
         )
         frontmatter_ok, frontmatter_output = check_frontmatter_and_workflow_status(
             plugin_root
@@ -454,6 +500,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
     return {
         "archive_manifest": "pass",
         "install_check": "pass" if install_ok else "fail",
+        "canonical_launcher": "pass" if canonical_launcher_ok else "fail",
         "tests": "pass" if tests_ok else "fail",
         "compile": "pass" if compile_ok else "fail",
         "launcher_syntax": "pass" if launcher_ok else "fail",
@@ -472,6 +519,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
             "tests": tests_output,
             "compile": compile_output,
             "launcher_syntax": launcher_output,
+            "canonical_launcher": canonical_launcher_output,
             "frontmatter": frontmatter_output,
             "hardcoded_user_paths": paths_output,
             "private_names": names_output,

@@ -433,6 +433,7 @@ class ReleasePackageTests(unittest.TestCase):
             for key in (
                 "archive_manifest",
                 "install_check",
+                "canonical_launcher",
                 "tests",
                 "compile",
                 "launcher_syntax",

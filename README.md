@@ -8,7 +8,7 @@ TMCP turns scattered agent instructions into task-specific operating packets. Th
 
 Skill names are provenance, not the user interface. Power users can still force a route; the default is natural prompting.
 
-AIOS is optional storage and adapter support. TMCP runs standalone from a repo checkout, copied plugin package, Codex plugin cache, Claude plugin cache, or any MCP host that can launch the bundled Node entrypoint.
+AIOS is optional storage and adapter support. TMCP runs standalone from a repo checkout, copied plugin package, Codex plugin cache, Claude plugin cache, or any MCP host that can launch the bundled Node entrypoint. The package-root `tmcp` executable is the human-facing launcher; use `./tmcp` when the root is not on `PATH`.
 
 See [docs/ADAPTIVE_PACKET_RUNTIME.md](docs/ADAPTIVE_PACKET_RUNTIME.md) for the adaptive packet runtime design.
 
@@ -17,24 +17,25 @@ See [docs/ADAPTIVE_PACKET_RUNTIME.md](docs/ADAPTIVE_PACKET_RUNTIME.md) for the a
 From a TMCP checkout or plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor
-node scripts/tmcp_launcher.mjs status
-node scripts/tmcp_launcher.mjs compose-packet "Improve this agent run" --project-path . --phase start
-node scripts/tmcp_launcher.mjs harvest skills --limit 5 --no-write-artifacts
-node scripts/tmcp_launcher.mjs recommend skills --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose --no-write-artifacts
+tmcp --help
+tmcp --version
+tmcp doctor
+tmcp status
+tmcp explain "Review this agent run" --project-path . --adapter standalone
+tmcp compose-packet "Improve this agent run" --project-path . --phase start
 ```
 
 With no arguments, the same launcher starts the MCP stdio server:
 
 ```bash
-node scripts/tmcp_launcher.mjs
+tmcp
 ```
 
 ## Install Layouts
 
 - Skill-only install: copy `skills/tmcp` into a skills directory. Use the skill for routing and manual packet synthesis unless the host also exposes the bundled launcher.
-- Repo checkout: clone the repo and run `node scripts/tmcp_launcher.mjs doctor` from the checkout root.
-- Codex plugin cache: install as a Codex plugin; MCP config launches relative `scripts/tmcp_launcher.mjs` from the plugin root.
+- Repo checkout: clone the repo and run `tmcp doctor` from the checkout root.
+- Codex plugin cache: install as a Codex plugin; human-facing commands use `tmcp`, while MCP config retains its relative compatibility launcher.
 - Shared local runtime: install a verified archive with `scripts/tmcp_runtime.mjs` so all agent hosts use one pinned active release with offline rollback. See [Central runtime](docs/CENTRAL_RUNTIME.md).
 - AIOS-backed install: set `AIOS_ROOT` explicitly only when you want optional AIOS storage/adapter behavior.
 
@@ -101,31 +102,31 @@ If a harvested source tries to override system, developer, or user instructions,
 Harvest a local skills folder:
 
 ```bash
-node scripts/tmcp_launcher.mjs harvest ./skills --objective "Harvest reusable skill behavior" --limit 20 --no-write-artifacts
+tmcp harvest ./skills --objective "Harvest reusable skill behavior" --limit 20 --no-write-artifacts
 ```
 
 Recommend workflows for a project:
 
 ```bash
-node scripts/tmcp_launcher.mjs recommend . --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose --no-write-artifacts
+tmcp recommend . --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose --no-write-artifacts
 ```
 
 Compose a current-task packet and recompile during the run. This session flow
 requires `status` to report artifact persistence available:
 
 ```bash
-node scripts/tmcp_launcher.mjs compose-packet \
+tmcp compose-packet \
   "Redesign these pages. Make them visually striking, interactive, modern, motion-rich, and production-ready." \
   --project-path "$PWD" --phase start --session-id redesign-run
 
-node scripts/tmcp_launcher.mjs recompile-packet \
+tmcp recompile-packet \
   "Redesign these pages..." \
   --project-path "$PWD" \
   --current-phase runtime \
   --session-id redesign-run \
   --files-changed app/page.tsx
 
-node scripts/tmcp_launcher.mjs record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
+tmcp record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
 ```
 
 When session persistence is unavailable, preserve the compatibility path by
@@ -134,15 +135,15 @@ passing the prior composed JSON inline through `--previous-packet` instead.
 Legacy delta-only runtime routing:
 
 ```bash
-node scripts/tmcp_launcher.mjs compose-packet "Fix the dashboard UI bug" --project-path . --phase start
-node scripts/tmcp_launcher.mjs runtime-next "Fix the dashboard UI bug" --current-phase verification --files-changed app/page.tsx --failures "vitest failed"
-node scripts/tmcp_launcher.mjs record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
+tmcp compose-packet "Fix the dashboard UI bug" --project-path . --phase start
+tmcp runtime-next "Fix the dashboard UI bug" --current-phase verification --files-changed app/page.tsx --failures "vitest failed"
+tmcp record-receipt packet-123 --activated-atoms ui-browser-verification --outcome passed
 ```
 
 Promote reviewed harvest signals into durable routing artifacts:
 
 ```bash
-node scripts/tmcp_launcher.mjs promote-harvest . --selected-workflows release_readiness_workflow --output-dir .tmcp/promoted-harvests/release-readiness
+tmcp promote-harvest . --selected-workflows release_readiness_workflow --output-dir .tmcp/promoted-harvests/release-readiness
 ```
 
 On secure-persistence hosts, promotions also persist a redacted advisory graph
@@ -157,7 +158,7 @@ explicitly passes `--cache-policy global`; their default policy is `none`.
 Run an expert rubric review from evidence snippets:
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review release portability" \
+tmcp review-plan "Review release portability" \
   --project-path . \
   --evidence-json '[{"dimension_id":"source_grounding","severity":"warning","summary":"Release claims need fresh package evidence.","evidence":["python3 scripts/check_release_package.py ."],"recommended_fix":"Run and cite the release package check before publishing."}]' \
   --no-write-artifacts
@@ -172,6 +173,7 @@ Before release:
 ```bash
 python3 -m unittest discover -s tests
 python3 scripts/release_package_compile.py .
+node --check tmcp
 node --check scripts/tmcp_launcher.mjs
 python3 scripts/check_contracts.py .
 python3 scripts/check_install.py .

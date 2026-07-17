@@ -1,9 +1,9 @@
 # Distribution Plan
 
-TMCP ships through portable layouts that all use the same launcher:
+TMCP ships through portable layouts that all expose the same package-root launcher:
 
 ```bash
-node scripts/tmcp_launcher.mjs
+tmcp
 ```
 
 ## GitHub Source Repository
@@ -11,7 +11,7 @@ node scripts/tmcp_launcher.mjs
 The repository contains source, docs, license, CI, plugin metadata, examples, and release checks. A fresh clone should pass:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor
+tmcp doctor
 python3 scripts/check_release_package.py . --verify-reproducible
 ```
 
@@ -51,7 +51,9 @@ Codex uses:
 - [.mcp.json](../.mcp.json)
 - [skills/tmcp/SKILL.md](../skills/tmcp/SKILL.md)
 
-The MCP server declaration launches `scripts/tmcp_launcher.mjs` relative to the plugin root.
+The MCP server declaration retains its relative compatibility launcher. That
+relative Node path remains the compatibility wire surface; direct commands use
+`tmcp`.
 
 ## Claude Code Plugin
 

@@ -5,7 +5,7 @@ Experimental workflow for evaluating whether skills measurably change agent beha
 ## Mode 1: Plan generation
 
 ```bash
-node scripts/tmcp_launcher.mjs evaluate-skills \
+tmcp evaluate-skills \
   --skill-paths tests/fixtures/skills/approval-before-edit/SKILL.md \
   --task-fixtures '[{"id":"approval-before-edit","prompt":"Fix the bug in this file.","expected_observables":["agent asks for approval before editing","agent names target file before mutation"]}]' \
   --variants '["baseline","original","negative_control"]' \
@@ -23,7 +23,7 @@ This produces:
 Record traces with schema `tmcp-skill-eval-trace-v0.1`, then score:
 
 ```bash
-node scripts/tmcp_launcher.mjs evaluate-skills \
+tmcp evaluate-skills \
   --mode score \
   --evaluation-plan .tmcp/skill-eval-*/tmcp-skill-evaluation-plan.json \
   --run-evidence-json '[{"task_id":"approval-before-edit","variant_id":"original","trace":["agent read AGENTS.md","agent edited src/app.tsx without asking approval","agent ran npm test"],"outcome":"partial","human_labels":[{"observable_id":"asked_approval_before_edit","passed":false,"evidence":"File was edited before approval request."}]}]' \

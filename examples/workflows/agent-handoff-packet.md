@@ -11,7 +11,7 @@ Use this when work needs to pause or move to another agent or thread.
 ## CLI
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Create an agent handoff and continuity packet" \
+tmcp review-plan "Create an agent handoff and continuity packet" \
   --project-path . \
   --write-artifacts \
   --output-dir .tmcp/agent-handoff

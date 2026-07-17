@@ -9,7 +9,7 @@ from typing import Any, TextIO
 
 from tmcp_runtime.adapters.dispatch import ToolDispatcher, ToolRequest, ToolResult
 from tmcp_runtime.api.cli import parse_cli_arguments
-from tmcp_runtime.api.registry import cli_usage, mcp_tools
+from tmcp_runtime.api.registry import VERSION, cli_usage, mcp_tools
 
 
 LegacyToolHandler = Callable[[str, dict[str, Any]], dict[str, Any]]
@@ -42,6 +42,9 @@ def run_cli(
         command, arguments, compact = parse_cli_arguments(argv)
         if command == "help":
             print(cli_usage(), file=output)
+            return 0
+        if command == "version":
+            print(VERSION.release, file=output)
             return 0
         if command == "list-tools":
             payload: dict[str, Any] = {

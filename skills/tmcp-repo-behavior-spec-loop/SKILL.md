@@ -24,7 +24,7 @@ Do not use it for a narrow bug fix, a generic test-strategy review, or a release
 If MCP tools are unavailable, run from the TMCP plugin root:
 
 ```bash
-node scripts/tmcp_launcher.mjs recommend "<project-path>" --candidate-workflows repo_behavior_spec_loop --min-confidence 0.1 --write-artifacts
+tmcp recommend "<project-path>" --candidate-workflows repo_behavior_spec_loop --min-confidence 0.1 --write-artifacts
 ```
 
 ## Output Contract

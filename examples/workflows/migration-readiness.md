@@ -11,7 +11,7 @@ Use this before upgrades, deprecations, large refactors, compatibility work, or 
 ## CLI
 
 ```bash
-node scripts/tmcp_launcher.mjs review-plan "Review migration readiness" \
+tmcp review-plan "Review migration readiness" \
   --project-path . \
   --write-artifacts \
   --output-dir .tmcp/migration-readiness

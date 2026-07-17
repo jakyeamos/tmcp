@@ -12,7 +12,7 @@ Use this when you want TMCP to fit a user's, team's, or repo's actual operating 
 ## CLI
 
 ```bash
-node scripts/tmcp_launcher.mjs recommend . \
+tmcp recommend . \
   --objective "Build an adaptive TMCP workflow pack from this repo's skill signals" \
   --write-artifacts \
   --output-dir .tmcp/adaptive-workflow-pack

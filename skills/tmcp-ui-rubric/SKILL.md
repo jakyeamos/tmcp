@@ -21,14 +21,14 @@ Prefer this over a generic browser-only review when the user asks to score, judg
 3. If MCP tools are not exposed, or `tool_search` returns no TMCP tools even though this skill is installed, use the CLI from the TMCP plugin root. First verify the local launcher if needed:
 
 ```bash
-node scripts/tmcp_launcher.mjs doctor --client codex
-node scripts/tmcp_launcher.mjs list-tools
+tmcp doctor --client codex
+tmcp list-tools
 ```
 
 Then run the UI rubric workflow:
 
 ```bash
-node scripts/tmcp_launcher.mjs expert-ui-rubric --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
+tmcp expert-ui-rubric --project-path "<project-path>" --evidence-json '<json>' --write-artifacts
 ```
 
 4. If the CLI works but Codex tool discovery does not expose TMCP tools, state that as a Codex MCP discovery gap and continue with CLI-generated TMCP artifacts rather than downgrading to a generic UI review.

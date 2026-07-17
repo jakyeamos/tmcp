@@ -18,7 +18,7 @@ Do not invent rubric substance when the harvest is thin; report the gap and deri
 2. Run `tmcp_recommend_workflows` to identify the nearest default workflow family.
 3. Synthesize custom rubric dimensions from recurring behavior atoms, quality gates, output contracts, and source terms.
 4. Use `expert_rubric_review_plan` only when applying the selected rubric to a target project.
-5. If MCP tools are unavailable, use `node scripts/tmcp_launcher.mjs harvest` and `recommend` from the TMCP plugin root.
+5. If MCP tools are unavailable, use `tmcp harvest` and `recommend` from the TMCP plugin root.
 
 ## Output Contract
 

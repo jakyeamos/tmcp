@@ -17,7 +17,7 @@ class TmcpDoctorTests(unittest.TestCase):
         discovery = result["codex_tool_discovery"]
         self.assertIn("tool_search", discovery["symptom"])
         self.assertIn(
-            "node scripts/tmcp_launcher.mjs list-tools",
+            "tmcp list-tools",
             discovery["verify_launcher"],
         )
         config = discovery["codex_mcp_config"]["mcp_servers"]["tmcp"]
