@@ -33,6 +33,7 @@ from scripts.tmcp_skill_eval_cost_rejudge_source import (
     _unexpected_output_entries,
     _validate_args,
     build_cost_rejudge_cells,
+    preregistered_cost_rejudge_binding_for_args,
 )  # noqa: E402
 
 
@@ -52,6 +53,7 @@ __all__ = (
     "_validate_args",
     "build_cost_rejudge_cells",
     "main",
+    "preregistered_cost_rejudge_binding_for_args",
     "run",
 )
 

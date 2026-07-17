@@ -505,7 +505,9 @@ def score_evidence(
         raise ValueError("cost_rejudgments_json must be an object.")
     # Bind a blind sidecar to the original evidence before output redaction changes
     # high-entropy provenance values that are intentionally part of the raw trace.
-    cost_rejudgments = validate_cost_rejudgments(raw_evidence, raw_cost_rejudgments)
+    cost_rejudgments = validate_cost_rejudgments(
+        raw_evidence, raw_cost_rejudgments, plan=plan
+    )
     redactions: dict[str, int] = {}
     safe_evidence = _safe_bounded_json_value(
         raw_evidence,

@@ -26,6 +26,9 @@ from scripts.tmcp_skill_eval_campaign_protocol import (
     _sha256_text,
     _stable_id,
 )  # noqa: E402
+from tmcp_runtime.services.evaluation_cost_rejudge import (
+    preregistered_cost_rejudge_binding,
+)
 
 
 COST_REJUDGMENTS_SCHEMA = "tmcp-skill-eval-cost-rejudgment-v0.1"
@@ -315,6 +318,7 @@ def _source_summary(
     source_manifest: Path,
     source_traces: Path,
     expected_trace_count: int,
+    cost_bar_file: Path,
     cost_bar: str,
 ) -> dict[str, Any]:
     return {
@@ -326,9 +330,40 @@ def _source_summary(
         "source_traces": str(source_traces),
         "source_traces_sha256": _sha256_file(source_traces),
         "expected_trace_count": expected_trace_count,
-        "cost_bar_sha256": _sha256_text(cost_bar),
+        "cost_bar_file": str(cost_bar_file),
+        "cost_bar_sha256": _sha256_file(cost_bar_file),
+        "cost_bar_prompt_sha256": _sha256_text(cost_bar),
         "raw_labels_preserved": True,
     }
+
+
+def preregistered_cost_rejudge_binding_for_args(
+    plan: dict[str, Any], args: argparse.Namespace
+) -> dict[str, Any] | None:
+    """Fail closed when a sidecar launch drifts from its pinned plan contract."""
+
+    binding = preregistered_cost_rejudge_binding(plan)
+    if binding is None:
+        return None
+    actual = {
+        "expected_trace_count": args.expected_trace_count,
+        "model": args.model,
+        "judge_effort": args.judge_effort,
+        "seed": args.seed,
+        "cost_bar_file": args.cost_bar_file.name,
+        "cost_bar_sha256": _sha256_file(args.cost_bar_file),
+    }
+    mismatched = [
+        field
+        for field, value in actual.items()
+        if binding.get(field) != value
+    ]
+    if mismatched:
+        raise ValueError(
+            "Cost rejudge arguments do not match preregistered policy: "
+            + ", ".join(mismatched)
+        )
+    return binding
 
 
 def _unexpected_output_entries(output_dir: Path, cost_bar_file: Path) -> list[Path]:

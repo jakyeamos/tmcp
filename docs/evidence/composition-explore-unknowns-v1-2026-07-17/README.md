@@ -49,6 +49,12 @@ distinct-model replication because the rejudge model is one of the runner model
 identifiers. TMCP scoring treats the required sidecar as a promotion gate, not a
 documentation-only checklist.
 
+The rejudge launcher must also match the policy's model, reasoning effort, seed,
+exact cost-bar filename and byte digest, and expected trace count. Its manifest
+and scored sidecar carry the resulting policy binding; scoring rejects a sidecar
+without that exact binding. This prevents a self-consistent but drifted rejudge
+from clearing the promotion gate.
+
 The sidecar is a later external run and therefore needs separate fresh approval
 after the primary 72 cells have completed. It may adjudicate only C1 cost labels;
 it never rewrites raw labels or revisits correctness, safety, selection, or

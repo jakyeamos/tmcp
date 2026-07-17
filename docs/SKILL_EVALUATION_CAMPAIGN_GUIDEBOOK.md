@@ -96,6 +96,10 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   safety/cost regression. When a plan preregisters `complete_before_promotion`,
   the scorer must hold the claim until the sidecar covers the exact planned trace
   count; documenting the intent alone is insufficient.
+- A preregistered cost sidecar is valid only when its launcher and scored payload
+  bind back to the exact policy: trace count, model, effort, seed, cost-bar file
+  digest, and blinded-process declaration. Do not accept a self-consistent
+  rejudge that silently changed any of those inputs.
 - Reject a composition trace from controlled analysis when its materialized
   source-bundle provenance differs from the preregistered matrix row. A valid
   runner manifest alone is not enough once a result is exported or reanalyzed.

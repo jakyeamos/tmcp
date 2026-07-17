@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import io
 import json
 import tempfile
 import unittest
@@ -111,6 +113,53 @@ class CostRejudgeArgumentTests(unittest.TestCase):
             args.expected_trace_count = 0
             with self.assertRaisesRegex(ValueError, "expected-trace-count"):
                 cost_rejudge._validate_args(args)
+
+    def test_preregistered_policy_binds_every_rejudge_execution_setting(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            cost_bar = root / "cost-evaluation-bar.md"
+            cost_bar.write_text("faithful bar\n", encoding="utf-8")
+            args = Namespace(
+                expected_trace_count=1,
+                model="gpt-5.6-sol",
+                judge_effort="high",
+                seed=7,
+                cost_bar_file=cost_bar,
+            )
+            plan = {
+                "experiment": {
+                    "cost_rejudge_policy": {
+                        "schema": "tmcp-composition-cost-rejudge-policy-v0.1",
+                        "expected_trace_count": 1,
+                        "model": "gpt-5.6-sol",
+                        "judge_effort": "high",
+                        "seed": 7,
+                        "cost_bar_file": cost_bar.name,
+                        "cost_bar_sha256": _sha256_file(cost_bar),
+                        "raw_labels_preserved": True,
+                        "complete_before_promotion": True,
+                        "process_independence": {
+                            "fresh_judge": True,
+                            "fresh_session": True,
+                            "judge_blinded": True,
+                            "condition_hidden": True,
+                            "source_artifact_only": True,
+                            "isolated_session": True,
+                            "model_identity_independence_claimed": False,
+                        },
+                        "claim_boundary": "cost-only blind adjudication",
+                    }
+                }
+            }
+
+            binding = cost_rejudge.preregistered_cost_rejudge_binding_for_args(
+                plan, args
+            )
+
+            self.assertEqual(binding["cost_bar_sha256"], _sha256_file(cost_bar))
+            args.seed = 8
+            with self.assertRaisesRegex(ValueError, "seed"):
+                cost_rejudge.preregistered_cost_rejudge_binding_for_args(plan, args)
 
 
 class CostRejudgeSourceTests(unittest.TestCase):
@@ -269,6 +318,101 @@ class CostRejudgeSourceTests(unittest.TestCase):
                     )
                 ],
                 ["unrelated.json"],
+            )
+
+    def test_source_summary_preserves_the_cost_bar_file_digest(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source_plan = root / "plan.json"
+            source_manifest = root / "campaign-manifest.json"
+            source_traces = root / "traces.json"
+            cost_bar = root / "cost-evaluation-bar.md"
+            for path in (source_plan, source_manifest, source_traces):
+                path.write_text("{}\n", encoding="utf-8")
+            cost_bar.write_text("faithful bar\n", encoding="utf-8")
+
+            summary = cost_rejudge._source_summary(
+                source_plan=source_plan,
+                source_runs=root,
+                source_manifest=source_manifest,
+                source_traces=source_traces,
+                expected_trace_count=1,
+                cost_bar_file=cost_bar,
+                cost_bar=cost_bar.read_text(encoding="utf-8").strip(),
+            )
+
+            self.assertEqual(summary["cost_bar_sha256"], _sha256_file(cost_bar))
+            self.assertNotEqual(
+                summary["cost_bar_sha256"], summary["cost_bar_prompt_sha256"]
+            )
+
+    def test_dry_run_records_the_preregistered_cost_rejudge_binding(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan_path, runs, _ = self._write_one_source_campaign(root)
+            cost_bar = root / "cost-evaluation-bar.md"
+            cost_bar.write_text("faithful bar\n", encoding="utf-8")
+            plan = json.loads(plan_path.read_text(encoding="utf-8"))
+            plan["experiment"] = {
+                "cost_rejudge_policy": {
+                    "schema": "tmcp-composition-cost-rejudge-policy-v0.1",
+                    "expected_trace_count": 1,
+                    "model": "gpt-5.6-sol",
+                    "judge_effort": "high",
+                    "seed": 7,
+                    "cost_bar_file": cost_bar.name,
+                    "cost_bar_sha256": _sha256_file(cost_bar),
+                    "raw_labels_preserved": True,
+                    "complete_before_promotion": True,
+                    "process_independence": {
+                        "fresh_judge": True,
+                        "fresh_session": True,
+                        "judge_blinded": True,
+                        "condition_hidden": True,
+                        "source_artifact_only": True,
+                        "isolated_session": True,
+                        "model_identity_independence_claimed": False,
+                    },
+                    "claim_boundary": "cost-only blind adjudication",
+                }
+            }
+            plan_path.write_text(json.dumps(plan), encoding="utf-8")
+            manifest_path = runs / "campaign-manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["plan_sha256"] = _sha256_file(plan_path)
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            args = Namespace(
+                source_plan=plan_path,
+                source_runs=runs,
+                cost_bar_file=cost_bar,
+                output_dir=root / "independent-rejudge",
+                codex_home=root / "codex-home",
+                cleanroom=root / "cleanroom",
+                model="gpt-5.6-sol",
+                judge_effort="high",
+                seed=7,
+                concurrency=1,
+                timeout_seconds=10,
+                max_transient_retries=0,
+                retry_backoff_seconds=0.0,
+                max_cells=None,
+                expected_trace_count=1,
+                codex_bin="codex",
+                dry_run=True,
+            )
+
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                exit_code = asyncio.run(cost_rejudge.run(args))
+
+            self.assertEqual(exit_code, 0)
+            rendered = json.loads(output.getvalue())
+            self.assertEqual(
+                rendered["preregistered_cost_rejudge"]["cost_bar_sha256"],
+                _sha256_file(cost_bar),
+            )
+            self.assertEqual(
+                rendered["source"]["cost_bar_sha256"], _sha256_file(cost_bar)
             )
 
     def test_harness_digest_covers_each_local_rejudge_module(self) -> None:

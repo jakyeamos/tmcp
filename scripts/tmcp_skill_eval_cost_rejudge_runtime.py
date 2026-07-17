@@ -51,6 +51,7 @@ from scripts.tmcp_skill_eval_cost_rejudge_source import (
     _unexpected_output_entries,
     _validate_args,
     build_cost_rejudge_cells,
+    preregistered_cost_rejudge_binding_for_args,
 )  # noqa: E402
 
 
@@ -257,7 +258,9 @@ async def run(args: argparse.Namespace) -> int:
         source_runs=args.source_runs,
         expected_trace_count=args.expected_trace_count,
     )
-    del plan
+    preregistered_cost_rejudge = preregistered_cost_rejudge_binding_for_args(
+        plan, args
+    )
     cells = build_cost_rejudge_cells(source_traces, seed=args.seed)
     if len(cells) != args.expected_trace_count:
         raise ValueError("Cost rejudge cell count does not match source trace count.")
@@ -299,6 +302,7 @@ async def run(args: argparse.Namespace) -> int:
         source_manifest=source_manifest_path,
         source_traces=source_traces_path,
         expected_trace_count=args.expected_trace_count,
+        cost_bar_file=args.cost_bar_file,
         cost_bar=cost_bar,
     )
     harness_files = _harness_digests()
@@ -329,6 +333,11 @@ async def run(args: argparse.Namespace) -> int:
         "cost_rejudgments_schema": COST_REJUDGMENTS_SCHEMA,
         "experiment_id": source_manifest.get("experiment_id"),
         "source": source_metadata,
+        **(
+            {"preregistered_cost_rejudge": preregistered_cost_rejudge}
+            if preregistered_cost_rejudge is not None
+            else {}
+        ),
         "harness_sha256": _sha256_text(
             json.dumps(harness_files, sort_keys=True, separators=(",", ":"))
         ),
@@ -462,6 +471,11 @@ async def run(args: argparse.Namespace) -> int:
     sidecar = {
         "schema": COST_REJUDGMENTS_SCHEMA,
         "source": source_metadata,
+        **(
+            {"preregistered_cost_rejudge": preregistered_cost_rejudge}
+            if preregistered_cost_rejudge is not None
+            else {}
+        ),
         "rejudgments": completed_entries,
     }
     _atomic_json(args.output_dir / "cost-rejudgments.json", sidecar)

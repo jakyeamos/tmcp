@@ -10,7 +10,10 @@ from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
 from tests.tmcp_test_client import run_mcp_requests as run_hermetic_mcp_requests
-from tmcp_runtime.services.evaluation_cost_rejudge import trace_source_digest
+from tmcp_runtime.services.evaluation_cost_rejudge import (
+    preregistered_cost_rejudge_binding,
+    trace_source_digest,
+)
 from tmcp_runtime.storage import artifact_persistence_available
 
 
@@ -286,6 +289,39 @@ class SkillEvaluateTests(unittest.TestCase):
                 }
             ],
         }
+        plan["experiment"]["cost_rejudge_policy"] = {
+            "schema": "tmcp-composition-cost-rejudge-policy-v0.1",
+            "expected_trace_count": 1,
+            "model": "gpt-5.6-sol",
+            "judge_effort": "high",
+            "seed": 7,
+            "cost_bar_file": "cost-evaluation-bar.md",
+            "cost_bar_sha256": "sha256:" + "a" * 64,
+            "raw_labels_preserved": True,
+            "complete_before_promotion": True,
+            "process_independence": {
+                "fresh_judge": True,
+                "fresh_session": True,
+                "judge_blinded": True,
+                "condition_hidden": True,
+                "source_artifact_only": True,
+                "isolated_session": True,
+                "model_identity_independence_claimed": False,
+            },
+            "claim_boundary": "cost-only blind adjudication",
+        }
+        with self.assertRaisesRegex(ValueError, "preregistered policy"):
+            self.evaluate.score_evidence(
+                {
+                    "evaluation_plan": plan,
+                    "compose_packet": False,
+                    "run_evidence_json": [trace],
+                    "cost_rejudgments_json": sidecar,
+                }
+            )
+        sidecar["preregistered_cost_rejudge"] = (
+            preregistered_cost_rejudge_binding(plan)
+        )
         redactions: dict[str, int] = {}
         redacted_trace = self.evaluate._safe_bounded_json_value(
             [trace], label="run_evidence_json", redactions=redactions
