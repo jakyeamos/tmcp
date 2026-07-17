@@ -16,8 +16,9 @@ typed handoffs, then executable host-run benchmark evidence. Keep 0.5.7 active.
 `codex/tmcp-compositional-intelligence`. The initial 0.6 compiler is present;
 `a70fd04` adds provenance-bound lazy behavior hydration and preserves the
 deterministic path, while `9f26520` restores the test-size quality gate. Task
-identity now has lexical safety at `9b4d72e`; compound facets, typed artifact
-handoffs, and executable benchmark fixtures remain before real host-run proof.
+identity has lexical safety at `9b4d72e` and compound-task safety at
+`5fcefab`; typed artifact handoffs and executable benchmark fixtures remain
+before real host-run proof.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -30,6 +31,11 @@ handoffs, and executable benchmark fixtures remain before real host-run proof.
 
 ## Completed Scope
 
+- `5fcefab` replaces weak single-route fallback with deterministic task facets,
+  compound-task fallback, explicit validated-route provenance, safe shortcut
+  gating, packet-identity binding, and graph-aware facet recompiles. Full unit,
+  contract, compile, install, and live TMCP compose checks pass; the actual
+  hardening prompt resolves to `skill_composition` with a validated route.
 - `9b4d72e` eliminates embedded route-term collisions, preserves intended lexical
   forms, contextualizes contrast, and invalidates stale routing provenance. The
   590-test suite passes with three expected skips.
@@ -323,7 +329,8 @@ _(truncated for length)_
 - 2026-07-17: `a70fd04` closes manifest-first hydration dogfood findings:
   compact indexes, hard token accounting, block/source provenance binding, and
   compatibility-safe contracts; `9f26520` restores the test-size gate. Task
-  identity lexical safety is at `9b4d72e`; compound facets, handoffs, and
+  identity lexical safety is at `9b4d72e`; `5fcefab` adds compound facets,
+  validated-route identity, and safe fallback routing. Typed handoffs and
   executable proof remain release blockers.
 - 2026-07-10: Modernization audit identifies P0 package disclosure risk and
   proposes a parallel v2 runtime behind stable entrypoints.
@@ -357,5 +364,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_tmcp_task_identity tests.test_tmcp_route_inference
+python3 -m unittest tests.test_tmcp_composition_planning tests.test_tmcp_composition_runtime tests.test_tmcp_recompile_domain
 ```
