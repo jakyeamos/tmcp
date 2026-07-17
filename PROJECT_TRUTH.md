@@ -4,7 +4,7 @@
 
 - Branch: `codex/skill-eval-dogfood`
 - Last completed change: `bd8a2a0` moves evaluator command fixtures to pnpm after the package-safe test-name fixes.
-- Verification: 35 focused evaluator API tests and the prior 493-test full suite passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
+- Verification: 493 tests passed, 3 skipped, and 108 subtests passed; Ruff formatting/lint, basedpyright, compile, launcher syntax, contract, install-shape, reproducible release-package, release-evidence, and state-size checks passed.
 
 ## Current Position
 
@@ -17,7 +17,7 @@
 
 ## Next Step
 
-- Rerun the reproducible release-package and final branch gates, record the TMCP receipt, and push the completed branch.
+- Expand the supported candidate to the 72-run multi-configuration promotion matrix and test safe cleanup wording with a dedicated contrast.
 
 ## Blockers
 
