@@ -6,9 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Prove the clean-tree release package reproducible, then
-collect real host-run composition benchmark observations without advancing the
-active 0.5.7 release.
+**Current focus:** Collect real host-run composition benchmark observations and
+reviewed evidence without advancing the active 0.5.7 release prematurely.
 
 ## Milestone
 
@@ -25,11 +24,15 @@ are present. Release proof remains pending real host-run observations.
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Implementation complete; release proof and publication pending.
+- **Status:** Implementation and reproducible package proof complete; real
+  benchmark evidence and publication remain pending.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
+- Clean-tree reproducible package verification passes at `18a1f65`: archive
+  digest `f0850b6f…`, manifest digest `e2f9e96f…`, installed compilation and 614
+  tests, and packaged prepare → assisted compose → full recompile smoke all pass.
 - `ee915b6` keeps new benchmark, cache, redaction, and recipe fixtures compatible
   with strict release secret scanning; the full allowlisted working-tree content
   scan and 80 focused tests pass without changing scanner policy.
@@ -339,5 +342,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 scripts/check_release_package.py . --verify-reproducible
+python3 scripts/run_composition_benchmark.py <real-host-observations.json>
 ```
