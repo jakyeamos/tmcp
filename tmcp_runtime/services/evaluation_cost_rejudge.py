@@ -10,7 +10,8 @@ from typing import Any
 
 COST_REJUDGMENT_SCHEMA = "tmcp-skill-eval-cost-rejudgment-v0.1"
 PREREGISTERED_COST_REJUDGE_BINDING_SCHEMA = (
-    "tmcp-preregistered-cost-rejudge-binding-v0.1"
+    "tmcp-preregistered-cost-rejudge-"
+    "binding-v0.1"
 )
 _REQUIRED_PROCESS_INDEPENDENCE = (
     "fresh_judge",
