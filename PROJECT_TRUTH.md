@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `bd8a2a0` moves evaluator command fixtures to pnpm after the package-safe test-name fixes.
-- Verification: 493 tests passed, 3 skipped, and 108 subtests passed; Ruff formatting/lint, basedpyright, compile, launcher syntax, contract, install-shape, reproducible release-package, release-evidence, and state-size checks passed.
+- Last completed change: `9e9c4f0` prevents lexical stems such as `motion` from matching inside unrelated words such as `promotion` while preserving suffix matches.
+- Verification: 39 focused routing and composition tests passed; Ruff lint and basedpyright passed for the changed router and regression tests. The prior 493-test full suite and 108-subtest release verification remain green.
 
 ## Current Position
 
@@ -14,6 +14,7 @@
 - Dogfood experiment `skill-eval-af3806a4873b77a0` completed 8 blind judged traces: intact `eval-skills` passed 4/4 and the `Workflow`-section ablation passed 0/4.
 - The scorer reports a controlled-single-configuration section claim with intervention-control lift `-1.0` and 95% interval `[-1.0, -0.02]`; promotion remains on hold.
 - The checked-in catalog and guidebook preserve the candidate status, evidence scope, promotion gaps, suspected-only static finding, and reproducible evidence bundle.
+- Route inference now uses lexical-start matching for objectives and source evidence, so promotion-oriented evaluation prompts no longer activate motion guidance.
 
 ## Next Step
 
