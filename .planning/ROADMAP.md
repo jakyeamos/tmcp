@@ -103,7 +103,9 @@ outcomes while preserving deterministic compatibility.
   correction in `195b24f` removes generic planning/UI overlap and defers
   unproven skill activation. `1fb0274` adds exact cited-slice phase capsules,
   compiler-bound replay receipts, protected project/session persistence, and
-  promotion evidence gating; runtime-capsule rehydration is next.
+  promotion evidence gating. `a6591e1` restores the hard size budgets by
+  splitting bundle scanning, promotion scoring, recipe validation, and broad
+  benchmark tests; runtime-capsule rehydration is next.
   `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
@@ -119,4 +121,4 @@ outcomes while preserving deterministic compatibility.
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for phase-capsule evidence binding*
+*Last updated: 2026-07-17 for phase-capsule evidence and size-budget hardening*

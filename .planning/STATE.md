@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Finish the source-size cleanup after phase-capsule evidence
-binding, then bind the same capsules into runtime recompilation. Keep 0.5.7 active.
+**Current focus:** Bind compiler-issued capsules into runtime recompilation with
+one fresh harvest, fail-closed redirects, and safe session restoration. Keep 0.5.7 active.
 
 ## Milestone
 
@@ -18,8 +18,9 @@ content-bound benchmark replay, canonical release bundle, and conservative
 fallback routing are present. `1fb0274` adds compiler-issued phase-capsule
 bindings, cited-slice closures, protected recipe/session persistence, exact
 benchmark receipt provenance, and conditional schema enforcement. Release
-evidence remains advisory; 0.6.0 is blocked on real host outcomes and runtime
-capsule recompilation.
+evidence remains advisory. `a6591e1` restores all hard source-size budgets by
+splitting benchmark scanning, promotion scoring, recipe validation, and focused
+test owners. 0.6.0 remains blocked on real host outcomes and runtime capsules.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -32,6 +33,11 @@ capsule recompilation.
 
 ## Completed Scope
 
+- `a6591e1` restores the enforced source-size budgets without exceptions:
+  benchmark bundle scanning, composition scoring, project-recipe promotion
+  validation, and the two broad benchmark test owners now have focused siblings.
+  Full discovered tests, contracts, install, release compilation, and the
+  required pre-CR gate passed.
 - `1fb0274` binds each phase capsule to exact cited source slices and makes
   benchmark replay, isolated-context receipts, promotion eligibility, project
   recipes, sessions, package checks, and release schemas reject mismatched or
