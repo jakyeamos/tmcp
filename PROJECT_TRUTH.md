@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `21388ae` adds a read-only verifier that reconstructs persisted cost-rejudge evidence from source traces, prompts, stage digests, event audits, sidecar, summary, policy binding, and preflight receipts.
-- Verification: 562 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
+- Last completed change: `73217c1` corrects both archived cost-sidecar classifications, tests the missing-bar boundary, and remints the composition study from corrected reviewed fixtures.
+- Verification: 563 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
 
@@ -36,11 +36,11 @@
 - The local project-root composition replay is recorded with advisory receipt `packet-f62c9fd667c8`; its deterministic pass does not promote a skill-pair or wording rule.
 - The reviewed v1 composition plan has six Stage-1 fixtures across campaign sequencing, evidence-boundary, and promotion-gate families; `packet_only` versus exact `packet_plus_explore` yields 72 blinded cells. It can test only the delivery effect of the pinned source bundle, not live selection, adherence, or corpus quality.
 - `verify_composition_study.py` now rejects input/receipt/first-principles drift, reports opted-in live-source drift without exposing source text, and is mandatory for source-bundle campaign manifests; the campaign rejects a different runner first-principles file.
-- Its byte-pinned cost sidecar requires a fresh, condition-blind, artifact-only 72-trace review using `gpt-5.6-sol` at high effort. This is process-independent but not a distinct-model claim; launcher and scored sidecar must match the policy's model, effort, seed, bar filename/digest, and trace count before scoring can clear the coverage gate. A read-only verifier must also reconstruct the completed bundle and report promotion-ready.
+- The corrected byte-pinned study is `composition-study-f6de333293fee3f7`. Its cost sidecar requires a fresh, condition-blind, artifact-only 72-trace review using `gpt-5.6-sol` at high effort. This is process-independent but not a distinct-model claim; launcher and scored sidecar must match the policy's model, effort, seed, bar filename/digest, and trace count before scoring can clear the coverage gate. A read-only verifier must also reconstruct the completed bundle and report promotion-ready.
 
 ## Next Step
 
-- Obtain fresh approval to run the preregistered `composition-study-2b35bb34abeb431f` 72 runner and 72 primary-judge calls. Afterward, obtain separate approval for its 72 cost-rejudge calls, then score it. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
+- Obtain fresh approval to run the preregistered `composition-study-f6de333293fee3f7` 72 runner and 72 primary-judge calls. Afterward, obtain separate approval for its 72 cost-rejudge calls, verify its persisted sidecar, then score it. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
 
 ## Blockers
 
