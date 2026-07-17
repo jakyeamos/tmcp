@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f70e8-3894-73d2-899e-db6cf3a8574b"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"{\"cost_regression\":false,\"evidence\":[{\"citation\":\"“Only begin blind runs once every case has a concrete, judgeable bar and the evaluation mode is settled.”\",\"criterion\":\"C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.\",\"status\":\"necessary\"}],\"rationale\":\"The artifact requires clarification before spending evaluation runs, which directly establishes fixture validity and a judgeable evaluation contract. This is necessary control work, not materially unnecessary execution.\"}"}}
+{"type":"turn.completed","usage":{"input_tokens":10198,"cached_input_tokens":7936,"output_tokens":153,"reasoning_output_tokens":43}}

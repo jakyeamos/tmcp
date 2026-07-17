@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f70e5-cca9-7e41-a3b4-87847669fa3b"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"{\"cost_regression\":false,\"evidence\":[{\"citation\":\"“Confirm the run was valid… Inspect the live checkout for leaked artifacts… Run a broader sweep using multiple representative golden cases… [and] rerun the entire sweep blind with fresh agents.”\",\"criterion\":\"C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.\",\"status\":\"necessary\"}],\"rationale\":\"The required work validates the evaluation, protects isolation and integrity, broadens representative evidence, diagnoses defects, and verifies revisions before a durable claim. These are necessary controls under the supplied bar.\"}"}}
+{"type":"turn.completed","usage":{"input_tokens":10293,"cached_input_tokens":0,"output_tokens":213,"reasoning_output_tokens":82}}

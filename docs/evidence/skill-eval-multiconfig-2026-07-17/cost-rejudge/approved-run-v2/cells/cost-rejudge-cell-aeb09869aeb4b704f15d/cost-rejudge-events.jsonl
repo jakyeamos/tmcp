@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f70e8-2fa8-74e0-bb26-356942c445b2"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"{\"cost_regression\":false,\"evidence\":[{\"citation\":\"“Re-run the full A/B/C suite with the edited skill—not just B. Each case needs a fresh, context-free runner… Confirmation that the live checkout was checked for leaked case expectations or artifacts after the run.”\",\"criterion\":\"C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.\",\"status\":\"necessary\"}],\"rationale\":\"The full A/B/C rerun validates that B is fixed while A and C remain regression-free. Fresh runners and the checkout leak inspection are necessary isolation and integrity controls under the supplied bar.\"}"}}
+{"type":"turn.completed","usage":{"input_tokens":10209,"cached_input_tokens":0,"output_tokens":136,"reasoning_output_tokens":0}}

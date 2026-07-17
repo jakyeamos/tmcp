@@ -253,8 +253,7 @@ class SkillEvaluateTests(unittest.TestCase):
             "ablation_section": row["ablation_section"],
             "agent": {"name": "test", "model": "test"},
             "campaign": {
-                "runner_artifact_sha256": "sha256:"
-                + "0123456789abcdef" * 4,
+                "runner_artifact_sha256": "sha256:" + "0123456789abcdef" * 4,
             },
             "observations": [{"kind": "assistant_message", "value": "artifact"}],
             "case_verdict": {"passed": True, "cost_regression": True},

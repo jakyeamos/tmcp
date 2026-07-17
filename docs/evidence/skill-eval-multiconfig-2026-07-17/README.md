@@ -31,12 +31,13 @@ limitation. Five fixture-level effects favor the original and one is tied, but t
 current report does not contain a predeclared cluster-aware interval. Treat the
 reported interval as the protocol's score, not the last word on generalization.
 
-Promotion remains on hold. Two of 72 judges marked `cost_regression=true` because
-original-skill artifacts required a clean-checkout sweep after every run. That
-operation is explicitly required by the target skill, but the first-principles
-summary supplied to judges did not state the rule. The labels are therefore a
-real conservative gate and a judge-calibration counterexample, not evidence that
-the workflow section is corpus-wide tried-and-true.
+Promotion remains on hold. The original raw campaign has two cost labels from
+judges whose first-principles summary omitted the target skill's required
+live-checkout sweep. A complete 72-artifact blind rejudge, using a predeclared
+faithful cost bar and fresh isolated threads, reports 0/72 adjudicated cost
+regressions. The score preserves both facts, but the campaign still misses a
+predeclared clustered-analysis policy and the 50% per-fixture intact-control
+floor; it is not corpus-wide tried-and-true evidence.
 
 ## Experiment design
 
@@ -120,10 +121,9 @@ standard, the campaign cannot determine whether the two labels represent a genui
 cost problem or a bad cost bar. TMCP correctly keeps the automatic/manual-review gate
 closed instead of silently discarding the labels.
 
-An independent manual audit against the target skill contract adjudicated both
-labels as false positives caused by the incomplete judge bar. The raw judge outputs
-and canonical TMCP report remain unchanged, so the formal promotion decision remains
-on hold pending a predeclared rejudge rather than a post-hoc label edit.
+The raw judge outputs remain unchanged. Rather than hand-flip them after seeing
+the result, a predeclared campaign-wide blind rejudge used the faithful cost bar
+against only the fixed runner artifact for every trace.
 
 The matched evidence makes calibration noise likely: all 12 regression-retest
 artifacts mention checkout or leak inspection, and only two received the cost label.
@@ -132,12 +132,13 @@ Across the whole campaign, 47 artifacts mention checkout, `git status`, or leaks
 result. A predeclared campaign-wide rejudge with a faithful cost bar is the clean
 resolution.
 
-The hardened evaluator now supports that rejudge as a complete digest-bound
-sidecar rather than a raw-label mutation. Its campaign-wide [cost bar](cost-rejudge/cost-evaluation-bar.md)
-and [execution contract](cost-rejudge/README.md) are predeclared. The only
-remaining live step requires explicit authorization to send the 72 fixed
-runner artifacts to the Codex service; until then, no rejudged verdict is
-claimed.
+The completed [digest-bound sidecar](cost-rejudge/approved-run-v2/cost-rejudgments.json)
+records 72 fresh, condition-hidden, source-artifact-only adjudications with
+0/72 cost regressions. Its [score report](cost-rejudge/approved-score/tmcp-skill-evaluation-report.json)
+sets `raw_cost_regression=true`, adjudicated `cost_regression=false`, and
+`cost_rejudgment_applied=true` without modifying `runs/traces.json`. The
+[cost bar](cost-rejudge/cost-evaluation-bar.md) and
+[execution contract](cost-rejudge/README.md) remain the reproducible boundary.
 
 The same replay adds a fixture-block interval of `[-0.750, -0.194]` and
 explicit 50% aggregate/per-fixture intact-control floors. It confirms the
@@ -232,6 +233,7 @@ node scripts/tmcp_launcher.mjs evaluate-skills \
   --mode score \
   --evaluation-plan docs/evidence/skill-eval-multiconfig-2026-07-17/generated/tmcp-skill-evaluation-plan.json \
   --run-evidence-json "$(jq -c . docs/evidence/skill-eval-multiconfig-2026-07-17/runs/traces.json)" \
+  --cost-rejudgments-json "$(jq -c . docs/evidence/skill-eval-multiconfig-2026-07-17/cost-rejudge/approved-run-v2/cost-rejudgments.json)" \
   --project-path /private/tmp/tmcp-skill-eval-dogfood \
   --write-artifacts \
   --output-dir /private/tmp/tmcp-skill-eval-score-replay
@@ -246,6 +248,8 @@ node scripts/tmcp_launcher.mjs evaluate-skills \
 - [`runs/traces.json`](runs/traces.json) — 72 normalized, artifact-bound traces
 - [`runs/cells/`](runs/cells/) — raw runner/judge outputs, event streams, schemas, usage, and stage markers
 - [`scored/tmcp-skill-evaluation-report.json`](scored/tmcp-skill-evaluation-report.json) — canonical TMCP score and promotion hold
+- [`cost-rejudge/approved-run-v2/`](cost-rejudge/approved-run-v2/) — complete blind cost sidecar and per-judge provenance
+- [`cost-rejudge/approved-score/tmcp-skill-evaluation-report.json`](cost-rejudge/approved-score/tmcp-skill-evaluation-report.json) — adjudicated-cost replay and promotion hold
 - [`scored/skill-pattern-catalog.json`](scored/skill-pattern-catalog.json) — generated candidate catalog
 - [`scored/skill-writing-guidebook.md`](scored/skill-writing-guidebook.md) — generated compact guidebook
 

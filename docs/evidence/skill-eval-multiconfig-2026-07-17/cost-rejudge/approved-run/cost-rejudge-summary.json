@@ -1,0 +1,12 @@
+{
+  "completed_cells": 0,
+  "cost_regressions": 0,
+  "errors": 72,
+  "expected_judge_threads_at_completion": 72,
+  "planned_cells": 72,
+  "selected_cells": 72,
+  "unique_judge_threads": 0,
+  "usage": {
+    "traces": 0
+  }
+}

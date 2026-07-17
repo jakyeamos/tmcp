@@ -2,15 +2,20 @@
 
 ## Status
 
-The local harness and its 72-artifact integrity preflight are complete. The
-live condition-blind judgments are pending explicit approval to send the fixed
-runner artifacts to the Codex service. No rejudged verdict has been used in a
-score report, and the original raw labels remain untouched.
+The approved condition-blind rejudge is complete. It evaluated the fixed 72
+runner artifacts in 72 fresh isolated judge threads; all 72 sidecars are
+digest-valid and report `cost_regression=false`. The score report applies that
+complete sidecar while preserving the original raw labels separately:
+`raw_cost_regression=true`, adjudicated `cost_regression=false`.
 
 The first sandbox-only attempt produced zero completed judgments because the
 sandbox could not resolve the Codex service. Its invalidated stage artifacts
-remain under [`run/`](run/) and are not evidence. A future approved run must
-use a distinct empty output directory.
+remain under [`run/`](run/) and are not evidence. The first externally approved
+attempt then surfaced an invalid response-schema contract before any judgment
+completed; it remains under [`approved-run/`](approved-run/) as invalidated
+diagnostic evidence. The service-compatible completed bundle is
+[`approved-run-v2/`](approved-run-v2/), with its resulting score under
+[`approved-score/`](approved-score/).
 
 ## Fixed input boundary
 
@@ -35,4 +40,5 @@ adjudicated cost summaries instead of mutating `runs/traces.json`.
 The rejudge does not make the existing campaign promotable on its own. The
 cluster/reliability replay records a 0% intact-control pass rate on the
 regression-retest fixture and 16.7% on failure diagnosis, below the new 50%
-per-fixture floor.
+per-fixture floor. The historical plan also did not predeclare its clustered
+analysis policy, so its cluster interval remains diagnostic only.

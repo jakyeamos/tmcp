@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cost_regression": {
+      "type": "boolean"
+    },
+    "evidence": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "citation": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "criterion": {
+            "const": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "necessary",
+              "materially_unnecessary"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "criterion",
+          "status",
+          "citation"
+        ],
+        "type": "object"
+      },
+      "maxItems": 1,
+      "minItems": 1,
+      "type": "array"
+    },
+    "rationale": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "cost_regression",
+    "evidence",
+    "rationale"
+  ],
+  "type": "object"
+}

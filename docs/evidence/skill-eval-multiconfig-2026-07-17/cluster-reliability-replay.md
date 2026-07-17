@@ -25,14 +25,14 @@ negative direction still supports the intact `Workflow` section.
 
 Overall intact control reliability is 20/36 (55.6%), which clears the 50%
 aggregate floor. The per-fixture floor is 50%, and the observed minimum is 0%,
-so promotion remains held even if the pending cost rejudge resolves both raw
-cost labels.
+so promotion remains held even though the completed blind cost rejudge resolved
+the adjudicated cost decision.
 
 ## Current hold set
 
 - The original plan has no predeclared clustered-analysis policy.
-- The original raw traces still contain cost labels until a complete sidecar is
-  produced by the independent rejudge.
+- The original raw traces retain two cost labels; the complete independent
+  sidecar records 0/72 adjudicated cost regressions without editing them.
 - Per-fixture intact-control reliability is below 50%.
 
 The evaluator now requires those conditions to be explicit in plans generated

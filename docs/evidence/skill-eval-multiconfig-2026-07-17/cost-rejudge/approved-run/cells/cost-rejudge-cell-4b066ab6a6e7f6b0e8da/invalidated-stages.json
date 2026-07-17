@@ -1,0 +1,8 @@
+[
+  {
+    "archive": "invalidated/cost-rejudge-attempt-1",
+    "output_sha256": null,
+    "reason": "Codex process exited 1: ",
+    "stage": "cost-rejudge"
+  }
+]

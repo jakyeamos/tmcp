@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f70e4-ef6a-7b63-99b9-137529ca7de3"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"{\"cost_regression\":false,\"evidence\":[{\"citation\":\"“Stop before running any evaluation... No blind-run agents should be spent until the user confirms a bar that a competent judge can apply without prescribing the answer.”\",\"criterion\":\"C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.\",\"status\":\"necessary\"}],\"rationale\":\"The artifact requires clarification of the evaluation standard before spending an evaluation run. That work establishes fixture validity and protects the validity and reproducibility of the evaluation, so it is necessary under the supplied bar.\"}"}}
+{"type":"turn.completed","usage":{"input_tokens":10203,"cached_input_tokens":0,"output_tokens":124,"reasoning_output_tokens":0}}

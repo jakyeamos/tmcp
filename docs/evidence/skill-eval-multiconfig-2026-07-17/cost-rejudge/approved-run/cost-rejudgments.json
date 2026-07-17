@@ -1,0 +1,16 @@
+{
+  "rejudgments": [],
+  "schema": "tmcp-skill-eval-cost-rejudgment-v0.1",
+  "source": {
+    "cost_bar_sha256": "sha256:3412d9f53df42039281c43e6c97c37d634ffb3d9c94dfffa9508283e9dde053c",
+    "expected_trace_count": 72,
+    "raw_labels_preserved": true,
+    "source_manifest": "docs/evidence/skill-eval-multiconfig-2026-07-17/runs/campaign-manifest.json",
+    "source_manifest_sha256": "sha256:ebe9256faca0e03b2e5ad24fb379a51d7a486d976bddaa671be646ab81b55cb1",
+    "source_plan": "docs/evidence/skill-eval-multiconfig-2026-07-17/generated/tmcp-skill-evaluation-plan.json",
+    "source_plan_sha256": "sha256:55dba97e0fe77aed178baf55384a4c2f6a482b1062ef777adabb73e776d86926",
+    "source_runs": "docs/evidence/skill-eval-multiconfig-2026-07-17/runs",
+    "source_traces": "docs/evidence/skill-eval-multiconfig-2026-07-17/runs/traces.json",
+    "source_traces_sha256": "sha256:364f998fac7509432a3890bff3c958b3ee781ddcd727e4513a410a43f26195ad"
+  }
+}
