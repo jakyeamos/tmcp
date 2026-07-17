@@ -192,6 +192,10 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
     }
     if has_accessibility_contrast_context(text):
         verification_gates.append("Verify contrast.")
+    if all(term in lower for term in ("owner", "consumer", "verify")):
+        verification_gates.append(
+            "Verify behavior through identified consumers, not only the owner."
+        )
     for term, gate in gate_terms.items():
         if term in lower:
             verification_gates.append(gate)

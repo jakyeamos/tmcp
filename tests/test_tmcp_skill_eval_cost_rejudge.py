@@ -790,8 +790,9 @@ class CostRejudgeSourceTests(unittest.TestCase):
             ledger,
         )
         self.assertIn("Packet-probed", ledger)
-        self.assertIn("Selection-only", ledger)
+        self.assertIn("**selection-only**", ledger)
         self.assertIn("Candidate", ledger)
+        self.assertIn("TMCP compiler + `refactor-clean` | Packet-probed", ledger)
         self.assertIn("TMCP compiler + `write-docs` | Packet-probed", ledger)
         self.assertIn("no behavioral calls have\n  been made", ledger)
         self.assertIn(

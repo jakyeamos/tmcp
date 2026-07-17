@@ -12,7 +12,7 @@ pair's behavioral effectiveness.
 | Pair | Objective boundary | Result | What it establishes |
 | --- | --- | --- | --- |
 | TMCP compiler + `explore-unknowns` | Map four quadrants before any implementation | Pass after route fix | The packet is `general_task`, cites all staged exploration references, and retains stage-boundary stop conditions. |
-| TMCP compiler + `refactor-clean` | Remove an obsolete owner and verify consumers | Selection-only | The refactor source is cited with its preservation and verification atoms; its richer ownership rule still needs blind behavioral fixtures. |
+| TMCP compiler + `refactor-clean` | Remove an obsolete owner and verify consumers | Pass after gate projection | The packet is `general_task`, cites the refactor source, and preserves a consumer-surface verification gate rather than reducing the source to generic tests. |
 | TMCP compiler + `repo-behavior-spec-loop` | Audit a canonical evidence ledger; stop before fixes | Pass after route fix | The packet is `general_task`, requires `references/loop.md`, retains the canonical-ledger instruction, output contract, audit checkpoints, and test gates. |
 | TMCP compiler + `write-docs` | Draft source-grounded documentation that cites implementation evidence | Pass after route fix | The packet is `general_task`, cites the documentation source, and does not activate frontend behavior from the generic implementation stem. |
 
@@ -30,6 +30,12 @@ documentation objective still activated frontend behavior through the generic
 `implement` stem. The frontend route no longer treats that stem as sufficient
 evidence; the explicit React-components control remains in the deterministic
 contract. This is a routing correction, not a claim about documentation quality.
+
+The `refactor-clean` source exposed a separate projection gap: “verify behavior
+through consumers” was reduced to generic test guidance. When a selected source
+contains owner, consumer, and verification language, its packet now carries a
+consumer-surface verification gate. This preserves a source invariant locally;
+it does not establish that a refactor outcome is better.
 
 ## Interpretation
 

@@ -108,3 +108,35 @@ class CompositionContractFixtureTests(unittest.TestCase):
                 0
             ],
         )
+
+    def test_owner_consumer_source_projects_consumer_verification_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "SKILL.md"
+            source.write_text(
+                "---\nname: clean-refactor\n---\n"
+                "# Clean Refactoring\n"
+                "Identify every owner and consumer, then verify behavior through "
+                "consumers rather than only the new owner.\n",
+                encoding="utf-8",
+            )
+            packet = self.server._compose_packet(
+                {
+                    "source_path": str(root),
+                    "project_path": str(root),
+                    "objective": (
+                        "Plan removal of an obsolete owner only after mapping "
+                        "consumers and verification."
+                    ),
+                    "phase": "start",
+                    "cache_policy": "none",
+                    "limit": 20,
+                }
+            )
+
+        self.assertEqual(packet["task_identity"]["primary"], "general_task")
+        self.assertIn(
+            "Verify behavior through identified consumers, not only the owner.",
+            packet["verification_gates"],
+        )
+        self.assertEqual(packet["evidence_citations"][0]["source"], "SKILL.md")
