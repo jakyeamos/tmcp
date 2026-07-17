@@ -71,6 +71,9 @@ class CostRejudgeProtocolTests(unittest.TestCase):
         self.assertEqual(
             schema["required"], ["cost_regression", "evidence", "rationale"]
         )
+        evidence_properties = schema["properties"]["evidence"]["items"]["properties"]
+        self.assertEqual(evidence_properties["criterion"]["type"], "string")
+        self.assertEqual(evidence_properties["status"]["type"], "string")
         inconsistent = {
             **payload,
             "cost_regression": True,

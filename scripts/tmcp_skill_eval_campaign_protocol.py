@@ -319,8 +319,11 @@ def cost_rejudge_output_schema() -> dict[str, Any]:
         "additionalProperties": False,
         "required": ["criterion", "status", "citation"],
         "properties": {
-            "criterion": {"const": COST_REJUDGE_CRITERION},
-            "status": {"enum": ["necessary", "materially_unnecessary"]},
+            "criterion": {"type": "string", "const": COST_REJUDGE_CRITERION},
+            "status": {
+                "type": "string",
+                "enum": ["necessary", "materially_unnecessary"],
+            },
             "citation": {"type": "string", "minLength": 1},
         },
     }
