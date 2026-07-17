@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import scripts.tmcp_skill_eval_cost_rejudge as cost_rejudge
+import scripts.tmcp_skill_eval_cost_rejudge_runtime as cost_rejudge_runtime
 from scripts.tmcp_skill_eval_campaign_protocol import (
     CAMPAIGN_PROTOCOL,
     COST_REJUDGE_CRITERION,
@@ -242,6 +243,15 @@ class CostRejudgeSourceTests(unittest.TestCase):
                 ["unrelated.json"],
             )
 
+    def test_harness_digest_covers_each_local_rejudge_module(self) -> None:
+        self.assertTrue(
+            {
+                "tmcp_skill_eval_cost_rejudge.py",
+                "tmcp_skill_eval_cost_rejudge_runtime.py",
+                "tmcp_skill_eval_cost_rejudge_source.py",
+            }.issubset(cost_rejudge._harness_digests())
+        )
+
     def test_rejudge_execution_writes_only_independent_output_and_keeps_prompt_blind(
         self,
     ) -> None:
@@ -293,7 +303,7 @@ class CostRejudgeSourceTests(unittest.TestCase):
                 }
 
             source_digest_before = _sha256_file(source.runner_path)
-            with patch.object(cost_rejudge, "_run_stage", fake_run_stage):
+            with patch.object(cost_rejudge_runtime, "_run_stage", fake_run_stage):
                 entry = asyncio.run(
                     cost_rejudge._execute_cell(
                         cell,

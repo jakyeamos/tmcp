@@ -624,10 +624,6 @@ def score_traces(
         "outcome_scores": outcome_scores,
         "case_scores": judged_case_scores,
         "cost_scores": cost_scores,
-        "cost_rejudgment": {
-            "applied": cost_rejudgments is not None,
-            "trace_count": len(cost_rejudgments or {}),
-        },
         "pattern_effects": static_pattern_effects,
         "pattern_claims": pattern_claims,
         "static_pattern_findings": static_findings,
