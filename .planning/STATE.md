@@ -6,8 +6,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Harden 0.6 in dogfood priority order: task identity,
-typed handoffs, then executable host-run benchmark evidence. Keep 0.5.7 active.
+**Current focus:** Harden 0.6 in dogfood priority order: narrow deterministic
+activation, typed handoffs, then executable host-run benchmark evidence. Keep
+0.5.7 active.
 
 ## Milestone
 
@@ -17,8 +18,9 @@ typed handoffs, then executable host-run benchmark evidence. Keep 0.5.7 active.
 `a70fd04` adds provenance-bound lazy behavior hydration and preserves the
 deterministic path, while `9f26520` restores the test-size quality gate. Task
 identity has lexical safety at `9b4d72e` and compound-task safety at
-`5fcefab`; typed artifact handoffs and executable benchmark fixtures remain
-before real host-run proof.
+`5fcefab`; `271ed29` narrows compatibility activation to governing sources plus
+evidence-backed bootstrap skills. Typed handoffs and executable benchmark
+fixtures remain before real host-run proof.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -31,6 +33,11 @@ before real host-run proof.
 
 ## Completed Scope
 
+- `271ed29` makes the no-proposal compatibility path fail closed against generic
+  process overlap and phase-only matches, limits automatic activation to one
+  bootstrap skill, preserves scoped/family sources, and records rejection
+  diagnostics. Live dogfood selects only `skills/tmcp/SKILL.md` for the 0.6
+  hardening objective; focused selection, policy, integration, and size tests pass.
 - `5fcefab` replaces weak single-route fallback with deterministic task facets,
   compound-task fallback, explicit validated-route provenance, safe shortcut
   gating, packet-identity binding, and graph-aware facet recompiles. Full unit,
@@ -326,12 +333,10 @@ _(truncated for length)_
 ## Accumulated Context
 
 ### Roadmap Evolution
-- 2026-07-17: `a70fd04` closes manifest-first hydration dogfood findings:
-  compact indexes, hard token accounting, block/source provenance binding, and
-  compatibility-safe contracts; `9f26520` restores the test-size gate. Task
-  identity lexical safety is at `9b4d72e`; `5fcefab` adds compound facets,
-  validated-route identity, and safe fallback routing. Typed handoffs and
-  executable proof remain release blockers.
+- 2026-07-17: `271ed29` closes the default activation dogfood gap: generic
+  process overlap and phase hints cannot activate behavior, supporting workflow
+  docs stay advisory, and compatibility composition retains one bootstrap skill.
+  Typed handoff enforcement and executable proof remain release blockers.
 - 2026-07-10: Modernization audit identifies P0 package disclosure risk and
   proposes a parallel v2 runtime behind stable entrypoints.
 - 2026-07-11: Milestone 0 closes the package-disclosure blocker; next work
@@ -364,5 +369,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_tmcp_composition_planning tests.test_tmcp_composition_runtime tests.test_tmcp_recompile_domain
+python3 -m unittest tests.test_tmcp_composition_handoffs tests.test_tmcp_composition_runtime_handoff_enforcement tests.test_tmcp_recompile_service
 ```

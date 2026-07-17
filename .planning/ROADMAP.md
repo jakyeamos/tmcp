@@ -79,8 +79,10 @@ outcomes while preserving deterministic compatibility.
   always-on context, and compatibility-safe preflight extensions. `9b4d72e`
   closes lexical task-identity safety; `5fcefab` adds compound-task facets,
   validated route identity, safe shortcut gating, and graph-aware facet diffs.
-  Typed artifact handoffs remain next. `9f26520` keeps preflight coverage below
-  the test-size gate.
+  `271ed29` closes broad default activation with source-role hardening, a
+  one-skill compatibility bootstrap, and rejection diagnostics. Typed artifact
+  handoffs remain next. `9f26520` keeps preflight coverage below the test-size
+  gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, plan preservation,
@@ -93,4 +95,4 @@ outcomes while preserving deterministic compatibility.
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for compound-task identity hardening and release proof gating*
+*Last updated: 2026-07-17 for deterministic activation hardening and release proof gating*
