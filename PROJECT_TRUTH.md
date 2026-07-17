@@ -4,7 +4,7 @@
 
 - Branch: `codex/skill-eval-dogfood`
 - Last completed change: `a158472` publishes evidence-bounded skill-pattern catalog and guidebook updates from the completed 72-cell campaign.
-- Verification: catalog exactly matches the generated scored catalog; JSON validation, score replay, Pre-CR's 513-test run, full Ruff/basedpyright/compile checks, and TMCP receipt `packet-eb6a2d737fc2` pass.
+- Verification: catalog exactly matches the generated scored catalog; JSON validation, score replay, Pre-CR's 513-test run, full Ruff/basedpyright/compile checks, TMCP receipt `packet-eb6a2d737fc2`, and push to `origin/codex/skill-eval-dogfood` pass.
 
 ## Current Position
 
@@ -19,10 +19,11 @@
 - The 72-cell matrix completed with 144 unique runner/judge threads and no invalidated stages; raw evidence, catalog, and guidebook are committed on the isolated branch.
 - Statistical contrast prose now composes as `general_task`; genuine color/browser contrast still activates accessibility behavior.
 - TMCP receipt `packet-eb6a2d737fc2` records the final validations and intentionally ignored unrelated approval atoms.
+- Remote `origin/codex/skill-eval-dogfood` contains the complete isolated dogfood branch.
 
 ## Next Step
 
-- Push the isolated branch after final clean-tree verification.
+- Review the supported section-level claim and decide whether to run a predeclared, campaign-wide cost rejudge with a faithful cost bar before any promotion attempt.
 
 ## Blockers
 
