@@ -163,7 +163,7 @@ class EvaluationEvidenceServiceTests(unittest.TestCase):
         self.assertIsNone(claim["observed_summary"]["absolute_lift"])
         self.assertFalse(claim["causal_contrast_valid"])
 
-    def test_multi_agent_gate_requires_full_72_run_design(self) -> None:
+    def test_multi_gate_requires_72_runs(self) -> None:
         plan = self._plan(fixture_count=6)
         traces = self._traces(
             plan,
