@@ -3,7 +3,7 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `8fa91e2` makes the verified composition scorer's new schema identifier release-package-safe without weakening secret scanning.
+- Last completed change: `9e03324` keeps archival cost-rejudge verification negative when a release archive omits a cost bar, without weakening the digest-mismatch boundary in a full evidence checkout.
 - Verification: 565 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
