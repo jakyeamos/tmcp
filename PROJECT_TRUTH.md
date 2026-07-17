@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `0d77875` binds blind cost rejudgments before evidence redaction and accepts the harness's canonical `C1:` criterion after `86d5792` made the service schema compatible.
-- Verification: 525 tests (3 skipped), full Ruff/basedpyright/compile checks, score replay, TMCP doctor, the 72-source rejudge dry-run, and Pre-CR changed-line readiness pass. The approved 72-artifact live rejudge completed with 72 unique fresh judge threads and a digest-valid complete sidecar.
+- Last completed change: `262d063` records the immutable 72-judge blind cost sidecar, adjudicated score report, and operator guide after `0d77875` aligned the scoring contract.
+- Verification: 526 tests (3 skipped), Ruff, basedpyright, compile checks, score replay, TMCP doctor, the 72-source rejudge dry-run, and Pre-CR changed-line readiness pass. The approved 72-artifact live rejudge completed with 72 unique fresh judge threads and a digest-valid complete sidecar.
 
 ## Current Position
 
