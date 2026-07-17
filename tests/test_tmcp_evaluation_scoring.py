@@ -64,6 +64,14 @@ class EvaluationScoringServiceTests(unittest.TestCase):
         self.assertEqual(report["schema"], "report")
         self.assertEqual(report["scorecard"]["outcome_lift"]["score"], 0.0)
         self.assertIn("No paired", report["scorecard"]["outcome_lift"]["notes"])
+        self.assertEqual(
+            report["scorecard"]["claim_boundary"]["promotion_source"],
+            "pattern_claims",
+        )
+        self.assertIn(
+            "activation",
+            report["scorecard"]["claim_boundary"]["diagnostic_only_dimensions"],
+        )
         self.assertEqual(report["promotion_policy"]["auto_promote"], False)
 
     def test_normalize_trace_accepts_legacy_line_observations(self) -> None:

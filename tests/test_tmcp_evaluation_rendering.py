@@ -20,6 +20,25 @@ class EvaluationRenderingServiceTests(unittest.TestCase):
                 "internal_atoms": ["behavior-verification"],
                 "prefer": "Run the command.",
                 "avoid": "Make it good.",
+                "effect": {
+                    "absolute_lift": -1.0,
+                    "expected_direction": "negative",
+                },
+                "sample": {
+                    "trace_count": 8,
+                    "fixture_count": 2,
+                    "agent_configuration_count": 1,
+                    "absolute_lift_interval": {
+                        "confidence": 0.95,
+                        "lower": -1.0,
+                        "upper": -0.02,
+                        "method": "newcombe_wilson_difference",
+                    },
+                },
+                "promotion": {
+                    "decision": "hold",
+                    "gaps": ["more configurations required"],
+                },
             }
         ]
         patterns = [
@@ -46,6 +65,10 @@ class EvaluationRenderingServiceTests(unittest.TestCase):
 
         self.assertIn("# TMCP Skill Writing Guidebook", markdown)
         self.assertIn("### Concrete gates", markdown)
+        self.assertIn("support direction: negative", markdown)
+        self.assertIn("95% [-1.0, -0.02]", markdown)
+        self.assertIn("1 agent configuration", markdown)
+        self.assertIn("\n\n- Promotion gap:", markdown)
         self.assertEqual(catalog["created_at"], "now")
         self.assertEqual(
             catalog["patterns"][0]["pattern_id"], "verification.concrete-command"

@@ -588,6 +588,21 @@ def score_traces(
     ]
 
     scorecard = {
+        "claim_boundary": {
+            "promotion_source": "pattern_claims",
+            "diagnostic_only_dimensions": [
+                "activation",
+                "packet_inclusion",
+                "adherence",
+                "cost",
+                "safety",
+            ],
+            "notes": (
+                "Only validated, behaviorally judged pattern_claims can change "
+                "guidebook evidence status. Other scorecard dimensions are "
+                "heuristic diagnostics and must not be read as causal effects."
+            ),
+        },
         "activation": aggregate_dimension(activation_scores),
         "packet_inclusion": aggregate_dimension(packet_scores),
         "adherence": aggregate_dimension(adherence_scores),

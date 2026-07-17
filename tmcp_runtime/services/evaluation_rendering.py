@@ -39,20 +39,42 @@ def render_guidebook_markdown(
         )
         effect = entry.get("effect")
         if isinstance(effect, Mapping) and effect.get("absolute_lift") is not None:
-            lines.append(f"**Observed lift:** {effect['absolute_lift']}")
+            lines.append(
+                "**Observed intervention-control lift:** "
+                f"{effect['absolute_lift']} "
+                f"(support direction: {effect.get('expected_direction', 'positive')})"
+            )
         sample = entry.get("sample")
         if isinstance(sample, Mapping):
+            interval = sample.get("absolute_lift_interval")
+            if isinstance(interval, Mapping):
+                confidence = float(interval.get("confidence") or 0.0)
+                method = str(interval.get("method") or "unspecified").replace("_", "-")
+                lines.append(
+                    f"**Lift interval:** {confidence:.0%} "
+                    f"[{interval.get('lower')}, {interval.get('upper')}] "
+                    f"({method})"
+                )
+            configuration_count = int(sample.get("agent_configuration_count", 0))
+            configuration_label = (
+                "agent configuration"
+                if configuration_count == 1
+                else "agent configurations"
+            )
             lines.append(
                 "**Sample:** "
                 f"{sample.get('trace_count', 0)} traces, "
                 f"{sample.get('fixture_count', 0)} fixtures, "
-                f"{sample.get('agent_configuration_count', 0)} agent configurations"
+                f"{configuration_count} {configuration_label}"
             )
         promotion = entry.get("promotion")
         if isinstance(promotion, Mapping):
             lines.append(f"**Promotion:** {promotion.get('decision', 'hold')}")
-            for gap in promotion.get("gaps") or []:
-                lines.append(f"- Promotion gap: {gap}")
+            promotion_gaps = promotion.get("gaps") or []
+            if promotion_gaps:
+                lines.append("")
+                for gap in promotion_gaps:
+                    lines.append(f"- Promotion gap: {gap}")
         lines.extend(
             [
                 "",
