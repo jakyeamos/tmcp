@@ -50,7 +50,28 @@
       ],
       "schema": "tmcp-skill-eval-campaign-policy-v0.1"
     },
-    "experiment_id": "composition-study-e142fa5d9be1ff32",
+    "cost_rejudge_policy": {
+      "claim_boundary": "condition-blind adjudication of raw cost labels for the exact 72 runner artifacts; not a second correctness judgment or a distinct-model replication claim",
+      "complete_before_promotion": true,
+      "cost_bar_file": "cost-evaluation-bar.md",
+      "cost_bar_sha256": "sha256:13df20c7bb0641b61e50415b3e961e9017e5527e9df8dc38c51037312ab6a063",
+      "expected_trace_count": 72,
+      "judge_effort": "high",
+      "model": "gpt-5.6-sol",
+      "process_independence": {
+        "condition_hidden": true,
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "model_identity_independence_claimed": false,
+        "source_artifact_only": true
+      },
+      "raw_labels_preserved": true,
+      "schema": "tmcp-composition-cost-rejudge-policy-v0.1",
+      "seed": 20260717
+    },
+    "experiment_id": "composition-study-2b35bb34abeb431f",
     "promotion_thresholds": {
       "controlled_multi_agent_eval": {
         "minimum_control_pass_rate": 0.5,
@@ -97,7 +118,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not launch a campaign, edit a file, or state that the guidebook or a causal claim is proven."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "claims the held baseline authorizes a new causal study",
         "treats the baseline as a promotion result",
@@ -168,7 +189,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not launch a campaign, edit a file, or state that the guidebook or a causal claim is proven."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "claims the held baseline authorizes a new causal study",
         "treats the baseline as a promotion result",
@@ -232,7 +253,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not treat packet-level evidence as behavioral proof or make a durable guidebook claim."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "calls the packet probe proof that the pair works",
         "invents model-run or judge evidence",
@@ -303,7 +324,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not treat packet-level evidence as behavioral proof or make a durable guidebook claim."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "calls the packet probe proof that the pair works",
         "invents model-run or judge evidence",
@@ -367,7 +388,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not activate or describe a frontend implementation plan as though the request were already routed there."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "treats generic build wording as a frontend task",
         "claims a compiler test proves behavioral lift",
@@ -438,7 +459,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not activate or describe a frontend implementation plan as though the request were already routed there."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "treats generic build wording as a frontend task",
         "claims a compiler test proves behavioral lift",
@@ -502,7 +523,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not promote a fixture source into a live instruction or claim that source-role projection proves behavior."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "uses a test fixture as a live instruction",
         "treats the source-role contract as behavioral proof",
@@ -573,7 +594,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not promote a fixture source into a live instruction or claim that source-role projection proves behavior."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "uses a test fixture as a live instruction",
         "treats the source-role contract as behavioral proof",
@@ -637,7 +658,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not claim that the guidebook is mature enough for corpus-wide promotion."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "promotes the guidebook corpus-wide from the held baseline",
         "ignores the unresolved cost sidecar finding",
@@ -708,7 +729,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not claim that the guidebook is mature enough for corpus-wide promotion."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "promotes the guidebook corpus-wide from the held baseline",
         "ignores the unresolved cost sidecar finding",
@@ -772,7 +793,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not claim that a hash alone proves a replayable or promoted composition result."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "claims hashes alone establish replayable evidence",
         "treats advisory packet fields as an automatic promotion result",
@@ -843,7 +864,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not claim that a hash alone proves a replayable or promoted composition result."
       ],
-      "experiment_id": "composition-study-e142fa5d9be1ff32",
+      "experiment_id": "composition-study-2b35bb34abeb431f",
       "failure_smells": [
         "claims hashes alone establish replayable evidence",
         "treats advisory packet fields as an automatic promotion result",

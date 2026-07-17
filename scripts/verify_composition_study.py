@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
 from scripts.generate_composition_study_plan import (  # noqa: E402
     _load_object,
     build_plan,
+    validate_cost_rejudge_policy,
     verify_study_input_digests,
 )
 from tmcp_runtime.api.evaluation import validate_evaluation_plan  # noqa: E402
@@ -84,6 +85,10 @@ def verify_study(
     definition = _load_object(inputs / "study.json")
     input_digests = verify_study_input_digests(resolved_study_dir, definition)
     generated_plan = validate_evaluation_plan(build_plan(resolved_study_dir))
+    experiment = generated_plan["experiment"]
+    cost_rejudge = validate_cost_rejudge_policy(
+        resolved_study_dir, experiment["cost_rejudge_policy"], generated_plan
+    )
     resolved_plan_path = (
         plan_path.resolve()
         if plan_path is not None
@@ -101,7 +106,7 @@ def verify_study(
         "schema": VERIFICATION_SCHEMA,
         "study_dir": str(resolved_study_dir),
         "plan_path": str(resolved_plan_path),
-        "experiment_id": generated_plan["experiment"]["experiment_id"],
+        "experiment_id": experiment["experiment_id"],
         "static": {
             "input_digests": input_digests,
             "plan_matches_generated": True,
@@ -110,9 +115,8 @@ def verify_study(
                 {str(row["task_id"]) for row in generated_plan["task_matrix"]}
             ),
             "matrix_row_count": len(generated_plan["task_matrix"]),
-            "claim_boundary": generated_plan["experiment"]["study_scope"][
-                "claim_boundary"
-            ],
+            "claim_boundary": experiment["study_scope"]["claim_boundary"],
+            "cost_rejudge": cost_rejudge,
         },
         "live_sources": live_sources,
     }

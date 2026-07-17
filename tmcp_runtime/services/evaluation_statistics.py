@@ -491,6 +491,13 @@ def promotion_gaps(
         gaps.append("intervention is not a one-factor causal contrast")
     if not claim.get("analysis_policy_predeclared"):
         gaps.append("clustered analysis policy was not predeclared")
+    cost_rejudge = claim.get("cost_rejudge_requirement")
+    if isinstance(cost_rejudge, Mapping) and cost_rejudge.get("required") is True:
+        status = str(cost_rejudge.get("status") or "invalid_policy")
+        if status == "missing":
+            gaps.append("predeclared cost rejudge sidecar is missing")
+        elif status != "complete":
+            gaps.append("predeclared cost rejudge sidecar is incomplete")
     confirmation = claim.get("cross_model_confirmation")
     if isinstance(confirmation, Mapping) and confirmation.get("required") is True:
         gaps.extend(

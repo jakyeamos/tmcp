@@ -93,7 +93,9 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   a later causal contrast, never promotion evidence by itself.
 - Causal promotion requires the predeclared clustered analysis policy, reliability
   floors, complete provenance, complete cost sidecar where used, and no unresolved
-  safety/cost regression.
+  safety/cost regression. When a plan preregisters `complete_before_promotion`,
+  the scorer must hold the claim until the sidecar covers the exact planned trace
+  count; documenting the intent alone is insufficient.
 - Reject a composition trace from controlled analysis when its materialized
   source-bundle provenance differs from the preregistered matrix row. A valid
   runner manifest alone is not enough once a result is exported or reanalyzed.

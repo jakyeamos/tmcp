@@ -21,6 +21,8 @@ from tmcp_runtime.services.evaluation_plan import displayed_content_digest
 REQUIRED_INPUT_DIGESTS = frozenset(
     {
         "campaign-policy.json",
+        "cost-evaluation-bar.md",
+        "cost-rejudge-policy.json",
         "first-principles.txt",
         "fixtures-reviewed-v1.json",
         "packet-base.md",
@@ -88,12 +90,84 @@ def verify_study_input_digests(
     return actual
 
 
+def validate_cost_rejudge_policy(
+    study_dir: Path, policy: Mapping[str, Any], plan: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Validate the preregistered, all-trace cost-sidecar commitment."""
+
+    if policy.get("schema") != "tmcp-composition-cost-rejudge-policy-v0.1":
+        raise ValueError("cost rejudge policy schema does not match.")
+    experiment = plan.get("experiment")
+    campaign_policy = (
+        experiment.get("campaign_policy") if isinstance(experiment, Mapping) else None
+    )
+    if not isinstance(campaign_policy, Mapping):
+        raise ValueError("cost rejudge policy requires a campaign policy.")
+    configurations = campaign_policy.get("runner_configurations")
+    cross_model = campaign_policy.get("cross_model_confirmation")
+    if not isinstance(configurations, list) or not isinstance(cross_model, Mapping):
+        raise ValueError("cost rejudge policy requires runner configurations.")
+    repetitions = cross_model.get("minimum_repetitions_per_cell")
+    if not isinstance(repetitions, int) or repetitions < 1:
+        raise ValueError("cost rejudge policy requires positive repetitions.")
+    matrix = plan.get("task_matrix")
+    if not isinstance(matrix, list):
+        raise ValueError("cost rejudge policy requires a task matrix.")
+    expected_trace_count = len(matrix) * len(configurations) * repetitions
+    if policy.get("expected_trace_count") != expected_trace_count:
+        raise ValueError("cost rejudge policy trace count does not match the campaign.")
+    if not isinstance(policy.get("model"), str) or not policy["model"].strip():
+        raise ValueError("cost rejudge policy model must be non-empty.")
+    if not isinstance(policy.get("judge_effort"), str) or not policy[
+        "judge_effort"
+    ].strip():
+        raise ValueError("cost rejudge policy judge_effort must be non-empty.")
+    if not isinstance(policy.get("seed"), int):
+        raise ValueError("cost rejudge policy seed must be an integer.")
+    if policy.get("cost_bar_file") != "cost-evaluation-bar.md":
+        raise ValueError("cost rejudge policy cost bar filename is invalid.")
+    cost_bar_digest = _sha256_file(study_dir / "inputs" / "cost-evaluation-bar.md")
+    if policy.get("cost_bar_sha256") != cost_bar_digest:
+        raise ValueError("cost rejudge policy cost bar digest does not match.")
+    if policy.get("raw_labels_preserved") is not True or policy.get(
+        "complete_before_promotion"
+    ) is not True:
+        raise ValueError("cost rejudge policy must preserve raw labels and gate promotion.")
+    independence = policy.get("process_independence")
+    required_independence = (
+        "fresh_judge",
+        "fresh_session",
+        "judge_blinded",
+        "condition_hidden",
+        "source_artifact_only",
+        "isolated_session",
+    )
+    if not isinstance(independence, Mapping) or any(
+        independence.get(field) is not True for field in required_independence
+    ):
+        raise ValueError("cost rejudge policy independence contract is incomplete.")
+    if independence.get("model_identity_independence_claimed") is not False:
+        raise ValueError("cost rejudge policy must not claim model identity independence.")
+    if not isinstance(policy.get("claim_boundary"), str) or not policy[
+        "claim_boundary"
+    ].strip():
+        raise ValueError("cost rejudge policy claim_boundary must be non-empty.")
+    return {
+        "expected_trace_count": expected_trace_count,
+        "model": policy["model"],
+        "judge_effort": policy["judge_effort"],
+        "cost_bar_sha256": cost_bar_digest,
+        "claim_boundary": policy["claim_boundary"],
+    }
+
+
 def build_plan(study_dir: Path) -> dict[str, Any]:
     inputs = study_dir / "inputs"
     definition = _load_object(inputs / "study.json")
     verify_study_input_digests(study_dir, definition)
     fixtures = _load_list(inputs / "fixtures-reviewed-v1.json")
     policy = _load_object(inputs / "campaign-policy.json")
+    cost_rejudge_policy = _load_object(inputs / "cost-rejudge-policy.json")
     base_attachment = (inputs / "packet-base.md").read_text(encoding="utf-8").strip()
     source_bundle = (inputs / "source-bundle.md").read_text(encoding="utf-8").strip()
     if not base_attachment or not source_bundle:
@@ -204,11 +278,12 @@ def build_plan(study_dir: Path) -> dict[str, Any]:
                 },
             )
         )
-    return {
+    plan = {
         "schema": "tmcp-skill-evaluation-plan-v0.2",
         "experiment": {
             "experiment_id": experiment_id,
             "campaign_policy": policy,
+            "cost_rejudge_policy": cost_rejudge_policy,
             "analysis_policy": definition["analysis_policy"],
             "promotion_thresholds": definition["promotion_thresholds"],
             "study_scope": definition["study_scope"],
@@ -218,6 +293,8 @@ def build_plan(study_dir: Path) -> dict[str, Any]:
         "observable_behavior_contract": [],
         "packet_inclusion_contracts": [],
     }
+    validate_cost_rejudge_policy(study_dir, cost_rejudge_policy, plan)
+    return plan
 
 
 def main() -> int:

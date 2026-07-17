@@ -1,0 +1,21 @@
+{
+  "schema": "tmcp-composition-cost-rejudge-policy-v0.1",
+  "expected_trace_count": 72,
+  "model": "gpt-5.6-sol",
+  "judge_effort": "high",
+  "seed": 20260717,
+  "cost_bar_file": "cost-evaluation-bar.md",
+  "cost_bar_sha256": "sha256:13df20c7bb0641b61e50415b3e961e9017e5527e9df8dc38c51037312ab6a063",
+  "raw_labels_preserved": true,
+  "complete_before_promotion": true,
+  "process_independence": {
+    "fresh_judge": true,
+    "fresh_session": true,
+    "judge_blinded": true,
+    "condition_hidden": true,
+    "source_artifact_only": true,
+    "isolated_session": true,
+    "model_identity_independence_claimed": false
+  },
+  "claim_boundary": "condition-blind adjudication of raw cost labels for the exact 72 runner artifacts; not a second correctness judgment or a distinct-model replication claim"
+}

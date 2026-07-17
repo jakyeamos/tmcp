@@ -37,6 +37,23 @@ fixture review, and cost/safety handling are pinned in
 [inputs/campaign-policy.json](inputs/campaign-policy.json) and
 [inputs/study.json](inputs/study.json).
 
+## Independent cost sidecar
+
+The primary judge's raw cost labels remain preserved. Before this study may be
+considered for promotion, a separate, condition-blind cost rejudge must cover all
+72 completed runner artifacts using the exact
+[cost bar](inputs/cost-evaluation-bar.md) and
+[sidecar policy](inputs/cost-rejudge-policy.json). The policy records a fresh,
+artifact-only, isolated judging process, but explicitly does not claim a
+distinct-model replication because the rejudge model is one of the runner model
+identifiers. TMCP scoring treats the required sidecar as a promotion gate, not a
+documentation-only checklist.
+
+The sidecar is a later external run and therefore needs separate fresh approval
+after the primary 72 cells have completed. It may adjudicate only C1 cost labels;
+it never rewrites raw labels or revisits correctness, safety, selection, or
+adherence.
+
 ## Reproducibility
 
 `scripts/generate_composition_study_plan.py` regenerates

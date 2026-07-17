@@ -132,6 +132,53 @@ def scorecard_claim_boundary() -> dict[str, Any]:
     }
 
 
+def _cost_rejudge_requirement(
+    plan: Mapping[str, Any],
+    traces: Sequence[Mapping[str, Any]],
+    cost_rejudgments: Mapping[str, bool] | None,
+) -> dict[str, Any]:
+    """Report whether a plan-preregistered cost sidecar covers its source traces."""
+
+    experiment = plan.get("experiment")
+    policy = (
+        experiment.get("cost_rejudge_policy")
+        if isinstance(experiment, Mapping)
+        else None
+    )
+    if (
+        not isinstance(policy, Mapping)
+        or policy.get("complete_before_promotion") is not True
+    ):
+        return {"required": False, "status": "not_required"}
+
+    expected_trace_count = policy.get("expected_trace_count")
+    if not isinstance(expected_trace_count, int) or expected_trace_count < 1:
+        return {
+            "required": True,
+            "status": "invalid_policy",
+            "expected_trace_count": expected_trace_count,
+        }
+    trace_ids = [str(trace.get("trace_id") or "") for trace in traces]
+    adjudicated_trace_count = len(cost_rejudgments) if cost_rejudgments is not None else 0
+    result: dict[str, Any] = {
+        "required": True,
+        "expected_trace_count": expected_trace_count,
+        "source_trace_count": len(trace_ids),
+        "adjudicated_trace_count": adjudicated_trace_count,
+    }
+    if (
+        len(trace_ids) != expected_trace_count
+        or len(set(trace_ids)) != expected_trace_count
+        or "" in trace_ids
+    ):
+        return {**result, "status": "incomplete_source_traces"}
+    if cost_rejudgments is None:
+        return {**result, "status": "missing"}
+    if set(cost_rejudgments) != set(trace_ids):
+        return {**result, "status": "incomplete"}
+    return {**result, "status": "complete"}
+
+
 def _baseline_reliability_policy(plan: Mapping[str, Any]) -> Mapping[str, Any] | None:
     experiment = plan.get("experiment")
     policy = (
@@ -582,6 +629,9 @@ def analyze_pattern_evidence(
         return []
 
     records = _records(plan, traces)
+    cost_rejudge_requirement = _cost_rejudge_requirement(
+        plan, traces, cost_rejudgments
+    )
     thresholds = thresholds_for_plan(plan)
     clustered_policy = clustered_analysis_policy_for_plan(plan)
     rows_by_pattern: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -767,6 +817,7 @@ def analyze_pattern_evidence(
             "plan_contract_trusted": plan_contract_trusted,
             "analysis_policy_predeclared": bool(clustered_policy["predeclared"]),
             "analysis_policy": clustered_policy,
+            "cost_rejudge_requirement": cost_rejudge_requirement,
             "evidence_level": evidence_level,
             "observed_summary": observed,
             "controlled_summary": controlled,

@@ -297,6 +297,54 @@ class CompositionStudyTests(unittest.TestCase):
             claims[0]["claim_granularity"], "source_bundle_delivery"
         )
 
+    def test_preregistered_cost_rejudge_is_required_before_promotion(self) -> None:
+        plan = composition_plan()
+        plan["experiment"]["cost_rejudge_policy"] = {
+            "expected_trace_count": 72,
+            "complete_before_promotion": True,
+        }
+        plan = validate_evaluation_plan(plan)
+        traces = controlled_traces(plan)
+
+        without_sidecar = analyze_pattern_evidence(plan, traces)[0]
+        self.assertEqual(
+            without_sidecar["cost_rejudge_requirement"]["status"], "missing"
+        )
+        self.assertIn(
+            "predeclared cost rejudge sidecar is missing",
+            without_sidecar["promotion_gaps"],
+        )
+
+        with_sidecar = analyze_pattern_evidence(
+            plan,
+            traces,
+            cost_rejudgments={str(trace["trace_id"]): False for trace in traces},
+        )[0]
+        self.assertEqual(
+            with_sidecar["cost_rejudge_requirement"]["status"], "complete"
+        )
+        self.assertNotIn(
+            "predeclared cost rejudge sidecar is missing",
+            with_sidecar["promotion_gaps"],
+        )
+
+        incomplete_source = traces[:-1]
+        with_incomplete_source = analyze_pattern_evidence(
+            plan,
+            incomplete_source,
+            cost_rejudgments={
+                str(trace["trace_id"]): False for trace in incomplete_source
+            },
+        )[0]
+        self.assertEqual(
+            with_incomplete_source["cost_rejudge_requirement"]["status"],
+            "incomplete_source_traces",
+        )
+        self.assertIn(
+            "predeclared cost rejudge sidecar is incomplete",
+            with_incomplete_source["promotion_gaps"],
+        )
+
     def test_source_bundle_trace_with_mismatched_provenance_is_excluded(self) -> None:
         plan = validate_evaluation_plan(composition_plan())
         traces = controlled_traces(plan)
@@ -327,9 +375,13 @@ class CompositionStudyTests(unittest.TestCase):
         validated = validate_evaluation_plan(generated)
         self.assertEqual(
             validated["experiment"]["experiment_id"],
-            "composition-study-e142fa5d9be1ff32",
+            "composition-study-2b35bb34abeb431f",
         )
         self.assertEqual(len(validated["task_matrix"]), 12)
+        self.assertEqual(
+            validated["experiment"]["cost_rejudge_policy"]["expected_trace_count"],
+            72,
+        )
 
     def test_study_verifier_binds_inputs_and_live_sources(self) -> None:
         if not STUDY_DIR.is_dir():
@@ -339,6 +391,8 @@ class CompositionStudyTests(unittest.TestCase):
 
         self.assertTrue(report["static"]["plan_matches_generated"])
         self.assertEqual(report["live_sources"]["status"], "matched")
+        self.assertEqual(report["static"]["cost_rejudge"]["expected_trace_count"], 72)
+        self.assertEqual(report["static"]["cost_rejudge"]["model"], "gpt-5.6-sol")
 
     def test_study_input_drift_rejects_regeneration(self) -> None:
         if not STUDY_DIR.is_dir():
