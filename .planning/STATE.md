@@ -36,8 +36,9 @@ fixtures remain before real host-run proof.
 - `271ed29` makes the no-proposal compatibility path fail closed against generic
   process overlap and phase-only matches, limits automatic activation to one
   bootstrap skill, preserves scoped/family sources, and records rejection
-  diagnostics. Live dogfood selects only `skills/tmcp/SKILL.md` for the 0.6
-  hardening objective; focused selection, policy, integration, and size tests pass.
+  diagnostics. `df3c8e2` preserves exact route phrases such as release readiness.
+  Live dogfood selects only `skills/tmcp/SKILL.md` for the 0.6 hardening objective;
+  focused selection, policy, integration, and size tests pass.
 - `5fcefab` replaces weak single-route fallback with deterministic task facets,
   compound-task fallback, explicit validated-route provenance, safe shortcut
   gating, packet-identity binding, and graph-aware facet recompiles. Full unit,
@@ -336,7 +337,8 @@ _(truncated for length)_
 - 2026-07-17: `271ed29` closes the default activation dogfood gap: generic
   process overlap and phase hints cannot activate behavior, supporting workflow
   docs stay advisory, and compatibility composition retains one bootstrap skill.
-  Typed handoff enforcement and executable proof remain release blockers.
+  `df3c8e2` keeps explicit route phrases eligible. Typed handoff enforcement and
+  executable proof remain release blockers.
 - 2026-07-10: Modernization audit identifies P0 package disclosure risk and
   proposes a parallel v2 runtime behind stable entrypoints.
 - 2026-07-11: Milestone 0 closes the package-disclosure blocker; next work
