@@ -309,6 +309,8 @@ class CompositionStudyTests(unittest.TestCase):
         )
 
     def test_checked_in_study_plan_is_reproducible_and_valid(self) -> None:
+        if not STUDY_DIR.is_dir():
+            self.skipTest("source-only composition study evidence is not packaged")
         generated = build_plan(STUDY_DIR)
         checked_in = json.loads(
             (
