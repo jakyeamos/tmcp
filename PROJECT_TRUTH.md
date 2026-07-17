@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `bef899f` splits trace-validation and cost-sidecar concerns out of `evaluation_evidence.py`, resolving its source-size gate; `d615e0d` preregisters the exact 72-trace composition cost rejudge and makes scoring hold a claim until that sidecar is complete.
-- Verification: 557 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook could not run `pre-cr` because its CLI is unavailable on PATH.
+- Last completed change: `8d7c556` binds a composition rejudge launcher and scored sidecar to its exact preregistered policy; `bef899f` splits trace-validation and cost-sidecar concerns out of `evaluation_evidence.py`, resolving its source-size gate.
+- Verification: 560 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
 
@@ -36,7 +36,7 @@
 - The local project-root composition replay is recorded with advisory receipt `packet-f62c9fd667c8`; its deterministic pass does not promote a skill-pair or wording rule.
 - The reviewed v1 composition plan has six Stage-1 fixtures across campaign sequencing, evidence-boundary, and promotion-gate families; `packet_only` versus exact `packet_plus_explore` yields 72 blinded cells. It can test only the delivery effect of the pinned source bundle, not live selection, adherence, or corpus quality.
 - `verify_composition_study.py` now rejects input/receipt/first-principles drift, reports opted-in live-source drift without exposing source text, and is mandatory for source-bundle campaign manifests; the campaign rejects a different runner first-principles file.
-- Its byte-pinned cost sidecar requires a fresh, condition-blind, artifact-only 72-trace review using `gpt-5.6-sol` at high effort. This is process-independent but not a distinct-model claim; raw labels remain separate, and scoring holds promotion until coverage is complete.
+- Its byte-pinned cost sidecar requires a fresh, condition-blind, artifact-only 72-trace review using `gpt-5.6-sol` at high effort. This is process-independent but not a distinct-model claim; launcher and scored sidecar must match the policy's model, effort, seed, bar filename/digest, and trace count before scoring can clear the coverage gate.
 
 ## Next Step
 
@@ -59,4 +59,3 @@
 - The next external model run needs fresh approval after the target revision and v3 fixture review; the corrected local report is not new remote evidence.
 - A positive source-bundle result would still be a delivery effect with length/framing confounded inside the pinned bundle, not proof of TMCP live selection or independent source adherence.
 - The source-bundle launcher intentionally fails closed when a source, input, generated plan, or supplied first-principles file drifts; a changed source requires a new reviewed preregistration rather than resume.
-- `pre-cr` is unavailable on PATH, so the project hook warns instead of supplying its changed-line readiness signal; direct tests, compiler checks, and the release-package gate remain required until that tool is restored.
