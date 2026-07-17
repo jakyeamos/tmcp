@@ -168,7 +168,7 @@ class SkillEvaluateTests(unittest.TestCase):
         trace = {
             "task_id": "approval-before-edit",
             "variant_id": "original",
-            "observations": [{"kind": "command_run", "value": "npm test"}],
+            "observations": [{"kind": "command_run", "value": "pnpm test"}],
         }
 
         with self.assertRaisesRegex(ValueError, "trace count"):
@@ -193,7 +193,7 @@ class SkillEvaluateTests(unittest.TestCase):
                             "task_id": "approval-before-edit",
                             "variant_id": "original",
                             "observations": [
-                                {"kind": "command_run", "value": "npm test"}
+                                {"kind": "command_run", "value": "pnpm test"}
                             ],
                         }
                     ],
@@ -212,7 +212,7 @@ class SkillEvaluateTests(unittest.TestCase):
                                 "task_id": "approval-before-edit",
                                 "variant_id": "original",
                                 "observations": [
-                                    {"kind": "command_run", "value": "npm test"}
+                                    {"kind": "command_run", "value": "pnpm test"}
                                 ],
                             }
                         ],
@@ -251,7 +251,7 @@ class SkillEvaluateTests(unittest.TestCase):
                                 "value": "skills/approval-before-edit/SKILL.md",
                             },
                             {"kind": "file_write", "value": "src/app.tsx"},
-                            {"kind": "command_run", "value": "npm test"},
+                            {"kind": "command_run", "value": "pnpm test"},
                         ],
                         "human_labels": [
                             {
@@ -293,8 +293,8 @@ class SkillEvaluateTests(unittest.TestCase):
                         "task_id": "approval-before-edit",
                         "variant_id": "original",
                         "observations": [
-                            {"kind": "assistant_message", "value": "Running npm test"},
-                            {"kind": "command_run", "value": "npm test"},
+                            {"kind": "assistant_message", "value": "Running pnpm test"},
+                            {"kind": "command_run", "value": "pnpm test"},
                         ],
                         "outcome": "passed",
                     }
@@ -315,7 +315,7 @@ class SkillEvaluateTests(unittest.TestCase):
                         "task_id": "approval-before-edit",
                         "variant_id": "original",
                         "observations": [
-                            {"kind": "command_run", "value": "npm test"},
+                            {"kind": "command_run", "value": "pnpm test"},
                         ],
                         "outcome": "passed",
                     }
@@ -345,7 +345,7 @@ class SkillEvaluateTests(unittest.TestCase):
                         "task_id": "approval-before-edit",
                         "variant_id": "original",
                         "observations": [
-                            {"kind": "command_run", "value": "npm test"},
+                            {"kind": "command_run", "value": "pnpm test"},
                         ],
                         "outcome": "passed",
                     }
@@ -382,7 +382,7 @@ class SkillEvaluateTests(unittest.TestCase):
                             "task_id": "approval-before-edit",
                             "variant_id": "original",
                             "observations": [
-                                {"kind": "command_run", "value": "npm test"},
+                                {"kind": "command_run", "value": "pnpm test"},
                             ],
                             "outcome": "passed",
                         }
@@ -423,7 +423,7 @@ class SkillEvaluateTests(unittest.TestCase):
                         "task_id": "approval-before-edit",
                         "variant_id": "original",
                         "observations": [
-                            {"kind": "command_run", "value": "npm test"},
+                            {"kind": "command_run", "value": "pnpm test"},
                         ],
                         "outcome": "passed",
                     }
@@ -511,7 +511,7 @@ class SkillEvaluateTests(unittest.TestCase):
                         "task_id": "approval-before-edit",
                         "variant_id": "original",
                         "observations": [
-                            {"kind": "command_run", "value": "npm test"},
+                            {"kind": "command_run", "value": "pnpm test"},
                         ],
                         "outcome": "passed",
                     }
@@ -559,7 +559,7 @@ class SkillEvaluateTests(unittest.TestCase):
                             "variant_id": "rewritten",
                             "agent": {"name": "cursor", "model": "claude"},
                             "observations": [
-                                {"kind": "command_run", "value": "npm test"}
+                                {"kind": "command_run", "value": "pnpm test"}
                             ],
                             "outcome": "passed",
                         }
