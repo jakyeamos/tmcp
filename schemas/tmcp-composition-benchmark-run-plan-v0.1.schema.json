@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-benchmark-run-plan-v0.1.schema.json",
+  "title": "TMCP Composition Benchmark Run Plan v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "protocol",
+    "runtime",
+    "catalog",
+    "fixture_workspaces",
+    "routing_requests",
+    "behavioral_requests",
+    "run_manifest_digest",
+    "run_manifest_id"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-benchmark-run-plan-v0.1"},
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "cache_policy",
+        "tmcp_role",
+        "host_role",
+        "automatic_tool_execution",
+        "receipt_persistence"
+      ],
+      "properties": {
+        "schema": {"const": "tmcp-composition-benchmark-protocol-v0.1"},
+        "cache_policy": {"const": "none"},
+        "tmcp_role": {"const": "compile_and_validate_only"},
+        "host_role": {"const": "propose_semantics_then_execute_explicit_controls"},
+        "automatic_tool_execution": {"const": false},
+        "receipt_persistence": {"const": "explicit_host_write_only"}
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release", "compiler_contract_digest"],
+      "properties": {
+        "release": {"type": "string", "minLength": 1},
+        "compiler_contract_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["routing_golden_digest", "behavioral_fixtures_digest"],
+      "properties": {
+        "routing_golden_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "behavioral_fixtures_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "fixture_workspaces": {
+      "type": "array",
+      "minItems": 5,
+      "items": {"$ref": "#/$defs/fixture_workspace"}
+    },
+    "routing_requests": {
+      "type": "array",
+      "minItems": 20,
+      "items": {"$ref": "#/$defs/routing_request"}
+    },
+    "behavioral_requests": {
+      "type": "array",
+      "minItems": 5,
+      "items": {"$ref": "#/$defs/request"}
+    },
+    "run_manifest_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "run_manifest_id": {"type": "string", "pattern": "^benchmark-run-[a-f0-9]{20}$"}
+  },
+  "$defs": {
+    "fixture_workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixture_id", "domain", "workspace_root", "source_inventory"],
+      "properties": {
+        "fixture_id": {"type": "string", "minLength": 1},
+        "domain": {"type": "string", "minLength": 1},
+        "workspace_root": {"type": "string", "pattern": "^fixtures/[^/]+$"},
+        "source_inventory": {
+          "type": "array",
+          "minItems": 3,
+          "items": {"$ref": "#/$defs/source"}
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "skill_id",
+        "relative_path",
+        "workspace_path",
+        "content_digest",
+        "raw_sha256",
+        "source_node_id"
+      ],
+      "properties": {
+        "skill_id": {"type": "string", "minLength": 1},
+        "relative_path": {"type": "string", "pattern": "^skills/[^/]+/SKILL\\.md$"},
+        "workspace_path": {"type": "string", "pattern": "^fixtures/[^/]+/skills/[^/]+/SKILL\\.md$"},
+        "content_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "raw_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "source_node_id": {"type": "string", "pattern": "^benchmark-source-[a-f0-9]{20}$"}
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "request_id",
+        "fixture_id",
+        "objective",
+        "phase",
+        "cache_policy",
+        "input_digest",
+        "preflight_id",
+        "preflight_digest",
+        "preflight_artifact"
+      ],
+      "properties": {
+        "request_id": {"type": "string", "minLength": 1},
+        "fixture_id": {"type": "string", "minLength": 1},
+        "objective": {"type": "string", "minLength": 1},
+        "phase": {"const": "start"},
+        "cache_policy": {"const": "none"},
+        "input_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "preflight_id": {"type": "string", "pattern": "^preflight-[a-f0-9]{20}$"},
+        "preflight_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "preflight_artifact": {"type": "string", "pattern": "^host-inputs/[^/]+-preflight\\.json$"}
+      }
+    },
+    "routing_request": {
+      "allOf": [
+        {"$ref": "#/$defs/request"},
+        {
+          "type": "object",
+          "required": ["case_id"],
+          "properties": {
+            "case_id": {"type": "string", "minLength": 1}
+          }
+        }
+      ]
+    }
+  }
+}

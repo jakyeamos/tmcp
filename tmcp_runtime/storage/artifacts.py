@@ -140,6 +140,33 @@ def _validate_name(name: str) -> None:
         raise ArtifactStorageError(f"Artifact name must be a single filename: {name!r}")
 
 
+def _relative_parts(relative_path: str) -> tuple[str, ...]:
+    """Return one safe, portable relative artifact path."""
+
+    if not isinstance(relative_path, str) or not relative_path:
+        raise ArtifactStorageError("Artifact relative path must be nonempty.")
+    if "\\" in relative_path:
+        raise ArtifactStorageError(
+            f"Artifact relative path must use forward slashes: {relative_path!r}"
+        )
+    raw_parts = relative_path.split("/")
+    if any(part in {"", ".", ".."} for part in raw_parts):
+        raise ArtifactStorageError(
+            f"Artifact relative path is unsafe: {relative_path!r}"
+        )
+    candidate = Path(relative_path)
+    if candidate.is_absolute() or not candidate.parts:
+        raise ArtifactStorageError(
+            f"Artifact relative path must be relative: {relative_path!r}"
+        )
+    parts = candidate.parts
+    if any(part in {"", ".", ".."} for part in parts):
+        raise ArtifactStorageError(
+            f"Artifact relative path is unsafe: {relative_path!r}"
+        )
+    return parts
+
+
 def _validate_file_target(directory_fd: int, name: str) -> None:
     _validate_name(name)
     metadata = _entry_metadata(directory_fd, name)
@@ -164,6 +191,45 @@ def _sync_directory(directory_fd: int) -> None:
 
 def _temporary_name(name: str) -> str:
     return f".{name}.{uuid.uuid4().hex}.tmp"
+
+
+def _open_or_create_directory_at(directory_fd: int, name: str) -> int:
+    _validate_name(name)
+    metadata = _entry_metadata(directory_fd, name)
+    if metadata is None:
+        try:
+            os.mkdir(name, mode=0o700, dir_fd=directory_fd)
+        except OSError as exc:
+            raise ArtifactStorageError(
+                f"Could not create artifact directory {redact_path(name)}."
+            ) from exc
+    elif stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+        raise ArtifactStorageError(
+            f"Artifact path component is not a safe directory: {redact_path(name)}"
+        )
+    try:
+        return os.open(name, _directory_flags(), dir_fd=directory_fd)
+    except OSError as exc:
+        raise ArtifactStorageError(
+            f"Refusing unsafe artifact directory {redact_path(name)}."
+        ) from exc
+
+
+def _write_relative_text_at(
+    directory_fd: int, relative_path: str, content: str
+) -> None:
+    parts = _relative_parts(relative_path)
+    current_fd = directory_fd
+    opened_fds: list[int] = []
+    try:
+        for part in parts[:-1]:
+            child_fd = _open_or_create_directory_at(current_fd, part)
+            opened_fds.append(child_fd)
+            current_fd = child_fd
+        _write_text_at(current_fd, parts[-1], content)
+    finally:
+        for opened_fd in reversed(opened_fds):
+            os.close(opened_fd)
 
 
 def _json_content(payload: Any) -> str:
@@ -233,7 +299,17 @@ def _remove_staging_directory(parent_fd: int, name: str) -> None:
     try:
         for entry_name in os.listdir(directory_fd):
             try:
-                os.unlink(entry_name, dir_fd=directory_fd)
+                metadata = os.stat(
+                    entry_name,
+                    dir_fd=directory_fd,
+                    follow_symlinks=False,
+                )
+                if stat.S_ISDIR(metadata.st_mode) and not stat.S_ISLNK(
+                    metadata.st_mode
+                ):
+                    _remove_staging_directory(directory_fd, entry_name)
+                else:
+                    os.unlink(entry_name, dir_fd=directory_fd)
             except OSError:
                 return
     finally:
@@ -334,6 +410,79 @@ class AtomicArtifactStore:
             output_dir,
             {name: _json_content(payload) for name, payload in payloads.items()},
         )
+
+    @classmethod
+    def write_tree_bundle(
+        cls,
+        output_dir: str | Path,
+        artifacts: Mapping[str, str],
+    ) -> dict[str, str]:
+        """Atomically write a fresh bundle whose artifact names may be paths.
+
+        Unlike ``write_text_bundle``, this is deliberately limited to explicit
+        relative paths. Every directory is created descriptor-relatively inside
+        the staging bundle, so fixture materialization cannot follow a caller
+        controlled symlink or escape the selected destination.
+        """
+
+        if not artifacts:
+            return {}
+        names = list(artifacts)
+        if len(set(names)) != len(names):
+            raise ArtifactStorageError("Artifact tree contains duplicate paths.")
+        for name in names:
+            _relative_parts(name)
+            if not isinstance(artifacts[name], str):
+                raise ArtifactStorageError(
+                    f"Artifact content must be text: {redact_path(name)}"
+                )
+        root = _normalized_path(output_dir)
+        parent_fd = _open_directory(root.parent, create=True)
+        stage_name = _temporary_name(root.name)
+        stage_fd = -1
+        committed = False
+        try:
+            existing = _entry_metadata(parent_fd, root.name)
+            if existing is not None:
+                if stat.S_ISLNK(existing.st_mode):
+                    raise ArtifactStorageError(
+                        "Refusing symlinked artifact bundle directory: "
+                        f"{redact_path(root)}"
+                    )
+                if not stat.S_ISDIR(existing.st_mode) or not _directory_is_empty(
+                    parent_fd,
+                    root.name,
+                ):
+                    raise ArtifactStorageError(
+                        "Artifact bundle destination must be absent or empty: "
+                        f"{redact_path(root)}"
+                    )
+            os.mkdir(stage_name, mode=0o700, dir_fd=parent_fd)
+            stage_fd = os.open(stage_name, _directory_flags(), dir_fd=parent_fd)
+            for name in sorted(names):
+                _write_relative_text_at(stage_fd, name, artifacts[name])
+            _sync_directory(stage_fd)
+            os.close(stage_fd)
+            stage_fd = -1
+            os.replace(
+                stage_name,
+                root.name,
+                src_dir_fd=parent_fd,
+                dst_dir_fd=parent_fd,
+            )
+            committed = True
+            _sync_directory(parent_fd)
+        except OSError as exc:
+            raise ArtifactStorageError(
+                f"Could not atomically commit artifact bundle {redact_path(root)}."
+            ) from exc
+        finally:
+            if stage_fd != -1:
+                os.close(stage_fd)
+            if not committed:
+                _remove_staging_directory(parent_fd, stage_name)
+            os.close(parent_fd)
+        return {name: str(root / name) for name in names}
 
     @classmethod
     def write_bundle(
