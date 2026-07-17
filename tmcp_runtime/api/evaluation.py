@@ -106,6 +106,23 @@ def _safe_bounded_json_value(
     return safe_value
 
 
+def _bounded_json_value(
+    value: Any,
+    *,
+    label: str,
+    max_bytes: int | None = None,
+) -> Any:
+    """Check an input size without replacing identifiers needed for scoring."""
+
+    limit = MAX_EVALUATION_INPUT_BYTES if max_bytes is None else max_bytes
+    serialized_size = len(_json_text(value, label=label).encode("utf-8"))
+    if serialized_size > limit:
+        raise ValueError(
+            f"{label} exceeds the maximum serialized size of {limit} bytes."
+        )
+    return value
+
+
 def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
     raw_skill_paths = arguments.get("skill_paths")
     if not isinstance(raw_skill_paths, list) or not raw_skill_paths:
@@ -509,10 +526,14 @@ def score_evidence(
         raw_evidence, raw_cost_rejudgments, plan=plan
     )
     redactions: dict[str, int] = {}
-    safe_evidence = _safe_bounded_json_value(
+    # Preserve trace IDs and source digests through controlled scoring. Redacting
+    # them before duplicate detection can collapse distinct opaque identifiers.
+    # The returned report is still redacted below; scan here only to retain the
+    # request-level redaction summary without changing the scoring inputs.
+    _safe_json_value(raw_evidence, redactions)
+    safe_evidence = _bounded_json_value(
         raw_evidence,
         label="run_evidence_json",
-        redactions=redactions,
     )
     if not isinstance(safe_evidence, list):
         raise ValueError("run_evidence_json must contain trace objects.")

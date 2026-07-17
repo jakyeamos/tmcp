@@ -1,18 +1,35 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import shutil
 import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.generate_composition_study_plan import build_plan
+from scripts.score_composition_study import (
+    VERIFIED_SCORE_SCHEMA,
+    score_composition_study,
+    score_verified_study,
+)
 from scripts.tmcp_skill_eval_campaign import _verify_source_bundle_study
+from scripts.tmcp_skill_eval_campaign_protocol import (
+    COST_REJUDGE_CRITERION,
+    build_cells,
+)
 from scripts.verify_composition_study import verify_study
-from scripts.tmcp_skill_eval_campaign_protocol import build_cells
+from scripts.verify_cost_rejudge import (
+    VERIFICATION_SCHEMA as COST_REJUDGE_VERIFICATION_SCHEMA,
+)
 from tmcp_runtime.api.evaluation import validate_evaluation_plan
+from tmcp_runtime.services.evaluation_cost_rejudge import (
+    COST_REJUDGMENT_SCHEMA,
+    trace_source_digest,
+)
 from tmcp_runtime.services.evaluation_evidence import analyze_pattern_evidence
 from tmcp_runtime.services.evaluation_plan import displayed_content_digest
 
@@ -236,6 +253,154 @@ def controlled_traces(plan: dict) -> list[dict]:
 
 
 class CompositionStudyTests(unittest.TestCase):
+    def test_verified_score_requires_a_promotion_ready_verifier_report(self) -> None:
+        plan = validate_evaluation_plan(composition_plan())
+        traces = controlled_traces(plan)
+        sidecar = {
+            "schema": COST_REJUDGMENT_SCHEMA,
+            "rejudgments": [
+                {
+                    "trace_id": trace["trace_id"],
+                    "source_trace_digest": trace_source_digest(trace),
+                    "cost_regression": False,
+                    "evidence": [
+                        {
+                            "criterion": COST_REJUDGE_CRITERION,
+                            "status": "necessary",
+                            "citation": "The artifact contains only required work.",
+                        }
+                    ],
+                    "rationale": "No material unnecessary work is present.",
+                    "provenance": {
+                        "fresh_session": True,
+                        "judge_blinded": True,
+                        "isolated_session": True,
+                        "condition_hidden": True,
+                        "source_artifact_only": True,
+                    },
+                }
+                for trace in traces
+            ],
+        }
+        verification = {
+            "schema": COST_REJUDGE_VERIFICATION_SCHEMA,
+            "experiment_id": plan["experiment"]["experiment_id"],
+            "static": {"promotion_ready": True},
+        }
+
+        score = score_verified_study(
+            plan=plan,
+            traces=traces,
+            sidecar=sidecar,
+            verification=verification,
+        )
+
+        self.assertEqual(score["schema"], VERIFIED_SCORE_SCHEMA)
+        self.assertEqual(
+            score["evaluation_report"]["scorecard"]["cost"]["source"],
+            "condition_blind_cost_rejudgment",
+        )
+        with self.assertRaisesRegex(ValueError, "promotion-ready verified sidecar"):
+            score_verified_study(
+                plan=plan,
+                traces=traces,
+                sidecar=sidecar,
+                verification={**verification, "static": {"promotion_ready": False}},
+            )
+
+    def test_source_bundle_score_verifies_persisted_artifacts_before_scoring(
+        self,
+    ) -> None:
+        plan = validate_evaluation_plan(composition_plan())
+        traces = controlled_traces(plan)
+        sidecar = {
+            "schema": COST_REJUDGMENT_SCHEMA,
+            "rejudgments": [
+                {
+                    "trace_id": trace["trace_id"],
+                    "source_trace_digest": trace_source_digest(trace),
+                    "cost_regression": False,
+                    "evidence": [
+                        {
+                            "criterion": COST_REJUDGE_CRITERION,
+                            "status": "necessary",
+                            "citation": "The artifact contains only required work.",
+                        }
+                    ],
+                    "rationale": "No material unnecessary work is present.",
+                    "provenance": {
+                        "fresh_session": True,
+                        "judge_blinded": True,
+                        "isolated_session": True,
+                        "condition_hidden": True,
+                        "source_artifact_only": True,
+                    },
+                }
+                for trace in traces
+            ],
+        }
+        verification = {
+            "schema": COST_REJUDGE_VERIFICATION_SCHEMA,
+            "experiment_id": plan["experiment"]["experiment_id"],
+            "static": {"promotion_ready": True},
+        }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan_path = root / "plan.json"
+            source_runs = root / "source-runs"
+            rejudge_runs = root / "rejudge-runs"
+            source_runs.mkdir()
+            rejudge_runs.mkdir()
+            cost_bar = root / "cost-bar.md"
+            plan_path.write_text(json.dumps(plan), encoding="utf-8")
+            (source_runs / "traces.json").write_text(
+                json.dumps(traces), encoding="utf-8"
+            )
+            (rejudge_runs / "cost-rejudgments.json").write_text(
+                json.dumps(sidecar), encoding="utf-8"
+            )
+            cost_bar.write_text("predeclared cost bar\n", encoding="utf-8")
+
+            with patch(
+                "scripts.score_composition_study.verify_cost_rejudge",
+                return_value=verification,
+            ) as verify:
+                score = score_composition_study(
+                    source_plan=plan_path,
+                    source_runs=source_runs,
+                    cost_bar_file=cost_bar,
+                    rejudge_runs=rejudge_runs,
+                    expected_trace_count=len(traces),
+                )
+
+            verify.assert_called_once_with(
+                source_plan=plan_path,
+                source_runs=source_runs,
+                cost_bar_file=cost_bar,
+                rejudge_runs=rejudge_runs,
+                expected_trace_count=len(traces),
+            )
+            self.assertEqual(score["schema"], VERIFIED_SCORE_SCHEMA)
+            self.assertEqual(
+                score["inputs"]["source_plan_sha256"],
+                f"sha256:{hashlib.sha256(plan_path.read_bytes()).hexdigest()}",
+            )
+            self.assertEqual(
+                score["inputs"]["source_traces_sha256"],
+                "sha256:"
+                + hashlib.sha256(
+                    (source_runs / "traces.json").read_bytes()
+                ).hexdigest(),
+            )
+            self.assertEqual(
+                score["inputs"]["cost_rejudgments_sha256"],
+                "sha256:"
+                + hashlib.sha256(
+                    (rejudge_runs / "cost-rejudgments.json").read_bytes()
+                ).hexdigest(),
+            )
+
     def test_source_bundle_plan_is_valid_and_builds_a_72_cell_campaign(self) -> None:
         plan = composition_plan()
 

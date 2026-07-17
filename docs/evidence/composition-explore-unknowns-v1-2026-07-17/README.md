@@ -72,6 +72,23 @@ This command is read-only and must exit successfully; a valid but legacy bundle
 is reported as not promotion-ready rather than inheriting the current study's
 claim strength.
 
+Score a completed source-bundle study only through the verified scoring path. It
+runs the artifact verifier in-process, refuses any non-promotion-ready sidecar,
+then records the exact source-plan, trace, and sidecar digests with the score:
+
+```bash
+python3 scripts/score_composition_study.py \
+  --source-plan docs/evidence/composition-explore-unknowns-v1-2026-07-17/generated/tmcp-composition-study-plan.json \
+  --source-runs <primary-runs> \
+  --cost-bar-file docs/evidence/composition-explore-unknowns-v1-2026-07-17/inputs/cost-evaluation-bar.md \
+  --rejudge-runs <independent-cost-rejudge-runs> \
+  --expected-trace-count 72 \
+  --output <verified-score.json>
+```
+
+The output must be a new file outside both raw-evidence directories. Do not use
+the generic evaluator alone to represent this study as promotion-ready.
+
 The sidecar is a later external run and therefore needs separate fresh approval
 after the primary 72 cells have completed. It may adjudicate only C1 cost labels;
 it never rewrites raw labels or revisits correctness, safety, selection, or

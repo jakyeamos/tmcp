@@ -105,6 +105,10 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   and policy binding. A historical bundle whose retained cost bar no longer
   matches its recorded digest is diagnostic history, not reproducible promotion
   evidence.
+- For a source-bundle composition study, perform that verification and scoring
+  in one local command so opaque trace identities remain intact through scoring
+  and the score records the exact plan, trace, and sidecar digests. A generic
+  sidecar-only score is diagnostic, never the promotion-ready record.
 - Reject a composition trace from controlled analysis when its materialized
   source-bundle provenance differs from the preregistered matrix row. A valid
   runner manifest alone is not enough once a result is exported or reanalyzed.
