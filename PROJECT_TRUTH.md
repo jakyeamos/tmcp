@@ -3,7 +3,7 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `262d063` records the immutable 72-judge blind cost sidecar, adjudicated score report, and operator guide after `0d77875` aligned the scoring contract.
+- Last completed change: `7cee5ee` normalizes the generated adjudicated guidebook after `262d063` recorded the immutable 72-judge sidecar and score report.
 - Verification: 526 tests (3 skipped), Ruff, basedpyright, compile checks, score replay, TMCP doctor, the 72-source rejudge dry-run, and Pre-CR changed-line readiness pass. The approved 72-artifact live rejudge completed with 72 unique fresh judge threads and a digest-valid complete sidecar.
 
 ## Current Position
