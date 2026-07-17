@@ -30,6 +30,9 @@ are present. Release proof remains pending real host-run observations.
 
 ## Completed Scope
 
+- `bf11cd7` narrows package-secret scanning so versioned lowercase schema
+  identifiers are not misclassified as credentials; opaque-token detection and
+  31 focused redaction/release tests remain green.
 - `2ceb787` splits public composition tool schemas and oversized tests by
   responsibility; the commit quality gate passes without warnings and the full
   613-test suite remains green with three expected skips.
