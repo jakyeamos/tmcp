@@ -30,6 +30,9 @@ are present. Release proof remains pending real host-run observations.
 
 ## Completed Scope
 
+- `5fd181f` breaks one long adapter wiring token at the call site so strict
+  archive secret scanning does not misclassify code; behavior and scanner policy
+  are unchanged and 24 focused tests pass.
 - `bf11cd7` narrows package-secret scanning so versioned lowercase schema
   identifiers are not misclassified as credentials; opaque-token detection and
   31 focused redaction/release tests remain green.
