@@ -7,6 +7,7 @@ from pathlib import Path
 from tmcp_runtime.domain.routes import (
     derive_task_identity,
     score_routes,
+    source_boost_for_node,
     task_identity_delta,
 )
 from tests import test_tmcp_mcp_server as helpers
@@ -51,6 +52,80 @@ class TmcpRouteCatalogTests(unittest.TestCase):
         assert delta is not None
         self.assertNotEqual(delta["previous"]["primary"], delta["current"]["primary"])
         self.assertEqual(delta["reason"], "user_redirect")
+
+    def test_embedded_route_terms_do_not_create_unrelated_routes(self) -> None:
+        identity = derive_task_identity(
+            "Run a promotion-grade multi-configuration skill evaluation."
+        )
+
+        self.assertEqual(identity["primary"], "general_task")
+        self.assertEqual(identity["active_routes"], [])
+        self.assertEqual(identity["confidence"], 0.0)
+
+    def test_lexical_stems_still_match_suffix_forms(self) -> None:
+        routes = {
+            item["route"] for item in score_routes("Build components with animations.")
+        }
+
+        self.assertIn("frontend_implementation", routes)
+        self.assertIn("motion_interaction", routes)
+
+    def test_intended_prefix_compounds_have_explicit_routes(self) -> None:
+        cases = {
+            "Rebuild the webpage.": "frontend_implementation",
+            "Diagnose underperformance.": "performance_validation",
+            "Prepare the prerelease.": "release_readiness",
+        }
+
+        for objective, expected_route in cases.items():
+            with self.subTest(objective=objective):
+                routes = {item["route"] for item in score_routes(objective)}
+                self.assertIn(expected_route, routes)
+
+    def test_source_boosts_reject_embedded_route_terms(self) -> None:
+        motion_boost = source_boost_for_node(
+            "motion_interaction",
+            relative_path="skills/promotion/SKILL.md",
+            source_type="skill_definition",
+            text="Guide a promotion campaign.",
+        )
+        release_boost = source_boost_for_node(
+            "release_readiness",
+            relative_path="skills/relationships/SKILL.md",
+            source_type="skill_definition",
+            text="Review relationship and leadership guidance.",
+        )
+
+        self.assertEqual(motion_boost, 0.0)
+        self.assertEqual(release_boost, 0.0)
+        self.assertGreater(
+            source_boost_for_node(
+                "motion_interaction",
+                relative_path="skills/product-motion/SKILL.md",
+                source_type="skill_definition",
+                text="Design motion-safe interactions.",
+            ),
+            0.0,
+        )
+
+    def test_statistical_contrast_does_not_activate_accessibility(self) -> None:
+        identity = derive_task_identity(
+            "Score the workflow-section contrast in a skill evaluation."
+        )
+
+        self.assertEqual(identity["primary"], "general_task")
+        self.assertNotIn("accessibility_validation", identity["active_routes"])
+
+    def test_visual_contrast_still_activates_accessibility(self) -> None:
+        cases = (
+            ("Verify color contrast in the browser.", None),
+            ("Verify contrast.", {"files_changed": ["app/page.tsx"]}),
+        )
+
+        for objective, context in cases:
+            with self.subTest(objective=objective):
+                routes = {item["route"] for item in score_routes(objective, context)}
+                self.assertIn("accessibility_validation", routes)
 
 
 class TmcpComposedPacketIdentityTests(unittest.TestCase):

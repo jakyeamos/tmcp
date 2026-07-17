@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-ROUTE_CATALOG_VERSION = "2026-07-07"
+ROUTE_CATALOG_VERSION = "2026-07-17.1"
 ROUTE_SCORE_THRESHOLD = 2.0
 MAX_SECONDARY_ROUTES = 6
 
@@ -21,6 +21,30 @@ UI_FILE_SUFFIXES = (
     ".html",
 )
 
+ACCESSIBILITY_CONTRAST_CONTEXT_TERMS = (
+    "ui",
+    "ux",
+    "frontend",
+    "interface",
+    "visual",
+    "color",
+    "colour",
+    "screen",
+    "browser",
+    "component",
+    "button",
+    "rendered",
+    "responsive",
+    "reduced motion",
+    "high contrast",
+    "low contrast",
+    "contrast ratio",
+    "wcag",
+    "accessibility",
+    "a11y",
+)
+CONTRAST_CONTEXT_WINDOW = 96
+
 
 @dataclass(frozen=True)
 class RouteDefinition:
@@ -31,7 +55,11 @@ class RouteDefinition:
 
 def _terms_in_text(text: str, terms: tuple[str, ...]) -> list[str]:
     lower = text.lower()
-    return [term for term in terms if term in lower]
+    return [term for term in terms if _starts_at_lexical_boundary(lower, term)]
+
+
+def _starts_at_lexical_boundary(text: str, term: str) -> bool:
+    return re.search(rf"(?<!\w){re.escape(term.lower())}", text.lower()) is not None
 
 
 def _ui_file_boost(context: dict[str, Any]) -> tuple[float, list[str]]:
@@ -60,6 +88,25 @@ def _browser_evidence_boost(context: dict[str, Any]) -> tuple[float, list[str]]:
     return 2.0, ["browser_evidence: present"]
 
 
+def has_accessibility_contrast_context(
+    text: str,
+    context: dict[str, Any] | None = None,
+) -> bool:
+    lower = text.lower()
+    contrast_matches = list(re.finditer(r"(?<!\w)contrast(?!\w)", lower))
+    if not contrast_matches:
+        return False
+    for match in contrast_matches:
+        start = max(0, match.start() - CONTRAST_CONTEXT_WINDOW)
+        end = min(len(lower), match.end() + CONTRAST_CONTEXT_WINDOW)
+        if _terms_in_text(lower[start:end], ACCESSIBILITY_CONTRAST_CONTEXT_TERMS):
+            return True
+    context = context or {}
+    ui_file_boost, _ = _ui_file_boost(context)
+    browser_boost, _ = _browser_evidence_boost(context)
+    return ui_file_boost > 0 or browser_boost > 0
+
+
 ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
     RouteDefinition(
         "ui_ux_redesign",
@@ -79,6 +126,7 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
         "frontend_implementation",
         (
             "implement",
+            "rebuild",
             "component",
             "react",
             "page",
@@ -87,6 +135,7 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "production-ready",
             "tsx",
             "frontend",
+            "webpage",
         ),
         _ui_file_boost,
     ),
@@ -125,6 +174,7 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
         "performance_validation",
         (
             "performance",
+            "underperformance",
             "bundle",
             "latency",
             "lighthouse",
@@ -147,6 +197,7 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
         "release_readiness",
         (
             "release",
+            "prerelease",
             "ship",
             "deploy",
             "changelog",
@@ -239,7 +290,7 @@ def route_affinity_overlap(seed_routes: list[str], active_routes: list[str]) -> 
 
 def _pattern_matches_node(pattern: str, rel_lower: str, text_lower: str) -> bool:
     normalized = pattern.lower().replace("_", "-")
-    if normalized in text_lower:
+    if _starts_at_lexical_boundary(text_lower, normalized):
         return True
     slug = ""
     parts = [part for part in rel_lower.split("/") if part]
@@ -250,7 +301,7 @@ def _pattern_matches_node(pattern: str, rel_lower: str, text_lower: str) -> bool
             return True
         if f"-{normalized}" in slug and normalized not in {"ui", "ux"}:
             return slug.endswith(f"-{normalized}") or f"-{normalized}-" in slug
-    return normalized in rel_lower
+    return _starts_at_lexical_boundary(rel_lower, normalized)
 
 
 def source_boost_for_node(
@@ -368,10 +419,14 @@ def score_routes(
         combined = f"{combined} {latest}".strip()
     scores: list[dict[str, Any]] = []
     for route in ROUTE_DEFINITIONS:
-        evidence = [
-            f"objective: {term}"
-            for term in _terms_in_text(combined, route.objective_terms)
-        ]
+        matched_terms = _terms_in_text(combined, route.objective_terms)
+        if (
+            route.route_id == "accessibility_validation"
+            and "contrast" in matched_terms
+            and not has_accessibility_contrast_context(combined, context)
+        ):
+            matched_terms.remove("contrast")
+        evidence = [f"objective: {term}" for term in matched_terms]
         score = float(len(evidence)) * 1.5
         if route.context_boost is not None:
             boost, boost_evidence = route.context_boost(context)
