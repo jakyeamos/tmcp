@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import inspect
+import json
 import unittest
 from pathlib import Path
 
@@ -22,6 +23,12 @@ class EvaluationCatalogTests(unittest.TestCase):
             "verification.concrete-command",
             {item["pattern_id"] for item in evaluation_catalog.EFFECTIVE_PATTERNS},
         )
+
+    def test_javascript_command_examples_follow_pnpm_default(self) -> None:
+        serialized = json.dumps(evaluation_catalog.EFFECTIVE_PATTERNS)
+
+        self.assertNotRegex(serialized, r"\bnpm\b|\byarn\b")
+        self.assertIn("pnpm test", serialized)
 
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_catalog))

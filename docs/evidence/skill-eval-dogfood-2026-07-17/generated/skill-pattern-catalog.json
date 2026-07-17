@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-07-17T06:14:27Z",
+  "created_at": "2026-07-17T06:19:44Z",
   "guidebook_entries": [
     {
       "applies_to": [
@@ -107,12 +107,12 @@
       "detection_terms": [
         "report pass/fail",
         "run `",
-        "npm test",
+        "pnpm test",
         "pytest"
       ],
       "effect": null,
       "evidence_level": "hypothesis",
-      "good_example": "Run `npm test -- --runInBand` and report pass/fail.",
+      "good_example": "Run `pnpm test -- --runInBand` and report pass/fail.",
       "internal_atoms": [
         "behavior-verification",
         "quality-gate-disclosure"
