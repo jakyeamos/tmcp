@@ -62,6 +62,8 @@ def _composition_plan(value: object) -> dict[str, Any]:
     for field in ("skill_roles", "typed_edges", "ordered_stages"):
         if not isinstance(plan.get(field), list):
             raise ValueError(f"Composition plan {field} must be a list.")
+    if "handoff_contracts" in plan and not isinstance(plan["handoff_contracts"], list):
+        raise ValueError("Composition plan handoff_contracts must be a list.")
     for field in ("task_model", "coverage"):
         if not isinstance(plan.get(field), Mapping):
             raise ValueError(f"Composition plan {field} must be an object.")
@@ -96,6 +98,7 @@ def _recipe_projection(plan: Mapping[str, Any]) -> dict[str, Any]:
         "task_model": deepcopy(dict(plan["task_model"])),
         "skill_roles": deepcopy(list(plan["skill_roles"])),
         "typed_edges": deepcopy(list(plan["typed_edges"])),
+        "handoff_contracts": deepcopy(list(plan.get("handoff_contracts") or [])),
         "scoped_seed_graph_hints": deepcopy(
             dict(plan.get("scoped_seed_graph_hints") or {})
         ),
@@ -175,6 +178,11 @@ def rehydrate_project_recipe_for_preflight(
     for field in ("skill_roles", "typed_edges"):
         if not isinstance(projection.get(field), list):
             raise ValueError(f"Project recipe {field} is malformed.")
+    stored_handoff_contracts = projection.get("handoff_contracts")
+    if stored_handoff_contracts is not None and not isinstance(
+        stored_handoff_contracts, list
+    ):
+        raise ValueError("Project recipe handoff_contracts are malformed.")
     preflight_id = str(preflight.get("preflight_id") or "").strip()
     if not preflight_id:
         raise ValueError("Project recipe load requires current preflight identity.")
@@ -224,6 +232,10 @@ def rehydrate_project_recipe_for_preflight(
     stored_graph_digest = str(record.get("graph_digest") or "")
     if current_graph_digest != stored_graph_digest:
         raise ValueError("Project recipe is stale for the current source graph.")
+    if stored_handoff_contracts is not None and stored_handoff_contracts != plan.get(
+        "handoff_contracts"
+    ):
+        raise ValueError("Project recipe handoff contracts are stale or malformed.")
     return {
         "semantic_proposal": proposal,
         "composition_plan": deepcopy(dict(plan)),

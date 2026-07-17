@@ -125,8 +125,10 @@ def shortcut_candidate_for_composed_packet(
             ),
         }
     has_validated_route = bool(set(validated_routes).intersection(KNOWN_ROUTE_IDS))
-    if not seed_id and routing_status and not (
-        routing_status == "catalog_match" and has_validated_route
+    if (
+        not seed_id
+        and routing_status
+        and not (routing_status == "catalog_match" and has_validated_route)
     ):
         return {
             "status": "ineligible",
@@ -269,6 +271,16 @@ def render_composed_packet_markdown(packet: dict[str, Any]) -> str:
                 conditions = "; ".join(_string_list(stage.get("entry_conditions")))
                 if conditions:
                     lines.append(f"  - enter when: {conditions}")
+            for handoff in _json_list(stage.get("handoff_contracts")):
+                if not isinstance(handoff, dict):
+                    continue
+                producer = str(handoff.get("producer_node_id") or "producer")
+                consumer = str(handoff.get("consumer_node_id") or "consumer")
+                outputs = ", ".join(_string_list(handoff.get("produced_outputs")))
+                detail = f"{producer} -> {consumer}"
+                if outputs:
+                    detail += f": {outputs}"
+                lines.append(f"  - typed handoff: {detail}")
         coverage = composition_plan.get("coverage")
         if isinstance(coverage, dict):
             gaps = _string_list(coverage.get("unresolved_gaps"))

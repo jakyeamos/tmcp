@@ -42,7 +42,7 @@ def _composition_receipt_fields(arguments: Mapping[str, Any]) -> dict[str, Any]:
         fields["selected_skill_ids"] = _string_list(arguments.get("selected_skill_ids"))
     if "content_digests" in arguments:
         fields["content_digests"] = _string_list(arguments.get("content_digests"))
-    for key in ("phase_trace", "gate_results"):
+    for key in ("phase_trace", "gate_results", "handoff_results"):
         if key in arguments:
             fields[key] = _mapping_list(arguments.get(key))
     for key in ("task_identity", "quality_metrics", "cost_metrics"):

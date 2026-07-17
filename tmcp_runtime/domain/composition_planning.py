@@ -16,6 +16,11 @@ from .composition_preflight import (
     string_list,
 )
 from .composition_optimizer import optimize_semantic_subgraph
+from .composition_handoffs import (
+    attach_handoff_contracts_to_stages,
+    build_handoff_contracts,
+    handoff_identity_projection,
+)
 from .composition_validation import (
     SemanticProposalValidationError,
     ordering_pair,
@@ -43,6 +48,11 @@ def _bridge_instruction(role: dict[str, Any], source: dict[str, Any]) -> dict[st
     gates = "; ".join(string_list(role.get("exit_gates")))
     return {
         "node_id": node_id,
+        "role": role_name,
+        "required_inputs": ordered_unique(string_list(role.get("inputs"))),
+        "produced_outputs": ordered_unique(string_list(role.get("outputs"))),
+        "exit_gates": ordered_unique(string_list(role.get("exit_gates"))),
+        "handoff_ids": [],
         "instruction": (
             f"Apply {role_name} using {inputs}; produce {outputs}; exit when {gates}."
         ),
@@ -271,6 +281,22 @@ def build_composition_plan(
         slices_by_id,
         scoped_seed_edges,
     )
+    source_digests_by_node = {
+        node_id: str(item.get("source_digest") or "")
+        for node_id, item in nodes_by_id.items()
+    }
+    slice_digests_by_id = {
+        slice_id: str(item.get("slice_digest") or "")
+        for slice_id, item in slices_by_id.items()
+    }
+    handoff_contracts = build_handoff_contracts(
+        roles,
+        edges,
+        graph_digest=str(provenance["graph_digest"]),
+        source_digests_by_node=source_digests_by_node,
+        slice_digests_by_id=slice_digests_by_id,
+    )
+    attach_handoff_contracts_to_stages(stages, handoff_contracts)
     recipe_roles = sorted(
         [
             {
@@ -311,6 +337,11 @@ def build_composition_plan(
         "current_phase": resolved_phase,
         "roles": recipe_roles,
         "stages": recipe_stages,
+        "handoff_contracts": handoff_identity_projection(
+            handoff_contracts,
+            source_digests_by_node=source_digests_by_node,
+            slice_digests_by_id=slice_digests_by_id,
+        ),
         "coverage": {
             "facets": string_list(coverage_input.get("facets")),
             "unresolved_gaps": string_list(coverage_input.get("unresolved_gaps")),
@@ -357,6 +388,7 @@ def build_composition_plan(
             for role in roles
         ],
         "typed_edges": edges,
+        "handoff_contracts": handoff_contracts,
         "scoped_seed_graph_hints": {
             **scoped_seed_hints,
             "scoped_seeds": [

@@ -57,7 +57,7 @@ def parse_previous_packet(arguments: Packet) -> Packet | None:
 
 def resolve_recompile_reason(arguments: Packet, state: Packet) -> str:
     latest_user_message = str(arguments.get("latest_user_message") or "").lower()
-    if any(
+    if arguments.get("user_redirect") or any(
         term in latest_user_message
         for term in ("actually", "instead", "new goal", "different")
     ):
@@ -73,7 +73,7 @@ def resolve_recompile_reason(arguments: Packet, state: Packet) -> str:
         return "task_identity_shift"
     if _string_list(arguments.get("failures")):
         return "verification_failure"
-    if _string_list(arguments.get("browser_evidence")):
+    if _json_list(arguments.get("browser_evidence")):
         return "browser_evidence_available"
     suggested_phase = str(state.get("suggested_phase") or "")
     files_changed = _string_list(arguments.get("files_changed"))
@@ -350,7 +350,13 @@ def packet_diff(
             resolved_graph_diff = runtime_graph_diff
         else:
             resolved_graph_diff = dict(derived_graph_diff)
-            for key in ("reads", "gates", "conflicts", "fulfilled_obligations"):
+            for key in (
+                "reads",
+                "gates",
+                "handoffs",
+                "conflicts",
+                "fulfilled_obligations",
+            ):
                 value = runtime_graph_diff.get(key)
                 if isinstance(value, Mapping):
                     resolved_graph_diff[key] = dict(value)
@@ -430,6 +436,7 @@ def packet_diff(
             "instructions",
             "reads",
             "gates",
+            "handoffs",
             "conflicts",
             "fulfilled_obligations",
         ):

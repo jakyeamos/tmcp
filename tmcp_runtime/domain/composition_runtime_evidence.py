@@ -7,6 +7,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
+from .composition_handoffs import handoff_contract_catalog
 from .composition_preflight import (
     COMPOSITION_PLAN_SCHEMA,
     json_list,
@@ -20,6 +21,9 @@ COMPOSITION_RUNTIME_EVIDENCE_SCHEMA = "tmcp-composition-runtime-evidence-v0.1"
 PASSED_STATUSES = frozenset({"pass", "passed", "satisfied", "success", "verified"})
 FAILED_STATUSES = frozenset({"blocked", "error", "fail", "failed"})
 PENDING_STATUSES = frozenset({"pending", "running", "skipped", "unknown"})
+AVAILABLE_HANDOFF_STATUSES = frozenset(
+    {"available", "produced", "pass", "passed", "success", "verified"}
+)
 
 
 def evidence_summary(value: object) -> str:
@@ -98,6 +102,111 @@ def _structured_results(
     return results
 
 
+def _handoff_results(
+    value: object,
+    unstructured: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Normalize artifact-backed handoff observations without trusting prose."""
+
+    values = _evidence_values(value, "handoff_results", unstructured)
+    results: list[dict[str, Any]] = []
+    for index, item in enumerate(values):
+        source = f"handoff_results[{index}]"
+        if not isinstance(item, Mapping):
+            unstructured.append(
+                {
+                    "field": "handoff_results",
+                    "index": index,
+                    "summary": evidence_summary(item),
+                    "reason": "Unstructured evidence cannot satisfy a typed handoff.",
+                }
+            )
+            continue
+        result = dict(item)
+        handoff_id = str(result.get("handoff_id") or "").strip()
+        producer_node_id = str(result.get("producer_node_id") or "").strip()
+        consumer_node_id = str(result.get("consumer_node_id") or "").strip()
+        status = _handoff_status(result.get("status") or result.get("outcome"))
+        consumed_inputs = string_list(result.get("consumed_inputs"))
+        produced_outputs = string_list(result.get("produced_outputs"))
+        evidence_refs = string_list(result.get("evidence_refs"))
+        reasons: list[str] = []
+        if not handoff_id:
+            reasons.append("missing_handoff_id")
+        if not producer_node_id:
+            reasons.append("missing_handoff_producer")
+        if not consumer_node_id:
+            reasons.append("missing_handoff_consumer")
+        if status == "unknown":
+            reasons.append("unknown_handoff_status")
+        if status == "available" and not produced_outputs:
+            reasons.append("missing_produced_outputs")
+        if status == "available" and not consumed_inputs:
+            reasons.append("missing_consumed_inputs")
+        if status == "available" and not evidence_refs:
+            reasons.append("missing_handoff_evidence")
+        if reasons:
+            unstructured.append(
+                {
+                    "field": "handoff_results",
+                    "index": index,
+                    "summary": evidence_summary(item),
+                    "reason": ",".join(reasons),
+                }
+            )
+            continue
+        results.append(
+            {
+                "handoff_id": handoff_id,
+                "producer_node_id": producer_node_id,
+                "consumer_node_id": consumer_node_id,
+                "status": status,
+                "consumed_inputs": consumed_inputs,
+                "produced_outputs": produced_outputs,
+                "evidence_refs": evidence_refs,
+                "_source": source,
+            }
+        )
+    return results
+
+
+def _handoff_status(value: object) -> str:
+    status = str(value or "").strip().lower()
+    if status in AVAILABLE_HANDOFF_STATUSES:
+        return "available"
+    if status in FAILED_STATUSES:
+        return "failed"
+    if status in PENDING_STATUSES:
+        return "pending"
+    return "unknown"
+
+
+def _user_redirect(
+    value: object, unstructured: list[dict[str, Any]]
+) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    if isinstance(value, Mapping):
+        redirect = {
+            key: str(item).strip()
+            for key, item in dict(value).items()
+            if isinstance(key, str) and str(item).strip()
+        }
+        if redirect:
+            return redirect
+    elif isinstance(value, str) and value.strip():
+        return {"reason": value.strip()}
+    unstructured.append(
+        {
+            "field": "user_redirect",
+            "index": 0,
+            "summary": evidence_summary(value),
+            "reason": "Expected a non-empty redirect string or object.",
+        }
+    )
+    return None
+
+
 def normalize_runtime_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
     """Normalize adapter-supplied evidence without treating prose as gate proof."""
 
@@ -124,6 +233,9 @@ def normalize_runtime_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
         ),
         "verification_results": verification_results,
         "gate_results": gate_results,
+        "handoff_results": _handoff_results(
+            evidence.get("handoff_results"), unstructured
+        ),
         "failures": _evidence_values(
             evidence.get("failures"), "failures", unstructured
         ),
@@ -133,6 +245,7 @@ def normalize_runtime_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
         "user_overrides": user_overrides,
         "latest_user_message": str(evidence.get("latest_user_message") or "").strip(),
         "requested_phase": str(evidence.get("requested_phase") or "").strip(),
+        "user_redirect": _user_redirect(evidence.get("user_redirect"), unstructured),
         "unstructured_evidence": unstructured,
     }
 
@@ -299,6 +412,164 @@ def evaluate_composition_gates(
         "pending_gate_ids": [
             item["gate_id"] for item in evaluated if item["status"] == "pending"
         ],
+        "unmatched_results": unmatched,
+        "unstructured_evidence": list(normalized.get("unstructured_evidence") or []),
+    }
+
+
+def _normalized_artifact_names(values: object) -> set[str]:
+    return {
+        re.sub(r"\s+", " ", item).casefold()
+        for item in string_list(values)
+        if item.strip()
+    }
+
+
+def composition_handoff_catalog(plan: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Expose source-cited contracts that a later stage must receive."""
+
+    _require_plan(plan)
+    contracts, _invalid = handoff_contract_catalog(plan)
+    return contracts
+
+
+def _carried_handoff_results(
+    plan: Mapping[str, Any], contracts_by_id: Mapping[str, Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    state = plan.get("runtime_state")
+    if not isinstance(state, Mapping):
+        return []
+    carried: list[dict[str, Any]] = []
+    for item in json_list(state.get("handoff_results")):
+        if not isinstance(item, Mapping):
+            continue
+        handoff_id = str(item.get("handoff_id") or "")
+        contract = contracts_by_id.get(handoff_id)
+        if contract is None or str(item.get("status") or "") != "available":
+            continue
+        if _handoff_result_reason(contract, item):
+            continue
+        carried.append(dict(item))
+    return carried
+
+
+def _handoff_result_reason(
+    contract: Mapping[str, Any], result: Mapping[str, Any]
+) -> str:
+    if str(result.get("producer_node_id") or "") != str(
+        contract.get("producer_node_id") or ""
+    ):
+        return "wrong_handoff_producer"
+    if str(result.get("consumer_node_id") or "") != str(
+        contract.get("consumer_node_id") or ""
+    ):
+        return "wrong_handoff_consumer"
+    if str(result.get("status") or "") != "available":
+        return ""
+    expected_inputs = _normalized_artifact_names(contract.get("required_inputs"))
+    supplied_inputs = _normalized_artifact_names(result.get("consumed_inputs"))
+    if supplied_inputs != expected_inputs:
+        return "incomplete_or_unknown_consumed_input"
+    expected_outputs = _normalized_artifact_names(contract.get("produced_outputs"))
+    supplied_outputs = _normalized_artifact_names(result.get("produced_outputs"))
+    if supplied_outputs != expected_outputs:
+        return "incomplete_or_unknown_produced_output"
+    if not string_list(result.get("evidence_refs")):
+        return "missing_handoff_evidence"
+    return ""
+
+
+def evaluate_composition_handoffs(
+    plan: Mapping[str, Any], evidence: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Evaluate artifact-backed results against compiled producer-consumer contracts."""
+
+    normalized = (
+        dict(evidence)
+        if evidence.get("schema") == COMPOSITION_RUNTIME_EVIDENCE_SCHEMA
+        else normalize_runtime_evidence(evidence)
+    )
+    catalog, invalid_contracts = handoff_contract_catalog(plan)
+    by_id = {str(item["handoff_id"]): item for item in catalog}
+    carried = {
+        str(item.get("handoff_id") or ""): item
+        for item in _carried_handoff_results(plan, by_id)
+    }
+    statuses: dict[str, dict[str, Any]] = {}
+    for handoff_id, contract in by_id.items():
+        carried_result = carried.get(handoff_id)
+        statuses[handoff_id] = {
+            **contract,
+            "status": "available" if carried_result else "pending",
+            "evidence_refs": string_list(
+                carried_result.get("evidence_refs") if carried_result else []
+            ),
+            "evidence_sources": string_list(
+                carried_result.get("evidence_sources") if carried_result else []
+            ),
+            "consumed_inputs": string_list(
+                carried_result.get("consumed_inputs") if carried_result else []
+            ),
+            "carried": bool(carried_result),
+        }
+    unmatched: list[dict[str, Any]] = []
+    for result in json_list(normalized.get("handoff_results")):
+        if not isinstance(result, Mapping):
+            continue
+        handoff_id = str(result.get("handoff_id") or "").strip()
+        contract = by_id.get(handoff_id)
+        if contract is None:
+            unmatched.append(
+                {
+                    "source": str(result.get("_source") or "handoff_result"),
+                    "summary": evidence_summary(result),
+                    "reason": "unknown_handoff_id",
+                }
+            )
+            continue
+        reason = _handoff_result_reason(contract, result)
+        if reason:
+            unmatched.append(
+                {
+                    "source": str(result.get("_source") or "handoff_result"),
+                    "summary": evidence_summary(result),
+                    "reason": reason,
+                }
+            )
+            continue
+        status = str(result.get("status") or "pending")
+        current = str(statuses[handoff_id]["status"])
+        if status == "failed" or (status == "available" and current != "failed"):
+            statuses[handoff_id]["status"] = status
+            statuses[handoff_id]["carried"] = False
+        statuses[handoff_id]["evidence_refs"] = ordered_unique(
+            string_list(statuses[handoff_id].get("evidence_refs"))
+            + string_list(result.get("evidence_refs"))
+        )
+        statuses[handoff_id]["evidence_sources"] = ordered_unique(
+            string_list(statuses[handoff_id].get("evidence_sources"))
+            + [str(result.get("_source") or "handoff_result")]
+        )
+        statuses[handoff_id]["consumed_inputs"] = string_list(
+            result.get("consumed_inputs")
+        )
+        statuses[handoff_id]["produced_outputs"] = string_list(
+            result.get("produced_outputs")
+        )
+    evaluated = [statuses[str(item["handoff_id"])] for item in catalog]
+    return {
+        "catalog": catalog,
+        "evaluated_handoffs": evaluated,
+        "available_handoff_ids": [
+            item["handoff_id"] for item in evaluated if item["status"] == "available"
+        ],
+        "failed_handoff_ids": [
+            item["handoff_id"] for item in evaluated if item["status"] == "failed"
+        ],
+        "pending_handoff_ids": [
+            item["handoff_id"] for item in evaluated if item["status"] == "pending"
+        ],
+        "invalid_contracts": invalid_contracts,
         "unmatched_results": unmatched,
         "unstructured_evidence": list(normalized.get("unstructured_evidence") or []),
     }

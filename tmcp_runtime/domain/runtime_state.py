@@ -61,6 +61,8 @@ def derive_runtime_state(
     commands_run = string_list(arguments.get("commands_run"))
     failures = string_list(arguments.get("failures"))
     browser_evidence = string_list(arguments.get("browser_evidence"))
+    handoff_results = arguments.get("handoff_results") or []
+    user_redirect = arguments.get("user_redirect")
     context = {
         "files_read": files_read,
         "files_changed": files_changed,
@@ -69,6 +71,8 @@ def derive_runtime_state(
         "gate_results": arguments.get("gate_results") or [],
         "failures": failures,
         "browser_evidence": browser_evidence,
+        "handoff_results": handoff_results,
+        "user_redirect": user_redirect,
         "user_overrides": arguments.get("user_overrides") or [],
     }
     combined_objective = " ".join(
@@ -140,7 +144,9 @@ def derive_runtime_state(
         "gate_results": arguments.get("gate_results"),
         "failures": arguments.get("failures"),
         "browser_evidence": arguments.get("browser_evidence"),
+        "handoff_results": handoff_results,
         "user_overrides": arguments.get("user_overrides"),
+        "user_redirect": user_redirect,
         "latest_user_message": latest_user_message,
         "requested_phase": requested_phase,
     }
@@ -177,10 +183,19 @@ def derive_runtime_state(
         warnings.extend(string_list(composition_runtime.get("warnings")))
         phase_advance = dict(composition_runtime.get("phase_advance") or {})
         if phase_advance.get("blocked_reason"):
-            warnings.append(
-                "Composition phase advancement was blocked until its named gates pass."
-            )
-    if any(
+            if string_list(phase_advance.get("pending_handoff_ids")):
+                warnings.append(
+                    "Composition phase advancement was blocked until its typed handoffs are evidenced."
+                )
+            else:
+                warnings.append(
+                    "Composition phase advancement was blocked until its named gates pass."
+                )
+    has_explicit_user_redirect = bool(
+        (isinstance(user_redirect, Mapping) and user_redirect)
+        or (isinstance(user_redirect, str) and user_redirect.strip())
+    )
+    if has_explicit_user_redirect or any(
         term in latest_user_message.lower()
         for term in ("actually", "instead", "new goal", "different")
     ):
@@ -211,7 +226,7 @@ def derive_runtime_state(
     identity_delta: dict[str, Any] | None = None
     if isinstance(previous_task_identity, dict):
         delta_reason = "runtime_context_changed"
-        if any(
+        if has_explicit_user_redirect or any(
             term in latest_user_message.lower()
             for term in ("actually", "instead", "new goal", "different")
         ):

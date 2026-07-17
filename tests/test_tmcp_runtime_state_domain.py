@@ -126,6 +126,29 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
         )
         self.assertEqual(state["validated_changes"], [])
 
+    def test_explicit_user_redirect_is_preserved_and_drives_identity_reason(
+        self,
+    ) -> None:
+        previous_identity = derive_task_identity("Research onboarding requirements")
+        redirect = {"reason": "Switch to the billing migration."}
+
+        state = derive_runtime_state(
+            {
+                "objective": "Implement the billing migration",
+                "previous_packet": {"task_identity": previous_identity},
+                "user_redirect": redirect,
+                "cache_policy": "none",
+            },
+            source_nodes=[],
+            cache_warnings=[],
+        )
+
+        self.assertEqual(state["runtime_evidence"]["user_redirect"], redirect)
+        self.assertIn(
+            "previous-objective-specific-atoms", state["packet_delta"]["stale_atoms"]
+        )
+        self.assertEqual(state["task_identity_delta"]["reason"], "user_redirect")
+
     def test_unknown_cache_policy_discards_cache_warnings(self) -> None:
         state = derive_runtime_state(
             {

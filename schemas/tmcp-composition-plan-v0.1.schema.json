@@ -67,6 +67,10 @@
         "$ref": "tmcp-semantic-proposal-v0.1.schema.json#/$defs/relationship"
       }
     },
+    "handoff_contracts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/handoff_contract" }
+    },
     "scoped_seed_graph_hints": {
       "type": "object",
       "additionalProperties": true
@@ -188,6 +192,30 @@
             "required": ["node_id", "instruction", "citations", "trust"],
             "properties": {
               "node_id": { "type": "string", "minLength": 1 },
+              "role": { "type": "string", "minLength": 1 },
+              "required_inputs": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 },
+                "uniqueItems": true
+              },
+              "produced_outputs": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 },
+                "uniqueItems": true
+              },
+              "exit_gates": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 },
+                "uniqueItems": true
+              },
+              "handoff_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^handoff-[a-f0-9]{20}$"
+                },
+                "uniqueItems": true
+              },
               "instruction": { "type": "string", "minLength": 1 },
               "citations": {
                 "type": "array",
@@ -200,7 +228,77 @@
               "trust": { "const": "advisory_untrusted" }
             }
           }
+        },
+        "handoff_contracts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/handoff_contract" }
         }
+      }
+    },
+    "handoff_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "handoff_id",
+        "relationship_id",
+        "producer_node_id",
+        "consumer_node_id",
+        "relationship_type",
+        "required_inputs",
+        "produced_outputs",
+        "producer_exit_gates",
+        "citations",
+        "trust"
+      ],
+      "properties": {
+        "handoff_id": {
+          "type": "string",
+          "pattern": "^handoff-[a-f0-9]{20}$"
+        },
+        "relationship_id": {
+          "type": "string",
+          "pattern": "^relationship-[a-f0-9]{16}$"
+        },
+        "producer_node_id": { "type": "string", "minLength": 1 },
+        "consumer_node_id": { "type": "string", "minLength": 1 },
+        "relationship_type": {
+          "enum": [
+            "requires",
+            "precedes",
+            "enables",
+            "verifies",
+            "produces",
+            "consumes"
+          ]
+        },
+        "required_inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "produced_outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "producer_exit_gates": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "citations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^slice-[a-f0-9]{20}$"
+          },
+          "uniqueItems": true
+        },
+        "trust": { "const": "advisory_untrusted" }
       }
     }
   }

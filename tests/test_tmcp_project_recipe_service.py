@@ -116,6 +116,89 @@ def _proposal() -> dict[str, Any]:
     }
 
 
+def _handoff_preflight() -> dict[str, Any]:
+    return {
+        "schema": "tmcp-composition-preflight-v0.1",
+        "preflight_id": "preflight-" + "1" * 20,
+        "candidate_source_slices": [
+            {
+                "slice_id": "slice-" + "1" * 20,
+                "source_node_id": "research",
+                "source_digest": "1" * 64,
+                "slice_digest": "2" * 64,
+                "source_role": "active_skill",
+                "content": "Produce a cited research brief.",
+                "mandatory": False,
+            },
+            {
+                "slice_id": "slice-" + "2" * 20,
+                "source_node_id": "implement",
+                "source_digest": "2" * 64,
+                "slice_digest": "3" * 64,
+                "source_role": "active_skill",
+                "content": "Implement from the research brief.",
+                "mandatory": False,
+            },
+        ],
+        "diagnostics": {},
+    }
+
+
+def _handoff_proposal() -> dict[str, Any]:
+    return {
+        "schema": "tmcp-semantic-proposal-v0.1",
+        "preflight_id": "preflight-" + "1" * 20,
+        "current_phase": "discovery",
+        "task_model": {
+            "deliverables": ["working implementation"],
+            "success_criteria": ["focused verification"],
+            "constraints": [],
+            "subgoals": ["research", "implement"],
+            "evidence_needs": ["research brief"],
+        },
+        "skill_roles": [
+            {
+                "node_id": "research",
+                "role": "researcher",
+                "inputs": ["task objective"],
+                "outputs": ["research brief"],
+                "phase_affinity": ["discovery"],
+                "entry_gates": [],
+                "exit_gates": ["research brief approved"],
+                "context_cost": 100,
+                "covers": ["research brief"],
+                "citations": ["slice-" + "1" * 20],
+            },
+            {
+                "node_id": "implement",
+                "role": "implementer",
+                "inputs": ["research brief"],
+                "outputs": ["working implementation"],
+                "phase_affinity": ["implementation"],
+                "entry_gates": [],
+                "exit_gates": ["focused verification"],
+                "context_cost": 100,
+                "covers": ["focused verification"],
+                "citations": ["slice-" + "2" * 20],
+            },
+        ],
+        "relationships": [
+            {
+                "from": "research",
+                "to": "implement",
+                "type": "produces",
+                "citations": ["slice-" + "1" * 20],
+                "rationale": "The research brief enables implementation.",
+            }
+        ],
+        "coverage": {
+            "facets": ["research brief", "focused verification"],
+            "unresolved_gaps": [],
+        },
+        "trust": "advisory_untrusted",
+    }
+
+
 def _reusable_record() -> dict[str, Any]:
     plan = build_composition_plan(_proposal(), _preflight())
     return build_project_composition_recipe_record(
@@ -296,6 +379,33 @@ class ProjectCompositionRecipeServiceTests(unittest.TestCase):
         missing_citation["candidate_source_slices"][0]["slice_id"] = "slice-" + "8" * 20
         with self.assertRaisesRegex(ValueError, "unknown_citation"):
             rehydrate_project_recipe_for_preflight(record, missing_citation)
+
+    def test_recipe_rehydrate_preserves_and_validates_typed_handoffs(self) -> None:
+        preflight = _handoff_preflight()
+        plan = build_composition_plan(_handoff_proposal(), preflight)
+        record = build_project_composition_recipe_record(
+            recipe_id="research-implementation",
+            composition_plan=plan,
+            promotion_eligibility={
+                "eligible": True,
+                "recipe_id": "research-implementation",
+                "graph_digest": plan["provenance"]["graph_digest"],
+            },
+            created_at="2026-07-17T00:00:00Z",
+        )
+
+        hydrated = rehydrate_project_recipe_for_preflight(record, preflight)
+
+        self.assertEqual(
+            record["composition_recipe"]["handoff_contracts"],
+            hydrated["composition_plan"]["handoff_contracts"],
+        )
+        tampered = copy.deepcopy(record)
+        tampered["composition_recipe"]["handoff_contracts"][0]["produced_outputs"] = [
+            "forged artifact"
+        ]
+        with self.assertRaisesRegex(ValueError, "handoff contracts"):
+            rehydrate_project_recipe_for_preflight(tampered, preflight)
 
     def test_service_load_for_preflight_uses_exact_record_and_fresh_plan(self) -> None:
         self.store.record = _reusable_record()

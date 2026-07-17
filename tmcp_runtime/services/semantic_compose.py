@@ -297,6 +297,7 @@ def apply_semantic_composition(
                 }
             ],
             "gate_results": [],
+            "handoff_results": [],
         },
     )
     shortcut = dict(packet.get("shortcut_candidate") or {})

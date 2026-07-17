@@ -217,6 +217,10 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                     "description": "Optional harvest roots for family phase transitions.",
                 },
                 "current_phase": {"type": "string", "default": "start"},
+                "requested_phase": {
+                    "type": "string",
+                    "description": "Explicit requested composition phase; advancement remains gate-checked.",
+                },
                 "previous_packet_id": {"type": "string"},
                 "files_read": {"type": "array", "items": {"type": "string"}},
                 "files_changed": {"type": "array", "items": {"type": "string"}},
@@ -231,10 +235,51 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                     "items": {"type": "object"},
                     "description": "Explicit named composition gate pass/fail results.",
                 },
+                "handoff_results": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "handoff_id",
+                            "producer_node_id",
+                            "consumer_node_id",
+                            "status",
+                        ],
+                        "properties": {
+                            "handoff_id": {"type": "string", "minLength": 1},
+                            "producer_node_id": {"type": "string", "minLength": 1},
+                            "consumer_node_id": {"type": "string", "minLength": 1},
+                            "status": {"type": "string"},
+                            "consumed_inputs": {
+                                "type": "array",
+                                "items": {"type": "string", "minLength": 1},
+                            },
+                            "produced_outputs": {
+                                "type": "array",
+                                "items": {"type": "string", "minLength": 1},
+                            },
+                            "evidence_refs": {
+                                "type": "array",
+                                "items": {"type": "string", "minLength": 1},
+                            },
+                        },
+                    },
+                    "description": "Typed producer-to-consumer handoff evidence tied to a compiled handoff contract.",
+                },
                 "failures": {"type": "array", "items": {"type": "string"}},
-                "browser_evidence": {"type": "array", "items": {"type": "string"}},
+                "browser_evidence": {
+                    "type": "array",
+                    "items": {"oneOf": [{"type": "string"}, {"type": "object"}]},
+                },
                 "latest_user_message": {"type": "string"},
-                "user_overrides": {"type": "array", "items": {"type": "string"}},
+                "user_overrides": {
+                    "type": "array",
+                    "items": {"oneOf": [{"type": "string"}, {"type": "object"}]},
+                },
+                "user_redirect": {
+                    "oneOf": [{"type": "string"}, {"type": "object"}],
+                    "description": "Explicit host-observed redirect that causes the task identity to be re-evaluated.",
+                },
                 "previous_task_identity": {"type": "object"},
                 "semantic_proposal": {
                     "type": "object",
@@ -347,6 +392,7 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                 },
                 "phase_trace": {"type": "array", "items": {"type": "object"}},
                 "gate_results": {"type": "array", "items": {"type": "object"}},
+                "handoff_results": {"type": "array", "items": {"type": "object"}},
                 "quality_metrics": {"type": "object"},
                 "cost_metrics": {"type": "object"},
                 "composition_fixture_id": {"type": "string"},

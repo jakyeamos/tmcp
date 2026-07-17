@@ -107,6 +107,32 @@
         }
       }
     },
+    "handoff_results": {
+      "type": "array",
+      "description": "Structured producer-to-consumer artifact handoff outcomes observed during graph-aware execution.",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "handoff_id": { "type": "string" },
+          "producer_node_id": { "type": "string" },
+          "consumer_node_id": { "type": "string" },
+          "status": { "type": "string" },
+          "consumed_inputs": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "produced_outputs": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
     "quality_metrics": {
       "type": "object",
       "additionalProperties": true,

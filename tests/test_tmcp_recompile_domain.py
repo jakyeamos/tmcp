@@ -42,6 +42,12 @@ class RecompileDomainTests(unittest.TestCase):
             "user_redirect",
         )
         self.assertEqual(
+            recompile.resolve_recompile_reason(
+                {"user_redirect": {"reason": "Use the migration instead."}}, state
+            ),
+            "user_redirect",
+        )
+        self.assertEqual(
             recompile.resolve_recompile_reason({"failures": ["test failed"]}, state),
             "task_identity_shift",
         )
@@ -219,6 +225,18 @@ class RecompileDomainTests(unittest.TestCase):
                 "pending": ["gate-implementation"],
                 "bypassed": [],
             },
+            "handoffs": {
+                "added": ["handoff-implementation"],
+                "dropped": [],
+                "unchanged": [],
+                "active": [],
+                "newly_available": ["handoff-implementation"],
+                "available": ["handoff-implementation"],
+                "failed": [],
+                "pending": [],
+                "bypassed": [],
+                "invalid_contracts": [],
+            },
             "conflicts": {"active": []},
             "fulfilled_obligations": {
                 "added": ["gate-research"],
@@ -253,6 +271,7 @@ class RecompileDomainTests(unittest.TestCase):
             "instructions",
             "reads",
             "gates",
+            "handoffs",
             "conflicts",
             "fulfilled_obligations",
         ):
@@ -305,6 +324,18 @@ class RecompileDomainTests(unittest.TestCase):
                 "pending": ["gate-pending"],
                 "bypassed": ["gate-bypassed"],
             },
+            "handoffs": {
+                "added": [],
+                "dropped": [],
+                "unchanged": [],
+                "active": [],
+                "newly_available": ["handoff-implementation"],
+                "available": ["handoff-implementation"],
+                "failed": [],
+                "pending": [],
+                "bypassed": [],
+                "invalid_contracts": [],
+            },
             "conflicts": {"active": []},
             "fulfilled_obligations": {"added": [], "all": []},
         }
@@ -322,6 +353,7 @@ class RecompileDomainTests(unittest.TestCase):
         self.assertEqual(result["skills"]["dropped"], ["research"])
         self.assertEqual(result["skills"]["deferred"], ["verify"])
         self.assertEqual(result["gates"], runtime_graph_diff["gates"])
+        self.assertEqual(result["handoffs"], runtime_graph_diff["handoffs"])
         self.assertEqual(result["reads"], runtime_graph_diff["reads"])
 
     def test_merge_packet_delta_preserves_order_limits_and_context(self) -> None:

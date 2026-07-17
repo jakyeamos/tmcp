@@ -83,6 +83,12 @@
         "task_model": { "type": "object" },
         "skill_roles": { "type": "array", "items": { "type": "object" } },
         "typed_edges": { "type": "array", "items": { "type": "object" } },
+        "handoff_contracts": {
+          "type": "array",
+          "items": {
+            "$ref": "tmcp-composition-plan-v0.1.schema.json#/$defs/handoff_contract"
+          }
+        },
         "scoped_seed_graph_hints": {
           "type": "object",
           "additionalProperties": true

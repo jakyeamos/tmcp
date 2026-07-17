@@ -9,6 +9,12 @@ from pathlib import Path
 import tmcp_runtime.services.recompile as recompile_service
 from tmcp_runtime.domain.composition_runtime import advance_composition_runtime
 from tmcp_runtime.services.recompile import finalize_recompiled_packet
+from tests.test_tmcp_composition_runtime_handoff_enforcement import (
+    HANDOFF_ID,
+    _handoff_result,
+    _passing_gates,
+    _plan as handoff_runtime_plan,
+)
 from tests.test_tmcp_composition_runtime import _plan as composition_runtime_plan
 
 
@@ -571,6 +577,99 @@ class TmcpRecompileServiceTests(unittest.TestCase):
         self.assertEqual(
             result["packet"]["project_recipe"]["recipe_id"],
             "reviewed-onboarding",
+        )
+
+    def test_semantic_recompile_carries_verified_handoff_evidence_on_same_graph(
+        self,
+    ) -> None:
+        plan = handoff_runtime_plan()
+        runtime = advance_composition_runtime(
+            plan,
+            {
+                "requested_phase": "implementation",
+                "gate_results": _passing_gates(),
+                "handoff_results": [_handoff_result()],
+            },
+        )
+        source_nodes = [
+            {
+                "id": node_id,
+                "relative_path": f"skills/{node_id}/SKILL.md",
+                "path": f"[REDACTED:path]/skills/{node_id}/SKILL.md",
+                "source_type": "skill_definition",
+                "source_role": "active_skill",
+                "activation_eligible": True,
+                "signal_excerpt": f"{node_id} workflow",
+                "behavior_atoms": [f"{node_id}-atom"],
+                "routing_metadata": {},
+                "content_digest": f"digest-{node_id}",
+            }
+            for node_id in ("research", "implement")
+        ]
+        evidence_citations = [
+            {
+                "source": f"skills/{role['node_id']}/SKILL.md",
+                "source_role": "active_skill",
+                "content_digest": f"digest-{role['node_id']}",
+                "relationship_citations": role["citations"],
+            }
+            for role in plan["skill_roles"]
+        ]
+        previous_packet = self._previous_packet()
+        previous_packet.update(
+            {
+                "phase": "discovery",
+                "composition_plan": plan,
+                "semantic_proposal_validation": {"accepted": True},
+                "evidence_citations": evidence_citations,
+            }
+        )
+        composed_packet = self._composed_packet()
+        composed_packet.update(
+            {
+                "composition_plan": handoff_runtime_plan(),
+                "semantic_proposal_validation": {"accepted": True},
+                "composition_diagnostics": {"preflight": {}},
+                "evidence_citations": evidence_citations,
+            }
+        )
+        original_composed = copy.deepcopy(composed_packet)
+        state = self._state()
+        state.update(
+            {
+                "phase": "discovery",
+                "suggested_phase": "implementation",
+                "source_nodes": source_nodes,
+                "composition_runtime": runtime,
+                "runtime_evidence": {},
+                "semantic_proposal_supplied": True,
+                "packet_delta": {},
+            }
+        )
+
+        result = finalize_recompiled_packet(
+            {"semantic_proposal": {"schema": "tmcp-semantic-proposal-v0.1"}},
+            state,
+            previous_packet=previous_packet,
+            composed_packet=composed_packet,
+            previous_packet_id="packet-previous",
+        )
+
+        self.assertEqual(composed_packet, original_composed)
+        self.assertEqual(
+            result["packet"]["composition_plan"]["runtime_state"][
+                "available_handoff_ids"
+            ],
+            [HANDOFF_ID],
+        )
+        self.assertEqual(
+            result["packet"]["receipt_template"]["handoff_results"][0]["status"],
+            "available",
+        )
+        self.assertEqual(result["packet_diff"]["handoffs"]["available"], [HANDOFF_ID])
+        self.assertIn(
+            "handoff_results",
+            result["composition_runtime"]["continuity"]["carried_fields"],
         )
 
     def test_recompile_service_has_no_adapter_storage_or_io_imports(self) -> None:

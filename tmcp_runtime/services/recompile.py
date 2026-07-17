@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from copy import deepcopy
 from typing import Any
 
 from tmcp_runtime.domain.composition_runtime import advance_composition_runtime
@@ -30,6 +31,48 @@ from tmcp_runtime.services.semantic_compose import apply_semantic_composition
 
 
 RECOMPILED_PACKET_SCHEMA = "tmcp-recompiled-packet-v0.1"
+_RUNTIME_CONTINUITY_FIELDS = (
+    "handoff_results",
+    "available_handoff_ids",
+    "fulfilled_obligations",
+    "files_read",
+    "files_changed",
+    "commands_run",
+    "browser_evidence_count",
+    "runtime_observations",
+)
+
+
+def _graph_digest(plan: Mapping[str, Any]) -> str:
+    provenance = plan.get("provenance")
+    if not isinstance(provenance, Mapping):
+        return ""
+    return str(provenance.get("graph_digest") or "")
+
+
+def _carry_compatible_runtime_evidence(
+    plan: dict[str, Any], prior_plan: Mapping[str, Any] | None
+) -> list[str]:
+    """Carry verified runtime evidence only across an identical source graph."""
+
+    graph_digest = _graph_digest(plan)
+    if (
+        prior_plan is None
+        or not graph_digest
+        or graph_digest != _graph_digest(prior_plan)
+    ):
+        return []
+    prior_state = prior_plan.get("runtime_state")
+    if not isinstance(prior_state, Mapping):
+        return []
+    carried = {
+        field: deepcopy(prior_state[field])
+        for field in _RUNTIME_CONTINUITY_FIELDS
+        if field in prior_state
+    }
+    if carried:
+        plan["runtime_state"] = carried
+    return sorted(carried)
 
 
 def _role_source_citation(
@@ -259,6 +302,7 @@ def _apply_runtime_metadata(
     diagnostic_map["runtime"] = {
         "phase_advance": composition_runtime.get("phase_advance") or {},
         "gate_evaluation": composition_runtime.get("gate_evaluation") or {},
+        "handoff_evaluation": composition_runtime.get("handoff_evaluation") or {},
         "warnings": composition_runtime.get("warnings") or [],
     }
     packet["composition_diagnostics"] = diagnostic_map
@@ -273,8 +317,24 @@ def _apply_runtime_metadata(
         if isinstance(item, Mapping)
         and str(item.get("gate_id") or "") in required_gate_ids
     ]
+    required_handoff_ids = set(string_list(phase_map.get("pending_handoff_ids")))
+    handoff_evaluation = composition_runtime.get("handoff_evaluation")
+    handoff_map = (
+        dict(handoff_evaluation) if isinstance(handoff_evaluation, Mapping) else {}
+    )
+    required_handoff_names = [
+        "Receive typed handoff from "
+        + str(item.get("producer_node_id") or "producer")
+        + " to "
+        + str(item.get("consumer_node_id") or "consumer")
+        for item in json_list(handoff_map.get("catalog"))
+        if isinstance(item, Mapping)
+        and str(item.get("handoff_id") or "") in required_handoff_ids
+    ]
     packet["verification_gates"] = ordered_unique(
-        string_list(packet.get("verification_gates")) + required_gate_names
+        string_list(packet.get("verification_gates"))
+        + required_gate_names
+        + required_handoff_names
     )[:16]
     receipt = packet.get("receipt_template")
     if not isinstance(receipt, dict):
@@ -287,6 +347,11 @@ def _apply_runtime_metadata(
     receipt["gate_results"] = [
         dict(item)
         for item in json_list(gate_map.get("evaluated_gates"))
+        if isinstance(item, Mapping)
+    ]
+    receipt["handoff_results"] = [
+        dict(item)
+        for item in json_list(handoff_map.get("evaluated_handoffs"))
         if isinstance(item, Mapping)
     ]
     plan = composition_runtime.get("composition_plan")
@@ -350,12 +415,28 @@ def finalize_recompiled_packet(
         prior_runtime_map = runtime_map
         composed_plan = new_packet.get("composition_plan")
         if isinstance(composed_plan, Mapping):
+            composed_plan = deepcopy(dict(composed_plan))
+            new_packet["composition_plan"] = composed_plan
             runtime_evidence = state.get("runtime_evidence")
             evidence_map = (
                 dict(runtime_evidence) if isinstance(runtime_evidence, Mapping) else {}
             )
             evidence_map["requested_phase"] = ""
+            prior_plan = (
+                prior_runtime_map.get("composition_plan")
+                if isinstance(prior_runtime_map, Mapping)
+                else None
+            )
+            carried_fields = _carry_compatible_runtime_evidence(
+                composed_plan,
+                prior_plan if isinstance(prior_plan, Mapping) else None,
+            )
             runtime_map = advance_composition_runtime(composed_plan, evidence_map)
+            if carried_fields:
+                runtime_map["continuity"] = {
+                    "graph_digest": _graph_digest(composed_plan),
+                    "carried_fields": carried_fields,
+                }
             if prior_runtime_map is not None:
                 prior_public = {
                     key: value
