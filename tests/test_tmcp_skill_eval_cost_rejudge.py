@@ -776,6 +776,27 @@ class CostRejudgeSourceTests(unittest.TestCase):
             entry["promotion"]["gaps"],
         )
 
+    def test_campaign_ledger_keeps_composition_evidence_tiers_distinct(self) -> None:
+        ledger = (
+            REPO_ROOT
+            / "docs/evidence/skill-eval-multiconfig-2026-07-17"
+            / "skill-campaign-queue.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("evidence-aware intake ledger, not a launch order", ledger)
+        self.assertIn("`composition-study-f6de333293fee3f7`", ledger)
+        self.assertIn(
+            "does not test TMCP live selection, source adherence, or corpus quality",
+            ledger,
+        )
+        self.assertIn("Packet-probed", ledger)
+        self.assertIn("Selection-only", ledger)
+        self.assertIn("Candidate", ledger)
+        self.assertIn("no behavioral calls have\n  been made", ledger)
+        self.assertIn(
+            "cannot authorize a corpus rewrite or a behavioral claim", ledger
+        )
+
     def test_rejudge_execution_writes_only_independent_output_and_keeps_prompt_blind(
         self,
     ) -> None:

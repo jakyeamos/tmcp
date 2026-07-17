@@ -1,27 +1,47 @@
-# Candidate skill campaign queue
+# Candidate skill campaign ledger
 
-Every target below needs reviewed, concrete golden cases and a defensible bar
-before a live behavioral campaign. The order favors different kinds of
-reusable behavior over a large run of closely related authoring skills.
+This is an evidence-aware intake ledger, not a launch order or a recommendation
+to change skills. Read it with the promotion state in
+[`docs/SKILL_WRITING_GUIDEBOOK.md`](../../SKILL_WRITING_GUIDEBOOK.md): every
+current guidebook entry remains on hold. A row may identify the next admissible
+research step, but cannot authorize a corpus rewrite or a behavioral claim.
 
-| Priority | Target | Behavioral strength to test | Fixture caution |
-| ---: | --- | --- | --- |
-| 1 | `/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md` | Blind evaluation, defect-vs-bar diagnosis, full re-evaluation | The preregistered 36-cell baseline is ready; do not replace its reviewed inputs. |
-| 2 | `/Users/jakyeamos/skills/engineering/explore-unknowns/SKILL.md` | Staged user checkpoints and correct handoff | Use an ambiguous task with a real boundary; do not reward inventing unknowns. |
-| 3 | `/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md` | One owner, stale-path removal, consumer verification | Supply a small real dependency graph and distinguish cleanup from a behavior change. |
-| 4 | `/Users/jakyeamos/skills/engineering/write-docs/SKILL.md` | Source-grounded documentation without code transcription | Provide a real source tree and an audience/outcome bar, not a fixed prose template. |
-| 5 | `/Users/jakyeamos/.agents/skills/repo-behavior-spec-loop/SKILL.md` | Canonical evidence state, source citations, audit checkpoints | Separate audit-only fixtures from fixtures that explicitly permit remediation. |
-| 6 | `/Users/jakyeamos/.agents/skills/wizard/SKILL.md` | Deterministic human handoff with secret/irreversibility safety | Use synthetic credentials and a no-write dry path; never use a live secret or external account. |
+The labels below are deliberately narrow:
 
-## First composition campaigns
+- **evaluated, held** — a completed campaign exists, but it did not clear its
+  promotion gates;
+- **preregistered** — reviewed inputs and policy exist; no behavioral calls have
+  been made;
+- **packet-probed** — TMCP locally preserved a source/route contract only;
+- **selection-only** — a source appeared in a local packet, but its important
+  behavioral rule has not yet cleared the packet probe; and
+- **candidate** — an inventory or static-review lead with no composition
+  evidence.
 
-1. TMCP compiler + `explore-unknowns`: preserve staged user checkpoints and do
-   not route an ambiguity walk into implementation.
-2. TMCP compiler + `refactor-clean`: preserve ownership, deletion, and
-   consumer-verification gates through a concrete refactor.
-3. TMCP compiler + `repo-behavior-spec-loop`: preserve the single-writer
-   evidence contract and activate only task-implied audit gates.
+| Target | State | Behavioral strength to test | Next admissible step |
+| --- | --- | --- | --- |
+| `/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md` | Evaluated, held | Blind evaluation, defect-vs-bar diagnosis, full re-evaluation | Keep the completed baseline as a negative reliability gate; any v3 revision needs a separately reviewed campaign. |
+| `/Users/jakyeamos/skills/engineering/explore-unknowns/SKILL.md` | Preregistered for a bounded source-bundle study | Stage-1 settled-ground opening, explicit assumptions, and user handoff | Do not alter the reviewed six-fixture bundle. Obtain fresh approval before the 72 runner and 72 primary-judge calls. |
+| `/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md` | Selection-only | One owner, stale-path removal, consumer verification | Write a narrow source-role expectation and independently review a small dependency-graph fixture before preregistration. |
+| `/Users/jakyeamos/skills/engineering/write-docs/SKILL.md` | Candidate | Source-grounded documentation without code transcription | First create a deterministic packet probe; then decide whether a real source-tree fixture and observable audience bar are warranted. |
+| `/Users/jakyeamos/.agents/skills/repo-behavior-spec-loop/SKILL.md` | Packet-probed | Canonical evidence state, source citations, audit checkpoints | Independently review audit-only and remediation-permitted fixtures before any behavioral plan. |
+| `/Users/jakyeamos/.agents/skills/wizard/SKILL.md` | Candidate | Deterministic human handoff with secret/irreversibility safety | Create a synthetic-credential, no-write packet probe; never use a live secret or external account. |
 
-Each pair first clears a packet-level composition probe, then receives a
-separate reviewed behavioral fixture set. Results may be compared across pairs,
-but no pair is promoted to a corpus default from static or packet-level evidence.
+## Composition evidence and next gates
+
+The local results in
+[`tmcp-combination-probes.md`](tmcp-combination-probes.md) establish only packet
+projection. They are not an ordering of live campaigns and do not measure an
+agent artifact. The currently bounded composition work is:
+
+| Composition surface | Evidence state | Exact claim boundary | Next gate |
+| --- | --- | --- | --- |
+| TMCP packet + `explore-unknowns` Stage-1 bundle | Preregistered, no behavioral calls | `composition-study-f6de333293fee3f7` can test the delivery effect of the byte-pinned source bundle against the same packet. It does not test TMCP live selection, source adherence, or corpus quality. | Fresh approval for the primary 72 runner and 72 judge calls; a separate approval is required later for the 72-trace cost rejudge. |
+| TMCP compiler + `refactor-clean` | Selection-only packet probe | The source's preservation and verification atoms appeared in the packet; ownership behavior is untested. | Reviewed fixture, first-principles bar, and preregistered source-role contract. |
+| TMCP compiler + `repo-behavior-spec-loop` | Packet-probed | The packet retained the canonical-ledger and audit-stop contract; no artifact outcome was measured. | Separate reviewed fixture set and preregistered behavioral plan. |
+
+Do not compare or rank these rows as if they shared an outcome measure. A pair
+first needs a scoped packet contract, independently reviewed fixtures, runner and
+judge isolation, repetitions, and a cost or safety bar where the task warrants
+one. Even then, a result may support only the intervention specified in its plan;
+it never promotes a pair to a corpus default from static or packet-level evidence.
