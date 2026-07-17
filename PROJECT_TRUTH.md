@@ -3,7 +3,7 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `734c006` adds a verified source-bundle composition scorer, binds the persisted plan/trace/sidecar digests into its report, and fixes opaque trace-ID preservation during controlled scoring.
+- Last completed change: `8fa91e2` makes the verified composition scorer's new schema identifier release-package-safe without weakening secret scanning.
 - Verification: 565 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
