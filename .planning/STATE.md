@@ -6,9 +6,10 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Bind compiler-replayed controls to assembled observations and
-honest phase-capsule context. Graph provenance is content-derived; keep 0.5.7
-active.
+**Current focus:** Bind reviewed release evidence to replayable benchmark
+artifacts, then replace the current non-isolated context metric with verified
+phase capsules. Graph provenance and host/evaluator evidence are content-bound;
+keep 0.5.7 active.
 
 ## Milestone
 
@@ -23,8 +24,11 @@ evidence-backed bootstrap skills. `f190a82` adds verified typed handoffs,
 runtime continuity, and receipt/diff propagation. `9f13813` prepares exact
 fixture workspaces and host-intake manifests; `5745420` replays compiler-bound
 controls with explicit counterfactual obligations; `d70b4e7` makes benchmark
-graph identity independent of workspace roots. Observation assembly, honest
-runtime-context accounting, and real host-run proof remain.
+graph identity independent of workspace roots. `7f72822` adds bounded raw
+host/evaluator artifacts, exact replay assembly, per-rubric evidence binding,
+actual runtime receipt lineage, safe receipt projection, and direct-domain size
+limits. Release-bound bundle verification, honest phase-capsule context
+accounting, and real host-run proof remain.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -37,6 +41,14 @@ runtime-context accounting, and real host-run proof remain.
 
 ## Completed Scope
 
+- `7f72822` binds every benchmark observation to a compiler replay plus explicit
+  bounded host/evaluator artifacts. It validates actual phase/stage/gate/handoff
+  lineage, projects nested receipts safely, rejects secret-like free text and
+  oversized direct-domain inputs, preserves benchmark digests through receipt
+  APIs, and requires each rubric requirement to cite variant-local evidence.
+  Focused assembly, benchmark, receipt, MCP, package, contract, install, and
+  release-compile checks pass; evidence remains advisory and the current
+  same-host context result remains ineligible.
 - `d70b4e7` normalizes benchmark graph provenance to compiler-equivalent
   content-and-edge identity, moves fixture source-node IDs to the shared source
   contract, and keeps legacy synthetic fixtures compatible. Exact replay graph
@@ -401,5 +413,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_tmcp_composition_benchmark_protocol
+python3 -m unittest tests.test_release_evidence tests.test_release_package
 ```
