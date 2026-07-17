@@ -26,7 +26,7 @@ from scripts.verify_cost_rejudge import (  # noqa: E402
 from tmcp_runtime.api.evaluation import score_evidence  # noqa: E402
 
 
-VERIFIED_SCORE_SCHEMA = "tmcp-verified-composition-study-score-v0.1"
+VERIFIED_SCORE_SCHEMA = "tmcp-composition-verified-score-v0.1"
 
 
 def _object(value: Any, *, context: str) -> dict[str, Any]:
