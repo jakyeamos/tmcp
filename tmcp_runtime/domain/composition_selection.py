@@ -20,6 +20,17 @@ NodeSignalText = Callable[[Node], str]
 MAX_COMPOSITION_NODES = 8
 MAX_AUTOMATIC_BOOTSTRAP_SKILLS = 1
 PHASE_TIE_BREAK_BOOST = 0.01
+EXPLICIT_COMPOSITION_PHRASES = (
+    "release readiness",
+    "pr risk",
+    "repo behavior",
+    "migration readiness",
+    "performance readiness",
+    "ui rubric",
+    "semantic proposal",
+    "behavior manifest",
+    "skill handoff",
+)
 
 
 def _core() -> Any:
@@ -75,6 +86,15 @@ def _selection_evidence(
     path_terms = sorted(
         term for term in objective_terms if core._contains_signal_term(rel_path, term)
     )
+    phrase_matches = sorted(
+        phrase
+        for phrase in EXPLICIT_COMPOSITION_PHRASES
+        if core._contains_signal_term(objective, phrase)
+        and (
+            core._contains_signal_term(rel_path, phrase)
+            or core._contains_signal_term(text, phrase)
+        )
+    )
     trigger_matches = sorted(
         trigger
         for trigger in core._string_list(metadata.get("trigger_phrases"))
@@ -109,6 +129,7 @@ def _selection_evidence(
         "text": text,
         "lexical_terms": lexical_terms,
         "path_terms": path_terms,
+        "phrase_matches": phrase_matches,
         "trigger_matches": trigger_matches,
         "command_matches": command_matches,
         "route_score": route_score,
@@ -119,6 +140,7 @@ def _selection_evidence(
         "has_real_relevance": bool(
             lexical_terms
             or path_terms
+            or phrase_matches
             or trigger_matches
             or command_matches
             or route_score > 0
@@ -204,6 +226,7 @@ def score_composition_node(
         return 0.0
     if source_role == "governing_instruction":
         score += 5.0
+    score += 5.0 * len(evidence["phrase_matches"])
     if rel_path.endswith("skill.md") and evidence["path_terms"]:
         score += 4.0
     if core._contains_signal_term(rel_path, "release readiness") and core.objective_has_phrase(

@@ -163,6 +163,29 @@ class CompositionSelectionGuardTests(unittest.TestCase):
         )
         self.assertTrue(diagnostics["warnings"])
 
+    def test_exact_route_phrase_remains_stronger_than_its_generic_tokens(self) -> None:
+        release = _node(
+            "skills/tmcp-release-readiness/SKILL.md",
+            "Use for release readiness and package checks.",
+        )
+        performance = _node(
+            "skills/tmcp-performance-readiness/SKILL.md",
+            "Use for performance readiness and capacity checks.",
+        )
+
+        selected = composition.select_composition_nodes(
+            [performance, release],
+            "Improve TMCP release readiness before release.",
+            "start",
+            {},
+            node_signal_text=_signal,
+        )
+
+        self.assertEqual(
+            [node["relative_path"] for node in selected],
+            ["skills/tmcp-release-readiness/SKILL.md"],
+        )
+
     def test_explicit_scope_and_matched_seed_remain_available(self) -> None:
         explicitly_scoped = _node(
             "skills/explicit/SKILL.md",
