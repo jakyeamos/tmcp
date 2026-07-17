@@ -52,6 +52,7 @@ HARVEST_SOURCE_TYPE_ATOMS: dict[str, tuple[str, ...]] = {
     "project_documentation": ("project-context", "source-grounding"),
     "workflow_prompt": ("workflow-routing", "artifact-contract"),
     "markdown_process_doc": ("process-documentation", "source-grounding"),
+    "test_fixture": ("source-traceability",),
 }
 
 
@@ -59,6 +60,8 @@ def source_type_for(path: Path, rel_path: str, text: str) -> str:
     name = path.name.lower()
     rel = rel_path.lower()
     lower = text[:4000].lower()
+    if "/tests/fixtures/" in f"/{rel}" or "/test/fixtures/" in f"/{rel}":
+        return "test_fixture"
     if name == "skill.md":
         return "skill_definition"
     if name in {"agents.md", "claude.md"}:
@@ -259,8 +262,14 @@ def harvest_priority(path: Path, rel_path: str, source_type: str) -> tuple[int, 
         "workflow_prompt": 4,
         "project_documentation": 5,
         "markdown_process_doc": 8,
+        "test_fixture": 9,
     }.get(source_type, 9)
-    if name in {"skill.md", "agents.md", "claude.md", "readme.md"}:
+    if source_type != "test_fixture" and name in {
+        "skill.md",
+        "agents.md",
+        "claude.md",
+        "readme.md",
+    }:
         type_score = min(type_score, 1)
     return type_score, rel_path
 

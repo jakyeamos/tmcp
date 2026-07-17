@@ -16,6 +16,7 @@ from .routes import (
     derive_task_identity,
     has_accessibility_contrast_context,
 )
+from .source_roles import is_activation_eligible_source_type
 
 
 Node = dict[str, Any]
@@ -249,6 +250,9 @@ def score_composition_node(
     score = float(len(objective_terms.intersection(node_terms)))
     source_type = str(node.get("source_type") or "")
     rel_path = str(node.get("relative_path") or "").lower()
+
+    if not is_activation_eligible_source_type(source_type):
+        return 0.0
 
     if "repo-behavior" in rel_path and not objective_has_phrase(
         objective,

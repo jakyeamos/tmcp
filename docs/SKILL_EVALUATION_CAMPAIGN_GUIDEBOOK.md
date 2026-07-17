@@ -47,6 +47,12 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   or “stop before implementation” must not activate an implementation route.
   A route-selection probe can catch this cheaply before it contaminates a live
   behavioral campaign.
+- Treat test fixtures as evidence-only sources during project-root composition.
+  They may support a test or a review, but must not enter active instructions,
+  citations, or declared reads unless a future protocol explicitly scopes them.
+- Do not activate a specialized route from a generic verb such as “build” alone.
+  Preserve a matched specialized control case so a routing fix cannot quietly
+  weaken intended frontend or workflow behavior.
 - A packet-level pass proves only that routing and source projection held. It
   does not prove the pair changes agent behavior; that still requires approved
   golden cases, fresh blind runners, and separate judges.

@@ -142,7 +142,6 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "react",
             "page",
             "pages",
-            "build",
             "production-ready",
             "tsx",
             "frontend",

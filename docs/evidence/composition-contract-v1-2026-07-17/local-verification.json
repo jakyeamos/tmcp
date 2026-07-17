@@ -1,0 +1,21 @@
+{
+  "schema": "tmcp-composition-contract-verification-v1",
+  "study_design": "deterministic_compiler_contract",
+  "objective": "Build a trusted evidence-backed guidebook for agent skills and skill composition through preregistered fixture-scoped experiments, reliable baseline measurement, causal composition tests, independent rejudges, and conservative promotion.",
+  "observed": {
+    "task_identity": {
+      "primary": "general_task",
+      "active_routes": [],
+      "confidence": 0.0,
+      "route_catalog_version": "2026-07-07"
+    },
+    "fixture_citations": [],
+    "fixture_instruction_count": 0,
+    "required_fixture_reads": []
+  },
+  "receipt": {
+    "packet_id": "packet-f62c9fd667c8",
+    "outcome": "passed",
+    "trust": "advisory_untrusted"
+  }
+}

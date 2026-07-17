@@ -7,6 +7,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .source_roles import is_activation_eligible_source_type
+
 
 Node = dict[str, Any]
 FamilyContext = dict[str, Any]
@@ -164,6 +166,8 @@ def resolve_declared_load_paths(
 
     matched_paths: list[str] = []
     for node in source_nodes:
+        if not is_activation_eligible_source_type(node.get("source_type")):
+            continue
         rel_path = str(node.get("relative_path") or "")
         if not rel_path:
             continue

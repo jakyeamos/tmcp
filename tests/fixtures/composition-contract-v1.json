@@ -1,0 +1,42 @@
+{
+  "schema": "tmcp-composition-contract-v1",
+  "study_design": "deterministic_compiler_contract",
+  "promotion_eligibility": false,
+  "cases": [
+    {
+      "id": "research_goal_is_not_frontend",
+      "kind": "task_identity",
+      "objective": "Build a trusted evidence-backed guidebook for agent skills and skill composition through preregistered fixture-scoped experiments.",
+      "expected": {
+        "primary": "general_task",
+        "active_routes": []
+      }
+    },
+    {
+      "id": "explicit_frontend_control_remains_routed",
+      "kind": "task_identity",
+      "objective": "Build React components with motion-rich interactions.",
+      "expected": {
+        "primary": "frontend_implementation",
+        "active_routes_include": [
+          "frontend_implementation",
+          "motion_interaction"
+        ]
+      }
+    },
+    {
+      "id": "test_fixture_is_evidence_only",
+      "kind": "source_role",
+      "objective": "Build a trusted evidence-backed guidebook for agent skills and skill composition through preregistered fixture-scoped experiments.",
+      "active_source": ".agents/skills/composition-research/SKILL.md",
+      "fixture_source": "tests/fixtures/skills/approval-before-edit/SKILL.md",
+      "fixture_directive": "FIXTURE_ONLY_DIRECTIVE",
+      "expected": {
+        "source_type": "test_fixture",
+        "citation_excluded": true,
+        "instruction_excluded": true,
+        "declared_load_excluded": true
+      }
+    }
+  ]
+}
