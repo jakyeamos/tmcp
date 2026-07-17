@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `3ab7510` makes scorecard claim boundaries and signed guidebook effects explicit while keeping evaluator modules under the source-size gate.
-- Verification: 35 focused evaluator tests pass; Ruff formatting/lint and the changed-source size gate pass.
+- Last completed change: `fc063dd` records the controlled dogfood plan, traces, report, generated artifacts, pattern catalog, and evidence-led guidebook.
+- Verification: 492 tests passed, 3 skipped, and 108 subtests passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
 
 ## Current Position
 
@@ -13,10 +13,11 @@
 - Corpus promotion remains manual and requires 72 runs, a 95% lift interval above zero, no agent-configuration reversal, and no safety or cost regression.
 - Dogfood experiment `skill-eval-af3806a4873b77a0` completed 8 blind judged traces: intact `eval-skills` passed 4/4 and the `Workflow`-section ablation passed 0/4.
 - The scorer reports a controlled-single-configuration section claim with intervention-control lift `-1.0` and 95% interval `[-1.0, -0.02]`; promotion remains on hold.
+- The checked-in catalog and guidebook preserve the candidate status, evidence scope, promotion gaps, suspected-only static finding, and reproducible evidence bundle.
 
 ## Next Step
 
-- Regenerate the report with the clarified renderer, record the evidence bundle and bounded guidebook conclusion, then run the full release gates.
+- Replace inherited npm example text with the repository's pnpm convention, regenerate catalog parity, then run the release-package and final branch gates.
 
 ## Blockers
 
