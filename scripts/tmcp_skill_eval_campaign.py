@@ -176,10 +176,60 @@ def _validate_campaign_args(args: argparse.Namespace) -> None:
         raise ValueError("cleanroom and output-dir must be distinct.")
 
 
+def _resolve_first_principles(args: argparse.Namespace) -> None:
+    inline = str(args.first_principles or "").strip()
+    source_file = args.first_principles_file
+    if bool(inline) == bool(source_file):
+        raise ValueError(
+            "Supply exactly one of --first-principles or --first-principles-file."
+        )
+    if source_file is None:
+        args.first_principles = inline
+        args.first_principles_source = {
+            "kind": "inline",
+            "path": None,
+            "sha256": _sha256_text(inline),
+        }
+        return
+    resolved = source_file.resolve()
+    if not resolved.is_file():
+        raise ValueError(f"first-principles-file is missing: {source_file}")
+    content = resolved.read_text(encoding="utf-8").strip()
+    if not content:
+        raise ValueError("first-principles-file must be non-empty.")
+    args.first_principles = content
+    args.first_principles_source = {
+        "kind": "file",
+        "path": str(resolved),
+        "sha256": _sha256_text(content),
+    }
+
+
 def _runner_configurations(args: argparse.Namespace) -> list[tuple[str, str]]:
     if args.runner_config:
         return [tuple(value.split(":")) for value in args.runner_config]
     return [(args.model, effort) for effort in args.runner_effort]
+
+
+def _remote_schema_roles(args: argparse.Namespace) -> list[dict[str, str]]:
+    roles = [
+        {
+            "role": "runner",
+            "configuration_id": f"{model}-reasoning-{effort}",
+            "model": model,
+            "effort": effort,
+        }
+        for model, effort in _runner_configurations(args)
+    ]
+    roles.append(
+        {
+            "role": "judge",
+            "configuration_id": "independent-judge",
+            "model": args.judge_model,
+            "effort": args.judge_effort,
+        }
+    )
+    return roles
 
 
 def _message_text(message: dict[str, Any]) -> str:
@@ -272,7 +322,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--codex-home", type=Path, required=True)
     parser.add_argument("--cleanroom", type=Path, required=True)
-    parser.add_argument("--first-principles", required=True)
+    parser.add_argument("--first-principles")
+    parser.add_argument("--first-principles-file", type=Path)
     parser.add_argument("--pattern-id", required=True)
     parser.add_argument("--intervention-target", required=True)
     parser.add_argument("--model", default="gpt-5.6-sol")
@@ -310,6 +361,7 @@ def _harness_digests() -> dict[str, str]:
 
 
 async def _main(args: argparse.Namespace) -> int:
+    _resolve_first_principles(args)
     _validate_campaign_args(args)
     args.judge_model = args.judge_model or args.model
     plan = _load_json(args.plan)
@@ -379,9 +431,13 @@ async def _main(args: argparse.Namespace) -> int:
             }
         }
         remote_schema = {
-            "schema": "tmcp-remote-schema-preflight-v0.1",
+            "schema": "tmcp-remote-schema-preflights-v0.1",
             "passed": False,
             "status": "not_run_in_dry_run",
+            "preflights": [
+                {**role, "passed": False, "status": "not_run_in_dry_run"}
+                for role in _remote_schema_roles(args)
+            ],
         }
     else:
         args.cleanroom.mkdir(parents=True, exist_ok=True)
@@ -393,26 +449,36 @@ async def _main(args: argparse.Namespace) -> int:
     )
     if not args.dry_run:
         synthetic_criteria = ["O1: The sentence is present."]
-        remote_schema = await remote_schema_preflight(
-            codex_bin=args.codex_bin,
-            model=args.judge_model,
-            effort=args.judge_effort,
-            base_codex_home=args.codex_home,
-            timeout_seconds=args.timeout_seconds,
-            output_schema=judge_output_schema(synthetic_criteria),
-            prompt=judge_prompt(
-                {
-                    "prompt": "State whether the supplied sentence is present.",
-                    "expected_observables": ["The sentence is present."],
-                    "failure_smells": [],
-                },
-                "The sentence is present.",
-                first_principles="Use only the supplied sentence.",
-            ),
-            validate_output=lambda payload: _validate_judgment(
-                payload, expected_criteria=synthetic_criteria
-            ),
-        )
+        preflights: list[dict[str, Any]] = []
+        for role in _remote_schema_roles(args):
+            preflight_result = await remote_schema_preflight(
+                codex_bin=args.codex_bin,
+                model=role["model"],
+                effort=role["effort"],
+                base_codex_home=args.codex_home,
+                timeout_seconds=args.timeout_seconds,
+                output_schema=judge_output_schema(synthetic_criteria),
+                prompt=judge_prompt(
+                    {
+                        "prompt": "State whether the supplied sentence is present.",
+                        "expected_observables": ["The sentence is present."],
+                        "failure_smells": [],
+                    },
+                    "The sentence is present.",
+                    first_principles="Use only the supplied sentence.",
+                ),
+                validate_output=lambda payload: _validate_judgment(
+                    payload, expected_criteria=synthetic_criteria
+                ),
+                max_transient_retries=args.max_transient_retries,
+                retry_backoff_seconds=args.retry_backoff_seconds,
+            )
+            preflights.append({**role, **preflight_result})
+        remote_schema = {
+            "schema": "tmcp-remote-schema-preflights-v0.1",
+            "passed": all(item["passed"] for item in preflights),
+            "preflights": preflights,
+        }
     schema_digest = _sha256_text(
         json.dumps(example_schema, sort_keys=True, separators=(",", ":"))
     )
@@ -441,6 +507,7 @@ async def _main(args: argparse.Namespace) -> int:
         ),
         "harness_files": harness_files,
         "first_principles_sha256": _sha256_text(args.first_principles),
+        "first_principles_source": args.first_principles_source,
         "judge_schema_version": JUDGE_SCHEMA_VERSION,
         "judge_schema_sha256": schema_digest,
         "runner_protocol_sha256": runner_protocol_digest,
@@ -472,6 +539,7 @@ async def _main(args: argparse.Namespace) -> int:
             "sandbox": "read-only",
             "prompt_input_preflight": preflight["audit"],
             "remote_schema_preflight_required": True,
+            "remote_schema_preflight_roles": _remote_schema_roles(args),
         },
     }
     if args.dry_run:

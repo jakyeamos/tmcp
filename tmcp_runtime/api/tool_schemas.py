@@ -144,6 +144,13 @@ TOOLS: dict[str, dict[str, object]] = {
                     "items": {"type": "object"},
                     "description": "Structured trace evidence for score mode.",
                 },
+                "cost_rejudgments_json": {
+                    "type": "object",
+                    "description": (
+                        "Independent condition-blind cost rejudgments bound to "
+                        "the supplied trace evidence for score mode."
+                    ),
+                },
                 "compose_packet": {
                     "type": "boolean",
                     "default": True,

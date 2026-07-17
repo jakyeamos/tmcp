@@ -113,6 +113,16 @@ def normalize_campaign_policy(
         or baseline.get("require_predeclared_clustered_interval") is not True
     ):
         raise ValueError("campaign_policy baseline_reliability is invalid.")
+    fixture_review = policy.get("fixture_review")
+    if not isinstance(fixture_review, Mapping) or any(
+        fixture_review.get(field) is not True
+        for field in (
+            "independent_reviewer",
+            "prompt_event_directness",
+            "bar_skill_expressibility",
+        )
+    ):
+        raise ValueError("campaign_policy fixture_review is invalid.")
     judge = policy.get("judge_configuration")
     if (
         not isinstance(judge, Mapping)
@@ -148,6 +158,11 @@ def normalize_campaign_policy(
                 baseline["minimum_per_fixture_control_pass_rate"]
             ),
             "require_predeclared_clustered_interval": True,
+        },
+        "fixture_review": {
+            "independent_reviewer": True,
+            "prompt_event_directness": True,
+            "bar_skill_expressibility": True,
         },
         "judge_configuration": {
             "model": str(judge["model"]),

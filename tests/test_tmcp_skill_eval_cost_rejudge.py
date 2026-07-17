@@ -88,6 +88,31 @@ class CostRejudgeProtocolTests(unittest.TestCase):
             validate_cost_rejudgment(missing_citation)
 
 
+class CostRejudgeArgumentTests(unittest.TestCase):
+    def test_baseline_trace_count_is_allowed_but_zero_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            cost_bar = root / "cost-bar.md"
+            cost_bar.write_text("faithful bar", encoding="utf-8")
+            args = Namespace(
+                concurrency=1,
+                timeout_seconds=10,
+                max_transient_retries=0,
+                retry_backoff_seconds=0.0,
+                expected_trace_count=36,
+                max_cells=None,
+                source_runs=root / "source-runs",
+                output_dir=root / "output",
+                cleanroom=root / "cleanroom",
+                cost_bar_file=cost_bar,
+            )
+
+            cost_rejudge._validate_args(args)
+            args.expected_trace_count = 0
+            with self.assertRaisesRegex(ValueError, "expected-trace-count"):
+                cost_rejudge._validate_args(args)
+
+
 class CostRejudgeSourceTests(unittest.TestCase):
     def _write_stage(
         self,

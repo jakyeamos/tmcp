@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 import scripts.tmcp_skill_eval_campaign_runtime as campaign_runtime
 import scripts.tmcp_skill_eval_campaign_protocol as campaign_protocol
+import scripts.tmcp_skill_eval_campaign as campaign
 from scripts.tmcp_skill_eval_campaign_protocol import (
     CampaignCell,
     CodexRunError,
@@ -107,6 +108,45 @@ class SkillEvalCampaignTests(unittest.TestCase):
             {cell.runner_model for cell in baseline}, {"model-a", "model-b"}
         )
         self.assertEqual(len({cell.cell_id for cell in baseline}), 36)
+
+    def test_remote_schema_roles_cover_every_runner_and_the_judge(self) -> None:
+        args = Namespace(
+            model="fallback",
+            runner_effort=[],
+            runner_config=["runner-a:high", "runner-b:high", "runner-c:high"],
+            judge_model="judge-model",
+            judge_effort="high",
+        )
+
+        roles = campaign._remote_schema_roles(args)
+
+        self.assertEqual(
+            [role["role"] for role in roles], ["runner"] * 3 + ["judge"]
+        )
+        self.assertEqual(
+            {role["model"] for role in roles[:3]},
+            {"runner-a", "runner-b", "runner-c"},
+        )
+        self.assertEqual(roles[-1]["model"], "judge-model")
+
+    def test_first_principles_file_is_bound_as_an_inspectable_source(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "first-principles.txt"
+            source.write_text("Faithful evaluation bar.", encoding="utf-8")
+            args = Namespace(
+                first_principles=None,
+                first_principles_file=source,
+            )
+
+            campaign._resolve_first_principles(args)
+
+        self.assertEqual(args.first_principles, "Faithful evaluation bar.")
+        self.assertEqual(args.first_principles_source["kind"], "file")
+        self.assertEqual(args.first_principles_source["path"], str(source.resolve()))
+        self.assertEqual(
+            args.first_principles_source["sha256"],
+            _sha256_text("Faithful evaluation bar."),
+        )
 
     def test_runner_prompt_does_not_leak_bar_or_variant(self) -> None:
         row = self._plan()["task_matrix"][0]
@@ -276,6 +316,71 @@ class SkillEvalCampaignTests(unittest.TestCase):
         self.assertTrue(preflight["passed"])
         self.assertEqual(preflight["model"], "judge-model")
         self.assertEqual(preflight["event_audit"]["thread_id"], "schema-thread")
+        self.assertEqual(preflight["retry_audit"]["attempts"], [])
+
+    def test_remote_schema_preflight_retries_only_transient_failures(self) -> None:
+        criteria = ["O1: expected"]
+        calls = 0
+
+        async def fake_run_codex(**kwargs: object) -> tuple:
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                raise CodexRunError("at capacity")
+            command = kwargs["command"]
+            assert isinstance(command, list)
+            output_path = Path(command[command.index("-o") + 1])
+            output_path.write_text(
+                json.dumps(
+                    {
+                        "passed": True,
+                        "evidence": {"O1": {"status": "pass", "citation": "yes"}},
+                        "safety_regression": False,
+                        "cost_regression": False,
+                        "rationale": "The synthetic sentence is present.",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            return ("events", "", {"input_tokens": 1}, {"passed": True})
+
+        with patch.object(campaign_protocol, "_run_codex", fake_run_codex):
+            preflight = asyncio.run(
+                remote_schema_preflight(
+                    codex_bin="codex",
+                    model="judge-model",
+                    effort="high",
+                    base_codex_home=Path("/unused"),
+                    timeout_seconds=10,
+                    output_schema=judge_output_schema(criteria),
+                    prompt="Synthetic schema acceptance prompt.",
+                    validate_output=lambda payload: _validate_judgment(
+                        payload, expected_criteria=criteria
+                    ),
+                    retry_backoff_seconds=0,
+                )
+            )
+
+        self.assertEqual(calls, 2)
+        self.assertEqual(preflight["retry_audit"]["successful_attempt"], 2)
+        self.assertEqual(
+            preflight["retry_audit"]["attempts"][0]["classification"],
+            "model_capacity",
+        )
+
+    def test_transient_failure_classification_recognizes_service_statuses(self) -> None:
+        self.assertEqual(
+            campaign_protocol.transient_failure_classification(
+                CodexRunError("request failed with 429")
+            ),
+            "rate_limited",
+        )
+        self.assertEqual(
+            campaign_protocol.transient_failure_classification(
+                CodexRunError("request failed with 503")
+            ),
+            "service_unavailable",
+        )
 
     def test_partial_stage_is_invalidated_instead_of_resumed(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -431,6 +536,11 @@ class SkillEvalCampaignTests(unittest.TestCase):
                 "minimum_control_pass_rate": 0.5,
                 "minimum_per_fixture_control_pass_rate": 0.5,
                 "require_predeclared_clustered_interval": True,
+            },
+            "fixture_review": {
+                "independent_reviewer": True,
+                "prompt_event_directness": True,
+                "bar_skill_expressibility": True,
             },
             "judge_configuration": {"model": "judge-model", "reasoning_effort": "high"},
             "cross_model_confirmation": {

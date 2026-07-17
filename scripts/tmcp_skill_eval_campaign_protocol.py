@@ -63,6 +63,21 @@ class CodexRunError(RuntimeError):
         self.stderr = stderr
 
 
+def transient_failure_classification(error: CodexRunError) -> str | None:
+    """Classify only bounded-retry failures that are safe to retry."""
+
+    diagnostic = f"{error}\n{error.stdout}\n{error.stderr}".lower()
+    if re.search(r"at capacity|model capacity", diagnostic):
+        return "model_capacity"
+    if re.search(r"rate limit|too many requests|\b429\b", diagnostic):
+        return "rate_limited"
+    if re.search(r"temporarily unavailable|service unavailable|\b503\b", diagnostic):
+        return "service_unavailable"
+    if re.search(r"timed out|connection reset|network", diagnostic):
+        return "transient_network"
+    return None
+
+
 def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -361,6 +376,16 @@ def campaign_readiness_report(
         )
     ):
         gaps.append("baseline_reliability_not_preregistered")
+    fixture_review = policy.get("fixture_review")
+    if not isinstance(fixture_review, dict) or any(
+        fixture_review.get(field) is not True
+        for field in (
+            "independent_reviewer",
+            "prompt_event_directness",
+            "bar_skill_expressibility",
+        )
+    ):
+        gaps.append("fixture_review_not_preregistered")
     return {
         "schema": "tmcp-skill-eval-campaign-readiness-v0.1",
         "ready": not gaps,
@@ -716,9 +741,15 @@ async def remote_schema_preflight(
     output_schema: dict[str, Any],
     prompt: str,
     validate_output: Callable[[Any], dict[str, Any]],
+    max_transient_retries: int = 2,
+    retry_backoff_seconds: float = 2.0,
 ) -> dict[str, Any]:
     """Exercise the live schema service without exposing campaign artifacts."""
 
+    if max_transient_retries < 0:
+        raise ValueError("max_transient_retries must be non-negative.")
+    if retry_backoff_seconds < 0:
+        raise ValueError("retry_backoff_seconds must be non-negative.")
     with tempfile.TemporaryDirectory(
         prefix="tmcp-codex-schema-preflight-"
     ) as temporary:
@@ -728,19 +759,40 @@ async def remote_schema_preflight(
         schema_path = root / "output.schema.json"
         output_path = root / "output.json"
         _atomic_json(schema_path, output_schema)
-        stdout, stderr, usage, event_audit = await _run_codex(
-            command=codex_command(
-                codex_bin=codex_bin,
-                model=model,
-                effort=effort,
-                cleanroom=cleanroom,
-                output_path=output_path,
-                output_schema=schema_path,
-            ),
-            prompt=prompt,
-            base_codex_home=base_codex_home,
-            timeout_seconds=timeout_seconds,
-        )
+        attempts: list[dict[str, Any]] = []
+        attempt = 0
+        while True:
+            output_path.unlink(missing_ok=True)
+            try:
+                stdout, stderr, usage, event_audit = await _run_codex(
+                    command=codex_command(
+                        codex_bin=codex_bin,
+                        model=model,
+                        effort=effort,
+                        cleanroom=cleanroom,
+                        output_path=output_path,
+                        output_schema=schema_path,
+                    ),
+                    prompt=prompt,
+                    base_codex_home=base_codex_home,
+                    timeout_seconds=timeout_seconds,
+                )
+                break
+            except CodexRunError as exc:
+                classification = transient_failure_classification(exc)
+                if classification is None or attempt >= max_transient_retries:
+                    raise
+                backoff_seconds = retry_backoff_seconds * (2**attempt)
+                attempts.append(
+                    {
+                        "attempt": attempt + 1,
+                        "classification": classification,
+                        "backoff_seconds": backoff_seconds,
+                        "error": str(exc),
+                    }
+                )
+                attempt += 1
+                await asyncio.sleep(backoff_seconds)
         if not output_path.is_file():
             raise ValueError(
                 "Remote schema preflight did not write an output artifact."
@@ -762,6 +814,10 @@ async def remote_schema_preflight(
             "usage": usage,
             "stderr": stderr,
             "event_stream_sha256": _sha256_text(stdout),
+            "retry_audit": {
+                "attempts": attempts,
+                "successful_attempt": attempt + 1,
+            },
         }
 
 

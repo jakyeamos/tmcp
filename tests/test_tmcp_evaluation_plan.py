@@ -101,6 +101,11 @@ class EvaluationPlanServiceTests(unittest.TestCase):
                 "minimum_per_fixture_control_pass_rate": 0.5,
                 "require_predeclared_clustered_interval": True,
             },
+            "fixture_review": {
+                "independent_reviewer": True,
+                "prompt_event_directness": True,
+                "bar_skill_expressibility": True,
+            },
             "judge_configuration": {"model": "judge-model", "reasoning_effort": "high"},
             "cross_model_confirmation": {
                 "required": True,

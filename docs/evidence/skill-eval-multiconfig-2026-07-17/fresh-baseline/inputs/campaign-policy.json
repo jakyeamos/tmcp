@@ -1,0 +1,31 @@
+{
+  "schema": "tmcp-skill-eval-campaign-policy-v0.1",
+  "design": "baseline_reliability",
+  "runner_configurations": [
+    {"model": "gpt-5.6-sol", "reasoning_effort": "high"},
+    {"model": "gpt-5.6-terra", "reasoning_effort": "high"},
+    {"model": "gpt-5.6-luna", "reasoning_effort": "high"}
+  ],
+  "baseline_reliability": {
+    "control_variant": "original",
+    "minimum_control_pass_rate": 0.5,
+    "minimum_per_fixture_control_pass_rate": 0.5,
+    "require_predeclared_clustered_interval": true
+  },
+  "fixture_review": {
+    "independent_reviewer": true,
+    "prompt_event_directness": true,
+    "bar_skill_expressibility": true
+  },
+  "judge_configuration": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "high"
+  },
+  "cross_model_confirmation": {
+    "required": true,
+    "minimum_distinct_runner_models": 3,
+    "minimum_fixture_count_per_model": 6,
+    "minimum_repetitions_per_cell": 2,
+    "require_directional_replication": false
+  }
+}

@@ -6,7 +6,6 @@ import argparse
 import asyncio
 import json
 import os
-import re
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +27,7 @@ from scripts.tmcp_skill_eval_campaign_protocol import (
     judge_output_schema,
     judge_prompt,
     runner_prompt,
+    transient_failure_classification,
 )
 
 
@@ -179,7 +179,7 @@ async def _run_stage(
             _atomic_text(cell_dir / f"{stage}-events.jsonl", exc.stdout)
             _atomic_text(cell_dir / f"{stage}-stderr.log", exc.stderr)
             _invalidate_stage(cell_dir, stage, output_path, reason=str(exc))
-            classification = _transient_failure_classification(exc)
+            classification = transient_failure_classification(exc)
             if classification is None or attempt >= max_retries:
                 raise RuntimeError(f"{stage} stage failed: {exc}") from exc
             backoff_seconds = retry_backoff_seconds * (2**attempt)
@@ -205,19 +205,6 @@ async def _run_stage(
         except BaseException as exc:
             _invalidate_stage(cell_dir, stage, output_path, reason=str(exc))
             raise RuntimeError(f"{stage} stage failed: {exc}") from exc
-
-
-def _transient_failure_classification(error: CodexRunError) -> str | None:
-    diagnostic = f"{error}\n{error.stdout}\n{error.stderr}".lower()
-    if re.search(r"at capacity|model capacity", diagnostic):
-        return "model_capacity"
-    if re.search(r"rate limit|too many requests|\\b429\\b", diagnostic):
-        return "rate_limited"
-    if re.search(r"temporarily unavailable|service unavailable|\\b503\\b", diagnostic):
-        return "service_unavailable"
-    if re.search(r"timed out|connection reset|network", diagnostic):
-        return "transient_network"
-    return None
 
 
 def _validate_trace(

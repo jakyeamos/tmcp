@@ -8,15 +8,23 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 ## Before a launch
 
 - Pin the source skill, fixtures, observable bars, cost bar, harness files, and
-  runner/judge matrix in the plan. A plan that names only three reasoning efforts
-  is a one-model configuration sweep, not independent-model confirmation.
-- Run a remote schema preflight with a synthetic task before any campaign artifact
-  leaves the machine. Local JSON-schema validity did not catch the earlier remote
-  `const`/`enum` compatibility failure.
+  runner/judge matrix in the plan. Keep the actual first-principles text in an
+  immutable input file and bind its path and digest in the run manifest. A hash
+  without inspectable source text is not a replayable judge contract.
+- Run a remote schema preflight with a synthetic task for every configured runner
+  model and the separate judge before any campaign artifact leaves the machine.
+  Local JSON-schema validity did not catch the earlier remote `const`/`enum`
+  compatibility failure.
 - Test baseline reliability before a smaller causal ablation. A positive relative
   lift cannot repair a control that is unreliable on a fixture family.
 - Require a directness review for every observable: the event an O/S item grades
-  must occur in the fixture prompt, not in an implied later turn.
+  must occur in the fixture prompt, not in an implied later turn. Record an
+  independent review that also confirms every bar is expressible by the target
+  skill before generating the campaign policy.
+- The current planner needs paired original/ablated variants to construct its
+  pattern fixtures. A baseline campaign may still execute original rows only;
+  verify that the selected 36 cells are original before launch rather than
+  weakening the plan contract.
 
 ## During a launch
 
@@ -35,9 +43,11 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - Report raw and adjudicated safety/cost verdicts separately. Never rewrite the
   raw judge result after inspecting a result.
 - Treat a same-model reasoning sweep as useful replication across configurations,
-  not cross-model evidence. A declared cross-model claim requires independent
-  runner models, complete fixture/repetition coverage per model, consistent effect
-  direction, and a judge model outside the runner matrix.
+  not cross-model evidence. A declared cross-model claim requires distinct
+  available model identifiers, complete fixture/repetition coverage per model,
+  consistent effect direction, and a judge identifier outside the runner matrix.
+  This is a model-identifier proxy, not proof of provider, weights, or training
+  data independence.
 - A baseline study measures intact-skill reliability only. It is a prerequisite for
   a later causal contrast, never promotion evidence by itself.
 - Causal promotion requires the predeclared clustered analysis policy, reliability
@@ -52,10 +62,13 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   loses the identity it was meant to protect.
 - **Unlogged manual capacity recovery.** It erases the distinction between a clean
   run and a resumed transient failure.
+- **Judge-bar provenance by hash alone.** It prevents reviewers from checking the
+  standard that produced a result, particularly when a safety or cost rule was
+  omitted from a summary.
 - **Microablating an unreliable baseline.** It gives a sharper causal answer to a
   question whose control behavior is still not dependable.
-- **Calling configurations independent models.** Configuration replication and
-  model replication answer different generalization questions.
+- **Calling model identifiers independent models.** Identifier replication is
+  operationally useful, but it cannot establish provider or training independence.
 
 The 2026-07-17 campaign is a source of these operational defaults. Its section
 effect remains a held candidate because the historical plan did not preregister the

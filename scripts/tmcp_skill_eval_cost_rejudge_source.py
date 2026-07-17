@@ -355,8 +355,8 @@ def _validate_args(args: argparse.Namespace) -> None:
         raise ValueError("max-transient-retries must be non-negative.")
     if args.retry_backoff_seconds < 0:
         raise ValueError("retry-backoff-seconds must be non-negative.")
-    if args.expected_trace_count != 72:
-        raise ValueError("This campaign-wide cost rejudge requires exactly 72 traces.")
+    if args.expected_trace_count < 1:
+        raise ValueError("expected-trace-count must be at least 1.")
     if (
         args.max_cells is not None
         and not 1 <= args.max_cells <= args.expected_trace_count

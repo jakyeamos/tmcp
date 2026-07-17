@@ -134,6 +134,21 @@ class TmcpMcpCliTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown TMCP option.*--bogus"):
             cli.parse_cli_arguments(["status", "--bogus"])
 
+    def test_skill_evaluation_score_accepts_cost_rejudgment_sidecar(self) -> None:
+        tool_name, arguments, compact = cli.parse_cli_arguments(
+            [
+                "evaluate-skills",
+                "--mode",
+                "score",
+                "--cost-rejudgments-json",
+                '{"schema":"tmcp-skill-eval-cost-rejudgment-v0.1","rejudgments":[]}',
+            ]
+        )
+
+        self.assertEqual(tool_name, "tmcp_evaluate_skills")
+        self.assertFalse(compact)
+        self.assertEqual(arguments["cost_rejudgments_json"]["rejudgments"], [])
+
     def test_runtime_cli_parser_has_no_adapter_or_io_authority(self) -> None:
         source_path = Path(cli.__file__ or "")
         tree = ast.parse(source_path.read_text(encoding="utf-8"))
