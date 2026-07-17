@@ -4,7 +4,7 @@
 
 - Branch: `codex/skill-eval-dogfood`
 - Last completed change: `a158472` publishes evidence-bounded skill-pattern catalog and guidebook updates from the completed 72-cell campaign.
-- Verification: catalog exactly matches the generated scored catalog; JSON validation, score replay, and Pre-CR's 513-test run pass.
+- Verification: catalog exactly matches the generated scored catalog; JSON validation, score replay, Pre-CR's 513-test run, full Ruff/basedpyright/compile checks, and TMCP receipt `packet-eb6a2d737fc2` pass.
 
 ## Current Position
 
@@ -18,10 +18,11 @@
 - Revised experiment `skill-eval-95cfdd0ee52ff673` contains six semantically distinct workflow-stage fixtures across original and exact one-section-ablation conditions, three pinned reasoning configurations, and two repetitions.
 - The 72-cell matrix completed with 144 unique runner/judge threads and no invalidated stages; raw evidence, catalog, and guidebook are committed on the isolated branch.
 - Statistical contrast prose now composes as `general_task`; genuine color/browser contrast still activates accessibility behavior.
+- TMCP receipt `packet-eb6a2d737fc2` records the final validations and intentionally ignored unrelated approval atoms.
 
 ## Next Step
 
-- Run final repository verification, record the TMCP receipt, and push the isolated branch.
+- Push the isolated branch after final clean-tree verification.
 
 ## Blockers
 
