@@ -24,6 +24,12 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertTrue(
             composition.is_uiish_text("Design a responsive frontend dashboard.")
         )
+        self.assertTrue(
+            composition.is_uiish_text("Create a visual design for the checkout interface.")
+        )
+        self.assertFalse(
+            composition.is_uiish_text("Design phase-capsule accounting for skill context.")
+        )
         self.assertFalse(
             composition.is_uiish_text("Build a guide for the API service.")
         )
@@ -354,12 +360,12 @@ class CompositionDomainTests(unittest.TestCase):
         route_match = {
             "relative_path": "skills/frontend-design/SKILL.md",
             "source_type": "skill_definition",
-            "signal": "design",
+            "signal": "runtime",
         }
         neutral = {
             "relative_path": "skills/plain/SKILL.md",
             "source_type": "skill_definition",
-            "signal": "design",
+            "signal": "runtime",
         }
         source_nodes = [primary, sibling, neutral, route_match]
         objective = "Use product design runtime before implementation."

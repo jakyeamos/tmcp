@@ -4,6 +4,7 @@ import unittest
 from typing import Any
 
 from tmcp_runtime.domain import composition
+from tmcp_runtime.services.compose import compose_packet_from_source_nodes
 
 
 def _signal(node: dict[str, Any]) -> str:
@@ -185,6 +186,79 @@ class CompositionSelectionGuardTests(unittest.TestCase):
             [node["relative_path"] for node in selected],
             ["skills/tmcp-release-readiness/SKILL.md"],
         )
+
+    def test_generic_planning_terms_cannot_activate_ui_rubric_or_ui_gates(
+        self,
+    ) -> None:
+        objective = (
+            "Split release-package proof into bounded owners, then design "
+            "phase-capsule accounting that isolates current-stage skill context "
+            "and proves every selected skill combination is better than its parts."
+        )
+        ui_rubric = _node(
+            "skills/tmcp-ui-rubric/SKILL.md",
+            "Bounded UI evidence context for visual design reviews.",
+            routing_metadata={
+                "trigger_phrases": ["design"],
+                "verification_gates": [
+                    "Verify rendered behavior in a browser.",
+                    "Verify contrast.",
+                ],
+            },
+            behavior_atoms=["ui-browser-verification"],
+        )
+
+        selected, diagnostics = composition.select_composition_nodes_with_diagnostics(
+            [ui_rubric],
+            objective,
+            "start",
+            {},
+            node_signal_text=_signal,
+        )
+        self.assertEqual(selected, [])
+        rejected = {
+            item["source"]: item["reason"]
+            for item in diagnostics["rejected_sources"]
+        }
+        self.assertEqual(
+            rejected["skills/tmcp-ui-rubric/SKILL.md"],
+            "no_non_process_objective_route_or_explicit_scope_match",
+        )
+
+        packet = compose_packet_from_source_nodes(
+            {
+                "objective": objective,
+                "project_path": "[REDACTED:path]",
+                "phase": "start",
+                "cache_policy": "none",
+            },
+            source_nodes=[ui_rubric],
+            global_graphs=[],
+            receipts=[],
+            cache_warnings=[],
+            cache_home="[REDACTED:path]",
+        )
+        self.assertEqual(packet["active_instructions"], [])
+        self.assertNotIn("ui-browser-verification", packet["active_atoms"])
+        self.assertFalse(
+            any("browser" in gate.lower() for gate in packet["verification_gates"])
+        )
+
+    def test_explicit_ui_rubric_route_remains_selectable(self) -> None:
+        ui_rubric = _node(
+            "skills/tmcp-ui-rubric/SKILL.md",
+            "Use for expert UI rubric, visual quality, screenshot, and browser review.",
+        )
+
+        selected = composition.select_composition_nodes(
+            [ui_rubric],
+            "Run an expert UI rubric with screenshot-backed interface findings.",
+            "start",
+            {},
+            node_signal_text=_signal,
+        )
+
+        self.assertEqual(selected, [ui_rubric])
 
     def test_explicit_scope_and_matched_seed_remain_available(self) -> None:
         explicitly_scoped = _node(
