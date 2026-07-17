@@ -19,12 +19,15 @@ from tmcp_runtime.services.evaluation_plan import (
     EVAL_PLAN_SCHEMA,
     EvaluationSource,
     build_evaluation_plan_from_sources,
+    displayed_content_digest,
+    section_ablation_content,
 )
 from tmcp_runtime.services.evaluation_scoring import _normalize_trace, score_traces
 
 
-EVAL_REPORT_SCHEMA = "tmcp-skill-evaluation-report-v0.1"
+EVAL_REPORT_SCHEMA = "tmcp-skill-evaluation-report-v0.2"
 EVAL_TRACE_SCHEMA = "tmcp-skill-eval-trace-v0.1"
+LEGACY_EVAL_PLAN_SCHEMA = "tmcp-skill-evaluation-plan-v0.1"
 MAX_EVALUATION_PLAN_BYTES = 8_388_608
 MAX_EVALUATION_TASK_FIXTURES = 64
 MAX_EVALUATION_VARIANTS = 32
@@ -176,8 +179,13 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
-    if plan.get("schema") != EVAL_PLAN_SCHEMA:
-        raise ValueError(f"evaluation_plan schema must be {EVAL_PLAN_SCHEMA}.")
+    plan_schema = str(plan.get("schema") or "")
+    if plan_schema not in {LEGACY_EVAL_PLAN_SCHEMA, EVAL_PLAN_SCHEMA}:
+        raise ValueError(
+            "evaluation_plan schema must be "
+            f"{LEGACY_EVAL_PLAN_SCHEMA} or {EVAL_PLAN_SCHEMA}."
+        )
+    legacy_plan = plan_schema == LEGACY_EVAL_PLAN_SCHEMA
     for key in (
         "evaluated_skills",
         "task_matrix",
@@ -207,9 +215,20 @@ def _validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
                 "must be an object."
             )
     matrix_row_ids: set[str] = set()
+    canonical_patterns = {
+        str(pattern.get("pattern_id")): pattern
+        for pattern in (*EFFECTIVE_PATTERNS, *V01_ANTI_PATTERNS)
+    }
+    pattern_rows_by_contrast: dict[str, list[dict[str, Any]]] = {}
     for index, row in enumerate(plan["task_matrix"]):
         matrix_row_id = str(row.get("matrix_row_id") or "")
+        pattern_id = str(row.get("pattern_id") or "")
         if not matrix_row_id:
+            if pattern_id and not legacy_plan:
+                raise ValueError(
+                    f"evaluation_plan task_matrix[{index}] pattern row requires "
+                    "matrix_row_id."
+                )
             continue
         if matrix_row_id in matrix_row_ids:
             raise ValueError(
@@ -221,6 +240,166 @@ def _validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
             raise ValueError(
                 f"evaluation_plan task_matrix[{index}].expected_packet_contract "
                 "must be an object."
+            )
+        if pattern_id:
+            if legacy_plan:
+                continue
+            contrast_id = str(row.get("contrast_id") or "")
+            if not contrast_id:
+                raise ValueError(
+                    f"evaluation_plan task_matrix[{index}] pattern row requires contrast_id."
+                )
+            pattern_rows_by_contrast.setdefault(contrast_id, []).append(row)
+            pattern = canonical_patterns.get(pattern_id)
+            if pattern is None:
+                raise ValueError(
+                    f"evaluation_plan task_matrix[{index}] uses an unknown pattern_id."
+                )
+            tested_atom = str(row.get("tested_atom") or "")
+            matches = [
+                contract
+                for contract in pattern.get("tested_interventions") or []
+                if isinstance(contract, dict)
+                and str(contract.get("tested_atom") or "") == tested_atom
+            ]
+            if len(matches) != 1:
+                raise ValueError(
+                    f"evaluation_plan task_matrix[{index}] tested_atom is not canonical."
+                )
+            expected_pattern_contract = {
+                "tested_atom": tested_atom,
+                "allowed_targets": sorted(
+                    str(item) for item in matches[0].get("allowed_targets") or []
+                ),
+                "allowed_kinds": sorted(
+                    str(item) for item in matches[0].get("allowed_kinds") or []
+                ),
+                "claim_granularity": str(matches[0].get("claim_granularity") or ""),
+                "expected_support_direction": str(
+                    matches[0].get("expected_support_direction") or ""
+                ),
+            }
+            supplied_pattern_contract = row.get("pattern_intervention_contract")
+            if not isinstance(supplied_pattern_contract, dict):
+                raise ValueError(
+                    f"evaluation_plan task_matrix[{index}] pattern contract is missing."
+                )
+            normalized_supplied = {
+                "tested_atom": str(supplied_pattern_contract.get("tested_atom") or ""),
+                "allowed_targets": sorted(
+                    str(item)
+                    for item in supplied_pattern_contract.get("allowed_targets") or []
+                ),
+                "allowed_kinds": sorted(
+                    str(item)
+                    for item in supplied_pattern_contract.get("allowed_kinds") or []
+                ),
+                "claim_granularity": str(
+                    supplied_pattern_contract.get("claim_granularity") or ""
+                ),
+                "expected_support_direction": str(
+                    supplied_pattern_contract.get("expected_support_direction") or ""
+                ),
+            }
+            if normalized_supplied != expected_pattern_contract:
+                raise ValueError(
+                    f"evaluation_plan task_matrix[{index}] pattern contract is not canonical."
+                )
+            if (
+                str(row.get("intervention_target") or "")
+                not in (expected_pattern_contract["allowed_targets"])
+            ):
+                raise ValueError(
+                    f"evaluation_plan task_matrix[{index}] intervention_target is not canonical."
+                )
+            if str(row.get("claim_granularity") or "") != str(
+                expected_pattern_contract["claim_granularity"]
+            ):
+                raise ValueError(
+                    f"evaluation_plan task_matrix[{index}] claim_granularity is not canonical."
+                )
+            if str(row.get("expected_effect_direction") or "") != str(
+                expected_pattern_contract["expected_support_direction"]
+            ):
+                raise ValueError(
+                    f"evaluation_plan task_matrix[{index}] expected_effect_direction "
+                    "is not canonical."
+                )
+            if str(row.get("variant_id") or "") == str(
+                row.get("intervention_variant") or ""
+            ):
+                intervention = row.get("intervention")
+                if not isinstance(intervention, dict):
+                    raise ValueError(
+                        f"evaluation_plan task_matrix[{index}] intervention is missing."
+                    )
+                if (
+                    str(intervention.get("kind") or "")
+                    not in (expected_pattern_contract["allowed_kinds"])
+                ):
+                    raise ValueError(
+                        f"evaluation_plan task_matrix[{index}] intervention kind is not canonical."
+                    )
+                if str(intervention.get("target") or "") != str(
+                    row.get("intervention_target") or ""
+                ):
+                    raise ValueError(
+                        f"evaluation_plan task_matrix[{index}] intervention target is not canonical."
+                    )
+                if (
+                    intervention.get("kind") == "single_section_ablation"
+                    and str(row.get("control_variant") or "") != "original"
+                ):
+                    raise ValueError(
+                        f"evaluation_plan task_matrix[{index}] section ablation lacks "
+                        "its original matched control."
+                    )
+    for contrast_id, rows in pattern_rows_by_contrast.items():
+        interventions = [
+            row
+            for row in rows
+            if str(row.get("variant_id") or "")
+            == str(row.get("intervention_variant") or "")
+        ]
+        controls = [
+            row
+            for row in rows
+            if str(row.get("variant_id") or "") == str(row.get("control_variant") or "")
+        ]
+        if len(interventions) != 1 or len(controls) != 1:
+            raise ValueError(
+                f"evaluation_plan contrast {contrast_id} must contain exactly one "
+                "intervention and one matched control row."
+            )
+        intervention_row = interventions[0]
+        control_row = controls[0]
+        intervention = intervention_row.get("intervention")
+        if not isinstance(intervention, dict):
+            raise ValueError(
+                f"evaluation_plan contrast {contrast_id} intervention is missing."
+            )
+        if intervention.get("kind") != "single_section_ablation":
+            continue
+        original = control_row.get("skill_attachment")
+        ablated = intervention_row.get("skill_attachment")
+        if not isinstance(original, str) or not isinstance(ablated, str):
+            raise ValueError(
+                f"evaluation_plan contrast {contrast_id} skill attachments are missing."
+            )
+        original_digest = displayed_content_digest(original)
+        if any(str(row.get("skill_digest") or "") != original_digest for row in rows):
+            raise ValueError(
+                f"evaluation_plan contrast {contrast_id} control attachment does not "
+                "match skill_digest."
+            )
+        expected_ablation = section_ablation_content(
+            original,
+            str(intervention_row.get("intervention_target") or ""),
+        )
+        if ablated != expected_ablation:
+            raise ValueError(
+                f"evaluation_plan contrast {contrast_id} intervention attachment is not "
+                "the canonical one-section ablation."
             )
     return plan
 

@@ -62,7 +62,8 @@ class EvaluationScoringServiceTests(unittest.TestCase):
         )
 
         self.assertEqual(report["schema"], "report")
-        self.assertEqual(report["scorecard"]["outcome_lift"]["score"], 1.0)
+        self.assertEqual(report["scorecard"]["outcome_lift"]["score"], 0.0)
+        self.assertIn("No paired", report["scorecard"]["outcome_lift"]["notes"])
         self.assertEqual(report["promotion_policy"]["auto_promote"], False)
 
     def test_normalize_trace_accepts_legacy_line_observations(self) -> None:
@@ -109,6 +110,19 @@ class EvaluationScoringServiceTests(unittest.TestCase):
                 report_schema="report",
                 created_at="now",
             )
+
+    def test_outcome_does_not_trust_verdict_without_judge_evidence(self) -> None:
+        score = evaluation_scoring._score_outcome(
+            {
+                "case_verdict": {"passed": True, "evidence": []},
+                "outcome": "failed",
+                "human_labels": [],
+            }
+        )
+
+        self.assertEqual(score["score"], 0.0)
+        self.assertEqual(score["confidence"], "low")
+        self.assertFalse(score["signals"]["case_verdict_valid"])
 
     def test_compose_callback_failure_is_not_downgraded_to_trace_fallback(self) -> None:
         def failing_compose(
@@ -195,6 +209,72 @@ class EvaluationScoringServiceTests(unittest.TestCase):
         self.assertEqual(activation["score"], 1.0)
         self.assertFalse(activation["signals"]["skill_selected"])
         self.assertFalse(activation["signals"]["skill_should_be_selected"])
+
+    def test_bound_legacy_trace_cannot_gain_controlled_provenance(self) -> None:
+        plan = self._plan()
+        common = {
+            "fixture_family": "family-a",
+            "fixture_digest": "fixture-a",
+            "pattern_id": "verification.concrete-command",
+            "contrast_id": "contrast-a",
+            "intervention_variant": "original",
+            "control_variant": "baseline",
+            "expected_effect_direction": "positive",
+            "skill_digest": "skill-a",
+            "intervention": {"causal_attribution": True},
+        }
+        plan["experiment"] = {"experiment_id": "experiment-a"}
+        plan["task_matrix"] = [
+            {
+                **common,
+                "matrix_row_id": "row-original",
+                "task_id": "task-1",
+                "variant_id": "original",
+                "skill_path": "/project/SKILL.md",
+                "skill_attachment": "Run pnpm test.",
+            },
+            {
+                **common,
+                "matrix_row_id": "row-baseline",
+                "task_id": "task-1",
+                "variant_id": "baseline",
+                "skill_path": "/project/SKILL.md",
+                "skill_attachment": "",
+            },
+        ]
+        traces = [
+            {
+                "task_id": "task-1",
+                "variant_id": variant,
+                "agent": {"configuration_id": "config-a"},
+                "provenance": {
+                    "runner_blinded": True,
+                    "judge_blinded": True,
+                    "isolated_session": True,
+                },
+                "observations": [{"kind": "assistant_message", "value": "artifact"}],
+                "case_verdict": {
+                    "passed": variant == "original",
+                    "evidence": ["judge verdict"],
+                },
+            }
+            for variant in ("original", "baseline")
+        ]
+
+        report = evaluation_scoring.score_traces(
+            plan,
+            traces,
+            anti_pattern_catalog=[],
+            effective_patterns=[],
+            report_schema="report",
+            created_at="now",
+        )
+
+        claim = report["pattern_claims"][0]
+        self.assertEqual(claim["controlled_summary"]["trace_count"], 0)
+        reasons = {item["reason"] for item in claim["controlled_exclusion_reasons"]}
+        self.assertIn("matrix_row_id is missing", reasons)
+        self.assertIn("experiment_id is missing", reasons)
 
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_scoring))

@@ -29,7 +29,7 @@ class EvaluationPlanServiceTests(unittest.TestCase):
             max_matrix_rows=10,
         )
 
-        self.assertEqual(plan["schema"], "tmcp-skill-evaluation-plan-v0.1")
+        self.assertEqual(plan["schema"], "tmcp-skill-evaluation-plan-v0.2")
         self.assertEqual(plan["created_at"], "now")
         self.assertEqual(len(plan["task_matrix"]), 2)
         self.assertEqual(plan["variants"], ["negative_control", "original"])
@@ -43,9 +43,7 @@ class EvaluationPlanServiceTests(unittest.TestCase):
         original = next(
             row for row in plan["task_matrix"] if row["variant_id"] == "original"
         )
-        self.assertEqual(
-            original["experiment_id"], plan["experiment"]["experiment_id"]
-        )
+        self.assertEqual(original["experiment_id"], plan["experiment"]["experiment_id"])
         self.assertIn(
             "AGENTS.md", original["expected_packet_contract"]["required_reads"]
         )
@@ -105,6 +103,258 @@ class EvaluationPlanServiceTests(unittest.TestCase):
         rows = plan["task_matrix"]
         self.assertEqual(len(rows), 2)
         self.assertEqual(len({row["matrix_row_id"] for row in rows}), 2)
+
+    def test_pattern_ablation_requires_one_named_intervention_target(self) -> None:
+        with self.assertRaisesRegex(ValueError, "intervention_target"):
+            evaluation_plan.build_evaluation_plan_from_sources(
+                [evaluation_plan.EvaluationSource("SKILL.md", "# Skill\n")],
+                [
+                    {
+                        "id": "task-1",
+                        "pattern_id": "pattern-1",
+                        "intervention_variant": "ablated",
+                        "control_variant": "baseline",
+                        "expected_observables": [],
+                    }
+                ],
+                ["ablated", "baseline"],
+                anti_patterns=[],
+                effective_patterns=[
+                    {
+                        "pattern_id": "pattern-1",
+                        "tested_interventions": [
+                            {
+                                "tested_atom": "verification_gates",
+                                "allowed_targets": ["verification"],
+                                "allowed_kinds": ["single_section_ablation"],
+                                "claim_granularity": "section",
+                                "expected_support_direction": "negative",
+                            }
+                        ],
+                    }
+                ],
+                created_at="now",
+                max_matrix_rows=10,
+            )
+
+    def test_scaffolded_slice_vs_empty_baseline_is_not_a_pattern_contrast(self) -> None:
+        with self.assertRaisesRegex(ValueError, "intervention kind"):
+            evaluation_plan.build_evaluation_plan_from_sources(
+                [
+                    evaluation_plan.EvaluationSource(
+                        "SKILL.md",
+                        "---\nname: example\n---\n\n## Verification\nRun `pnpm test`.\n",
+                    )
+                ],
+                [
+                    {
+                        "id": "task-1",
+                        "pattern_id": "structure.explicit-verification-section",
+                        "tested_atom": "verification_section",
+                        "intervention_variant": "verification-only",
+                        "control_variant": "baseline",
+                        "intervention_target": "verification",
+                        "expected_observables": [],
+                    }
+                ],
+                ["verification-only", "baseline"],
+                anti_patterns=[],
+                effective_patterns=[
+                    {
+                        "pattern_id": "structure.explicit-verification-section",
+                        "tested_interventions": [
+                            {
+                                "tested_atom": "verification_section",
+                                "allowed_targets": ["verification"],
+                                "allowed_kinds": ["single_section_ablation"],
+                                "claim_granularity": "section",
+                                "expected_support_direction": "negative",
+                            }
+                        ],
+                    }
+                ],
+                created_at="now",
+                max_matrix_rows=10,
+            )
+
+    def test_pattern_rejects_mislabeled_or_unmatched_interventions(self) -> None:
+        source = evaluation_plan.EvaluationSource(
+            "SKILL.md",
+            "---\nname: example\n---\n\n## Verification\nRun `pnpm test`.\n",
+        )
+        pattern = {
+            "pattern_id": "structure.explicit-verification-section",
+            "tested_interventions": [
+                {
+                    "tested_atom": "verification_section",
+                    "allowed_targets": ["verification"],
+                    "allowed_kinds": ["single_section_ablation"],
+                    "claim_granularity": "section",
+                    "expected_support_direction": "negative",
+                }
+            ],
+        }
+        base_fixture = {
+            "id": "task-1",
+            "pattern_id": "structure.explicit-verification-section",
+            "tested_atom": "verification_section",
+            "control_variant": "baseline",
+            "intervention_target": "verification",
+            "expected_observables": [],
+        }
+
+        with self.assertRaisesRegex(ValueError, "intervention kind"):
+            evaluation_plan.build_evaluation_plan_from_sources(
+                [source],
+                [{**base_fixture, "intervention_variant": "trigger-only"}],
+                ["trigger-only", "baseline"],
+                anti_patterns=[],
+                effective_patterns=[pattern],
+                created_at="now",
+                max_matrix_rows=10,
+            )
+        with self.assertRaisesRegex(ValueError, "control-kind"):
+            evaluation_plan.build_evaluation_plan_from_sources(
+                [source],
+                [{**base_fixture, "intervention_variant": "negative_control"}],
+                ["negative_control", "baseline"],
+                anti_patterns=[],
+                effective_patterns=[pattern],
+                created_at="now",
+                max_matrix_rows=10,
+            )
+
+    def test_section_ablation_requires_original_matched_control(self) -> None:
+        with self.assertRaisesRegex(ValueError, "matched control"):
+            evaluation_plan.build_evaluation_plan_from_sources(
+                [
+                    evaluation_plan.EvaluationSource(
+                        "SKILL.md",
+                        "# Example\n\n## Verification\nRun `pnpm test`.\n",
+                    )
+                ],
+                [
+                    {
+                        "id": "task-1",
+                        "pattern_id": "structure.explicit-verification-section",
+                        "tested_atom": "verification_section",
+                        "intervention_variant": "ablated",
+                        "control_variant": "baseline",
+                        "intervention_target": "verification",
+                        "expected_observables": [],
+                    }
+                ],
+                ["ablated", "baseline"],
+                anti_patterns=[],
+                effective_patterns=[
+                    {
+                        "pattern_id": "structure.explicit-verification-section",
+                        "tested_interventions": [
+                            {
+                                "tested_atom": "verification_section",
+                                "allowed_targets": ["verification"],
+                                "allowed_kinds": ["single_section_ablation"],
+                                "claim_granularity": "section",
+                                "expected_support_direction": "negative",
+                            }
+                        ],
+                    }
+                ],
+                created_at="now",
+                max_matrix_rows=10,
+            )
+
+    def test_section_pattern_keeps_semantic_atom_distinct_from_section_slug(
+        self,
+    ) -> None:
+        plan = evaluation_plan.build_evaluation_plan_from_sources(
+            [
+                evaluation_plan.EvaluationSource(
+                    "SKILL.md",
+                    "# Example\n\n## Verification\nRun `pnpm test`.\n",
+                )
+            ],
+            [
+                {
+                    "id": "task-1",
+                    "pattern_id": "structure.explicit-verification-section",
+                    "tested_atom": "verification_section",
+                    "intervention_variant": "ablated",
+                    "control_variant": "original",
+                    "intervention_target": "verification",
+                    "expected_observables": [],
+                }
+            ],
+            ["original", "ablated"],
+            anti_patterns=[],
+            effective_patterns=[
+                {
+                    "pattern_id": "structure.explicit-verification-section",
+                    "tested_interventions": [
+                        {
+                            "tested_atom": "verification_section",
+                            "allowed_targets": ["verification"],
+                            "allowed_kinds": ["single_section_ablation"],
+                            "claim_granularity": "section",
+                            "expected_support_direction": "negative",
+                        }
+                    ],
+                }
+            ],
+            created_at="now",
+            max_matrix_rows=10,
+        )
+
+        row = next(
+            item
+            for item in plan["task_matrix"]
+            if item["variant_id"] == "ablated"
+            and item["ablation_section"] == "verification"
+        )
+        self.assertEqual(row["tested_atom"], "verification_section")
+        self.assertEqual(row["intervention_target"], "verification")
+        self.assertEqual(row["expected_effect_direction"], "negative")
+        self.assertEqual(row["claim_granularity"], "section")
+
+    def test_non_lossless_ablation_is_rejected_before_plan_emission(self) -> None:
+        with self.assertRaisesRegex(ValueError, "lossless causal contrast"):
+            evaluation_plan.build_evaluation_plan_from_sources(
+                [
+                    evaluation_plan.EvaluationSource(
+                        "SKILL.md",
+                        "---\nname: malformed\n\n## Verification\nRun `pnpm test`.\n",
+                    )
+                ],
+                [
+                    {
+                        "id": "task-1",
+                        "pattern_id": "structure.explicit-verification-section",
+                        "tested_atom": "verification_section",
+                        "intervention_variant": "ablated",
+                        "control_variant": "original",
+                        "intervention_target": "verification",
+                        "expected_observables": [],
+                    }
+                ],
+                ["original", "ablated"],
+                anti_patterns=[],
+                effective_patterns=[
+                    {
+                        "pattern_id": "structure.explicit-verification-section",
+                        "tested_interventions": [
+                            {
+                                "tested_atom": "verification_section",
+                                "allowed_targets": ["verification"],
+                                "allowed_kinds": ["single_section_ablation"],
+                                "claim_granularity": "section",
+                                "expected_support_direction": "negative",
+                            }
+                        ],
+                    }
+                ],
+                created_at="now",
+                max_matrix_rows=10,
+            )
 
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_plan))

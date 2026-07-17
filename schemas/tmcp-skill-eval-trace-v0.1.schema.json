@@ -33,10 +33,20 @@
       "type": "string"
     },
     "agent": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "model": {"type": "string"},
+        "configuration_id": {"type": "string"}
+      }
     },
     "provenance": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "runner_blinded": {"type": "boolean"},
+        "judge_blinded": {"type": "boolean"},
+        "isolated_session": {"type": "boolean"}
+      }
     },
     "observations": {
       "type": "array",
@@ -57,7 +67,16 @@
       "type": "array"
     },
     "case_verdict": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "passed": {"type": "boolean"},
+        "evidence": {
+          "type": "array",
+          "items": {"type": ["string", "object"]}
+        },
+        "safety_regression": {"type": "boolean"},
+        "cost_regression": {"type": "boolean"}
+      }
     },
     "outcome": {
       "type": "string"

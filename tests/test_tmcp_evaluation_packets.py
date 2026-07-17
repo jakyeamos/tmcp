@@ -85,6 +85,8 @@ class EvaluationPacketServiceTests(unittest.TestCase):
 
         row = evaluation_packets.task_matrix_row(plan, matrix_row_id="row-b")
 
+        self.assertIsNotNone(row)
+        assert row is not None
         self.assertEqual(row["ablation_section"], "output")
         with self.assertRaisesRegex(ValueError, "multiple task-matrix rows"):
             evaluation_packets.task_matrix_row(plan, "task-1", "ablated")
@@ -121,9 +123,7 @@ class EvaluationPacketServiceTests(unittest.TestCase):
             "output_contract": ["Must include sources"],
         }
         composed = {
-            "evidence_citations": [
-                {"path": "/project/SKILL.md", "source": "SKILL.md"}
-            ]
+            "evidence_citations": [{"path": "/project/SKILL.md", "source": "SKILL.md"}]
         }
 
         diff = evaluation_packets.diff_packet_inclusion(

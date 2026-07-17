@@ -24,8 +24,18 @@ EVIDENCE_LEVELS = (
     "controlled_single_agent_eval",
     "controlled_multi_agent_eval",
     "production_reinforced",
-    "deprecated",
 )
+
+PATTERN_LIFECYCLE_STATUSES = ("active", "deprecated")
+
+EVIDENCE_RANK = {
+    "hypothesis": 0,
+    "static_review": 1,
+    "dogfooded": 2,
+    "controlled_single_agent_eval": 3,
+    "controlled_multi_agent_eval": 4,
+    "production_reinforced": 5,
+}
 
 V01_ANTI_PATTERNS: tuple[dict[str, Any], ...] = (
     {
@@ -168,5 +178,52 @@ EFFECTIVE_PATTERNS: tuple[dict[str, Any], ...] = (
         "good_example": "Run `npm test -- --runInBand` and report pass/fail.",
         "weak_example": "Make sure everything works.",
         "applies_to": ("implementation", "debugging", "release_readiness"),
+    },
+    {
+        "pattern_id": "structure.explicit-verification-section",
+        "label": "Explicit verification section",
+        "classification": "effective_pattern",
+        "internal_atoms": ("behavior-verification", "quality-gate-disclosure"),
+        "tested_interventions": (
+            {
+                "tested_atom": "verification_section",
+                "allowed_targets": ("verification",),
+                "allowed_kinds": ("single_section_ablation",),
+                "claim_granularity": "section",
+                "expected_support_direction": "negative",
+            },
+        ),
+        "detection_terms": ("## verification",),
+        "good_example": (
+            "Put the behavior's verification gates in an explicit Verification section."
+        ),
+        "weak_example": "Scatter verification hints across unrelated prose.",
+        "applies_to": ("skill_writing", "implementation", "evaluation"),
+    },
+    {
+        "pattern_id": "evaluation.staged-workflow-section",
+        "label": "Staged evaluation workflow section",
+        "classification": "effective_pattern",
+        "internal_atoms": (
+            "behavior-verification",
+            "evidence-backed-claims",
+            "quality-gate-disclosure",
+        ),
+        "tested_interventions": (
+            {
+                "tested_atom": "staged_evaluation_workflow",
+                "allowed_targets": ("workflow",),
+                "allowed_kinds": ("single_section_ablation",),
+                "claim_granularity": "section",
+                "expected_support_direction": "negative",
+            },
+        ),
+        "detection_terms": ("blind run", "separate judge", "pass rate"),
+        "good_example": (
+            "Use an explicit workflow section that separates blind runs, judging, "
+            "repetition, diagnosis, and re-evaluation."
+        ),
+        "weak_example": "Test the skill a few times and improve it.",
+        "applies_to": ("skill_evaluation", "skill_writing"),
     },
 )

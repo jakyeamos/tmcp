@@ -12,6 +12,8 @@ class EvaluationCatalogTests(unittest.TestCase):
     def test_catalog_owns_public_evaluator_policy_data(self) -> None:
         self.assertEqual(evaluation_catalog.DEFAULT_VARIANTS[0], "baseline")
         self.assertIn("static_review", evaluation_catalog.EVIDENCE_LEVELS)
+        self.assertNotIn("deprecated", evaluation_catalog.EVIDENCE_LEVELS)
+        self.assertIn("deprecated", evaluation_catalog.PATTERN_LIFECYCLE_STATUSES)
         self.assertIn(
             "verification.vague-quality-language",
             {item["pattern_id"] for item in evaluation_catalog.V01_ANTI_PATTERNS},

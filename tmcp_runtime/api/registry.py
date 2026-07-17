@@ -181,7 +181,9 @@ TOOL_OUTPUT_SCHEMA_IDS: Final[dict[str, tuple[str, ...]]] = {
     "tmcp_harvest_skills": ("tmcp-harvest-result-v0.1",),
     "tmcp_evaluate_skills": (
         "tmcp-skill-evaluation-plan-v0.1",
+        "tmcp-skill-evaluation-plan-v0.2",
         "tmcp-skill-evaluation-report-v0.1",
+        "tmcp-skill-evaluation-report-v0.2",
     ),
     "tmcp_recommend_workflows": ("tmcp-workflow-recommendation-v1",),
     "tmcp_promote_harvest": ("tmcp-harvest-promotion-v0.1",),

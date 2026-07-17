@@ -5,10 +5,14 @@ This module operates only on supplied text and pattern catalogs.
 
 from __future__ import annotations
 
-import json
 import re
 from collections.abc import Mapping, Sequence
 from typing import Any
+
+from tmcp_runtime.services.evaluation_variants import (
+    _observable_contract as _observable_contract,
+    _variant_payload as _variant_payload,
+)
 
 
 def _frontmatter(text: str) -> dict[str, str]:
@@ -36,15 +40,6 @@ def _body_without_frontmatter(text: str) -> str:
     if end == -1:
         return text
     return text[end + 4 :].lstrip("\n")
-
-
-def _frontmatter_block(text: str) -> str:
-    if not text.startswith("---"):
-        return ""
-    end = text.find("\n---", 3)
-    if end == -1:
-        return ""
-    return text[: end + 4].strip()
 
 
 def _sections(text: str) -> list[dict[str, str]]:
@@ -437,7 +432,8 @@ def static_review(
                 )
 
     for pattern in effective_patterns:
-        if any(term in lower for term in pattern["detection_terms"]):
+        detection_terms = pattern.get("detection_terms") or ()
+        if any(str(term) in lower for term in detection_terms):
             findings.append(
                 {
                     "pattern_id": pattern["pattern_id"],
@@ -457,256 +453,3 @@ def static_review(
                 }
             )
     return findings
-
-
-def _variant_payload(
-    variant_id: str,
-    decomposition: dict[str, Any],
-    text: str,
-    ablation_section: str | None = None,
-) -> dict[str, Any]:
-    frontmatter = decomposition["frontmatter"]
-    routing = decomposition["routing_slices"]
-    supported_variants = {
-        "baseline",
-        "original",
-        "trigger-only",
-        "instruction-only",
-        "output-contract-only",
-        "verification-only",
-        "ablated",
-        "rewritten",
-        "negative_control",
-    }
-    if variant_id not in supported_variants:
-        raise ValueError(f"Unsupported evaluation variant: {variant_id}.")
-
-    intervention: dict[str, Any]
-    if variant_id == "baseline":
-        content = ""
-        included = []
-        intervention = {"kind": "control", "causal_attribution": True}
-    elif variant_id == "original":
-        content = text
-        included = ["frontmatter", "body", "all_sections"]
-        intervention = {"kind": "full_skill", "causal_attribution": False}
-    elif variant_id == "trigger-only":
-        content = _frontmatter_block(text)
-        included = ["frontmatter"]
-        intervention = {
-            "kind": "slice_only",
-            "target": "frontmatter",
-            "causal_attribution": True,
-        }
-    elif variant_id == "instruction-only":
-        content = _body_without_frontmatter(text)
-        included = ["body"]
-        intervention = {
-            "kind": "slice_only",
-            "target": "body",
-            "causal_attribution": True,
-        }
-    elif variant_id == "output-contract-only":
-        content = _minimal_variant_document(
-            text,
-            decomposition,
-            "Output Contract",
-            routing["output_contract"],
-        )
-        included = ["output_contract"]
-        intervention = {
-            "kind": "slice_only",
-            "target": "output_contract",
-            "causal_attribution": True,
-        }
-    elif variant_id == "verification-only":
-        content = _minimal_variant_document(
-            text,
-            decomposition,
-            "Verification",
-            routing["verification_gates"],
-        )
-        included = ["verification_gates"]
-        intervention = {
-            "kind": "slice_only",
-            "target": "verification_gates",
-            "causal_attribution": True,
-        }
-    elif variant_id == "ablated":
-        section_id = ablation_section or "preamble"
-        matching = [
-            section
-            for section in decomposition["sections"]
-            if section["id"] == section_id
-        ]
-        if len(matching) != 1:
-            raise ValueError(
-                f"Ablation section must identify exactly one section: {section_id}."
-            )
-        content = _render_skill_sections(
-            text,
-            [
-                section
-                for section in decomposition["sections"]
-                if section["id"] != section_id
-            ],
-        )
-        included = [f"all_sections_except:{section_id}"]
-        intervention = {
-            "kind": "single_section_ablation",
-            "target": section_id,
-            "causal_attribution": True,
-        }
-    elif variant_id == "negative_control":
-        content = (
-            "Use your best judgment. Make sure everything works and keep quality high."
-        )
-        included = ["negative_control_stub"]
-        intervention = {"kind": "control", "causal_attribution": True}
-    elif variant_id == "rewritten":
-        content = _rewrite_with_guidebook_patterns(decomposition, text)
-        included = ["guidebook_rewrite"]
-        intervention = {
-            "kind": "multi_factor_rewrite",
-            "causal_attribution": False,
-        }
-    return {
-        "variant_id": variant_id,
-        "ablation_section": ablation_section,
-        "included_slices": included,
-        "intervention": intervention,
-        "content": content,
-        "token_estimate": max(0, len(content.split()) // 0.75),
-    }
-
-
-def _minimal_variant_document(
-    text: str,
-    decomposition: dict[str, Any],
-    section_title: str,
-    lines: Sequence[str],
-) -> str:
-    parts = [
-        item
-        for item in (
-            _frontmatter_block(text),
-            f"# {decomposition['title']}",
-            f"## {section_title}\n" + "\n".join(lines),
-        )
-        if item.strip()
-    ]
-    return "\n\n".join(parts).strip() + "\n"
-
-
-def _render_skill_sections(text: str, sections: Sequence[Mapping[str, str]]) -> str:
-    body_parts: list[str] = []
-    for section in sections:
-        section_text = str(section.get("text") or "").strip()
-        if section.get("title") == "preamble":
-            if section_text:
-                body_parts.append(section_text)
-            continue
-        rendered = f"## {section['title']}"
-        if section_text:
-            rendered += f"\n{section_text}"
-        body_parts.append(rendered)
-    parts = [item for item in (_frontmatter_block(text), "\n\n".join(body_parts)) if item]
-    return "\n\n".join(parts).strip() + "\n"
-
-
-def _rewrite_with_guidebook_patterns(decomposition: dict[str, Any], text: str) -> str:
-    routing = decomposition["routing_slices"]
-    lines = [
-        f"# {decomposition['title']} (guidebook rewrite)",
-        "",
-        "## Trigger",
-        decomposition["frontmatter"].get(
-            "description", "Use for narrowly scoped tasks."
-        ),
-        "",
-        "## Required reads",
-    ]
-    if routing["required_reads"]:
-        lines.extend(f"- {item}" for item in routing["required_reads"])
-    else:
-        lines.append("- None beyond project defaults.")
-    lines.extend(
-        [
-            "",
-            "## Verification",
-            "Run the targeted test or command and report pass/fail with evidence.",
-            "",
-            "## Output contract",
-            "- Sources inspected",
-            "- Skipped sources and why",
-            "- Verification results",
-            "- Next actions",
-        ]
-    )
-    if "approval" in text.lower():
-        lines.extend(
-            [
-                "",
-                "## Stop conditions",
-                "Ask for approval before any file mutation.",
-            ]
-        )
-    return "\n".join(lines)
-
-
-def _observable_contract(
-    decomposition: dict[str, Any], static_findings: list[dict[str, Any]]
-) -> list[dict[str, Any]]:
-    routing = decomposition["routing_slices"]
-    observables: list[dict[str, Any]] = []
-    if routing["required_reads"]:
-        observables.append(
-            {
-                "observable_id": "read_required_file",
-                "description": "Agent reads a required file before acting.",
-                "internal_atoms": ["local-context-first"],
-            }
-        )
-    if any(term in json.dumps(routing).lower() for term in ("approval", "ask")):
-        observables.append(
-            {
-                "observable_id": "asked_approval_before_edit",
-                "description": "Agent asks for approval before editing.",
-                "internal_atoms": ["user-approval-gate"],
-            }
-        )
-    if routing["verification_gates"] or any(
-        item["pattern_id"] == "verification.concrete-command"
-        for item in static_findings
-        if item["classification"] == "effective_pattern"
-    ):
-        observables.append(
-            {
-                "observable_id": "ran_required_command",
-                "description": "Agent runs a named verification command.",
-                "internal_atoms": ["behavior-verification"],
-            }
-        )
-        observables.append(
-            {
-                "observable_id": "reported_pass_fail",
-                "description": "Agent reports pass/fail for verification.",
-                "internal_atoms": ["quality-gate-disclosure"],
-            }
-        )
-    if routing["output_contract"]:
-        observables.append(
-            {
-                "observable_id": "preserved_output_contract",
-                "description": "Agent preserves the required response structure.",
-                "internal_atoms": ["artifact-contract"],
-            }
-        )
-    observables.append(
-        {
-            "observable_id": "skill_selected",
-            "description": "Target skill activated for the task.",
-            "internal_atoms": ["tool-use-policy"],
-        }
-    )
-    return observables

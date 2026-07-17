@@ -10,11 +10,22 @@ import math
 from collections.abc import Callable
 from typing import Any
 
+from tmcp_runtime.services.evaluation_evidence import (
+    aggregate_lift,
+    analyze_pattern_evidence,
+    case_scores,
+    validated_case_verdict,
+)
+from tmcp_runtime.services.evaluation_guidebook import guidebook_entries
 from tmcp_runtime.services.evaluation_packets import (
     compose_packet_for_eval_row,
     diff_packet_inclusion,
     expectations_for_plan_row as _expectations_for_plan_row,
     task_matrix_row as _task_matrix_row,
+)
+from tmcp_runtime.services.evaluation_reporting import (
+    aggregate_dimension,
+    harvest_feedback,
 )
 
 EVAL_TRACE_SCHEMA = "tmcp-skill-eval-trace-v0.1"
@@ -98,9 +109,7 @@ def _observation_text(trace: dict[str, Any]) -> str:
     ).lower()
 
 
-def _bind_trace_to_row(
-    trace: dict[str, Any], plan: dict[str, Any]
-) -> dict[str, Any]:
+def _bind_trace_to_row(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     matrix_row_id = str(trace.get("matrix_row_id") or "") or None
     row = _task_matrix_row(
         plan,
@@ -118,7 +127,9 @@ def _bind_trace_to_row(
         identifier = matrix_row_id or (
             f"task={trace.get('task_id')}, variant={trace.get('variant_id')}"
         )
-        raise ValueError(f"Evaluation trace does not match the task matrix: {identifier}.")
+        raise ValueError(
+            f"Evaluation trace does not match the task matrix: {identifier}."
+        )
 
     plan_experiment = plan.get("experiment")
     expected_experiment_id = (
@@ -140,11 +151,13 @@ def _bind_trace_to_row(
         if supplied is None or supplied == "":
             continue
         if str(supplied) != str(expected):
-            raise ValueError(
-                f"Evaluation trace {field} does not match matrix_row_id."
-            )
+            raise ValueError(f"Evaluation trace {field} does not match matrix_row_id.")
 
     bound = dict(trace)
+    bound["_controlled_fields_supplied"] = {
+        field: trace.get(field) is not None and str(trace.get(field)).strip() != ""
+        for field in ("trace_id", "experiment_id", "matrix_row_id", "replicate_id")
+    }
     bound["experiment_id"] = expected_experiment_id or supplied_experiment_id or None
     bound["matrix_row_id"] = row.get("matrix_row_id")
     bound["task_id"] = row.get("task_id")
@@ -390,6 +403,8 @@ def _score_adherence(trace: dict[str, Any]) -> dict[str, Any]:
 
 
 def _score_outcome(trace: dict[str, Any]) -> dict[str, Any]:
+    judged_passed, verdict_gaps = validated_case_verdict(trace)
+    judged = isinstance(judged_passed, bool) and not verdict_gaps
     outcome = str(trace.get("outcome") or "").lower()
     labels = _label_map(trace)
     human_quality: float | None = None
@@ -403,20 +418,28 @@ def _score_outcome(trace: dict[str, Any]) -> dict[str, Any]:
         if not math.isfinite(human_quality):
             raise ValueError("human_quality_score must be finite.")
         break
-    base = {
-        "passed": 1.0,
-        "partial": 0.5,
-        "failed": 0.0,
-    }.get(outcome, 0.5 if outcome else 0.3)
-    if human_quality is not None:
+    if judged:
+        base = 1.0 if judged_passed else 0.0
+    else:
+        base = {
+            "passed": 1.0,
+            "partial": 0.5,
+            "failed": 0.0,
+        }.get(outcome, 0.5 if outcome else 0.3)
+    if human_quality is not None and not judged:
         base = max(0.0, min(1.0, human_quality / 5.0))
     return {
         "matrix_row_id": trace.get("matrix_row_id"),
         "task_id": trace.get("task_id"),
         "variant_id": trace.get("variant_id"),
         "score": round(base, 2),
-        "confidence": "medium" if human_quality is not None else "low",
+        "confidence": (
+            "high" if judged else "medium" if human_quality is not None else "low"
+        ),
         "signals": {
+            "case_verdict_passed": judged_passed,
+            "case_verdict_valid": judged,
+            "case_verdict_gaps": verdict_gaps,
             "tests_passed": outcome == "passed",
             "fewer_unrelated_changes": labels.get("fewer_unrelated_changes"),
             "better_citations": labels.get("better_citations"),
@@ -478,128 +501,6 @@ def _score_cost(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _aggregate_dimension(scores: list[dict[str, Any]]) -> dict[str, Any]:
-    if not scores:
-        return {"score": 0.0, "confidence": "low"}
-    avg = sum(float(item.get("score") or 0.0) for item in scores) / len(scores)
-    confidences = {str(item.get("confidence") or "low") for item in scores}
-    confidence = (
-        "high"
-        if confidences == {"high"}
-        else "medium"
-        if "medium" in confidences
-        else "low"
-    )
-    return {"score": round(avg, 2), "confidence": confidence}
-
-
-def _evidence_level_from_traces(traces: list[dict[str, Any]]) -> str:
-    if not traces:
-        return "static_review"
-    agent_names = {
-        str((trace.get("agent") or {}).get("name") or "").strip() for trace in traces
-    }
-    agent_models = {
-        str((trace.get("agent") or {}).get("model") or "").strip() for trace in traces
-    }
-    named_agents = {name for name in agent_names if name and name != "unspecified"}
-    named_models = {model for model in agent_models if model and model != "unspecified"}
-    if len(named_agents) > 1 or len(named_models) > 1:
-        return "controlled_multi_agent_eval"
-    return "controlled_single_agent_eval"
-
-
-def _guidebook_entries(
-    plan: dict[str, Any],
-    traces: list[dict[str, Any]],
-    anti_patterns: list[dict[str, Any]],
-    pattern_effects: list[dict[str, Any]],
-    *,
-    effective_patterns: list[dict[str, Any]],
-    anti_pattern_catalog: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    entries: list[dict[str, Any]] = []
-    evidence_level = _evidence_level_from_traces(traces)
-    for pattern in effective_patterns:
-        entries.append(
-            {
-                "title": pattern["label"],
-                "status": "recommended",
-                "evidence_level": evidence_level,
-                "applies_to": list(pattern.get("applies_to") or ()),
-                "internal_atoms": list(pattern["internal_atoms"]),
-                "prefer": pattern["good_example"],
-                "avoid": pattern["weak_example"],
-            }
-        )
-    for finding in anti_patterns:
-        pattern = next(
-            (
-                item
-                for item in anti_pattern_catalog
-                if item["pattern_id"] == finding["pattern_id"]
-            ),
-            None,
-        )
-        if not pattern:
-            continue
-        entries.append(
-            {
-                "title": pattern["label"],
-                "status": "avoid",
-                "evidence_level": finding.get("evidence_level", "static_review"),
-                "applies_to": ["skill_writing"],
-                "internal_atoms": list(pattern["internal_atoms"]),
-                "prefer": pattern["good_example"],
-                "avoid": pattern["weak_example"],
-                "source_skill": finding.get("skill_path"),
-            }
-        )
-    if not entries:
-        entries.append(
-            {
-                "title": "Evidence levels and confidence",
-                "status": "informational",
-                "evidence_level": "hypothesis",
-                "applies_to": ["skill_writing"],
-                "internal_atoms": [],
-                "prefer": "Label guidebook claims with evidence levels.",
-                "avoid": "Claim a pattern is production-proven after one static review.",
-            }
-        )
-    return entries
-
-
-def _harvest_feedback(
-    anti_patterns: list[dict[str, Any]],
-    *,
-    anti_pattern_catalog: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    feedback: list[dict[str, Any]] = []
-    for finding in anti_patterns:
-        pattern = next(
-            (
-                item
-                for item in anti_pattern_catalog
-                if item["pattern_id"] == finding["pattern_id"]
-            ),
-            None,
-        )
-        if not pattern:
-            continue
-        feedback.append(
-            {
-                "pattern_id": pattern["pattern_id"],
-                "classification": pattern["classification"],
-                "suggested_harvest_warning": pattern["suggested_harvest_warning"],
-                "suggested_detection_terms": list(pattern["detection_terms"]),
-                "safe_to_auto_warn": pattern["safe_to_auto_warn"],
-                "safe_to_auto_rewrite": pattern["safe_to_auto_rewrite"],
-            }
-        )
-    return feedback
-
-
 def score_traces(
     plan: dict[str, Any],
     traces: list[dict[str, Any]],
@@ -639,14 +540,16 @@ def score_traces(
 
     anti_patterns: list[dict[str, Any]] = []
     no_op_patterns: list[dict[str, Any]] = []
-    pattern_effects: list[dict[str, Any]] = []
+    static_findings: list[dict[str, Any]] = []
+    static_pattern_effects: list[dict[str, Any]] = []
     for skill in plan.get("evaluated_skills", []):
         for finding in skill.get("static_findings", []):
             entry = dict(finding)
+            static_findings.append(entry)
             if finding.get("classification") == "anti_pattern":
                 anti_patterns.append(entry)
             if finding.get("classification") == "effective_pattern":
-                pattern_effects.append(entry)
+                static_pattern_effects.append(entry)
 
     for row in plan.get("task_matrix", []):
         if row.get("variant_id") == "negative_control":
@@ -659,15 +562,15 @@ def score_traces(
                 }
             )
 
-    guidebook_entries = _guidebook_entries(
-        plan,
-        traces,
-        anti_patterns,
-        pattern_effects,
+    pattern_claims = analyze_pattern_evidence(plan, traces)
+    judged_case_scores = case_scores(plan, traces)
+    rendered_guidebook_entries = guidebook_entries(
+        static_findings=static_findings,
+        claims=pattern_claims,
         effective_patterns=effective_patterns,
         anti_pattern_catalog=anti_pattern_catalog,
     )
-    harvest_feedback = _harvest_feedback(
+    harvest_feedback_items = harvest_feedback(
         anti_patterns,
         anti_pattern_catalog=anti_pattern_catalog,
     )
@@ -685,11 +588,11 @@ def score_traces(
     ]
 
     scorecard = {
-        "activation": _aggregate_dimension(activation_scores),
-        "packet_inclusion": _aggregate_dimension(packet_scores),
-        "adherence": _aggregate_dimension(adherence_scores),
-        "outcome_lift": _aggregate_dimension(outcome_scores),
-        "cost": _aggregate_dimension(cost_scores),
+        "activation": aggregate_dimension(activation_scores),
+        "packet_inclusion": aggregate_dimension(packet_scores),
+        "adherence": aggregate_dimension(adherence_scores),
+        "outcome_lift": aggregate_lift(pattern_claims),
+        "cost": aggregate_dimension(cost_scores),
         "safety": {
             "score": 1.0
             if not any(
@@ -712,16 +615,19 @@ def score_traces(
         "packet_inclusion_diffs": packet_inclusion_diffs,
         "adherence_scores": adherence_scores,
         "outcome_scores": outcome_scores,
+        "case_scores": judged_case_scores,
         "cost_scores": cost_scores,
-        "pattern_effects": pattern_effects,
+        "pattern_effects": static_pattern_effects,
+        "pattern_claims": pattern_claims,
+        "static_pattern_findings": static_findings,
         "anti_patterns": anti_patterns,
         "no_op_patterns": no_op_patterns,
         "recommended_rewrites": recommended_rewrites,
-        "guidebook_entries": guidebook_entries,
-        "skill_harvest_feedback": harvest_feedback,
+        "guidebook_entries": rendered_guidebook_entries,
+        "skill_harvest_feedback": harvest_feedback_items,
         "promotion_policy": {
             "auto_promote": False,
             "applied_changes": [],
-            "notes": "v0.1 never auto-promotes evaluation findings.",
+            "notes": "Evaluation findings are never auto-promoted.",
         },
     }

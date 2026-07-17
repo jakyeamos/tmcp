@@ -136,9 +136,7 @@ class TmcpComposeServiceTests(unittest.TestCase):
 
     def test_compose_preserves_selected_source_output_contract(self) -> None:
         source = self._source_node("SKILL.md", "Return sources inspected.")
-        source["routing_metadata"] = {
-            "output_contract": ["Return sources inspected."]
-        }
+        source["routing_metadata"] = {"output_contract": ["Return sources inspected."]}
 
         packet = compose_packet_from_source_nodes(
             {

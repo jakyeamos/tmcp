@@ -17,14 +17,12 @@ from tmcp_runtime.services.evaluation_policy import (
 )
 
 
-EVAL_PLAN_SCHEMA = "tmcp-skill-evaluation-plan-v0.1"
+EVAL_PLAN_SCHEMA = "tmcp-skill-evaluation-plan-v0.2"
 EVAL_PROTOCOL = "tmcp-skill-evaluation-protocol-v0.2"
 
 
 def _json_digest(value: Any) -> str:
-    encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode(
-        "utf-8"
-    )
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
 
@@ -35,6 +33,22 @@ def _stable_id(prefix: str, value: Any) -> str:
 def _display_digest(digest: str) -> str:
     return "sha256:" + ".".join(
         digest[index : index + 8] for index in range(0, len(digest), 8)
+    )
+
+
+def displayed_content_digest(text: str) -> str:
+    """Return the plan's stable display digest for supplied skill content."""
+
+    return _display_digest(hashlib.sha256(text.encode("utf-8")).hexdigest())
+
+
+def section_ablation_content(text: str, section_id: str) -> str:
+    """Deterministically rebuild a one-section ablation from original content."""
+
+    decomposition = decompose_skill("SKILL.md", text)
+    return str(
+        _variant_payload("ablated", decomposition, text, section_id).get("content")
+        or ""
     )
 
 
@@ -75,7 +89,14 @@ def build_evaluation_plan_from_sources(
     guidebook_candidates: list[dict[str, Any]] = []
     packet_inclusion_contracts: list[dict[str, Any]] = []
     matrix_row_ids: set[str] = set()
-    source_digests = [hashlib.sha256(source.text.encode("utf-8")).hexdigest() for source in sources]
+    pattern_catalog = {
+        str(pattern.get("pattern_id")): pattern
+        for pattern in (*effective_patterns, *anti_patterns)
+        if str(pattern.get("pattern_id") or "")
+    }
+    source_digests = [
+        hashlib.sha256(source.text.encode("utf-8")).hexdigest() for source in sources
+    ]
     fixture_digests = [_json_digest(fixture) for fixture in task_fixtures]
     experiment_id = _stable_id(
         "skill-eval",
@@ -167,10 +188,25 @@ def build_evaluation_plan_from_sources(
                 )
             fixture_family = str(fixture.get("fixture_family") or "unspecified")
             pattern_id = str(fixture.get("pattern_id") or "") or None
+            supplied_effect_direction = fixture.get("expected_effect_direction")
             intervention_variant = str(
                 fixture.get("intervention_variant") or "original"
             )
             control_variant = str(fixture.get("control_variant") or "baseline")
+            intervention_target = str(fixture.get("intervention_target") or "") or None
+            tested_atom = str(fixture.get("tested_atom") or "") or None
+            pattern_definition = pattern_catalog.get(pattern_id or "")
+            pattern_interventions = (
+                [
+                    dict(item)
+                    for item in pattern_definition.get("tested_interventions") or []
+                    if isinstance(item, Mapping)
+                ]
+                if isinstance(pattern_definition, Mapping)
+                else []
+            )
+            if pattern_id and pattern_definition is None:
+                raise ValueError(f"Unknown evaluation pattern_id: {pattern_id}.")
             if pattern_id and (
                 intervention_variant not in variants or control_variant not in variants
             ):
@@ -178,7 +214,155 @@ def build_evaluation_plan_from_sources(
                     "Pattern fixtures require intervention_variant and control_variant "
                     "to be present in variants."
                 )
+            if pattern_id and (not tested_atom or not intervention_target):
+                raise ValueError(
+                    "Pattern fixtures require tested_atom and intervention_target."
+                )
+            matching_pattern_interventions = [
+                item
+                for item in pattern_interventions
+                if str(item.get("tested_atom") or "") == tested_atom
+            ]
+            if pattern_id and len(matching_pattern_interventions) != 1:
+                raise ValueError(
+                    f"Pattern {pattern_id} does not declare tested atom {tested_atom}."
+                )
+            pattern_intervention_contract = (
+                {
+                    "tested_atom": tested_atom,
+                    "allowed_targets": sorted(
+                        str(item)
+                        for item in matching_pattern_interventions[0].get(
+                            "allowed_targets"
+                        )
+                        or []
+                    ),
+                    "allowed_kinds": sorted(
+                        str(item)
+                        for item in matching_pattern_interventions[0].get(
+                            "allowed_kinds"
+                        )
+                        or []
+                    ),
+                    "claim_granularity": str(
+                        matching_pattern_interventions[0].get("claim_granularity") or ""
+                    ),
+                    "expected_support_direction": str(
+                        matching_pattern_interventions[0].get(
+                            "expected_support_direction"
+                        )
+                        or ""
+                    ),
+                }
+                if matching_pattern_interventions
+                else None
+            )
+            if pattern_id:
+                if pattern_intervention_contract is None:
+                    raise ValueError("Pattern intervention contract is missing.")
+                canonical_contract = pattern_intervention_contract
+                expected_effect_direction = canonical_contract[
+                    "expected_support_direction"
+                ]
+                if expected_effect_direction not in {"positive", "negative"}:
+                    raise ValueError(
+                        "Pattern tested_interventions require an "
+                        "expected_support_direction of positive or negative."
+                    )
+                if not canonical_contract["claim_granularity"]:
+                    raise ValueError(
+                        "Pattern tested_interventions require claim_granularity."
+                    )
+                if (
+                    supplied_effect_direction is not None
+                    and str(supplied_effect_direction) != expected_effect_direction
+                ):
+                    raise ValueError(
+                        "Task fixture expected_effect_direction does not match the "
+                        "canonical pattern intervention contract."
+                    )
+            else:
+                expected_effect_direction = str(supplied_effect_direction or "positive")
+                if expected_effect_direction not in {"positive", "negative"}:
+                    raise ValueError(
+                        "Each task fixture expected_effect_direction must be positive or negative."
+                    )
+            if pattern_id:
+                if intervention_target not in canonical_contract["allowed_targets"]:
+                    raise ValueError(
+                        "Pattern intervention_target is not allowed for tested_atom."
+                    )
+                intervention_entries = [
+                    entry
+                    for entry in variant_entries
+                    if entry.get("variant_id") == intervention_variant
+                    and (
+                        intervention_variant != "ablated"
+                        or entry.get("ablation_section") == intervention_target
+                    )
+                ]
+                if len(intervention_entries) != 1:
+                    raise ValueError(
+                        "Pattern intervention must identify exactly one variant row."
+                    )
+                intervention_metadata = intervention_entries[0].get("intervention")
+                if not isinstance(intervention_metadata, Mapping):
+                    raise ValueError("Pattern intervention metadata is missing.")
+                if intervention_metadata.get("kind") == "control":
+                    raise ValueError(
+                        "A control-kind variant cannot be a pattern intervention."
+                    )
+                if (
+                    intervention_metadata.get("kind")
+                    not in canonical_contract["allowed_kinds"]
+                ):
+                    raise ValueError(
+                        "Pattern intervention kind is not allowed for tested_atom."
+                    )
+                if intervention_metadata.get("causal_attribution") is not True:
+                    raise ValueError(
+                        "Pattern intervention must be a lossless causal contrast."
+                    )
+                if (
+                    intervention_metadata.get("kind") == "single_section_ablation"
+                    and control_variant != "original"
+                ):
+                    raise ValueError(
+                        "A section ablation requires the original skill as its matched control."
+                    )
+                if str(intervention_metadata.get("target") or "") != str(
+                    intervention_target
+                ):
+                    raise ValueError(
+                        "Pattern intervention target does not match the variant target."
+                    )
             for variant in variant_entries:
+                is_target_intervention = variant.get(
+                    "variant_id"
+                ) == intervention_variant and (
+                    intervention_variant != "ablated"
+                    or variant.get("ablation_section") == intervention_target
+                )
+                is_matched_control = variant.get("variant_id") == control_variant
+                is_pattern_contrast_row = bool(pattern_id) and (
+                    is_target_intervention or is_matched_control
+                )
+                contrast_id = (
+                    _stable_id(
+                        "eval-contrast",
+                        {
+                            "pattern_id": pattern_id,
+                            "skill_path": source.display_path,
+                            "skill_digest": skill_digest,
+                            "fixture_digest": fixture_digest,
+                            "intervention_variant": intervention_variant,
+                            "control_variant": control_variant,
+                            "intervention_target": intervention_target,
+                        },
+                    )
+                    if is_pattern_contrast_row
+                    else None
+                )
                 matrix_row_id = _stable_id(
                     "eval-row",
                     {
@@ -217,9 +401,29 @@ def build_evaluation_plan_from_sources(
                         "task_id": fixture_id,
                         "fixture_family": fixture_family,
                         "fixture_digest": displayed_fixture_digest,
-                        "pattern_id": pattern_id,
+                        "pattern_id": pattern_id if is_pattern_contrast_row else None,
+                        "tested_atom": tested_atom if is_pattern_contrast_row else None,
+                        "pattern_intervention_contract": (
+                            pattern_intervention_contract
+                            if is_pattern_contrast_row
+                            else None
+                        ),
+                        "claim_granularity": (
+                            pattern_intervention_contract["claim_granularity"]
+                            if is_pattern_contrast_row and pattern_intervention_contract
+                            else None
+                        ),
+                        "contrast_id": contrast_id,
+                        "expected_effect_direction": (
+                            expected_effect_direction
+                            if is_pattern_contrast_row
+                            else None
+                        ),
                         "intervention_variant": intervention_variant,
                         "control_variant": control_variant,
+                        "intervention_target": (
+                            intervention_target if is_pattern_contrast_row else None
+                        ),
                         "variant_id": variant["variant_id"],
                         "ablation_section": variant.get("ablation_section"),
                         "included_slices": list(variant.get("included_slices") or []),
@@ -305,6 +509,8 @@ def build_evaluation_plan_from_sources(
                 "provenance.isolated_session",
                 "case_verdict.passed",
                 "case_verdict.evidence",
+                "case_verdict.safety_regression",
+                "case_verdict.cost_regression",
             ],
             "observation_kinds": [
                 "file_read",
@@ -334,7 +540,12 @@ def build_evaluation_plan_from_sources(
                 },
                 "observations": [],
                 "human_labels": [],
-                "case_verdict": {"passed": False, "evidence": []},
+                "case_verdict": {
+                    "passed": False,
+                    "evidence": [],
+                    "safety_regression": False,
+                    "cost_regression": False,
+                },
             },
         },
         "guidebook_candidate_patterns": guidebook_candidates,

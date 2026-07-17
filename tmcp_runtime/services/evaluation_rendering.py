@@ -26,14 +26,35 @@ def render_guidebook_markdown(
     lines.extend(f"- `{level}`" for level in evidence_levels)
     lines.extend(["", "## Patterns", ""])
     for entry in entries:
+        lines.extend([f"### {entry['title']}", ""])
+        if entry.get("pattern_id"):
+            lines.append(f"**Pattern ID:** `{entry['pattern_id']}`")
         lines.extend(
             [
-                f"### {entry['title']}",
-                "",
                 f"**Status:** {entry['status']}",
                 f"**Evidence level:** {entry['evidence_level']}",
                 f"**Applies to:** {', '.join(entry.get('applies_to') or []) or 'skill_writing'}",
                 f"**Internal atoms:** {', '.join(entry.get('internal_atoms') or []) or 'none'}",
+            ]
+        )
+        effect = entry.get("effect")
+        if isinstance(effect, Mapping) and effect.get("absolute_lift") is not None:
+            lines.append(f"**Observed lift:** {effect['absolute_lift']}")
+        sample = entry.get("sample")
+        if isinstance(sample, Mapping):
+            lines.append(
+                "**Sample:** "
+                f"{sample.get('trace_count', 0)} traces, "
+                f"{sample.get('fixture_count', 0)} fixtures, "
+                f"{sample.get('agent_configuration_count', 0)} agent configurations"
+            )
+        promotion = entry.get("promotion")
+        if isinstance(promotion, Mapping):
+            lines.append(f"**Promotion:** {promotion.get('decision', 'hold')}")
+            for gap in promotion.get("gaps") or []:
+                lines.append(f"- Promotion gap: {gap}")
+        lines.extend(
+            [
                 "",
                 "Prefer:",
                 "",
@@ -56,6 +77,11 @@ def build_pattern_catalog(
 ) -> dict[str, Any]:
     """Build the serializable pattern catalog from supplied pattern data."""
 
+    entries_by_pattern = {
+        str(entry.get("pattern_id")): entry
+        for entry in entries
+        if str(entry.get("pattern_id") or "")
+    }
     return {
         "schema": "tmcp-skill-pattern-catalog-v0.1",
         "created_at": created_at,
@@ -64,7 +90,27 @@ def build_pattern_catalog(
                 "pattern_id": pattern["pattern_id"],
                 "label": pattern["label"],
                 "classification": pattern["classification"],
-                "evidence_level": "static_review",
+                "evidence_level": str(
+                    entries_by_pattern.get(str(pattern["pattern_id"]), {}).get(
+                        "evidence_level", "hypothesis"
+                    )
+                ),
+                "status": str(
+                    entries_by_pattern.get(str(pattern["pattern_id"]), {}).get(
+                        "status", "unobserved"
+                    )
+                ),
+                "effect": entries_by_pattern.get(str(pattern["pattern_id"]), {}).get(
+                    "effect"
+                ),
+                "promotion": entries_by_pattern.get(str(pattern["pattern_id"]), {}).get(
+                    "promotion",
+                    {
+                        "eligible": False,
+                        "decision": "hold",
+                        "gaps": ["pattern has not been behaviorally evaluated"],
+                    },
+                ),
                 "internal_atoms": list(pattern["internal_atoms"]),
                 "good_example": pattern.get("good_example"),
                 "weak_example": pattern.get("weak_example"),

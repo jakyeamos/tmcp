@@ -62,7 +62,7 @@
       "description_sha256": "sha256:aa3650435913eecf8c056f04360b994f500cc7682e80fc00b1762c35c45be04a",
       "input_schema_sha256": "sha256:ce55ede71fc852d0f6605ad3420c1be14a8ae7d600f5d1dbc0ff5cfd8e35be68",
       "name": "tmcp_evaluate_skills",
-      "output_schema_ids": ["tmcp-skill-evaluation-plan-v0.1", "tmcp-skill-evaluation-report-v0.1"],
+      "output_schema_ids": ["tmcp-skill-evaluation-plan-v0.1", "tmcp-skill-evaluation-plan-v0.2", "tmcp-skill-evaluation-report-v0.1", "tmcp-skill-evaluation-report-v0.2"],
       "stability": "experimental",
       "state_effect": "optional_write"
     },

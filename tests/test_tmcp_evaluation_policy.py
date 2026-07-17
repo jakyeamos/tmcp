@@ -84,6 +84,11 @@ Make sure everything works.
         observables = evaluation_policy._observable_contract(decomposition, [])
 
         self.assertEqual(variant["included_slices"], ["verification_gates"])
+        self.assertFalse(variant["intervention"]["causal_attribution"])
+        self.assertEqual(
+            variant["intervention"]["confounders"],
+            ["frontmatter", "document_scaffold"],
+        )
         self.assertIn(
             "read_required_file", {item["observable_id"] for item in observables}
         )
@@ -128,6 +133,30 @@ Report pass or fail.
             },
         )
 
+    def test_ablation_preserves_irregular_formatting_outside_removed_section(
+        self,
+    ) -> None:
+        text = (
+            "---\nname: irregular\n---\n\n\n"
+            "# Irregular\n\n\n"
+            "## Workflow\n"
+            "First line.  \n\n\nSecond line.\n\n"
+            "## Output\n\n"
+            "  Keep this indentation.\n"
+        )
+        decomposition = evaluation_policy.decompose_skill("SKILL.md", text)
+
+        variant = evaluation_policy._variant_payload(
+            "ablated", decomposition, text, "workflow"
+        )
+
+        self.assertEqual(
+            variant["content"],
+            "---\nname: irregular\n---\n\n\n# Irregular\n\n\n## Output\n\n"
+            "  Keep this indentation.\n",
+        )
+        self.assertTrue(variant["intervention"]["causal_attribution"])
+
     def test_trigger_only_is_skill_frontmatter_not_json(self) -> None:
         text = """---
 name: example
@@ -146,6 +175,11 @@ description: Use for an example.
             variant["content"],
             "---\nname: example\ndescription: Use for an example.\n---",
         )
+        self.assertFalse(variant["intervention"]["causal_attribution"])
+        self.assertIn(
+            "forced_attachment_bypasses_host_routing",
+            variant["intervention"]["confounders"],
+        )
 
     def test_unknown_variant_is_rejected(self) -> None:
         decomposition = evaluation_policy.decompose_skill("SKILL.md", "# Example\n")
@@ -153,7 +187,9 @@ description: Use for an example.
         with self.assertRaisesRegex(ValueError, "Unsupported evaluation variant"):
             evaluation_policy._variant_payload("made-up", decomposition, "# Example\n")
 
-    def test_trigger_review_does_not_treat_use_when_as_inherently_overbroad(self) -> None:
+    def test_trigger_review_does_not_treat_use_when_as_inherently_overbroad(
+        self,
+    ) -> None:
         trigger_pattern = {
             "pattern_id": "trigger.overbroad-description",
             "classification": "anti_pattern",
@@ -185,7 +221,9 @@ description: Always use for any task in the repository.
         )
 
         self.assertEqual(scoped_findings, [])
-        self.assertEqual(broad_findings[0]["pattern_id"], "trigger.overbroad-description")
+        self.assertEqual(
+            broad_findings[0]["pattern_id"], "trigger.overbroad-description"
+        )
 
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_policy))

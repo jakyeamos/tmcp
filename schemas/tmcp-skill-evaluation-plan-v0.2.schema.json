@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-skill-evaluation-plan-v0.2.schema.json",
+  "title": "TMCP Skill Evaluation Plan v0.2",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "created_at",
+    "experiment",
+    "evaluated_skills",
+    "task_matrix",
+    "variants",
+    "observable_behavior_contract",
+    "runner_instructions",
+    "evidence_contract",
+    "guidebook_candidate_patterns"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-skill-evaluation-plan-v0.2"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "stability": {
+      "type": "string"
+    },
+    "experiment": {
+      "type": "object",
+      "required": ["experiment_id", "protocol_version", "design", "blinding"],
+      "properties": {
+        "experiment_id": {"type": "string", "minLength": 1},
+        "protocol_version": {"type": "string", "minLength": 1},
+        "design": {"type": "string", "minLength": 1},
+        "blinding": {
+          "type": "object",
+          "required": ["runner", "judge"],
+          "properties": {
+            "runner": {"const": true},
+            "judge": {"const": true}
+          }
+        },
+        "promotion_thresholds": {"type": "object"}
+      }
+    },
+    "evaluated_skills": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "task_matrix": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "experiment_id",
+          "matrix_row_id",
+          "task_id",
+          "fixture_digest",
+          "skill_digest",
+          "variant_id",
+          "intervention",
+          "expected_packet_contract",
+          "skill_attachment"
+        ],
+        "properties": {
+          "experiment_id": {"type": "string", "minLength": 1},
+          "matrix_row_id": {"type": "string", "minLength": 1},
+          "task_id": {"type": "string", "minLength": 1},
+          "fixture_digest": {"type": "string", "minLength": 1},
+          "skill_digest": {"type": "string", "minLength": 1},
+          "variant_id": {"type": "string", "minLength": 1},
+          "pattern_id": {"type": ["string", "null"]},
+          "tested_atom": {"type": ["string", "null"]},
+          "claim_granularity": {"type": ["string", "null"]},
+          "contrast_id": {"type": ["string", "null"]},
+          "expected_effect_direction": {
+            "type": ["string", "null"],
+            "enum": ["positive", "negative", null]
+          },
+          "intervention_variant": {"type": "string"},
+          "control_variant": {"type": "string"},
+          "intervention_target": {"type": ["string", "null"]},
+          "ablation_section": {"type": ["string", "null"]},
+          "intervention": {
+            "type": "object",
+            "required": ["kind", "causal_attribution"],
+            "properties": {
+              "kind": {"type": "string"},
+              "target": {"type": ["string", "null"]},
+              "causal_attribution": {"type": "boolean"}
+            }
+          },
+          "pattern_intervention_contract": {
+            "type": ["object", "null"],
+            "properties": {
+              "tested_atom": {"type": "string", "minLength": 1},
+              "allowed_targets": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1}
+              },
+              "allowed_kinds": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1}
+              },
+              "claim_granularity": {"type": "string", "minLength": 1},
+              "expected_support_direction": {
+                "type": "string",
+                "enum": ["positive", "negative"]
+              }
+            }
+          },
+          "expected_packet_contract": {"type": "object"},
+          "skill_attachment": {"type": "string"}
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {"pattern_id": {"type": "string", "minLength": 1}},
+              "required": ["pattern_id"]
+            },
+            "then": {
+              "required": [
+                "tested_atom",
+                "claim_granularity",
+                "contrast_id",
+                "expected_effect_direction",
+                "intervention_target",
+                "pattern_intervention_contract"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "variants": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "observable_behavior_contract": {"type": "array"},
+    "packet_inclusion_contracts": {"type": "array"},
+    "runner_instructions": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "evidence_contract": {"type": "object"},
+    "guidebook_candidate_patterns": {"type": "array"},
+    "promotion_policy": {"type": "object"}
+  }
+}

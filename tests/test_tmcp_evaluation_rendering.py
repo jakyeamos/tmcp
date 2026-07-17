@@ -12,6 +12,7 @@ class EvaluationRenderingServiceTests(unittest.TestCase):
     def test_guidebook_and_catalog_render_supplied_data(self) -> None:
         entries = [
             {
+                "pattern_id": "verification.concrete-command",
                 "title": "Concrete gates",
                 "status": "recommended",
                 "evidence_level": "static_review",
@@ -49,6 +50,42 @@ class EvaluationRenderingServiceTests(unittest.TestCase):
         self.assertEqual(
             catalog["patterns"][0]["pattern_id"], "verification.concrete-command"
         )
+        self.assertEqual(catalog["patterns"][0]["evidence_level"], "static_review")
+
+    def test_catalog_keeps_unobserved_builtins_at_hypothesis(self) -> None:
+        patterns = [
+            {
+                "pattern_id": "observed",
+                "label": "Observed",
+                "classification": "effective_pattern",
+                "internal_atoms": (),
+            },
+            {
+                "pattern_id": "untested",
+                "label": "Untested",
+                "classification": "effective_pattern",
+                "internal_atoms": (),
+            },
+        ]
+        catalog = evaluation_rendering.build_pattern_catalog(
+            [
+                {
+                    "pattern_id": "observed",
+                    "evidence_level": "controlled_single_agent_eval",
+                    "status": "supported",
+                    "effect": {"absolute_lift": 0.5},
+                    "promotion": {"eligible": False, "decision": "hold", "gaps": []},
+                }
+            ],
+            patterns=patterns,
+            created_at="now",
+        )
+
+        observed, untested = catalog["patterns"]
+        self.assertEqual(observed["evidence_level"], "controlled_single_agent_eval")
+        self.assertEqual(observed["effect"]["absolute_lift"], 0.5)
+        self.assertEqual(untested["evidence_level"], "hypothesis")
+        self.assertEqual(untested["status"], "unobserved")
 
     def test_pattern_merge_and_warning_formatting_are_pure(self) -> None:
         builtins = [{"pattern_id": "p1", "label": "Built-in"}]

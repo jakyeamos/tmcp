@@ -22,10 +22,10 @@ FIXTURE_SKILL = (
     PLUGIN_ROOT / "tests" / "fixtures" / "skills" / "approval-before-edit" / "SKILL.md"
 )
 PLAN_SCHEMA_PATH = (
-    PLUGIN_ROOT / "schemas" / "tmcp-skill-evaluation-plan-v0.1.schema.json"
+    PLUGIN_ROOT / "schemas" / "tmcp-skill-evaluation-plan-v0.2.schema.json"
 )
 REPORT_SCHEMA_PATH = (
-    PLUGIN_ROOT / "schemas" / "tmcp-skill-evaluation-report-v0.1.schema.json"
+    PLUGIN_ROOT / "schemas" / "tmcp-skill-evaluation-report-v0.2.schema.json"
 )
 
 
@@ -64,6 +64,40 @@ class SkillEvaluateTests(unittest.TestCase):
             "variants": ["baseline", "original", "negative_control"],
         }
 
+    def _pattern_plan(self) -> dict:
+        arguments = self._plan_arguments()
+        arguments["variants"] = ["original", "ablated"]
+        arguments["task_fixtures"][0].update(
+            {
+                "pattern_id": "structure.explicit-verification-section",
+                "tested_atom": "verification_section",
+                "intervention_variant": "ablated",
+                "control_variant": "original",
+                "intervention_target": "verification",
+                "expected_effect_direction": "negative",
+            }
+        )
+        return self.evaluate.build_evaluation_plan(arguments)
+
+    def _score_probe(self, plan: dict, row: dict) -> dict:
+        return self.evaluate.score_evidence(
+            {
+                "evaluation_plan": plan,
+                "compose_packet": False,
+                "run_evidence_json": [
+                    {
+                        "task_id": row["task_id"],
+                        "variant_id": row["variant_id"],
+                        "matrix_row_id": row.get("matrix_row_id"),
+                        "ablation_section": row.get("ablation_section"),
+                        "observations": [
+                            {"kind": "assistant_message", "value": "artifact"}
+                        ],
+                    }
+                ],
+            }
+        )
+
     def test_tool_appears_in_tools_list(self) -> None:
         responses = run_mcp_requests(
             [{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}]
@@ -89,7 +123,7 @@ class SkillEvaluateTests(unittest.TestCase):
 
     def test_plan_decomposes_fixture_skill(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
-        self.assertEqual(plan["schema"], "tmcp-skill-evaluation-plan-v0.1")
+        self.assertEqual(plan["schema"], "tmcp-skill-evaluation-plan-v0.2")
         self.assertEqual(len(plan["evaluated_skills"]), 1)
         skill = plan["evaluated_skills"][0]
         self.assertTrue(str(skill["skill_path"]).endswith("SKILL.md"))
@@ -373,7 +407,7 @@ class SkillEvaluateTests(unittest.TestCase):
         )
         self.assertTrue(result["ok"])
         self.assertEqual(result["mode"], "plan")
-        self.assertEqual(result["schema"], "tmcp-skill-evaluation-plan-v0.1")
+        self.assertEqual(result["schema"], "tmcp-skill-evaluation-plan-v0.2")
 
     def test_mcp_tool_call_score_mode_injects_composition_service(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
@@ -533,6 +567,73 @@ class SkillEvaluateTests(unittest.TestCase):
                 },
                 compose_evaluation_row=self.server._compose_evaluation_row,
             )
+
+    def test_tampered_pattern_contract_is_rejected_during_score_load(self) -> None:
+        plan = self._pattern_plan()
+        plan["task_matrix"][0]["pattern_intervention_contract"]["allowed_kinds"] = [
+            "routing_projection"
+        ]
+        row = plan["task_matrix"][0]
+
+        with self.assertRaisesRegex(ValueError, "pattern contract is not canonical"):
+            self._score_probe(plan, row)
+
+    def test_tampered_pattern_direction_is_rejected_during_score_load(self) -> None:
+        plan = self._pattern_plan()
+        row = next(item for item in plan["task_matrix"] if item.get("pattern_id"))
+        row["expected_effect_direction"] = "positive"
+
+        with self.assertRaisesRegex(ValueError, "direction is not canonical"):
+            self._score_probe(plan, row)
+
+    def test_v02_pattern_row_requires_stable_matrix_id(self) -> None:
+        plan = self._pattern_plan()
+        row = next(item for item in plan["task_matrix"] if item.get("pattern_id"))
+        row.pop("matrix_row_id")
+
+        with self.assertRaisesRegex(ValueError, "requires matrix_row_id"):
+            self._score_probe(plan, row)
+
+    def test_tampered_ablation_attachment_is_rejected(self) -> None:
+        plan = self._pattern_plan()
+        row = next(
+            item
+            for item in plan["task_matrix"]
+            if item.get("pattern_id") and item["variant_id"] == "ablated"
+        )
+        row["skill_attachment"] += "\nTampered intervention.\n"
+
+        with self.assertRaisesRegex(ValueError, "canonical one-section ablation"):
+            self._score_probe(plan, row)
+
+    def test_tampered_original_attachment_is_rejected(self) -> None:
+        plan = self._pattern_plan()
+        row = next(
+            item
+            for item in plan["task_matrix"]
+            if item.get("pattern_id") and item["variant_id"] == "original"
+        )
+        row["skill_attachment"] += "\nTampered control.\n"
+
+        with self.assertRaisesRegex(ValueError, "does not match skill_digest"):
+            self._score_probe(plan, row)
+
+    def test_legacy_v01_pattern_plan_without_row_ids_stays_hypothesis(self) -> None:
+        plan = self._pattern_plan()
+        plan["schema"] = "tmcp-skill-evaluation-plan-v0.1"
+        pattern_rows = [row for row in plan["task_matrix"] if row.get("pattern_id")]
+        for row in pattern_rows:
+            row.pop("matrix_row_id")
+            row.pop("tested_atom")
+            row.pop("pattern_intervention_contract")
+        original = next(row for row in pattern_rows if row["variant_id"] == "original")
+
+        report = self._score_probe(plan, original)
+
+        claim = report["pattern_claims"][0]
+        self.assertEqual(claim["evidence_level"], "hypothesis")
+        self.assertFalse(claim["plan_contract_trusted"])
+        self.assertFalse(claim["promotion_eligible"])
 
 
 if __name__ == "__main__":
