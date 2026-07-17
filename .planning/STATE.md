@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Build executable host-run benchmark evidence after completing
-deterministic activation and typed-handoff hardening. Keep 0.5.7 active.
+**Current focus:** Assemble compiler-bound host evidence from the prepared,
+isolated benchmark workspaces. Keep 0.5.7 active.
 
 ## Milestone
 
@@ -19,8 +19,9 @@ deterministic path, while `9f26520` restores the test-size quality gate. Task
 identity has lexical safety at `9b4d72e` and compound-task safety at
 `5fcefab`; `271ed29` narrows compatibility activation to governing sources plus
 evidence-backed bootstrap skills. `f190a82` adds verified typed handoffs,
-runtime continuity, and receipt/diff propagation; executable benchmark fixtures
-and host-run proof remain.
+runtime continuity, and receipt/diff propagation. `9f13813` now prepares exact
+fixture workspaces and host-intake manifests; replay assembly and real host-run
+proof remain.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -33,6 +34,13 @@ and host-run proof remain.
 
 ## Completed Scope
 
+- `9f13813` adds a content-addressed, prepare-only benchmark protocol: five
+  isolated fixture source roots, bounded preflight artifacts for every routing
+  and behavioral request, a no-oracle host plan, and descriptor-safe atomic tree
+  materialization. The plan fixes `cache_policy=none`, forbids automatic tool
+  execution and receipt writes, remains stable across output roots, and changes
+  when source content changes. Protocol/schema, safety, benchmark, install,
+  contract, release-compile, and live materialization checks pass.
 - `f190a82` compiles source-cited typed handoff contracts, binds each to its
   actual graph edge and staged endpoints, blocks phase advancement without exact
   artifact evidence, revalidates carried evidence, preserves same-graph runtime
@@ -341,11 +349,11 @@ _(truncated for length)_
 ## Accumulated Context
 
 ### Roadmap Evolution
-- 2026-07-17: `271ed29` closes the default activation dogfood gap: generic
-  process overlap and phase hints cannot activate behavior, supporting workflow
-  docs stay advisory, and compatibility composition retains one bootstrap skill.
-  `df3c8e2` keeps explicit route phrases eligible. Typed handoff enforcement and
-  executable proof remain release blockers.
+- 2026-07-17: `9f13813` makes benchmark preparation executable without granting
+  TMCP agent-execution authority: source trees and preflights are materialized
+  atomically under explicit roots, while host plans omit expected routes, order,
+  relationships, and scores. Compiler replay, derived context accounting, and
+  host-result assembly remain release blockers.
 - 2026-07-10: Modernization audit identifies P0 package disclosure risk and
   proposes a parallel v2 runtime behind stable entrypoints.
 - 2026-07-11: Milestone 0 closes the package-disclosure blocker; next work
@@ -378,5 +386,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 scripts/run_composition_benchmark.py --help
+python3 scripts/prepare_composition_benchmark.py --help
 ```

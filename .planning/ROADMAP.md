@@ -84,19 +84,22 @@ outcomes while preserving deterministic compatibility.
   preserves exact route phrases. `f190a82` completes typed artifact handoffs:
   source-cited contracts, staged exact-evidence gates, tamper rejection,
   same-graph runtime continuity, recipe/receipt persistence, and handoff diffs.
-  Executable benchmark proof is next. `9f26520` keeps preflight coverage below
+  `9f13813` adds safe, root-independent fixture materialization and a
+  content-addressed, no-oracle host-intake plan with bounded preflights for all
+  routing and behavioral requests. Compiler replay, observation assembly, and
+  derived context accounting are next. `9f26520` keeps preflight coverage below
   the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, graph-bound typed
   handoffs, same-graph continuity, phase trace, obligations, and graph-aware
   diffs.
-- Proof and learning: hardening required — scorer contracts and fixture metadata
-  exist, but executable workspaces, exact run manifests, observation assembly,
-  and tamper-resistant context accounting remain.
+- Proof and learning: hardening required — executable workspaces and exact host
+  intake manifests now exist; compiler replay, observation assembly, and
+  tamper-resistant context accounting remain.
 - Release proof: pending — version 0.6.0 remains blocked until the executable
   harness and real host-run observations meet every routing, safety, lift,
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for typed-handoff enforcement and benchmark proof gating*
+*Last updated: 2026-07-17 for prepared benchmark workspaces and replay gating*
