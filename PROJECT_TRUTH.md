@@ -3,17 +3,18 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `9cff7bf` makes skill-evaluation rows uniquely identifiable, preserves one-factor variant contracts, and carries output contracts through composed packets.
-- Verification: 100 focused evaluator/composition tests passed; CLI plan smoke wrote `/private/tmp/tmcp-foundation-smoke-20260717-a/tmcp-skill-evaluation-plan.json` with unique row IDs and non-redacted content digests.
+- Last completed change: `bb8041a` makes skill-evaluation evidence claim-specific, paired, blinded, repeatable, and promotion-gated.
+- Verification: 492 tests passed, 3 skipped, and 108 subtests passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
 
 ## Current Position
 
-- The static planner and packet-contract comparison are operational.
-- Behavioral evidence and guidebook promotion are not yet trustworthy because legacy scoring still infers controlled evidence from trace presence instead of validated provenance, repetitions, paired controls, and judged case verdicts.
+- Plan/report v0.2 validates stable row identity, canonical pattern contracts, exact original/one-section-ablation attachments, blinded provenance, judge evidence, paired repetitions, and actual intervention-control lift.
+- Whole-section ablations can support only section-granularity claims. Static detections and legacy v0.1 plans remain hypotheses.
+- Corpus promotion remains manual and requires 72 runs, a 95% lift interval above zero, no agent-configuration reversal, and no safety or cost regression.
 
 ## Next Step
 
-- Replace optimistic guidebook promotion with paired, blinded evidence analysis and run repeated blind dogfood trials before promoting any skill pattern.
+- Run the repeated blind `eval-skills` Workflow-section dogfood and record its plan, artifacts, judged traces, report, and bounded guidebook conclusion.
 
 ## Blockers
 
@@ -21,5 +22,5 @@
 
 ## Risks
 
-- `evaluation_policy.py` and `evaluation_scoring.py` exceed the changed-line quality gate's preferred source-size limit; split them by responsibility during the evidence-analysis change.
-- Static findings remain hypotheses and must not be described as tried-and-true patterns.
+- A controlled single-agent dogfood result can support an internal section-level candidate but cannot establish a corpus-wide tried-and-true pattern.
+- Anti-pattern claims still require a future isolated removal or presence intervention; static matches remain suspected only.
