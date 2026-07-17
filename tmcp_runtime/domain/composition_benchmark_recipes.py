@@ -16,10 +16,19 @@ from .composition_benchmark_replay_support import (
     _ordered_variant_ids,
     _packet_plan,
     _skill_by_node,
+    materialized_cited_source_slices,
+)
+from .composition_phase_capsules import build_phase_capsule_accounting
+from .composition_phase_slice_closures import (
+    PhaseSliceClosureError,
+    plan_stage_source_slice_closure,
+)
+from .composition_phase_bindings import (
+    PhaseCapsuleBindingError,
+    validate_phase_capsule_binding,
 )
 from .composition_preflight import stable_digest
 from .composition_validation import ordering_pair
-from .harvest_nodes import estimate_tokens
 
 
 EXECUTION_RECIPE_SCHEMA = "tmcp-composition-benchmark-execution-recipe-v0.1"
@@ -28,7 +37,7 @@ EXECUTION_RECIPE_SCHEMA = "tmcp-composition-benchmark-execution-recipe-v0.1"
 def _logical_compiled_plan(
     plan: Mapping[str, Any],
     *,
-    source_bindings: Sequence[Mapping[str, str]],
+    source_bindings: Sequence[Mapping[str, Any]],
     included_skill_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """Project compiler output into logical fixture identities for a host recipe."""
@@ -148,6 +157,7 @@ def _logical_compiled_plan(
         "stages": stages,
         "typed_edges": typed_edges,
         "handoff_contracts": handoffs,
+        "source_bindings": [dict(binding) for binding in source_bindings],
     }
 
 
@@ -155,77 +165,74 @@ def _compiled_context_accounting(
     *,
     preflight: Mapping[str, Any],
     plan: Mapping[str, Any],
-    source_bindings: Sequence[Mapping[str, str]],
+    source_bindings: Sequence[Mapping[str, Any]],
+    packet: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Derive full-plan context from compiler evidence, never host declarations."""
+    """Build exact phase capsules from compiler evidence, never host totals."""
 
-    skill_by_node = _skill_by_node(source_bindings)
-    candidates = {
-        _nonempty(item.get("source_node_id"), field="preflight.source_node_id"): item
-        for item in _mapping_list(
-            preflight.get("candidate_source_slices"),
-            field="preflight.candidate_source_slices",
+    source_roles = {
+        _nonempty(role.get("node_id"), field="composition_plan.role.node_id"): str(
+            role.get("source_role") or "active_skill"
+        )
+        for role in _mapping_list(
+            plan.get("skill_roles"), field="composition_plan.skill_roles"
         )
     }
-    source_tokens: list[dict[str, Any]] = []
-    tokens_by_node: dict[str, int] = {}
-    for node_id, skill_id in skill_by_node.items():
-        candidate = candidates.get(node_id)
-        if candidate is None:
-            raise ValueError("Replay context is missing a selected source slice.")
-        if str(candidate.get("source_digest") or "") != next(
-            binding["content_digest"]
-            for binding in source_bindings
-            if binding["source_node_id"] == node_id
-        ):
-            raise ValueError("Replay context source digest does not match its binding.")
-        token_count = estimate_tokens(str(candidate.get("content") or ""))
-        tokens_by_node[node_id] = token_count
-        source_tokens.append(
-            {
-                "skill_id": skill_id,
-                "source_digest": str(candidate.get("source_digest") or ""),
-                "tokens": token_count,
-            }
+    source_contents = [
+        {
+            "skill_id": source["source_node_id"],
+            "source_node_id": source["source_node_id"],
+            "source_slice_id": source["slice_id"],
+            "source_role": source_roles.get(
+                str(source["source_node_id"]), str(source["source_role"])
+            ),
+            "source_digest": source["source_digest"],
+            "slice_digest": source["slice_digest"],
+            "content_digest": source["slice_digest"],
+            "char_start": source["char_start"],
+            "char_end": source["char_end"],
+            "content": source["content"],
+        }
+        for source in materialized_cited_source_slices(preflight, source_bindings)
+    ]
+    try:
+        stage_source_slice_ids, _ = plan_stage_source_slice_closure(plan, preflight)
+        phase_binding = validate_phase_capsule_binding(
+            plan.get("phase_capsule_binding"),
+            composition_plan=plan,
         )
-    stage_tokens: list[dict[str, Any]] = []
-    for stage in _mapping_list(
-        plan.get("ordered_stages"), field="composition_plan.stages"
-    ):
-        node_ids = [
-            _nonempty(node_id, field="composition_plan.stage.node_id")
-            for node_id in stage.get("node_ids") or []
-        ]
-        stage_tokens.append(
-            {
-                "stage_id": _nonempty(stage.get("stage_id"), field="stage.id"),
-                "tokens": sum(tokens_by_node[node_id] for node_id in node_ids),
-            }
-        )
-    index = preflight.get("behavior_manifest_index")
-    if not isinstance(index, Mapping):
-        raise ValueError("Replay context is missing the behavior manifest index.")
-    telemetry = index.get("cost_telemetry")
-    if not isinstance(telemetry, Mapping):
-        raise ValueError("Replay context is missing behavior-index cost telemetry.")
-    always_on_index_tokens = telemetry.get("always_on_index_tokens")
-    if isinstance(always_on_index_tokens, bool) or not isinstance(
-        always_on_index_tokens, int
-    ):
-        raise ValueError("Replay context behavior-index tokens are invalid.")
-    naive_context_tokens = sum(item["tokens"] for item in source_tokens)
-    peak_active_stage_tokens = max([item["tokens"] for item in stage_tokens], default=0)
-    accounting: dict[str, Any] = {
-        "policy": "always_on_manifest_index_plus_peak_active_stage_source_tokens",
-        "always_on_index_tokens": always_on_index_tokens,
-        "source_tokens": source_tokens,
-        "stage_tokens": stage_tokens,
-        "naive_context_tokens": naive_context_tokens,
-        "peak_active_stage_tokens": peak_active_stage_tokens,
-        "compiled_context_tokens": always_on_index_tokens + peak_active_stage_tokens,
+    except (PhaseCapsuleBindingError, PhaseSliceClosureError) as exc:
+        raise ValueError(
+            f"Replay context has an invalid stage source-slice closure: {exc}"
+        ) from exc
+    source_projection = {
+        "composition_plan_id": phase_binding["composition_plan_id"],
+        "composition_plan_digest": phase_binding["composition_plan_digest"],
+        "graph_digest": phase_binding["graph_digest"],
+        "stages": [dict(stage) for stage in plan.get("ordered_stages") or []],
+        "handoff_contracts": [
+            dict(contract) for contract in plan.get("handoff_contracts") or []
+        ],
+        "stage_source_slice_ids": stage_source_slice_ids,
     }
-    accounting["context_digest"] = stable_digest(accounting)
-    return accounting
+    task_model = plan.get("task_model")
+    if not isinstance(task_model, Mapping):
+        raise ValueError("Replay context is missing the compiler task model.")
+    task_identity = preflight.get("task_identity")
+    if not isinstance(task_identity, Mapping):
+        raise ValueError("Replay preflight is missing task identity.")
+    return build_phase_capsule_accounting(
+        task_model=task_model,
+        preflight=dict(preflight),
+        source_projection=source_projection,
+        source_contents=source_contents,
+        runtime_envelope={
+            "schema": "tmcp-composition-phase-runtime-envelope-v0.1",
+            "objective": preflight.get("objective"),
+            "task_identity": dict(task_identity),
+            "cache_policy": "none",
+        },
+    )
 
 
 def _recipe_with_identity(recipe: dict[str, Any]) -> dict[str, Any]:
@@ -339,6 +346,7 @@ def _execution_recipe(
                     preflight=preflight,
                     plan=plan,
                     source_bindings=all_source_bindings,
+                    packet=packet,
                 ),
             }
         )

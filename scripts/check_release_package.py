@@ -30,6 +30,9 @@ from scripts.check_release_evidence import validate_benchmark_summary  # noqa: E
 from scripts.release_package_composition import (  # noqa: E402
     check_composition_surface as _check_composition_surface,
 )
+from scripts.composition_benchmark_bundle import (  # noqa: E402
+    CompositionBenchmarkBundleError,
+)
 from scripts import release_package_benchmark as _release_package_benchmark  # noqa: E402
 from tmcp_runtime.api.registry import VERSION  # noqa: E402
 
@@ -501,6 +504,28 @@ def check_package(
     )
     with tempfile.TemporaryDirectory(prefix="tmcp-package-check-") as tmp:
         tmp_path = Path(tmp)
+        frozen_benchmark_artifact_paths: dict[str, Path] | None = None
+        if benchmark_artifact_paths is not None and benchmark_input_error is None:
+            try:
+                frozen_benchmark_artifacts = (
+                    _release_package_benchmark.freeze_composition_benchmark_artifacts(
+                        benchmark_artifact_paths,
+                        expected_sha256=getattr(
+                            benchmark_artifact_paths, "expected_sha256", None
+                        ),
+                    )
+                )
+                frozen_benchmark_artifact_paths = (
+                    _release_package_benchmark.materialize_frozen_composition_benchmark_artifacts(
+                        frozen_benchmark_artifacts,
+                        tmp_path / "composition-benchmark-inputs",
+                    )
+                )
+            except (CompositionBenchmarkBundleError, OSError) as exc:
+                benchmark_input_error = (
+                    "could not freeze composition benchmark artifacts before package "
+                    f"extraction: {exc}"
+                )
         with tarfile.open(package_path, "r:gz") as archive:
             safe_extractall(archive, tmp_path)
         plugin_root = tmp_path / "tmcp"
@@ -542,7 +567,7 @@ def check_package(
         )
         if benchmark_input_error:
             benchmark_ok, benchmark_output = False, benchmark_input_error
-        elif benchmark_artifact_paths is None:
+        elif frozen_benchmark_artifact_paths is None:
             benchmark_ok, benchmark_output = check_composition_benchmark(
                 plugin_root,
                 None,
@@ -551,14 +576,14 @@ def check_package(
         else:
             benchmark_ok, benchmark_output = check_composition_benchmark(
                 plugin_root,
-                benchmark_artifact_paths["observations"],
-                run_plan_path=benchmark_artifact_paths["run_plan"],
-                semantic_proposals_path=benchmark_artifact_paths[
+                frozen_benchmark_artifact_paths["observations"],
+                run_plan_path=frozen_benchmark_artifact_paths["run_plan"],
+                semantic_proposals_path=frozen_benchmark_artifact_paths[
                     "semantic_proposals"
                 ],
-                control_plan_path=benchmark_artifact_paths["control_plan"],
-                host_results_path=benchmark_artifact_paths["host_results"],
-                evaluator_artifacts_path=benchmark_artifact_paths[
+                control_plan_path=frozen_benchmark_artifact_paths["control_plan"],
+                host_results_path=frozen_benchmark_artifact_paths["host_results"],
+                evaluator_artifacts_path=frozen_benchmark_artifact_paths[
                     "evaluator_artifacts"
                 ],
                 release_version=release_version,

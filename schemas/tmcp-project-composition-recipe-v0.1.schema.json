@@ -79,6 +79,10 @@
           "type": "string",
           "pattern": "^[a-f0-9]{32}$"
         },
+        "phase_capsule_binding": {
+          "$ref": "tmcp-composition-plan-v0.1.schema.json#/$defs/phase_capsule_binding",
+          "description": "Additive phase-capsule provenance. Records without it remain readable as legacy v0.1 records but are ineligible for activation or promotion."
+        },
         "current_phase": { "type": "string", "minLength": 1 },
         "task_model": { "type": "object" },
         "skill_roles": { "type": "array", "items": { "type": "object" } },
@@ -122,6 +126,11 @@
           "type": "string",
           "pattern": "^[a-f0-9]{32}$"
         },
+        "phase_capsule_binding_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Additive binding evidence required by current recipe activation and promotion, but optional for legacy v0.1 record parsing."
+        },
         "cache_policy": { "const": "project" },
         "explicit_promotion_required": { "const": true },
         "auto_promote": { "const": false },
@@ -163,10 +172,54 @@
           ],
           "properties": {
             "verified_receipt_count": { "type": "integer", "minimum": 3 },
+            "isolated_phase_capsule_receipt_count": {
+              "type": "integer",
+              "minimum": 3
+            },
+            "structurally_valid_phase_capsule_evidence_receipt_count": {
+              "type": "integer",
+              "minimum": 3
+            },
+            "bound_phase_capsule_evidence_receipt_count": {
+              "type": "integer",
+              "minimum": 3
+            },
+            "structurally_valid_benchmark_receipt_provenance_receipt_count": {
+              "type": "integer",
+              "minimum": 3
+            },
+            "bound_benchmark_receipt_provenance_receipt_count": {
+              "type": "integer",
+              "minimum": 3
+            },
             "fixture_count": { "type": "integer", "minimum": 2 },
             "safety_failure_receipts": { "type": "array", "maxItems": 0 },
             "missing_safety_gate_receipts": { "type": "array", "maxItems": 0 },
-            "override_receipts": { "type": "array", "maxItems": 0 }
+            "override_receipts": { "type": "array", "maxItems": 0 },
+            "unqualified_context_execution_receipts": {
+              "type": "array",
+              "maxItems": 0
+            },
+            "invalid_phase_capsule_evidence_receipts": {
+              "type": "array",
+              "maxItems": 0
+            },
+            "unmatched_phase_capsule_provenance_receipts": {
+              "type": "array",
+              "maxItems": 0
+            },
+            "missing_benchmark_receipt_provenance_receipts": {
+              "type": "array",
+              "maxItems": 0
+            },
+            "invalid_benchmark_receipt_provenance_receipts": {
+              "type": "array",
+              "maxItems": 0
+            },
+            "unmatched_benchmark_receipt_provenance_receipts": {
+              "type": "array",
+              "maxItems": 0
+            }
           }
         },
         "aggregate_metrics": {

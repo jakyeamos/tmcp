@@ -20,6 +20,9 @@ from tmcp_runtime.domain.composition_benchmark_boundaries import (
 from tmcp_runtime.domain.composition_benchmark_projection import (
     _receipt_quality_metrics,
 )
+from tmcp_runtime.domain.composition_benchmark_context import (
+    validate_execution_context,
+)
 from tmcp_runtime.domain.composition_runtime_evidence import (
     COMPOSITION_RUNTIME_EVIDENCE_SCHEMA,
     composition_gate_catalog,
@@ -28,6 +31,7 @@ from tmcp_runtime.domain.composition_runtime_evidence import (
     evaluate_composition_handoffs,
 )
 from tmcp_runtime.domain.receipts import (
+    BENCHMARK_HOST_RECEIPT_MARKER,
     RECEIPT_INSTRUCTION_OVERRIDE_POLICY,
     RECEIPT_TRUST,
 )
@@ -61,12 +65,18 @@ def _validate_full_receipt_shape(receipt: Mapping[str, Any], *, field: str) -> N
         "composition_fixture_id",
         "benchmark_control_input_digest",
         "benchmark_execution_recipe_digest",
+        "benchmark_host_receipt",
+        "execution_context",
     }
     missing = sorted(required.difference(receipt))
     if missing:
         raise ValueError(f"{field}.tmcp_run_receipt is missing {missing}.")
     if receipt.get("schema") != "tmcp-run-receipt-v0.1":
         raise ValueError(f"{field}.tmcp_run_receipt.schema is invalid.")
+    if receipt.get("benchmark_host_receipt") != BENCHMARK_HOST_RECEIPT_MARKER:
+        raise ValueError(
+            f"{field}.tmcp_run_receipt is not a benchmark-host receipt."
+        )
     if not isinstance(receipt.get("created_at"), str) or UTC_TIMESTAMP_RE.fullmatch(
         str(receipt.get("created_at"))
     ) is None:
@@ -96,6 +106,8 @@ def _validate_full_receipt_shape(receipt: Mapping[str, Any], *, field: str) -> N
     for key in ("quality_metrics", "cost_metrics"):
         if not isinstance(receipt.get(key), Mapping):
             raise ValueError(f"{field}.tmcp_run_receipt.{key} must be an object.")
+    if not isinstance(receipt.get("execution_context"), Mapping):
+        raise ValueError(f"{field}.tmcp_run_receipt.execution_context must be an object.")
     if receipt.get("trust") != RECEIPT_TRUST:
         raise ValueError(f"{field}.tmcp_run_receipt.trust is invalid.")
     if receipt.get("instruction_override_policy") != RECEIPT_INSTRUCTION_OVERRIDE_POLICY:
@@ -498,6 +510,13 @@ def _validate_full_receipt(
     phase_trace = _validate_phase_trace(
         receipt, fixture_id=fixture_id, plan=plan
     )
+    accounting = projection.get("context_accounting")
+    if not isinstance(accounting, Mapping):
+        raise ValueError(f"{fixture_id} full receipt is missing compiler context accounting.")
+    execution_context = validate_execution_context(
+        receipt["execution_context"],
+        context_accounting=accounting,
+    )
     runtime_evidence = {
         "schema": COMPOSITION_RUNTIME_EVIDENCE_SCHEMA,
         "gate_results": receipt.get("gate_results"),
@@ -561,4 +580,5 @@ def _validate_full_receipt(
         "gates": gates,
         "handoffs": handoffs,
         "activated_atoms": activated_atoms,
+        "execution_context": execution_context,
     }

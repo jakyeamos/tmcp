@@ -15,16 +15,22 @@ from tmcp_runtime.domain.composition_benchmark_protocol import (
     prepare_fixture_preflight,
     validate_benchmark_run_plan,
 )
+from tmcp_runtime.domain.composition_benchmark_recipes import (
+    _compiled_context_accounting,
+)
 from tmcp_runtime.domain.composition_benchmark_replay import (
     SEMANTIC_PROPOSAL_BUNDLE_SCHEMA,
     build_benchmark_control_plan,
     validate_benchmark_control_plan,
 )
+from tmcp_runtime.domain.composition_benchmark_replay_support import _role_projection
 from tmcp_runtime.domain.composition_benchmark_sources import (
     graph_digest_for_observation,
     validate_fixture_skill_sources,
     validate_source_slice_bindings,
 )
+from tmcp_runtime.domain.composition_preflight import stable_digest
+from tmcp_runtime.domain.harvest_nodes import content_digest_for
 from tmcp_runtime.storage.artifacts import (
     ArtifactStorageError,
     AtomicArtifactStore,
@@ -58,10 +64,13 @@ def _proposal_for_fixture(
     node_by_skill = {
         str(node["skill_id"]): str(node["id"]) for node in fixture_source_nodes(fixture)
     }
-    slice_by_node = {
-        str(item["source_node_id"]): str(item["slice_id"])
-        for item in preflight["candidate_source_slices"]
-    }
+    slice_ids_by_node: dict[str, list[str]] = {}
+    for item in preflight["candidate_source_slices"]:
+        slice_ids_by_node.setdefault(str(item["source_node_id"]), []).append(
+            str(item["slice_id"])
+        )
+    for slice_ids in slice_ids_by_node.values():
+        slice_ids.sort()
     phases = ("discovery", "implementation", "verification", "final")
     roles = []
     for index, skill_id in enumerate(selected_skill_ids):
@@ -81,7 +90,7 @@ def _proposal_for_fixture(
                 "exit_gates": [f"{skill_id} evidence is available"],
                 "context_cost": 0,
                 "covers": ["benchmark outcome"],
-                "citations": [slice_by_node[node_id]],
+                "citations": slice_ids_by_node[node_id],
             }
         )
     relationships = []
@@ -99,10 +108,10 @@ def _proposal_for_fixture(
                 "from": source_node_id,
                 "to": target_node_id,
                 "type": relationship["relation"],
-                "citations": [
-                    slice_by_node[source_node_id],
-                    slice_by_node[target_node_id],
-                ],
+                "citations": sorted(
+                    set(slice_ids_by_node[source_node_id])
+                    | set(slice_ids_by_node[target_node_id])
+                ),
                 "rationale": "Fixture host proposal uses prepared source evidence.",
             }
         )
@@ -177,28 +186,53 @@ def _replayed_source_slices(
     replay = control["replay"]
     preflight = replay["preflight"]
     candidates = {
-        str(item["source_node_id"]): item
-        for item in preflight["candidate_source_slices"]
+        str(item["slice_id"]): item for item in preflight["candidate_source_slices"]
     }
     result = []
     for binding in control["source_bindings"]:
-        candidate = candidates[str(binding["source_node_id"])]
-        result.append(
-            {
-                "skill_id": binding["skill_id"],
-                "source_node_id": binding["source_node_id"],
-                "relative_path": binding["relative_path"],
-                "source_path": f"{workspace_root}/{binding['relative_path']}",
-                "content": candidate["content"],
-                "char_start": candidate["char_start"],
-                "char_end": candidate["char_end"],
-                "slice_id": candidate["slice_id"],
-                "source_digest": candidate["source_digest"],
-                "slice_digest": candidate["slice_digest"],
-                "content_digest": candidate["source_digest"],
-            }
-        )
+        for cited_slice in binding["cited_slices"]:
+            candidate = candidates[str(cited_slice["slice_id"])]
+            result.append(
+                {
+                    "skill_id": binding["skill_id"],
+                    "source_node_id": binding["source_node_id"],
+                    "relative_path": binding["relative_path"],
+                    "source_path": f"{workspace_root}/{binding['relative_path']}",
+                    "content": candidate["content"],
+                    "char_start": candidate["char_start"],
+                    "char_end": candidate["char_end"],
+                    "slice_id": candidate["slice_id"],
+                    "source_digest": candidate["source_digest"],
+                    "slice_digest": candidate["slice_digest"],
+                    "content_digest": candidate["source_digest"],
+                }
+            )
     return result
+
+
+def _candidate_slice(
+    node: dict[str, object],
+    *,
+    content: str,
+    char_start: int,
+    char_end: int,
+) -> dict[str, object]:
+    source_digest = str(node["content_digest"])
+    slice_digest = content_digest_for(content)
+    source_node_id = str(node["id"])
+    return {
+        "slice_id": "slice-"
+        + stable_digest(
+            [source_digest, slice_digest, char_start, char_end, source_node_id], 20
+        ),
+        "source_node_id": source_node_id,
+        "source_digest": source_digest,
+        "slice_digest": slice_digest,
+        "source_role": "active_skill",
+        "content": content,
+        "char_start": char_start,
+        "char_end": char_end,
+    }
 
 
 class CompositionBenchmarkProtocolTests(unittest.TestCase):
@@ -301,6 +335,92 @@ class CompositionBenchmarkProtocolTests(unittest.TestCase):
                 preflight["diagnostics"]["semantic_evidence"]["selection_policy"],
                 "all_active_source_candidates",
             )
+
+    def test_role_binding_keeps_multiple_bounded_citations_for_one_skill(self) -> None:
+        fixture = copy.deepcopy(self.behavioral["fixtures"][0])
+        fixture["skill_sources"][0]["content"] = (
+            "# Discovery\n"
+            + ("Capture source-backed constraints before editing.\n" * 90)
+            + "# Handoff\n"
+            + ("Record the produced handoff and exit gate.\n" * 90)
+        )
+        nodes = fixture_source_nodes(fixture)
+        nodes_by_skill = {str(node["skill_id"]): node for node in nodes}
+        first = nodes_by_skill[str(fixture["skill_sources"][0]["skill_id"])]
+        second = nodes_by_skill[str(fixture["skill_sources"][1]["skill_id"])]
+        first_content = str(fixture["skill_sources"][0]["content"])
+        split_at = first_content.index("# Handoff")
+        first_slices = [
+            _candidate_slice(
+                first,
+                content=first_content[:split_at].strip(),
+                char_start=0,
+                char_end=split_at,
+            ),
+            _candidate_slice(
+                first,
+                content=first_content[split_at:].strip(),
+                char_start=split_at,
+                char_end=len(first_content),
+            ),
+        ]
+        second_content = str(fixture["skill_sources"][1]["content"])
+        second_slice = _candidate_slice(
+            second,
+            content=second_content,
+            char_start=0,
+            char_end=len(second_content),
+        )
+        plan = {
+            "skill_roles": [
+                {"node_id": first["id"], "citations": [first_slices[0]["slice_id"]]},
+                {"node_id": second["id"], "citations": [second_slice["slice_id"]]},
+            ],
+            "typed_edges": [
+                {
+                    "from": first["id"],
+                    "to": second["id"],
+                    "type": "produces",
+                    "citations": [first_slices[1]["slice_id"], second_slice["slice_id"]],
+                }
+            ],
+            "handoff_contracts": [],
+            "ordered_stages": [
+                {
+                    "node_ids": [first["id"]],
+                    "bridge_instructions": [
+                        {"node_id": first["id"], "citations": [first_slices[1]["slice_id"]]}
+                    ],
+                },
+                {
+                    "node_ids": [second["id"]],
+                    "bridge_instructions": [
+                        {"node_id": second["id"], "citations": [second_slice["slice_id"]]}
+                    ],
+                },
+            ],
+        }
+        preflight = {"candidate_source_slices": [*first_slices, second_slice]}
+        bindings, selected, _edges = _role_projection(
+            fixture,
+            {"composition_plan": plan},
+            preflight,
+        )
+        self.assertEqual(selected, [first["skill_id"], second["skill_id"]])
+        self.assertEqual(
+            [item["slice_id"] for item in bindings[0]["cited_slices"]],
+            [item["slice_id"] for item in first_slices],
+        )
+        self.assertEqual(
+            [item["slice_digest"] for item in bindings[0]["cited_slices"]],
+            [item["slice_digest"] for item in first_slices],
+        )
+        reordered, _selected, _reordered_edges = _role_projection(
+            fixture,
+            {"composition_plan": plan},
+            {"candidate_source_slices": list(reversed(preflight["candidate_source_slices"]))},
+        )
+        self.assertEqual(bindings, reordered)
 
     def test_control_plan_replays_compiler_and_derives_real_variant_inputs(
         self,
@@ -432,6 +552,193 @@ class CompositionBenchmarkProtocolTests(unittest.TestCase):
                 routing_golden=self.routing,
                 behavioral_fixtures=self.behavioral,
             )
+
+    def test_context_accounting_binds_all_cited_source_slices_deterministically(
+        self,
+    ) -> None:
+        plan, _artifacts = build_benchmark_preparation(
+            routing_golden=self.routing,
+            behavioral_fixtures=self.behavioral,
+        )
+        controls = build_benchmark_control_plan(
+            run_plan=plan,
+            semantic_proposals=_semantic_proposal_bundle(
+                plan,
+                self.routing,
+                self.behavioral,
+            ),
+            routing_golden=self.routing,
+            behavioral_fixtures=self.behavioral,
+        )
+        control = controls["behavioral_controls"][0]
+        replay = control["replay"]
+        preflight = copy.deepcopy(replay["preflight"])
+        source_bindings = copy.deepcopy(control["source_bindings"])
+        plan_projection = copy.deepcopy(replay["packet"]["composition_plan"])
+        selected_node_id = source_bindings[0]["source_node_id"]
+        selected = next(
+            item
+            for item in preflight["candidate_source_slices"]
+            if item["source_node_id"] == selected_node_id
+        )
+        content = str(selected["content"])
+        split_at = max(1, content.rfind("\n", 1, len(content) - 1))
+        if split_at == 1:
+            split_at = len(content) // 2
+        parts = []
+        for start, end in ((0, split_at), (split_at, len(content))):
+            part_content = content[start:end].strip()
+            self.assertTrue(part_content)
+            part_start = int(selected["char_start"]) + start
+            part_end = int(selected["char_start"]) + end
+            part_digest = content_digest_for(part_content)
+            parts.append(
+                {
+                    **selected,
+                    "slice_id": "slice-"
+                    + stable_digest(
+                        [
+                            selected["source_digest"],
+                            part_digest,
+                            part_start,
+                            part_end,
+                            selected_node_id,
+                        ],
+                        20,
+                    ),
+                    "slice_digest": part_digest,
+                    "content": part_content,
+                    "char_start": part_start,
+                    "char_end": part_end,
+                    "token_estimate": max(1, len(part_content) // 4),
+                }
+            )
+        preflight["candidate_source_slices"] = [
+            item
+            for item in preflight["candidate_source_slices"]
+            if item["slice_id"] != selected["slice_id"]
+        ] + parts
+        source_bindings[0]["cited_slices"] = [
+            {
+                key: part[key]
+                for key in (
+                    "slice_id",
+                    "source_digest",
+                    "slice_digest",
+                    "char_start",
+                    "char_end",
+                )
+            }
+            for part in parts
+        ]
+
+        def replace_citation(citations: list[str]) -> list[str]:
+            return [
+                citation
+                for source_slice_id in citations
+                for citation in (
+                    [part["slice_id"] for part in parts]
+                    if source_slice_id == selected["slice_id"]
+                    else [source_slice_id]
+                )
+            ]
+
+        for role in plan_projection["skill_roles"]:
+            role["citations"] = replace_citation(role["citations"])
+        for edge in plan_projection["typed_edges"]:
+            edge["citations"] = replace_citation(edge["citations"])
+        for stage in plan_projection["ordered_stages"]:
+            for bridge in stage["bridge_instructions"]:
+                bridge["citations"] = replace_citation(bridge["citations"])
+            for contract in stage.get("handoff_contracts", []):
+                contract["citations"] = replace_citation(contract["citations"])
+        for contract in plan_projection.get("handoff_contracts", []):
+            contract["citations"] = replace_citation(contract["citations"])
+
+        accounting = _compiled_context_accounting(
+            preflight=preflight,
+            plan=plan_projection,
+            source_bindings=source_bindings,
+            packet=replay["packet"],
+        )
+        reordered_preflight = copy.deepcopy(preflight)
+        reordered_preflight["candidate_source_slices"].reverse()
+        self.assertEqual(
+            accounting,
+            _compiled_context_accounting(
+                preflight=reordered_preflight,
+                plan=plan_projection,
+                source_bindings=source_bindings,
+                packet=replay["packet"],
+            ),
+        )
+        stage_capsule = next(
+            capsule
+            for capsule in accounting["phase_capsules"]
+            if selected_node_id in capsule["source_ids"]
+        )
+        self.assertTrue(
+            {part["slice_id"] for part in parts}.issubset(
+                set(stage_capsule["source_slice_ids"])
+            )
+        )
+        fixture = next(
+            item
+            for item in self.behavioral["fixtures"]
+            if item["fixture_id"] == control["fixture_id"]
+        )
+        replayed_slices = _replayed_source_slices(
+            {
+                **control,
+                "source_bindings": source_bindings,
+                "replay": {**replay, "preflight": preflight},
+            },
+            workspace_root="/bounded/fixture",
+        )
+        bound, _slice_ids, _source_nodes, _slices_by_id = validate_source_slice_bindings(
+            str(fixture["fixture_id"]),
+            list(control["selected_skill_ids"]),
+            {"source_slices": replayed_slices},
+            validate_fixture_skill_sources(str(fixture["fixture_id"]), fixture),
+        )
+        self.assertTrue(
+            {part["slice_id"] for part in parts}.issubset(bound[source_bindings[0]["skill_id"]])
+        )
+        forged_slice = copy.deepcopy(replayed_slices)
+        forged_slice[0]["content"] += " forged"
+        with self.assertRaisesRegex(ValueError, "fixture source range"):
+            validate_source_slice_bindings(
+                str(fixture["fixture_id"]),
+                list(control["selected_skill_ids"]),
+                {"source_slices": forged_slice},
+                validate_fixture_skill_sources(str(fixture["fixture_id"]), fixture),
+            )
+        self.assertEqual(
+            [part["slice_digest"] for part in parts],
+            [
+                digest
+                for slice_id, digest in zip(
+                    stage_capsule["source_slice_ids"],
+                    stage_capsule["source_slice_digests"],
+                    strict=True,
+                )
+                if slice_id in {part["slice_id"] for part in parts}
+            ],
+        )
+        uncited_preflight = copy.deepcopy(preflight)
+        uncited_preflight["candidate_source_slices"].append(copy.deepcopy(selected))
+        uncited = _compiled_context_accounting(
+            preflight=uncited_preflight,
+            plan=plan_projection,
+            source_bindings=source_bindings,
+            packet=replay["packet"],
+        )
+        uncited_runtime_sources = [
+            source["source_slice_id"]
+            for capsule in uncited["phase_capsules"]
+            for source in capsule["capsule"]["sources"]
+        ]
+        self.assertNotIn(selected["slice_id"], uncited_runtime_sources)
 
     def test_replayed_graph_identity_matches_compiler_and_ignores_workspace_root(
         self,

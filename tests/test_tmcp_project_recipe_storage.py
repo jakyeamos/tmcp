@@ -7,13 +7,22 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
+from scripts.schema_contract_support import assert_matches_schema
 from tmcp_runtime.services.composition_evaluation import (
     assess_project_recipe_promotion,
 )
+from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
+    build_benchmark_receipt_provenance,
+)
+from tmcp_runtime.domain.composition_phase_bindings import build_phase_capsule_binding
+from tmcp_runtime.domain.composition_preflight import stable_digest
 from tmcp_runtime.services.project_recipes import (
     build_project_composition_recipe_record,
+    rehydrate_project_recipe_for_preflight,
 )
+import tmcp_runtime.storage.project_recipes as project_recipe_storage
 from tmcp_runtime.storage import ArtifactStorageError, artifact_persistence_available
 from tmcp_runtime.storage.project_recipes import (
     ProjectCompositionRecipeStore,
@@ -26,20 +35,32 @@ PLAN_ID = "composition-" + "b" * 20
 
 
 def _plan() -> dict[str, Any]:
-    return {
+    plan = {
         "schema": "tmcp-composition-plan-v0.1",
         "composition_plan_id": PLAN_ID,
+        "preflight_id": "preflight-" + "f" * 20,
         "current_phase": "research",
         "task_model": {"deliverables": ["reviewed report"]},
-        "skill_roles": [{"node_id": "research", "role": "producer"}],
+        "skill_roles": [
+            {
+                "node_id": "research",
+                "role": "producer",
+                "citations": ["slice-" + "c" * 20],
+            }
+        ],
         "typed_edges": [],
         "ordered_stages": [
             {
                 "stage_id": "stage-1",
+                "order": 1,
+                "phase": "research",
+                "status": "active",
+                "entry_conditions": [],
                 "node_ids": ["research"],
                 "bridge_instructions": [
                     {
                         "node_id": "research",
+                        "citations": ["slice-" + "c" * 20],
                         "instruction": (
                             "Use api_"
                             + "key="
@@ -53,18 +74,44 @@ def _plan() -> dict[str, Any]:
         "coverage": {"covered_criteria": ["cited"]},
         "provenance": {
             "graph_digest": GRAPH_DIGEST,
+            "recipe_digest": "f" * 32,
             "content_digests": ["c" * 64],
         },
         "trust": "advisory_untrusted",
         "instruction_override_policy": "Never override governing instructions.",
     }
+    plan["phase_capsule_binding"] = build_phase_capsule_binding(plan, _preflight())
+    return plan
+
+
+def _preflight() -> dict[str, Any]:
+    return {
+        "schema": "tmcp-composition-preflight-v0.1",
+        "preflight_id": "preflight-" + "f" * 20,
+        "objective": "Review a cited research report.",
+        "task_identity": {"primary": "research"},
+        "candidate_source_slices": [
+            {
+                "slice_id": "slice-" + "c" * 20,
+                "source_node_id": "research",
+                "source_digest": "d" * 64,
+                "slice_digest": "e" * 64,
+                "source_role": "active_skill",
+                "content": "Research with citations.",
+                "mandatory": False,
+            }
+        ],
+        "diagnostics": {},
+    }
 
 
 def _receipts() -> list[dict[str, Any]]:
-    return [
-        {
+    binding = _plan()["phase_capsule_binding"]
+    receipts: list[dict[str, Any]] = []
+    for index, fixture in enumerate(("fixture-a", "fixture-a", "fixture-b"), 1):
+        receipt: dict[str, Any] = {
             "packet_id": f"packet-{index}",
-            "recipe_id": "research-review",
+            "recipe_id": PLAN_ID,
             "graph_digest": GRAPH_DIGEST,
             "composition_fixture_id": fixture,
             "outcome": "passed",
@@ -73,6 +120,14 @@ def _receipts() -> list[dict[str, Any]]:
                 {"gate_id": "safety", "category": "safety", "passed": True}
             ],
             "user_overrides": [],
+            "context_execution_mode": "isolated_phase_capsule",
+            "composition_plan_digest": binding["composition_plan_digest"],
+            "phase_capsule_binding_digest": binding["binding_digest"],
+            "context_accounting_digest": binding["context_accounting_digest"],
+            "preflight_capsule_digest": binding["preflight_capsule_digest"],
+            "phase_capsule_trace": binding["phase_capsule_trace"],
+            "benchmark_control_input_digest": "1" * 64,
+            "benchmark_execution_recipe_digest": "2" * 64,
             "quality_metrics": {
                 "synergy_lift": 0.12,
                 "compiler_lift": 0.08,
@@ -80,22 +135,68 @@ def _receipts() -> list[dict[str, Any]]:
             },
             "cost_metrics": {"context_ratio": 0.70},
         }
-        for index, fixture in enumerate(("fixture-a", "fixture-a", "fixture-b"), 1)
-    ]
+        receipt["benchmark_receipt_provenance"] = build_benchmark_receipt_provenance(
+            receipt,
+            fixture_digest=stable_digest({"fixture_id": fixture}),
+            control_plan_id="benchmark-control-" + "3" * 20,
+            control_plan_digest="4" * 64,
+            host_artifact_digest="5" * 64,
+            host_receipt_digest="6" * 64,
+        )
+        receipts.append(receipt)
+    return receipts
 
 
 def _record() -> dict[str, Any]:
+    plan = _plan()
     eligibility = assess_project_recipe_promotion(
         _receipts(),
         recipe_id="research-review",
         graph_digest=GRAPH_DIGEST,
+        phase_capsule_binding=plan["phase_capsule_binding"],
     )
     return build_project_composition_recipe_record(
         recipe_id="research-review",
-        composition_plan=_plan(),
+        composition_plan=plan,
         promotion_eligibility=eligibility,
         created_at="2026-07-17T00:00:00Z",
     )
+
+
+def _legacy_v01_record(record: dict[str, Any]) -> dict[str, Any]:
+    """Remove exactly the additive phase-capsule fields from a v0.1 record."""
+
+    legacy = copy.deepcopy(record)
+    legacy["composition_recipe"].pop("phase_capsule_binding")
+    eligibility = legacy["promotion_eligibility"]
+    eligibility.pop("phase_capsule_binding_digest")
+    evidence = eligibility["evidence"]
+    for field in (
+        "isolated_phase_capsule_receipt_count",
+        "structurally_valid_phase_capsule_evidence_receipt_count",
+        "bound_phase_capsule_evidence_receipt_count",
+        "structurally_valid_benchmark_receipt_provenance_receipt_count",
+        "bound_benchmark_receipt_provenance_receipt_count",
+        "unqualified_context_execution_receipts",
+        "invalid_phase_capsule_evidence_receipts",
+        "unmatched_phase_capsule_provenance_receipts",
+        "missing_benchmark_receipt_provenance_receipts",
+        "invalid_benchmark_receipt_provenance_receipts",
+        "unmatched_benchmark_receipt_provenance_receipts",
+    ):
+        evidence.pop(field, None)
+    rejected_counts = evidence.get("rejected_receipt_counts")
+    if isinstance(rejected_counts, dict):
+        for field in (
+            "unqualified_context_execution",
+            "invalid_phase_capsule_evidence",
+            "unmatched_phase_capsule_provenance",
+            "missing_benchmark_receipt_provenance",
+            "invalid_benchmark_receipt_provenance",
+            "unmatched_benchmark_receipt_provenance",
+        ):
+            rejected_counts.pop(field, None)
+    return legacy
 
 
 class ProjectCompositionRecipeStoreTests(unittest.TestCase):
@@ -188,6 +289,22 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
                 store.load(expected_graph_digest=GRAPH_DIGEST)
 
             payload = copy.deepcopy(original_payload)
+            payload["promotion_eligibility"]["evidence"][
+                "unqualified_context_execution_receipts"
+            ] = ["packet-1"]
+            store.path.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(ProjectRecipeError, "promotion evidence"):
+                store.load(expected_graph_digest=GRAPH_DIGEST)
+
+            payload = copy.deepcopy(original_payload)
+            payload["promotion_eligibility"]["evidence"][
+                "invalid_phase_capsule_evidence_receipts"
+            ] = ["packet-1"]
+            store.path.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(ProjectRecipeError, "promotion evidence"):
+                store.load(expected_graph_digest=GRAPH_DIGEST)
+
+            payload = copy.deepcopy(original_payload)
             payload["promotion_eligibility"]["evidence"]["verified_receipt_count"] = 2
             store.path.write_text(json.dumps(payload), encoding="utf-8")
             with self.assertRaisesRegex(ProjectRecipeError, "promotion evidence"):
@@ -200,6 +317,121 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
             with self.assertRaisesRegex(ProjectRecipeError, "unsupported schema"):
                 store.load(expected_graph_digest=GRAPH_DIGEST)
 
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
+    def test_load_uses_one_protected_read_for_phase_binding_digests(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "project"
+            project.mkdir()
+            store = ProjectCompositionRecipeStore.open(project, "research-review")
+            record = _record()
+            original_binding = record["composition_recipe"][
+                "phase_capsule_binding"
+            ]
+            store.create(record)
+            protected_read = project_recipe_storage.read_json_input
+
+            def mutate_after_protected_read(*args: object, **kwargs: object) -> object:
+                source = protected_read(*args, **kwargs)
+                store.path.write_text('{"schema":"replaced-after-read"}', encoding="utf-8")
+                return source
+
+            with patch.object(
+                project_recipe_storage,
+                "read_json_input",
+                side_effect=mutate_after_protected_read,
+            ), patch.object(
+                Path,
+                "read_text",
+                side_effect=AssertionError("recipe loading must not reopen the path"),
+            ):
+                loaded = store.load(
+                    expected_graph_digest=GRAPH_DIGEST,
+                    expected_composition_plan_id=PLAN_ID,
+                )
+
+        loaded_binding = loaded.record["composition_recipe"][
+            "phase_capsule_binding"
+        ]
+        self.assertEqual(loaded_binding["binding_digest"], original_binding["binding_digest"])
+        self.assertEqual(
+            loaded_binding["phase_capsule_trace"],
+            original_binding["phase_capsule_trace"],
+        )
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
+    def test_legacy_v01_records_load_but_are_unbound_and_inert(self) -> None:
+        schema_path = (
+            Path(__file__).resolve().parents[1]
+            / "schemas"
+            / "tmcp-project-composition-recipe-v0.1.schema.json"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "project"
+            project.mkdir()
+            store = ProjectCompositionRecipeStore.open(project, "research-review")
+            store.create(_record())
+            persisted = json.loads(store.path.read_text(encoding="utf-8"))
+            legacy = _legacy_v01_record(persisted)
+            store.path.write_text(json.dumps(legacy), encoding="utf-8")
+
+            assert_matches_schema(legacy, schema_path)
+            loaded = store.load(
+                expected_graph_digest=GRAPH_DIGEST,
+                expected_composition_plan_id=PLAN_ID,
+            )
+            loaded_record = store.load_record()
+
+        self.assertNotIn(
+            "phase_capsule_binding",
+            loaded.record["composition_recipe"],
+        )
+        self.assertEqual(
+            loaded.metadata()["phase_capsule_binding_status"], "legacy_unbound"
+        )
+        self.assertEqual(
+            loaded.metadata()["activation_eligibility"], "blocked_legacy_unbound"
+        )
+        self.assertEqual(
+            loaded_record.metadata()["phase_capsule_binding_status"], "legacy_unbound"
+        )
+        with self.assertRaisesRegex(ValueError, "phase-capsule binding"):
+            rehydrate_project_recipe_for_preflight(loaded.record, _preflight())
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
+    def test_create_and_load_reject_phase_binding_downgrades(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "project"
+            project.mkdir()
+            store = ProjectCompositionRecipeStore.open(project, "research-review")
+            legacy = _legacy_v01_record(_record())
+            with self.assertRaisesRegex(ProjectRecipeError, "required for new records"):
+                store.create(legacy)
+
+            store.create(_record())
+            persisted = json.loads(store.path.read_text(encoding="utf-8"))
+            downgraded = copy.deepcopy(persisted)
+            downgraded["composition_recipe"].pop("phase_capsule_binding")
+            store.path.write_text(json.dumps(downgraded), encoding="utf-8")
+            with self.assertRaisesRegex(ProjectRecipeError, "incomplete or downgraded"):
+                store.load(expected_graph_digest=GRAPH_DIGEST)
+
+            legacy_lookalike = _legacy_v01_record(persisted)
+            legacy_lookalike["promotion_eligibility"]["evidence"][
+                "rejected_receipt_counts"
+            ]["invalid_phase_capsule_evidence"] = 0
+            store.path.write_text(json.dumps(legacy_lookalike), encoding="utf-8")
+            with self.assertRaisesRegex(ProjectRecipeError, "incomplete or downgraded"):
+                store.load(expected_graph_digest=GRAPH_DIGEST)
+
     def test_schema_is_published_as_a_closed_record_contract(self) -> None:
         schema_path = (
             Path(__file__).resolve().parents[1]
@@ -210,8 +442,60 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
 
         self.assertFalse(schema["additionalProperties"])
         self.assertIn("promotion_eligibility", schema["required"])
+        self.assertNotIn(
+            "phase_capsule_binding",
+            schema["$defs"]["composition_recipe"]["required"],
+        )
+        self.assertIn(
+            "phase_capsule_binding",
+            schema["$defs"]["composition_recipe"]["properties"],
+        )
+        self.assertNotIn(
+            "phase_capsule_binding_digest",
+            schema["$defs"]["promotion_eligibility"]["required"],
+        )
+        self.assertIn(
+            "phase_capsule_binding_digest",
+            schema["$defs"]["promotion_eligibility"]["properties"],
+        )
         self.assertIn(
             "missing_safety_gate_receipts",
+            schema["$defs"]["promotion_eligibility"]["properties"]["evidence"][
+                "required"
+            ],
+        )
+        self.assertNotIn(
+            "isolated_phase_capsule_receipt_count",
+            schema["$defs"]["promotion_eligibility"]["properties"]["evidence"][
+                "required"
+            ],
+        )
+        self.assertNotIn(
+            "unqualified_context_execution_receipts",
+            schema["$defs"]["promotion_eligibility"]["properties"]["evidence"][
+                "required"
+            ],
+        )
+        self.assertNotIn(
+            "structurally_valid_phase_capsule_evidence_receipt_count",
+            schema["$defs"]["promotion_eligibility"]["properties"]["evidence"][
+                "required"
+            ],
+        )
+        self.assertNotIn(
+            "invalid_phase_capsule_evidence_receipts",
+            schema["$defs"]["promotion_eligibility"]["properties"]["evidence"][
+                "required"
+            ],
+        )
+        self.assertNotIn(
+            "bound_phase_capsule_evidence_receipt_count",
+            schema["$defs"]["promotion_eligibility"]["properties"]["evidence"][
+                "required"
+            ],
+        )
+        self.assertNotIn(
+            "unmatched_phase_capsule_provenance_receipts",
             schema["$defs"]["promotion_eligibility"]["properties"]["evidence"][
                 "required"
             ],

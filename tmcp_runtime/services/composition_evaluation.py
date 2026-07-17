@@ -3,10 +3,21 @@
 from __future__ import annotations
 
 import math
+import re
 from collections.abc import Mapping, Sequence
 from statistics import median
 from typing import Any
 
+from tmcp_runtime.domain.composition_phase_bindings import (
+    PhaseCapsuleBindingError,
+    receipt_matches_phase_capsule_binding,
+    validate_phase_capsule_binding,
+)
+from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
+    BENCHMARK_RECEIPT_PROVENANCE_FIELD,
+    benchmark_provenance_matches_phase_capsule_binding,
+    validate_benchmark_receipt_provenance,
+)
 
 COMPOSITION_EVALUATION_SCHEMA = "tmcp-composition-evaluation-summary-v0.1"
 PROJECT_RECIPE_PROMOTION_SCHEMA = "tmcp-project-recipe-promotion-eligibility-v0.1"
@@ -17,6 +28,11 @@ DEFAULT_MINIMUM_SYNERGY_LIFT = 0.10
 DEFAULT_MINIMUM_COMPILER_LIFT = 0.05
 DEFAULT_MINIMUM_ORDER_LIFT = 0.05
 DEFAULT_MAXIMUM_CONTEXT_RATIO = 0.75
+ISOLATED_PHASE_CAPSULE_EXECUTION_MODE = "isolated_phase_capsule"
+_SHA256_DIGEST_RE = re.compile(r"[a-f0-9]{64}")
+_SAFE_PHASE_CAPSULE_TRACE_FIELDS = frozenset(
+    {"stage_id", "capsule_digest", "incoming_handoff_digests"}
+)
 
 _PASS_STATUSES = {"ok", "pass", "passed", "success", "succeeded", "verified"}
 _FAIL_STATUSES = {"block", "blocked", "error", "fail", "failed", "failure"}
@@ -433,6 +449,68 @@ def _has_override(receipt: Mapping[str, Any]) -> bool:
     )
 
 
+def _has_isolated_phase_capsule_execution(receipt: Mapping[str, Any]) -> bool:
+    return (
+        str(receipt.get("context_execution_mode") or "").strip()
+        == ISOLATED_PHASE_CAPSULE_EXECUTION_MODE
+    )
+
+
+def _is_sha256_digest(value: object) -> bool:
+    return isinstance(value, str) and _SHA256_DIGEST_RE.fullmatch(value) is not None
+
+
+def _has_valid_safe_phase_capsule_evidence(receipt: Mapping[str, Any]) -> bool:
+    """Validate the safe, persistable projection without accepting host ids."""
+
+    if "execution_context" in receipt or "benchmark_host_receipt" in receipt:
+        return False
+    if not _is_sha256_digest(receipt.get("context_accounting_digest")):
+        return False
+    if not _is_sha256_digest(receipt.get("preflight_capsule_digest")):
+        return False
+    trace = receipt.get("phase_capsule_trace")
+    if not isinstance(trace, list) or not trace:
+        return False
+    stage_ids: set[str] = set()
+    for item in trace:
+        if (
+            not isinstance(item, Mapping)
+            or set(item) != _SAFE_PHASE_CAPSULE_TRACE_FIELDS
+        ):
+            return False
+        stage_id = item.get("stage_id")
+        if (
+            not isinstance(stage_id, str)
+            or not stage_id.strip()
+            or stage_id in stage_ids
+        ):
+            return False
+        stage_ids.add(stage_id)
+        if not _is_sha256_digest(item.get("capsule_digest")):
+            return False
+        handoff_digests = item.get("incoming_handoff_digests")
+        if not isinstance(handoff_digests, list) or any(
+            not _is_sha256_digest(digest) for digest in handoff_digests
+        ):
+            return False
+        if len(handoff_digests) != len(set(handoff_digests)):
+            return False
+    return True
+
+
+def _benchmark_receipt_provenance_status(receipt: Mapping[str, Any]) -> str:
+    """Classify closed benchmark provenance without treating it as authenticated."""
+
+    if BENCHMARK_RECEIPT_PROVENANCE_FIELD not in receipt:
+        return "missing"
+    try:
+        validate_benchmark_receipt_provenance(receipt)
+    except ValueError:
+        return "invalid"
+    return "valid"
+
+
 def _receipt_metrics(receipt: Mapping[str, Any]) -> dict[str, float] | None:
     quality = _optional_mapping(receipt.get("quality_metrics"))
     cost = _optional_mapping(receipt.get("cost_metrics"))
@@ -467,6 +545,7 @@ def assess_project_recipe_promotion(
     *,
     recipe_id: str,
     graph_digest: str,
+    phase_capsule_binding: Mapping[str, Any] | None = None,
     minimum_receipts: int = DEFAULT_MINIMUM_RECEIPTS,
     minimum_fixtures: int = DEFAULT_MINIMUM_FIXTURES,
     minimum_synergy_lift: float = DEFAULT_MINIMUM_SYNERGY_LIFT,
@@ -480,6 +559,18 @@ def assess_project_recipe_promotion(
     clean_graph_digest = graph_digest.strip()
     if not clean_recipe_id or not clean_graph_digest:
         raise ValueError("Recipe promotion requires recipe_id and graph_digest.")
+    try:
+        expected_phase_capsule_binding = validate_phase_capsule_binding(
+            phase_capsule_binding
+        )
+    except PhaseCapsuleBindingError as exc:
+        raise ValueError(
+            "Recipe promotion requires a valid compiler-issued phase-capsule binding."
+        ) from exc
+    if expected_phase_capsule_binding["graph_digest"] != clean_graph_digest:
+        raise ValueError(
+            "Recipe promotion phase-capsule binding does not match graph_digest."
+        )
     if isinstance(receipts, (str, bytes)):
         raise ValueError("Recipe promotion receipts must be a sequence of objects.")
     if minimum_receipts < 1 or minimum_fixtures < 1:
@@ -508,6 +599,12 @@ def assess_project_recipe_promotion(
     safety_failures: list[str] = []
     missing_safety_gate_receipts: list[str] = []
     override_receipts: list[str] = []
+    unqualified_context_execution_receipts: list[str] = []
+    invalid_phase_capsule_evidence_receipts: list[str] = []
+    unmatched_phase_capsule_provenance_receipts: list[str] = []
+    missing_benchmark_receipt_provenance_receipts: list[str] = []
+    invalid_benchmark_receipt_provenance_receipts: list[str] = []
+    unmatched_benchmark_receipt_provenance_receipts: list[str] = []
     rejected_counts = {
         "different_recipe": 0,
         "different_graph_digest": 0,
@@ -516,12 +613,25 @@ def assess_project_recipe_promotion(
         "failing_safety_gate_evidence": 0,
         "missing_fixture_id": 0,
         "missing_metrics": 0,
+        "unqualified_context_execution": 0,
+        "invalid_phase_capsule_evidence": 0,
+        "unmatched_phase_capsule_provenance": 0,
+        "missing_benchmark_receipt_provenance": 0,
+        "invalid_benchmark_receipt_provenance": 0,
+        "unmatched_benchmark_receipt_provenance": 0,
     }
     matching_digest_count = 0
+    structurally_valid_phase_capsule_evidence_count = 0
+    bound_phase_capsule_evidence_count = 0
+    structurally_valid_benchmark_receipt_provenance_count = 0
+    bound_benchmark_receipt_provenance_count = 0
     for index, receipt in enumerate(receipts, start=1):
         if not isinstance(receipt, Mapping):
             raise ValueError("Each recipe promotion receipt must be an object.")
-        if str(receipt.get("recipe_id") or "").strip() != clean_recipe_id:
+        if str(receipt.get("recipe_id") or "").strip() not in {
+            clean_recipe_id,
+            expected_phase_capsule_binding["composition_plan_id"],
+        }:
             rejected_counts["different_recipe"] += 1
             continue
         if str(receipt.get("graph_digest") or "").strip() != clean_graph_digest:
@@ -531,12 +641,68 @@ def assess_project_recipe_promotion(
         receipt_label = str(receipt.get("packet_id") or f"receipt-{index}")
         failures = _safety_failures(receipt)
         safety_gate_status = _safety_gate_evidence_status(receipt)
+        has_valid_phase_capsule_evidence = _has_valid_safe_phase_capsule_evidence(
+            receipt
+        )
+        has_bound_phase_capsule_evidence = (
+            has_valid_phase_capsule_evidence
+            and receipt_matches_phase_capsule_binding(
+                receipt,
+                expected_phase_capsule_binding,
+            )
+        )
+        benchmark_provenance_status = _benchmark_receipt_provenance_status(receipt)
+        has_valid_benchmark_receipt_provenance = (
+            benchmark_provenance_status == "valid"
+        )
+        has_bound_benchmark_receipt_provenance = (
+            has_valid_benchmark_receipt_provenance
+            and benchmark_provenance_matches_phase_capsule_binding(
+                receipt,
+                expected_phase_capsule_binding,
+            )
+        )
+        context_execution_is_qualified = (
+            has_bound_phase_capsule_evidence
+            and has_bound_benchmark_receipt_provenance
+            and _has_isolated_phase_capsule_execution(receipt)
+        )
         if failures:
             safety_failures.append(receipt_label)
         if safety_gate_status == "missing":
             missing_safety_gate_receipts.append(receipt_label)
         if _has_override(receipt):
             override_receipts.append(receipt_label)
+        if has_valid_phase_capsule_evidence:
+            structurally_valid_phase_capsule_evidence_count += 1
+            if has_bound_phase_capsule_evidence:
+                bound_phase_capsule_evidence_count += 1
+            else:
+                unmatched_phase_capsule_provenance_receipts.append(receipt_label)
+                rejected_counts["unmatched_phase_capsule_provenance"] += 1
+        else:
+            invalid_phase_capsule_evidence_receipts.append(receipt_label)
+            rejected_counts["invalid_phase_capsule_evidence"] += 1
+        if benchmark_provenance_status == "missing":
+            missing_benchmark_receipt_provenance_receipts.append(receipt_label)
+            rejected_counts["missing_benchmark_receipt_provenance"] += 1
+        elif has_valid_benchmark_receipt_provenance:
+            structurally_valid_benchmark_receipt_provenance_count += 1
+            if has_bound_benchmark_receipt_provenance:
+                bound_benchmark_receipt_provenance_count += 1
+            else:
+                unmatched_benchmark_receipt_provenance_receipts.append(receipt_label)
+                rejected_counts["unmatched_benchmark_receipt_provenance"] += 1
+        else:
+            invalid_benchmark_receipt_provenance_receipts.append(receipt_label)
+            rejected_counts["invalid_benchmark_receipt_provenance"] += 1
+        if (
+            has_bound_phase_capsule_evidence
+            and has_bound_benchmark_receipt_provenance
+            and not _has_isolated_phase_capsule_execution(receipt)
+        ):
+            unqualified_context_execution_receipts.append(receipt_label)
+            rejected_counts["unqualified_context_execution"] += 1
         if failures or safety_gate_status == "failed":
             rejected_counts["failing_safety_gate_evidence"] += 1
             continue
@@ -545,6 +711,16 @@ def assess_project_recipe_promotion(
             continue
         if not _verification_passed(receipt):
             rejected_counts["unverified"] += 1
+            continue
+        if not has_valid_phase_capsule_evidence:
+            continue
+        if not has_bound_phase_capsule_evidence:
+            continue
+        if not has_valid_benchmark_receipt_provenance:
+            continue
+        if not has_bound_benchmark_receipt_provenance:
+            continue
+        if not context_execution_is_qualified:
             continue
         fixture_id = str(receipt.get("composition_fixture_id") or "").strip()
         if not fixture_id:
@@ -580,6 +756,18 @@ def assess_project_recipe_promotion(
         blocking_reasons.append("missing_safety_gate_evidence")
     if override_receipts:
         blocking_reasons.append("override_present")
+    if unqualified_context_execution_receipts:
+        blocking_reasons.append("unqualified_context_execution")
+    if invalid_phase_capsule_evidence_receipts:
+        blocking_reasons.append("invalid_phase_capsule_evidence")
+    if unmatched_phase_capsule_provenance_receipts:
+        blocking_reasons.append("unmatched_phase_capsule_provenance")
+    if missing_benchmark_receipt_provenance_receipts:
+        blocking_reasons.append("missing_benchmark_receipt_provenance")
+    if invalid_benchmark_receipt_provenance_receipts:
+        blocking_reasons.append("invalid_benchmark_receipt_provenance")
+    if unmatched_benchmark_receipt_provenance_receipts:
+        blocking_reasons.append("unmatched_benchmark_receipt_provenance")
     metric_thresholds = (
         ("synergy_lift", "minimum_synergy_lift", False),
         ("compiler_lift", "minimum_compiler_lift", False),
@@ -603,6 +791,9 @@ def assess_project_recipe_promotion(
         "schema": PROJECT_RECIPE_PROMOTION_SCHEMA,
         "recipe_id": clean_recipe_id,
         "graph_digest": clean_graph_digest,
+        "phase_capsule_binding_digest": expected_phase_capsule_binding[
+            "binding_digest"
+        ],
         "cache_policy": "project",
         "explicit_promotion_required": True,
         "auto_promote": False,
@@ -613,6 +804,19 @@ def assess_project_recipe_promotion(
             "supplied_receipt_count": len(receipts),
             "matching_digest_receipt_count": matching_digest_count,
             "verified_receipt_count": len(qualifying),
+            "isolated_phase_capsule_receipt_count": len(qualifying),
+            "structurally_valid_phase_capsule_evidence_receipt_count": (
+                structurally_valid_phase_capsule_evidence_count
+            ),
+            "bound_phase_capsule_evidence_receipt_count": (
+                bound_phase_capsule_evidence_count
+            ),
+            "structurally_valid_benchmark_receipt_provenance_receipt_count": (
+                structurally_valid_benchmark_receipt_provenance_count
+            ),
+            "bound_benchmark_receipt_provenance_receipt_count": (
+                bound_benchmark_receipt_provenance_count
+            ),
             "fixture_count": len(fixture_ids),
             "fixture_ids": sorted(fixture_ids),
             "receipt_packet_ids": [
@@ -623,6 +827,24 @@ def assess_project_recipe_promotion(
             "safety_failure_receipts": safety_failures,
             "missing_safety_gate_receipts": missing_safety_gate_receipts,
             "override_receipts": override_receipts,
+            "unqualified_context_execution_receipts": (
+                unqualified_context_execution_receipts
+            ),
+            "invalid_phase_capsule_evidence_receipts": (
+                invalid_phase_capsule_evidence_receipts
+            ),
+            "unmatched_phase_capsule_provenance_receipts": (
+                unmatched_phase_capsule_provenance_receipts
+            ),
+            "missing_benchmark_receipt_provenance_receipts": (
+                missing_benchmark_receipt_provenance_receipts
+            ),
+            "invalid_benchmark_receipt_provenance_receipts": (
+                invalid_benchmark_receipt_provenance_receipts
+            ),
+            "unmatched_benchmark_receipt_provenance_receipts": (
+                unmatched_benchmark_receipt_provenance_receipts
+            ),
             "rejected_receipt_counts": rejected_counts,
         },
         "aggregate_metrics": aggregate_metrics,

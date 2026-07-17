@@ -8,7 +8,7 @@ from pathlib import Path
 
 from scripts.assemble_composition_benchmark import assemble_observations
 from scripts.run_composition_benchmark import run_benchmark
-from scripts.schema_contract_support import assert_matches_schema
+from scripts.schema_contract_support import SchemaAssertionError, assert_matches_schema
 from tests.test_tmcp_composition_benchmark_protocol import _semantic_proposal_bundle
 from tmcp_runtime.domain.composition_benchmark_assembly import (
     EVALUATOR_ARTIFACTS_SCHEMA,
@@ -29,7 +29,8 @@ from tmcp_runtime.domain.composition_runtime_evidence import (
     composition_gate_catalog,
     composition_handoff_catalog,
 )
-from tmcp_runtime.domain.receipts import build_run_receipt
+from tmcp_runtime.domain.composition_benchmarks import score_composition_benchmark
+from tmcp_runtime.domain.receipts import build_benchmark_host_receipt
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -119,7 +120,24 @@ def _receipt(
         runtime_plan = runtime["composition_plan"]
     if runtime is None:
         raise AssertionError("benchmark plan requires at least two stages")
-    return build_run_receipt(
+    context_instance_id = f"host-context-{fixture_id}"
+    execution_context = {
+        "schema": "tmcp-composition-benchmark-execution-context-v0.1",
+        "execution_context_mode": "same_host_transcript",
+        "context_accounting_digest": accounting["context_accounting_digest"],
+        "preflight_capsule_digest": accounting["preflight_capsule_digest"],
+        "preflight_context_instance_id": context_instance_id,
+        "phase_capsule_trace": [
+            {
+                "stage_id": capsule["stage_id"],
+                "capsule_digest": capsule["capsule_digest"],
+                "context_instance_id": context_instance_id,
+                "incoming_handoff_digests": capsule["incoming_handoff_digests"],
+            }
+            for capsule in accounting["phase_capsules"]
+        ],
+    }
+    return build_benchmark_host_receipt(
         {
         "packet_id": final_packet_id,
         "recipe_id": plan["composition_plan_id"],
@@ -147,6 +165,7 @@ def _receipt(
         "composition_fixture_id": fixture_id,
         "benchmark_control_input_digest": full["input_packet_digest"],
         "benchmark_execution_recipe_digest": full["execution_recipe_digest"],
+        "execution_context": execution_context,
         "outcome": "passed",
         },
         created_at="2026-07-17T00:00:00Z",
@@ -382,6 +401,72 @@ class CompositionBenchmarkAssemblyTests(unittest.TestCase):
                 "graph_digest"
             ],
         )
+        plan = first_control["replay"]["packet"]["composition_plan"]
+        full_variant = next(
+            item
+            for item in first_control["variants"]
+            if item["variant_id"] == "full_composition"
+        )
+        accounting = full_variant["execution_recipe"]["context_accounting"]
+        binding = plan["phase_capsule_binding"]
+        self.assertEqual(
+            binding["context_accounting_digest"],
+            accounting["context_accounting_digest"],
+        )
+        self.assertEqual(
+            binding["preflight_capsule_digest"],
+            accounting["preflight_capsule_digest"],
+        )
+        self.assertEqual(
+            binding["phase_capsule_trace"],
+            [
+                {
+                    "stage_id": capsule["stage_id"],
+                    "capsule_digest": capsule["capsule_digest"],
+                    "incoming_handoff_digests": capsule[
+                        "incoming_handoff_digests"
+                    ],
+                }
+                for capsule in accounting["phase_capsules"]
+            ],
+        )
+
+    def test_schema_rejects_full_composition_without_host_receipt(self) -> None:
+        _observations, host, _evaluator = self._assemble()
+        full_variant = next(
+            item
+            for item in host["behavioral_runs"][0]["variants"]
+            if item["variant_id"] == "full_composition"
+        )
+        full_variant.pop("tmcp_run_receipt")
+
+        with self.assertRaisesRegex(SchemaAssertionError, "missing required"):
+            assert_matches_schema(
+                host,
+                SCHEMAS / "tmcp-composition-benchmark-host-results-v0.1.schema.json",
+            )
+
+    def test_run_receipt_schema_rejects_unqualified_context_claim(self) -> None:
+        receipt = {
+            "schema": "tmcp-run-receipt-v0.1",
+            "created_at": "2026-07-17T00:00:00Z",
+            "packet_id": "packet-1",
+            "activated_atoms": [],
+            "ignored_atoms": [],
+            "commands_run": [],
+            "verification_results": [],
+            "user_overrides": [],
+            "outcome": "passed",
+            "trust": "advisory_untrusted",
+            "instruction_override_policy": "receipt policy",
+            "context_execution_mode": "isolated_phase_capsule",
+        }
+
+        with self.assertRaisesRegex(SchemaAssertionError, "forbidden schema"):
+            assert_matches_schema(
+                receipt,
+                SCHEMAS / "tmcp-run-receipt-v0.1.schema.json",
+            )
 
     def test_assembly_rejects_forged_control_input_and_evaluator_artifact(self) -> None:
         _observations, host, evaluator = self._assemble()
@@ -468,6 +553,60 @@ class CompositionBenchmarkAssemblyTests(unittest.TestCase):
                 host_results=forged_obligations,
                 evaluator_artifacts=evaluator,
             )
+        forged_context = copy.deepcopy(host)
+        execution_context = next(
+            item["tmcp_run_receipt"]["execution_context"]
+            for item in forged_context["behavioral_runs"][0]["variants"]
+            if item["variant_id"] == "full_composition"
+        )
+        execution_context["phase_capsule_trace"][0]["capsule_digest"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "phase capsule digest"):
+            assemble_benchmark_observations(
+                run_plan=self.run_plan,
+                semantic_proposals=self.proposals,
+                control_plan=self.controls,
+                routing_golden=self.routing,
+                behavioral_fixtures=self.behavioral,
+                host_results=forged_context,
+                evaluator_artifacts=evaluator,
+            )
+
+    def test_isolated_phase_context_qualifies_without_persisting_instance_ids(self) -> None:
+        host, evaluator = _host_and_evaluator(self.controls, self.behavioral)
+        for behavioral_run in host["behavioral_runs"]:
+            full = next(
+                item
+                for item in behavioral_run["variants"]
+                if item["variant_id"] == "full_composition"
+            )
+            context = full["tmcp_run_receipt"]["execution_context"]
+            context["execution_context_mode"] = "isolated_phase_capsule"
+            fixture_id = behavioral_run["fixture_id"]
+            context["preflight_context_instance_id"] = f"{fixture_id}-preflight"
+            for item in context["phase_capsule_trace"]:
+                item["context_instance_id"] = f"{fixture_id}-{item['stage_id']}"
+        observations = assemble_benchmark_observations(
+            run_plan=self.run_plan,
+            semantic_proposals=self.proposals,
+            control_plan=self.controls,
+            routing_golden=self.routing,
+            behavioral_fixtures=self.behavioral,
+            host_results=host,
+            evaluator_artifacts=evaluator,
+        )
+        summary = score_composition_benchmark(
+            golden_cases=self.routing["cases"],
+            fixture_definitions=self.behavioral["fixtures"],
+            routing_results=observations["routing_results"],
+            behavioral_results=observations["behavioral_results"],
+        )
+        self.assertTrue(summary["eligible"])
+        self.assertEqual(
+            summary["behavioral_metrics"]["qualified_context_execution_count"], 5
+        )
+        safe_receipt = observations["behavioral_results"][0]["run_receipt"]
+        self.assertNotIn("execution_context", safe_receipt)
+        self.assertNotIn("context_instance_id", json.dumps(safe_receipt))
 
     def test_domain_validator_reassembles_the_raw_evidence_bundles(self) -> None:
         observations, host, evaluator = self._assemble()
@@ -664,7 +803,8 @@ class CompositionBenchmarkAssemblyTests(unittest.TestCase):
             )
 
         self.assertFalse(summary["eligible"])
-        self.assertEqual(summary["failed_checks"], ["context_ratio"])
+        self.assertEqual(summary["failed_checks"], ["context_execution_mode"])
+        self.assertTrue(summary["acceptance_checks"]["context_ratio"])
 
 
 if __name__ == "__main__":

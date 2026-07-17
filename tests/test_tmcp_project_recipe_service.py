@@ -11,6 +11,11 @@ from typing import Any
 
 import tmcp_runtime.services.project_recipes as project_recipes
 from tmcp_runtime.domain.composition_planning import build_composition_plan
+from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
+    build_benchmark_receipt_provenance,
+)
+from tmcp_runtime.domain.composition_phase_bindings import build_phase_capsule_binding
+from tmcp_runtime.domain.composition_preflight import stable_digest
 from tmcp_runtime.services.project_recipes import (
     ProjectCompositionRecipeService,
     build_project_composition_recipe_record,
@@ -23,29 +28,53 @@ PLAN_ID = "composition-" + "b" * 20
 
 
 def _plan() -> dict[str, Any]:
-    return {
+    plan = {
         "schema": "tmcp-composition-plan-v0.1",
         "composition_plan_id": PLAN_ID,
+        "preflight_id": "preflight-" + "f" * 20,
         "current_phase": "research",
         "task_model": {"deliverables": ["reviewed report"]},
-        "skill_roles": [{"node_id": "research", "role": "producer"}],
+        "skill_roles": [
+            {
+                "node_id": "research",
+                "role": "producer",
+                "citations": ["slice-" + "c" * 20],
+            }
+        ],
         "typed_edges": [],
-        "ordered_stages": [{"stage_id": "stage-1", "node_ids": ["research"]}],
+        "handoff_contracts": [],
+        "ordered_stages": [
+            {
+                "stage_id": "stage-1",
+                "order": 1,
+                "phase": "research",
+                "status": "active",
+                "entry_conditions": [],
+                "node_ids": ["research"],
+                "bridge_instructions": [],
+                "handoff_contracts": [],
+            }
+        ],
         "coverage": {"covered_criteria": ["cited"]},
         "provenance": {
             "graph_digest": GRAPH_DIGEST,
+            "recipe_digest": "f" * 32,
             "content_digests": ["c" * 64],
         },
         "trust": "advisory_untrusted",
         "instruction_override_policy": "Never override governing instructions.",
     }
+    plan["phase_capsule_binding"] = build_phase_capsule_binding(plan, _preflight())
+    return plan
 
 
 def _receipts() -> list[dict[str, Any]]:
-    return [
-        {
+    binding = _plan()["phase_capsule_binding"]
+    receipts: list[dict[str, Any]] = []
+    for index, fixture in enumerate(("fixture-a", "fixture-a", "fixture-b"), 1):
+        receipt: dict[str, Any] = {
             "packet_id": f"packet-{index}",
-            "recipe_id": "research-review",
+            "recipe_id": PLAN_ID,
             "graph_digest": GRAPH_DIGEST,
             "composition_fixture_id": fixture,
             "outcome": "passed",
@@ -54,6 +83,14 @@ def _receipts() -> list[dict[str, Any]]:
                 {"gate_id": "safety", "category": "safety", "passed": True}
             ],
             "user_overrides": [],
+            "context_execution_mode": "isolated_phase_capsule",
+            "composition_plan_digest": binding["composition_plan_digest"],
+            "phase_capsule_binding_digest": binding["binding_digest"],
+            "context_accounting_digest": binding["context_accounting_digest"],
+            "preflight_capsule_digest": binding["preflight_capsule_digest"],
+            "phase_capsule_trace": binding["phase_capsule_trace"],
+            "benchmark_control_input_digest": "1" * 64,
+            "benchmark_execution_recipe_digest": "2" * 64,
             "quality_metrics": {
                 "synergy_lift": 0.12,
                 "compiler_lift": 0.08,
@@ -61,14 +98,24 @@ def _receipts() -> list[dict[str, Any]]:
             },
             "cost_metrics": {"context_ratio": 0.70},
         }
-        for index, fixture in enumerate(("fixture-a", "fixture-a", "fixture-b"), 1)
-    ]
+        receipt["benchmark_receipt_provenance"] = build_benchmark_receipt_provenance(
+            receipt,
+            fixture_digest=stable_digest({"fixture_id": fixture}),
+            control_plan_id="benchmark-control-" + "3" * 20,
+            control_plan_digest="4" * 64,
+            host_artifact_digest="5" * 64,
+            host_receipt_digest="6" * 64,
+        )
+        receipts.append(receipt)
+    return receipts
 
 
 def _preflight() -> dict[str, Any]:
     return {
         "schema": "tmcp-composition-preflight-v0.1",
         "preflight_id": "preflight-" + "f" * 20,
+        "objective": "Review a cited research report.",
+        "task_identity": {"primary": "research"},
         "candidate_source_slices": [
             {
                 "slice_id": "slice-" + "c" * 20,
@@ -120,6 +167,8 @@ def _handoff_preflight() -> dict[str, Any]:
     return {
         "schema": "tmcp-composition-preflight-v0.1",
         "preflight_id": "preflight-" + "1" * 20,
+        "objective": "Research, implement, and verify a bounded change.",
+        "task_identity": {"primary": "research-implementation"},
         "candidate_source_slices": [
             {
                 "slice_id": "slice-" + "1" * 20,
@@ -208,6 +257,9 @@ def _reusable_record() -> dict[str, Any]:
             "eligible": True,
             "recipe_id": "research-review",
             "graph_digest": plan["provenance"]["graph_digest"],
+            "phase_capsule_binding_digest": plan["phase_capsule_binding"][
+                "binding_digest"
+            ],
         },
         created_at="2026-07-17T00:00:00Z",
     )
@@ -336,6 +388,23 @@ class ProjectCompositionRecipeServiceTests(unittest.TestCase):
 
         self.assertEqual(self.opened, [])
 
+    def test_promotion_rejects_malformed_safe_phase_capsule_evidence(self) -> None:
+        receipts = _receipts()
+        receipts[0]["phase_capsule_trace"][0]["capsule_digest"] = "invalid"
+
+        with self.assertRaisesRegex(ValueError, "invalid_phase_capsule_evidence"):
+            self.service.promote(
+                {
+                    "project_path": "/project",
+                    "recipe_id": "research-review",
+                    "composition_plan": _plan(),
+                    "receipts": receipts,
+                    "explicit_promotion": True,
+                }
+            )
+
+        self.assertEqual(self.opened, [])
+
     def test_load_is_exact_id_and_current_graph_only(self) -> None:
         result = self.service.load(
             {
@@ -390,6 +459,9 @@ class ProjectCompositionRecipeServiceTests(unittest.TestCase):
                 "eligible": True,
                 "recipe_id": "research-implementation",
                 "graph_digest": plan["provenance"]["graph_digest"],
+                "phase_capsule_binding_digest": plan["phase_capsule_binding"][
+                    "binding_digest"
+                ],
             },
             created_at="2026-07-17T00:00:00Z",
         )

@@ -8,6 +8,10 @@ from pathlib import Path
 from typing import Any
 
 from tmcp_runtime.api.evaluation import evaluate_skills
+from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
+    build_benchmark_receipt_provenance,
+)
+from tmcp_runtime.domain.composition_preflight import stable_digest
 import tmcp_runtime.services.composition_evaluation as composition_evaluation
 from tmcp_runtime.services.composition_evaluation import (
     assess_project_recipe_promotion,
@@ -186,25 +190,66 @@ class CompositionEvaluationTests(unittest.TestCase):
 
 
 class ProjectRecipePromotionTests(unittest.TestCase):
+    _GRAPH_DIGEST = "a" * 32
+    _PLAN_ID = "composition-" + "b" * 20
+    _PREFLIGHT_ID = "preflight-" + "c" * 20
+    _RECIPE_DIGEST = "d" * 32
+    _PLAN_DIGEST = "e" * 64
+
+    def _phase_capsule_binding(self) -> dict[str, Any]:
+        payload = {
+            "schema": "tmcp-composition-phase-capsule-binding-v0.1",
+            "composition_plan_id": self._PLAN_ID,
+            "composition_plan_digest": self._PLAN_DIGEST,
+            "preflight_id": self._PREFLIGHT_ID,
+            "graph_digest": self._GRAPH_DIGEST,
+            "recipe_digest": self._RECIPE_DIGEST,
+            "context_accounting_digest": "a" * 64,
+            "preflight_capsule_digest": "b" * 64,
+            "phase_capsule_trace": [
+                {
+                    "stage_id": "stage-1",
+                    "capsule_digest": "c" * 64,
+                    "incoming_handoff_digests": [],
+                }
+            ],
+        }
+        return {**payload, "binding_digest": stable_digest(payload)}
+
     def _receipt(
         self,
         packet_id: str,
         fixture_id: str,
         *,
-        graph_digest: str = "graph-123",
+        graph_digest: str | None = None,
         synergy_lift: float = 0.12,
         compiler_lift: float = 0.08,
         order_lift: float = 0.06,
         context_ratio: float = 0.70,
     ) -> dict[str, Any]:
-        return {
+        binding = self._phase_capsule_binding()
+        receipt: dict[str, Any] = {
             "packet_id": packet_id,
-            "recipe_id": "recipe-123",
-            "graph_digest": graph_digest,
+            "recipe_id": binding["composition_plan_id"],
+            "graph_digest": graph_digest or self._GRAPH_DIGEST,
             "composition_fixture_id": fixture_id,
             "outcome": "passed",
             "verification_results": ["focused tests passed"],
             "user_overrides": [],
+            "context_execution_mode": "isolated_phase_capsule",
+            "composition_plan_digest": binding["composition_plan_digest"],
+            "phase_capsule_binding_digest": binding["binding_digest"],
+            "benchmark_control_input_digest": "d" * 64,
+            "benchmark_execution_recipe_digest": "e" * 64,
+            "context_accounting_digest": "a" * 64,
+            "preflight_capsule_digest": "b" * 64,
+            "phase_capsule_trace": [
+                {
+                    "stage_id": "stage-1",
+                    "capsule_digest": "c" * 64,
+                    "incoming_handoff_digests": [],
+                }
+            ],
             "gate_results": [
                 {"gate_id": "safety-boundary", "category": "safety", "passed": True}
             ],
@@ -215,19 +260,34 @@ class ProjectRecipePromotionTests(unittest.TestCase):
             },
             "cost_metrics": {"context_ratio": context_ratio},
         }
+        self._refresh_provenance(receipt)
+        return receipt
+
+    def _refresh_provenance(self, receipt: dict[str, Any]) -> None:
+        receipt.pop("benchmark_receipt_provenance", None)
+        receipt["benchmark_receipt_provenance"] = build_benchmark_receipt_provenance(
+            receipt,
+            fixture_digest=stable_digest(
+                {"fixture_id": receipt["composition_fixture_id"]}
+            ),
+            control_plan_id="benchmark-control-" + "f" * 20,
+            control_plan_digest="1" * 64,
+            host_artifact_digest="2" * 64,
+            host_receipt_digest="3" * 64,
+        )
 
     def test_three_verified_receipts_across_two_fixtures_are_eligible(self) -> None:
         receipts = [
             self._receipt("packet-1", "fixture-a", synergy_lift=0.11),
             self._receipt("packet-2", "fixture-a", synergy_lift=0.12),
             self._receipt("packet-3", "fixture-b", synergy_lift=0.13),
-            self._receipt("old-graph", "fixture-c", graph_digest="old-digest"),
+            self._receipt("old-graph", "fixture-c", graph_digest="f" * 32),
         ]
-
         eligibility = assess_project_recipe_promotion(
             receipts,
             recipe_id="recipe-123",
-            graph_digest="graph-123",
+            graph_digest=self._GRAPH_DIGEST,
+            phase_capsule_binding=self._phase_capsule_binding(),
         )
 
         self.assertTrue(eligibility["eligible"])
@@ -243,6 +303,190 @@ class ProjectRecipePromotionTests(unittest.TestCase):
             1,
         )
         self.assertEqual(eligibility["aggregate_metrics"]["synergy_lift"], 0.12)
+        self.assertEqual(
+            eligibility["evidence"]["isolated_phase_capsule_receipt_count"], 3
+        )
+
+    def test_unrelated_but_well_formed_phase_digests_block_promotion(self) -> None:
+        receipts = [
+            self._receipt("packet-1", "fixture-a"),
+            self._receipt("packet-2", "fixture-a"),
+            self._receipt("packet-3", "fixture-b"),
+        ]
+        receipts[1]["phase_capsule_trace"][0]["capsule_digest"] = "f" * 64
+        self._refresh_provenance(receipts[1])
+
+        eligibility = assess_project_recipe_promotion(
+            receipts,
+            recipe_id="recipe-123",
+            graph_digest=self._GRAPH_DIGEST,
+            phase_capsule_binding=self._phase_capsule_binding(),
+        )
+
+        self.assertFalse(eligibility["eligible"])
+        self.assertIn(
+            "unmatched_phase_capsule_provenance", eligibility["blocking_reasons"]
+        )
+        self.assertEqual(
+            eligibility["evidence"]["structurally_valid_phase_capsule_evidence_receipt_count"],
+            3,
+        )
+        self.assertEqual(
+            eligibility["evidence"]["bound_phase_capsule_evidence_receipt_count"],
+            2,
+        )
+        self.assertEqual(
+            eligibility["evidence"]["unmatched_phase_capsule_provenance_receipts"],
+            ["packet-2"],
+        )
+
+    def test_same_host_or_missing_context_execution_blocks_promotion(self) -> None:
+        receipts = [
+            self._receipt("packet-1", "fixture-a"),
+            self._receipt("packet-2", "fixture-a"),
+            self._receipt("packet-3", "fixture-b"),
+        ]
+        receipts[0]["context_execution_mode"] = "same_host_transcript"
+        self._refresh_provenance(receipts[0])
+        receipts[1].pop("context_execution_mode")
+
+        eligibility = assess_project_recipe_promotion(
+            receipts,
+            recipe_id="recipe-123",
+            graph_digest=self._GRAPH_DIGEST,
+            phase_capsule_binding=self._phase_capsule_binding(),
+        )
+
+        self.assertFalse(eligibility["eligible"])
+        self.assertIn(
+            "unqualified_context_execution", eligibility["blocking_reasons"]
+        )
+        self.assertEqual(
+            eligibility["evidence"]["unqualified_context_execution_receipts"],
+            ["packet-1"],
+        )
+        self.assertEqual(
+            eligibility["evidence"]["rejected_receipt_counts"][
+                "unqualified_context_execution"
+            ],
+            1,
+        )
+        self.assertEqual(eligibility["evidence"]["verified_receipt_count"], 1)
+        self.assertEqual(
+            eligibility["evidence"]["invalid_benchmark_receipt_provenance_receipts"],
+            ["packet-2"],
+        )
+
+    def test_missing_benchmark_receipt_provenance_blocks_promotion_distinctly(
+        self,
+    ) -> None:
+        receipts = [
+            self._receipt("packet-1", "fixture-a"),
+            self._receipt("packet-2", "fixture-a"),
+            self._receipt("packet-3", "fixture-b"),
+        ]
+        receipts[0].pop("benchmark_receipt_provenance")
+
+        eligibility = assess_project_recipe_promotion(
+            receipts,
+            recipe_id="recipe-123",
+            graph_digest=self._GRAPH_DIGEST,
+            phase_capsule_binding=self._phase_capsule_binding(),
+        )
+
+        self.assertFalse(eligibility["eligible"])
+        self.assertIn(
+            "missing_benchmark_receipt_provenance",
+            eligibility["blocking_reasons"],
+        )
+        self.assertEqual(
+            eligibility["evidence"]["missing_benchmark_receipt_provenance_receipts"],
+            ["packet-1"],
+        )
+        self.assertEqual(
+            eligibility["evidence"]["rejected_receipt_counts"][
+                "missing_benchmark_receipt_provenance"
+            ],
+            1,
+        )
+
+    def test_invalid_and_unmatched_benchmark_receipt_provenance_are_metered(
+        self,
+    ) -> None:
+        receipts = [
+            self._receipt("packet-1", "fixture-a"),
+            self._receipt("packet-2", "fixture-a"),
+            self._receipt("packet-3", "fixture-b"),
+        ]
+        receipts[0]["benchmark_receipt_provenance"]["fixture_digest"] = "x" * 64
+        receipts[1]["phase_capsule_binding_digest"] = "f" * 64
+        self._refresh_provenance(receipts[1])
+
+        eligibility = assess_project_recipe_promotion(
+            receipts,
+            recipe_id="recipe-123",
+            graph_digest=self._GRAPH_DIGEST,
+            phase_capsule_binding=self._phase_capsule_binding(),
+        )
+
+        self.assertFalse(eligibility["eligible"])
+        self.assertIn(
+            "invalid_benchmark_receipt_provenance",
+            eligibility["blocking_reasons"],
+        )
+        self.assertIn(
+            "unmatched_benchmark_receipt_provenance",
+            eligibility["blocking_reasons"],
+        )
+        self.assertEqual(
+            eligibility["evidence"]["invalid_benchmark_receipt_provenance_receipts"],
+            ["packet-1"],
+        )
+        self.assertEqual(
+            eligibility["evidence"]["unmatched_benchmark_receipt_provenance_receipts"],
+            ["packet-2"],
+        )
+
+    def test_malformed_safe_phase_capsule_evidence_blocks_and_is_metered(self) -> None:
+        receipts = [
+            self._receipt("packet-1", "fixture-a"),
+            self._receipt("packet-2", "fixture-a"),
+            self._receipt("packet-3", "fixture-b"),
+        ]
+        receipts[0]["context_accounting_digest"] = "not-a-digest"
+        receipts[1]["phase_capsule_trace"] = [
+            {
+                "stage_id": "stage-1",
+                "capsule_digest": "c" * 64,
+                "incoming_handoff_digests": [],
+                "context_instance_id": "must-not-persist",
+            }
+        ]
+        receipts[2]["phase_capsule_trace"] = []
+        for receipt in receipts:
+            self._refresh_provenance(receipt)
+
+        eligibility = assess_project_recipe_promotion(
+            receipts,
+            recipe_id="recipe-123",
+            graph_digest=self._GRAPH_DIGEST,
+            phase_capsule_binding=self._phase_capsule_binding(),
+        )
+
+        self.assertFalse(eligibility["eligible"])
+        self.assertIn(
+            "invalid_phase_capsule_evidence", eligibility["blocking_reasons"]
+        )
+        self.assertEqual(
+            eligibility["evidence"]["invalid_phase_capsule_evidence_receipts"],
+            ["packet-1", "packet-2", "packet-3"],
+        )
+        self.assertEqual(
+            eligibility["evidence"]["rejected_receipt_counts"][
+                "invalid_phase_capsule_evidence"
+            ],
+            3,
+        )
 
     def test_safety_failure_and_override_block_promotion(self) -> None:
         receipts = [
@@ -262,7 +506,8 @@ class ProjectRecipePromotionTests(unittest.TestCase):
         eligibility = assess_project_recipe_promotion(
             receipts,
             recipe_id="recipe-123",
-            graph_digest="graph-123",
+            graph_digest=self._GRAPH_DIGEST,
+            phase_capsule_binding=self._phase_capsule_binding(),
         )
 
         self.assertFalse(eligibility["eligible"])
@@ -284,7 +529,8 @@ class ProjectRecipePromotionTests(unittest.TestCase):
         eligibility = assess_project_recipe_promotion(
             receipts,
             recipe_id="recipe-123",
-            graph_digest="graph-123",
+            graph_digest=self._GRAPH_DIGEST,
+            phase_capsule_binding=self._phase_capsule_binding(),
         )
 
         self.assertFalse(eligibility["eligible"])
@@ -316,7 +562,8 @@ class ProjectRecipePromotionTests(unittest.TestCase):
                 eligibility = assess_project_recipe_promotion(
                     receipts,
                     recipe_id="recipe-123",
-                    graph_digest="graph-123",
+                    graph_digest=self._GRAPH_DIGEST,
+                    phase_capsule_binding=self._phase_capsule_binding(),
                 )
 
                 self.assertFalse(eligibility["eligible"])
@@ -367,7 +614,8 @@ class ProjectRecipePromotionTests(unittest.TestCase):
         eligibility = assess_project_recipe_promotion(
             receipts,
             recipe_id="recipe-123",
-            graph_digest="graph-123",
+            graph_digest=self._GRAPH_DIGEST,
+            phase_capsule_binding=self._phase_capsule_binding(),
         )
 
         self.assertFalse(eligibility["eligible"])

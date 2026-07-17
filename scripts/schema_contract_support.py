@@ -105,6 +105,47 @@ def _validate(
                 f"{instance_path} does not match anyOf: {'; '.join(errors)}"
             )
 
+    negated = schema.get("not")
+    if isinstance(negated, dict):
+        try:
+            _validate(
+                value,
+                negated,
+                schema_path=schema_path,
+                root=root,
+                cache=cache,
+                instance_path=instance_path,
+            )
+        except SchemaAssertionError:
+            pass
+        else:
+            raise SchemaAssertionError(f"{instance_path} matches forbidden schema")
+
+    condition = schema.get("if")
+    if isinstance(condition, dict):
+        try:
+            _validate(
+                value,
+                condition,
+                schema_path=schema_path,
+                root=root,
+                cache=cache,
+                instance_path=instance_path,
+            )
+        except SchemaAssertionError:
+            branch = schema.get("else")
+        else:
+            branch = schema.get("then")
+        if isinstance(branch, dict):
+            _validate(
+                value,
+                branch,
+                schema_path=schema_path,
+                root=root,
+                cache=cache,
+                instance_path=instance_path,
+            )
+
     if "const" in schema and value != schema["const"]:
         raise SchemaAssertionError(
             f"{instance_path} expected const {schema['const']!r}, got {value!r}"

@@ -69,6 +69,14 @@
       "type": "string",
       "minLength": 1
     },
+    "composition_plan_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "phase_capsule_binding_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "content_digests": {
       "type": "array",
       "items": {
@@ -168,6 +176,53 @@
         }
       }
     },
+    "execution_context": {
+      "description": "Raw host-only phase-capsule residency evidence for a full-composition benchmark receipt.",
+      "$ref": "tmcp-composition-benchmark-execution-context-v0.1.schema.json"
+    },
+    "benchmark_host_receipt": {
+      "description": "Reserved marker for the in-memory composition benchmark host receipt path.",
+      "const": "tmcp-composition-benchmark-host-only-v0.1"
+    },
+    "context_execution_mode": {
+      "enum": ["isolated_phase_capsule", "same_host_transcript"]
+    },
+    "context_accounting_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "preflight_capsule_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "phase_capsule_trace": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stage_id",
+          "capsule_digest",
+          "incoming_handoff_digests"
+        ],
+        "properties": {
+          "stage_id": {"type": "string", "minLength": 1},
+          "capsule_digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "incoming_handoff_digests": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      }
+    },
     "composition_fixture_id": {
       "type": "string",
       "minLength": 1
@@ -180,6 +235,9 @@
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
     },
+    "benchmark_receipt_provenance": {
+      "$ref": "tmcp-composition-benchmark-receipt-provenance-v0.1.schema.json"
+    },
     "outcome": {
       "type": "string"
     },
@@ -189,5 +247,71 @@
     "instruction_override_policy": {
       "type": "string"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {"required": ["execution_context"]},
+      "then": {
+        "required": ["benchmark_host_receipt"],
+        "properties": {
+          "benchmark_host_receipt": {
+            "const": "tmcp-composition-benchmark-host-only-v0.1"
+          }
+        }
+      }
+    },
+    {
+      "if": {"required": ["benchmark_host_receipt"]},
+      "then": {
+        "required": ["execution_context"]
+      }
+    },
+    {
+      "if": {"required": ["benchmark_receipt_provenance"]},
+      "then": {
+        "required": [
+          "composition_fixture_id",
+          "benchmark_control_input_digest",
+          "benchmark_execution_recipe_digest",
+          "composition_plan_digest",
+          "phase_capsule_binding_digest",
+          "context_execution_mode",
+          "context_accounting_digest",
+          "preflight_capsule_digest",
+          "phase_capsule_trace"
+        ],
+        "not": {
+          "anyOf": [
+            {"required": ["execution_context"]},
+            {"required": ["benchmark_host_receipt"]},
+            {"required": ["host_artifact_digest"]},
+            {"required": ["host_receipt_digest"]}
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "not": {
+          "anyOf": [
+            {"required": ["benchmark_host_receipt"]},
+            {"required": ["benchmark_receipt_provenance"]}
+          ]
+        }
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {"required": ["execution_context"]},
+            {"required": ["context_execution_mode"]},
+            {"required": ["composition_fixture_id"]},
+            {"required": ["benchmark_control_input_digest"]},
+            {"required": ["benchmark_execution_recipe_digest"]},
+            {"required": ["host_artifact_digest"]},
+            {"required": ["host_receipt_digest"]}
+          ]
+        }
+      }
+    }
+  ]
 }

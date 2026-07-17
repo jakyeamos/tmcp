@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-context-accounting-v0.1.schema.json",
+  "title": "TMCP Composition Context Accounting v0.1",
+  "description": "Compiler-derived, deterministic accounting for phase-scoped composition context. The compiled and naive token fields are compatibility aliases for the runtime-peak and naive-union fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "policy",
+    "runtime_envelope",
+    "preflight_capsule",
+    "preflight_capsule_digest",
+    "preflight_discovery_tokens",
+    "phase_capsules",
+    "naive_union_capsule",
+    "naive_union_capsule_digest",
+    "runtime_peak_context_tokens",
+    "naive_union_context_tokens",
+    "context_ratio",
+    "same_host_transcript_tokens",
+    "compiled_context_tokens",
+    "naive_context_tokens",
+    "context_accounting_digest",
+    "context_digest"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-context-accounting-v0.1"},
+    "policy": {"const": "phase_capsule_runtime_peak_vs_naive_union"},
+    "runtime_envelope": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "preflight_capsule": {"$ref": "#/$defs/capsule_record"},
+    "preflight_capsule_digest": {"$ref": "#/$defs/digest"},
+    "preflight_discovery_tokens": {"$ref": "#/$defs/tokens"},
+    "phase_capsules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/phase_capsule"}
+    },
+    "naive_union_capsule": {"$ref": "#/$defs/capsule_record"},
+    "naive_union_capsule_digest": {"$ref": "#/$defs/digest"},
+    "runtime_peak_context_tokens": {"$ref": "#/$defs/tokens"},
+    "naive_union_context_tokens": {"$ref": "#/$defs/tokens"},
+    "context_ratio": {"type": "number", "minimum": 0},
+    "same_host_transcript_tokens": {"$ref": "#/$defs/tokens"},
+    "compiled_context_tokens": {
+      "description": "Compatibility alias for runtime_peak_context_tokens.",
+      "$ref": "#/$defs/tokens"
+    },
+    "naive_context_tokens": {
+      "description": "Compatibility alias for naive_union_context_tokens.",
+      "$ref": "#/$defs/tokens"
+    },
+    "context_accounting_digest": {"$ref": "#/$defs/digest"},
+    "context_digest": {
+      "description": "Compatibility alias for context_accounting_digest.",
+      "$ref": "#/$defs/digest"
+    }
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "tokens": {"type": "integer", "minimum": 0},
+    "capsule_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capsule", "canonical_json", "capsule_digest", "estimated_tokens"],
+      "properties": {
+        "capsule": {"type": "object", "additionalProperties": true},
+        "canonical_json": {"type": "string", "minLength": 1},
+        "capsule_digest": {"$ref": "#/$defs/digest"},
+        "estimated_tokens": {"$ref": "#/$defs/tokens"}
+      }
+    },
+    "identifier_list": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "digest_list": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/digest"}
+    },
+    "optional_digest_list": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/digest"}
+    },
+    "phase_capsule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage_id",
+        "stage_order",
+        "phase",
+        "source_ids",
+        "source_skill_ids",
+        "source_slice_ids",
+        "source_slice_digests",
+        "source_digests",
+        "content_digests",
+        "incoming_handoff_digests",
+        "capsule",
+        "canonical_json",
+        "capsule_digest",
+        "estimated_tokens"
+      ],
+      "properties": {
+        "stage_id": {"type": "string", "minLength": 1},
+        "stage_order": {"type": "integer", "minimum": 1},
+        "phase": {"type": "string", "minLength": 1},
+        "source_ids": {"$ref": "#/$defs/identifier_list"},
+        "source_skill_ids": {"$ref": "#/$defs/identifier_list"},
+        "source_slice_ids": {"$ref": "#/$defs/identifier_list"},
+        "source_slice_digests": {"$ref": "#/$defs/digest_list"},
+        "source_digests": {"$ref": "#/$defs/digest_list"},
+        "content_digests": {"$ref": "#/$defs/digest_list"},
+        "incoming_handoff_digests": {"$ref": "#/$defs/optional_digest_list"},
+        "capsule": {"type": "object", "additionalProperties": true},
+        "canonical_json": {"type": "string", "minLength": 1},
+        "capsule_digest": {"$ref": "#/$defs/digest"},
+        "estimated_tokens": {"$ref": "#/$defs/tokens"}
+      }
+    }
+  }
+}

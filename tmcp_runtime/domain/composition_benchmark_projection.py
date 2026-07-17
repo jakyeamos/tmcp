@@ -21,6 +21,9 @@ from tmcp_runtime.domain.composition_benchmark_manifests import (
 from tmcp_runtime.domain.composition_benchmark_protocol import (
     fixture_workspace_relative_path,
 )
+from tmcp_runtime.domain.composition_benchmark_replay_support import (
+    materialized_cited_source_slices,
+)
 from tmcp_runtime.domain.composition_benchmark_sources import (
     graph_digest_for_observation,
 )
@@ -37,46 +40,21 @@ def _source_slices(
     preflight = replay.get("preflight")
     if not isinstance(preflight, Mapping):
         raise ValueError("Behavioral control is missing its replay preflight.")
-    candidates = {
-        _nonempty(item.get("source_node_id"), field="preflight.source_node_id"): item
-        for item in _mapping_list(
-            preflight.get("candidate_source_slices"),
-            field="preflight.candidate_source_slices",
-        )
-    }
     workspace = fixture_workspace_relative_path(fixture)
     result: list[dict[str, Any]] = []
-    for binding in _mapping_list(
-        control.get("source_bindings"), field="source_bindings"
-    ):
-        skill_id = _nonempty(binding.get("skill_id"), field="source_binding.skill_id")
+    bindings = _mapping_list(control.get("source_bindings"), field="source_bindings")
+    for source in materialized_cited_source_slices(preflight, bindings):
+        skill_id = _nonempty(source.get("skill_id"), field="source_binding.skill_id")
         source_node_id = _nonempty(
-            binding.get("source_node_id"), field="source_binding.source_node_id"
+            source.get("source_node_id"), field="source_binding.source_node_id"
         )
-        candidate = candidates.get(source_node_id)
-        if candidate is None:
-            raise ValueError(
-                "Selected control source is missing from the replay preflight."
-            )
         content = _bounded_text(
-            candidate.get("content"),
+            source.get("content"),
             field=f"preflight.{source_node_id}.content",
             maximum=MAX_SOURCE_SLICE_CHARS,
         )
-        if candidate.get("char_start") != 0 or candidate.get("char_end") != len(
-            content
-        ):
-            raise ValueError(
-                "Benchmark observations require a complete selected source."
-            )
-        source_digest = _nonempty(
-            candidate.get("source_digest"),
-            field=f"preflight.{source_node_id}.source_digest",
-        )
-        if source_digest != binding.get("content_digest"):
-            raise ValueError("Replay source digest does not match its control binding.")
         relative_path = _nonempty(
-            binding.get("relative_path"), field="source_binding.relative_path"
+            source.get("relative_path"), field="source_binding.relative_path"
         )
         result.append(
             {
@@ -85,18 +63,15 @@ def _source_slices(
                 "relative_path": relative_path,
                 "source_path": f"/tmcp-benchmark/{workspace}/{relative_path}",
                 "content": content,
-                "char_start": 0,
-                "char_end": len(content),
-                "slice_id": _nonempty(
-                    candidate.get("slice_id"),
-                    field=f"preflight.{source_node_id}.slice_id",
-                ),
-                "source_digest": source_digest,
+                "char_start": source["char_start"],
+                "char_end": source["char_end"],
+                "slice_id": source["slice_id"],
+                "source_digest": source["source_digest"],
                 "slice_digest": _nonempty(
-                    candidate.get("slice_digest"),
+                    source.get("slice_digest"),
                     field=f"preflight.{source_node_id}.slice_digest",
                 ),
-                "content_digest": source_digest,
+                "content_digest": source["source_digest"],
             }
         )
     return result
@@ -272,6 +247,7 @@ def _behavioral_projection(
         "relationships": relationships,
         "compiled_context_tokens": compiled,
         "naive_context_tokens": naive,
+        "context_accounting": dict(accounting),
         "permitted_packet_ids": sorted(permitted_packet_ids),
         "permitted_atoms": permitted_atoms,
         "full_variant": dict(full_variant),

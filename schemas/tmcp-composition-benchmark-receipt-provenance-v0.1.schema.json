@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-benchmark-receipt-provenance-v0.1.schema.json",
+  "title": "TMCP Composition Benchmark Receipt Provenance v0.1",
+  "description": "Closed advisory provenance emitted only by compiler-bound benchmark assembly. It is deterministic integrity evidence, not cryptographic host authentication.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "provenance_id",
+    "fixture_id",
+    "fixture_digest",
+    "control_plan_id",
+    "control_plan_digest",
+    "composition_plan_id",
+    "composition_plan_digest",
+    "phase_capsule_binding_digest",
+    "graph_digest",
+    "control_input_digest",
+    "execution_recipe_digest",
+    "context_execution_mode",
+    "host_artifact_digest",
+    "host_receipt_digest",
+    "receipt_projection_digest",
+    "evidence_trust",
+    "provenance_digest"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-benchmark-receipt-provenance-v0.1"},
+    "provenance_id": {
+      "type": "string",
+      "pattern": "^benchmark-receipt-[a-f0-9]{20}$"
+    },
+    "fixture_id": {"type": "string", "minLength": 1},
+    "fixture_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "control_plan_id": {
+      "type": "string",
+      "pattern": "^benchmark-control-[a-f0-9]{20}$"
+    },
+    "control_plan_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "composition_plan_id": {
+      "type": "string",
+      "pattern": "^composition-[a-f0-9]{20}$"
+    },
+    "composition_plan_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "phase_capsule_binding_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "graph_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "control_input_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "execution_recipe_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "context_execution_mode": {
+      "enum": ["isolated_phase_capsule", "same_host_transcript"]
+    },
+    "host_artifact_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "host_receipt_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "receipt_projection_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "evidence_trust": {"const": "advisory_untrusted"},
+    "provenance_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

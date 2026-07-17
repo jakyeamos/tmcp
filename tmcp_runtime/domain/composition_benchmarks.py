@@ -13,10 +13,11 @@ from .composition_benchmark_contracts import (
     validate_receipt_metrics,
     validate_run_identity_and_receipt,
 )
+from .composition_benchmark_context import validate_projected_execution_context
 from .composition_benchmark_manifests import (
     validate_behavioral_manifests,
-    validate_routing_manifests,
 )
+from .composition_benchmark_routing import score_routing_benchmark
 from .composition_benchmark_sources import (
     graph_digest_for_observation,
     relationship_provenance_is_complete,
@@ -107,71 +108,6 @@ def _rounded(value: float) -> float:
 
 def _ratio(numerator: int, denominator: int) -> float:
     return _rounded(numerator / denominator) if denominator else 0.0
-
-
-def score_routing_benchmark(
-    golden_cases: Sequence[Mapping[str, Any]],
-    observed_results: Sequence[Mapping[str, Any]],
-) -> dict[str, Any]:
-    cases = _mapping_list(golden_cases, field="golden_cases")
-    results = _mapping_list(observed_results, field="observed_results")
-    case_index = _indexed(cases, id_field="case_id", collection="routing case")
-    result_index = _indexed(
-        results,
-        id_field="case_id",
-        collection="routing observation",
-    )
-    missing = sorted(set(case_index).difference(result_index))
-    unexpected = sorted(set(result_index).difference(case_index))
-    if missing or unexpected:
-        raise ValueError(
-            "Routing observations must match golden case ids exactly; "
-            f"missing={missing}, unexpected={unexpected}."
-        )
-
-    expected_total = 0
-    selected_total = 0
-    matched_total = 0
-    case_metrics: list[dict[str, Any]] = []
-    for case_id, case in case_index.items():
-        expected = _string_ids(
-            case.get("expected_skill_ids"),
-            field=f"{case_id}.expected_skill_ids",
-        )
-        observation = result_index[case_id]
-        selected = _string_ids(
-            observation.get("selected_skill_ids"),
-            field=f"{case_id}.selected_skill_ids",
-            allow_empty=True,
-        )
-        validate_routing_manifests(case, observation, selected)
-        expected_set = set(expected)
-        selected_set = set(selected)
-        matched = expected_set.intersection(selected_set)
-        expected_total += len(expected)
-        selected_total += len(selected)
-        matched_total += len(matched)
-        case_metrics.append(
-            {
-                "case_id": case_id,
-                "matched_skill_ids": sorted(matched),
-                "missing_skill_ids": sorted(expected_set.difference(selected_set)),
-                "unexpected_skill_ids": sorted(selected_set.difference(expected_set)),
-                "expected_skill_recall": _ratio(len(matched), len(expected)),
-                "selected_skill_precision": _ratio(len(matched), len(selected)),
-            }
-        )
-    return {
-        "case_count": len(cases),
-        "observed_case_count": len(results),
-        "missing_case_ids": [],
-        "expected_skill_count": expected_total,
-        "selected_skill_count": selected_total,
-        "matched_skill_count": matched_total,
-        "expected_skill_recall": _ratio(matched_total, expected_total),
-        "selected_skill_precision": _ratio(matched_total, selected_total),
-        "cases": case_metrics,
-    }
 
 
 def _relationship_target(relationship: Mapping[str, Any]) -> str:
@@ -319,6 +255,8 @@ def _score_behavioral_benchmark(
     compiler_lifts: list[float] = []
     order_lifts: list[float] = []
     context_ratios: list[float] = []
+    qualified_context_execution_count = 0
+    unqualified_context_execution_fixtures: list[str] = []
 
     for fixture_id, fixture in fixture_index.items():
         observation = observation_index[fixture_id]
@@ -356,6 +294,19 @@ def _score_behavioral_benchmark(
             source_slices,
             observation,
         )
+        context_accounting = observation.get("context_accounting")
+        if not isinstance(context_accounting, Mapping):
+            raise ValueError(f"{fixture_id}.context_accounting is required.")
+        execution_context = validate_projected_execution_context(
+            run_receipt,
+            context_accounting=context_accounting,
+        )
+        if observation.get("context_execution_mode") != execution_context[
+            "execution_context_mode"
+        ]:
+            raise ValueError(
+                f"{fixture_id}.context_execution_mode must match the run receipt."
+            )
         evaluation_provenance = validate_evaluation_provenance(
             fixture_id,
             fixture,
@@ -482,11 +433,40 @@ def _score_behavioral_benchmark(
             raise ValueError(
                 f"{fixture_id} context tokens require compiled >= 0 and naive > 0."
             )
+        expected_compiled_tokens = _finite_number(
+            context_accounting.get("runtime_peak_context_tokens"),
+            field=f"{fixture_id}.context_accounting.runtime_peak_context_tokens",
+        )
+        expected_naive_tokens = _finite_number(
+            context_accounting.get("naive_union_context_tokens"),
+            field=f"{fixture_id}.context_accounting.naive_union_context_tokens",
+        )
+        if (
+            not math.isclose(
+                compiled_tokens,
+                expected_compiled_tokens,
+                rel_tol=0.0,
+                abs_tol=1e-9,
+            )
+            or not math.isclose(
+                naive_tokens,
+                expected_naive_tokens,
+                rel_tol=0.0,
+                abs_tol=1e-9,
+            )
+        ):
+            raise ValueError(
+                f"{fixture_id} context aliases must match compiler phase accounting."
+            )
         raw_context_ratio = compiled_tokens / naive_tokens
         context_ratio = _rounded(raw_context_ratio)
         total_compiled_tokens += compiled_tokens
         total_naive_tokens += naive_tokens
         context_ratios.append(raw_context_ratio)
+        if execution_context["qualified"]:
+            qualified_context_execution_count += 1
+        else:
+            unqualified_context_execution_fixtures.append(fixture_id)
 
         quality, raw_lifts = _fixture_quality_metrics(fixture_id, selected, observation)
         validate_behavioral_manifests(fixture, observation, selected)
@@ -520,6 +500,9 @@ def _score_behavioral_benchmark(
                     len(non_root_selected),
                 ),
                 "context_ratio": context_ratio,
+                "context_execution_mode": execution_context[
+                    "execution_context_mode"
+                ],
                 "quality_metrics": quality,
                 "evaluation_provenance": evaluation_provenance,
                 "preflight_id": str(observation["preflight_id"]),
@@ -534,6 +517,7 @@ def _score_behavioral_benchmark(
         "synergy_lift": median(synergy_lifts),
         "compiler_lift": median(compiler_lifts),
         "order_lift": median(order_lifts),
+        "context_execution_mode": not unqualified_context_execution_fixtures,
     }
     return {
         "fixture_count": len(fixtures),
@@ -555,6 +539,8 @@ def _score_behavioral_benchmark(
         ),
         "context_ratio": _rounded(total_compiled_tokens / total_naive_tokens),
         "maximum_fixture_context_ratio": _rounded(max(context_ratios)),
+        "qualified_context_execution_count": qualified_context_execution_count,
+        "unqualified_context_execution_fixtures": unqualified_context_execution_fixtures,
         "quality_metrics": {
             "synergy_lift": _rounded(median(synergy_lifts)),
             "compiler_lift": _rounded(median(compiler_lifts)),
@@ -623,6 +609,7 @@ def score_composition_benchmark(
             and raw_behavioral["maximum_fixture_context_ratio"]
             <= resolved_thresholds["maximum_context_ratio"]
         ),
+        "context_execution_mode": raw_behavioral["context_execution_mode"],
         "synergy_lift": (
             raw_behavioral["synergy_lift"] >= resolved_thresholds["synergy_lift"]
         ),

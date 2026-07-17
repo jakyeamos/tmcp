@@ -13,6 +13,14 @@ from tmcp_runtime.api.evaluation import evaluate_skills
 from tmcp_runtime.domain.composition_runtime import advance_composition_runtime
 from tmcp_runtime.domain.composition_benchmarks import score_composition_benchmark
 from tmcp_runtime.domain.behavior_manifests import build_behavior_manifest_index
+from tmcp_runtime.domain.composition_phase_capsules import (
+    build_phase_capsule_accounting,
+)
+from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
+    build_benchmark_receipt_provenance,
+)
+from tmcp_runtime.domain.composition_preflight import stable_digest
+from tmcp_runtime.domain.harvest_nodes import content_digest_for
 from tmcp_runtime.services.compose import (
     compose_packet_from_source_nodes,
     prepare_composition_from_source_nodes,
@@ -166,6 +174,150 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
             cache_home="[REDACTED:path]",
         )
 
+    @staticmethod
+    def _schema_instance_context_accounting(
+        observation: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Build compiler-shaped phase accounting for the published instance test."""
+
+        source_slices = observation["source_slices"]
+        source_contents: dict[str, dict[str, Any]] = {}
+        candidate_source_slices: list[dict[str, Any]] = []
+        for source in source_slices:
+            skill_id = str(source["skill_id"])
+            content = str(source["content"])
+            normalized_digest = content_digest_for(content)
+            source_digest = str(source["source_digest"])
+            source_contents[skill_id] = {
+                "skill_id": skill_id,
+                "source_node_id": str(source["source_node_id"]),
+                "source_slice_id": str(source["slice_id"]),
+                "source_role": "active_skill",
+                "content": content,
+                "content_digest": normalized_digest,
+                "source_digest": source_digest,
+            }
+            candidate_source_slices.append(
+                {
+                    "slice_id": str(source["slice_id"]),
+                    "source_node_id": str(source["source_node_id"]),
+                    "source_role": "active_skill",
+                    "source_digest": source_digest,
+                    "slice_digest": normalized_digest,
+                    "content": content,
+                }
+            )
+
+        stages = [
+            {
+                "stage_id": str(stage["stage_id"]),
+                "order": index,
+                "phase": f"benchmark-phase-{index}",
+                "status": "active" if index == 1 else "deferred",
+                "active_skill_ids": list(stage["active_skill_ids"]),
+                "entry_conditions": [],
+                "bridge_instructions": [],
+                "handoff_contracts": [],
+            }
+            for index, stage in enumerate(observation["active_stages"], start=1)
+        ]
+        typed_edges = [
+            {
+                "source_skill_id": str(relationship["source_id"]),
+                "target_skill_id": str(relationship["target_id"]),
+                "relationship_type": str(relationship["relation"]),
+            }
+            for relationship in observation["relationships"]
+        ]
+        composition_plan_id = str(observation["composition_plan_id"])
+        return build_phase_capsule_accounting(
+            task_model={
+                "deliverables": [f"{observation['fixture_id']} benchmark result"],
+                "success_criteria": ["phase-scoped execution is traceable"],
+                "constraints": ["retain compiler-derived source provenance"],
+            },
+            preflight={
+                "objective": f"Benchmark {observation['fixture_id']}",
+                "semantic_proposal_contract": {
+                    "schema": "tmcp-semantic-proposal-v0.1"
+                },
+                "behavior_manifest_index": {
+                    "schema": "tmcp-behavior-manifest-index-v0.1"
+                },
+                "candidate_source_slices": candidate_source_slices,
+            },
+            source_projection={
+                "composition_plan_id": composition_plan_id,
+                "composition_plan_digest": stable_digest(
+                    {"composition_plan_id": composition_plan_id}
+                ),
+                "graph_digest": str(observation["graph_digest"]),
+                "stages": stages,
+                "typed_edges": typed_edges,
+                "handoff_contracts": [],
+            },
+            source_contents=source_contents,
+            runtime_envelope={
+                "schema": "tmcp-composition-phase-runtime-envelope-v0.1",
+                "fixture_id": str(observation["fixture_id"]),
+                "composition_plan_id": composition_plan_id,
+                "graph_digest": str(observation["graph_digest"]),
+            },
+        )
+
+    @classmethod
+    def _attach_phase_capsule_schema_fields(
+        cls,
+        observation: dict[str, Any],
+    ) -> None:
+        """Attach a safe, compiler-shaped benchmark receipt to schema instances."""
+
+        accounting = observation.get("context_accounting")
+        if not isinstance(accounting, dict) or not {
+            "phase_capsules",
+            "context_accounting_digest",
+            "preflight_capsule_digest",
+            "runtime_peak_context_tokens",
+            "naive_union_context_tokens",
+        }.issubset(accounting):
+            accounting = cls._schema_instance_context_accounting(observation)
+            observation["context_accounting"] = accounting
+
+        phase_capsules = accounting["phase_capsules"]
+        safe_trace = [
+            {
+                "stage_id": str(capsule["stage_id"]),
+                "capsule_digest": str(capsule["capsule_digest"]),
+                "incoming_handoff_digests": list(
+                    capsule["incoming_handoff_digests"]
+                ),
+            }
+            for capsule in phase_capsules
+        ]
+        fixture_id = str(observation["fixture_id"])
+        compiled_tokens = accounting["runtime_peak_context_tokens"]
+        naive_tokens = accounting["naive_union_context_tokens"]
+        run_receipt = observation["run_receipt"]
+        run_receipt.update(
+            {
+                "cost_metrics": {
+                    "context_tokens": compiled_tokens,
+                    "context_ratio": round(compiled_tokens / naive_tokens, 4),
+                },
+                "context_execution_mode": "isolated_phase_capsule",
+                "context_accounting_digest": accounting["context_accounting_digest"],
+                "preflight_capsule_digest": accounting["preflight_capsule_digest"],
+                "phase_capsule_trace": safe_trace,
+            }
+        )
+        CompositionBenchmarkTests._refresh_benchmark_receipt_provenance(
+            run_receipt,
+            fixture_id=fixture_id,
+        )
+        observation["compiled_context_tokens"] = compiled_tokens
+        observation["naive_context_tokens"] = naive_tokens
+        observation["context_execution_mode"] = "isolated_phase_capsule"
+
     def test_prepare_accepted_rejected_and_recompiled_outputs_match_schemas(
         self,
     ) -> None:
@@ -310,6 +462,19 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
         builder.setUpClass()
         routing_results = builder._routing_results()
         behavioral_results = builder._behavioral_results()
+        fixtures_by_id = {
+            fixture["fixture_id"]: fixture for fixture in behavioral["fixtures"]
+        }
+        for result in behavioral_results:
+            builder._refresh_behavioral_integrity(
+                fixtures_by_id[result["fixture_id"]],
+                result,
+            )
+            self._attach_phase_capsule_schema_fields(result)
+            builder._refresh_behavioral_integrity(
+                fixtures_by_id[result["fixture_id"]],
+                result,
+            )
         observations = {
             "schema": "tmcp-composition-benchmark-observations-v0.1",
             "routing_results": routing_results,
@@ -322,6 +487,16 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
             behavioral_results=behavioral_results,
         )
         summary["observations_sha256"] = "a" * 64
+
+        for result in behavioral_results:
+            assert_matches_schema(
+                result["context_accounting"],
+                SCHEMAS / "tmcp-composition-context-accounting-v0.1.schema.json",
+            )
+            assert_matches_schema(
+                result["run_receipt"],
+                SCHEMAS / "tmcp-run-receipt-v0.1.schema.json",
+            )
 
         for payload, schema_name in (
             (routing, "tmcp-composition-routing-golden-v0.1.schema.json"),
@@ -347,10 +522,11 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
     def test_persisted_project_recipe_matches_published_schema(self) -> None:
         plan = self._compose(self.proposal)["composition_plan"]
         graph_digest = plan["provenance"]["graph_digest"]
+        phase_capsule_binding = plan["phase_capsule_binding"]
         receipts = [
             {
                 "packet_id": f"packet-{index}",
-                "recipe_id": "research-review",
+                "recipe_id": plan["composition_plan_id"],
                 "graph_digest": graph_digest,
                 "composition_fixture_id": fixture,
                 "outcome": "passed",
@@ -359,6 +535,24 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
                     {"gate_id": "safety", "category": "safety", "passed": True}
                 ],
                 "user_overrides": [],
+                "context_execution_mode": "isolated_phase_capsule",
+                "composition_plan_digest": phase_capsule_binding[
+                    "composition_plan_digest"
+                ],
+                "phase_capsule_binding_digest": phase_capsule_binding[
+                    "binding_digest"
+                ],
+                "context_accounting_digest": phase_capsule_binding[
+                    "context_accounting_digest"
+                ],
+                "preflight_capsule_digest": phase_capsule_binding[
+                    "preflight_capsule_digest"
+                ],
+                "phase_capsule_trace": phase_capsule_binding[
+                    "phase_capsule_trace"
+                ],
+                "benchmark_control_input_digest": "1" * 64,
+                "benchmark_execution_recipe_digest": "2" * 64,
                 "quality_metrics": {
                     "synergy_lift": 0.12,
                     "compiler_lift": 0.08,
@@ -370,10 +564,24 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
                 ("fixture-a", "fixture-a", "fixture-b"), start=1
             )
         ]
+        for receipt in receipts:
+            receipt["benchmark_receipt_provenance"] = (
+                build_benchmark_receipt_provenance(
+                    receipt,
+                    fixture_digest=stable_digest(
+                        {"fixture_id": receipt["composition_fixture_id"]}
+                    ),
+                    control_plan_id="benchmark-control-" + "3" * 20,
+                    control_plan_digest="4" * 64,
+                    host_artifact_digest="5" * 64,
+                    host_receipt_digest="6" * 64,
+                )
+            )
         eligibility = assess_project_recipe_promotion(
             receipts,
             recipe_id="research-review",
             graph_digest=graph_digest,
+            phase_capsule_binding=phase_capsule_binding,
         )
         record = build_project_composition_recipe_record(
             recipe_id="research-review",

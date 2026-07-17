@@ -116,7 +116,9 @@ def build_benchmark_control_plan(
             request=request,
             proposal=routing_proposals[case_id],
         )
-        _bindings, selected_skill_ids, _edges = _role_projection(fixture, packet)
+        _bindings, selected_skill_ids, _edges = _role_projection(
+            fixture, packet, preflight
+        )
         routing_controls.append(
             {
                 "case_id": case_id,
@@ -144,6 +146,7 @@ def build_benchmark_control_plan(
         source_bindings, selected_skill_ids, ordering_edges = _role_projection(
             fixture,
             packet,
+            preflight,
         )
         behavioral_controls.append(
             {

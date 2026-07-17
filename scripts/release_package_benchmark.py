@@ -6,6 +6,7 @@ import hashlib
 import json
 import re
 import sys
+import tempfile
 from pathlib import Path
 from typing import Protocol
 
@@ -13,12 +14,27 @@ from scripts.composition_benchmark_bundle import (
     BUNDLE_ARTIFACTS,
     BUNDLE_RELATIVE_PATH,
     CompositionBenchmarkBundleError,
+    freeze_composition_benchmark_artifacts,
     resolve_composition_benchmark_bundle,
 )
 
 
 COMPOSITION_BENCHMARK_MINIMUM_VERSION = (0, 6, 0)
 COMPOSITION_BENCHMARK_SUMMARY_SCHEMA = "tmcp-composition-benchmark-summary-v0.1"
+
+
+class BenchmarkArtifactPaths(dict[str, Path]):
+    """Resolved paths plus optional canonical hashes for a one-time freeze."""
+
+    def __init__(
+        self,
+        paths: dict[str, Path],
+        *,
+        expected_sha256: dict[str, str] | None = None,
+    ) -> None:
+        super().__init__(paths)
+        self.expected_sha256 = expected_sha256
+
 
 class JsonRunner(Protocol):
     def __call__(
@@ -45,6 +61,29 @@ class InputResolver(Protocol):
         evaluator_artifacts_path: Path | None,
         release_version: str,
     ) -> tuple[dict[str, Path] | None, str | None]: ...
+
+
+def materialize_frozen_composition_benchmark_artifacts(
+    artifacts: dict[str, bytes], directory: Path
+) -> dict[str, Path]:
+    """Write previously verified bytes into one private runner-input directory."""
+
+    directory.mkdir(parents=True, exist_ok=False)
+    paths: dict[str, Path] = {}
+    for label, filename in BUNDLE_ARTIFACTS:
+        content = artifacts.get(label)
+        if not isinstance(content, bytes):
+            raise CompositionBenchmarkBundleError(
+                f"frozen composition benchmark artifact is missing: {label}"
+            )
+        path = directory / filename
+        path.write_bytes(content)
+        paths[label] = path
+    if set(artifacts) != set(paths):
+        raise CompositionBenchmarkBundleError(
+            "frozen composition benchmark artifacts contain unexpected labels."
+        )
+    return paths
 
 
 def release_version_tuple(version: str) -> tuple[int, int, int]:
@@ -95,7 +134,9 @@ def resolve_composition_benchmark_inputs(
                 f"missing {', '.join(missing)}.",
             )
         return (
-            {label: path for label, path in supplied.items() if path is not None},
+            BenchmarkArtifactPaths(
+                {label: path for label, path in supplied.items() if path is not None}
+            ),
             None,
         )
 
@@ -109,14 +150,27 @@ def resolve_composition_benchmark_inputs(
         )
     try:
         source_root = source_plugin_root.expanduser().resolve(strict=True)
-        resolve_composition_benchmark_bundle(
+        bundle = resolve_composition_benchmark_bundle(
             source_root,
             require_git_clean=True,
         )
-        paths = {
-            label: source_root / BUNDLE_RELATIVE_PATH / filename
+        artifacts = bundle.get("artifacts")
+        if not isinstance(artifacts, dict):
+            raise CompositionBenchmarkBundleError("benchmark bundle artifacts are invalid.")
+        expected_sha256 = {
+            label: str(artifacts[filename]["sha256"])
             for label, filename in BUNDLE_ARTIFACTS
+            if isinstance(artifacts.get(filename), dict)
         }
+        if len(expected_sha256) != len(BUNDLE_ARTIFACTS):
+            raise CompositionBenchmarkBundleError("benchmark bundle artifact hashes are invalid.")
+        paths = BenchmarkArtifactPaths(
+            {
+                label: source_root / BUNDLE_RELATIVE_PATH / filename
+                for label, filename in BUNDLE_ARTIFACTS
+            },
+            expected_sha256=expected_sha256,
+        )
     except (CompositionBenchmarkBundleError, OSError) as exc:
         return (
             None,
@@ -158,36 +212,39 @@ def check_composition_benchmark(
     if artifact_paths is None:
         return True, f"not required for TMCP {release_version}"
     try:
-        observations = artifact_paths["observations"].expanduser().resolve(strict=True)
-        if not observations.is_file():
-            return False, "composition benchmark observations must be one regular file"
-        artifact_paths = {
-            label: path.expanduser().resolve(strict=True)
-            for label, path in artifact_paths.items()
-        }
-        if any(not path.is_file() for path in artifact_paths.values()):
-            return False, "composition benchmark artifacts must be regular files"
-        observations_digest = hashlib.sha256(observations.read_bytes()).hexdigest()
-    except OSError as exc:
-        return False, f"could not resolve composition benchmark observations: {exc}"
-    ok, output, payload = run_json(
-        [
-            sys.executable,
-            "scripts/run_composition_benchmark.py",
-            str(observations),
-            "--run-plan",
-            str(artifact_paths["run_plan"]),
-            "--semantic-proposals",
-            str(artifact_paths["semantic_proposals"]),
-            "--control-plan",
-            str(artifact_paths["control_plan"]),
-            "--host-results",
-            str(artifact_paths["host_results"]),
-            "--evaluator-artifacts",
-            str(artifact_paths["evaluator_artifacts"]),
-        ],
-        plugin_root,
-    )
+        frozen_artifacts = freeze_composition_benchmark_artifacts(
+            artifact_paths,
+            expected_sha256=getattr(artifact_paths, "expected_sha256", None),
+        )
+    except (CompositionBenchmarkBundleError, OSError) as exc:
+        return False, f"could not freeze composition benchmark artifacts: {exc}"
+    observations_digest = hashlib.sha256(frozen_artifacts["observations"]).hexdigest()
+    with tempfile.TemporaryDirectory(prefix="tmcp-benchmark-inputs-") as temporary:
+        try:
+            runner_paths = materialize_frozen_composition_benchmark_artifacts(
+                frozen_artifacts,
+                Path(temporary) / "inputs",
+            )
+        except (CompositionBenchmarkBundleError, OSError) as exc:
+            return False, f"could not materialize composition benchmark artifacts: {exc}"
+        ok, output, payload = run_json(
+            [
+                sys.executable,
+                "scripts/run_composition_benchmark.py",
+                str(runner_paths["observations"]),
+                "--run-plan",
+                str(runner_paths["run_plan"]),
+                "--semantic-proposals",
+                str(runner_paths["semantic_proposals"]),
+                "--control-plan",
+                str(runner_paths["control_plan"]),
+                "--host-results",
+                str(runner_paths["host_results"]),
+                "--evaluator-artifacts",
+                str(runner_paths["evaluator_artifacts"]),
+            ],
+            plugin_root,
+        )
     if not ok or payload is None:
         return False, output
     if validate_summary(payload):

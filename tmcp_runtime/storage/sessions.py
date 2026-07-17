@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Mapping
+from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from tmcp_runtime.domain.composition_phase_bindings import (
+    PhaseCapsuleBindingError,
+    validate_phase_capsule_binding,
+)
 from tmcp_runtime.safety import (
     collect_harvest_roots,
     redact_json_value,
@@ -49,6 +55,236 @@ _COMPOSED_PACKET_OBJECT_FIELDS = (
     "receipt_template",
     "safety",
 )
+_SHA256_DIGEST_PATTERN = re.compile(r"[a-f0-9]{64}")
+_PHASE_STAGE_ID_PATTERN = re.compile(r"stage-[0-9]+")
+_PHASE_BINDING_HASH_FIELDS = (
+    "composition_plan_digest",
+    "context_accounting_digest",
+    "preflight_capsule_digest",
+    "binding_digest",
+)
+_RECEIPT_PHASE_BINDING_HASH_FIELDS = (
+    "composition_plan_digest",
+    "phase_capsule_binding_digest",
+    "context_accounting_digest",
+    "preflight_capsule_digest",
+)
+_RECEIPT_PHASE_BINDING_FIELDS = (
+    *_RECEIPT_PHASE_BINDING_HASH_FIELDS,
+    "phase_capsule_trace",
+)
+_SESSION_PRESERVED_SHA256_PATHS = (
+    *(
+        ("packet", "composition_plan", "phase_capsule_binding", field)
+        for field in _PHASE_BINDING_HASH_FIELDS
+    ),
+    (
+        "packet",
+        "composition_plan",
+        "phase_capsule_binding",
+        "phase_capsule_trace",
+        "*",
+        "capsule_digest",
+    ),
+    (
+        "packet",
+        "composition_plan",
+        "phase_capsule_binding",
+        "phase_capsule_trace",
+        "*",
+        "incoming_handoff_digests",
+        "*",
+    ),
+    *(
+        ("packet", "receipt_template", field)
+        for field in _RECEIPT_PHASE_BINDING_FIELDS
+        if field != "phase_capsule_trace"
+    ),
+    (
+        "packet",
+        "receipt_template",
+        "phase_capsule_trace",
+        "*",
+        "capsule_digest",
+    ),
+    (
+        "packet",
+        "receipt_template",
+        "phase_capsule_trace",
+        "*",
+        "incoming_handoff_digests",
+        "*",
+    ),
+)
+
+
+def _preserved_sha256(
+    value: object,
+    *,
+    path: tuple[str | int, ...],
+    preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None,
+) -> object:
+    """Use an allowlisted literal captured in the protected JSON read.
+
+    ``read_json_input`` returns only exact 64-character lowercase SHA-256
+    values for requested paths.  Keeping this helper local prevents a session
+    restore from becoming a generic high-entropy-value bypass.
+    """
+
+    if preserved_sha256_literals is None:
+        return value
+    restored = preserved_sha256_literals.get(path)
+    if restored is None or _SHA256_DIGEST_PATTERN.fullmatch(restored) is None:
+        return value
+    return restored
+
+
+def _with_preserved_phase_hashes(
+    value: Mapping[str, Any],
+    *,
+    base_path: tuple[str | int, ...],
+    hash_fields: tuple[str, ...],
+    preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None,
+) -> dict[str, Any]:
+    """Return a closed phase projection with only approved hashes restored."""
+
+    candidate = deepcopy(dict(value))
+    for field in hash_fields:
+        candidate[field] = _preserved_sha256(
+            candidate.get(field),
+            path=(*base_path, field),
+            preserved_sha256_literals=preserved_sha256_literals,
+        )
+    trace = candidate.get("phase_capsule_trace")
+    if not isinstance(trace, list):
+        return candidate
+    for index, stage in enumerate(trace):
+        if not isinstance(stage, dict):
+            continue
+        stage_path = (*base_path, "phase_capsule_trace", index)
+        stage["capsule_digest"] = _preserved_sha256(
+            stage.get("capsule_digest"),
+            path=(*stage_path, "capsule_digest"),
+            preserved_sha256_literals=preserved_sha256_literals,
+        )
+        handoffs = stage.get("incoming_handoff_digests")
+        if not isinstance(handoffs, list):
+            continue
+        stage["incoming_handoff_digests"] = [
+            _preserved_sha256(
+                value,
+                path=(*stage_path, "incoming_handoff_digests", handoff_index),
+                preserved_sha256_literals=preserved_sha256_literals,
+            )
+            for handoff_index, value in enumerate(handoffs)
+        ]
+    return candidate
+
+
+def _phase_binding_projections(
+    packet: Mapping[str, Any],
+    *,
+    preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    """Validate the only compiler-bound fields a session may restore."""
+
+    plan = packet.get("composition_plan")
+    if not isinstance(plan, Mapping):
+        return None, None
+    raw_binding = plan.get("phase_capsule_binding")
+    if not isinstance(raw_binding, Mapping):
+        return None, None
+    binding_candidate = _with_preserved_phase_hashes(
+        raw_binding,
+        base_path=("packet", "composition_plan", "phase_capsule_binding"),
+        hash_fields=_PHASE_BINDING_HASH_FIELDS,
+        preserved_sha256_literals=preserved_sha256_literals,
+    )
+    try:
+        binding = validate_phase_capsule_binding(
+            binding_candidate,
+            composition_plan=plan if preserved_sha256_literals is None else None,
+        )
+    except PhaseCapsuleBindingError:
+        return None, None
+    raw_stages = plan.get("ordered_stages")
+    if not isinstance(raw_stages, list):
+        return None, None
+    expected_stage_ids: list[str] = []
+    for stage in raw_stages:
+        if not isinstance(stage, Mapping):
+            return None, None
+        stage_id = stage.get("stage_id")
+        if (
+            not isinstance(stage_id, str)
+            or _PHASE_STAGE_ID_PATTERN.fullmatch(stage_id) is None
+        ):
+            return None, None
+        expected_stage_ids.append(stage_id)
+    if [item["stage_id"] for item in binding["phase_capsule_trace"]] != expected_stage_ids:
+        return None, None
+    receipt = packet.get("receipt_template")
+    if not isinstance(receipt, Mapping):
+        return binding, None
+    receipt_candidate = _with_preserved_phase_hashes(
+        receipt,
+        base_path=("packet", "receipt_template"),
+        hash_fields=_RECEIPT_PHASE_BINDING_HASH_FIELDS,
+        preserved_sha256_literals=preserved_sha256_literals,
+    )
+    expected_receipt = {
+        "composition_plan_digest": binding["composition_plan_digest"],
+        "phase_capsule_binding_digest": binding["binding_digest"],
+        "context_accounting_digest": binding["context_accounting_digest"],
+        "preflight_capsule_digest": binding["preflight_capsule_digest"],
+        "phase_capsule_trace": deepcopy(binding["phase_capsule_trace"]),
+    }
+    if all(
+        receipt_candidate.get(field) == value
+        for field, value in expected_receipt.items()
+    ):
+        return binding, expected_receipt
+    return binding, None
+
+
+def _restore_session_phase_binding_fields(
+    source_packet: Mapping[str, Any],
+    safe_record: dict[str, Any],
+    *,
+    preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None = None,
+) -> None:
+    """Restore verified phase identities after generic sensitive-text redaction.
+
+    Session persistence intentionally keeps the ordinary redactor as the
+    default.  The narrow exception here is a compiler-issued phase binding:
+    it has a closed schema, is revalidated, and contains only IDs, SHA-256
+    identities, and the safe stage trace.  Source prose, unapproved hashes,
+    and benchmark host context are never copied back.
+    """
+
+    binding, receipt_fields = _phase_binding_projections(
+        source_packet,
+        preserved_sha256_literals=preserved_sha256_literals,
+    )
+    safe_packet = safe_record.get("packet")
+    if not isinstance(safe_packet, dict):
+        return
+    safe_packet.pop("execution_context", None)
+    safe_packet.pop("benchmark_host_receipt", None)
+    safe_plan = safe_packet.get("composition_plan")
+    if isinstance(safe_plan, dict):
+        safe_plan.pop("phase_capsule_binding", None)
+        safe_plan.pop("execution_context", None)
+    safe_receipt = safe_packet.get("receipt_template")
+    if isinstance(safe_receipt, dict):
+        safe_receipt.pop("execution_context", None)
+        safe_receipt.pop("benchmark_host_receipt", None)
+        for field in _RECEIPT_PHASE_BINDING_FIELDS:
+            safe_receipt.pop(field, None)
+    if binding is not None and isinstance(safe_plan, dict):
+        safe_plan["phase_capsule_binding"] = binding
+    if receipt_fields is not None and isinstance(safe_receipt, dict):
+        safe_receipt.update(receipt_fields)
 
 
 class PacketSessionError(ValueError):
@@ -233,11 +469,23 @@ class PacketSessionStore:
                 self.path,
                 project_path=self.project_root,
                 max_file_bytes=MAX_PACKET_SESSION_BYTES,
+                preserve_sha256_paths=_SESSION_PRESERVED_SHA256_PATHS,
             )
         except (MemoryError, RecursionError, ValueError) as exc:
             raise PacketSessionError(
                 f"Could not load packet session: {redact_path(str(exc))}"
             ) from exc
+        if not _bounded_json(source.payload):
+            raise PacketSessionError(
+                "Packet session exceeds the supported JSON complexity."
+            )
+        packet = source.payload.get("packet")
+        if isinstance(packet, Mapping):
+            _restore_session_phase_binding_fields(
+                packet,
+                source.payload,
+                preserved_sha256_literals=source.preserved_sha256_literals,
+            )
         return _record_snapshot(self.path, source.payload)
 
     def create(
@@ -313,6 +561,7 @@ class PacketSessionStore:
             raise PacketSessionError("Could not redact packet session safely.") from exc
         if not isinstance(safe_record, dict):
             raise PacketSessionError("Packet session must be a JSON object.")
+        _restore_session_phase_binding_fields(packet, safe_record)
         snapshot = _record_snapshot(self.path, safe_record)
         runs_store = AtomicArtifactStore.explicit(self.path.parent.parent)
         with runs_store.locked(f"{self.key}.lock"):

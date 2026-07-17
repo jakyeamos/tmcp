@@ -100,6 +100,8 @@
         "relationships",
         "compiled_context_tokens",
         "naive_context_tokens",
+        "context_accounting",
+        "context_execution_mode",
         "quality_scores",
         "evaluation_provenance",
         "execution_manifest",
@@ -144,6 +146,12 @@
         },
         "compiled_context_tokens": {"type": "number", "minimum": 0},
         "naive_context_tokens": {"type": "number", "minimum": 1},
+        "context_accounting": {
+          "$ref": "tmcp-composition-context-accounting-v0.1.schema.json"
+        },
+        "context_execution_mode": {
+          "enum": ["isolated_phase_capsule", "same_host_transcript"]
+        },
         "quality_scores": {"$ref": "#/$defs/quality_scores"},
         "evaluation_provenance": {"$ref": "#/$defs/evaluation_provenance"},
         "execution_manifest": {
@@ -424,17 +432,35 @@
       "allOf": [
         {"$ref": "tmcp-run-receipt-v0.1.schema.json"},
         {
+          "not": {
+            "anyOf": [
+              {"required": ["benchmark_host_receipt"]},
+              {"required": ["execution_context"]}
+            ]
+          }
+        },
+        {
           "type": "object",
           "required": [
             "recipe_id",
             "task_identity",
             "graph_digest",
+            "composition_plan_digest",
+            "phase_capsule_binding_digest",
             "content_digests",
             "selected_skill_ids",
             "phase_trace",
             "gate_results",
             "quality_metrics",
-            "cost_metrics"
+            "cost_metrics",
+            "context_execution_mode",
+            "context_accounting_digest",
+            "preflight_capsule_digest",
+            "phase_capsule_trace",
+            "composition_fixture_id",
+            "benchmark_control_input_digest",
+            "benchmark_execution_recipe_digest",
+            "benchmark_receipt_provenance"
           ],
           "properties": {
             "recipe_id": {
@@ -445,6 +471,14 @@
               "type": "string",
               "pattern": "^[a-f0-9]{32}$"
             },
+            "composition_plan_digest": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "phase_capsule_binding_digest": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
             "phase_trace": {"type": "array", "minItems": 1},
             "gate_results": {"type": "array", "minItems": 1},
             "quality_metrics": {
@@ -454,6 +488,60 @@
             "cost_metrics": {
               "type": "object",
               "required": ["context_tokens", "context_ratio"]
+            },
+            "context_execution_mode": {
+              "enum": ["isolated_phase_capsule", "same_host_transcript"]
+            },
+            "context_accounting_digest": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "preflight_capsule_digest": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "phase_capsule_trace": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "stage_id",
+                  "capsule_digest",
+                  "incoming_handoff_digests"
+                ],
+                "properties": {
+                  "stage_id": {"type": "string", "minLength": 1},
+                  "capsule_digest": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "incoming_handoff_digests": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  }
+                }
+              }
+            },
+            "composition_fixture_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "benchmark_control_input_digest": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "benchmark_execution_recipe_digest": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "benchmark_receipt_provenance": {
+              "$ref": "tmcp-composition-benchmark-receipt-provenance-v0.1.schema.json"
             }
           }
         }

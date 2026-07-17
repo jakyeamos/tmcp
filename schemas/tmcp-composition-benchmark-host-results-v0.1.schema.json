@@ -108,7 +108,40 @@
         "outcome": {"const": "passed"},
         "artifact": {"type": "string", "minLength": 1, "maxLength": 16000},
         "tmcp_run_receipt": {"$ref": "tmcp-run-receipt-v0.1.schema.json"}
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"variant_id": {"const": "full_composition"}},
+            "required": ["variant_id"]
+          },
+          "then": {
+            "required": ["tmcp_run_receipt"],
+            "properties": {
+              "tmcp_run_receipt": {
+                "allOf": [
+                  {"$ref": "tmcp-run-receipt-v0.1.schema.json"},
+                  {
+                    "type": "object",
+                    "required": [
+                      "benchmark_host_receipt",
+                      "execution_context"
+                    ],
+                    "properties": {
+                      "benchmark_host_receipt": {
+                        "const": "tmcp-composition-benchmark-host-only-v0.1"
+                      },
+                      "execution_context": {
+                        "$ref": "tmcp-composition-benchmark-execution-context-v0.1.schema.json"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

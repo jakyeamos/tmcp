@@ -7,6 +7,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from tmcp_runtime.domain.receipts import (
+    reject_benchmark_qualification_fields,
+    validate_safe_phase_capsule_trace,
+)
+
 
 ReceiptPath = Path
 ReceiptBuilder = Callable[[Mapping[str, Any], str], dict[str, Any]]
@@ -50,6 +55,9 @@ class ReceiptService:
 
         created_at = self._context.now_iso()
         receipt = self._context.build_receipt(arguments, created_at)
+        reject_benchmark_qualification_fields(receipt)
+        if "phase_capsule_trace" in receipt:
+            validate_safe_phase_capsule_trace(receipt["phase_capsule_trace"])
         safe_receipt, redactions = self._context.redact_receipt(receipt)
         packet_id = str(receipt["packet_id"])
         safe_packet_id = str(safe_receipt["packet_id"])

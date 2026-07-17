@@ -371,6 +371,7 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
         ),
         "inputSchema": {
             "type": "object",
+            "additionalProperties": False,
             "properties": {
                 "packet_id": {"type": "string"},
                 "activated_atoms": {"type": "array", "items": {"type": "string"}},
@@ -381,6 +382,16 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                 "recipe_id": {"type": "string"},
                 "task_identity": {"type": "object"},
                 "graph_digest": {"type": "string"},
+                "composition_plan_digest": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "description": "Exact compiler-plan digest bound to phase-capsule receipt evidence.",
+                },
+                "phase_capsule_binding_digest": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "description": "Compiler-issued safe phase-capsule binding digest for project-recipe promotion.",
+                },
                 "content_digests": {
                     "type": "array",
                     "items": {"type": "string"},
@@ -395,16 +406,42 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                 "handoff_results": {"type": "array", "items": {"type": "object"}},
                 "quality_metrics": {"type": "object"},
                 "cost_metrics": {"type": "object"},
-                "composition_fixture_id": {"type": "string"},
-                "benchmark_control_input_digest": {
+                "context_accounting_digest": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$",
-                    "description": "Benchmark-only binding for the compiler-issued full-composition control input.",
                 },
-                "benchmark_execution_recipe_digest": {
+                "preflight_capsule_digest": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$",
-                    "description": "Benchmark-only binding for the compiler-issued full-composition recipe.",
+                },
+                "phase_capsule_trace": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "required": [
+                            "stage_id",
+                            "capsule_digest",
+                            "incoming_handoff_digests",
+                        ],
+                        "properties": {
+                            "stage_id": {"type": "string", "minLength": 1},
+                            "capsule_digest": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$",
+                            },
+                            "incoming_handoff_digests": {
+                                "type": "array",
+                                "uniqueItems": True,
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$",
+                                },
+                            },
+                        },
+                    },
+                    "description": "Safe phase-capsule digest trace; it intentionally excludes host context-instance ids.",
                 },
                 "outcome": {"type": "string"},
             },

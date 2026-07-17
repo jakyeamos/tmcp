@@ -8,6 +8,10 @@ from copy import deepcopy
 from typing import Any, Protocol
 
 from tmcp_runtime.domain.composition_planning import compile_semantic_composition
+from tmcp_runtime.domain.composition_phase_bindings import (
+    PhaseCapsuleBindingError,
+    validate_phase_capsule_binding,
+)
 from tmcp_runtime.services.composition_evaluation import (
     assess_project_recipe_promotion,
 )
@@ -67,6 +71,13 @@ def _composition_plan(value: object) -> dict[str, Any]:
     for field in ("task_model", "coverage"):
         if not isinstance(plan.get(field), Mapping):
             raise ValueError(f"Composition plan {field} must be an object.")
+    try:
+        validate_phase_capsule_binding(
+            plan.get("phase_capsule_binding"),
+            composition_plan=plan,
+        )
+    except PhaseCapsuleBindingError as exc:
+        raise ValueError("Composition plan phase-capsule binding is invalid.") from exc
     return plan
 
 
@@ -94,6 +105,12 @@ def _recipe_projection(plan: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "composition_plan_id": str(plan["composition_plan_id"]),
         "graph_digest": _graph_digest(plan),
+        "phase_capsule_binding": deepcopy(
+            validate_phase_capsule_binding(
+                plan.get("phase_capsule_binding"),
+                composition_plan=plan,
+            )
+        ),
         "current_phase": str(plan.get("current_phase") or "start"),
         "task_model": deepcopy(dict(plan["task_model"])),
         "skill_roles": deepcopy(list(plan["skill_roles"])),
@@ -124,6 +141,10 @@ def build_project_composition_recipe_record(
     plan = _composition_plan(composition_plan)
     identifier = _recipe_id(recipe_id)
     graph_digest = _graph_digest(plan)
+    phase_capsule_binding = validate_phase_capsule_binding(
+        plan.get("phase_capsule_binding"),
+        composition_plan=plan,
+    )
     eligibility = dict(promotion_eligibility)
     if not isinstance(created_at, str) or not created_at.strip():
         raise ValueError("Project recipe promotion requires created_at.")
@@ -133,6 +154,13 @@ def build_project_composition_recipe_record(
         raise ValueError("Promotion eligibility recipe_id does not match the recipe.")
     if str(eligibility.get("graph_digest") or "") != graph_digest:
         raise ValueError("Promotion eligibility graph_digest does not match the plan.")
+    if (
+        str(eligibility.get("phase_capsule_binding_digest") or "")
+        != phase_capsule_binding["binding_digest"]
+    ):
+        raise ValueError(
+            "Promotion eligibility phase-capsule binding does not match the plan."
+        )
     return {
         "schema": PROJECT_COMPOSITION_RECIPE_SCHEMA,
         "format_version": 1,
@@ -183,6 +211,19 @@ def rehydrate_project_recipe_for_preflight(
         stored_handoff_contracts, list
     ):
         raise ValueError("Project recipe handoff_contracts are malformed.")
+    try:
+        stored_phase_capsule_binding = validate_phase_capsule_binding(
+            projection.get("phase_capsule_binding")
+        )
+    except PhaseCapsuleBindingError as exc:
+        raise ValueError("Project recipe phase-capsule binding is malformed.") from exc
+    if (
+        stored_phase_capsule_binding["composition_plan_id"]
+        != str(record.get("composition_plan_id") or "")
+        or stored_phase_capsule_binding["graph_digest"]
+        != str(record.get("graph_digest") or "")
+    ):
+        raise ValueError("Project recipe phase-capsule binding is stale or malformed.")
     preflight_id = str(preflight.get("preflight_id") or "").strip()
     if not preflight_id:
         raise ValueError("Project recipe load requires current preflight identity.")
@@ -236,6 +277,18 @@ def rehydrate_project_recipe_for_preflight(
         "handoff_contracts"
     ):
         raise ValueError("Project recipe handoff contracts are stale or malformed.")
+    try:
+        current_phase_capsule_binding = validate_phase_capsule_binding(
+            plan.get("phase_capsule_binding"),
+            composition_plan=plan,
+        )
+    except PhaseCapsuleBindingError as exc:
+        raise ValueError("Project recipe did not compile a valid phase binding.") from exc
+    if (
+        current_phase_capsule_binding["binding_digest"]
+        != stored_phase_capsule_binding["binding_digest"]
+    ):
+        raise ValueError("Project recipe phase-capsule binding is stale or malformed.")
     return {
         "semantic_proposal": proposal,
         "composition_plan": deepcopy(dict(plan)),
@@ -268,6 +321,10 @@ class ProjectCompositionRecipeService:
         recipe_id = _recipe_id(arguments.get("recipe_id"))
         plan = _composition_plan(arguments.get("composition_plan"))
         graph_digest = _graph_digest(plan)
+        phase_capsule_binding = validate_phase_capsule_binding(
+            plan.get("phase_capsule_binding"),
+            composition_plan=plan,
+        )
         supplied_digest = arguments.get("graph_digest")
         if supplied_digest is not None and str(supplied_digest) != graph_digest:
             raise ValueError("Supplied graph_digest does not match composition_plan.")
@@ -281,6 +338,7 @@ class ProjectCompositionRecipeService:
             receipts,
             recipe_id=recipe_id,
             graph_digest=graph_digest,
+            phase_capsule_binding=phase_capsule_binding,
         )
         if eligibility.get("eligible") is not True:
             reasons = ", ".join(

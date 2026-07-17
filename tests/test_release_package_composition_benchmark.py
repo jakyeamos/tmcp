@@ -101,15 +101,61 @@ class ReleasePackageCompositionBenchmarkTests(unittest.TestCase):
                     release_version="0.6.0",
                 )
 
-        self.assertTrue(ok, output)
+            self.assertTrue(ok, output)
         command, runner_root = benchmark_runner.call_args.args
         self.assertEqual(runner_root, package_root)
-        self.assertEqual(command[2], str(bundle_paths["observations"].resolve()))
-        self.assertIn(str(bundle_paths["run_plan"].resolve()), command)
-        self.assertIn(str(bundle_paths["semantic_proposals"].resolve()), command)
-        self.assertIn(str(bundle_paths["control_plan"].resolve()), command)
-        self.assertIn(str(bundle_paths["host_results"].resolve()), command)
-        self.assertIn(str(bundle_paths["evaluator_artifacts"].resolve()), command)
+        self.assertNotEqual(command[2], str(bundle_paths["observations"].resolve()))
+        self.assertEqual(Path(command[2]).name, "benchmark-observations.json")
+        self.assertEqual(Path(command[4]).name, "benchmark-run-plan.json")
+        self.assertEqual(Path(command[6]).name, "semantic-proposals.json")
+        self.assertEqual(Path(command[8]).name, "benchmark-control-plan.json")
+        self.assertEqual(Path(command[10]).name, "host-results.json")
+        self.assertEqual(Path(command[12]).name, "evaluator-artifacts.json")
+
+    def test_composition_benchmark_runner_uses_frozen_bundle_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temporary_root = Path(tmp)
+            source_root = temporary_root / "source"
+            package_root = temporary_root / "extracted-package"
+            source_root.mkdir()
+            package_root.mkdir()
+            bundle_paths = write_composition_benchmark_bundle(source_root)
+            commit_fixture(source_root)
+            observations_digest = hashlib.sha256(
+                bundle_paths["observations"].read_bytes()
+            ).hexdigest()
+            summary = {"observations_sha256": observations_digest}
+
+            def runner(
+                command: list[str], _root: Path
+            ) -> tuple[bool, str, dict[str, object]]:
+                bundle_paths["host_results"].write_text(
+                    '{"token":"sk-' + "a" * 24 + '"}\n', encoding="utf-8"
+                )
+                host_index = command.index("--host-results") + 1
+                frozen_host = Path(command[host_index]).read_text(encoding="utf-8")
+                self.assertNotIn("sk-", frozen_host)
+                self.assertNotEqual(
+                    Path(command[host_index]), bundle_paths["host_results"]
+                )
+                return True, json.dumps(summary), summary
+
+            with (
+                patch.object(self.checker, "run_json", side_effect=runner),
+                patch.object(
+                    self.checker,
+                    "validate_benchmark_summary",
+                    return_value=[],
+                ),
+            ):
+                ok, output = self.checker.check_composition_benchmark(
+                    package_root,
+                    None,
+                    source_plugin_root=source_root,
+                    release_version="0.6.0",
+                )
+
+        self.assertTrue(ok, output)
 
     def test_package_resolves_bundle_before_extracting_the_archive(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -125,6 +171,8 @@ class ReleasePackageCompositionBenchmarkTests(unittest.TestCase):
                 "evaluator_artifacts": temporary_root
                 / "evaluator-artifacts.json",
             }
+            for path in resolved_paths.values():
+                path.write_text("{}\n", encoding="utf-8")
             events: list[str] = []
 
             def resolve_inputs(**_kwargs: object) -> tuple[dict[str, Path], None]:
@@ -212,23 +260,23 @@ class ReleasePackageCompositionBenchmarkTests(unittest.TestCase):
         self.assertEqual(events, ["resolve", "extract"])
         self.assertEqual(result["composition_benchmark"], "pass")
         arguments = benchmark_check.call_args
-        self.assertEqual(arguments.args[1], resolved_paths["observations"])
-        self.assertEqual(arguments.kwargs["run_plan_path"], resolved_paths["run_plan"])
+        self.assertEqual(Path(arguments.args[1]).name, "benchmark-observations.json")
+        self.assertEqual(Path(arguments.kwargs["run_plan_path"]).name, "benchmark-run-plan.json")
         self.assertEqual(
-            arguments.kwargs["semantic_proposals_path"],
-            resolved_paths["semantic_proposals"],
+            Path(arguments.kwargs["semantic_proposals_path"]).name,
+            "semantic-proposals.json",
         )
         self.assertEqual(
-            arguments.kwargs["control_plan_path"],
-            resolved_paths["control_plan"],
+            Path(arguments.kwargs["control_plan_path"]).name,
+            "benchmark-control-plan.json",
         )
         self.assertEqual(
-            arguments.kwargs["host_results_path"],
-            resolved_paths["host_results"],
+            Path(arguments.kwargs["host_results_path"]).name,
+            "host-results.json",
         )
         self.assertEqual(
-            arguments.kwargs["evaluator_artifacts_path"],
-            resolved_paths["evaluator_artifacts"],
+            Path(arguments.kwargs["evaluator_artifacts_path"]).name,
+            "evaluator-artifacts.json",
         )
 
     def test_composition_benchmark_rejects_partial_ad_hoc_inputs(self) -> None:
@@ -252,7 +300,9 @@ class ReleasePackageCompositionBenchmarkTests(unittest.TestCase):
             source_root.mkdir()
             bundle_paths = write_composition_benchmark_bundle(source_root)
             commit_fixture(source_root)
-            bundle_paths["host_results"].write_text("changed\n", encoding="utf-8")
+            bundle_paths["host_results"].write_text(
+                '{"changed":true}\n', encoding="utf-8"
+            )
 
             ok, output = self.checker.check_composition_benchmark(
                 source_root,

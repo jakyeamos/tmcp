@@ -280,6 +280,9 @@ def apply_semantic_composition(
         for role in roles
         if role.get("source_role") == "active_skill"
     ]
+    phase_capsule_binding = plan.get("phase_capsule_binding")
+    if not isinstance(phase_capsule_binding, dict):
+        raise ValueError("Semantic composition is missing compiler phase binding.")
     packet["receipt_template"] = build_receipt_template(
         packet_id=packet_id,
         activated_atoms=packet["active_atoms"],
@@ -289,6 +292,21 @@ def apply_semantic_composition(
             "graph_digest": graph_digest,
             "content_digests": string_list(provenance.get("content_digests")),
             "selected_skill_ids": selected_skill_ids,
+            "composition_plan_digest": phase_capsule_binding.get(
+                "composition_plan_digest"
+            ),
+            "phase_capsule_binding_digest": phase_capsule_binding.get(
+                "binding_digest"
+            ),
+            "context_accounting_digest": phase_capsule_binding.get(
+                "context_accounting_digest"
+            ),
+            "preflight_capsule_digest": phase_capsule_binding.get(
+                "preflight_capsule_digest"
+            ),
+            "phase_capsule_trace": phase_capsule_binding.get(
+                "phase_capsule_trace"
+            ),
             "phase_trace": [
                 {
                     "phase": packet.get("phase"),

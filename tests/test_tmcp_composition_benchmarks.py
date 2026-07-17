@@ -21,6 +21,9 @@ from tmcp_runtime.domain.composition_benchmarks import (
     score_composition_benchmark,
     score_routing_benchmark,
 )
+from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
+    build_benchmark_receipt_provenance,
+)
 from tmcp_runtime.domain.composition_benchmark_sources import (
     graph_digest_for_observation,
 )
@@ -100,6 +103,165 @@ class CompositionBenchmarkTests(unittest.TestCase):
             ),
         )
         return [execution], [evidence]
+
+    @staticmethod
+    def _context_accounting(
+        *,
+        fixture_id: str,
+        active_stages: list[dict[str, Any]],
+        compiled_tokens: int = 700,
+        naive_tokens: int = 1000,
+    ) -> dict[str, Any]:
+        def capsule_record(payload: dict[str, Any], tokens: int) -> dict[str, Any]:
+            return {
+                "capsule": payload,
+                "canonical_json": json.dumps(payload, sort_keys=True),
+                "capsule_digest": stable_digest(payload),
+                "estimated_tokens": tokens,
+            }
+
+        phase_capsules = []
+        for index, stage in enumerate(active_stages, start=1):
+            skill_ids = list(stage["active_skill_ids"])
+            capsule = capsule_record(
+                {
+                    "fixture_id": fixture_id,
+                    "kind": "runtime_phase",
+                    "stage_id": stage["stage_id"],
+                    "skills": skill_ids,
+                },
+                compiled_tokens,
+            )
+            phase_capsules.append(
+                {
+                    "stage_id": str(stage["stage_id"]),
+                    "stage_order": index,
+                    "phase": f"phase-{index}",
+                    "source_ids": skill_ids,
+                    "source_skill_ids": skill_ids,
+                    "source_slice_ids": [
+                        "slice-" + stable_digest([fixture_id, skill_id], 20)
+                        for skill_id in skill_ids
+                    ],
+                    "source_slice_digests": [
+                        stable_digest([fixture_id, skill_id, "content"])
+                        for skill_id in skill_ids
+                    ],
+                    "source_digests": [
+                        stable_digest([fixture_id, skill_id, "source"])
+                        for skill_id in skill_ids
+                    ],
+                    "content_digests": [
+                        stable_digest([fixture_id, skill_id, "content"])
+                        for skill_id in skill_ids
+                    ],
+                    "incoming_handoff_digests": [],
+                    **capsule,
+                }
+            )
+        preflight_capsule = capsule_record(
+            {"fixture_id": fixture_id, "kind": "preflight_discovery"}, 100
+        )
+        naive_union_capsule = capsule_record(
+            {"fixture_id": fixture_id, "kind": "naive_union"}, naive_tokens
+        )
+        accounting: dict[str, Any] = {
+            "schema": "tmcp-composition-context-accounting-v0.1",
+            "policy": "phase_capsule_runtime_peak_vs_naive_union",
+            "runtime_envelope": {"fixture_id": fixture_id},
+            "preflight_capsule": preflight_capsule,
+            "preflight_capsule_digest": preflight_capsule["capsule_digest"],
+            "preflight_discovery_tokens": preflight_capsule["estimated_tokens"],
+            "phase_capsules": phase_capsules,
+            "naive_union_capsule": naive_union_capsule,
+            "naive_union_capsule_digest": naive_union_capsule["capsule_digest"],
+            "runtime_peak_context_tokens": compiled_tokens,
+            "naive_union_context_tokens": naive_tokens,
+            "context_ratio": compiled_tokens / naive_tokens,
+            "same_host_transcript_tokens": compiled_tokens * len(phase_capsules),
+            "compiled_context_tokens": compiled_tokens,
+            "naive_context_tokens": naive_tokens,
+        }
+        accounting["context_accounting_digest"] = stable_digest(accounting)
+        accounting["context_digest"] = accounting["context_accounting_digest"]
+        return accounting
+
+    @staticmethod
+    def _projected_execution_context(
+        accounting: dict[str, Any],
+        *,
+        mode: str = "isolated_phase_capsule",
+    ) -> dict[str, Any]:
+        return {
+            "context_execution_mode": mode,
+            "context_accounting_digest": accounting["context_accounting_digest"],
+            "preflight_capsule_digest": accounting["preflight_capsule_digest"],
+            "phase_capsule_trace": [
+                {
+                    "stage_id": capsule["stage_id"],
+                    "capsule_digest": capsule["capsule_digest"],
+                    "incoming_handoff_digests": capsule[
+                        "incoming_handoff_digests"
+                    ],
+                }
+                for capsule in accounting["phase_capsules"]
+            ],
+        }
+
+    @staticmethod
+    def _refresh_benchmark_receipt_provenance(
+        receipt: dict[str, Any],
+        *,
+        fixture_id: str,
+    ) -> None:
+        """Attach self-consistent safe benchmark provenance to fixture evidence."""
+
+        composition_plan_digest = stable_digest(
+            {
+                "composition_plan_id": receipt["recipe_id"],
+                "graph_digest": receipt["graph_digest"],
+                "phase_capsule_trace": receipt["phase_capsule_trace"],
+            }
+        )
+        receipt.update(
+            {
+                "composition_plan_digest": composition_plan_digest,
+                "phase_capsule_binding_digest": stable_digest(
+                    {
+                        "composition_plan_digest": composition_plan_digest,
+                        "context_accounting_digest": receipt[
+                            "context_accounting_digest"
+                        ],
+                        "preflight_capsule_digest": receipt[
+                            "preflight_capsule_digest"
+                        ],
+                        "phase_capsule_trace": receipt["phase_capsule_trace"],
+                    }
+                ),
+                "composition_fixture_id": fixture_id,
+                "benchmark_control_input_digest": stable_digest(
+                    {"fixture_id": fixture_id, "kind": "control-input"}
+                ),
+                "benchmark_execution_recipe_digest": stable_digest(
+                    {"fixture_id": fixture_id, "kind": "execution-recipe"}
+                ),
+            }
+        )
+        receipt.pop("benchmark_receipt_provenance", None)
+        receipt["benchmark_receipt_provenance"] = build_benchmark_receipt_provenance(
+            receipt,
+            fixture_digest=stable_digest({"fixture_id": fixture_id}),
+            control_plan_id="benchmark-control-" + stable_digest(fixture_id)[:20],
+            control_plan_digest=stable_digest(
+                {"fixture_id": fixture_id, "kind": "control-plan"}
+            ),
+            host_artifact_digest=stable_digest(
+                {"fixture_id": fixture_id, "kind": "host-artifact"}
+            ),
+            host_receipt_digest=stable_digest(
+                {"fixture_id": fixture_id, "kind": "host-receipt"}
+            ),
+        )
 
     @staticmethod
     def _execution_evidence(
@@ -186,6 +348,18 @@ class CompositionBenchmarkTests(unittest.TestCase):
             }
             content_digests = sorted({item["content_digest"] for item in source_slices})
             source_node_ids = [item["source_node_id"] for item in source_slices]
+            active_stages = [
+                {
+                    "stage_id": f"stage-{index}",
+                    "active_skill_ids": [skill_id],
+                }
+                for index, skill_id in enumerate(selected, start=1)
+            ]
+            context_accounting = self._context_accounting(
+                fixture_id=fixture["fixture_id"],
+                active_stages=active_stages,
+            )
+            execution_context = self._projected_execution_context(context_accounting)
             quality_scores = {
                 "no_skill": 0.50,
                 "singletons": {
@@ -262,6 +436,7 @@ class CompositionBenchmarkTests(unittest.TestCase):
                     "context_tokens": 700,
                     "context_ratio": 0.70,
                 },
+                **execution_context,
                 "user_overrides": [],
                 "outcome": "passed",
                 "trust": "advisory_untrusted",
@@ -269,6 +444,10 @@ class CompositionBenchmarkTests(unittest.TestCase):
                     "never_override_higher_priority_instructions"
                 ),
             }
+            self._refresh_benchmark_receipt_provenance(
+                run_receipt,
+                fixture_id=fixture["fixture_id"],
+            )
             execution_manifest: list[dict[str, Any]] = []
             evidence_manifest: list[dict[str, Any]] = []
             variant_evidence: dict[str, list[str]] = {}
@@ -333,16 +512,14 @@ class CompositionBenchmarkTests(unittest.TestCase):
                     "selected_skill_ids": selected,
                     "source_slices": source_slices,
                     "ordered_skill_ids": list(fixture["expected_order"]),
-                    "active_stages": [
-                        {
-                            "stage_id": f"stage-{index}",
-                            "active_skill_ids": [skill_id],
-                        }
-                        for index, skill_id in enumerate(selected, start=1)
-                    ],
+                    "active_stages": active_stages,
                     "relationships": relationships,
                     "compiled_context_tokens": 700,
                     "naive_context_tokens": 1000,
+                    "context_accounting": context_accounting,
+                    "context_execution_mode": execution_context[
+                        "context_execution_mode"
+                    ],
                     "quality_scores": quality_scores,
                     "evaluation_provenance": {
                         "evaluator_id": "synthetic-unit-evaluator",
@@ -410,6 +587,27 @@ class CompositionBenchmarkTests(unittest.TestCase):
                 4,
             ),
         }
+        accounting = self._context_accounting(
+            fixture_id=fixture["fixture_id"],
+            active_stages=observation["active_stages"],
+            compiled_tokens=observation["compiled_context_tokens"],
+            naive_tokens=observation["naive_context_tokens"],
+        )
+        execution_context = self._projected_execution_context(
+            accounting,
+            mode=run_receipt.get(
+                "context_execution_mode", "isolated_phase_capsule"
+            ),
+        )
+        observation["context_accounting"] = accounting
+        observation["context_execution_mode"] = execution_context[
+            "context_execution_mode"
+        ]
+        run_receipt.update(execution_context)
+        self._refresh_benchmark_receipt_provenance(
+            run_receipt,
+            fixture_id=fixture["fixture_id"],
+        )
         variant_dimension_scores = observation["evaluation_provenance"][
             "variant_dimension_scores"
         ]

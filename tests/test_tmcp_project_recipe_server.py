@@ -8,6 +8,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from scripts.schema_contract_support import assert_matches_schema
+from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
+    build_benchmark_receipt_provenance,
+)
+from tmcp_runtime.domain.composition_preflight import stable_digest
 from tmcp_runtime.storage import artifact_persistence_available
 
 
@@ -148,10 +152,11 @@ class TmcpProjectRecipeServerTests(unittest.TestCase):
             )
             plan = packet["composition_plan"]
             graph_digest = plan["provenance"]["graph_digest"]
+            phase_capsule_binding = plan["phase_capsule_binding"]
             receipts = [
                 {
                     "packet_id": f"packet-{index}",
-                    "recipe_id": "research-review",
+                    "recipe_id": plan["composition_plan_id"],
                     "graph_digest": graph_digest,
                     "composition_fixture_id": fixture,
                     "outcome": "passed",
@@ -164,6 +169,24 @@ class TmcpProjectRecipeServerTests(unittest.TestCase):
                         }
                     ],
                     "user_overrides": [],
+                    "context_execution_mode": "isolated_phase_capsule",
+                    "composition_plan_digest": phase_capsule_binding[
+                        "composition_plan_digest"
+                    ],
+                    "phase_capsule_binding_digest": phase_capsule_binding[
+                        "binding_digest"
+                    ],
+                    "context_accounting_digest": phase_capsule_binding[
+                        "context_accounting_digest"
+                    ],
+                    "preflight_capsule_digest": phase_capsule_binding[
+                        "preflight_capsule_digest"
+                    ],
+                    "phase_capsule_trace": phase_capsule_binding[
+                        "phase_capsule_trace"
+                    ],
+                    "benchmark_control_input_digest": "1" * 64,
+                    "benchmark_execution_recipe_digest": "2" * 64,
                     "quality_metrics": {
                         "synergy_lift": 0.12,
                         "compiler_lift": 0.08,
@@ -175,6 +198,19 @@ class TmcpProjectRecipeServerTests(unittest.TestCase):
                     ("fixture-a", "fixture-a", "fixture-b"), start=1
                 )
             ]
+            for receipt in receipts:
+                receipt["benchmark_receipt_provenance"] = (
+                    build_benchmark_receipt_provenance(
+                        receipt,
+                        fixture_digest=stable_digest(
+                            {"fixture_id": receipt["composition_fixture_id"]}
+                        ),
+                        control_plan_id="benchmark-control-" + "3" * 20,
+                        control_plan_digest="4" * 64,
+                        host_artifact_digest="5" * 64,
+                        host_receipt_digest="6" * 64,
+                    )
+                )
             promoted = self.server._tool_promote_composition_recipe(
                 {
                     "project_path": str(project),

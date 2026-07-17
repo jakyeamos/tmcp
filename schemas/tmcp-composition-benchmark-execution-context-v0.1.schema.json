@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-benchmark-execution-context-v0.1.schema.json",
+  "title": "TMCP Composition Benchmark Execution Context v0.1",
+  "description": "Advisory host evidence that binds a full-composition execution to compiler-derived phase capsules. Context-instance identifiers are retained only in the raw host receipt.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "execution_context_mode",
+    "context_accounting_digest",
+    "preflight_capsule_digest",
+    "preflight_context_instance_id",
+    "phase_capsule_trace"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-benchmark-execution-context-v0.1"},
+    "execution_context_mode": {
+      "enum": ["isolated_phase_capsule", "same_host_transcript"]
+    },
+    "context_accounting_digest": {"$ref": "#/$defs/digest"},
+    "preflight_capsule_digest": {"$ref": "#/$defs/digest"},
+    "preflight_context_instance_id": {"$ref": "#/$defs/context_instance_id"},
+    "phase_capsule_trace": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/phase_capsule_trace_item"}
+    }
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "context_instance_id": {"type": "string", "minLength": 1, "maxLength": 512},
+    "phase_capsule_trace_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage_id",
+        "capsule_digest",
+        "context_instance_id",
+        "incoming_handoff_digests"
+      ],
+      "properties": {
+        "stage_id": {"type": "string", "minLength": 1},
+        "capsule_digest": {"$ref": "#/$defs/digest"},
+        "context_instance_id": {"$ref": "#/$defs/context_instance_id"},
+        "incoming_handoff_digests": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/digest"}
+        }
+      }
+    }
+  }
+}

@@ -47,7 +47,7 @@ MCP hosts should pass the proposal object directly. CLI hosts can pass the same 
 
 Use `tmcp_runtime_next` / `runtime-next` after reads, commands, changed files, failures, browser evidence, verification results, phase changes, or user redirects. Prefer a full recompile when relationships, stages, gates, or obligations may change. Use `tmcp_record_receipt` / `record-receipt` after meaningful verification or outcome when secure artifact persistence is available; receipts never auto-promote a recipe.
 
-Use `tmcp_promote_composition_recipe` / `promote-composition-recipe` only after review. It requires `explicit_promotion=true`, at least three verified receipts across two fixtures, identical graph provenance, passing safety gates, median synergy lift of at least `0.10`, median compiler and order lift of at least `0.05`, and context ratio at or below `0.75`. Every matching receipt must include a structured safety-classified gate (`safety=true` or a safety/security/privacy category, type, or identifier) with an explicit passing result; missing, ambiguous, or failing safety-gate evidence blocks promotion. A named recipe is project-local, create-only, and revalidated against current source content every time it loads.
+Use `tmcp_promote_composition_recipe` / `promote-composition-recipe` only after review. It requires `explicit_promotion=true`, at least three verified receipts across two fixtures, identical graph provenance, passing safety gates, median synergy lift of at least `0.10`, median compiler and order lift of at least `0.05`, a phase-capsule context ratio at or below `0.75`, and `context_execution_mode=isolated_phase_capsule` on every qualifying receipt. `same_host_transcript` remains diagnostic only. Every matching receipt must include a structured safety-classified gate (`safety=true` or a safety/security/privacy category, type, or identifier) with an explicit passing result; missing, ambiguous, or failing safety-gate evidence blocks promotion. A named recipe is project-local, create-only, and revalidated against current source content every time it loads.
 
 `tmcp_explain --compose` and `tmcp_recommend_workflows --compose` preserve their legacy output and add a composed packet.
 
@@ -129,8 +129,8 @@ For a 0.6+ package release, commit that exact set under
 `docs/COMPOSITION_BENCHMARK_BUNDLE/` and use
 `python3 scripts/check_release_package.py . --verify-reproducible`; the raw
 bundle stays outside the archive. The command rejects missing cases, fixtures,
-singleton/leave-one-out controls, provenance, ordering, quality scores, or
-context measurements. Repository unit fixtures validate scoring math; they do
+singleton/leave-one-out controls, provenance, ordering, quality scores,
+phase-capsule accounting, or unqualified same-host context evidence. Repository unit fixtures validate scoring math; they do
 not demonstrate lift. See [COMPOSITION_BENCHMARK.md](COMPOSITION_BENCHMARK.md).
 
 ## Fallback Order

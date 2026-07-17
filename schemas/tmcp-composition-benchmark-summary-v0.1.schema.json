@@ -31,7 +31,11 @@
     "acceptance_checks": {
       "type": "object",
       "minProperties": 1,
-      "additionalProperties": {"type": "boolean"}
+      "additionalProperties": {"type": "boolean"},
+      "required": ["context_execution_mode"],
+      "properties": {
+        "context_execution_mode": {"type": "boolean"}
+      }
     },
     "thresholds": {"$ref": "#/$defs/thresholds"},
     "routing_metrics": {"$ref": "#/$defs/routing_metrics"},
@@ -106,6 +110,8 @@
         "provenance_relationship_coverage",
         "context_ratio",
         "maximum_fixture_context_ratio",
+        "qualified_context_execution_count",
+        "unqualified_context_execution_fixtures",
         "quality_metrics",
         "order_match_rate",
         "fixtures"
@@ -124,6 +130,12 @@
         "provenance_relationship_coverage": {"$ref": "#/$defs/ratio"},
         "context_ratio": {"type": "number", "minimum": 0},
         "maximum_fixture_context_ratio": {"type": "number", "minimum": 0},
+        "qualified_context_execution_count": {"type": "integer", "minimum": 0},
+        "unqualified_context_execution_fixtures": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
         "quality_metrics": {
           "type": "object",
           "additionalProperties": false,

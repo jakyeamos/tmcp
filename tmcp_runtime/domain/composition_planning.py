@@ -21,6 +21,7 @@ from .composition_handoffs import (
     build_handoff_contracts,
     handoff_identity_projection,
 )
+from .composition_phase_bindings import build_phase_capsule_binding
 from .composition_validation import (
     SemanticProposalValidationError,
     ordering_pair,
@@ -368,7 +369,7 @@ def build_composition_plan(
     selection_diagnostics["compiled_context_budget_warning"] = (
         compiled_context_ratio > 0.75
     )
-    return {
+    plan = {
         "schema": COMPOSITION_PLAN_SCHEMA,
         "composition_plan_id": "composition-" + recipe_digest[:20],
         "preflight_id": preflight.get("preflight_id"),
@@ -426,6 +427,8 @@ def build_composition_plan(
         "trust": COMPOSITION_TRUST,
         "instruction_override_policy": INSTRUCTION_OVERRIDE_POLICY,
     }
+    plan["phase_capsule_binding"] = build_phase_capsule_binding(plan, preflight)
+    return plan
 
 
 def compile_semantic_composition(

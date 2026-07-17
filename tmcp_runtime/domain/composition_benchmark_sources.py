@@ -160,16 +160,22 @@ def validate_source_slice_bindings(
                 f"{field}.source_path must end with the materialized relative path."
             )
         declared_content = str(declared_source["content"])
-        if content != declared_content:
-            raise ValueError(
-                f"{field}.content must match the materialized fixture source."
-            )
         char_start = source_slice.get("char_start")
         char_end = source_slice.get("char_end")
-        if char_start != 0 or char_end != len(content):
+        if (
+            isinstance(char_start, bool)
+            or isinstance(char_end, bool)
+            or not isinstance(char_start, int)
+            or not isinstance(char_end, int)
+            or char_start < 0
+            or char_end <= char_start
+            or char_end > len(declared_content)
+        ):
             raise ValueError(
-                f"{field} must bind the complete materialized fixture source slice."
+                f"{field} must bind a bounded materialized fixture source slice."
             )
+        if content != declared_content[char_start:char_end].strip():
+            raise ValueError(f"{field}.content must match its fixture source range.")
         if re.fullmatch(r"slice-[a-f0-9]{20}", slice_id) is None:
             raise ValueError(f"{field}.slice_id must be a harvested slice id.")
         if slice_id in slice_ids:
@@ -190,7 +196,7 @@ def validate_source_slice_bindings(
             raise ValueError(
                 f"{field}.source_digest must match the materialized fixture source."
             )
-        if digests["slice_digest"] != stable_digest(content):
+        if digests["slice_digest"] != content_digest_for(content):
             raise ValueError(
                 f"{field}.slice_digest must match the source slice content."
             )
@@ -211,7 +217,7 @@ def validate_source_slice_bindings(
             [
                 digests["source_digest"],
                 digests["slice_digest"],
-                0,
+                char_start,
                 char_end,
                 source_node_id,
             ],
@@ -259,16 +265,18 @@ def graph_digest_for_observation(
     source_node_by_skill: Mapping[str, str],
     slices_by_id: Mapping[str, Mapping[str, Any]],
 ) -> str:
-    source_digests = {
-        skill_id: str(
-            next(
-                item.get("source_digest")
-                for item in slices_by_id.values()
-                if str(item.get("skill_id") or "") == skill_id
+    source_digests: dict[str, str] = {}
+    for skill_id in selected_skill_ids:
+        digests = {
+            str(item.get("source_digest") or "")
+            for item in slices_by_id.values()
+            if str(item.get("skill_id") or "") == skill_id
+        }
+        if len(digests) != 1 or not next(iter(digests), ""):
+            raise ValueError(
+                f"Every selected skill must bind one complete source digest: {skill_id}."
             )
-        )
-        for skill_id in selected_skill_ids
-    }
+        source_digests[skill_id] = next(iter(digests))
     normalized_edges = sorted(
         {
             (

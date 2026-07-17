@@ -309,6 +309,46 @@ def _restore_run_receipt_digests(source: object, redacted: object) -> int:
         "benchmark_execution_recipe_digest",
         frozenset({64}),
     )
+    restored += _restore_digest_scalar(
+        source,
+        redacted,
+        "composition_plan_digest",
+        frozenset({64}),
+    )
+    restored += _restore_digest_scalar(
+        source,
+        redacted,
+        "phase_capsule_binding_digest",
+        frozenset({64}),
+    )
+    restored += _restore_digest_scalar(
+        source,
+        redacted,
+        "context_accounting_digest",
+        frozenset({64}),
+    )
+    restored += _restore_digest_scalar(
+        source,
+        redacted,
+        "preflight_capsule_digest",
+        frozenset({64}),
+    )
+    source_trace = source.get("phase_capsule_trace")
+    redacted_trace = redacted.get("phase_capsule_trace")
+    if isinstance(source_trace, list) and isinstance(redacted_trace, list):
+        for source_stage, redacted_stage in zip(source_trace, redacted_trace):
+            restored += _restore_digest_scalar(
+                source_stage,
+                redacted_stage,
+                "capsule_digest",
+                frozenset({64}),
+            )
+            restored += _restore_digest_list(
+                source_stage,
+                redacted_stage,
+                "incoming_handoff_digests",
+                frozenset({64}),
+            )
     return restored
 
 
@@ -460,6 +500,54 @@ def _restore_fixed_literal(
     return int(literal_redactions.get("long_high_entropy", 0))
 
 
+def _restore_project_recipe_phase_binding_digests(
+    source_recipe: object,
+    redacted_recipe: object,
+) -> int:
+    if not isinstance(source_recipe, dict) or not isinstance(redacted_recipe, dict):
+        return 0
+    source_composition = source_recipe.get("composition_recipe")
+    redacted_composition = redacted_recipe.get("composition_recipe")
+    if not isinstance(source_composition, dict) or not isinstance(
+        redacted_composition, dict
+    ):
+        return 0
+    source_binding = source_composition.get("phase_capsule_binding")
+    redacted_binding = redacted_composition.get("phase_capsule_binding")
+    if not isinstance(source_binding, dict) or not isinstance(redacted_binding, dict):
+        return 0
+    restored = 0
+    for key in (
+        "composition_plan_digest",
+        "context_accounting_digest",
+        "preflight_capsule_digest",
+        "binding_digest",
+    ):
+        restored += _restore_digest_scalar(
+            source_binding,
+            redacted_binding,
+            key,
+            frozenset({64}),
+        )
+    source_trace = source_binding.get("phase_capsule_trace")
+    redacted_trace = redacted_binding.get("phase_capsule_trace")
+    if isinstance(source_trace, list) and isinstance(redacted_trace, list):
+        for source_stage, redacted_stage in zip(source_trace, redacted_trace):
+            restored += _restore_digest_scalar(
+                source_stage,
+                redacted_stage,
+                "capsule_digest",
+                frozenset({64}),
+            )
+            restored += _restore_digest_list(
+                source_stage,
+                redacted_stage,
+                "incoming_handoff_digests",
+                frozenset({64}),
+            )
+    return restored
+
+
 def _restore_project_recipe_promotion_literals(
     source: object,
     redacted: object,
@@ -477,6 +565,12 @@ def _restore_project_recipe_promotion_literals(
         "schema",
         _PROJECT_RECIPE_PROMOTION_ELIGIBILITY_SCHEMA,
     )
+    restored += _restore_digest_scalar(
+        source.get("promotion_eligibility"),
+        redacted.get("promotion_eligibility"),
+        "phase_capsule_binding_digest",
+        frozenset({64}),
+    )
     source_recipe = source.get("recipe")
     redacted_recipe = redacted.get("recipe")
     if isinstance(source_recipe, dict) and isinstance(redacted_recipe, dict):
@@ -486,7 +580,17 @@ def _restore_project_recipe_promotion_literals(
             "schema",
             _PROJECT_RECIPE_PROMOTION_ELIGIBILITY_SCHEMA,
         )
-    remaining = redactions.get("long_high_entropy", 0) - restored
+        restored += _restore_digest_scalar(
+            source_recipe.get("promotion_eligibility"),
+            redacted_recipe.get("promotion_eligibility"),
+            "phase_capsule_binding_digest",
+            frozenset({64}),
+        )
+        restored += _restore_project_recipe_phase_binding_digests(
+            source_recipe,
+            redacted_recipe,
+        )
+    remaining = max(0, redactions.get("long_high_entropy", 0) - restored)
     if remaining > 0:
         redactions["long_high_entropy"] = remaining
     else:

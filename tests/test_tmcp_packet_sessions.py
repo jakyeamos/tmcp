@@ -1,13 +1,19 @@
 from __future__ import annotations
 
+import copy
+import hashlib
 import json
 import multiprocessing
 import os
 import tempfile
 import unittest
-from typing import Protocol
 from pathlib import Path
+from typing import Any, Protocol, cast
 
+from tmcp_runtime.domain.composition_phase_bindings import (
+    validate_phase_capsule_binding,
+)
+from tmcp_runtime.services.compose import prepare_composition_from_source_nodes
 from tmcp_runtime.storage import (
     ArtifactStorageError,
     AtomicArtifactStore,
@@ -39,6 +45,25 @@ def _packet(objective: str = "Review release safety") -> dict[str, object]:
         "receipt_template": {"schema": "tmcp-run-receipt-v0.1"},
         "safety": {},
     }
+
+
+def _semantic_composition_packet() -> dict[str, Any]:
+    """Compile one real semantic packet for persistence-boundary coverage."""
+
+    from tests.test_tmcp_composition_integration import CompositionIntegrationTests
+
+    harness = CompositionIntegrationTests()
+    harness.setUp()
+    prepared = prepare_composition_from_source_nodes(
+        harness.arguments,
+        source_nodes=harness.nodes,
+    )
+    return cast(
+        dict[str, Any],
+        harness._compose(
+            {**harness.arguments, "semantic_proposal": harness._proposal(prepared)}
+        ),
+    )
 
 
 def _symlink_or_skip(test_case: unittest.TestCase, link: Path, target: Path) -> None:
@@ -113,6 +138,92 @@ class PacketSessionStoreTests(unittest.TestCase):
         self.assertEqual(updated.metadata()["state_effect"], "project_local_write")
         if os.name != "nt":
             self.assertEqual(file_mode, 0o600)
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
+    def test_semantic_phase_binding_survives_session_redaction_and_reload(
+        self,
+    ) -> None:
+        packet = _semantic_composition_packet()
+        plan_map = copy.deepcopy(
+            cast(dict[str, Any], packet["composition_plan"])
+        )
+        receipt_map = copy.deepcopy(
+            cast(dict[str, Any], packet["receipt_template"])
+        )
+        binding = copy.deepcopy(plan_map["phase_capsule_binding"])
+        source_secret = "sk-" + "S" * 40
+        arbitrary_hash = hashlib.sha256(b"unapproved-session-hash").hexdigest()
+        plan_map["unapproved_source_prose"] = (
+            f"Never persist this unapproved source prose: {source_secret}"
+        )
+        receipt_map["opaque_digest"] = arbitrary_hash
+        receipt_map["execution_context"] = {
+            "preflight_context_instance_id": "host-context-should-not-persist",
+            "host_private_source": source_secret,
+        }
+        packet["composition_plan"] = plan_map
+        packet["receipt_template"] = receipt_map
+        packet["execution_context"] = {
+            "host_context_id": "host-context-should-not-persist"
+        }
+        expected_receipt = {
+            field: copy.deepcopy(receipt_map[field])
+            for field in (
+                "composition_plan_digest",
+                "phase_capsule_binding_digest",
+                "context_accounting_digest",
+                "preflight_capsule_digest",
+                "phase_capsule_trace",
+            )
+        }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "project"
+            project.mkdir()
+            store = PacketSessionStore.open(project, "semantic-phase-binding")
+            created = store.create(packet, now="2026-07-17T00:00:00Z")
+            loaded = store.load()
+            serialized = store.path.read_text(encoding="utf-8")
+
+        for snapshot in (created, loaded):
+            persisted_packet = snapshot.packet
+            persisted_plan = cast(
+                dict[str, Any], persisted_packet["composition_plan"]
+            )
+            persisted_receipt = cast(
+                dict[str, Any], persisted_packet["receipt_template"]
+            )
+            self.assertEqual(persisted_plan["phase_capsule_binding"], binding)
+            self.assertEqual(
+                {
+                    field: persisted_receipt[field]
+                    for field in expected_receipt
+                },
+                expected_receipt,
+            )
+            self.assertEqual(
+                validate_phase_capsule_binding(
+                    persisted_plan["phase_capsule_binding"]
+                ),
+                binding,
+            )
+            self.assertNotIn("execution_context", persisted_packet)
+            self.assertNotIn("execution_context", persisted_receipt)
+            self.assertEqual(
+                persisted_receipt["opaque_digest"],
+                "[REDACTED:long_high_entropy]",
+            )
+            self.assertNotIn(source_secret, json.dumps(persisted_plan))
+
+        self.assertIn(binding["binding_digest"], serialized)
+        self.assertIn(expected_receipt["composition_plan_digest"], serialized)
+        self.assertNotIn(source_secret, serialized)
+        self.assertNotIn(arbitrary_hash, serialized)
+        self.assertNotIn("execution_context", serialized)
+        self.assertIn("[REDACTED:openai_key]", serialized)
 
     def test_session_id_and_packet_shape_are_strict(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

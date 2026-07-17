@@ -16,7 +16,9 @@ The benchmark is deliberately two-pass and host-assisted:
 
 The host never supplies graph identity, stage order, source slices, context
 cost, or aggregate quality. The assembler derives those values from compiler
-replay, and derives weighted quality from evaluator dimension scores.
+replay, and derives weighted quality from evaluator dimension scores. A host
+does report an advisory execution-context mode and opaque context-instance IDs;
+TMCP validates those only against compiler-issued capsule digests.
 
 Run the final two steps with every bound artifact:
 
@@ -81,7 +83,28 @@ are supplied, rejects a partial explicit set, and fails whenever the bundled
 benchmark runner does not return a fully eligible summary. Supplying any
 artifact path for an earlier release still requires the same complete set.
 
-The observations object uses schema `tmcp-composition-benchmark-observations-v0.1` and contains complete `routing_results` for every golden case plus complete `behavioral_results` for all five fixtures. Missing or unexpected IDs are malformed evidence. Every routing case and every behavioral control carries a content-derived execution record, a hash-bound run receipt, and inline digest-verified evidence. Each behavioral result must include selected and ordered skills, active stages, provenance-backed typed relationships, compiled and naive context tokens, and observed quality for no-skill, naive union, every singleton, full composition, every leave-one-out ablation, and wrong-order controls.
+The observations object uses schema `tmcp-composition-benchmark-observations-v0.1` and contains complete `routing_results` for every golden case plus complete `behavioral_results` for all five fixtures. Missing or unexpected IDs are malformed evidence. Every routing case and every behavioral control carries a content-derived execution record, a hash-bound run receipt, and inline digest-verified evidence. Each behavioral result must include selected and ordered skills, active stages, provenance-backed typed relationships, compiler-derived phase-capsule accounting, compatibility aliases for runtime-peak and naive-union context tokens, and observed quality for no-skill, naive union, every singleton, full composition, every leave-one-out ablation, and wrong-order controls.
+
+## Phase-capsule context accounting
+
+The compiler serializes and token-estimates three canonical context forms: a
+bounded discovery capsule, one active capsule for each ordered stage, and a
+fair naive-union capsule containing the same runtime envelope plus all selected
+skill sources—but no composition-only stages, graph edges, handoffs, or plan
+identity. The release ratio is the peak active runtime capsule divided by the
+naive-union capsule. Discovery cost is reported
+separately and is never counted as concurrent runtime residency; the same-host
+transcript total remains visible for diagnosis.
+
+Each full-composition host receipt must bind the compiler accounting digest,
+preflight capsule digest, and every stage capsule in order.
+`same_host_transcript` is valid diagnostic evidence but cannot qualify a
+release or project recipe, even when its numeric ratio is below the threshold.
+Only `isolated_phase_capsule` qualifies the execution-mode gate, and its
+preflight and every phase must name distinct opaque context-instance IDs. These
+IDs are structural, advisory evidence—not cryptographic proof that a model
+provider discarded hidden transcript state. Safe assembled receipts retain mode
+and digest traces but intentionally omit those IDs and raw handoff bodies.
 
 ## Materialized fixture and run provenance
 
@@ -131,7 +154,8 @@ The runner exits `0` only when all gates pass:
 - expected-skill recall `1.00`, precision at least `0.90`, and no active conflict violations;
 - every expected/non-root relationship has harvested-slice provenance and expected ordering matches exactly;
 - median synergy lift at least `0.10`, compiler lift at least `0.05`, and order lift at least `0.05`;
-- aggregate and per-fixture compiled context ratios at or below `0.75`.
+- aggregate and per-fixture peak-runtime/naive-union context ratios at or below `0.75`;
+- an `isolated_phase_capsule` execution-context trace for every behavioral fixture.
 
 It exits `1` for a complete but ineligible run and `2` for malformed or
 incomplete evidence. The scorer never generates, fills, or infers observations;

@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import json
+import re
 import stat
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Sequence
 
 from tmcp_runtime.safety.redaction import merge_redactions
 from tmcp_runtime.safety.files import (
@@ -31,11 +32,28 @@ class SafeFileInput:
 
 @dataclass(frozen=True)
 class SafeJsonInput:
-    """A bounded JSON object parsed only after redaction."""
+    """A bounded JSON object parsed only after redaction.
+
+    ``preserved_sha256_literals`` is deliberately narrower than the decoded
+    input: it can contain only caller-requested, fixed-width lowercase SHA-256
+    values captured during the same protected file read.  It exists for
+    compiler-issued identities that would otherwise be redacted as high
+    entropy strings; it must never contain source prose or arbitrary values.
+    """
 
     display_path: str
     payload: dict[str, Any]
     redactions: dict[str, int]
+    preserved_sha256_literals: dict[tuple[str | int, ...], str] = field(
+        default_factory=dict
+    )
+
+
+_SHA256_LITERAL_RE = re.compile(r"[a-f0-9]{64}")
+_MAX_PRESERVED_SHA256_PATHS = 64
+_MAX_PRESERVED_SHA256_PATH_DEPTH = 16
+_MAX_PRESERVED_SHA256_LITERALS = 512
+_MAX_PRESERVED_SHA256_PATH_COMPONENT_LENGTH = 128
 
 
 def _failure(messages: list[str], fallback: str) -> ValueError:
@@ -100,13 +118,14 @@ def _read_exact_file(
     *,
     boundary: HarvestRoot | None,
     max_file_bytes: int,
+    redact_sensitive: bool = True,
 ) -> SafeFileInput:
     root = _file_root(path)
     candidate = _candidate_for(root, boundary)
     source, warning = read_harvest_text(
         candidate,
         max_file_bytes,
-        redact_sensitive=True,
+        redact_sensitive=redact_sensitive,
     )
     if warning or source is None:
         raise ValueError(warning or f"Could not read input file: {root.display_path}")
@@ -116,6 +135,93 @@ def _read_exact_file(
         text=source.text,
         redactions=source.redactions,
     )
+
+
+def _preserved_sha256_paths(
+    paths: Iterable[Sequence[str | int]],
+) -> tuple[tuple[str | int, ...], ...]:
+    """Validate a tiny allowlist of raw hash locations before one safe read."""
+
+    normalized: list[tuple[str | int, ...]] = []
+    for raw_path in paths:
+        if not isinstance(raw_path, (tuple, list)):
+            raise ValueError("preserve_sha256_paths entries must be path sequences.")
+        path = tuple(raw_path)
+        if (
+            not path
+            or len(path) > _MAX_PRESERVED_SHA256_PATH_DEPTH
+            or any(
+                (not isinstance(part, (str, int)))
+                or isinstance(part, bool)
+                or (isinstance(part, int) and part < 0)
+                or (
+                    isinstance(part, str)
+                    and len(part) > _MAX_PRESERVED_SHA256_PATH_COMPONENT_LENGTH
+                )
+                for part in path
+            )
+        ):
+            raise ValueError("preserve_sha256_paths contains an invalid path.")
+        normalized.append(path)
+    if len(normalized) > _MAX_PRESERVED_SHA256_PATHS:
+        raise ValueError(
+            "preserve_sha256_paths exceeds the maximum of "
+            f"{_MAX_PRESERVED_SHA256_PATHS} paths."
+        )
+    return tuple(normalized)
+
+
+def _preserve_sha256_literals(
+    value: object,
+    patterns: Sequence[tuple[str | int, ...]],
+) -> dict[tuple[str | int, ...], str]:
+    """Copy only requested hash leaves from an already bounded parsed object.
+
+    A ``'*'`` segment matches mapping keys or list indices.  It is useful for
+    bounded traces while keeping the public result a closed set of actual
+    locations and values rather than a raw object reference.
+    """
+
+    preserved: dict[tuple[str | int, ...], str] = {}
+
+    def visit(
+        current: object,
+        remaining: Sequence[str | int],
+        location: tuple[str | int, ...],
+    ) -> None:
+        if not remaining:
+            if isinstance(current, str) and _SHA256_LITERAL_RE.fullmatch(current):
+                if (
+                    location not in preserved
+                    and len(preserved) >= _MAX_PRESERVED_SHA256_LITERALS
+                ):
+                    raise ValueError(
+                        "preserve_sha256_paths exceeds the maximum of "
+                        f"{_MAX_PRESERVED_SHA256_LITERALS} literals."
+                    )
+                preserved[location] = current
+            return
+        segment = remaining[0]
+        rest = remaining[1:]
+        if segment == "*":
+            if isinstance(current, dict):
+                for key, item in current.items():
+                    if isinstance(key, str):
+                        visit(item, rest, (*location, key))
+            elif isinstance(current, list):
+                for index, item in enumerate(current):
+                    visit(item, rest, (*location, index))
+            return
+        if isinstance(current, dict) and isinstance(segment, str):
+            if segment in current:
+                visit(current[segment], rest, (*location, segment))
+        elif isinstance(current, list) and isinstance(segment, int):
+            if segment < len(current):
+                visit(current[segment], rest, (*location, segment))
+
+    for pattern in patterns:
+        visit(value, pattern, ())
+    return preserved
 
 
 def read_skill_inputs(
@@ -186,8 +292,15 @@ def read_json_input(
     *,
     project_path: str | Path | None = None,
     max_file_bytes: int = 262_144,
+    preserve_sha256_paths: Iterable[Sequence[str | int]] = (),
 ) -> SafeJsonInput:
-    """Read a regular `.json` file and redact decoded string values."""
+    """Read a regular `.json` file and redact decoded string values.
+
+    The optional hash path allowlist is captured before decoded-value
+    redaction, but only fixed-width SHA-256 literals are returned.  This lets
+    persistence code retain verifiable compiler identities without a second,
+    unbounded filesystem read after this protected read completes.
+    """
 
     root = _file_root(path)
     if root.logical_path.suffix.lower() != ".json":
@@ -197,6 +310,7 @@ def read_json_input(
         path,
         boundary=boundary,
         max_file_bytes=max_file_bytes,
+        redact_sensitive=False,
     )
     try:
         parsed = json.loads(source.text)
@@ -204,6 +318,10 @@ def read_json_input(
         raise ValueError(f"Input JSON is invalid: {source.display_path}") from exc
     if not isinstance(parsed, dict):
         raise ValueError("Input JSON must contain an object.")
+    preserved_sha256_literals = _preserve_sha256_literals(
+        parsed,
+        _preserved_sha256_paths(preserve_sha256_paths),
+    )
     payload, decoded_redactions = redact_json_value(parsed, enabled=True)
     if not isinstance(payload, dict):
         raise ValueError("Input JSON must contain an object.")
@@ -213,4 +331,5 @@ def read_json_input(
         display_path=source.display_path,
         payload=payload,
         redactions=redactions,
+        preserved_sha256_literals=preserved_sha256_literals,
     )

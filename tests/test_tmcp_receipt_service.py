@@ -76,6 +76,119 @@ class ReceiptServiceTests(unittest.TestCase):
         self.assertNotIn("secret-packet", repr(calls[3][1]))
         self.assertNotIn("secret-packet", repr(calls[4][1]))
 
+    def test_record_rejects_raw_benchmark_context_before_redaction_or_write(self) -> None:
+        calls: list[str] = []
+
+        def build_receipt(
+            _arguments: Mapping[str, Any], _created_at: str
+        ) -> dict[str, Any]:
+            calls.append("build")
+            return {
+                "packet_id": "packet-123",
+                "outcome": "passed",
+                "benchmark_host_receipt": "tmcp-composition-benchmark-host-only-v0.1",
+                "execution_context": {
+                    "preflight_context_instance_id": "host-private-context"
+                },
+            }
+
+        service = ReceiptService(
+            ReceiptServiceContext(
+                build_receipt=build_receipt,
+                redact_receipt=lambda receipt: (
+                    dict(receipt),
+                    {},
+                ),
+                storage_key=lambda _raw, _safe: "safe-key",
+                build_path=lambda _created, _key, _safe: Path("/receipts/test.json"),
+                write_receipt=lambda path, _payload: path,
+                present_path=lambda path: str(path),
+                build_result=lambda _safe, _path, _redactions: {},
+                redact_result=lambda result: result,
+                now_iso=lambda: "2026-07-13T12:00:00Z",
+            )
+        )
+
+        with self.assertRaisesRegex(ValueError, "Benchmark qualification fields"):
+            service.record({"packet_id": "packet-123"})
+
+        self.assertEqual(calls, ["build"])
+
+    def test_record_rejects_claimed_benchmark_mode_before_redaction_or_write(
+        self,
+    ) -> None:
+        calls: list[str] = []
+
+        def build_receipt(
+            _arguments: Mapping[str, Any], _created_at: str
+        ) -> dict[str, Any]:
+            calls.append("build")
+            return {
+                "packet_id": "packet-123",
+                "outcome": "passed",
+                "context_execution_mode": "isolated_phase_capsule",
+            }
+
+        service = ReceiptService(
+            ReceiptServiceContext(
+                build_receipt=build_receipt,
+                redact_receipt=lambda receipt: (dict(receipt), {}),
+                storage_key=lambda _raw, _safe: "safe-key",
+                build_path=lambda _created, _key, _safe: Path("/receipts/test.json"),
+                write_receipt=lambda path, _payload: path,
+                present_path=lambda path: str(path),
+                build_result=lambda _safe, _path, _redactions: {},
+                redact_result=lambda result: result,
+                now_iso=lambda: "2026-07-13T12:00:00Z",
+            )
+        )
+
+        with self.assertRaisesRegex(ValueError, "Benchmark qualification fields"):
+            service.record({"packet_id": "packet-123"})
+
+        self.assertEqual(calls, ["build"])
+
+    def test_record_rejects_raw_phase_capsule_context_before_redaction_or_write(
+        self,
+    ) -> None:
+        calls: list[str] = []
+
+        def build_receipt(
+            _arguments: Mapping[str, Any], _created_at: str
+        ) -> dict[str, Any]:
+            calls.append("build")
+            return {
+                "packet_id": "packet-123",
+                "outcome": "passed",
+                "phase_capsule_trace": [
+                    {
+                        "stage_id": "stage-1",
+                        "capsule_digest": "a" * 64,
+                        "incoming_handoff_digests": [],
+                        "context_instance_id": "host-private-context",
+                    }
+                ],
+            }
+
+        service = ReceiptService(
+            ReceiptServiceContext(
+                build_receipt=build_receipt,
+                redact_receipt=lambda receipt: (dict(receipt), {}),
+                storage_key=lambda _raw, _safe: "safe-key",
+                build_path=lambda _created, _key, _safe: Path("/receipts/test.json"),
+                write_receipt=lambda path, _payload: path,
+                present_path=lambda path: str(path),
+                build_result=lambda _safe, _path, _redactions: {},
+                redact_result=lambda result: result,
+                now_iso=lambda: "2026-07-13T12:00:00Z",
+            )
+        )
+
+        with self.assertRaisesRegex(ValueError, "phase_capsule_trace"):
+            service.record({"packet_id": "packet-123"})
+
+        self.assertEqual(calls, ["build"])
+
     def test_service_has_no_storage_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(receipts_service))
         tree = ast.parse(source_path.read_text(encoding="utf-8"))

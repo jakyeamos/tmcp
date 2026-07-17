@@ -41,13 +41,30 @@
     "source_binding": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["skill_id", "source_node_id", "relative_path", "content_digest", "activation"],
+      "required": ["skill_id", "source_node_id", "relative_path", "content_digest", "activation", "cited_slices"],
       "properties": {
         "skill_id": {"type": "string", "minLength": 1},
         "source_node_id": {"type": "string", "pattern": "^benchmark-source-[a-f0-9]{20}$"},
         "relative_path": {"type": "string", "pattern": "^skills/[^/]+/SKILL\\.md$"},
         "content_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-        "activation": {"enum": ["active", "deferred"]}
+        "activation": {"enum": ["active", "deferred"]},
+        "cited_slices": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/cited_slice_binding"}
+        }
+      }
+    },
+    "cited_slice_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slice_id", "source_digest", "slice_digest", "char_start", "char_end"],
+      "properties": {
+        "slice_id": {"type": "string", "pattern": "^slice-[a-f0-9]{20}$"},
+        "source_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "slice_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "char_start": {"type": "integer", "minimum": 0},
+        "char_end": {"type": "integer", "minimum": 1}
       }
     },
     "replay": {
@@ -184,8 +201,21 @@
         "ordered_skill_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
         "source_bindings": {"type": "array", "items": {"$ref": "#/$defs/source_binding"}},
         "required_gate_overrides": {"type": "array", "items": {"type": "object"}},
+        "context_accounting": {
+          "description": "Compiler-derived phase-capsule accounting for the full-composition recipe.",
+          "$ref": "tmcp-composition-context-accounting-v0.1.schema.json"
+        },
         "recipe_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"variant_id": {"const": "full_composition"}},
+            "required": ["variant_id"]
+          },
+          "then": {"required": ["context_accounting"]}
+        }
+      ]
     },
     "skill_ids": {
       "type": "array",

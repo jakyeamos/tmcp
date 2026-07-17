@@ -8,10 +8,13 @@ import unittest
 from pathlib import Path
 
 import tmcp_runtime.domain.receipts as receipts_domain
+from tmcp_runtime.api.composition_tool_schemas import COMPOSITION_TOOLS
 from tmcp_runtime.domain.receipts import (
+    BENCHMARK_HOST_RECEIPT_MARKER,
     RECEIPT_INSTRUCTION_OVERRIDE_POLICY,
     RECEIPT_TRUST,
     RUN_RECEIPT_SCHEMA,
+    build_benchmark_host_receipt,
     build_recorded_receipt_result,
     build_receipt_template,
     build_run_receipt,
@@ -61,7 +64,105 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
         ):
             build_run_receipt({"packet_id": "   "}, created_at="2026-07-12T00:00:00Z")
 
-    def test_build_run_receipt_adds_structured_composition_evidence(self) -> None:
+    def test_normal_receipt_builders_reject_raw_benchmark_host_context(self) -> None:
+        raw_context = {
+            "preflight_context_instance_id": "host-private-context",
+            "phase_capsule_trace": [],
+        }
+
+        with self.assertRaisesRegex(ValueError, "Benchmark qualification fields"):
+            build_run_receipt(
+                {
+                    "packet_id": "packet-123",
+                    "execution_context": raw_context,
+                },
+                created_at="2026-07-12T00:00:00Z",
+            )
+        with self.assertRaisesRegex(ValueError, "Benchmark qualification fields"):
+            build_receipt_template(
+                packet_id="packet-123",
+                activated_atoms=[],
+                composition_fields={"execution_context": raw_context},
+            )
+
+    def test_normal_receipt_builders_reject_raw_phase_capsule_context_ids(self) -> None:
+        unsafe_trace = [
+            {
+                "stage_id": "stage-1",
+                "capsule_digest": "a" * 64,
+                "incoming_handoff_digests": [],
+                "context_instance_id": "host-private-context",
+            }
+        ]
+
+        with self.assertRaisesRegex(ValueError, "phase_capsule_trace"):
+            build_run_receipt(
+                {
+                    "packet_id": "packet-123",
+                    "phase_capsule_trace": unsafe_trace,
+                },
+                created_at="2026-07-12T00:00:00Z",
+            )
+        with self.assertRaisesRegex(ValueError, "phase_capsule_trace"):
+            build_receipt_template(
+                packet_id="packet-123",
+                activated_atoms=[],
+                composition_fields={"phase_capsule_trace": unsafe_trace},
+            )
+
+    def test_normal_receipt_builder_preserves_only_closed_safe_phase_trace(self) -> None:
+        trace = [
+            {
+                "stage_id": " stage-1 ",
+                "capsule_digest": "a" * 64,
+                "incoming_handoff_digests": ["b" * 64],
+            }
+        ]
+
+        receipt = build_run_receipt(
+            {"packet_id": "packet-123", "phase_capsule_trace": trace},
+            created_at="2026-07-12T00:00:00Z",
+        )
+        trace[0]["stage_id"] = "later-change"
+
+        self.assertEqual(
+            receipt["phase_capsule_trace"],
+            [
+                {
+                    "stage_id": "stage-1",
+                    "capsule_digest": "a" * 64,
+                    "incoming_handoff_digests": ["b" * 64],
+                }
+            ],
+        )
+
+    def test_benchmark_host_builder_is_explicit_and_keeps_raw_context_in_memory(
+        self,
+    ) -> None:
+        raw_context = {
+            "preflight_context_instance_id": "host-private-context",
+            "phase_capsule_trace": [],
+        }
+
+        receipt = build_benchmark_host_receipt(
+            {
+                "packet_id": "packet-123",
+                "outcome": "passed",
+                "execution_context": raw_context,
+            },
+            created_at="2026-07-12T00:00:00Z",
+        )
+        raw_context["preflight_context_instance_id"] = "later-change"
+
+        self.assertEqual(
+            receipt["benchmark_host_receipt"], BENCHMARK_HOST_RECEIPT_MARKER
+        )
+        self.assertEqual(
+            receipt["execution_context"]["preflight_context_instance_id"],
+            "host-private-context",
+        )
+
+    def test_build_run_receipt_adds_generic_composition_evidence(self) -> None:
         arguments: dict[str, object] = {
             "packet_id": "packet-123",
             "recipe_id": " recipe-123 ",
@@ -80,9 +181,6 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
                 "order_lift": 0.06,
             },
             "cost_metrics": {"context_ratio": 0.70},
-            "composition_fixture_id": " fixture-a ",
-            "benchmark_control_input_digest": "a" * 64,
-            "benchmark_execution_recipe_digest": "b" * 64,
         }
         original = copy.deepcopy(arguments)
 
@@ -95,9 +193,6 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
         self.assertEqual(receipt["recipe_id"], "recipe-123")
         self.assertEqual(receipt["graph_digest"], "graph-123")
         self.assertEqual(receipt["content_digests"], ["a" * 64, "b" * 64])
-        self.assertEqual(receipt["composition_fixture_id"], "fixture-a")
-        self.assertEqual(receipt["benchmark_control_input_digest"], "a" * 64)
-        self.assertEqual(receipt["benchmark_execution_recipe_digest"], "b" * 64)
         self.assertEqual(
             receipt["selected_skill_ids"], ["research", "writing", "review"]
         )
@@ -107,6 +202,35 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
         self.assertEqual(receipt["quality_metrics"]["synergy_lift"], 0.12)
         arguments["task_identity"]["secondary"].append("later-change")  # type: ignore[index]
         self.assertEqual(receipt["task_identity"]["secondary"], ["review"])
+
+    def test_normal_receipt_builders_reject_benchmark_qualification_fields(
+        self,
+    ) -> None:
+        benchmark_fields = {
+            "context_execution_mode": "isolated_phase_capsule",
+            "composition_fixture_id": "fixture-a",
+            "benchmark_control_input_digest": "a" * 64,
+            "benchmark_execution_recipe_digest": "b" * 64,
+            "host_artifact_digest": "c" * 64,
+            "host_receipt_digest": "d" * 64,
+            "benchmark_receipt_provenance": {},
+        }
+        for key, value in benchmark_fields.items():
+            with self.subTest(key=key), self.assertRaisesRegex(
+                ValueError, "Benchmark qualification fields"
+            ):
+                build_run_receipt(
+                    {"packet_id": "packet-123", key: value},
+                    created_at="2026-07-12T00:00:00Z",
+                )
+            with self.subTest(template_key=key), self.assertRaisesRegex(
+                ValueError, "Benchmark qualification fields"
+            ):
+                build_receipt_template(
+                    packet_id="packet-123",
+                    activated_atoms=[],
+                    composition_fields={key: value},
+                )
 
     def test_receipt_template_copies_activated_atoms(self) -> None:
         activated_atoms = ["behavior-verification"]
@@ -137,7 +261,6 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
             "graph_digest": "graph-123",
             "content_digests": ["c" * 64],
             "selected_skill_ids": ["research", "review"],
-            "composition_fixture_id": "fixture-a",
         }
 
         template = build_receipt_template(
@@ -150,7 +273,6 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
         self.assertEqual(template["graph_digest"], "graph-123")
         self.assertEqual(template["content_digests"], ["c" * 64])
         self.assertEqual(template["selected_skill_ids"], ["research", "review"])
-        self.assertEqual(template["composition_fixture_id"], "fixture-a")
 
     def test_receipt_schema_keeps_composition_fields_optional(self) -> None:
         schema_path = (
@@ -174,6 +296,27 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
 
         self.assertTrue(composition_fields.issubset(schema["properties"]))
         self.assertTrue(composition_fields.isdisjoint(schema["required"]))
+
+    def test_normal_receipt_tool_exposes_only_safe_context_evidence(self) -> None:
+        schema = COMPOSITION_TOOLS["tmcp_record_receipt"]["inputSchema"]
+        assert isinstance(schema, dict)
+        properties = schema["properties"]
+        assert isinstance(properties, dict)
+
+        self.assertFalse(schema["additionalProperties"])
+        self.assertNotIn("execution_context", properties)
+        self.assertNotIn("benchmark_host_receipt", properties)
+        self.assertNotIn("context_execution_mode", properties)
+        self.assertNotIn("composition_fixture_id", properties)
+        self.assertNotIn("benchmark_control_input_digest", properties)
+        self.assertNotIn("benchmark_execution_recipe_digest", properties)
+        self.assertNotIn("benchmark_receipt_provenance", properties)
+        trace = properties["phase_capsule_trace"]
+        assert isinstance(trace, dict)
+        items = trace["items"]
+        assert isinstance(items, dict)
+        self.assertFalse(items["additionalProperties"])
+        self.assertNotIn("context_instance_id", items["properties"])
 
     def test_recorded_receipt_result_uses_only_safe_public_fields(self) -> None:
         safe_receipt: dict[str, object] = {

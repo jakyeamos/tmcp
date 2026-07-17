@@ -54,105 +54,24 @@ from tmcp_runtime.domain.composition_benchmark_protocol import (
 from tmcp_runtime.domain.composition_benchmark_receipts import (
     _validate_full_receipt,
 )
+from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
+    _receipt_projection,
+)
 from tmcp_runtime.domain.composition_benchmark_replay import (
     BENCHMARK_CONTROL_PLAN_SCHEMA,
     validate_benchmark_control_plan,
 )
 from tmcp_runtime.domain.composition_benchmarks import score_composition_benchmark
 from tmcp_runtime.domain.composition_preflight import stable_digest
-from tmcp_runtime.domain.receipts import (
-    RECEIPT_INSTRUCTION_OVERRIDE_POLICY,
-    RECEIPT_TRUST,
-)
-
-
-
-
-def _receipt_projection(
-    receipt: Mapping[str, Any],
-    *,
-    fixture_id: str,
-    projection: Mapping[str, Any],
-    receipt_validation: Mapping[str, Any],
-    quality_scores: Mapping[str, Any],
-    full_artifact_digest: str,
-) -> dict[str, Any]:
-    """Persist only compiler-derived receipt fields and bounded runtime outcomes."""
-
-    gates = receipt_validation["gates"]
-    handoffs = receipt_validation["handoffs"]
-    if not isinstance(gates, Mapping) or not isinstance(handoffs, Mapping):
-        raise ValueError("Receipt validation did not produce structured runtime evidence.")
-    expected_ref = f"artifact:{full_artifact_digest}"
-    expected_quality = _receipt_quality_metrics(quality_scores)
-    compiled = _finite_number(
-        projection.get("compiled_context_tokens"), field="projection.compiled_context"
-    )
-    naive = _finite_number(
-        projection.get("naive_context_tokens"), field="projection.naive_context"
-    )
-    return {
-        "schema": "tmcp-run-receipt-v0.1",
-        "created_at": receipt["created_at"],
-        "packet_id": receipt["packet_id"],
-        "activated_atoms": list(receipt_validation["activated_atoms"]),
-        "ignored_atoms": [],
-        "commands_run": [],
-        "verification_results": [],
-        "user_overrides": [],
-        "outcome": "passed",
-        "trust": RECEIPT_TRUST,
-        "instruction_override_policy": RECEIPT_INSTRUCTION_OVERRIDE_POLICY,
-        "recipe_id": projection["composition_plan_id"],
-        "task_identity": dict(projection["task_identity"]),
-        "graph_digest": projection["graph_digest"],
-        "content_digests": sorted(
-            {item["content_digest"] for item in projection["source_slices"]}
-        ),
-        "selected_skill_ids": [
-            item["source_node_id"]
-            for skill_id in projection["selected_skill_ids"]
-            for item in projection["source_slices"]
-            if item["skill_id"] == skill_id
-        ],
-        "phase_trace": list(receipt_validation["phase_trace"]),
-        "gate_results": [
-            {"gate_id": item["gate_id"], "status": item["status"]}
-            for item in gates["evaluated_gates"]
-        ],
-        "handoff_results": [
-            {
-                "handoff_id": item["handoff_id"],
-                "producer_node_id": item["producer_node_id"],
-                "consumer_node_id": item["consumer_node_id"],
-                "status": item["status"],
-                "consumed_inputs": list(item["consumed_inputs"]),
-                "produced_outputs": list(item["produced_outputs"]),
-                "evidence_refs": [expected_ref],
-            }
-            for item in handoffs["evaluated_handoffs"]
-        ],
-        "quality_metrics": expected_quality,
-        "cost_metrics": {
-            "context_tokens": compiled,
-            "context_ratio": round(compiled / naive, 4),
-        },
-        "composition_fixture_id": fixture_id,
-        "benchmark_control_input_digest": projection["full_variant"]["input_packet_digest"],
-        "benchmark_execution_recipe_digest": projection["full_variant"][
-            "execution_recipe_digest"
-        ],
-        "host_receipt_digest": stable_digest(dict(receipt)),
-        "host_artifact_digest": full_artifact_digest,
-    }
-
-
 def _behavioral_observation(
     fixture: Mapping[str, Any],
     control: Mapping[str, Any],
     host_variants: Mapping[str, Mapping[str, Any]],
     evaluation: Mapping[str, Any],
     evaluator_variants: Mapping[str, Mapping[str, Any]],
+    *,
+    control_plan_id: str,
+    control_plan_digest: str,
 ) -> dict[str, Any]:
     projection = _behavioral_projection(fixture, control)
     selected = list(projection["selected_skill_ids"])
@@ -191,6 +110,9 @@ def _behavioral_observation(
     persisted_receipt = _receipt_projection(
         full_receipt,
         fixture_id=str(projection["fixture_id"]),
+        fixture_digest=stable_digest(dict(fixture)),
+        control_plan_id=control_plan_id,
+        control_plan_digest=control_plan_digest,
         projection=projection,
         receipt_validation=receipt_validation,
         quality_scores=quality_scores,
@@ -304,6 +226,7 @@ def _behavioral_observation(
         "execution_manifest": execution_manifest,
         "evidence_manifest": evidence_manifest,
         "run_receipt": persisted_receipt,
+        "context_execution_mode": persisted_receipt["context_execution_mode"],
     }
 
 
@@ -427,9 +350,14 @@ def _validate_projection(
             "relationships",
             "compiled_context_tokens",
             "naive_context_tokens",
+            "context_accounting",
         ):
             if observed.get(key) != expected.get(key):
                 raise ValueError(f"{fixture_id}.{key} is not compiler-derived.")
+        if observed.get("context_execution_mode") != observed.get("run_receipt", {}).get(
+            "context_execution_mode"
+        ):
+            raise ValueError(f"{fixture_id}.context_execution_mode is not receipt-derived.")
         variants = _indexed(
             _mapping_list(
                 behavioral_controls[fixture_id].get("variants"),
@@ -569,6 +497,8 @@ def assemble_benchmark_observations(
             behavioral_host[fixture_id],
             evaluator[fixture_id][0],
             evaluator[fixture_id][1],
+            control_plan_id=str(control_plan["control_plan_id"]),
+            control_plan_digest=str(control_plan["control_plan_digest"]),
         )
         for fixture_id in behavioral_controls
     ]

@@ -59,6 +59,9 @@ Use this checklist before claiming a Tier One release.
   committed at `docs/COMPOSITION_BENCHMARK_SUMMARY.json`; the release record
   repeats the exact canonical bundle manifest and observation/summary SHA-256
   digests, and the approved reviewer binds that manifest with a UTC timestamp.
+- [ ] Every behavioral benchmark receipt qualifies with an
+  `isolated_phase_capsule` trace; `same_host_transcript` evidence is diagnostic
+  only and cannot satisfy the 0.6 release gate.
 - [ ] `python3 scripts/check_release_evidence.py .` passes.
 - [ ] A version bump records successful release-PR evidence, then passes a second PR verification before merge; this keeps the evidence gate pre-merge without creating a tag-run self-reference cycle.
 - [ ] Archive creation used a clean committed worktree; no dirty-path exception is accepted.

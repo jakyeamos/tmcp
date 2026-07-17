@@ -52,6 +52,7 @@ COMPOSITION_ACCEPTANCE_CHECKS = frozenset(
         "incoming_provenance_relationships",
         "expected_order",
         "context_ratio",
+        "context_execution_mode",
         "synergy_lift",
         "compiler_lift",
         "order_lift",
@@ -108,6 +109,8 @@ BEHAVIORAL_METRIC_KEYS = frozenset(
         "provenance_relationship_coverage",
         "context_ratio",
         "maximum_fixture_context_ratio",
+        "qualified_context_execution_count",
+        "unqualified_context_execution_fixtures",
         "quality_metrics",
         "order_match_rate",
         "fixtures",
@@ -344,6 +347,9 @@ def validate_benchmark_summary(summary: dict[str, object]) -> list[str]:
             or float(behavioral["context_ratio"]) > 0.75
             or not finite_number(behavioral.get("maximum_fixture_context_ratio"))
             or float(behavioral["maximum_fixture_context_ratio"]) > 0.75
+            or behavioral.get("qualified_context_execution_count")
+            != behavioral.get("fixture_count")
+            or behavioral.get("unqualified_context_execution_fixtures") != []
             or not isinstance(quality, dict)
             or set(quality) != {"synergy_lift", "compiler_lift", "order_lift"}
             or any(not finite_number(value) for value in quality.values())
