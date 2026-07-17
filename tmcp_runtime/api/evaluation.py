@@ -469,6 +469,12 @@ def score_evidence(
         )
     if not all(isinstance(item, dict) for item in raw_evidence):
         raise ValueError("run_evidence_json must contain trace objects.")
+    raw_cost_rejudgments = arguments.get("cost_rejudgments_json")
+    if raw_cost_rejudgments is not None and not isinstance(raw_cost_rejudgments, dict):
+        raise ValueError("cost_rejudgments_json must be an object.")
+    # Bind a blind sidecar to the original evidence before output redaction changes
+    # high-entropy provenance values that are intentionally part of the raw trace.
+    cost_rejudgments = validate_cost_rejudgments(raw_evidence, raw_cost_rejudgments)
     redactions: dict[str, int] = {}
     safe_evidence = _safe_bounded_json_value(
         raw_evidence,
@@ -503,24 +509,6 @@ def score_evidence(
                 "Each evidence trace must include observable observations; "
                 "prose-only summaries are rejected in v0.1."
             )
-    raw_cost_rejudgments = arguments.get("cost_rejudgments_json")
-    if raw_cost_rejudgments is not None and not isinstance(raw_cost_rejudgments, dict):
-        raise ValueError("cost_rejudgments_json must be an object.")
-    safe_cost_rejudgments = (
-        _safe_bounded_json_value(
-            raw_cost_rejudgments,
-            label="cost_rejudgments_json",
-            redactions=redactions,
-        )
-        if raw_cost_rejudgments is not None
-        else None
-    )
-    if safe_cost_rejudgments is not None and not isinstance(
-        safe_cost_rejudgments, dict
-    ):
-        raise ValueError("cost_rejudgments_json must be an object.")
-    cost_rejudgments = validate_cost_rejudgments(traces, safe_cost_rejudgments)
-
     project_path = arguments.get("project_path")
     if project_path is not None and not isinstance(project_path, (str, Path)):
         raise ValueError("project_path must be a path string.")

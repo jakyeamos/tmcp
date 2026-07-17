@@ -84,7 +84,8 @@ def validate_cost_rejudgments(
                 raise ValueError("cost rejudgment evidence entries must be objects.")
             if not str(item.get("citation") or "").strip():
                 raise ValueError("cost rejudgment evidence requires a citation.")
-            if str(item.get("criterion") or "") == "C1":
+            criterion = str(item.get("criterion") or "")
+            if criterion == "C1" or criterion.startswith("C1:"):
                 status = str(item.get("status") or "")
                 if status in {"necessary", "materially_unnecessary"}:
                     c1_statuses.add(status)

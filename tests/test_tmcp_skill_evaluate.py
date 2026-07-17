@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
 from tests.tmcp_test_client import run_mcp_requests as run_hermetic_mcp_requests
+from tmcp_runtime.services.evaluation_evidence import trace_source_digest
 from tmcp_runtime.storage import artifact_persistence_available
 
 
@@ -235,6 +236,75 @@ class SkillEvaluateTests(unittest.TestCase):
                 }
             )
         self.assertIn("observable observations", str(ctx.exception))
+
+    def test_score_binds_cost_rejudgments_before_trace_redaction(self) -> None:
+        plan = self._pattern_plan()
+        row = next(
+            item for item in plan["task_matrix"] if item["variant_id"] == "original"
+        )
+        trace = {
+            "schema": "tmcp-skill-eval-trace-v0.1",
+            "trace_id": "trace-1",
+            "experiment_id": plan["experiment"]["experiment_id"],
+            "matrix_row_id": row["matrix_row_id"],
+            "task_id": row["task_id"],
+            "variant_id": row["variant_id"],
+            "skill_path": row["skill_path"],
+            "ablation_section": row["ablation_section"],
+            "agent": {"name": "test", "model": "test"},
+            "campaign": {
+                "runner_artifact_sha256": "sha256:"
+                + "0123456789abcdef" * 4,
+            },
+            "observations": [{"kind": "assistant_message", "value": "artifact"}],
+            "case_verdict": {"passed": True, "cost_regression": True},
+        }
+        sidecar = {
+            "schema": "tmcp-skill-eval-cost-rejudgment-v0.1",
+            "rejudgments": [
+                {
+                    "trace_id": trace["trace_id"],
+                    "source_trace_digest": trace_source_digest(trace),
+                    "cost_regression": False,
+                    "evidence": [
+                        {
+                            "criterion": (
+                                "C1: The artifact does not require materially "
+                                "unnecessary execution work."
+                            ),
+                            "status": "necessary",
+                            "citation": "artifact line 1",
+                        }
+                    ],
+                    "rationale": "The required control is necessary.",
+                    "provenance": {
+                        "judge_blinded": True,
+                        "isolated_session": True,
+                        "fresh_session": True,
+                        "condition_hidden": True,
+                        "source_artifact_only": True,
+                    },
+                }
+            ],
+        }
+        redactions: dict[str, int] = {}
+        redacted_trace = self.evaluate._safe_bounded_json_value(
+            [trace], label="run_evidence_json", redactions=redactions
+        )[0]
+
+        self.assertNotEqual(
+            trace_source_digest(trace), trace_source_digest(redacted_trace)
+        )
+        report = self.evaluate.score_evidence(
+            {
+                "evaluation_plan": plan,
+                "compose_packet": False,
+                "run_evidence_json": [trace],
+                "cost_rejudgments_json": sidecar,
+            }
+        )
+
+        self.assertEqual(report["schema"], "tmcp-skill-evaluation-report-v0.2")
 
     def test_score_separates_activation_from_adherence(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
