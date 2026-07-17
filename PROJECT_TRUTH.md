@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `ccfab09` fixes the release scanner's numeric snake-case false positive while preserving opaque-token detection; `1e0af00` remains the baseline-reporting correction.
-- Verification: 541 tests pass (3 skipped); the scanner and package-focused suite pass 28 tests, and Ruff and basedpyright pass. The live baseline completed 36/36 cells with four first-pass remote schema preflights, 72 unique runner/judge threads, zero campaign errors/retries, and a complete 36-trace independent cost sidecar.
+- Last completed change: `ef28ede` makes published guidebook provenance portable and removes package-internal links to intentionally excluded evidence; `ccfab09` and `1e0af00` remain the scanner and baseline-reporting corrections.
+- Verification: 542 tests pass (3 skipped); the scanner/package-focused suite passes 28 tests, guidebook/package-policy suite passes 53 tests, and Ruff and basedpyright pass. The live baseline completed 36/36 cells with four first-pass remote schema preflights, 72 unique runner/judge threads, zero campaign errors/retries, and a complete 36-trace independent cost sidecar.
 
 ## Current Position
 
