@@ -586,7 +586,7 @@ class SkillEvaluateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "direction is not canonical"):
             self._score_probe(plan, row)
 
-    def test_v02_pattern_row_requires_stable_matrix_id(self) -> None:
+    def test_v02_pattern_row_needs_matrix_id(self) -> None:
         plan = self._pattern_plan()
         row = next(item for item in plan["task_matrix"] if item.get("pattern_id"))
         row.pop("matrix_row_id")
@@ -618,7 +618,7 @@ class SkillEvaluateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "does not match skill_digest"):
             self._score_probe(plan, row)
 
-    def test_legacy_v01_pattern_plan_without_row_ids_stays_hypothesis(self) -> None:
+    def test_legacy_rows_stay_hypothesis(self) -> None:
         plan = self._pattern_plan()
         plan["schema"] = "tmcp-skill-evaluation-plan-v0.1"
         pattern_rows = [row for row in plan["task_matrix"] if row.get("pattern_id")]
