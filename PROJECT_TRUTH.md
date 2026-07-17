@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `2058bcc` preregisters the Explore Unknowns Stage-1 source-bundle composition study and makes the campaign validator/scorer bind both arms and every trace to one exact packet, advisory receipt, task evidence, and materialized attachment.
-- Verification: 552 tests pass (3 skipped); source-bundle plan regeneration, API validation, 72-cell dry-run, compiler checks, TMCP doctor, and a project-root `reaction` replay pass. The commit hook could not run `pre-cr` because its CLI is unavailable on PATH.
+- Last completed change: `a7fab3e` follows the source-bundle preregistration with a release-scanner-safe test fixture path; `2058bcc` binds both study arms and every trace to one exact packet, advisory receipt, task evidence, and materialized attachment.
+- Verification: 552 tests pass (3 skipped); source-bundle plan regeneration, API validation, 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and the targeted release-scanner check pass. The commit hook could not run `pre-cr` because its CLI is unavailable on PATH.
 
 ## Current Position
 
