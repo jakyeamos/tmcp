@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `9361d06` requires nearby accessibility context before `contrast` can activate UI routing, harvested gates, or composed UI instructions.
-- Verification: 43 focused routing/composition/harvest tests, Ruff, basedpyright, a live compose-packet replay, and Pre-CR's 513-test run pass.
+- Last completed change: `d35c62c` adds the complete 72-cell, six-family, three-configuration skill-evaluation evidence bundle with raw runner/judge artifacts and canonical score.
+- Verification: all published SHA-256 values match, JSON artifacts parse, and a fresh score replay reproduces the exact canonical `pattern_claims`.
 
 ## Current Position
 
@@ -16,7 +16,7 @@
 - The checked-in catalog and guidebook preserve the candidate status, evidence scope, promotion gaps, suspected-only static finding, and reproducible evidence bundle.
 - Route inference now uses lexical-start matching for objectives and source evidence, so promotion-oriented evaluation prompts no longer activate motion guidance.
 - Revised experiment `skill-eval-95cfdd0ee52ff673` contains six semantically distinct workflow-stage fixtures across original and exact one-section-ablation conditions, three pinned reasoning configurations, and two repetitions.
-- The 72-cell matrix completed with 144 unique runner/judge threads and no invalidated stages; its raw evidence and corpus guidance are awaiting isolated commits.
+- The 72-cell matrix completed with 144 unique runner/judge threads and no invalidated stages; raw evidence is committed and corpus guidance remains an isolated pending change.
 - Statistical contrast prose now composes as `general_task`; genuine color/browser contrast still activates accessibility behavior.
 
 ## Next Step
