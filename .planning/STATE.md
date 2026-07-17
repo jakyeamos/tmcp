@@ -6,15 +6,16 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Close the remaining commit-quality size warnings, prove the
-clean-tree release package reproducible, and collect real host-run composition
-benchmark observations without advancing the active 0.5.7 release.
+**Current focus:** Prove the clean-tree release package reproducible, then
+collect real host-run composition benchmark observations without advancing the
+active 0.5.7 release.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
 **Status:** Implementation is complete on
-`codex/tmcp-compositional-intelligence` at `318c5fb`. Prepare, assisted compose,
+`codex/tmcp-compositional-intelligence` at `318c5fb`, with warning-free
+structural cleanup at `2ceb787`. Prepare, assisted compose,
 typed graph planning, graph-aware recompile, project-local reviewed recipes,
 evaluation variants, receipts, fixtures, and the fail-closed future release gate
 are present. Release proof remains pending real host-run observations.
@@ -29,6 +30,9 @@ are present. Release proof remains pending real host-run observations.
 
 ## Completed Scope
 
+- `2ceb787` splits public composition tool schemas and oversized tests by
+  responsibility; the commit quality gate passes without warnings and the full
+  613-test suite remains green with three expected skips.
 - `318c5fb` implements the compositional intelligence compiler and its public
   contracts while preserving the deterministic compatibility path and version
   0.5.7. The integrated suite passes 613 tests with three expected skips.
@@ -326,6 +330,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# After the commit-quality cleanup and clean-tree package proof:
-python3 scripts/run_composition_benchmark.py <real-host-observations.json>
+python3 scripts/check_release_package.py . --verify-reproducible
 ```
