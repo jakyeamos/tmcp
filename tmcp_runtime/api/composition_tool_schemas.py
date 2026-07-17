@@ -396,6 +396,16 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                 "quality_metrics": {"type": "object"},
                 "cost_metrics": {"type": "object"},
                 "composition_fixture_id": {"type": "string"},
+                "benchmark_control_input_digest": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "description": "Benchmark-only binding for the compiler-issued full-composition control input.",
+                },
+                "benchmark_execution_recipe_digest": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "description": "Benchmark-only binding for the compiler-issued full-composition recipe.",
+                },
                 "outcome": {"type": "string"},
             },
             "required": ["packet_id"],

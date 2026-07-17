@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Assemble compiler-derived composition benchmark controls without host execution."""
+"""Assemble compiler-bound composition benchmark artifacts without tool execution."""
 
 from __future__ import annotations
 
@@ -17,13 +17,22 @@ if str(PLUGIN_ROOT) not in sys.path:
 from tmcp_runtime.domain.composition_benchmark_replay import (  # noqa: E402
     build_benchmark_control_plan,
 )
+from tmcp_runtime.domain.composition_benchmark_assembly import (  # noqa: E402
+    MAX_BENCHMARK_ARTIFACT_BYTES,
+    assemble_benchmark_observations,
+)
+from scripts.schema_contract_support import (  # noqa: E402
+    SchemaAssertionError,
+    assert_matches_schema,
+)
 from tmcp_runtime.storage.artifacts import (  # noqa: E402
     ArtifactStorageError,
     AtomicArtifactStore,
 )
 
 
-MAX_INPUT_BYTES = 16 * 1024 * 1024
+MAX_INPUT_BYTES = MAX_BENCHMARK_ARTIFACT_BYTES
+SCHEMAS = PLUGIN_ROOT / "schemas"
 
 
 def _read_object(path: Path, *, label: str) -> dict[str, Any]:
@@ -75,6 +84,76 @@ def assemble_control_plan(
     }
 
 
+def assemble_observations(
+    *,
+    run_plan_path: Path,
+    semantic_proposals_path: Path,
+    control_plan_path: Path,
+    host_results_path: Path,
+    evaluator_artifacts_path: Path,
+    routing_golden_path: Path,
+    behavioral_fixtures_path: Path,
+    output_dir: Path,
+) -> dict[str, Any]:
+    """Bind explicit host and evaluator artifacts to compiler-replayed controls."""
+
+    run_plan = _read_object(run_plan_path, label="benchmark run plan")
+    semantic_proposals = _read_object(
+        semantic_proposals_path,
+        label="semantic proposal bundle",
+    )
+    control_plan = _read_object(control_plan_path, label="benchmark control plan")
+    host_results = _read_object(host_results_path, label="benchmark host results")
+    evaluator_artifacts = _read_object(
+        evaluator_artifacts_path,
+        label="benchmark evaluator artifacts",
+    )
+    routing = _read_object(routing_golden_path, label="routing golden")
+    behavioral = _read_object(behavioral_fixtures_path, label="behavioral fixtures")
+    for payload, schema_name in (
+        (run_plan, "tmcp-composition-benchmark-run-plan-v0.1.schema.json"),
+        (
+            semantic_proposals,
+            "tmcp-composition-benchmark-semantic-proposals-v0.1.schema.json",
+        ),
+        (control_plan, "tmcp-composition-benchmark-control-plan-v0.1.schema.json"),
+        (host_results, "tmcp-composition-benchmark-host-results-v0.1.schema.json"),
+        (
+            evaluator_artifacts,
+            "tmcp-composition-benchmark-evaluator-artifacts-v0.1.schema.json",
+        ),
+    ):
+        assert_matches_schema(payload, SCHEMAS / schema_name)
+    observations = assemble_benchmark_observations(
+        run_plan=run_plan,
+        semantic_proposals=semantic_proposals,
+        control_plan=control_plan,
+        routing_golden=routing,
+        behavioral_fixtures=behavioral,
+        host_results=host_results,
+        evaluator_artifacts=evaluator_artifacts,
+    )
+    assert_matches_schema(
+        observations,
+        SCHEMAS / "tmcp-composition-benchmark-observations-v0.1.schema.json",
+    )
+    paths = AtomicArtifactStore.write_json_bundle(
+        output_dir,
+        {"benchmark-observations.json": observations},
+    )
+    return {
+        "schema": "tmcp-composition-benchmark-observation-assembly-v0.1",
+        "ok": True,
+        "control_plan_id": control_plan["control_plan_id"],
+        "control_plan_digest": control_plan["control_plan_digest"],
+        "observations_path": paths["benchmark-observations.json"],
+        "routing_observation_count": len(observations["routing_results"]),
+        "behavioral_observation_count": len(observations["behavioral_results"]),
+        "automatic_tool_execution": False,
+        "receipt_persistence": "not_performed",
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
@@ -103,18 +182,59 @@ def main() -> int:
         / "fixtures"
         / "composition_behavioral_fixtures_v0_6.json",
     )
+    observations_parser = subparsers.add_parser("observations")
+    observations_parser.add_argument("--run-plan", required=True, type=Path)
+    observations_parser.add_argument("--semantic-proposals", required=True, type=Path)
+    observations_parser.add_argument("--control-plan", required=True, type=Path)
+    observations_parser.add_argument("--host-results", required=True, type=Path)
+    observations_parser.add_argument("--evaluator-artifacts", required=True, type=Path)
+    observations_parser.add_argument("--output-dir", required=True, type=Path)
+    observations_parser.add_argument(
+        "--routing-golden",
+        type=Path,
+        default=PLUGIN_ROOT
+        / "tests"
+        / "fixtures"
+        / "composition_routing_golden_v0_6.json",
+    )
+    observations_parser.add_argument(
+        "--behavioral-fixtures",
+        type=Path,
+        default=PLUGIN_ROOT
+        / "tests"
+        / "fixtures"
+        / "composition_behavioral_fixtures_v0_6.json",
+    )
     args = parser.parse_args()
     try:
-        if args.command != "control-plan":
+        if args.command == "control-plan":
+            result = assemble_control_plan(
+                run_plan_path=args.run_plan,
+                semantic_proposals_path=args.semantic_proposals,
+                routing_golden_path=args.routing_golden,
+                behavioral_fixtures_path=args.behavioral_fixtures,
+                output_dir=args.output_dir,
+            )
+        elif args.command == "observations":
+            result = assemble_observations(
+                run_plan_path=args.run_plan,
+                semantic_proposals_path=args.semantic_proposals,
+                control_plan_path=args.control_plan,
+                host_results_path=args.host_results,
+                evaluator_artifacts_path=args.evaluator_artifacts,
+                routing_golden_path=args.routing_golden,
+                behavioral_fixtures_path=args.behavioral_fixtures,
+                output_dir=args.output_dir,
+            )
+        else:
             raise ValueError(f"Unsupported benchmark assembly command: {args.command}")
-        result = assemble_control_plan(
-            run_plan_path=args.run_plan,
-            semantic_proposals_path=args.semantic_proposals,
-            routing_golden_path=args.routing_golden,
-            behavioral_fixtures_path=args.behavioral_fixtures,
-            output_dir=args.output_dir,
-        )
-    except (ArtifactStorageError, OSError, ValueError, json.JSONDecodeError) as exc:
+    except (
+        ArtifactStorageError,
+        OSError,
+        SchemaAssertionError,
+        ValueError,
+        json.JSONDecodeError,
+    ) as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
         return 2
     print(json.dumps(result, indent=2, sort_keys=True))

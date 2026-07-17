@@ -81,6 +81,8 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
             },
             "cost_metrics": {"context_ratio": 0.70},
             "composition_fixture_id": " fixture-a ",
+            "benchmark_control_input_digest": "a" * 64,
+            "benchmark_execution_recipe_digest": "b" * 64,
         }
         original = copy.deepcopy(arguments)
 
@@ -94,6 +96,8 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
         self.assertEqual(receipt["graph_digest"], "graph-123")
         self.assertEqual(receipt["content_digests"], ["a" * 64, "b" * 64])
         self.assertEqual(receipt["composition_fixture_id"], "fixture-a")
+        self.assertEqual(receipt["benchmark_control_input_digest"], "a" * 64)
+        self.assertEqual(receipt["benchmark_execution_recipe_digest"], "b" * 64)
         self.assertEqual(
             receipt["selected_skill_ids"], ["research", "writing", "review"]
         )

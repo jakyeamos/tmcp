@@ -32,7 +32,13 @@ def _mapping_list(value: object) -> list[dict[str, Any]]:
 
 def _composition_receipt_fields(arguments: Mapping[str, Any]) -> dict[str, Any]:
     fields: dict[str, Any] = {}
-    for key in ("recipe_id", "graph_digest", "composition_fixture_id"):
+    for key in (
+        "recipe_id",
+        "graph_digest",
+        "composition_fixture_id",
+        "benchmark_control_input_digest",
+        "benchmark_execution_recipe_digest",
+    ):
         if key not in arguments:
             continue
         value = str(arguments.get(key) or "").strip()

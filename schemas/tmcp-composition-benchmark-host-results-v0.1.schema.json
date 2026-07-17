@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-benchmark-host-results-v0.1.schema.json",
+  "title": "TMCP Composition Benchmark Host Results v0.1",
+  "description": "Bounded host execution facts for compiler-replayed benchmark controls.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "run_manifest_id",
+    "run_manifest_digest",
+    "control_plan_id",
+    "control_plan_digest",
+    "routing_runs",
+    "behavioral_runs"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-benchmark-host-results-v0.1"},
+    "run_manifest_id": {"type": "string", "pattern": "^benchmark-run-[a-f0-9]{20}$"},
+    "run_manifest_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "control_plan_id": {"type": "string", "pattern": "^benchmark-control-[a-f0-9]{20}$"},
+    "control_plan_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "routing_runs": {
+      "type": "array",
+      "minItems": 20,
+      "items": {"$ref": "#/$defs/routing_run"}
+    },
+    "behavioral_runs": {
+      "type": "array",
+      "minItems": 5,
+      "items": {"$ref": "#/$defs/behavioral_run"}
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["media_type", "content"],
+      "properties": {
+        "media_type": {"type": "string", "minLength": 1},
+        "content": {"type": "string", "minLength": 1, "maxLength": 8000}
+      }
+    },
+    "routing_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "request_id",
+        "input_digest",
+        "selected_skill_ids",
+        "run_id",
+        "outcome",
+        "artifact",
+        "evidence"
+      ],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "request_id": {"type": "string", "minLength": 1},
+        "input_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "selected_skill_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "run_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "outcome": {"const": "passed"},
+        "artifact": {"type": "string", "minLength": 1, "maxLength": 16000},
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {"$ref": "#/$defs/evidence"}
+        }
+      }
+    },
+    "behavioral_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixture_id", "request_id", "variants"],
+      "properties": {
+        "fixture_id": {"type": "string", "minLength": 1},
+        "request_id": {"type": "string", "minLength": 1},
+        "variants": {
+          "type": "array",
+          "minItems": 7,
+          "items": {"$ref": "#/$defs/behavioral_variant"}
+        }
+      }
+    },
+    "behavioral_variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variant_id",
+        "input_packet_digest",
+        "execution_recipe_digest",
+        "run_id",
+        "outcome",
+        "artifact"
+      ],
+      "properties": {
+        "variant_id": {"type": "string", "minLength": 1},
+        "input_packet_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "execution_recipe_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "run_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "outcome": {"const": "passed"},
+        "artifact": {"type": "string", "minLength": 1, "maxLength": 16000},
+        "tmcp_run_receipt": {"$ref": "tmcp-run-receipt-v0.1.schema.json"}
+      }
+    }
+  }
+}

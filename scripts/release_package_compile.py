@@ -8,6 +8,7 @@ import sys
 COMPILE_PATHS: tuple[str, ...] = (
     "scripts/tmcp_mcp_server.py",
     "scripts/check_contracts.py",
+    "scripts/schema_contract_support.py",
     "scripts/check_install.py",
     "scripts/check_release_package.py",
     "scripts/release_package_composition.py",
@@ -31,6 +32,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/domain/__init__.py",
     "tmcp_runtime/domain/declared_loads.py",
     "tmcp_runtime/domain/composition_benchmark_contracts.py",
+    "tmcp_runtime/domain/composition_benchmark_assembly.py",
     "tmcp_runtime/domain/composition_benchmark_evaluator.py",
     "tmcp_runtime/domain/composition_benchmark_manifests.py",
     "tmcp_runtime/domain/composition_benchmark_protocol.py",

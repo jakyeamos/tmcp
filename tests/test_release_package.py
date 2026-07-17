@@ -453,6 +453,15 @@ class ReleasePackageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             observations = Path(tmp) / "observations.json"
             observations.write_text('{"schema":"observed"}\n', encoding="utf-8")
+            benchmark_artifacts = {
+                "run_plan_path": Path(tmp) / "run-plan.json",
+                "semantic_proposals_path": Path(tmp) / "semantic-proposals.json",
+                "control_plan_path": Path(tmp) / "control-plan.json",
+                "host_results_path": Path(tmp) / "host-results.json",
+                "evaluator_artifacts_path": Path(tmp) / "evaluator-artifacts.json",
+            }
+            for path in benchmark_artifacts.values():
+                path.write_text("{}\n", encoding="utf-8")
             expected_digest = hashlib.sha256(observations.read_bytes()).hexdigest()
             builder = benchmark_test_support.CompositionBenchmarkTests()
             builder.setUpClass()
@@ -474,6 +483,7 @@ class ReleasePackageTests(unittest.TestCase):
                 ok, output = self.checker.check_composition_benchmark(
                     PLUGIN_ROOT,
                     observations,
+                    **benchmark_artifacts,
                     release_version="0.6.0",
                 )
 

@@ -1,25 +1,61 @@
 # Composition Benchmark Contract
 
-TMCP 0.6 is release-eligible only after real host-run observations pass the compositional acceptance gate. Golden prompts and behavioral fixture definitions describe what to run; they contain no quality scores and are not evidence by themselves.
+TMCP 0.6 is release-eligible only after real host-run observations pass the
+compositional acceptance gate. Golden prompts and behavioral fixture definitions
+describe what to run; they contain no quality scores and are not evidence by
+themselves.
 
-Run:
+The benchmark is deliberately two-pass and host-assisted:
+
+1. prepare a no-oracle run plan and have the host propose cited semantics;
+2. replay the compiler into an exact control plan;
+3. let the host explicitly execute those controls and let an external evaluator
+   score the resulting artifacts;
+4. assemble observations from the controls plus those two fact bundles; and
+5. score the assembled artifact against the release thresholds.
+
+The host never supplies graph identity, stage order, source slices, context
+cost, or aggregate quality. The assembler derives those values from compiler
+replay, and derives weighted quality from evaluator dimension scores.
+
+Run the final two steps with every bound artifact:
 
 ```bash
-python3 scripts/run_composition_benchmark.py path/to/observations.json
+python3 scripts/assemble_composition_benchmark.py observations \
+  --run-plan path/to/benchmark-run-plan.json \
+  --semantic-proposals path/to/semantic-proposals.json \
+  --control-plan path/to/benchmark-control-plan.json \
+  --host-results path/to/host-results.json \
+  --evaluator-artifacts path/to/evaluator-artifacts.json \
+  --output-dir path/to/assembled
+
+python3 scripts/run_composition_benchmark.py \
+  path/to/assembled/benchmark-observations.json \
+  --run-plan path/to/benchmark-run-plan.json \
+  --semantic-proposals path/to/semantic-proposals.json \
+  --control-plan path/to/benchmark-control-plan.json \
+  --host-results path/to/host-results.json \
+  --evaluator-artifacts path/to/evaluator-artifacts.json
 ```
 
-For a release-package check, pass the same real observations explicitly:
+For a release-package check, pass the same complete bound artifact set:
 
 ```bash
 python3 scripts/check_release_package.py . \
   --composition-benchmark-observations path/to/observations.json \
+  --composition-benchmark-run-plan path/to/benchmark-run-plan.json \
+  --composition-benchmark-semantic-proposals path/to/semantic-proposals.json \
+  --composition-benchmark-control-plan path/to/benchmark-control-plan.json \
+  --composition-benchmark-host-results path/to/host-results.json \
+  --composition-benchmark-evaluator-artifacts path/to/evaluator-artifacts.json \
   --verify-reproducible
 ```
 
 The package checker keeps 0.5.x behavior compatible when this option is absent.
-Starting with 0.6.0 it fails closed without the option, and it fails whenever the
-bundled benchmark runner does not return a fully eligible summary. Supplying the
-option for an earlier release still runs the benchmark check.
+Starting with 0.6.0 it fails closed without the complete bound artifact set, and
+it fails whenever the bundled benchmark runner does not return a fully eligible
+summary. Supplying observations for an earlier release still validates the same
+complete set.
 
 The observations object uses schema `tmcp-composition-benchmark-observations-v0.1` and contains complete `routing_results` for every golden case plus complete `behavioral_results` for all five fixtures. Missing or unexpected IDs are malformed evidence. Every routing case and every behavioral control carries a content-derived execution record, a hash-bound run receipt, and inline digest-verified evidence. Each behavioral result must include selected and ordered skills, active stages, provenance-backed typed relationships, compiled and naive context tokens, and observed quality for no-skill, naive union, every singleton, full composition, every leave-one-out ablation, and wrong-order controls.
 
@@ -29,16 +65,42 @@ Every behavioral fixture declares `skill_sources` for all candidates. Materializ
 
 Each behavioral observation also carries the actual `preflight_id`, `composition_plan_id`, 32-character `graph_digest`, and `task_identity`. Its `run_receipt` must use `tmcp-run-receipt-v0.1`, bind the same recipe/task/graph/content and harvested source-node selection, contain a non-blocked phase trace plus explicit passing gates, reproduce the scored quality and context metrics, and contain no user override. This benchmark does not accept a plan description without matching run evidence.
 
+The receipt trace is the runtime trace, not a benchmark-specific imitation: every
+record must name the compiler stage and its matching phase, request the phase it
+advances to, and carry exactly the gate and typed-handoff obligations the
+compiler derives for that transition. Benchmark recipes intentionally reject
+user redirects, identity changes, and phase overrides so the original compiler
+control remains replayable.
+
 ## External evaluator contract
 
-Quality is an external observed judgment, not a TMCP-generated value. Each fixture supplies a versioned weighted rubric with review criteria and required evidence. For every control variant, `evaluation_provenance` must record:
+Quality is an external observed judgment, not a TMCP-generated value. Each
+fixture supplies a versioned weighted rubric with review criteria and required
+evidence. The evaluator artifact binds every dimension score to the exact host
+artifact digest and control input/recipe digest. The assembler then emits
+`evaluation_provenance` with:
 
 - evaluator identity/version, evaluation run ID, timestamp, and method;
 - the exact fixture rubric ID, version, and canonical digest;
 - evidence references for that variant;
 - a 0–1 score for every rubric dimension.
 
-TMCP recomputes each weighted mean and rejects a reported quality score that does not match its per-dimension scores. Every reference must resolve to an inline evidence-manifest record whose content digest and content-derived ID match, whose execution ID is valid, and whose execution record binds its input, artifact, result, and receipt digests. This cryptographic linkage makes the reviewed bundle tamper-evident; the external evaluator remains responsible for the judgment itself. Synthetic records and scores in unit tests prove contract math only.
+TMCP recomputes each weighted mean and rejects a reported quality score that does
+not match its per-dimension scores. Every required rubric item must cite
+variant-local evaluator evidence, and every reference must resolve to an inline
+evidence-manifest record whose content digest and content-derived ID match,
+whose execution ID is valid, and whose execution record binds its legacy input,
+compiler-control input, artifact, result, recipe, and receipt digests. Free-text
+host/evaluator fields are bounded and rejected when TMCP's redactor detects
+secret-like content; persisted receipts are safe projections that omit raw
+commands, verification logs, and overrides.
+
+This is content-bound, replayable evidence with
+`evidence_trust: advisory_untrusted`, not cryptographic proof that an independent
+host or evaluator performed the claimed work. A reviewed release therefore still
+requires human scrutiny of the bound artifacts. Synthetic records and scores in
+unit tests prove contract math only and normal CLI/release paths do not accept
+them.
 
 The runner exits `0` only when all gates pass:
 
@@ -47,7 +109,12 @@ The runner exits `0` only when all gates pass:
 - median synergy lift at least `0.10`, compiler lift at least `0.05`, and order lift at least `0.05`;
 - aggregate and per-fixture compiled context ratios at or below `0.75`.
 
-It exits `1` for a complete but ineligible run and `2` for malformed or incomplete evidence. The scorer never generates, fills, or infers observations. Synthetic unit data in `tests/test_tmcp_composition_benchmarks.py` verifies calculations only and must never be cited as release evidence.
+It exits `1` for a complete but ineligible run and `2` for malformed or
+incomplete evidence. The scorer never generates, fills, or infers observations;
+the separate assembler only projects compiler facts and evaluator evidence after
+replaying and validating the controls. Synthetic unit data in
+`tests/test_tmcp_composition_benchmarks.py` verifies calculations only and must
+never be cited as release evidence.
 
 Retain the exact successful CLI output, including top-level `ok: true` and the SHA-256 digest of the exact observations bytes parsed by the runner, as the reviewed benchmark summary. Published schemas cover the [routing golden](../schemas/tmcp-composition-routing-golden-v0.1.schema.json), [behavioral fixtures](../schemas/tmcp-composition-behavioral-fixtures-v0.1.schema.json), [observations](../schemas/tmcp-composition-benchmark-observations-v0.1.schema.json), and [summary](../schemas/tmcp-composition-benchmark-summary-v0.1.schema.json).
 

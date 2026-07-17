@@ -422,6 +422,11 @@ def check_composition_benchmark(
     plugin_root: Path,
     observations_path: Path | None,
     *,
+    run_plan_path: Path | None = None,
+    semantic_proposals_path: Path | None = None,
+    control_plan_path: Path | None = None,
+    host_results_path: Path | None = None,
+    evaluator_artifacts_path: Path | None = None,
     release_version: str,
 ) -> tuple[bool, str]:
     required = composition_benchmark_required(release_version)
@@ -433,10 +438,33 @@ def check_composition_benchmark(
                 "benchmark observations file.",
             )
         return True, f"not required for TMCP {release_version}"
+    required_artifacts = {
+        "run plan": run_plan_path,
+        "semantic proposals": semantic_proposals_path,
+        "control plan": control_plan_path,
+        "host results": host_results_path,
+        "evaluator artifacts": evaluator_artifacts_path,
+    }
+    missing_artifacts = [
+        label for label, path in required_artifacts.items() if path is None
+    ]
+    if missing_artifacts:
+        return (
+            False,
+            "composition benchmark observations require compiler-bound "
+            f"{', '.join(missing_artifacts)}.",
+        )
     try:
         observations = observations_path.expanduser().resolve(strict=True)
         if not observations.is_file():
             return False, "composition benchmark observations must be one regular file"
+        artifact_paths = {
+            label: path.expanduser().resolve(strict=True)
+            for label, path in required_artifacts.items()
+            if path is not None
+        }
+        if any(not path.is_file() for path in artifact_paths.values()):
+            return False, "composition benchmark artifacts must be regular files"
         observations_digest = hashlib.sha256(observations.read_bytes()).hexdigest()
     except OSError as exc:
         return False, f"could not resolve composition benchmark observations: {exc}"
@@ -445,6 +473,16 @@ def check_composition_benchmark(
             sys.executable,
             "scripts/run_composition_benchmark.py",
             str(observations),
+            "--run-plan",
+            str(artifact_paths["run plan"]),
+            "--semantic-proposals",
+            str(artifact_paths["semantic proposals"]),
+            "--control-plan",
+            str(artifact_paths["control plan"]),
+            "--host-results",
+            str(artifact_paths["host results"]),
+            "--evaluator-artifacts",
+            str(artifact_paths["evaluator artifacts"]),
         ],
         plugin_root,
     )
@@ -479,6 +517,11 @@ def check_package(
     package_path: Path,
     *,
     observations_path: Path | None = None,
+    run_plan_path: Path | None = None,
+    semantic_proposals_path: Path | None = None,
+    control_plan_path: Path | None = None,
+    host_results_path: Path | None = None,
+    evaluator_artifacts_path: Path | None = None,
     release_version: str = VERSION.release,
 ) -> dict[str, Any]:
     manifest_ok, manifest_output = check_archive_manifest(package_path)
@@ -528,6 +571,11 @@ def check_package(
         benchmark_ok, benchmark_output = check_composition_benchmark(
             plugin_root,
             observations_path,
+            run_plan_path=run_plan_path,
+            semantic_proposals_path=semantic_proposals_path,
+            control_plan_path=control_plan_path,
+            host_results_path=host_results_path,
+            evaluator_artifacts_path=evaluator_artifacts_path,
             release_version=release_version,
         )
     return {
@@ -588,6 +636,11 @@ def main() -> int:
             "still validated."
         ),
     )
+    parser.add_argument("--composition-benchmark-run-plan", type=Path)
+    parser.add_argument("--composition-benchmark-semantic-proposals", type=Path)
+    parser.add_argument("--composition-benchmark-control-plan", type=Path)
+    parser.add_argument("--composition-benchmark-host-results", type=Path)
+    parser.add_argument("--composition-benchmark-evaluator-artifacts", type=Path)
     args = parser.parse_args()
 
     plugin_root = Path(args.plugin_root).expanduser().resolve()
@@ -614,6 +667,11 @@ def main() -> int:
             **check_package(
                 output_path,
                 observations_path=args.composition_benchmark_observations,
+                run_plan_path=args.composition_benchmark_run_plan,
+                semantic_proposals_path=args.composition_benchmark_semantic_proposals,
+                control_plan_path=args.composition_benchmark_control_plan,
+                host_results_path=args.composition_benchmark_host_results,
+                evaluator_artifacts_path=args.composition_benchmark_evaluator_artifacts,
                 release_version=VERSION.release,
             ),
         }

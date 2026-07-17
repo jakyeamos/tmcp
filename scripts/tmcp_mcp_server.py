@@ -297,6 +297,18 @@ def _restore_run_receipt_digests(source: object, redacted: object) -> int:
         "content_digests",
         frozenset({64}),
     )
+    restored += _restore_digest_scalar(
+        source,
+        redacted,
+        "benchmark_control_input_digest",
+        frozenset({64}),
+    )
+    restored += _restore_digest_scalar(
+        source,
+        redacted,
+        "benchmark_execution_recipe_digest",
+        frozenset({64}),
+    )
     return restored
 
 

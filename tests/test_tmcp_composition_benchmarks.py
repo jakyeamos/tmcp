@@ -305,6 +305,24 @@ class CompositionBenchmarkTests(unittest.TestCase):
                 execution_manifest.append(execution)
                 evidence_manifest.append(evidence)
                 variant_evidence[variant_id] = [evidence["evidence_id"]]
+            variant_dimension_evidence = {
+                variant_id: {
+                    dimension["dimension_id"]: [
+                        {
+                            "requirement": requirement,
+                            "evidence_ids": variant_evidence[variant_id],
+                            "claim": (
+                                "Synthetic unit evidence for "
+                                f"{fixture['fixture_id']} {variant_id} "
+                                f"{dimension['dimension_id']} {requirement}."
+                            ),
+                        }
+                        for requirement in dimension["evidence_required"]
+                    ]
+                    for dimension in fixture["quality_rubric"]["dimensions"]
+                }
+                for variant_id in sorted(variant_ids)
+            }
             results.append(
                 {
                     "fixture_id": fixture["fixture_id"],
@@ -337,6 +355,7 @@ class CompositionBenchmarkTests(unittest.TestCase):
                         "rubric_digest": stable_digest(fixture["quality_rubric"]),
                         "variant_evidence": variant_evidence,
                         "variant_dimension_scores": variant_dimension_scores,
+                        "variant_dimension_evidence": variant_dimension_evidence,
                     },
                     "execution_manifest": execution_manifest,
                     "evidence_manifest": evidence_manifest,
@@ -429,6 +448,24 @@ class CompositionBenchmarkTests(unittest.TestCase):
         observation["execution_manifest"] = execution_manifest
         observation["evidence_manifest"] = evidence_manifest
         observation["evaluation_provenance"]["variant_evidence"] = variant_evidence
+        observation["evaluation_provenance"]["variant_dimension_evidence"] = {
+            variant_id: {
+                dimension["dimension_id"]: [
+                    {
+                        "requirement": requirement,
+                        "evidence_ids": variant_evidence[variant_id],
+                        "claim": (
+                            "Synthetic unit evidence for "
+                            f"{fixture['fixture_id']} {variant_id} "
+                            f"{dimension['dimension_id']} {requirement}."
+                        ),
+                    }
+                    for requirement in dimension["evidence_required"]
+                ]
+                for dimension in fixture["quality_rubric"]["dimensions"]
+            }
+            for variant_id in sorted(required_behavioral_variants(selected))
+        }
 
     @staticmethod
     def _source_slice(
@@ -737,6 +774,18 @@ class CompositionBenchmarkTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "rubric-weighted dimension score"):
             score_behavioral_benchmark(self.fixture_definitions, observed)
 
+    def test_evaluator_dimension_evidence_must_bind_its_own_variant(self) -> None:
+        observed = self._behavioral_results()
+        provenance = observed[0]["evaluation_provenance"]
+        full_bindings = provenance["variant_dimension_evidence"]["full_composition"]
+        first_dimension = next(iter(full_bindings))
+        full_bindings[first_dimension][0]["evidence_ids"] = provenance[
+            "variant_evidence"
+        ]["no_skill"]
+
+        with self.assertRaisesRegex(ValueError, "bind this variant's evidence"):
+            score_behavioral_benchmark(self.fixture_definitions, observed)
+
     def test_acceptance_runner_consumes_explicit_observations_file(self) -> None:
         observations = {
             "schema": "tmcp-composition-benchmark-observations-v0.1",
@@ -752,6 +801,7 @@ class CompositionBenchmarkTests(unittest.TestCase):
                 routing_golden_path=ROUTING_GOLDEN,
                 behavioral_fixtures_path=BEHAVIORAL_FIXTURES,
                 observations_path=path,
+                allow_synthetic=True,
             )
 
         self.assertTrue(summary["eligible"])

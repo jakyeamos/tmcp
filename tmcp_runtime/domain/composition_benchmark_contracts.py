@@ -251,6 +251,88 @@ def validate_evaluation_provenance(
             evidence_refs,
             field=(f"{fixture_id}.evaluation_provenance.variant_evidence.{variant_id}"),
         )
+    dimension_evidence = provenance.get("variant_dimension_evidence")
+    if not isinstance(dimension_evidence, Mapping):
+        raise ValueError(
+            f"{fixture_id}.evaluation_provenance.variant_dimension_evidence is required."
+        )
+    if {str(key) for key in dimension_evidence} != required_variants:
+        raise ValueError(
+            f"{fixture_id}.evaluation_provenance.variant_dimension_evidence must "
+            "cover every control exactly."
+        )
+    execution_by_variant = {
+        str(record.get("variant_id") or ""): str(record.get("execution_id") or "")
+        for record in _mapping_list(
+            observation.get("execution_manifest"),
+            field=f"{fixture_id}.execution_manifest",
+        )
+    }
+    evidence_by_id = {
+        str(record.get("evidence_id") or ""): record
+        for record in _mapping_list(
+            observation.get("evidence_manifest"),
+            field=f"{fixture_id}.evidence_manifest",
+        )
+    }
+    expected_requirements = {
+        str(dimension.get("dimension_id") or ""): _nonempty_strings(
+            dimension.get("evidence_required"),
+            field=(
+                f"{fixture_id}.quality_rubric.{dimension.get('dimension_id')}."
+                "evidence_required"
+            ),
+        )
+        for dimension in _mapping_list(
+            rubric.get("dimensions"), field=f"{fixture_id}.quality_rubric.dimensions"
+        )
+    }
+    for variant_id, raw_dimensions in dimension_evidence.items():
+        if not isinstance(raw_dimensions, Mapping) or {
+            str(key) for key in raw_dimensions
+        } != set(expected_requirements):
+            raise ValueError(
+                f"{fixture_id}.evaluation_provenance.variant_dimension_evidence."
+                f"{variant_id} must cover every rubric dimension."
+            )
+        execution_id = execution_by_variant.get(str(variant_id))
+        if not execution_id:
+            raise ValueError(
+                f"{fixture_id}.execution_manifest is missing {variant_id} evidence."
+            )
+        for dimension_id, requirements in expected_requirements.items():
+            entries = _mapping_list(
+                raw_dimensions.get(dimension_id),
+                field=(
+                    f"{fixture_id}.evaluation_provenance.variant_dimension_evidence."
+                    f"{variant_id}.{dimension_id}"
+                ),
+            )
+            observed_requirements: list[str] = []
+            for index, entry in enumerate(entries, start=1):
+                entry_field = (
+                    f"{fixture_id}.evaluation_provenance.variant_dimension_evidence."
+                    f"{variant_id}.{dimension_id}[{index}]"
+                )
+                requirement = str(entry.get("requirement") or "").strip()
+                refs = _nonempty_strings(
+                    entry.get("evidence_ids"), field=f"{entry_field}.evidence_ids"
+                )
+                if not str(entry.get("claim") or "").strip():
+                    raise ValueError(f"{entry_field}.claim is required.")
+                if any(
+                    evidence_by_id.get(ref, {}).get("execution_id") != execution_id
+                    for ref in refs
+                ):
+                    raise ValueError(
+                        f"{entry_field}.evidence_ids must bind this variant's evidence."
+                    )
+                observed_requirements.append(requirement)
+            if observed_requirements != requirements:
+                raise ValueError(
+                    f"{fixture_id}.{variant_id}.{dimension_id} must bind every "
+                    "required rubric evidence item in order."
+                )
     validate_variant_dimension_scores(
         fixture_id,
         rubric,
