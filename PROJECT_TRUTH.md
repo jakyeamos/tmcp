@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `78528a4` adds a digest-bound, condition-blind cost-rejudge harness; cluster-aware scoring; absolute control-reliability gates; and composition-relevance regressions.
-- Verification: 524 tests (3 skipped), full Ruff/basedpyright/compile checks, score replay, TMCP doctor, and the 72-source rejudge dry-run pass. A sandbox-only rejudge attempted no completed judgments because network access was denied.
+- Last completed change: `40f8f17` splits the cost-rejudge harness into thin CLI, source-validation, and execution modules after `78528a4` added the rejudge protocol, promotion gates, and composition regressions.
+- Verification: 525 tests (3 skipped), full Ruff/basedpyright/compile checks, score replay, TMCP doctor, the 72-source rejudge dry-run, and Pre-CR changed-line readiness pass. A sandbox-only rejudge attempted no completed judgments because network access was denied.
 
 ## Current Position
 
