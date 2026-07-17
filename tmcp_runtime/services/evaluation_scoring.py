@@ -514,6 +514,7 @@ def score_traces(
     effective_patterns: list[dict[str, Any]],
     report_schema: str,
     created_at: str,
+    cost_rejudgments: dict[str, bool] | None = None,
 ) -> dict[str, Any]:
     traces = _bind_traces_to_rows(traces, plan)
     compose_cache: dict[str, dict[str, Any]] = {}
@@ -563,7 +564,11 @@ def score_traces(
                 }
             )
 
-    pattern_claims = analyze_pattern_evidence(plan, traces)
+    pattern_claims = analyze_pattern_evidence(
+        plan,
+        traces,
+        cost_rejudgments=cost_rejudgments,
+    )
     judged_case_scores = case_scores(plan, traces)
     rendered_guidebook_entries = guidebook_entries(
         static_findings=static_findings,
@@ -619,6 +624,10 @@ def score_traces(
         "outcome_scores": outcome_scores,
         "case_scores": judged_case_scores,
         "cost_scores": cost_scores,
+        "cost_rejudgment": {
+            "applied": cost_rejudgments is not None,
+            "trace_count": len(cost_rejudgments or {}),
+        },
         "pattern_effects": static_pattern_effects,
         "pattern_claims": pattern_claims,
         "static_pattern_findings": static_findings,

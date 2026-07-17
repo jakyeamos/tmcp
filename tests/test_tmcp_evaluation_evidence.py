@@ -75,6 +75,15 @@ class EvaluationEvidenceServiceTests(unittest.TestCase):
             "experiment": {
                 "experiment_id": "experiment-1",
                 "promotion_thresholds": evaluation_evidence.DEFAULT_THRESHOLDS,
+                "analysis_policy": {
+                    "clustered_interval": {
+                        "method": "fixture_block_bootstrap_by_configuration",
+                        "confidence": 0.95,
+                        "cluster_unit": "fixture_digest",
+                        "resamples": 10_000,
+                        "seed": 20_260_717,
+                    }
+                },
             },
             "task_matrix": rows,
         }
@@ -195,6 +204,106 @@ class EvaluationEvidenceServiceTests(unittest.TestCase):
         self.assertTrue(
             any("interval lower bound" in gap for gap in claim["promotion_gaps"])
         )
+
+    def test_multi_agent_promotion_requires_reliable_control_on_every_fixture(
+        self,
+    ) -> None:
+        plan = self._plan(fixture_count=6)
+        traces = self._traces(
+            plan,
+            configurations=("config-a", "config-b", "config-c"),
+        )
+        for trace in traces:
+            if trace["matrix_row_id"] == "row-0-original":
+                trace["case_verdict"]["passed"] = False
+
+        claim = evaluation_evidence.analyze_pattern_evidence(plan, traces)[0]
+
+        self.assertEqual(
+            claim["controlled_summary"]["control_reliability"]["overall"]["pass_rate"],
+            0.833,
+        )
+        self.assertEqual(
+            claim["controlled_summary"]["minimum_per_fixture_control_pass_rate"],
+            0.0,
+        )
+        self.assertIn(
+            "minimum fixture control pass rate 0.000 is below required 0.500",
+            claim["promotion_gaps"],
+        )
+
+    def test_legacy_plan_keeps_clustered_diagnostic_but_cannot_promote(self) -> None:
+        plan = self._plan(fixture_count=6)
+        del plan["experiment"]["analysis_policy"]
+        traces = self._traces(
+            plan,
+            configurations=("config-a", "config-b", "config-c"),
+        )
+
+        claim = evaluation_evidence.analyze_pattern_evidence(plan, traces)[0]
+
+        self.assertIsNotNone(
+            claim["controlled_summary"]["clustered_absolute_lift_interval"]
+        )
+        self.assertFalse(claim["promotion_eligible"])
+        self.assertIn(
+            "clustered analysis policy was not predeclared",
+            claim["promotion_gaps"],
+        )
+
+    def test_complete_cost_rejudgment_preserves_raw_and_applies_adjudication(
+        self,
+    ) -> None:
+        plan = self._plan()
+        traces = self._traces(plan)
+        traces[0]["case_verdict"]["cost_regression"] = True
+        rejudgments = {trace["trace_id"]: False for trace in traces}
+
+        claim = evaluation_evidence.analyze_pattern_evidence(
+            plan,
+            traces,
+            cost_rejudgments=rejudgments,
+        )[0]
+
+        self.assertTrue(claim["controlled_summary"]["raw_cost_regression"])
+        self.assertFalse(claim["controlled_summary"]["cost_regression"])
+        self.assertTrue(claim["controlled_summary"]["cost_rejudgment_applied"])
+
+    def test_cost_rejudgment_validator_rejects_nonblind_or_partial_payload(
+        self,
+    ) -> None:
+        traces = self._traces(self._plan())
+        trace = traces[0]
+        payload = {
+            "schema": evaluation_evidence.COST_REJUDGMENT_SCHEMA,
+            "rejudgments": [
+                {
+                    "trace_id": trace["trace_id"],
+                    "source_trace_digest": evaluation_evidence.trace_source_digest(
+                        trace
+                    ),
+                    "cost_regression": False,
+                    "evidence": [
+                        {
+                            "criterion": "C1",
+                            "status": "necessary",
+                            "citation": "artifact line 1",
+                        }
+                    ],
+                    "rationale": "The safety control is necessary.",
+                    "provenance": {
+                        "judge_blinded": True,
+                        "isolated_session": True,
+                        "fresh_session": True,
+                        "condition_hidden": True,
+                        "source_artifact_only": False,
+                    },
+                }
+            ],
+        }
+
+        with self.assertRaisesRegex(ValueError, "coverage"):
+            evaluation_evidence.validate_cost_rejudgments(traces, payload)
 
     def test_multi_agent_promotion_rejects_configuration_reversal(self) -> None:
         plan = self._plan(fixture_count=6)

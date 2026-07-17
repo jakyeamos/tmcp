@@ -1,0 +1,8 @@
+[
+  {
+    "archive": "invalidated/cost-rejudge-attempt-1",
+    "output_sha256": null,
+    "reason": "Codex process exited 1: ename nor servname provided, or not known, url: wss://chatgpt.com/backend-api/codex/responses\n2026-07-17T15:55:54.407671Z  WARN codex_core::client: falling back to HTTP\n2026-07-17T15:55:57.303806Z  WARN codex_core::responses_retry: stream disconnected - retrying sampling request (1/5 in 180ms)...\n2026-07-17T15:56:00.598500Z  WARN codex_core::responses_retry: stream disconnected - retrying sampling request (2/5 in 429ms)...\n2026-07-17T15:56:04.245601Z  WARN codex_core::responses_retry: stream disconnected - retrying sampling request (3/5 in 813ms)...\n2026-07-17T15:56:08.032682Z  WARN codex_core::responses_retry: stream disconnected - retrying sampling request (4/5 in 1.751s)...\n2026-07-17T15:56:12.748879Z  WARN codex_core::responses_retry: stream disconnected - retrying sampling request (5/5 in 3.163s)...\n2026-07-17T15:56:18.997810Z  WARN codex_analytics::client: failed to send events request: error sending request for url (https://chatgpt.com/backend-api/codex/analytics-events/events)\n",
+    "stage": "cost-rejudge"
+  }
+]

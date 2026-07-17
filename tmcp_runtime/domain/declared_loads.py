@@ -84,9 +84,7 @@ def declared_load_patterns_from_text(text: str) -> list[str]:
         patterns.append(normalize_declared_load_pattern(match.group(1)))
     for match in DECLARED_LOAD_PATH_PATTERN.finditer(text):
         candidate = normalize_declared_load_pattern(match.group(1))
-        if candidate and (
-            "/" in candidate or candidate.endswith((".md", ".json", ".yaml", ".yml"))
-        ):
+        if candidate and "/" in candidate:
             patterns.append(candidate)
     return [pattern for pattern in _ordered_unique(patterns) if pattern]
 

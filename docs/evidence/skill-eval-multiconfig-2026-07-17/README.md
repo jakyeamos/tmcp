@@ -132,6 +132,22 @@ Across the whole campaign, 47 artifacts mention checkout, `git status`, or leaks
 result. A predeclared campaign-wide rejudge with a faithful cost bar is the clean
 resolution.
 
+The hardened evaluator now supports that rejudge as a complete digest-bound
+sidecar rather than a raw-label mutation. Its campaign-wide [cost bar](cost-rejudge/cost-evaluation-bar.md)
+and [execution contract](cost-rejudge/README.md) are predeclared. The only
+remaining live step requires explicit authorization to send the 72 fixed
+runner artifacts to the Codex service; until then, no rejudged verdict is
+claimed.
+
+The same replay adds a fixture-block interval of `[-0.750, -0.194]` and
+explicit 50% aggregate/per-fixture intact-control floors. It confirms the
+relative section effect but holds promotion independently of cost: regression
+retest is 0/6 and failure diagnosis is 1/6 for the intact condition. See the
+[cluster/reliability replay](cluster-reliability-replay.md). The planned
+smaller causal interventions are intentionally not run while this baseline is
+unreliable; their activation contract is recorded in the
+[micro-ablation protocol](workflow-microablation-protocol.md).
+
 Actual campaign usage is recorded separately from TMCP's heuristic cost score:
 
 | Role | Input tokens | Output tokens | Reasoning output tokens |

@@ -38,6 +38,16 @@ class EvaluationPlanServiceTests(unittest.TestCase):
             plan["experiment"]["protocol_version"],
             "tmcp-skill-evaluation-protocol-v0.2",
         )
+        self.assertEqual(
+            plan["experiment"]["analysis_policy"]["clustered_interval"]["method"],
+            "fixture_block_bootstrap_by_configuration",
+        )
+        self.assertEqual(
+            plan["experiment"]["promotion_thresholds"]["controlled_multi_agent_eval"][
+                "minimum_per_fixture_control_pass_rate"
+            ],
+            0.5,
+        )
         row_ids = [row["matrix_row_id"] for row in plan["task_matrix"]]
         self.assertEqual(len(row_ids), len(set(row_ids)))
         original = next(

@@ -79,25 +79,64 @@ UI_VERIFICATION_TERMS = (
     "responsive",
 )
 COMPOSITION_GENERIC_TERMS = {
+    "add",
     "agent",
     "agents",
+    "all",
+    "and",
+    "any",
+    "artifacts",
     "before",
+    "but",
+    "can",
+    "could",
     "codex",
     "current",
+    "each",
+    "execute",
+    "existing",
+    "fixed",
+    "for",
+    "from",
+    "had",
+    "has",
+    "have",
     "improve",
+    "into",
     "make",
+    "not",
     "packet",
     "packets",
+    "per",
     "readiness",
     "release",
+    "report",
+    "reports",
+    "run",
+    "should",
     "skill",
     "skills",
+    "source",
+    "sources",
     "start",
     "task",
+    "that",
+    "the",
+    "then",
+    "these",
+    "this",
+    "those",
     "tmcp",
+    "was",
+    "were",
+    "will",
+    "with",
+    "would",
     "workflow",
     "workflows",
 }
+DETAILED_OBJECTIVE_TERM_THRESHOLD = 8
+DETAILED_OBJECTIVE_MIN_NODE_OVERLAP = 2
 RELEASE_READINESS_PHRASES = (
     "release readiness",
     "ship no ship",
@@ -277,6 +316,49 @@ def score_composition_node(
     return score
 
 
+def _has_explicit_detailed_objective_match(
+    node: Node,
+    objective: str,
+    objective_terms: set[str],
+    family_context: dict[str, Any] | None,
+    active_routes: list[str],
+) -> bool:
+    """Preserve explicit routing signals when detailed objectives need more overlap."""
+
+    source_type = str(node.get("source_type") or "")
+    if source_type == "agent_operating_contract":
+        return True
+    if node_matches_family_primary(node, family_context, objective):
+        return True
+    if family_context and str(node.get("relative_path") or "") in _string_list(
+        family_context.get("router_relative_paths")
+    ):
+        return True
+
+    rel_path = str(node.get("relative_path") or "").lower()
+    objective_lower = objective.lower()
+    if rel_path.endswith("/skill.md"):
+        skill_slug = rel_path.rsplit("/", 2)[-2].replace("_", "-")
+        if skill_slug and skill_slug in objective_lower.replace("_", "-"):
+            return True
+
+    metadata = _routing_metadata(node)
+    if any(
+        command.lower() in objective_lower
+        for command in _string_list(metadata.get("commands"))
+    ):
+        return True
+    return (
+        composition_route_boost(
+            active_routes,
+            relative_path=str(node.get("relative_path") or ""),
+            source_type=source_type,
+            text="",
+        )
+        > 0
+    )
+
+
 def select_composition_nodes(
     source_nodes: list[Node],
     objective: str,
@@ -299,8 +381,25 @@ def select_composition_nodes(
     resolved_routes = active_routes or _string_list(
         derive_task_identity(objective, context).get("active_routes")
     )
+    objective_terms = composition_terms(objective)
+    require_multiple_overlaps = (
+        len(objective_terms) >= DETAILED_OBJECTIVE_TERM_THRESHOLD
+    )
     scored: list[tuple[float, str, Node]] = []
     for node in source_nodes:
+        text = node_signal_text(node)
+        if require_multiple_overlaps and (
+            len(objective_terms.intersection(composition_terms(text)))
+            < DETAILED_OBJECTIVE_MIN_NODE_OVERLAP
+            and not _has_explicit_detailed_objective_match(
+                node,
+                objective,
+                objective_terms,
+                active_family_context,
+                resolved_routes,
+            )
+        ):
+            continue
         score = score_composition_node(
             node,
             objective,

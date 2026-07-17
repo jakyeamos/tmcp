@@ -112,6 +112,29 @@ class TmcpDeclaredLoadsTests(unittest.TestCase):
             )
         )
 
+    def test_incidental_bare_filename_does_not_expand_to_every_skill(self) -> None:
+        patterns = declared_loads.declared_load_patterns_from_text(
+            "Skill evaluation accepts explicit `SKILL.md` inputs."
+        )
+
+        self.assertEqual(patterns, [])
+        self.assertEqual(
+            declared_loads.resolve_declared_load_paths(
+                selected_nodes=[
+                    {
+                        "relative_path": "README.md",
+                        "routing_metadata": {"declared_loads": patterns},
+                    }
+                ],
+                source_nodes=[
+                    {"relative_path": "skills/one/SKILL.md"},
+                    {"relative_path": "skills/two/SKILL.md"},
+                ],
+                objective="Evaluate a skill.",
+            ),
+            [],
+        )
+
     def test_domain_bounds_paths_and_excludes_selected_nodes(self) -> None:
         source_nodes = [
             {

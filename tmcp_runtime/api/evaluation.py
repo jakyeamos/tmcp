@@ -23,6 +23,7 @@ from tmcp_runtime.services.evaluation_plan import (
     section_ablation_content,
 )
 from tmcp_runtime.services.evaluation_scoring import _normalize_trace, score_traces
+from tmcp_runtime.services.evaluation_evidence import validate_cost_rejudgments
 
 
 EVAL_REPORT_SCHEMA = "tmcp-skill-evaluation-report-v0.2"
@@ -502,6 +503,23 @@ def score_evidence(
                 "Each evidence trace must include observable observations; "
                 "prose-only summaries are rejected in v0.1."
             )
+    raw_cost_rejudgments = arguments.get("cost_rejudgments_json")
+    if raw_cost_rejudgments is not None and not isinstance(raw_cost_rejudgments, dict):
+        raise ValueError("cost_rejudgments_json must be an object.")
+    safe_cost_rejudgments = (
+        _safe_bounded_json_value(
+            raw_cost_rejudgments,
+            label="cost_rejudgments_json",
+            redactions=redactions,
+        )
+        if raw_cost_rejudgments is not None
+        else None
+    )
+    if safe_cost_rejudgments is not None and not isinstance(
+        safe_cost_rejudgments, dict
+    ):
+        raise ValueError("cost_rejudgments_json must be an object.")
+    cost_rejudgments = validate_cost_rejudgments(traces, safe_cost_rejudgments)
 
     project_path = arguments.get("project_path")
     if project_path is not None and not isinstance(project_path, (str, Path)):
@@ -517,6 +535,7 @@ def score_evidence(
         effective_patterns=list(EFFECTIVE_PATTERNS),
         report_schema=EVAL_REPORT_SCHEMA,
         created_at=_iso_now(),
+        cost_rejudgments=cost_rejudgments,
     )
     plan_redactions = plan.get("redaction_summary")
     if isinstance(plan_redactions, dict):

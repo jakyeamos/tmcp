@@ -46,7 +46,9 @@ def render_guidebook_markdown(
             )
         sample = entry.get("sample")
         if isinstance(sample, Mapping):
-            interval = sample.get("absolute_lift_interval")
+            interval = sample.get("clustered_absolute_lift_interval") or sample.get(
+                "absolute_lift_interval"
+            )
             if isinstance(interval, Mapping):
                 confidence = float(interval.get("confidence") or 0.0)
                 method = str(interval.get("method") or "unspecified").replace("_", "-")

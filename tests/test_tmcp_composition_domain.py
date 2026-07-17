@@ -313,6 +313,71 @@ class CompositionDomainTests(unittest.TestCase):
         )
         self.assertEqual(generic_selected[0]["relative_path"], plain["relative_path"])
 
+    def test_detailed_objective_requires_relevant_overlap_or_explicit_signal(
+        self,
+    ) -> None:
+        objective = (
+            "Run a condition-blind cluster-aware evaluation rejudge with "
+            "per-fixture reliability gates and evidence artifacts using tmcp-evaluate."
+        )
+        source_nodes = [
+            {
+                "relative_path": "docs/evaluation-evidence.md",
+                "source_type": "project_documentation",
+                "signal": (
+                    "condition blind cluster evaluation rejudge reliability gates "
+                    "evidence"
+                ),
+            },
+            {
+                "relative_path": "skills/postmortem/SKILL.md",
+                "source_type": "skill_definition",
+                "signal": "Run the fixed report with the source artifacts.",
+            },
+            {
+                "relative_path": "skills/command/SKILL.md",
+                "source_type": "skill_definition",
+                "signal": "unrelated",
+                "routing_metadata": {"commands": ["tmcp-evaluate"]},
+            },
+            {
+                "relative_path": "skills/debugging/SKILL.md",
+                "source_type": "skill_definition",
+                "signal": "unrelated",
+            },
+            {
+                "relative_path": "skills/primary/SKILL.md",
+                "source_type": "skill_definition",
+                "signal": "unrelated",
+            },
+            {
+                "relative_path": "AGENTS.md",
+                "source_type": "agent_operating_contract",
+                "signal": "unrelated",
+            },
+        ]
+
+        selected = composition.select_composition_nodes(
+            source_nodes,
+            objective,
+            "start",
+            {},
+            family_context={
+                "primary_skill_slugs": ["primary"],
+                "router_relative_paths": [],
+            },
+            active_routes=["debugging_regression"],
+            node_signal_text=_node_signal_text,
+        )
+
+        selected_paths = {node["relative_path"] for node in selected}
+        self.assertIn("docs/evaluation-evidence.md", selected_paths)
+        self.assertNotIn("skills/postmortem/SKILL.md", selected_paths)
+        self.assertIn("skills/command/SKILL.md", selected_paths)
+        self.assertIn("skills/debugging/SKILL.md", selected_paths)
+        self.assertIn("skills/primary/SKILL.md", selected_paths)
+        self.assertIn("AGENTS.md", selected_paths)
+
     def test_node_selection_resolves_family_and_routes_when_not_supplied(self) -> None:
         source_nodes = [
             {

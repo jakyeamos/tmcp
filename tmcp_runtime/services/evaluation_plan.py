@@ -466,7 +466,18 @@ def build_evaluation_plan_from_sources(
                     "minimum_fixture_families": 3,
                     "minimum_agent_configurations": 3,
                     "minimum_absolute_lift": 0.1,
+                    "minimum_control_pass_rate": 0.5,
+                    "minimum_per_fixture_control_pass_rate": 0.5,
                 },
+            },
+            "analysis_policy": {
+                "clustered_interval": {
+                    "method": "fixture_block_bootstrap_by_configuration",
+                    "confidence": 0.95,
+                    "cluster_unit": "fixture_digest",
+                    "resamples": 10_000,
+                    "seed": 20_260_717,
+                }
             },
         },
         "evaluated_skills": [

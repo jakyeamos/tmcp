@@ -34,6 +34,12 @@ class EvaluationRenderingServiceTests(unittest.TestCase):
                         "upper": -0.02,
                         "method": "newcombe_wilson_difference",
                     },
+                    "clustered_absolute_lift_interval": {
+                        "confidence": 0.95,
+                        "lower": -0.9,
+                        "upper": -0.1,
+                        "method": "fixture_block_bootstrap_by_configuration",
+                    },
                 },
                 "promotion": {
                     "decision": "hold",
@@ -66,7 +72,7 @@ class EvaluationRenderingServiceTests(unittest.TestCase):
         self.assertIn("# TMCP Skill Writing Guidebook", markdown)
         self.assertIn("### Concrete gates", markdown)
         self.assertIn("support direction: negative", markdown)
-        self.assertIn("95% [-1.0, -0.02]", markdown)
+        self.assertIn("95% [-0.9, -0.1]", markdown)
         self.assertIn("1 agent configuration", markdown)
         self.assertIn("\n\n- Promotion gap:", markdown)
         self.assertEqual(catalog["created_at"], "now")
