@@ -6,10 +6,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Commit reviewed release evidence bound to replayable benchmark
-artifacts, then replace the current non-isolated context metric with verified
-phase capsules. Graph provenance and host/evaluator evidence are content-bound;
-keep 0.5.7 active.
+**Current focus:** Restore the package-check/test source-size gate, then replace
+the current non-isolated context metric with verified phase capsules. Reviewed
+release evidence is content-bound; keep 0.5.7 active.
 
 ## Milestone
 
@@ -29,8 +28,9 @@ host/evaluator artifacts, exact replay assembly, per-rubric evidence binding,
 actual runtime receipt lineage, safe receipt projection, and direct-domain size
 limits. `6fdf9de` restores the hard domain-size gate through
 compatibility-preserving benchmark and behavior-manifest splits. Release-bound
-bundle verification, honest phase-capsule context accounting, and real host-run
-proof remain.
+bundle verification is in `f688c1e`: it requires an exact replayed canonical
+bundle but remains advisory evidence. Package-check/test source-size cleanup,
+honest phase-capsule context accounting, and real host-run proof remain.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -43,6 +43,10 @@ proof remain.
 
 ## Completed Scope
 
+- `f688c1e` adds a Git-clean six-artifact benchmark bundle, archive exclusion,
+  secret scanning, source-before-extraction package replay, exact summary/review
+  binding, and adversarial release tests. The feature tests pass; the commit
+  gate flags oversized package-check/test owners for the next cleanup slice.
 - `6fdf9de` separates oversized benchmark assembly/replay and behavior-manifest
   owners behind compatibility facades, explicitly compiles the new shipped
   modules, and restores the <600 nonblank-line hard domain-size check. Focused

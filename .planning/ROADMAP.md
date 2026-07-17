@@ -95,9 +95,12 @@ outcomes while preserving deterministic compatibility.
   assembly, per-rubric evidence bindings, safe receipt projection, runtime
   phase/gate/handoff lineage checks, and direct-domain artifact caps. `6fdf9de`
   separates benchmark assembly/replay and behavior-manifest responsibilities
-  behind compatibility facades, restoring the hard module-size gate. A canonical
-  committed release bundle and honest phase-capsule context accounting are next.
-  `9f26520` keeps preflight coverage below the test-size gate.
+  behind compatibility facades, restoring the hard module-size gate. `f688c1e`
+  binds canonical Git-clean release evidence to six replayed artifacts, keeps
+  raw host/evaluator data out of archives, and requires exact reviewed replay.
+  A package-check/test responsibility split and honest phase-capsule context
+  accounting are next. `9f26520` keeps preflight coverage below the test-size
+  gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, graph-bound typed
@@ -112,4 +115,4 @@ outcomes while preserving deterministic compatibility.
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for benchmark domain-size refactoring*
+*Last updated: 2026-07-17 for canonical benchmark release evidence*
