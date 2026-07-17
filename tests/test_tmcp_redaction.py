@@ -11,6 +11,9 @@ class TmcpRedactionTests(unittest.TestCase):
             looks_high_entropy("canonical_cli_command=CLI_CANONICAL_COMMANDS")
         )
         self.assertFalse(looks_high_entropy("output_schema_ids=TOOL_OUTPUT_SCHEMA_IDS"))
+        self.assertFalse(
+            looks_high_entropy("test_builds_full_randomized_72_cell_matrix")
+        )
 
     def test_opaque_token_remains_secret_like(self) -> None:
         opaque_token = "A9b8C7d6E5f4G3h2I1j0" + "K9l8M7n6O5p4Q3r2S1t0"
