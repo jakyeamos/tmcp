@@ -38,6 +38,9 @@
         "$ref": "#/$defs/source_slice"
       }
     },
+    "behavior_manifest_index": {
+      "$ref": "tmcp-behavior-manifest-v0.1.schema.json#/$defs/index"
+    },
     "source_roles": {
       "type": "object",
       "additionalProperties": false,
@@ -98,7 +101,31 @@
         "total_chars",
         "total_tokens",
         "limits"
-      ]
+      ],
+      "properties": {
+        "context_cost": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "always_on_index_tokens",
+            "hydrated_candidate_tokens",
+            "naive_candidate_tokens",
+            "preflight_total_tokens",
+            "preflight_context_ratio",
+            "selected_behavior_block_count",
+            "deferred_behavior_block_count"
+          ],
+          "properties": {
+            "always_on_index_tokens": { "type": "integer", "minimum": 0 },
+            "hydrated_candidate_tokens": { "type": "integer", "minimum": 0 },
+            "naive_candidate_tokens": { "type": "integer", "minimum": 0 },
+            "preflight_total_tokens": { "type": "integer", "minimum": 0 },
+            "preflight_context_ratio": { "type": "number", "minimum": 0 },
+            "selected_behavior_block_count": { "type": "integer", "minimum": 0 },
+            "deferred_behavior_block_count": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
     },
     "trust": {
       "const": "advisory_untrusted"
@@ -215,6 +242,22 @@
         "behavior_atoms": {
           "type": "array",
           "items": { "type": "string" }
+        },
+        "behavior_manifest_id": {
+          "type": "string",
+          "pattern": "^behavior-manifest-[a-f0-9]{20}$"
+        },
+        "behavior_manifest_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "behavior_block_id": {
+          "type": "string",
+          "pattern": "^behavior-block-[a-f0-9]{20}$"
+        },
+        "behavior_block_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         },
         "phase_hints": {
           "type": "array",

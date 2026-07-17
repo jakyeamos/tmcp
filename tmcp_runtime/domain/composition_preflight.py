@@ -8,8 +8,14 @@ import re
 import unicodedata
 from typing import Any
 
+from .behavior_manifests import (
+    build_behavior_manifest_index,
+    compact_behavior_manifest_index,
+    markdown_behavior_chunks,
+    select_hydrated_behavior_blocks,
+)
 from .composition import composition_terms
-from .harvest_nodes import node_source_role
+from .harvest_nodes import content_digest_for, node_source_role
 from .scoped_seeds import normalize_scoped_seed, scoped_seed_graph_metadata
 
 
@@ -66,6 +72,7 @@ RELATIONSHIP_TYPE_SEMANTICS = {
 }
 ALLOWED_RELATIONSHIPS = frozenset(RELATIONSHIP_TYPE_SEMANTICS)
 PHASE_ORDER = ("start", "discovery", "implementation", "verification", "final")
+DEFAULT_MAX_BEHAVIOR_BLOCKS_PER_SOURCE = 24
 
 
 def json_list(value: object) -> list[Any]:
@@ -106,33 +113,13 @@ def _source_digest(node: dict[str, Any], excerpt: str) -> str:
     harvested_digest = str(node.get("content_digest") or "").strip().lower()
     if re.fullmatch(r"[a-f0-9]{64}", harvested_digest):
         return harvested_digest
-    return stable_digest(excerpt)
+    return content_digest_for(excerpt)
 
 
 def source_role_for(node: dict[str, Any], *, explicitly_scoped: bool = False) -> str:
     """Delegate composition authority to the canonical harvest role policy."""
 
     return node_source_role(node, explicitly_scoped=explicitly_scoped)
-
-
-def _chunk_text(text: str, max_chars: int) -> list[tuple[int, int, str]]:
-    if not text:
-        return [(0, 0, "")]
-    chunks: list[tuple[int, int, str]] = []
-    start = 0
-    while start < len(text):
-        end = min(len(text), start + max_chars)
-        if end < len(text):
-            newline = text.rfind("\n", start, end)
-            if newline > start + max_chars // 2:
-                end = newline
-        content = text[start:end].strip()
-        if content:
-            chunks.append((start, end, content))
-        start = max(end, start + 1)
-        while start < len(text) and text[start] == "\n":
-            start += 1
-    return chunks
 
 
 def build_source_slices(
@@ -177,7 +164,37 @@ def build_source_slices(
         raise ValueError(
             "Composition token limit cannot include every governing source."
         )
-    candidates: list[tuple[tuple[int, int, int, int, str], dict[str, Any]]] = []
+    metadata_limits = {
+        "triggers": 8,
+        "facets": 8,
+        "phases": 4,
+        "gates": 6,
+        "inputs": 4,
+        "outputs": 4,
+        "references": 6,
+    }
+    bootstrap_manifest_index = compact_behavior_manifest_index(
+        build_behavior_manifest_index(
+            source_nodes,
+            metadata_limits=metadata_limits,
+        )
+    )
+    bootstrap_index_tokens = int(
+        bootstrap_manifest_index["cost_telemetry"]["always_on_index_tokens"]
+    )
+    if bootstrap_index_tokens > max_total_tokens:
+        raise ValueError(
+            "Composition token limit cannot accommodate the behavior manifest index."
+        )
+    available_hydration_tokens = max_total_tokens - bootstrap_index_tokens
+    if governing_source_count and available_hydration_tokens < governing_source_count * 16:
+        raise ValueError(
+            "Composition token limit cannot include every governing source with the behavior manifest index."
+        )
+    raw_candidates: list[dict[str, Any]] = []
+    source_token_baselines: dict[str, int] = {}
+    source_block_truncations: list[dict[str, Any]] = []
+    source_token_estimates_complete = True
     role_rank = {
         "governing_instruction": 0,
         "active_skill": 1,
@@ -187,32 +204,23 @@ def build_source_slices(
     governing_chunk_limit = (
         min(
             max_total_chars // governing_source_count,
-            (max_total_tokens * 4) // governing_source_count,
+            (available_hydration_tokens * 4) // governing_source_count,
         )
         if governing_source_count
         else max_total_chars
     )
     chunk_limit = min(max_chars_per_slice, governing_chunk_limit)
+    per_source_block_limit = max(DEFAULT_MAX_BEHAVIOR_BLOCKS_PER_SOURCE, max_slices)
     for node in source_nodes:
         relative_path = str(node.get("relative_path") or node.get("path") or "")
         content = _source_content(node)
         source_digest = _source_digest(node, content)
         source_node_id = str(node.get("id") or f"source-{source_digest[:16]}")
         role = source_role_for(node, explicitly_scoped=relative_path in explicit)
-        signal = " ".join(
-            [
-                str(node.get("title") or ""),
-                relative_path,
-                " ".join(string_list(node.get("behavior_atoms"))),
-                content,
-            ]
-        )
-        relevance = len(objective_tokens.intersection(_tokens(signal)))
         mandatory = role == "governing_instruction"
-        for chunk_index, (start, end, chunk) in enumerate(
-            _chunk_text(content, chunk_limit)
-        ):
-            slice_digest = stable_digest(chunk)
+        node_candidates: list[dict[str, Any]] = []
+        for start, end, chunk in markdown_behavior_chunks(content, chunk_limit):
+            slice_digest = content_digest_for(chunk)
             slice_id = "slice-" + stable_digest(
                 [source_digest, slice_digest, start, end, source_node_id], 20
             )
@@ -238,31 +246,134 @@ def build_source_slices(
                 "explicitly_scoped": relative_path in explicit,
                 "trust": COMPOSITION_TRUST,
             }
-            key = (
-                -int(mandatory),
-                chunk_index if mandatory else 0,
-                -relevance,
-                role_rank[role],
-                relative_path,
+            node_candidates.append(candidate)
+        node_candidates.sort(
+            key=lambda candidate: (
+                -len(
+                    objective_tokens.intersection(
+                        _tokens(
+                            " ".join(
+                                [
+                                    str(candidate["title"]),
+                                    str(candidate["relative_path"]),
+                                    str(candidate["content"]),
+                                    " ".join(candidate["behavior_atoms"]),
+                                    " ".join(candidate["phase_hints"]),
+                                ]
+                            )
+                        )
+                    )
+                ),
+                int(candidate["char_start"]),
+                str(candidate["slice_digest"]),
             )
-            candidates.append((key, candidate))
+        )
+        if len(node_candidates) > per_source_block_limit:
+            source_block_truncations.append(
+                {
+                    "source_node_id": source_node_id,
+                    "available_block_count": len(node_candidates),
+                    "indexed_block_count": per_source_block_limit,
+                }
+            )
+        raw_candidates.extend(node_candidates[:per_source_block_limit])
+        source_token_estimate = node.get("token_estimate")
+        has_declared_source_tokens = (
+            not isinstance(source_token_estimate, bool)
+            and isinstance(source_token_estimate, int)
+        )
+        if not has_declared_source_tokens:
+            source_token_estimates_complete = False
+        declared_source_tokens = int(source_token_estimate) if has_declared_source_tokens else 0
+        source_token_baselines[source_node_id] = max(
+            declared_source_tokens,
+            sum(int(candidate["token_estimate"]) for candidate in node_candidates),
+        )
+
+    full_manifest_index = build_behavior_manifest_index(
+        source_nodes,
+        raw_candidates,
+        metadata_limits=metadata_limits,
+        max_blocks=per_source_block_limit,
+    )
+    manifests_by_source = {
+        str(manifest["source"]["source_node_id"]): manifest
+        for manifest in full_manifest_index["manifests"]
+    }
+    candidates: list[tuple[tuple[int, int, int, int, str, int], dict[str, Any]]] = []
+    for candidate in raw_candidates:
+        source_node_id = str(candidate["source_node_id"])
+        manifest = manifests_by_source[source_node_id]
+        block_by_locator = {
+            str(block["source_locator"]): block
+            for block in manifest["behavior_blocks"]
+        }
+        block = block_by_locator[str(candidate["slice_id"])]
+        metadata = manifest["behavior_metadata"]
+        signal = " ".join(
+            [
+                str(candidate["title"]),
+                str(candidate["relative_path"]),
+                str(candidate["content"]),
+                " ".join(string_list(metadata.get("triggers"))),
+                " ".join(string_list(metadata.get("facets"))),
+                " ".join(string_list(block.get("facets"))),
+                " ".join(string_list(block.get("phases"))),
+            ]
+        )
+        relevance = len(objective_tokens.intersection(_tokens(signal)))
+        enriched = {
+            **candidate,
+            "behavior_manifest_id": manifest["manifest_id"],
+            "behavior_manifest_digest": manifest["manifest_digest"],
+            "behavior_block_id": block["block_id"],
+            "behavior_block_digest": block["block_digest"],
+            "behavior_block_facets": list(block["facets"]),
+            "behavior_block_phases": list(block["phases"]),
+        }
+        key = (
+            -int(bool(candidate["mandatory"])),
+            int(candidate["char_start"]) if candidate["mandatory"] else 0,
+            -relevance,
+            role_rank[str(candidate["source_role"])],
+            str(candidate["relative_path"]),
+            int(candidate["char_start"]),
+        )
+        candidates.append((key, enriched))
     candidates.sort(key=lambda item: item[0])
-    selected: list[dict[str, Any]] = []
-    total_chars = 0
-    total_tokens = 0
-    for _, candidate in candidates:
-        content_size = len(str(candidate["content"]))
-        token_size = int(candidate["token_estimate"])
-        if (
-            len(selected) >= max_slices
-            or total_chars + content_size > max_total_chars
-            or total_tokens + token_size > max_total_tokens
-        ):
-            continue
-        selected.append(candidate)
-        total_chars += content_size
-        total_tokens += token_size
+    manifest_index = compact_behavior_manifest_index(full_manifest_index)
+    manifest_cost = dict(manifest_index["cost_telemetry"])
+    full_manifest_cost = dict(full_manifest_index["cost_telemetry"])
+    naive_candidate_tokens = sum(source_token_baselines.values())
+    manifest_index_tokens = int(manifest_cost["always_on_index_tokens"])
+    if manifest_index_tokens > max_total_tokens:
+        raise ValueError(
+            "Composition token limit cannot accommodate the behavior manifest index."
+        )
+    max_hydration_tokens = max_total_tokens - manifest_index_tokens
+    target_context_tokens = (
+        min(max_total_tokens, int(naive_candidate_tokens * 0.75))
+        if source_token_estimates_complete
+        else max_total_tokens
+    )
+    target_hydration_tokens = (
+        max(0, target_context_tokens - manifest_index_tokens)
+        if source_token_estimates_complete
+        else max_hydration_tokens
+    )
+    selection = select_hydrated_behavior_blocks(
+        [candidate for _, candidate in candidates],
+        max_slices=max_slices,
+        max_total_chars=max_total_chars,
+        max_hydration_tokens=max_hydration_tokens,
+        target_hydration_tokens=target_hydration_tokens,
+        governing_source_count=governing_source_count,
+    )
+    selected = selection["selected"]
+    total_chars = int(selection["total_chars"])
+    total_tokens = int(selection["total_tokens"])
     selected_source_ids = {str(item["source_node_id"]) for item in selected}
+    selected_block_ids = {str(item["behavior_block_id"]) for item in selected}
     diagnostics = {
         "truncated": len(selected) < len(candidates),
         "candidate_slice_count": len(candidates),
@@ -277,6 +388,49 @@ def build_source_slices(
         ),
         "total_chars": total_chars,
         "total_tokens": total_tokens,
+        "source_block_truncations": source_block_truncations,
+        "unindexed_behavior_block_count": sum(
+            item["available_block_count"] - item["indexed_block_count"]
+            for item in source_block_truncations
+        ),
+        "behavior_manifest_index": manifest_index,
+        "context_cost": {
+            "always_on_index_tokens": manifest_index_tokens,
+            "hydrated_candidate_tokens": total_tokens,
+            "naive_candidate_tokens": naive_candidate_tokens,
+            "target_context_tokens": target_context_tokens,
+            "target_hydration_tokens": target_hydration_tokens,
+            "max_hydration_tokens": max_hydration_tokens,
+            "preflight_total_tokens": int(
+                manifest_index_tokens
+            )
+            + total_tokens,
+            "deferred_behavior_block_count": int(
+                full_manifest_cost["behavior_block_count"]
+            )
+            - len(selected_block_ids),
+            "selected_behavior_block_count": len(selected_block_ids),
+            "context_target_computable": source_token_estimates_complete,
+            "context_target_achievable": source_token_estimates_complete
+            and manifest_index_tokens <= target_context_tokens,
+            "context_target_met": source_token_estimates_complete
+            and manifest_index_tokens + total_tokens <= target_context_tokens,
+            "mandatory_context_overrides": selection["mandatory_context_overrides"],
+            "minimum_active_context_override": selection["minimum_active_context_override"],
+            "hydration_ratio": round(
+                total_tokens / max(1, naive_candidate_tokens),
+                4,
+            ),
+            "preflight_context_ratio": round(
+                (
+                    int(manifest_cost["always_on_index_tokens"])
+                    + total_tokens
+                )
+                / max(1, naive_candidate_tokens),
+                4,
+            ),
+            "cost_policy": "candidate_slices_and_manifest_index_only",
+        },
         "limits": {
             "max_slices": max_slices,
             "max_chars_per_slice": max_chars_per_slice,
@@ -389,11 +543,13 @@ def prepare_composition(
         max_total_chars=max_total_chars,
         max_total_tokens=max_total_tokens,
     )
+    behavior_manifest_index = diagnostics.pop("behavior_manifest_index")
     identity_input = {
         "objective": normalized_text(objective),
         "task_identity": task_identity or {},
         "source_digests": sorted({str(item["source_digest"]) for item in slices}),
         "slice_digests": sorted(str(item["slice_digest"]) for item in slices),
+        "behavior_manifest_index_digest": behavior_manifest_index["index_digest"],
     }
     preflight_id = "preflight-" + stable_digest(identity_input, 20)
     role_counts = {
@@ -412,6 +568,7 @@ def prepare_composition(
         "objective": objective,
         "task_identity": task_identity or {},
         "candidate_source_slices": slices,
+        "behavior_manifest_index": behavior_manifest_index,
         "source_roles": role_counts,
         "semantic_proposal_contract": semantic_proposal_starter(preflight_id),
         "relationship_type_semantics": {

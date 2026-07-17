@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-behavior-manifest-v0.1.schema.json",
+  "title": "TMCP Behavior Manifest Contracts v0.1",
+  "anyOf": [
+    { "$ref": "#/$defs/manifest" },
+    { "$ref": "#/$defs/index" }
+  ],
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_node_id",
+        "skill_id",
+        "source_role",
+        "source_type",
+        "content_digest",
+        "relative_path"
+      ],
+      "properties": {
+        "source_node_id": { "type": "string", "minLength": 1 },
+        "skill_id": { "type": "string", "minLength": 1 },
+        "source_role": {
+          "enum": [
+            "governing_instruction",
+            "active_skill",
+            "supporting_reference",
+            "evidence_only"
+          ]
+        },
+        "source_type": { "type": "string", "minLength": 1 },
+        "content_digest": { "$ref": "#/$defs/digest" },
+        "relative_path": { "type": "string" }
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "block_id",
+        "source_node_id",
+        "source_kind",
+        "source_locator",
+        "block_digest",
+        "char_start",
+        "char_end",
+        "token_estimate",
+        "facets",
+        "phases",
+        "metadata_truncated"
+      ],
+      "properties": {
+        "block_id": {
+          "type": "string",
+          "pattern": "^behavior-block-[a-f0-9]{20}$"
+        },
+        "source_node_id": { "type": "string", "minLength": 1 },
+        "source_kind": { "enum": ["source_slice", "node_signal"] },
+        "source_locator": { "type": "string", "minLength": 1 },
+        "block_digest": { "$ref": "#/$defs/digest" },
+        "char_start": { "type": "integer", "minimum": 0 },
+        "char_end": { "type": "integer", "minimum": 0 },
+        "token_estimate": { "type": "integer", "minimum": 1 },
+        "facets": { "type": "array", "items": { "type": "string" } },
+        "phases": { "type": "array", "items": { "type": "string" } },
+        "metadata_truncated": { "type": "boolean" }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "manifest_id",
+        "manifest_digest",
+        "source",
+        "behavior_metadata",
+        "behavior_blocks",
+        "bounds",
+        "cost_telemetry"
+      ],
+      "properties": {
+        "schema": { "const": "tmcp-behavior-manifest-v0.1" },
+        "manifest_id": {
+          "type": "string",
+          "pattern": "^behavior-manifest-[a-f0-9]{20}$"
+        },
+        "manifest_digest": { "$ref": "#/$defs/digest" },
+        "source": { "$ref": "#/$defs/source" },
+        "behavior_metadata": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["reference_policy"],
+          "properties": {
+            "reference_policy": {
+              "const": "advisory_only_never_activates_behavior"
+            }
+          }
+        },
+        "behavior_blocks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/block" }
+        },
+        "bounds": { "type": "object" },
+        "cost_telemetry": { "type": "object" }
+      }
+    },
+    "index": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "index_id",
+        "index_digest",
+        "cost_telemetry"
+      ],
+      "anyOf": [
+        { "required": ["manifest_summaries"] },
+        { "required": ["manifests"] }
+      ],
+      "properties": {
+        "schema": { "const": "tmcp-behavior-manifest-index-v0.1" },
+        "index_id": {
+          "type": "string",
+          "pattern": "^behavior-index-[a-f0-9]{20}$"
+        },
+        "index_digest": { "$ref": "#/$defs/digest" },
+        "manifest_summaries": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/manifest_summary" }
+        },
+        "manifests": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/manifest" }
+        },
+        "cost_telemetry": { "type": "object" }
+      }
+    },
+    "manifest_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_node_id",
+        "behavior_block_count"
+      ],
+      "properties": {
+        "source_node_id": { "type": "string", "minLength": 1 },
+        "behavior_block_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

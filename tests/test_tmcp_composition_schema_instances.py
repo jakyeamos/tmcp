@@ -12,6 +12,7 @@ from tests.test_tmcp_composition_benchmarks import CompositionBenchmarkTests
 from tmcp_runtime.api.evaluation import evaluate_skills
 from tmcp_runtime.domain.composition_runtime import advance_composition_runtime
 from tmcp_runtime.domain.composition_benchmarks import score_composition_benchmark
+from tmcp_runtime.domain.behavior_manifests import build_behavior_manifest_index
 from tmcp_runtime.services.compose import (
     compose_packet_from_source_nodes,
     prepare_composition_from_source_nodes,
@@ -46,6 +47,7 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
                 "signal_excerpt": "Read before modifying and preserve evidence.",
                 "behavior_atoms": ["governing-scope"],
                 "content_digest": "a" * 64,
+                "token_estimate": 512,
                 "routing_metadata": {},
                 "trust": "untrusted_harvested_text",
             },
@@ -60,6 +62,7 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
                 "signal_excerpt": "Produce a cited brief and verify every source.",
                 "behavior_atoms": ["source-verification"],
                 "content_digest": "b" * 64,
+                "token_estimate": 512,
                 "routing_metadata": {},
                 "trust": "untrusted_harvested_text",
             },
@@ -208,6 +211,21 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
 
         assert_matches_schema(
             self.preflight,
+            SCHEMAS / "tmcp-composition-preflight-v0.1.schema.json",
+        )
+        assert_matches_schema(
+            self.preflight["behavior_manifest_index"],
+            SCHEMAS / "tmcp-behavior-manifest-v0.1.schema.json",
+        )
+        assert_matches_schema(
+            build_behavior_manifest_index(self.nodes),
+            SCHEMAS / "tmcp-behavior-manifest-v0.1.schema.json",
+        )
+        legacy_preflight = copy.deepcopy(self.preflight)
+        legacy_preflight.pop("behavior_manifest_index")
+        legacy_preflight["diagnostics"].pop("context_cost")
+        assert_matches_schema(
+            legacy_preflight,
             SCHEMAS / "tmcp-composition-preflight-v0.1.schema.json",
         )
         assert_matches_schema(
