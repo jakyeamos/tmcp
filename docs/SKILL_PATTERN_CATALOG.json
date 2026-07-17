@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-07-17T06:19:44Z",
+  "created_at": "2026-07-17T14:55:05Z",
   "guidebook_entries": [
     {
       "applies_to": [
@@ -9,10 +9,10 @@
       "avoid": "Test the skill a few times and improve it.",
       "classification": "effective_pattern",
       "effect": {
-        "absolute_lift": -1.0,
+        "absolute_lift": -0.473,
         "expected_direction": "negative"
       },
-      "evidence_level": "controlled_single_agent_eval",
+      "evidence_level": "controlled_multi_agent_eval",
       "internal_atoms": [
         "behavior-verification",
         "evidence-backed-claims",
@@ -24,48 +24,57 @@
         "decision": "hold",
         "eligible": false,
         "gaps": [
-          "fixture_count 2 is below required 6",
-          "fixture_family_count 2 is below required 3",
-          "agent_configuration_count 1 is below required 3",
-          "safety regression detected"
+          "cost regression detected"
         ]
       },
       "sample": {
-        "absolute_lift": -1.0,
+        "absolute_lift": -0.473,
         "absolute_lift_interval": {
           "confidence": 0.95,
-          "lower": -1.0,
+          "lower": -0.676,
           "method": "newcombe_wilson_difference",
-          "upper": -0.02
+          "upper": -0.178
         },
-        "agent_configuration_count": 1,
+        "agent_configuration_count": 3,
         "configuration_effects": [
           {
-            "absolute_lift": -1.0,
-            "configuration_id": "codex-gpt5-desktop-20260717",
-            "control_total": 4,
-            "intervention_total": 4
+            "absolute_lift": -0.333,
+            "configuration_id": "gpt-5.6-sol-reasoning-high-codex-cli-0.144.2",
+            "control_total": 12,
+            "intervention_total": 12
+          },
+          {
+            "absolute_lift": -0.5,
+            "configuration_id": "gpt-5.6-sol-reasoning-low-codex-cli-0.144.2",
+            "control_total": 12,
+            "intervention_total": 12
+          },
+          {
+            "absolute_lift": -0.583,
+            "configuration_id": "gpt-5.6-sol-reasoning-max-codex-cli-0.144.2",
+            "control_total": 12,
+            "intervention_total": 12
           }
         ],
         "control": {
-          "pass_rate": 1.0,
-          "passed": 4,
-          "total": 4
+          "pass_rate": 0.556,
+          "passed": 20,
+          "total": 36
         },
-        "cost_regression": false,
-        "fixture_count": 2,
-        "fixture_family_count": 2,
+        "cost_regression": true,
+        "fixture_count": 6,
+        "fixture_family_count": 6,
         "intervention": {
-          "pass_rate": 0.0,
-          "passed": 0,
-          "total": 4
+          "pass_rate": 0.083,
+          "passed": 3,
+          "total": 36
         },
         "minimum_repetitions_per_cell": 2,
-        "paired_cells": 2,
+        "paired_cells": 18,
         "regression_fields_missing": 0,
         "regression_free": false,
-        "safety_regression": true,
-        "trace_count": 8
+        "safety_regression": false,
+        "trace_count": 72
       },
       "source_skills": [
         "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
@@ -161,10 +170,10 @@
         "pass rate"
       ],
       "effect": {
-        "absolute_lift": -1.0,
+        "absolute_lift": -0.473,
         "expected_direction": "negative"
       },
-      "evidence_level": "controlled_single_agent_eval",
+      "evidence_level": "controlled_multi_agent_eval",
       "good_example": "Use an explicit workflow section that separates blind runs, judging, repetition, diagnosis, and re-evaluation.",
       "internal_atoms": [
         "behavior-verification",
@@ -177,10 +186,7 @@
         "decision": "hold",
         "eligible": false,
         "gaps": [
-          "fixture_count 2 is below required 6",
-          "fixture_family_count 2 is below required 3",
-          "agent_configuration_count 1 is below required 3",
-          "safety regression detected"
+          "cost regression detected"
         ]
       },
       "status": "supported",

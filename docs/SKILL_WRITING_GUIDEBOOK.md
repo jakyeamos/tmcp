@@ -44,32 +44,48 @@ Avoid:
 The duplication warning is still a campaign-design hypothesis. It needs its own
 controlled intervention before becoming a corpus recommendation.
 
-## Supported candidate: staged evaluation workflow section
+## Controlled multi-configuration candidate: staged evaluation workflow section
 
 - Pattern ID: `evaluation.staged-workflow-section`
 - Status: supported internal candidate
-- Evidence: `controlled_single_agent_eval`
+- Evidence: `controlled_multi_agent_eval`
 - Claim granularity: section
-- Experiment: `skill-eval-af3806a4873b77a0`
-- Sample: 8 traces, 2 fixture families, 2 repetitions per cell, 1 pinned
-  configuration
-- Result: intact skill 4/4; `Workflow`-section ablation 0/4
-- Intervention-control lift: `-1.0`, where negative is the expected support
-  direction; 95% Newcombe-Wilson interval `[-1.0, -0.02]`
-- Promotion: hold
+- Experiment: `skill-eval-95cfdd0ee52ff673`
+- Sample: 72 traces, 6 fixtures in 6 families, 2 repetitions per cell, 3 pinned
+  configurations of one model
+- Result: intact skill 20/36; `Workflow`-section ablation 3/36
+- Intervention-control lift: `-0.473`, where negative is the expected support
+  direction; 95% Newcombe-Wilson interval `[-0.676, -0.178]`
+- Configuration effects: high `-0.333`, low `-0.500`, max `-0.583`; no reversal
+- Promotion: hold — cost regression
 
 Prefer an explicit workflow section that separates input validation, blind fresh
 runners, independent evidence-based judges, repeated trials and pass rates,
 skill-defect versus bad-case diagnosis, and full-suite re-evaluation after changes.
 
-Avoid a loose instruction to test the skill a few times and improve it. In this
-pilot, removing the coherent workflow section caused every judged artifact to miss
-at least one required safeguard.
+Avoid a loose instruction to test the skill a few times and improve it. Removing
+the coherent workflow section reduced judged pass rate by 47.3 percentage points
+across the tested configurations.
 
-This is not yet a corpus-wide tried-and-true pattern. Promotion still needs at least
-6 fixtures across 3 fixture families and 3 pinned configurations, 2 repetitions per
-cell, a support-aligned 95% interval above zero, no configuration reversal, and no
-safety or cost regression. That minimum multi-configuration matrix is 72 runs.
+This establishes the relative benefit of the coherent section. It does not establish
+absolute reliability—the intact skill still failed 16/36 runs—or the causal value of
+every sentence inside the section. The three configurations are reasoning settings
+of the same `gpt-5.6-sol` model, not independent models.
+
+The matrix, lift, interval, and no-reversal gates cleared. Promotion remains held
+until the per-run checkout-sweep cost signal is isolated or resolved and any revised
+skill clears a fresh full matrix. Until then, call this behaviorally supported in a
+controlled multi-configuration evaluation, not corpus-wide tried-and-true.
+
+Manual contract review adjudicated the two cost labels as false positives caused by
+an incomplete judge bar. The formal report is deliberately unchanged: a predeclared
+campaign-wide rejudge, not a post-hoc label edit, is required to clear the hold.
+
+Manual review also identified two protocol gaps: the reported interval pools repeated
+fixture/configuration outcomes rather than using cluster-aware uncertainty, and the
+promotion policy has no minimum intact-control or per-fixture reliability floor. The
+regression-retest fixture passed 0/6 in both conditions. Future promotion-grade
+protocols should close both gaps before treating relative lift as general reliability.
 
 ## Corpus evaluation protocol
 
@@ -79,14 +95,42 @@ safety or cost regression. That minimum multi-configuration matrix is 72 runs.
    inexact or fallback split before running agents.
 3. Use a fresh context-free runner for every cell. Keep the fixture bar and
    hypothesis hidden from the runner.
-4. Use a separate fresh judge with only the artifact, fixture bar, and skill first
-   principles. Require evidence for every criterion and explicit safety/cost labels.
+4. Use a separate fresh judge with only the artifact, fixture bar, and a faithful
+   account of the skill's first principles. Require evidence for every criterion.
+   Give safety and cost verdicts their own defensible bars; do not ask the judge to
+   invent them from an incomplete principles summary.
 5. Repeat every fixture-condition cell. Record pass rates and the paired
    intervention-control effect with an uncertainty interval.
 6. Preserve the plan, observations, verdicts, report, counterexamples, and
    promotion decision as an append-only evidence bundle.
 7. Promote manually only when the configured evidence gate is met. A successful
    pilot remains a candidate; it does not rewrite the corpus automatically.
+
+## Dogfooded evaluator practices
+
+The promotion campaign verified these practices operationally. They are useful
+defaults for future corpus evaluations, but only the workflow-section claim above
+has a controlled causal intervention.
+
+- Validate the exact one-factor attachment diff before runner calls.
+- Keep the runner wrapper neutral; hide condition, hypothesis, bar, and smells.
+- Use a fresh runner and a separate fresh judge for every cell.
+- Give every judge criterion a stable ID and require a citation for pass or fail.
+- Bind claims of isolation to raw event streams and unique thread IDs.
+- Treat partial or digest-mismatched stages as invalid; archive them and fail closed.
+- Bind plan, protocol, schema, prompt context, and every harness module in the resume
+  manifest.
+- Stratify effects by configuration and reject support-direction reversals.
+- Preserve valid failures and counterexamples; never resample to improve a result.
+- Report actual usage separately from heuristic cost diagnostics.
+
+Campaign-design failure modes observed while building the matrix include substring
+routing, projecting overloaded terms such as `contrast` without nearby domain
+context, runner priming, bar leakage, unkeyed judge evidence, asserted rather than
+bound provenance, partial artifacts treated as complete, mechanically renamed
+fixture families, off-contract bars, and calling same-model settings multiple models.
+Treat these as dogfooded engineering warnings. Do not promote them as causal skill
+anti-patterns without an isolated presence/removal contrast.
 
 ## Anti-pattern discipline
 
@@ -97,15 +141,20 @@ The first dogfood statically flagged `output.missing-observable-contract`. That
 finding is not promoted: it has no behaviorally judged contrast, and the target skill
 already names several report fields. Treat it as a detector-calibration case.
 
-One blind judge also flagged unqualified live-checkout cleanup language as a safety
-risk because “clean” could delete unrelated work. The label was not consistent
-across judges and was not isolated by the `Workflow` ablation, so it blocks promotion
-but does not establish a causal anti-pattern. A future fixture should contrast safe
-preservation language with destructive cleanup wording directly.
+The multi-configuration campaign produced no safety-regression labels, so the pilot's
+single cleanup-safety signal did not reproduce. Two of 36 intact artifacts and 0 of
+36 ablated artifacts were instead labeled cost regressions because they required a
+live-checkout sweep after every run. Cleanup cadence and wording were not isolated,
+and similar guidance remains outside the ablated section. This is a cost-risk and
+judge-calibration hypothesis, not a causal anti-pattern. A future contrast should
+test safe preservation language and cleanup cadence directly with an explicit cost
+bar.
 
 ## Evidence ledger
 
-The first controlled bundle is in
+The first controlled pilot is in
 [`docs/evidence/skill-eval-dogfood-2026-07-17`](evidence/skill-eval-dogfood-2026-07-17/README.md).
+The current 72-cell bundle and its promotion hold are in
+[`docs/evidence/skill-eval-multiconfig-2026-07-17`](evidence/skill-eval-multiconfig-2026-07-17/README.md).
 The machine-readable catalog is
 [`docs/SKILL_PATTERN_CATALOG.json`](SKILL_PATTERN_CATALOG.json).
