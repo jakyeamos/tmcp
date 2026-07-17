@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `9e03324` keeps archival cost-rejudge verification negative when a release archive omits a cost bar, without weakening the digest-mismatch boundary in a full evidence checkout.
-- Verification: 565 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
+- Last completed change: `9ad3d5c` corrects the skill-writing guidebook and machine-readable catalog so an archived digest-mismatched cost sidecar remains unresolved, not a cost-free adjudication.
+- Verification: 566 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog archival-boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
 
@@ -22,6 +22,7 @@
 - Remote `origin/codex/skill-eval-dogfood` contains the complete isolated dogfood branch.
 - The fixture-block replay is `[-0.750, -0.194]`; it supports the relative section effect but records a 0/6 regression-retest and 1/6 failure-diagnosis intact-control rate, so promotion remains held independently of cost.
 - The historical 72-cell and fresh-baseline 36-cell cost sidecars are now diagnostic archives, not reproducible evidence: each records a cost-bar digest that does not match the retained input file. The 72-cell claim remains `hold` because its cluster policy was not predeclared and fixture-level control reliability is below the 0.5 floor.
+- The shipped writing guidebook and catalog preserve that same boundary: the staged-workflow candidate records its raw cost signal but marks cost adjudication unresolved, removes the historical sidecar from current scoring, and lists non-reproducibility as a promotion gap.
 - Incidental bare `SKILL.md` mentions no longer load every harvested skill, and detailed objectives require meaningful source overlap unless explicit routing metadata applies.
 - Fresh plan generation can bind `tmcp-skill-eval-campaign-policy-v0.1` into experiment identity; launch readiness enforces the pinned matrix, cluster/control contract, baseline shape, and independent judge model before any campaign artifact is sent.
 - The campaign harness accepts three explicit model/effort configurations, runs original-only baseline reliability studies as 36 cells, and treats cross-model confirmation as an explicit policy and scoring gate rather than a same-model reasoning sweep.
