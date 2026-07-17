@@ -5,16 +5,16 @@ import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
+from unittest.mock import patch
 
-from scripts.tmcp_skill_eval_campaign import (
+import scripts.tmcp_skill_eval_campaign_runtime as campaign_runtime
+from scripts.tmcp_skill_eval_campaign_protocol import (
     CampaignCell,
     DISABLED_CODEX_FEATURES,
     _audit_event_stream,
-    _load_completed_stage,
     _sha256_file,
     _sha256_text,
     _stable_id,
-    _validate_trace,
     _validate_judgment,
     build_cells,
     codex_command,
@@ -22,6 +22,11 @@ from scripts.tmcp_skill_eval_campaign import (
     judge_output_schema,
     judge_prompt,
     runner_prompt,
+)
+from scripts.tmcp_skill_eval_campaign_runtime import (
+    _load_completed_stage,
+    _run_stage,
+    _validate_trace,
 )
 
 
@@ -203,6 +208,49 @@ class SkillEvalCampaignTests(unittest.TestCase):
             self.assertTrue(
                 (cell_dir / invalidations[0]["archive"] / "runner.txt").is_file()
             )
+
+    def test_missing_final_output_preserves_raw_streams(self) -> None:
+        async def completed_without_output(**_kwargs: object) -> tuple:
+            return (
+                '{"type":"thread.started","thread_id":"thread-1"}\n',
+                "diagnostic",
+                {"input_tokens": 1},
+                {"passed": True, "thread_id": "thread-1"},
+            )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            cell_dir = Path(temporary)
+            args = Namespace(
+                codex_bin="codex",
+                model="gpt-5.6-sol",
+                cleanroom=cell_dir,
+                codex_home=cell_dir,
+                timeout_seconds=10,
+            )
+            with patch.object(campaign_runtime, "_run_codex", completed_without_output):
+                with self.assertRaisesRegex(RuntimeError, "without writing"):
+                    import asyncio
+
+                    asyncio.run(
+                        _run_stage(
+                            cell_dir=cell_dir,
+                            stage="runner",
+                            output_path=cell_dir / "runner.txt",
+                            output_schema=None,
+                            prompt="prompt",
+                            effort="low",
+                            args=args,
+                        )
+                    )
+
+            invalidations = json.loads(
+                (cell_dir / "invalidated-stages.json").read_text(encoding="utf-8")
+            )
+            archive = cell_dir / invalidations[0]["archive"]
+            self.assertIn(
+                "thread.started", (archive / "runner-events.jsonl").read_text()
+            )
+            self.assertEqual((archive / "runner-stderr.log").read_text(), "diagnostic")
 
     def test_resumed_trace_is_bound_to_stage_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
