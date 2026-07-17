@@ -86,6 +86,9 @@ INTENTIONALLY_EXCLUDED_PATHS = {
     "docs/RELEASE_EVIDENCE.json",
     "docs/VERIFICATION.md",
 }
+EXTERNAL_RELEASE_EVIDENCE_PREFIXES = (
+    "docs/COMPOSITION_BENCHMARK_BUNDLE/",
+)
 INTENTIONALLY_EXCLUDED_PREFIXES = (
     ".aios/",
     ".codex/",
@@ -260,7 +263,10 @@ def forbidden_path_reason(relative_path: PurePosixPath) -> str | None:
 
 def inclusion_reason(relative_path: PurePosixPath) -> str | None:
     path_text = relative_path.as_posix()
-    if path_text in INTENTIONALLY_EXCLUDED_PATHS:
+    if (
+        path_text in INTENTIONALLY_EXCLUDED_PATHS
+        or path_text.startswith(EXTERNAL_RELEASE_EVIDENCE_PREFIXES)
+    ):
         return "release evidence is external to the immutable package"
     if path_text.startswith(INTENTIONALLY_EXCLUDED_PREFIXES):
         return "outside the reviewed release surface"

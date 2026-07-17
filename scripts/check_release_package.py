@@ -26,6 +26,12 @@ from scripts.tmcp_release_archive import (  # noqa: E402
     should_include,
     verify_reproducibility,
 )
+from scripts.composition_benchmark_bundle import (  # noqa: E402
+    BUNDLE_ARTIFACTS,
+    BUNDLE_RELATIVE_PATH,
+    CompositionBenchmarkBundleError,
+    resolve_composition_benchmark_bundle,
+)
 from scripts.release_package_compile import compile_command  # noqa: E402
 from scripts.check_release_evidence import validate_benchmark_summary  # noqa: E402
 from scripts.release_package_composition import (  # noqa: E402
@@ -83,6 +89,77 @@ PACKAGE_CHECK_NAMES = (
 )
 COMPOSITION_BENCHMARK_MINIMUM_VERSION = (0, 6, 0)
 COMPOSITION_BENCHMARK_SUMMARY_SCHEMA = "tmcp-composition-benchmark-summary-v0.1"
+
+
+def resolve_composition_benchmark_inputs(
+    *,
+    source_plugin_root: Path | None,
+    observations_path: Path | None,
+    run_plan_path: Path | None,
+    semantic_proposals_path: Path | None,
+    control_plan_path: Path | None,
+    host_results_path: Path | None,
+    evaluator_artifacts_path: Path | None,
+    release_version: str,
+) -> tuple[dict[str, Path] | None, str | None]:
+    """Resolve either all caller inputs or the 0.6 canonical source bundle.
+
+    The source bundle is deliberately outside the archive.  The package under
+    test supplies the compiler and runner while the Git-clean source worktree
+    supplies the reviewed host/evaluator evidence that those tools replay.
+    """
+
+    supplied = {
+        "observations": observations_path,
+        "run_plan": run_plan_path,
+        "semantic_proposals": semantic_proposals_path,
+        "control_plan": control_plan_path,
+        "host_results": host_results_path,
+        "evaluator_artifacts": evaluator_artifacts_path,
+    }
+    supplied_count = sum(path is not None for path in supplied.values())
+    if supplied_count:
+        missing = [
+            label.replace("_", " ")
+            for label, path in supplied.items()
+            if path is None
+        ]
+        if missing:
+            return (
+                None,
+                "composition benchmark artifact inputs must be supplied together; "
+                f"missing {', '.join(missing)}.",
+            )
+        return (
+            {label: path for label, path in supplied.items() if path is not None},
+            None,
+        )
+
+    if not composition_benchmark_required(release_version):
+        return None, None
+    if source_plugin_root is None:
+        return (
+            None,
+            "TMCP 0.6.0 and newer require a source worktree to resolve the "
+            "canonical composition benchmark bundle.",
+        )
+    try:
+        source_root = source_plugin_root.expanduser().resolve(strict=True)
+        resolve_composition_benchmark_bundle(
+            source_root,
+            require_git_clean=True,
+        )
+        paths = {
+            label: source_root / BUNDLE_RELATIVE_PATH / filename
+            for label, filename in BUNDLE_ARTIFACTS
+        }
+    except (CompositionBenchmarkBundleError, OSError) as exc:
+        return (
+            None,
+            "could not resolve the Git-clean canonical composition benchmark "
+            f"bundle: {exc}",
+        )
+    return paths, None
 
 
 def run(
@@ -427,41 +504,30 @@ def check_composition_benchmark(
     control_plan_path: Path | None = None,
     host_results_path: Path | None = None,
     evaluator_artifacts_path: Path | None = None,
+    source_plugin_root: Path | None = None,
     release_version: str,
 ) -> tuple[bool, str]:
-    required = composition_benchmark_required(release_version)
-    if observations_path is None:
-        if required:
-            return (
-                False,
-                "TMCP 0.6.0 and newer require an explicit real composition "
-                "benchmark observations file.",
-            )
+    artifact_paths, input_error = resolve_composition_benchmark_inputs(
+        source_plugin_root=source_plugin_root or plugin_root,
+        observations_path=observations_path,
+        run_plan_path=run_plan_path,
+        semantic_proposals_path=semantic_proposals_path,
+        control_plan_path=control_plan_path,
+        host_results_path=host_results_path,
+        evaluator_artifacts_path=evaluator_artifacts_path,
+        release_version=release_version,
+    )
+    if input_error:
+        return False, input_error
+    if artifact_paths is None:
         return True, f"not required for TMCP {release_version}"
-    required_artifacts = {
-        "run plan": run_plan_path,
-        "semantic proposals": semantic_proposals_path,
-        "control plan": control_plan_path,
-        "host results": host_results_path,
-        "evaluator artifacts": evaluator_artifacts_path,
-    }
-    missing_artifacts = [
-        label for label, path in required_artifacts.items() if path is None
-    ]
-    if missing_artifacts:
-        return (
-            False,
-            "composition benchmark observations require compiler-bound "
-            f"{', '.join(missing_artifacts)}.",
-        )
     try:
-        observations = observations_path.expanduser().resolve(strict=True)
+        observations = artifact_paths["observations"].expanduser().resolve(strict=True)
         if not observations.is_file():
             return False, "composition benchmark observations must be one regular file"
         artifact_paths = {
             label: path.expanduser().resolve(strict=True)
-            for label, path in required_artifacts.items()
-            if path is not None
+            for label, path in artifact_paths.items()
         }
         if any(not path.is_file() for path in artifact_paths.values()):
             return False, "composition benchmark artifacts must be regular files"
@@ -474,15 +540,15 @@ def check_composition_benchmark(
             "scripts/run_composition_benchmark.py",
             str(observations),
             "--run-plan",
-            str(artifact_paths["run plan"]),
+            str(artifact_paths["run_plan"]),
             "--semantic-proposals",
-            str(artifact_paths["semantic proposals"]),
+            str(artifact_paths["semantic_proposals"]),
             "--control-plan",
-            str(artifact_paths["control plan"]),
+            str(artifact_paths["control_plan"]),
             "--host-results",
-            str(artifact_paths["host results"]),
+            str(artifact_paths["host_results"]),
             "--evaluator-artifacts",
-            str(artifact_paths["evaluator artifacts"]),
+            str(artifact_paths["evaluator_artifacts"]),
         ],
         plugin_root,
     )
@@ -516,6 +582,7 @@ def failed_package_check(manifest_output: str) -> dict[str, Any]:
 def check_package(
     package_path: Path,
     *,
+    source_plugin_root: Path | None = None,
     observations_path: Path | None = None,
     run_plan_path: Path | None = None,
     semantic_proposals_path: Path | None = None,
@@ -527,6 +594,18 @@ def check_package(
     manifest_ok, manifest_output = check_archive_manifest(package_path)
     if not manifest_ok:
         return failed_package_check(manifest_output)
+    benchmark_artifact_paths, benchmark_input_error = (
+        resolve_composition_benchmark_inputs(
+            source_plugin_root=source_plugin_root,
+            observations_path=observations_path,
+            run_plan_path=run_plan_path,
+            semantic_proposals_path=semantic_proposals_path,
+            control_plan_path=control_plan_path,
+            host_results_path=host_results_path,
+            evaluator_artifacts_path=evaluator_artifacts_path,
+            release_version=release_version,
+        )
+    )
     with tempfile.TemporaryDirectory(prefix="tmcp-package-check-") as tmp:
         tmp_path = Path(tmp)
         with tarfile.open(package_path, "r:gz") as archive:
@@ -568,16 +647,29 @@ def check_package(
         composition_ok, composition_output = check_composition_surface(
             plugin_root, tmp_path
         )
-        benchmark_ok, benchmark_output = check_composition_benchmark(
-            plugin_root,
-            observations_path,
-            run_plan_path=run_plan_path,
-            semantic_proposals_path=semantic_proposals_path,
-            control_plan_path=control_plan_path,
-            host_results_path=host_results_path,
-            evaluator_artifacts_path=evaluator_artifacts_path,
-            release_version=release_version,
-        )
+        if benchmark_input_error:
+            benchmark_ok, benchmark_output = False, benchmark_input_error
+        elif benchmark_artifact_paths is None:
+            benchmark_ok, benchmark_output = check_composition_benchmark(
+                plugin_root,
+                None,
+                release_version=release_version,
+            )
+        else:
+            benchmark_ok, benchmark_output = check_composition_benchmark(
+                plugin_root,
+                benchmark_artifact_paths["observations"],
+                run_plan_path=benchmark_artifact_paths["run_plan"],
+                semantic_proposals_path=benchmark_artifact_paths[
+                    "semantic_proposals"
+                ],
+                control_plan_path=benchmark_artifact_paths["control_plan"],
+                host_results_path=benchmark_artifact_paths["host_results"],
+                evaluator_artifacts_path=benchmark_artifact_paths[
+                    "evaluator_artifacts"
+                ],
+                release_version=release_version,
+            )
     return {
         "archive_manifest": "pass",
         "install_check": "pass" if install_ok else "fail",
@@ -631,9 +723,9 @@ def main() -> int:
         "--composition-benchmark-observations",
         type=Path,
         help=(
-            "Explicit host-run composition benchmark observations. Required for "
-            "TMCP 0.6.0 and newer; when supplied for an earlier release it is "
-            "still validated."
+            "Explicit host-run composition benchmark observations. Supplying any "
+            "benchmark input requires all six inputs. TMCP 0.6.0 and newer use "
+            "the Git-clean docs/COMPOSITION_BENCHMARK_BUNDLE by default."
         ),
     )
     parser.add_argument("--composition-benchmark-run-plan", type=Path)
@@ -666,6 +758,7 @@ def main() -> int:
             "manifest_digest": build["manifest_digest"],
             **check_package(
                 output_path,
+                source_plugin_root=plugin_root,
                 observations_path=args.composition_benchmark_observations,
                 run_plan_path=args.composition_benchmark_run_plan,
                 semantic_proposals_path=args.composition_benchmark_semantic_proposals,

@@ -112,13 +112,26 @@ for the live MCP schema surface.
 
 ## Composition Acceptance Benchmark
 
-Run the release gate only with complete observed host-run evidence:
+Score a composition benchmark only with the complete compiler-bound host-run
+artifact set:
 
 ```bash
-python3 scripts/run_composition_benchmark.py path/to/observations.json
+python3 scripts/run_composition_benchmark.py \
+  path/to/benchmark-observations.json \
+  --run-plan path/to/benchmark-run-plan.json \
+  --semantic-proposals path/to/semantic-proposals.json \
+  --control-plan path/to/benchmark-control-plan.json \
+  --host-results path/to/host-results.json \
+  --evaluator-artifacts path/to/evaluator-artifacts.json
 ```
 
-The command rejects missing cases, fixtures, singleton/leave-one-out controls, provenance, ordering, quality scores, or context measurements. Repository unit fixtures validate scoring math; they do not demonstrate lift. See [COMPOSITION_BENCHMARK.md](COMPOSITION_BENCHMARK.md).
+For a 0.6+ package release, commit that exact set under
+`docs/COMPOSITION_BENCHMARK_BUNDLE/` and use
+`python3 scripts/check_release_package.py . --verify-reproducible`; the raw
+bundle stays outside the archive. The command rejects missing cases, fixtures,
+singleton/leave-one-out controls, provenance, ordering, quality scores, or
+context measurements. Repository unit fixtures validate scoring math; they do
+not demonstrate lift. See [COMPOSITION_BENCHMARK.md](COMPOSITION_BENCHMARK.md).
 
 ## Fallback Order
 

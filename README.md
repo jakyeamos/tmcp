@@ -78,7 +78,12 @@ Only governing instructions and active skills can activate behavior. Supporting 
 
 Composition uses `cache_policy=none` by default. `project` opts into reviewed project-local recipes; `global` separately opts into advisory shared records. Promotion is always explicit. See the [host-policy example](examples/host-policy-compositional-routing.md) and [packet contracts](docs/TMCP_PACKET_SPEC.md).
 
-The 0.6 release gate consumes real host-run observations through `python3 scripts/run_composition_benchmark.py <observations.json>`. A 0.6+ package check must receive that file through `--composition-benchmark-observations`, and release evidence must reference a reviewed committed eligible summary with matching digests. Unit fixtures test the scorer but are not release evidence; see the [composition benchmark contract](docs/COMPOSITION_BENCHMARK.md).
+The 0.6 release gate binds real host-run evidence as a canonical six-file
+`docs/COMPOSITION_BENCHMARK_BUNDLE/`, replays it with the current compiler, and
+requires a reviewed committed summary with matching bundle, observation, and
+summary digests. The raw bundle is intentionally excluded from release archives.
+Unit fixtures test the scorer but are not release evidence; see the [composition
+benchmark contract](docs/COMPOSITION_BENCHMARK.md).
 
 ## Safety
 

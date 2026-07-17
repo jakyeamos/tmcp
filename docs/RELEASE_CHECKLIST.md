@@ -32,7 +32,11 @@ Use this checklist before claiming a Tier One release.
 - [ ] `python3 -m unittest discover -s tests` passes.
 - [ ] JSON syntax check passes for plugin, MCP, marketplace, and fixtures.
 - [ ] On a secure-persistence host, `python3 scripts/check_release_package.py . --verify-reproducible` passes, including Git-tree containment, a repeat archive digest comparison, manifest/digest validation, frontmatter, link, hardcoded-path, doctor, harvest, recommendation, expert-rubric, composition/runtime/session/receipt, stable, and experimental gates.
-- [ ] For version 0.6.0 or newer, `python3 scripts/check_release_package.py . --composition-benchmark-observations <real-observations.json> --verify-reproducible` passes. The observations are from host runs, not scorer unit fixtures.
+- [ ] For version 0.6.0 or newer, a Git-clean canonical
+  `docs/COMPOSITION_BENCHMARK_BUNDLE/` contains the complete six-file real
+  host-run set, and `python3 scripts/check_release_package.py . --verify-reproducible`
+  passes. The raw bundle is archive-excluded; unit fixtures are not release
+  evidence.
 - [ ] Release composition dogfood shows release-readiness packets do not activate UI/browser or repo-behavior spreadsheet gates unless the objective or runtime context asks for them.
 - [ ] `claude plugin validate .` passes for the marketplace.
 - [ ] `claude plugin validate <plugin-only-copy>` passes for the plugin manifest.
@@ -51,7 +55,10 @@ Use this checklist before claiming a Tier One release.
 
 - [ ] `docs/VERIFICATION.md` updated.
 - [ ] `docs/RELEASE_EVIDENCE.json` records a successful hosted `verify.yml` main, pull request, or release-tag run for the active manifest version.
-- [ ] For version 0.6.0 or newer, the exact eligible benchmark summary is committed at `docs/COMPOSITION_BENCHMARK_SUMMARY.json`; `docs/RELEASE_EVIDENCE.json` records matching observation/summary SHA-256 digests and an approved reviewer plus UTC review timestamp.
+- [ ] For version 0.6.0 or newer, the exact eligible benchmark summary is
+  committed at `docs/COMPOSITION_BENCHMARK_SUMMARY.json`; the release record
+  repeats the exact canonical bundle manifest and observation/summary SHA-256
+  digests, and the approved reviewer binds that manifest with a UTC timestamp.
 - [ ] `python3 scripts/check_release_evidence.py .` passes.
 - [ ] A version bump records successful release-PR evidence, then passes a second PR verification before merge; this keeps the evidence gate pre-merge without creating a tag-run self-reference cycle.
 - [ ] Archive creation used a clean committed worktree; no dirty-path exception is accepted.

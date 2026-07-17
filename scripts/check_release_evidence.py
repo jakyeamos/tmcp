@@ -16,6 +16,14 @@ if str(PLUGIN_ROOT) not in sys.path:
     sys.path.insert(0, str(PLUGIN_ROOT))
 
 from tmcp_runtime.api.registry import VERSION  # noqa: E402
+from scripts.composition_benchmark_bundle import (  # noqa: E402
+    BUNDLE_ARTIFACTS,
+    CompositionBenchmarkBundleError,
+    resolve_composition_benchmark_bundle,
+    validate_bundle_evidence_record,
+)
+from scripts.run_composition_benchmark import run_benchmark  # noqa: E402
+from scripts.schema_contract_support import SchemaAssertionError  # noqa: E402
 
 VERSION_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 EVIDENCE_PATH = Path("docs") / "RELEASE_EVIDENCE.json"
@@ -30,6 +38,12 @@ COMPOSITION_BENCHMARK_EVIDENCE_SCHEMA = (
 )
 COMPOSITION_BENCHMARK_SUMMARY_SCHEMA = "tmcp-composition-benchmark-summary-v0.1"
 COMPOSITION_BENCHMARK_SUMMARY_PATH = Path("docs") / "COMPOSITION_BENCHMARK_SUMMARY.json"
+COMPOSITION_ROUTING_GOLDEN_PATH = (
+    Path("tests") / "fixtures" / "composition_routing_golden_v0_6.json"
+)
+COMPOSITION_BEHAVIORAL_FIXTURES_PATH = (
+    Path("tests") / "fixtures" / "composition_behavioral_fixtures_v0_6.json"
+)
 COMPOSITION_ACCEPTANCE_CHECKS = frozenset(
     {
         "expected_skill_recall",
@@ -464,6 +478,71 @@ def validate_composition_benchmark_evidence(
     if observations_digest != summary.get("observations_sha256"):
         errors.append(
             "composition_benchmark.observations_sha256 does not match summary"
+        )
+    try:
+        bundle = resolve_composition_benchmark_bundle(
+            plugin_root,
+            require_git_clean=True,
+        )
+    except CompositionBenchmarkBundleError as exc:
+        errors.append(f"composition benchmark bundle is invalid: {exc}")
+        return errors
+    errors.extend(validate_bundle_evidence_record(record.get("bundle"), bundle))
+    bundle_digest = bundle.get("manifest_digest")
+    if (
+        not isinstance(review, dict)
+        or review.get("bundle_manifest_digest") != bundle_digest
+    ):
+        errors.append(
+            "composition_benchmark.review.bundle_manifest_digest must match bundle"
+        )
+    artifact_paths = bundle.get("artifacts")
+    if not isinstance(artifact_paths, dict):
+        errors.append("composition benchmark bundle artifacts are invalid")
+        return errors
+    resolved_paths: dict[str, Path] = {}
+    for label, filename in BUNDLE_ARTIFACTS:
+        artifact = artifact_paths.get(filename)
+        if not isinstance(artifact, dict) or not isinstance(
+            artifact.get("path"), str
+        ):
+            errors.append(f"composition benchmark bundle {filename} is invalid")
+            return errors
+        resolved_paths[label] = plugin_root / str(artifact["path"])
+    try:
+        replay = {
+            "ok": True,
+            **run_benchmark(
+                routing_golden_path=plugin_root / COMPOSITION_ROUTING_GOLDEN_PATH,
+                behavioral_fixtures_path=plugin_root / COMPOSITION_BEHAVIORAL_FIXTURES_PATH,
+                observations_path=resolved_paths["observations"],
+                run_plan_path=resolved_paths["run_plan"],
+                semantic_proposals_path=resolved_paths["semantic_proposals"],
+                control_plan_path=resolved_paths["control_plan"],
+                host_results_path=resolved_paths["host_results"],
+                evaluator_artifacts_path=resolved_paths["evaluator_artifacts"],
+            ),
+        }
+    except (OSError, SchemaAssertionError, ValueError, json.JSONDecodeError) as exc:
+        errors.append(f"could not replay composition benchmark bundle: {exc}")
+        return errors
+    if summary != replay:
+        errors.append(
+            "composition benchmark summary does not exactly match bundle replay"
+        )
+    observations_entry = artifact_paths.get("benchmark-observations.json")
+    bundle_observations_digest = (
+        observations_entry.get("sha256")
+        if isinstance(observations_entry, dict)
+        else None
+    )
+    if observations_digest != bundle_observations_digest:
+        errors.append(
+            "composition_benchmark.observations_sha256 does not match bundle"
+        )
+    if replay.get("observations_sha256") != bundle_observations_digest:
+        errors.append(
+            "composition benchmark replay does not bind bundle observations"
         )
     return errors
 

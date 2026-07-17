@@ -38,7 +38,31 @@ python3 scripts/run_composition_benchmark.py \
   --evaluator-artifacts path/to/evaluator-artifacts.json
 ```
 
-For a release-package check, pass the same complete bound artifact set:
+For a 0.6+ release, commit the six exact bound artifacts in the canonical,
+external-only bundle directory `docs/COMPOSITION_BENCHMARK_BUNDLE/`:
+
+- `benchmark-run-plan.json`
+- `semantic-proposals.json`
+- `benchmark-control-plan.json`
+- `host-results.json`
+- `evaluator-artifacts.json`
+- `benchmark-observations.json`
+
+The directory must contain exactly those regular files, each must be
+Git-tracked and unchanged from `HEAD`, and the host/evaluator serializations are
+secret-scanned before use. It is intentionally excluded from the release
+archive: the package runner consumes the source-worktree bundle during release
+verification but does not distribute raw host or evaluator evidence.
+
+With that canonical bundle present, run the package check without artifact
+flags:
+
+```bash
+python3 scripts/check_release_package.py . --verify-reproducible
+```
+
+For an ad hoc review, the package checker also accepts a complete explicit set
+of six paths:
 
 ```bash
 python3 scripts/check_release_package.py . \
@@ -51,11 +75,11 @@ python3 scripts/check_release_package.py . \
   --verify-reproducible
 ```
 
-The package checker keeps 0.5.x behavior compatible when this option is absent.
-Starting with 0.6.0 it fails closed without the complete bound artifact set, and
-it fails whenever the bundled benchmark runner does not return a fully eligible
-summary. Supplying observations for an earlier release still validates the same
-complete set.
+The package checker keeps 0.5.x behavior compatible when no artifact path is
+supplied. Starting with 0.6.0 it resolves the canonical bundle when no paths
+are supplied, rejects a partial explicit set, and fails whenever the bundled
+benchmark runner does not return a fully eligible summary. Supplying any
+artifact path for an earlier release still requires the same complete set.
 
 The observations object uses schema `tmcp-composition-benchmark-observations-v0.1` and contains complete `routing_results` for every golden case plus complete `behavioral_results` for all five fixtures. Missing or unexpected IDs are malformed evidence. Every routing case and every behavioral control carries a content-derived execution record, a hash-bound run receipt, and inline digest-verified evidence. Each behavioral result must include selected and ordered skills, active stages, provenance-backed typed relationships, compiled and naive context tokens, and observed quality for no-skill, naive union, every singleton, full composition, every leave-one-out ablation, and wrong-order controls.
 
@@ -121,15 +145,19 @@ Retain the exact successful CLI output, including top-level `ok: true` and the S
 ## Reviewed release evidence
 
 Before changing the active version to 0.6.0 or newer, preserve the exact eligible
-runner output as `docs/COMPOSITION_BENCHMARK_SUMMARY.json` and commit it. Add and
-commit a `composition_benchmark` record in `docs/RELEASE_EVIDENCE.json` with:
+runner output as `docs/COMPOSITION_BENCHMARK_SUMMARY.json` and commit it. Commit
+the canonical six-artifact bundle described above, then add and commit a
+`composition_benchmark` record in `docs/RELEASE_EVIDENCE.json` with:
 
 - schema `tmcp-composition-benchmark-release-evidence-v0.1` and the active release
   version;
 - status `reviewed` and summary path
   `docs/COMPOSITION_BENCHMARK_SUMMARY.json`;
-- SHA-256 digests of the external observations and committed summary;
-- an approved review containing a non-empty reviewer and UTC review timestamp.
+- SHA-256 digests of the canonical observations and committed summary;
+- an exact `bundle` projection (the canonical paths, per-file hashes,
+  `evidence_trust: advisory_untrusted`, and manifest digest);
+- an approved review containing a non-empty reviewer, UTC review timestamp, and
+  matching `bundle_manifest_digest`.
 
 The release-evidence record has this shape; replace every placeholder with the
 reviewed run's exact value:
@@ -141,20 +169,37 @@ reviewed run's exact value:
     "version": "0.6.0",
     "status": "reviewed",
     "summary_path": "docs/COMPOSITION_BENCHMARK_SUMMARY.json",
-    "observations_sha256": "<sha256-of-external-observations>",
+    "observations_sha256": "<sha256-of-canonical-observations>",
     "summary_sha256": "<sha256-of-committed-summary>",
+    "bundle": {
+      "schema": "tmcp-composition-benchmark-bundle-v0.1",
+      "path": "docs/COMPOSITION_BENCHMARK_BUNDLE",
+      "artifacts": {
+        "benchmark-run-plan.json": {"path": "docs/COMPOSITION_BENCHMARK_BUNDLE/benchmark-run-plan.json", "sha256": "<sha256>"},
+        "semantic-proposals.json": {"path": "docs/COMPOSITION_BENCHMARK_BUNDLE/semantic-proposals.json", "sha256": "<sha256>"},
+        "benchmark-control-plan.json": {"path": "docs/COMPOSITION_BENCHMARK_BUNDLE/benchmark-control-plan.json", "sha256": "<sha256>"},
+        "host-results.json": {"path": "docs/COMPOSITION_BENCHMARK_BUNDLE/host-results.json", "sha256": "<sha256>"},
+        "evaluator-artifacts.json": {"path": "docs/COMPOSITION_BENCHMARK_BUNDLE/evaluator-artifacts.json", "sha256": "<sha256>"},
+        "benchmark-observations.json": {"path": "docs/COMPOSITION_BENCHMARK_BUNDLE/benchmark-observations.json", "sha256": "<sha256>"}
+      },
+      "evidence_trust": "advisory_untrusted",
+      "manifest_digest": "<sha256-of-canonical-bundle-manifest>"
+    },
     "review": {
       "status": "approved",
       "reviewer": "<reviewer>",
-      "reviewed_at": "<UTC-timestamp>"
+      "reviewed_at": "<UTC-timestamp>",
+      "bundle_manifest_digest": "<same-canonical-manifest-digest>"
     }
   }
 }
 ```
 
-`scripts/check_release_evidence.py` rejects an untracked or changed summary, a
-summary that does not match the exact bundled contract, a mismatch between the
-recorded observation digest and the digest embedded by the runner, incomplete
-routing or behavioral metrics, an ineligible summary, or missing review metadata.
-Raw observations remain explicit external input; do not replace them with
-unit-test fixtures or inferred scores.
+`scripts/check_release_evidence.py` resolves the Git-clean canonical bundle,
+checks that its record and reviewer digest match exactly, replays all six files
+through the current runner, and requires the replay output to exactly equal the
+committed summary. It rejects an untracked or changed summary/bundle, incomplete
+routing or behavioral metrics, an ineligible summary, secret-like raw
+host/evaluator text, or missing review metadata. The evidence remains advisory,
+not an authentication claim about the host or evaluator. Do not replace the
+bound artifacts with unit-test fixtures or inferred scores.

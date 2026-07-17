@@ -52,6 +52,7 @@ REQUIRED_FILES = (
     "scripts/tmcp_mcp_server.py",
     "scripts/check_contracts.py",
     "scripts/schema_contract_support.py",
+    "scripts/composition_benchmark_bundle.py",
     "scripts/release_package_compile.py",
     "scripts/release_package_composition.py",
     "scripts/prepare_composition_benchmark.py",

@@ -9,7 +9,9 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path, PureWindowsPath
+from unittest.mock import patch
 
+from scripts import composition_benchmark_bundle as bundle_support
 from tests import test_tmcp_composition_benchmarks as benchmark_test_support
 from tmcp_runtime.domain.composition_benchmarks import score_composition_benchmark
 
@@ -64,6 +66,10 @@ def write_verification_workflow(path: Path) -> None:
 
 
 def commit_file(root: Path, relative_path: str) -> None:
+    commit_files(root, relative_path)
+
+
+def commit_files(root: Path, *relative_paths: str) -> None:
     environment = {
         key: value for key, value in os.environ.items() if not key.startswith("GIT_")
     }
@@ -81,7 +87,7 @@ def commit_file(root: Path, relative_path: str) -> None:
         check=True,
     )
     subprocess.run(
-        ["git", "add", "--", relative_path],
+        ["git", "add", "--", *relative_paths],
         cwd=root,
         env=environment,
         check=True,
@@ -98,7 +104,7 @@ def commit_file(root: Path, relative_path: str) -> None:
             "commit",
             "--quiet",
             "-m",
-            "benchmark summary fixture",
+            "benchmark evidence fixture",
         ],
         cwd=root,
         env=environment,
@@ -138,19 +144,35 @@ def composition_benchmark_summary() -> dict[str, object]:
     return {"ok": True, **summary, "observations_sha256": "a" * 64}
 
 
-def composition_benchmark_evidence(summary_digest: str) -> dict[str, object]:
+def write_composition_benchmark_bundle(root: Path) -> dict[str, object]:
+    for index, (_label, filename) in enumerate(bundle_support.BUNDLE_ARTIFACTS):
+        write_json(
+            root / bundle_support.BUNDLE_RELATIVE_PATH / filename,
+            {"artifact": filename, "index": index},
+        )
+    return bundle_support.resolve_composition_benchmark_bundle(root)
+
+
+def composition_benchmark_evidence(
+    summary_digest: str,
+    bundle: dict[str, object],
+) -> dict[str, object]:
+    bundle_record = bundle_support.bundle_evidence_record(bundle)
+    observations = bundle_record["artifacts"]["benchmark-observations.json"]
     return {
         "composition_benchmark": {
             "schema": "tmcp-composition-benchmark-release-evidence-v0.1",
             "version": "0.6.0",
             "status": "reviewed",
             "summary_path": "docs/COMPOSITION_BENCHMARK_SUMMARY.json",
-            "observations_sha256": "a" * 64,
+            "observations_sha256": observations["sha256"],
             "summary_sha256": summary_digest,
+            "bundle": bundle_record,
             "review": {
                 "status": "approved",
                 "reviewer": "release-owner",
                 "reviewed_at": "2026-07-17T12:00:00Z",
+                "bundle_manifest_digest": bundle_record["manifest_digest"],
             },
         }
     }
@@ -174,23 +196,127 @@ class ReleaseEvidenceTests(unittest.TestCase):
             ["docs/RELEASE_EVIDENCE.json composition_benchmark must be an object"],
         )
 
-    def test_composition_benchmark_evidence_accepts_reviewed_committed_summary(
+    def test_composition_benchmark_evidence_accepts_reviewed_replayed_bundle(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
+            bundle = write_composition_benchmark_bundle(root)
+            summary = composition_benchmark_summary()
+            summary["observations_sha256"] = bundle["artifacts"][
+                "benchmark-observations.json"
+            ]["sha256"]
             summary_path = root / "docs" / "COMPOSITION_BENCHMARK_SUMMARY.json"
-            write_json(summary_path, composition_benchmark_summary())
+            write_json(summary_path, summary)
             summary_digest = hashlib.sha256(summary_path.read_bytes()).hexdigest()
-            commit_file(root, "docs/COMPOSITION_BENCHMARK_SUMMARY.json")
+            commit_files(
+                root,
+                "docs/COMPOSITION_BENCHMARK_SUMMARY.json",
+                *(
+                    (bundle_support.BUNDLE_RELATIVE_PATH / filename).as_posix()
+                    for _label, filename in bundle_support.BUNDLE_ARTIFACTS
+                ),
+            )
 
+            with patch.object(
+                self.checker,
+                "run_benchmark",
+                return_value={key: value for key, value in summary.items() if key != "ok"},
+            ) as benchmark_runner:
+                errors = self.checker.validate_composition_benchmark_evidence(
+                    root,
+                    "0.6.0",
+                    composition_benchmark_evidence(summary_digest, bundle),
+                )
+
+        self.assertEqual(errors, [])
+        self.assertEqual(
+            benchmark_runner.call_args.kwargs["observations_path"],
+            root
+            / bundle_support.BUNDLE_RELATIVE_PATH
+            / "benchmark-observations.json",
+        )
+        self.assertEqual(
+            benchmark_runner.call_args.kwargs["host_results_path"],
+            root / bundle_support.BUNDLE_RELATIVE_PATH / "host-results.json",
+        )
+
+    def test_composition_benchmark_evidence_rejects_replay_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            bundle = write_composition_benchmark_bundle(root)
+            summary = composition_benchmark_summary()
+            summary["observations_sha256"] = bundle["artifacts"][
+                "benchmark-observations.json"
+            ]["sha256"]
+            summary_path = root / "docs" / "COMPOSITION_BENCHMARK_SUMMARY.json"
+            write_json(summary_path, summary)
+            summary_digest = hashlib.sha256(summary_path.read_bytes()).hexdigest()
+            commit_files(
+                root,
+                "docs/COMPOSITION_BENCHMARK_SUMMARY.json",
+                *(
+                    (bundle_support.BUNDLE_RELATIVE_PATH / filename).as_posix()
+                    for _label, filename in bundle_support.BUNDLE_ARTIFACTS
+                ),
+            )
+            replay = dict(summary)
+            replay["eligible"] = False
+            with patch.object(
+                self.checker,
+                "run_benchmark",
+                return_value={key: value for key, value in replay.items() if key != "ok"},
+            ):
+                errors = self.checker.validate_composition_benchmark_evidence(
+                    root,
+                    "0.6.0",
+                    composition_benchmark_evidence(summary_digest, bundle),
+                )
+
+        self.assertIn(
+            "composition benchmark summary does not exactly match bundle replay",
+            errors,
+        )
+
+    def test_composition_benchmark_evidence_rejects_dirty_bundle(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            bundle = write_composition_benchmark_bundle(root)
+            summary = composition_benchmark_summary()
+            summary["observations_sha256"] = bundle["artifacts"][
+                "benchmark-observations.json"
+            ]["sha256"]
+            summary_path = root / "docs" / "COMPOSITION_BENCHMARK_SUMMARY.json"
+            write_json(summary_path, summary)
+            summary_digest = hashlib.sha256(summary_path.read_bytes()).hexdigest()
+            commit_files(
+                root,
+                "docs/COMPOSITION_BENCHMARK_SUMMARY.json",
+                *(
+                    (bundle_support.BUNDLE_RELATIVE_PATH / filename).as_posix()
+                    for _label, filename in bundle_support.BUNDLE_ARTIFACTS
+                ),
+            )
+            write_json(
+                root
+                / bundle_support.BUNDLE_RELATIVE_PATH
+                / "host-results.json",
+                {"artifact": "host-results.json", "mutated": True},
+            )
             errors = self.checker.validate_composition_benchmark_evidence(
                 root,
                 "0.6.0",
-                composition_benchmark_evidence(summary_digest),
+                composition_benchmark_evidence(summary_digest, bundle),
             )
 
-        self.assertEqual(errors, [])
+        self.assertTrue(
+            any("benchmark bundle is invalid" in error for error in errors),
+            errors,
+        )
+        self.assertTrue(
+            any("unchanged from HEAD" in error for error in errors),
+            errors,
+        )
 
     def test_composition_benchmark_evidence_rejects_incomplete_handcrafted_summary(
         self,
@@ -209,16 +335,25 @@ class ReleaseEvidenceTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
+            bundle = write_composition_benchmark_bundle(root)
             summary_path = root / "docs" / "COMPOSITION_BENCHMARK_SUMMARY.json"
             write_json(summary_path, summary)
             summary_digest = hashlib.sha256(summary_path.read_bytes()).hexdigest()
-            commit_file(root, "docs/COMPOSITION_BENCHMARK_SUMMARY.json")
-
-            errors = self.checker.validate_composition_benchmark_evidence(
+            commit_files(
                 root,
-                "0.6.0",
-                composition_benchmark_evidence(summary_digest),
+                "docs/COMPOSITION_BENCHMARK_SUMMARY.json",
+                *(
+                    (bundle_support.BUNDLE_RELATIVE_PATH / filename).as_posix()
+                    for _label, filename in bundle_support.BUNDLE_ARTIFACTS
+                ),
             )
+
+            with patch.object(self.checker, "run_benchmark", return_value=summary):
+                errors = self.checker.validate_composition_benchmark_evidence(
+                    root,
+                    "0.6.0",
+                    composition_benchmark_evidence(summary_digest, bundle),
+                )
 
         self.assertIn(
             "composition benchmark summary fields must match bundled schema", errors
@@ -230,16 +365,29 @@ class ReleaseEvidenceTests(unittest.TestCase):
         summary["observations_sha256"] = "b" * 64
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
+            bundle = write_composition_benchmark_bundle(root)
             summary_path = root / "docs" / "COMPOSITION_BENCHMARK_SUMMARY.json"
             write_json(summary_path, summary)
             summary_digest = hashlib.sha256(summary_path.read_bytes()).hexdigest()
-            commit_file(root, "docs/COMPOSITION_BENCHMARK_SUMMARY.json")
-
-            errors = self.checker.validate_composition_benchmark_evidence(
+            commit_files(
                 root,
-                "0.6.0",
-                composition_benchmark_evidence(summary_digest),
+                "docs/COMPOSITION_BENCHMARK_SUMMARY.json",
+                *(
+                    (bundle_support.BUNDLE_RELATIVE_PATH / filename).as_posix()
+                    for _label, filename in bundle_support.BUNDLE_ARTIFACTS
+                ),
             )
+
+            with patch.object(
+                self.checker,
+                "run_benchmark",
+                return_value={key: value for key, value in summary.items() if key != "ok"},
+            ):
+                errors = self.checker.validate_composition_benchmark_evidence(
+                    root,
+                    "0.6.0",
+                    composition_benchmark_evidence(summary_digest, bundle),
+                )
 
         self.assertIn(
             "composition_benchmark.observations_sha256 does not match summary",
@@ -249,19 +397,36 @@ class ReleaseEvidenceTests(unittest.TestCase):
     def test_composition_benchmark_evidence_rejects_changed_summary(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
+            bundle = write_composition_benchmark_bundle(root)
+            original = composition_benchmark_summary()
+            original["observations_sha256"] = bundle["artifacts"][
+                "benchmark-observations.json"
+            ]["sha256"]
             summary_path = root / "docs" / "COMPOSITION_BENCHMARK_SUMMARY.json"
-            write_json(summary_path, composition_benchmark_summary())
+            write_json(summary_path, original)
             summary_digest = hashlib.sha256(summary_path.read_bytes()).hexdigest()
-            commit_file(root, "docs/COMPOSITION_BENCHMARK_SUMMARY.json")
-            changed = composition_benchmark_summary()
+            commit_files(
+                root,
+                "docs/COMPOSITION_BENCHMARK_SUMMARY.json",
+                *(
+                    (bundle_support.BUNDLE_RELATIVE_PATH / filename).as_posix()
+                    for _label, filename in bundle_support.BUNDLE_ARTIFACTS
+                ),
+            )
+            changed = dict(original)
             changed["eligible"] = False
             write_json(summary_path, changed)
 
-            errors = self.checker.validate_composition_benchmark_evidence(
-                root,
-                "0.6.0",
-                composition_benchmark_evidence(summary_digest),
-            )
+            with patch.object(
+                self.checker,
+                "run_benchmark",
+                return_value={key: value for key, value in changed.items() if key != "ok"},
+            ):
+                errors = self.checker.validate_composition_benchmark_evidence(
+                    root,
+                    "0.6.0",
+                    composition_benchmark_evidence(summary_digest, bundle),
+                )
 
         self.assertIn(
             "composition benchmark summary must be committed and unchanged at "
