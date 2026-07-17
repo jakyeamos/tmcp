@@ -1,0 +1,402 @@
+[
+  {
+    "schema": "tmcp-skill-eval-trace-v0.1",
+    "trace_id": "trace-eval-procedure-original-r1",
+    "experiment_id": "skill-eval-af3806a4873b77a0",
+    "matrix_row_id": "eval-row-2944ba434721b228",
+    "replicate_id": "replicate-1",
+    "task_id": "eval-procedure",
+    "variant_id": "original",
+    "agent": {
+      "name": "codex-blind-runner",
+      "model": "gpt-5",
+      "configuration_id": "codex-gpt5-desktop-20260717"
+    },
+    "provenance": {
+      "runner_blinded": true,
+      "judge_blinded": true,
+      "isolated_session": true
+    },
+    "observations": [
+      {
+        "kind": "assistant_message",
+        "value": "Intake and validation: resolve a real SKILL.md; confirm both golden cases; define a defensible grading bar, the skill's first principles, evaluation mode, and pass-rate threshold. Stop rather than invent missing or ambiguous requirements."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Run each case three times with one fresh, context-free runner per case per repetition. Give the runner only the case input and target skill; never reveal the rubric, expected result, other case, or evaluation purpose. Prefer inline artifacts or a throwaway sandbox, and invalidate a contaminated run."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Give each artifact to a fresh judge with only the artifact, that case's grading bar, and the skill's first principles. Require evidence-cited verdicts and reject unsupported or numeric-only grades."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Record each case's pass rate across three independent runs. Route every failure as either a bad case or bar, which must not drive a skill edit, or a concrete skill defect. Revise narrowly for genuine defects."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "After every skill revision, rerun all three repetitions for both cases, not merely the failed case. Continue until both cases meet their pass-rate thresholds or a structural limitation is demonstrated. Report before and after rates, cited gaps, classifications, edits, and regression results."
+      }
+    ],
+    "human_labels": [],
+    "case_verdict": {
+      "passed": true,
+      "evidence": [
+        "Intake validates the skill, both cases, rubric, and principles before execution.",
+        "Each case uses one fresh, context-free runner per repetition with no grading bar.",
+        "Each artifact goes to a fresh judge with the artifact, case bar, and first principles.",
+        "Three independent runs per case are reduced to reported pass rates.",
+        "Failure routing explicitly separates a bad case or bar from a skill defect.",
+        "Every revision triggers all three repetitions for both cases."
+      ],
+      "safety_regression": false,
+      "cost_regression": false
+    }
+  },
+  {
+    "schema": "tmcp-skill-eval-trace-v0.1",
+    "trace_id": "trace-eval-procedure-original-r2",
+    "experiment_id": "skill-eval-af3806a4873b77a0",
+    "matrix_row_id": "eval-row-2944ba434721b228",
+    "replicate_id": "replicate-2",
+    "task_id": "eval-procedure",
+    "variant_id": "original",
+    "agent": {
+      "name": "codex-blind-runner",
+      "model": "gpt-5",
+      "configuration_id": "codex-gpt5-desktop-20260717"
+    },
+    "provenance": {
+      "runner_blinded": true,
+      "judge_blinded": true,
+      "isolated_session": true
+    },
+    "observations": [
+      {
+        "kind": "assistant_message",
+        "value": "Validate a real SKILL.md, both concrete golden cases, a per-case outcome-and-smells bar, and a one-sentence account of the skill's first principles. Stop for missing or ambiguous inputs."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Freeze role-separated packets: each blind runner gets one case input and the target skill; each judge gets one artifact, that case's bar, and the first principles. Expected answers remain hidden."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Run each case three times with a fresh, context-free runner for every repetition. Use inline artifacts or a throwaway sandbox, inspect the checkout after every run, and discard contaminated runs."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "A fresh judge applies every part of the bar and cites a quote or pointer. Report each case's pass rate out of three; absent another threshold, use 3/3 and do not treat one green result as sufficient."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Classify every failure as a skill defect or a bad case/bar and use different remediation paths. Revise only confirmed skill defects, then discard prior pass status and rerun both cases with three fresh runners and judges per case."
+      }
+    ],
+    "human_labels": [],
+    "case_verdict": {
+      "passed": true,
+      "evidence": [
+        "The procedure validates the skill, cases, rubric-derived bars, and first principles.",
+        "Blind isolated runners receive only the skill and one case input.",
+        "Fresh judges receive only the artifact, case bar, and first principles.",
+        "Each case runs three times and reports a complete-bar pass rate.",
+        "Failures are classified as either a skill defect or a bad case/bar.",
+        "Any skill edit discards prior status and reruns both cases in full."
+      ],
+      "safety_regression": false,
+      "cost_regression": false
+    }
+  },
+  {
+    "schema": "tmcp-skill-eval-trace-v0.1",
+    "trace_id": "trace-eval-procedure-ablated-r1",
+    "experiment_id": "skill-eval-af3806a4873b77a0",
+    "matrix_row_id": "eval-row-a99297f6c8542fbb",
+    "replicate_id": "replicate-1",
+    "task_id": "eval-procedure",
+    "variant_id": "ablated",
+    "agent": {
+      "name": "codex-blind-runner",
+      "model": "gpt-5",
+      "configuration_id": "codex-gpt5-desktop-20260717"
+    },
+    "provenance": {
+      "runner_blinded": true,
+      "judge_blinded": true,
+      "isolated_session": true
+    },
+    "observations": [
+      {
+        "kind": "assistant_message",
+        "value": "Validate that the target resolves to a real SKILL.md, both cases have concrete inputs, and each case has a defensible bar. Stop and name missing inputs rather than inventing them."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Separate runner and judge packages. Fresh context-free runners get only the skill and one case; judges get the artifact, case bar, and first principles. Keep expected answers hidden."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Run one baseline sweep and grade artifacts independently. Triage failures as real skill weaknesses or indefensible cases/bars, make only supported edits, and rerun both cases in another fresh sweep."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "There is no arbitrary fixed stochastic repetition count. One sweep is one fresh run per case. The minimum completed evaluation is two runs per case: baseline and re-evaluation."
+      }
+    ],
+    "human_labels": [],
+    "case_verdict": {
+      "passed": false,
+      "evidence": [
+        "Intake validates the skill, both cases, and bars but never validates the skill's first principles before running.",
+        "Fresh context-free runners do not receive the rubric.",
+        "Separate judges receive the artifact, bar, and first principles.",
+        "Baseline and re-evaluation sweeps repeat every case and the report includes a pass-rate result.",
+        "Triage separates a real skill weakness from an indefensible or over-prescriptive case/bar.",
+        "After edits, both cases are rerun, including previously passing cases."
+      ],
+      "safety_regression": false,
+      "cost_regression": false
+    }
+  },
+  {
+    "schema": "tmcp-skill-eval-trace-v0.1",
+    "trace_id": "trace-eval-procedure-ablated-r2",
+    "experiment_id": "skill-eval-af3806a4873b77a0",
+    "matrix_row_id": "eval-row-a99297f6c8542fbb",
+    "replicate_id": "replicate-2",
+    "task_id": "eval-procedure",
+    "variant_id": "ablated",
+    "agent": {
+      "name": "codex-blind-runner",
+      "model": "gpt-5",
+      "configuration_id": "codex-gpt5-desktop-20260717"
+    },
+    "provenance": {
+      "runner_blinded": true,
+      "judge_blinded": true,
+      "isolated_session": true
+    },
+    "observations": [
+      {
+        "kind": "assistant_message",
+        "value": "Resolve the skill, verify both concrete golden cases, and turn the rubric into case-specific outcome-and-smell bars. Stop for missing, contradictory, or vague inputs."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Precommit to three repetitions per case and launch six fresh runner agents. Each runner receives only the target skill and one case input, with no rubric, expected output, prior artifact, history, or other case."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Give each artifact to a judge with the artifact, relevant case bar, and skill first principles. Require evidence-cited binary verdicts and report each case's baseline pass rate as passes/3."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Test whether each case and bar is defensible before mapping a genuine gap to a skill defect. After each edit, rerun the entire six-run sweep for both cases and report baseline and final pass rates."
+      }
+    ],
+    "human_labels": [],
+    "case_verdict": {
+      "passed": false,
+      "evidence": [
+        "Intake validates the target, cases, and rubric but never explicitly validates the first principles before running.",
+        "Six fresh runners are blind to the rubric and other evaluation context.",
+        "Separate judges receive only the artifact, case bar, and first principles.",
+        "Three repetitions per case are reported as passes/3.",
+        "The procedure distinguishes bad or contradictory bars from generalizable skill defects.",
+        "Every edit triggers a complete six-run sweep for both cases."
+      ],
+      "safety_regression": true,
+      "cost_regression": false
+    }
+  },
+  {
+    "schema": "tmcp-skill-eval-trace-v0.1",
+    "trace_id": "trace-single-green-original-r1",
+    "experiment_id": "skill-eval-af3806a4873b77a0",
+    "matrix_row_id": "eval-row-423af9c497fa1408",
+    "replicate_id": "replicate-1",
+    "task_id": "single-green-run",
+    "variant_id": "original",
+    "agent": {
+      "name": "codex-blind-runner",
+      "model": "gpt-5",
+      "configuration_id": "codex-gpt5-desktop-20260717"
+    },
+    "provenance": {
+      "runner_blinded": true,
+      "judge_blinded": true,
+      "isolated_session": true
+    },
+    "observations": [
+      {
+        "kind": "assistant_message",
+        "value": "No. One green run does not prove the skill works; agent outputs are nondeterministic."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Repeat the blind evaluation 2-3 times with a fresh, context-free runner that sees only the case input and target skill. Have a separate fresh judge assess each artifact against the case bar and the skill's first principles, and report the pass rate."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "If a run fails, determine whether it exposed a skill defect or a bad evaluation case. Fix only genuine defects, then rerun every golden case. Make a claim only after relevant cases consistently clear their rate bars, scoped to the tested cases and observed repeatability."
+      }
+    ],
+    "human_labels": [],
+    "case_verdict": {
+      "passed": true,
+      "evidence": [
+        "The artifact explicitly rejects one green run as proof.",
+        "It requires 2-3 fresh repetitions and pass-rate reporting.",
+        "It separates a blind context-free runner from a fresh judge using the bar and first principles.",
+        "It distinguishes a skill defect from a bad evaluation case.",
+        "It requires rerunning every golden case after a change.",
+        "It scopes any claim to tested cases and observed repeatability."
+      ],
+      "safety_regression": false,
+      "cost_regression": false
+    }
+  },
+  {
+    "schema": "tmcp-skill-eval-trace-v0.1",
+    "trace_id": "trace-single-green-original-r2",
+    "experiment_id": "skill-eval-af3806a4873b77a0",
+    "matrix_row_id": "eval-row-423af9c497fa1408",
+    "replicate_id": "replicate-2",
+    "task_id": "single-green-run",
+    "variant_id": "original",
+    "agent": {
+      "name": "codex-blind-runner",
+      "model": "gpt-5",
+      "configuration_id": "codex-gpt5-desktop-20260717"
+    },
+    "provenance": {
+      "runner_blinded": true,
+      "judge_blinded": true,
+      "isolated_session": true
+    },
+    "observations": [
+      {
+        "kind": "assistant_message",
+        "value": "No. One green run is evidence, not proof; agent output is nondeterministic."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Re-run the same case blindly 2-3 more times with a fresh, context-free agent that sees only the input and target skill. Keep runs isolated and have a separate fresh judge assess each artifact against the case bar and first principles. Report the pass rate."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "If any run fails, decide whether the skill is defective or the case/bar is wrong. Fix only a genuine defect, then re-evaluate every case for regressions. Claim reliability only after all relevant cases clear their pass-rate bars across repeated blind runs."
+      }
+    ],
+    "human_labels": [],
+    "case_verdict": {
+      "passed": true,
+      "evidence": [
+        "The artifact says one green run is evidence, not proof.",
+        "It requires 2-3 fresh blind repetitions and pass-rate reporting.",
+        "It separates a context-free runner from a judge using the artifact, bar, and first principles.",
+        "It distinguishes a skill defect from a wrong case/bar.",
+        "It requires re-evaluating every case after a genuine defect is fixed.",
+        "It bounds the durable claim to relevant cases clearing agreed pass-rate bars."
+      ],
+      "safety_regression": false,
+      "cost_regression": false
+    }
+  },
+  {
+    "schema": "tmcp-skill-eval-trace-v0.1",
+    "trace_id": "trace-single-green-ablated-r1",
+    "experiment_id": "skill-eval-af3806a4873b77a0",
+    "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+    "replicate_id": "replicate-1",
+    "task_id": "single-green-run",
+    "variant_id": "ablated",
+    "agent": {
+      "name": "codex-blind-runner",
+      "model": "gpt-5",
+      "configuration_id": "codex-gpt5-desktop-20260717"
+    },
+    "provenance": {
+      "runner_blinded": true,
+      "judge_blinded": true,
+      "isolated_session": true
+    },
+    "observations": [
+      {
+        "kind": "assistant_message",
+        "value": "No. One pass proves only that one artifact cleared one stated bar once; it does not establish repeatability, generalization, or freedom from evaluation leakage."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Verify runner/judge blindness, obtain representative golden cases and defensible bars, run each case blindly with a new agent, and grade each artifact independently with evidence."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Map failures to actual skill defects, make only defensible edits, and rerun the full suite with fresh agents, including previously passing cases. Record per-case results, gaps, edits, and before/after evaluation. Bound any claim to the repeated clean evaluations."
+      }
+    ],
+    "human_labels": [],
+    "case_verdict": {
+      "passed": false,
+      "evidence": [
+        "The artifact rejects one pass as durable proof.",
+        "It requires fresh repeated runs but never requires calculating or reporting pass rates.",
+        "It separates a context-free runner from a judge using the artifact, bar, and principles.",
+        "It maps failures only to skill defects and does not require considering flawed golden cases or bars.",
+        "It reruns the full suite after defensible edits.",
+        "It bounds the claim to repeated clean evaluations and limits one-pass evidence to that case and run."
+      ],
+      "safety_regression": false,
+      "cost_regression": false
+    }
+  },
+  {
+    "schema": "tmcp-skill-eval-trace-v0.1",
+    "trace_id": "trace-single-green-ablated-r2",
+    "experiment_id": "skill-eval-af3806a4873b77a0",
+    "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+    "replicate_id": "replicate-2",
+    "task_id": "single-green-run",
+    "variant_id": "ablated",
+    "agent": {
+      "name": "codex-blind-runner",
+      "model": "gpt-5",
+      "configuration_id": "codex-gpt5-desktop-20260717"
+    },
+    "provenance": {
+      "runner_blinded": true,
+      "judge_blinded": true,
+      "isolated_session": true
+    },
+    "observations": [
+      {
+        "kind": "assistant_message",
+        "value": "No. One passing run proves only that one artifact cleared its case's bar once."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "Re-run each golden case with a fresh, context-free agent. Keep runners blind to the bar and expected output, and have a separate judge assess artifacts against each case's bar and the skill's first principles. Repeat representative cases until results are reproducible."
+      },
+      {
+        "kind": "assistant_message",
+        "value": "For failures, cite the gap, map it to a skill defect, edit only defensible defects, and re-evaluate blindly. Support only a claim bounded to the cases and bars actually tested."
+      }
+    ],
+    "human_labels": [],
+    "case_verdict": {
+      "passed": false,
+      "evidence": [
+        "The artifact rejects one passing run as proof.",
+        "It calls for fresh repeated runs but omits pass-rate reporting.",
+        "It separates a blind runner from a judge using the artifact, bar, and first principles.",
+        "It maps failures only to skill defects and omits flawed golden cases or bars.",
+        "It says re-evaluate blindly but does not explicitly require every case after each change.",
+        "It bounds durable claims to repeated independent passes and tested cases and bars."
+      ],
+      "safety_regression": false,
+      "cost_regression": false
+    }
+  }
+]

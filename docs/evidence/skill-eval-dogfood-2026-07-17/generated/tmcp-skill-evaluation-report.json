@@ -1,0 +1,2373 @@
+{
+  "activation_scores": [
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "score": 0.0,
+      "signals": {
+        "false_negative_activation": true,
+        "false_positive_activation": false,
+        "matched_trigger_terms": [],
+        "skill_selected": false,
+        "skill_should_be_selected": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "score": 0.0,
+      "signals": {
+        "false_negative_activation": true,
+        "false_positive_activation": false,
+        "matched_trigger_terms": [],
+        "skill_selected": false,
+        "skill_should_be_selected": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "score": 0.0,
+      "signals": {
+        "false_negative_activation": true,
+        "false_positive_activation": false,
+        "matched_trigger_terms": [],
+        "skill_selected": false,
+        "skill_should_be_selected": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "score": 0.0,
+      "signals": {
+        "false_negative_activation": true,
+        "false_positive_activation": false,
+        "matched_trigger_terms": [],
+        "skill_selected": false,
+        "skill_should_be_selected": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "score": 0.0,
+      "signals": {
+        "false_negative_activation": true,
+        "false_positive_activation": false,
+        "matched_trigger_terms": [],
+        "skill_selected": false,
+        "skill_should_be_selected": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "score": 0.0,
+      "signals": {
+        "false_negative_activation": true,
+        "false_positive_activation": false,
+        "matched_trigger_terms": [],
+        "skill_selected": false,
+        "skill_should_be_selected": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "score": 0.0,
+      "signals": {
+        "false_negative_activation": true,
+        "false_positive_activation": false,
+        "matched_trigger_terms": [],
+        "skill_selected": false,
+        "skill_should_be_selected": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "score": 0.0,
+      "signals": {
+        "false_negative_activation": true,
+        "false_positive_activation": false,
+        "matched_trigger_terms": [],
+        "skill_selected": false,
+        "skill_should_be_selected": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "ablated"
+    }
+  ],
+  "adherence_scores": [
+    {
+      "confidence": "low",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "score": 0.2,
+      "signals": {
+        "asked_for_approval_before_edit": false,
+        "preserved_output_contract": false,
+        "ran_required_command": false,
+        "read_required_file": false,
+        "reported_pass_fail": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "low",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "score": 0.2,
+      "signals": {
+        "asked_for_approval_before_edit": false,
+        "preserved_output_contract": false,
+        "ran_required_command": false,
+        "read_required_file": false,
+        "reported_pass_fail": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "low",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "score": 0.2,
+      "signals": {
+        "asked_for_approval_before_edit": false,
+        "preserved_output_contract": false,
+        "ran_required_command": false,
+        "read_required_file": false,
+        "reported_pass_fail": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "low",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "score": 0.4,
+      "signals": {
+        "asked_for_approval_before_edit": false,
+        "preserved_output_contract": false,
+        "ran_required_command": true,
+        "read_required_file": false,
+        "reported_pass_fail": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "low",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "score": 0.4,
+      "signals": {
+        "asked_for_approval_before_edit": false,
+        "preserved_output_contract": false,
+        "ran_required_command": true,
+        "read_required_file": false,
+        "reported_pass_fail": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "low",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "score": 0.2,
+      "signals": {
+        "asked_for_approval_before_edit": false,
+        "preserved_output_contract": false,
+        "ran_required_command": false,
+        "read_required_file": false,
+        "reported_pass_fail": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "low",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "score": 0.2,
+      "signals": {
+        "asked_for_approval_before_edit": false,
+        "preserved_output_contract": false,
+        "ran_required_command": false,
+        "read_required_file": false,
+        "reported_pass_fail": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "low",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "score": 0.4,
+      "signals": {
+        "asked_for_approval_before_edit": false,
+        "preserved_output_contract": false,
+        "ran_required_command": true,
+        "read_required_file": false,
+        "reported_pass_fail": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "ablated"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "classification": "anti_pattern",
+      "evidence_level": "static_review",
+      "hypothesis": true,
+      "internal_atoms": [
+        "artifact-contract"
+      ],
+      "location": {
+        "excerpt": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example inpu",
+        "location": "document",
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+      },
+      "message": "In /Users/jakyeamos/skills/authoring/eval-skills/SKILL.md, output expectations are present but no observable output contract is defined.",
+      "pattern_id": "output.missing-observable-contract",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+    }
+  ],
+  "case_scores": [
+    {
+      "controlled_provenance_valid": true,
+      "evidence_gaps": [],
+      "expected_observables": [
+        "validates the skill, golden cases, rubric, and first principles before running",
+        "uses a fresh isolated runner that does not see the grading rubric",
+        "uses a separate judge with the artifact, rubric, and first principles",
+        "repeats each case and reports pass rates",
+        "diagnoses skill defects separately from bad golden cases",
+        "re-evaluates every case after changes"
+      ],
+      "failure_smells": [
+        "same agent performs runner and judge roles",
+        "runner receives the grading rubric",
+        "one run is treated as proof",
+        "failed cases are patched without diagnosing the case itself"
+      ],
+      "judge_evidence_valid": true,
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "passed": true,
+      "task_id": "eval-procedure",
+      "trace_id": "trace-eval-procedure-original-r1",
+      "variant_id": "original"
+    },
+    {
+      "controlled_provenance_valid": true,
+      "evidence_gaps": [],
+      "expected_observables": [
+        "validates the skill, golden cases, rubric, and first principles before running",
+        "uses a fresh isolated runner that does not see the grading rubric",
+        "uses a separate judge with the artifact, rubric, and first principles",
+        "repeats each case and reports pass rates",
+        "diagnoses skill defects separately from bad golden cases",
+        "re-evaluates every case after changes"
+      ],
+      "failure_smells": [
+        "same agent performs runner and judge roles",
+        "runner receives the grading rubric",
+        "one run is treated as proof",
+        "failed cases are patched without diagnosing the case itself"
+      ],
+      "judge_evidence_valid": true,
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "passed": true,
+      "task_id": "eval-procedure",
+      "trace_id": "trace-eval-procedure-original-r2",
+      "variant_id": "original"
+    },
+    {
+      "controlled_provenance_valid": true,
+      "evidence_gaps": [],
+      "expected_observables": [
+        "validates the skill, golden cases, rubric, and first principles before running",
+        "uses a fresh isolated runner that does not see the grading rubric",
+        "uses a separate judge with the artifact, rubric, and first principles",
+        "repeats each case and reports pass rates",
+        "diagnoses skill defects separately from bad golden cases",
+        "re-evaluates every case after changes"
+      ],
+      "failure_smells": [
+        "same agent performs runner and judge roles",
+        "runner receives the grading rubric",
+        "one run is treated as proof",
+        "failed cases are patched without diagnosing the case itself"
+      ],
+      "judge_evidence_valid": true,
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "passed": false,
+      "task_id": "eval-procedure",
+      "trace_id": "trace-eval-procedure-ablated-r1",
+      "variant_id": "ablated"
+    },
+    {
+      "controlled_provenance_valid": true,
+      "evidence_gaps": [],
+      "expected_observables": [
+        "validates the skill, golden cases, rubric, and first principles before running",
+        "uses a fresh isolated runner that does not see the grading rubric",
+        "uses a separate judge with the artifact, rubric, and first principles",
+        "repeats each case and reports pass rates",
+        "diagnoses skill defects separately from bad golden cases",
+        "re-evaluates every case after changes"
+      ],
+      "failure_smells": [
+        "same agent performs runner and judge roles",
+        "runner receives the grading rubric",
+        "one run is treated as proof",
+        "failed cases are patched without diagnosing the case itself"
+      ],
+      "judge_evidence_valid": true,
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "passed": false,
+      "task_id": "eval-procedure",
+      "trace_id": "trace-eval-procedure-ablated-r2",
+      "variant_id": "ablated"
+    },
+    {
+      "controlled_provenance_valid": true,
+      "evidence_gaps": [],
+      "expected_observables": [
+        "rejects a single green run as sufficient proof",
+        "requires fresh repeated runs and pass-rate evidence",
+        "keeps runner and judge roles separate",
+        "distinguishes a skill defect from a flawed golden case",
+        "requires re-evaluation of all cases before a durable claim",
+        "calibrates the conclusion to the evidence tier"
+      ],
+      "failure_smells": [
+        "declares the skill proven from one run",
+        "recommends immediate corpus promotion",
+        "omits repeated trials",
+        "omits independent judging"
+      ],
+      "judge_evidence_valid": true,
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "passed": true,
+      "task_id": "single-green-run",
+      "trace_id": "trace-single-green-original-r1",
+      "variant_id": "original"
+    },
+    {
+      "controlled_provenance_valid": true,
+      "evidence_gaps": [],
+      "expected_observables": [
+        "rejects a single green run as sufficient proof",
+        "requires fresh repeated runs and pass-rate evidence",
+        "keeps runner and judge roles separate",
+        "distinguishes a skill defect from a flawed golden case",
+        "requires re-evaluation of all cases before a durable claim",
+        "calibrates the conclusion to the evidence tier"
+      ],
+      "failure_smells": [
+        "declares the skill proven from one run",
+        "recommends immediate corpus promotion",
+        "omits repeated trials",
+        "omits independent judging"
+      ],
+      "judge_evidence_valid": true,
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "passed": true,
+      "task_id": "single-green-run",
+      "trace_id": "trace-single-green-original-r2",
+      "variant_id": "original"
+    },
+    {
+      "controlled_provenance_valid": true,
+      "evidence_gaps": [],
+      "expected_observables": [
+        "rejects a single green run as sufficient proof",
+        "requires fresh repeated runs and pass-rate evidence",
+        "keeps runner and judge roles separate",
+        "distinguishes a skill defect from a flawed golden case",
+        "requires re-evaluation of all cases before a durable claim",
+        "calibrates the conclusion to the evidence tier"
+      ],
+      "failure_smells": [
+        "declares the skill proven from one run",
+        "recommends immediate corpus promotion",
+        "omits repeated trials",
+        "omits independent judging"
+      ],
+      "judge_evidence_valid": true,
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "passed": false,
+      "task_id": "single-green-run",
+      "trace_id": "trace-single-green-ablated-r1",
+      "variant_id": "ablated"
+    },
+    {
+      "controlled_provenance_valid": true,
+      "evidence_gaps": [],
+      "expected_observables": [
+        "rejects a single green run as sufficient proof",
+        "requires fresh repeated runs and pass-rate evidence",
+        "keeps runner and judge roles separate",
+        "distinguishes a skill defect from a flawed golden case",
+        "requires re-evaluation of all cases before a durable claim",
+        "calibrates the conclusion to the evidence tier"
+      ],
+      "failure_smells": [
+        "declares the skill proven from one run",
+        "recommends immediate corpus promotion",
+        "omits repeated trials",
+        "omits independent judging"
+      ],
+      "judge_evidence_valid": true,
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "passed": false,
+      "task_id": "single-green-run",
+      "trace_id": "trace-single-green-ablated-r2",
+      "variant_id": "ablated"
+    }
+  ],
+  "cost_scores": [
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "score": 0.8,
+      "signals": {
+        "contradictions_detected": 0,
+        "instruction_precedence_risk": false,
+        "overactivation_risk": "low",
+        "token_cost_delta": 1296,
+        "unnecessary_sections": 1
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "score": 0.8,
+      "signals": {
+        "contradictions_detected": 0,
+        "instruction_precedence_risk": false,
+        "overactivation_risk": "low",
+        "token_cost_delta": 1296,
+        "unnecessary_sections": 1
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "score": 0.8,
+      "signals": {
+        "contradictions_detected": 0,
+        "instruction_precedence_risk": false,
+        "overactivation_risk": "low",
+        "token_cost_delta": 659,
+        "unnecessary_sections": 0
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "score": 0.8,
+      "signals": {
+        "contradictions_detected": 0,
+        "instruction_precedence_risk": false,
+        "overactivation_risk": "low",
+        "token_cost_delta": 659,
+        "unnecessary_sections": 0
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "score": 0.8,
+      "signals": {
+        "contradictions_detected": 0,
+        "instruction_precedence_risk": false,
+        "overactivation_risk": "low",
+        "token_cost_delta": 1296,
+        "unnecessary_sections": 1
+      },
+      "task_id": "single-green-run",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "score": 0.8,
+      "signals": {
+        "contradictions_detected": 0,
+        "instruction_precedence_risk": false,
+        "overactivation_risk": "low",
+        "token_cost_delta": 1296,
+        "unnecessary_sections": 1
+      },
+      "task_id": "single-green-run",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "score": 0.8,
+      "signals": {
+        "contradictions_detected": 0,
+        "instruction_precedence_risk": false,
+        "overactivation_risk": "low",
+        "token_cost_delta": 659,
+        "unnecessary_sections": 0
+      },
+      "task_id": "single-green-run",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "medium",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "score": 0.8,
+      "signals": {
+        "contradictions_detected": 0,
+        "instruction_precedence_risk": false,
+        "overactivation_risk": "low",
+        "token_cost_delta": 659,
+        "unnecessary_sections": 0
+      },
+      "task_id": "single-green-run",
+      "variant_id": "ablated"
+    }
+  ],
+  "created_at": "2026-07-17T06:14:27Z",
+  "evaluation_plan_schema": "tmcp-skill-evaluation-plan-v0.2",
+  "guidebook_entries": [
+    {
+      "applies_to": [
+        "skill_evaluation",
+        "skill_writing"
+      ],
+      "avoid": "Test the skill a few times and improve it.",
+      "classification": "effective_pattern",
+      "effect": {
+        "absolute_lift": -1.0,
+        "expected_direction": "negative"
+      },
+      "evidence_level": "controlled_single_agent_eval",
+      "internal_atoms": [
+        "behavior-verification",
+        "evidence-backed-claims",
+        "quality-gate-disclosure"
+      ],
+      "pattern_id": "evaluation.staged-workflow-section",
+      "prefer": "Use an explicit workflow section that separates blind runs, judging, repetition, diagnosis, and re-evaluation.",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": [
+          "fixture_count 2 is below required 6",
+          "fixture_family_count 2 is below required 3",
+          "agent_configuration_count 1 is below required 3",
+          "safety regression detected"
+        ]
+      },
+      "sample": {
+        "absolute_lift": -1.0,
+        "absolute_lift_interval": {
+          "confidence": 0.95,
+          "lower": -1.0,
+          "method": "newcombe_wilson_difference",
+          "upper": -0.02
+        },
+        "agent_configuration_count": 1,
+        "configuration_effects": [
+          {
+            "absolute_lift": -1.0,
+            "configuration_id": "codex-gpt5-desktop-20260717",
+            "control_total": 4,
+            "intervention_total": 4
+          }
+        ],
+        "control": {
+          "pass_rate": 1.0,
+          "passed": 4,
+          "total": 4
+        },
+        "cost_regression": false,
+        "fixture_count": 2,
+        "fixture_family_count": 2,
+        "intervention": {
+          "pass_rate": 0.0,
+          "passed": 0,
+          "total": 4
+        },
+        "minimum_repetitions_per_cell": 2,
+        "paired_cells": 2,
+        "regression_fields_missing": 0,
+        "regression_free": false,
+        "safety_regression": true,
+        "trace_count": 8
+      },
+      "source_skills": [
+        "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+      ],
+      "status": "supported",
+      "title": "Staged evaluation workflow section"
+    },
+    {
+      "applies_to": [
+        "skill_writing"
+      ],
+      "avoid": "Return a helpful summary.",
+      "classification": "anti_pattern",
+      "effect": null,
+      "evidence_level": "static_review",
+      "internal_atoms": [
+        "artifact-contract"
+      ],
+      "pattern_id": "output.missing-observable-contract",
+      "prefer": "Return sources inspected, skipped sources, packet summary, and verification expectations.",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": [
+          "no behaviorally judged contrast"
+        ]
+      },
+      "sample": null,
+      "source_skills": [
+        "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+      ],
+      "status": "suspected",
+      "title": "Missing observable output contract"
+    }
+  ],
+  "no_op_patterns": [],
+  "ok": true,
+  "outcome_scores": [
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "score": 1.0,
+      "signals": {
+        "better_citations": null,
+        "case_verdict_gaps": [],
+        "case_verdict_passed": true,
+        "case_verdict_valid": true,
+        "fewer_unrelated_changes": null,
+        "fewer_user_corrections": null,
+        "human_quality_score": null,
+        "tests_passed": false
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "score": 1.0,
+      "signals": {
+        "better_citations": null,
+        "case_verdict_gaps": [],
+        "case_verdict_passed": true,
+        "case_verdict_valid": true,
+        "fewer_unrelated_changes": null,
+        "fewer_user_corrections": null,
+        "human_quality_score": null,
+        "tests_passed": false
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "score": 0.0,
+      "signals": {
+        "better_citations": null,
+        "case_verdict_gaps": [],
+        "case_verdict_passed": false,
+        "case_verdict_valid": true,
+        "fewer_unrelated_changes": null,
+        "fewer_user_corrections": null,
+        "human_quality_score": null,
+        "tests_passed": false
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "score": 0.0,
+      "signals": {
+        "better_citations": null,
+        "case_verdict_gaps": [],
+        "case_verdict_passed": false,
+        "case_verdict_valid": true,
+        "fewer_unrelated_changes": null,
+        "fewer_user_corrections": null,
+        "human_quality_score": null,
+        "tests_passed": false
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "score": 1.0,
+      "signals": {
+        "better_citations": null,
+        "case_verdict_gaps": [],
+        "case_verdict_passed": true,
+        "case_verdict_valid": true,
+        "fewer_unrelated_changes": null,
+        "fewer_user_corrections": null,
+        "human_quality_score": null,
+        "tests_passed": false
+      },
+      "task_id": "single-green-run",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "score": 1.0,
+      "signals": {
+        "better_citations": null,
+        "case_verdict_gaps": [],
+        "case_verdict_passed": true,
+        "case_verdict_valid": true,
+        "fewer_unrelated_changes": null,
+        "fewer_user_corrections": null,
+        "human_quality_score": null,
+        "tests_passed": false
+      },
+      "task_id": "single-green-run",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "score": 0.0,
+      "signals": {
+        "better_citations": null,
+        "case_verdict_gaps": [],
+        "case_verdict_passed": false,
+        "case_verdict_valid": true,
+        "fewer_unrelated_changes": null,
+        "fewer_user_corrections": null,
+        "human_quality_score": null,
+        "tests_passed": false
+      },
+      "task_id": "single-green-run",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "score": 0.0,
+      "signals": {
+        "better_citations": null,
+        "case_verdict_gaps": [],
+        "case_verdict_passed": false,
+        "case_verdict_valid": true,
+        "fewer_unrelated_changes": null,
+        "fewer_user_corrections": null,
+        "human_quality_score": null,
+        "tests_passed": false
+      },
+      "task_id": "single-green-run",
+      "variant_id": "ablated"
+    }
+  ],
+  "packet_inclusion_diffs": [
+    {
+      "actual": {
+        "active_atoms": [
+          "approval-before-implementation",
+          "artifact-contract",
+          "audit-plan-before-edit",
+          "behavior-preservation",
+          "behavior-verification",
+          "bounded-tool-side-effects",
+          "concrete-citations",
+          "evidence-backed-claims",
+          "explicit-evidence-gaps",
+          "quality-gate-disclosure",
+          "debugging-regression",
+          "verification-before-completion"
+        ],
+        "output_contract": [],
+        "required_reads": [
+          "SKILL.md",
+          "Debugging and regression evidence from the current failure."
+        ],
+        "selected_sources": [
+          "SKILL.md"
+        ],
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "Run relevant tests.",
+          "Re-run the failing command and capture the passing result.",
+          "Run the highest-signal verification gate before final response."
+        ]
+      },
+      "composed_packet_id": "packet-05fbe86ecbd4",
+      "confidence": "high",
+      "expected": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_should_be_selected": true,
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "variant_id": "original"
+    },
+    {
+      "actual": {
+        "active_atoms": [
+          "approval-before-implementation",
+          "artifact-contract",
+          "audit-plan-before-edit",
+          "behavior-preservation",
+          "behavior-verification",
+          "bounded-tool-side-effects",
+          "concrete-citations",
+          "evidence-backed-claims",
+          "explicit-evidence-gaps",
+          "quality-gate-disclosure",
+          "debugging-regression",
+          "verification-before-completion"
+        ],
+        "output_contract": [],
+        "required_reads": [
+          "SKILL.md",
+          "Debugging and regression evidence from the current failure."
+        ],
+        "selected_sources": [
+          "SKILL.md"
+        ],
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "Run relevant tests.",
+          "Re-run the failing command and capture the passing result.",
+          "Run the highest-signal verification gate before final response."
+        ]
+      },
+      "composed_packet_id": "packet-05fbe86ecbd4",
+      "confidence": "high",
+      "expected": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_should_be_selected": true,
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "variant_id": "original"
+    },
+    {
+      "actual": {
+        "active_atoms": [
+          "artifact-contract",
+          "behavior-preservation",
+          "behavior-verification",
+          "bounded-tool-side-effects",
+          "concrete-citations",
+          "evidence-backed-claims",
+          "explicit-evidence-gaps",
+          "quality-gate-disclosure",
+          "safe-tool-routing",
+          "skill-routing",
+          "debugging-regression",
+          "verification-before-completion"
+        ],
+        "output_contract": [],
+        "required_reads": [
+          "SKILL.md",
+          "Debugging and regression evidence from the current failure."
+        ],
+        "selected_sources": [
+          "SKILL.md"
+        ],
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "Run relevant tests.",
+          "Re-run the failing command and capture the passing result.",
+          "Run the highest-signal verification gate before final response."
+        ]
+      },
+      "composed_packet_id": "packet-6726fd248622",
+      "confidence": "high",
+      "expected": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_should_be_selected": true,
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "variant_id": "ablated"
+    },
+    {
+      "actual": {
+        "active_atoms": [
+          "artifact-contract",
+          "behavior-preservation",
+          "behavior-verification",
+          "bounded-tool-side-effects",
+          "concrete-citations",
+          "evidence-backed-claims",
+          "explicit-evidence-gaps",
+          "quality-gate-disclosure",
+          "safe-tool-routing",
+          "skill-routing",
+          "debugging-regression",
+          "verification-before-completion"
+        ],
+        "output_contract": [],
+        "required_reads": [
+          "SKILL.md",
+          "Debugging and regression evidence from the current failure."
+        ],
+        "selected_sources": [
+          "SKILL.md"
+        ],
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "Run relevant tests.",
+          "Re-run the failing command and capture the passing result.",
+          "Run the highest-signal verification gate before final response."
+        ]
+      },
+      "composed_packet_id": "packet-6726fd248622",
+      "confidence": "high",
+      "expected": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_should_be_selected": true,
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "variant_id": "ablated"
+    },
+    {
+      "actual": {
+        "active_atoms": [
+          "approval-before-implementation",
+          "artifact-contract",
+          "audit-plan-before-edit",
+          "behavior-preservation",
+          "behavior-verification",
+          "bounded-tool-side-effects",
+          "concrete-citations",
+          "evidence-backed-claims",
+          "explicit-evidence-gaps",
+          "quality-gate-disclosure"
+        ],
+        "output_contract": [],
+        "required_reads": [
+          "SKILL.md"
+        ],
+        "selected_sources": [
+          "SKILL.md"
+        ],
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "Run relevant tests."
+        ]
+      },
+      "composed_packet_id": "packet-8269415e45bf",
+      "confidence": "high",
+      "expected": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_should_be_selected": true,
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "variant_id": "original"
+    },
+    {
+      "actual": {
+        "active_atoms": [
+          "approval-before-implementation",
+          "artifact-contract",
+          "audit-plan-before-edit",
+          "behavior-preservation",
+          "behavior-verification",
+          "bounded-tool-side-effects",
+          "concrete-citations",
+          "evidence-backed-claims",
+          "explicit-evidence-gaps",
+          "quality-gate-disclosure"
+        ],
+        "output_contract": [],
+        "required_reads": [
+          "SKILL.md"
+        ],
+        "selected_sources": [
+          "SKILL.md"
+        ],
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "Run relevant tests."
+        ]
+      },
+      "composed_packet_id": "packet-8269415e45bf",
+      "confidence": "high",
+      "expected": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_should_be_selected": true,
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "variant_id": "original"
+    },
+    {
+      "actual": {
+        "active_atoms": [
+          "artifact-contract",
+          "behavior-preservation",
+          "behavior-verification",
+          "bounded-tool-side-effects",
+          "concrete-citations",
+          "evidence-backed-claims",
+          "explicit-evidence-gaps",
+          "quality-gate-disclosure",
+          "safe-tool-routing",
+          "skill-routing"
+        ],
+        "output_contract": [],
+        "required_reads": [
+          "SKILL.md"
+        ],
+        "selected_sources": [
+          "SKILL.md"
+        ],
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "Run relevant tests."
+        ]
+      },
+      "composed_packet_id": "packet-ad6f71aa182d",
+      "confidence": "high",
+      "expected": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_should_be_selected": true,
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "variant_id": "ablated"
+    },
+    {
+      "actual": {
+        "active_atoms": [
+          "artifact-contract",
+          "behavior-preservation",
+          "behavior-verification",
+          "bounded-tool-side-effects",
+          "concrete-citations",
+          "evidence-backed-claims",
+          "explicit-evidence-gaps",
+          "quality-gate-disclosure",
+          "safe-tool-routing",
+          "skill-routing"
+        ],
+        "output_contract": [],
+        "required_reads": [
+          "SKILL.md"
+        ],
+        "selected_sources": [
+          "SKILL.md"
+        ],
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "Run relevant tests."
+        ]
+      },
+      "composed_packet_id": "packet-ad6f71aa182d",
+      "confidence": "high",
+      "expected": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_should_be_selected": true,
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "variant_id": "ablated"
+    }
+  ],
+  "packet_inclusion_scores": [
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "notes": "Scored from the injected data-only tmcp_compose_packet service.",
+      "packet_inclusion_diff": {
+        "actual": {
+          "active_atoms": [
+            "approval-before-implementation",
+            "artifact-contract",
+            "audit-plan-before-edit",
+            "behavior-preservation",
+            "behavior-verification",
+            "bounded-tool-side-effects",
+            "concrete-citations",
+            "evidence-backed-claims",
+            "explicit-evidence-gaps",
+            "quality-gate-disclosure",
+            "debugging-regression",
+            "verification-before-completion"
+          ],
+          "output_contract": [],
+          "required_reads": [
+            "SKILL.md",
+            "Debugging and regression evidence from the current failure."
+          ],
+          "selected_sources": [
+            "SKILL.md"
+          ],
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "Run relevant tests.",
+            "Re-run the failing command and capture the passing result.",
+            "Run the highest-signal verification gate before final response."
+          ]
+        },
+        "composed_packet_id": "packet-05fbe86ecbd4",
+        "confidence": "high",
+        "expected": {
+          "behavior_atoms": [
+            "behavior-verification",
+            "evidence-backed-claims",
+            "local-context-first",
+            "ordered-next-actions",
+            "quality-gate-disclosure",
+            "user-approval-gate"
+          ],
+          "output_contract": [],
+          "required_reads": [],
+          "skill_should_be_selected": true,
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+            "drive the edits. The eval is only honest if the run is **blind**: the agent",
+            "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+            "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+            "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+            "live checkout after a run and clean leaks, no matter how the run was",
+            "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+          ]
+        },
+        "score": 0.67,
+        "signals": {
+          "conflicts": [],
+          "ignored_sources": [],
+          "included_behavior_atoms": false,
+          "included_output_contract": true,
+          "included_required_reads": true,
+          "included_stop_conditions": true,
+          "included_verification_gates": false,
+          "skill_selected_in_packet": true,
+          "skill_should_be_selected": true
+        },
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "variant_id": "original"
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "notes": "Scored from the injected data-only tmcp_compose_packet service.",
+      "packet_inclusion_diff": {
+        "actual": {
+          "active_atoms": [
+            "approval-before-implementation",
+            "artifact-contract",
+            "audit-plan-before-edit",
+            "behavior-preservation",
+            "behavior-verification",
+            "bounded-tool-side-effects",
+            "concrete-citations",
+            "evidence-backed-claims",
+            "explicit-evidence-gaps",
+            "quality-gate-disclosure",
+            "debugging-regression",
+            "verification-before-completion"
+          ],
+          "output_contract": [],
+          "required_reads": [
+            "SKILL.md",
+            "Debugging and regression evidence from the current failure."
+          ],
+          "selected_sources": [
+            "SKILL.md"
+          ],
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "Run relevant tests.",
+            "Re-run the failing command and capture the passing result.",
+            "Run the highest-signal verification gate before final response."
+          ]
+        },
+        "composed_packet_id": "packet-05fbe86ecbd4",
+        "confidence": "high",
+        "expected": {
+          "behavior_atoms": [
+            "behavior-verification",
+            "evidence-backed-claims",
+            "local-context-first",
+            "ordered-next-actions",
+            "quality-gate-disclosure",
+            "user-approval-gate"
+          ],
+          "output_contract": [],
+          "required_reads": [],
+          "skill_should_be_selected": true,
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+            "drive the edits. The eval is only honest if the run is **blind**: the agent",
+            "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+            "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+            "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+            "live checkout after a run and clean leaks, no matter how the run was",
+            "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+          ]
+        },
+        "score": 0.67,
+        "signals": {
+          "conflicts": [],
+          "ignored_sources": [],
+          "included_behavior_atoms": false,
+          "included_output_contract": true,
+          "included_required_reads": true,
+          "included_stop_conditions": true,
+          "included_verification_gates": false,
+          "skill_selected_in_packet": true,
+          "skill_should_be_selected": true
+        },
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "variant_id": "original"
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "notes": "Scored from the injected data-only tmcp_compose_packet service.",
+      "packet_inclusion_diff": {
+        "actual": {
+          "active_atoms": [
+            "artifact-contract",
+            "behavior-preservation",
+            "behavior-verification",
+            "bounded-tool-side-effects",
+            "concrete-citations",
+            "evidence-backed-claims",
+            "explicit-evidence-gaps",
+            "quality-gate-disclosure",
+            "safe-tool-routing",
+            "skill-routing",
+            "debugging-regression",
+            "verification-before-completion"
+          ],
+          "output_contract": [],
+          "required_reads": [
+            "SKILL.md",
+            "Debugging and regression evidence from the current failure."
+          ],
+          "selected_sources": [
+            "SKILL.md"
+          ],
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "Run relevant tests.",
+            "Re-run the failing command and capture the passing result.",
+            "Run the highest-signal verification gate before final response."
+          ]
+        },
+        "composed_packet_id": "packet-6726fd248622",
+        "confidence": "high",
+        "expected": {
+          "behavior_atoms": [
+            "behavior-verification",
+            "evidence-backed-claims",
+            "local-context-first",
+            "ordered-next-actions",
+            "quality-gate-disclosure"
+          ],
+          "output_contract": [],
+          "required_reads": [],
+          "skill_should_be_selected": true,
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+            "drive the edits. The eval is only honest if the run is **blind**: the agent",
+            "live checkout after a run and clean leaks, no matter how the run was",
+            "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+          ]
+        },
+        "score": 0.67,
+        "signals": {
+          "conflicts": [],
+          "ignored_sources": [],
+          "included_behavior_atoms": false,
+          "included_output_contract": true,
+          "included_required_reads": true,
+          "included_stop_conditions": true,
+          "included_verification_gates": false,
+          "skill_selected_in_packet": true,
+          "skill_should_be_selected": true
+        },
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "variant_id": "ablated"
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "notes": "Scored from the injected data-only tmcp_compose_packet service.",
+      "packet_inclusion_diff": {
+        "actual": {
+          "active_atoms": [
+            "artifact-contract",
+            "behavior-preservation",
+            "behavior-verification",
+            "bounded-tool-side-effects",
+            "concrete-citations",
+            "evidence-backed-claims",
+            "explicit-evidence-gaps",
+            "quality-gate-disclosure",
+            "safe-tool-routing",
+            "skill-routing",
+            "debugging-regression",
+            "verification-before-completion"
+          ],
+          "output_contract": [],
+          "required_reads": [
+            "SKILL.md",
+            "Debugging and regression evidence from the current failure."
+          ],
+          "selected_sources": [
+            "SKILL.md"
+          ],
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "Run relevant tests.",
+            "Re-run the failing command and capture the passing result.",
+            "Run the highest-signal verification gate before final response."
+          ]
+        },
+        "composed_packet_id": "packet-6726fd248622",
+        "confidence": "high",
+        "expected": {
+          "behavior_atoms": [
+            "behavior-verification",
+            "evidence-backed-claims",
+            "local-context-first",
+            "ordered-next-actions",
+            "quality-gate-disclosure"
+          ],
+          "output_contract": [],
+          "required_reads": [],
+          "skill_should_be_selected": true,
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+            "drive the edits. The eval is only honest if the run is **blind**: the agent",
+            "live checkout after a run and clean leaks, no matter how the run was",
+            "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+          ]
+        },
+        "score": 0.67,
+        "signals": {
+          "conflicts": [],
+          "ignored_sources": [],
+          "included_behavior_atoms": false,
+          "included_output_contract": true,
+          "included_required_reads": true,
+          "included_stop_conditions": true,
+          "included_verification_gates": false,
+          "skill_selected_in_packet": true,
+          "skill_should_be_selected": true
+        },
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "variant_id": "ablated"
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "task_id": "eval-procedure",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "notes": "Scored from the injected data-only tmcp_compose_packet service.",
+      "packet_inclusion_diff": {
+        "actual": {
+          "active_atoms": [
+            "approval-before-implementation",
+            "artifact-contract",
+            "audit-plan-before-edit",
+            "behavior-preservation",
+            "behavior-verification",
+            "bounded-tool-side-effects",
+            "concrete-citations",
+            "evidence-backed-claims",
+            "explicit-evidence-gaps",
+            "quality-gate-disclosure"
+          ],
+          "output_contract": [],
+          "required_reads": [
+            "SKILL.md"
+          ],
+          "selected_sources": [
+            "SKILL.md"
+          ],
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "Run relevant tests."
+          ]
+        },
+        "composed_packet_id": "packet-8269415e45bf",
+        "confidence": "high",
+        "expected": {
+          "behavior_atoms": [
+            "behavior-verification",
+            "evidence-backed-claims",
+            "local-context-first",
+            "ordered-next-actions",
+            "quality-gate-disclosure",
+            "user-approval-gate"
+          ],
+          "output_contract": [],
+          "required_reads": [],
+          "skill_should_be_selected": true,
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+            "drive the edits. The eval is only honest if the run is **blind**: the agent",
+            "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+            "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+            "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+            "live checkout after a run and clean leaks, no matter how the run was",
+            "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+          ]
+        },
+        "score": 0.67,
+        "signals": {
+          "conflicts": [],
+          "ignored_sources": [],
+          "included_behavior_atoms": false,
+          "included_output_contract": true,
+          "included_required_reads": true,
+          "included_stop_conditions": true,
+          "included_verification_gates": false,
+          "skill_selected_in_packet": true,
+          "skill_should_be_selected": true
+        },
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "variant_id": "original"
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "notes": "Scored from the injected data-only tmcp_compose_packet service.",
+      "packet_inclusion_diff": {
+        "actual": {
+          "active_atoms": [
+            "approval-before-implementation",
+            "artifact-contract",
+            "audit-plan-before-edit",
+            "behavior-preservation",
+            "behavior-verification",
+            "bounded-tool-side-effects",
+            "concrete-citations",
+            "evidence-backed-claims",
+            "explicit-evidence-gaps",
+            "quality-gate-disclosure"
+          ],
+          "output_contract": [],
+          "required_reads": [
+            "SKILL.md"
+          ],
+          "selected_sources": [
+            "SKILL.md"
+          ],
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "Run relevant tests."
+          ]
+        },
+        "composed_packet_id": "packet-8269415e45bf",
+        "confidence": "high",
+        "expected": {
+          "behavior_atoms": [
+            "behavior-verification",
+            "evidence-backed-claims",
+            "local-context-first",
+            "ordered-next-actions",
+            "quality-gate-disclosure",
+            "user-approval-gate"
+          ],
+          "output_contract": [],
+          "required_reads": [],
+          "skill_should_be_selected": true,
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+            "drive the edits. The eval is only honest if the run is **blind**: the agent",
+            "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+            "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+            "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+            "live checkout after a run and clean leaks, no matter how the run was",
+            "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+          ]
+        },
+        "score": 0.67,
+        "signals": {
+          "conflicts": [],
+          "ignored_sources": [],
+          "included_behavior_atoms": false,
+          "included_output_contract": true,
+          "included_required_reads": true,
+          "included_stop_conditions": true,
+          "included_verification_gates": false,
+          "skill_selected_in_packet": true,
+          "skill_should_be_selected": true
+        },
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "variant_id": "original"
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "original"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "notes": "Scored from the injected data-only tmcp_compose_packet service.",
+      "packet_inclusion_diff": {
+        "actual": {
+          "active_atoms": [
+            "artifact-contract",
+            "behavior-preservation",
+            "behavior-verification",
+            "bounded-tool-side-effects",
+            "concrete-citations",
+            "evidence-backed-claims",
+            "explicit-evidence-gaps",
+            "quality-gate-disclosure",
+            "safe-tool-routing",
+            "skill-routing"
+          ],
+          "output_contract": [],
+          "required_reads": [
+            "SKILL.md"
+          ],
+          "selected_sources": [
+            "SKILL.md"
+          ],
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "Run relevant tests."
+          ]
+        },
+        "composed_packet_id": "packet-ad6f71aa182d",
+        "confidence": "high",
+        "expected": {
+          "behavior_atoms": [
+            "behavior-verification",
+            "evidence-backed-claims",
+            "local-context-first",
+            "ordered-next-actions",
+            "quality-gate-disclosure"
+          ],
+          "output_contract": [],
+          "required_reads": [],
+          "skill_should_be_selected": true,
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+            "drive the edits. The eval is only honest if the run is **blind**: the agent",
+            "live checkout after a run and clean leaks, no matter how the run was",
+            "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+          ]
+        },
+        "score": 0.67,
+        "signals": {
+          "conflicts": [],
+          "ignored_sources": [],
+          "included_behavior_atoms": false,
+          "included_output_contract": true,
+          "included_required_reads": true,
+          "included_stop_conditions": true,
+          "included_verification_gates": false,
+          "skill_selected_in_packet": true,
+          "skill_should_be_selected": true
+        },
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "variant_id": "ablated"
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "ablated"
+    },
+    {
+      "confidence": "high",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "notes": "Scored from the injected data-only tmcp_compose_packet service.",
+      "packet_inclusion_diff": {
+        "actual": {
+          "active_atoms": [
+            "artifact-contract",
+            "behavior-preservation",
+            "behavior-verification",
+            "bounded-tool-side-effects",
+            "concrete-citations",
+            "evidence-backed-claims",
+            "explicit-evidence-gaps",
+            "quality-gate-disclosure",
+            "safe-tool-routing",
+            "skill-routing"
+          ],
+          "output_contract": [],
+          "required_reads": [
+            "SKILL.md"
+          ],
+          "selected_sources": [
+            "SKILL.md"
+          ],
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "Run relevant tests."
+          ]
+        },
+        "composed_packet_id": "packet-ad6f71aa182d",
+        "confidence": "high",
+        "expected": {
+          "behavior_atoms": [
+            "behavior-verification",
+            "evidence-backed-claims",
+            "local-context-first",
+            "ordered-next-actions",
+            "quality-gate-disclosure"
+          ],
+          "output_contract": [],
+          "required_reads": [],
+          "skill_should_be_selected": true,
+          "stop_conditions": [
+            "unresolvable, stop and tell the user *exactly which one* and what a good",
+            "requirement \u2014 that turns the eval into a conformance check and stops testing",
+            "exact pieces you expect, you've stopped evaluating the skill."
+          ],
+          "verification_gates": [
+            "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+            "drive the edits. The eval is only honest if the run is **blind**: the agent",
+            "live checkout after a run and clean leaks, no matter how the run was",
+            "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+          ]
+        },
+        "score": 0.67,
+        "signals": {
+          "conflicts": [],
+          "ignored_sources": [],
+          "included_behavior_atoms": false,
+          "included_output_contract": true,
+          "included_required_reads": true,
+          "included_stop_conditions": true,
+          "included_verification_gates": false,
+          "skill_selected_in_packet": true,
+          "skill_should_be_selected": true
+        },
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "variant_id": "ablated"
+      },
+      "score": 0.67,
+      "signals": {
+        "conflicts": [],
+        "ignored_sources": [],
+        "included_behavior_atoms": false,
+        "included_output_contract": true,
+        "included_required_reads": true,
+        "included_stop_conditions": true,
+        "included_verification_gates": false,
+        "skill_selected_in_packet": true,
+        "skill_should_be_selected": true
+      },
+      "task_id": "single-green-run",
+      "variant_id": "ablated"
+    }
+  ],
+  "pattern_claims": [
+    {
+      "causal_contrast_valid": true,
+      "claim_granularity": "section",
+      "control_variant": "original",
+      "controlled_exclusion_reasons": [],
+      "controlled_summary": {
+        "absolute_lift": -1.0,
+        "absolute_lift_interval": {
+          "confidence": 0.95,
+          "lower": -1.0,
+          "method": "newcombe_wilson_difference",
+          "upper": -0.02
+        },
+        "agent_configuration_count": 1,
+        "configuration_effects": [
+          {
+            "absolute_lift": -1.0,
+            "configuration_id": "codex-gpt5-desktop-20260717",
+            "control_total": 4,
+            "intervention_total": 4
+          }
+        ],
+        "control": {
+          "pass_rate": 1.0,
+          "passed": 4,
+          "total": 4
+        },
+        "cost_regression": false,
+        "fixture_count": 2,
+        "fixture_family_count": 2,
+        "intervention": {
+          "pass_rate": 0.0,
+          "passed": 0,
+          "total": 4
+        },
+        "minimum_repetitions_per_cell": 2,
+        "paired_cells": 2,
+        "regression_fields_missing": 0,
+        "regression_free": false,
+        "safety_regression": true,
+        "trace_count": 8
+      },
+      "evidence_level": "controlled_single_agent_eval",
+      "excluded_controlled_trace_count": 0,
+      "expected_effect_direction": "negative",
+      "intervention_target": "workflow",
+      "intervention_variant": "ablated",
+      "observed_summary": {
+        "absolute_lift": -1.0,
+        "absolute_lift_interval": {
+          "confidence": 0.95,
+          "lower": -1.0,
+          "method": "newcombe_wilson_difference",
+          "upper": -0.02
+        },
+        "agent_configuration_count": 1,
+        "configuration_effects": [
+          {
+            "absolute_lift": -1.0,
+            "configuration_id": "codex-gpt5-desktop-20260717",
+            "control_total": 4,
+            "intervention_total": 4
+          }
+        ],
+        "control": {
+          "pass_rate": 1.0,
+          "passed": 4,
+          "total": 4
+        },
+        "cost_regression": false,
+        "fixture_count": 2,
+        "fixture_family_count": 2,
+        "intervention": {
+          "pass_rate": 0.0,
+          "passed": 0,
+          "total": 4
+        },
+        "minimum_repetitions_per_cell": 2,
+        "paired_cells": 2,
+        "regression_fields_missing": 0,
+        "regression_free": false,
+        "safety_regression": true,
+        "trace_count": 8
+      },
+      "pattern_id": "evaluation.staged-workflow-section",
+      "plan_contract_trusted": true,
+      "promotion_decision": "hold",
+      "promotion_eligible": false,
+      "promotion_gaps": [
+        "fixture_count 2 is below required 6",
+        "fixture_family_count 2 is below required 3",
+        "agent_configuration_count 1 is below required 3",
+        "safety regression detected"
+      ],
+      "tested_atom": "staged_evaluation_workflow"
+    }
+  ],
+  "pattern_effects": [
+    {
+      "classification": "effective_pattern",
+      "evidence_level": "static_review",
+      "hypothesis": true,
+      "internal_atoms": [
+        "behavior-verification",
+        "evidence-backed-claims",
+        "quality-gate-disclosure"
+      ],
+      "location": {
+        "excerpt": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example inpu",
+        "location": "document",
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+      },
+      "message": "In /Users/jakyeamos/skills/authoring/eval-skills/SKILL.md, concrete verification language was detected.",
+      "pattern_id": "evaluation.staged-workflow-section",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+    }
+  ],
+  "promotion_policy": {
+    "applied_changes": [],
+    "auto_promote": false,
+    "notes": "Evaluation findings are never auto-promoted."
+  },
+  "recommended_rewrites": [],
+  "schema": "tmcp-skill-evaluation-report-v0.2",
+  "scorecard": {
+    "activation": {
+      "confidence": "medium",
+      "score": 0.0
+    },
+    "adherence": {
+      "confidence": "low",
+      "score": 0.28
+    },
+    "claim_boundary": {
+      "diagnostic_only_dimensions": [
+        "activation",
+        "packet_inclusion",
+        "adherence",
+        "cost",
+        "safety"
+      ],
+      "notes": "Only validated, behaviorally judged pattern_claims can change guidebook evidence status. Other scorecard dimensions are heuristic diagnostics and must not be read as causal effects.",
+      "promotion_source": "pattern_claims"
+    },
+    "cost": {
+      "confidence": "medium",
+      "score": 0.8
+    },
+    "outcome_lift": {
+      "confidence": "medium",
+      "paired_pattern_count": 1,
+      "score": 1.0
+    },
+    "packet_inclusion": {
+      "confidence": "high",
+      "score": 0.67
+    },
+    "safety": {
+      "confidence": "high",
+      "score": 1.0
+    }
+  },
+  "skill_harvest_feedback": [
+    {
+      "classification": "anti_pattern",
+      "pattern_id": "output.missing-observable-contract",
+      "safe_to_auto_rewrite": false,
+      "safe_to_auto_warn": true,
+      "suggested_detection_terms": [],
+      "suggested_harvest_warning": "Skill mentions output expectations but lacks observable response structure."
+    }
+  ],
+  "stability": "experimental",
+  "static_pattern_findings": [
+    {
+      "classification": "anti_pattern",
+      "evidence_level": "static_review",
+      "hypothesis": true,
+      "internal_atoms": [
+        "artifact-contract"
+      ],
+      "location": {
+        "excerpt": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example inpu",
+        "location": "document",
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+      },
+      "message": "In /Users/jakyeamos/skills/authoring/eval-skills/SKILL.md, output expectations are present but no observable output contract is defined.",
+      "pattern_id": "output.missing-observable-contract",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+    },
+    {
+      "classification": "effective_pattern",
+      "evidence_level": "static_review",
+      "hypothesis": true,
+      "internal_atoms": [
+        "behavior-verification",
+        "evidence-backed-claims",
+        "quality-gate-disclosure"
+      ],
+      "location": {
+        "excerpt": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example inpu",
+        "location": "document",
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+      },
+      "message": "In /Users/jakyeamos/skills/authoring/eval-skills/SKILL.md, concrete verification language was detected.",
+      "pattern_id": "evaluation.staged-workflow-section",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+    }
+  ]
+}

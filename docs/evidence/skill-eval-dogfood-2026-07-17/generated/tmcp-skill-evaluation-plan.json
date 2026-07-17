@@ -1,0 +1,1141 @@
+{
+  "created_at": "2026-07-17T05:49:17Z",
+  "evaluated_skills": [
+    {
+      "behavior_atoms": [
+        "behavior-verification",
+        "evidence-backed-claims",
+        "local-context-first",
+        "ordered-next-actions",
+        "quality-gate-disclosure",
+        "user-approval-gate"
+      ],
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "static_findings": [
+        {
+          "classification": "anti_pattern",
+          "evidence_level": "static_review",
+          "hypothesis": true,
+          "internal_atoms": [
+            "artifact-contract"
+          ],
+          "location": {
+            "excerpt": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example inpu",
+            "location": "document",
+            "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+          },
+          "message": "In /Users/jakyeamos/skills/authoring/eval-skills/SKILL.md, output expectations are present but no observable output contract is defined.",
+          "pattern_id": "output.missing-observable-contract",
+          "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+        },
+        {
+          "classification": "effective_pattern",
+          "evidence_level": "static_review",
+          "hypothesis": true,
+          "internal_atoms": [
+            "behavior-verification",
+            "evidence-backed-claims",
+            "quality-gate-disclosure"
+          ],
+          "location": {
+            "excerpt": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example inpu",
+            "location": "document",
+            "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+          },
+          "message": "In /Users/jakyeamos/skills/authoring/eval-skills/SKILL.md, concrete verification language was detected.",
+          "pattern_id": "evaluation.staged-workflow-section",
+          "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+        }
+      ],
+      "title": "eval-skills",
+      "variant_ids": [
+        "ablated",
+        "original"
+      ]
+    }
+  ],
+  "evidence_contract": {
+    "controlled_claim_fields": [
+      "trace_id",
+      "experiment_id",
+      "matrix_row_id",
+      "replicate_id",
+      "agent.configuration_id",
+      "provenance.runner_blinded",
+      "provenance.judge_blinded",
+      "provenance.isolated_session",
+      "case_verdict.passed",
+      "case_verdict.evidence",
+      "case_verdict.safety_regression",
+      "case_verdict.cost_regression"
+    ],
+    "observation_kinds": [
+      "file_read",
+      "file_write",
+      "command_run",
+      "assistant_message",
+      "tool_call",
+      "human_label"
+    ],
+    "required_fields": [
+      "task_id",
+      "variant_id",
+      "observations"
+    ],
+    "starter_template": {
+      "agent": {
+        "configuration_id": "provider-model-host-version",
+        "model": "unspecified",
+        "name": "unspecified"
+      },
+      "case_verdict": {
+        "cost_regression": false,
+        "evidence": [],
+        "passed": false,
+        "safety_regression": false
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "human_labels": [],
+      "matrix_row_id": "eval-row-from-task-matrix",
+      "observations": [],
+      "provenance": {
+        "isolated_session": true,
+        "judge_blinded": true,
+        "runner_blinded": true
+      },
+      "replicate_id": "replicate-1",
+      "schema": "tmcp-skill-eval-trace-v0.1",
+      "task_id": "example-task",
+      "trace_id": "trace-example-1",
+      "variant_id": "original"
+    },
+    "trace_schema": "tmcp-skill-eval-trace-v0.1"
+  },
+  "experiment": {
+    "blinding": {
+      "judge": true,
+      "runner": true
+    },
+    "design": "blind_controlled_skill_variants",
+    "experiment_id": "skill-eval-af3806a4873b77a0",
+    "promotion_thresholds": {
+      "controlled_multi_agent_eval": {
+        "minimum_absolute_lift": 0.1,
+        "minimum_agent_configurations": 3,
+        "minimum_fixture_families": 3,
+        "minimum_fixtures": 6,
+        "minimum_repetitions_per_cell": 2
+      },
+      "controlled_single_agent_eval": {
+        "minimum_agent_configurations": 1,
+        "minimum_fixtures": 2,
+        "minimum_repetitions_per_cell": 2
+      },
+      "dogfooded": {
+        "minimum_fixtures": 2,
+        "minimum_traces": 3
+      }
+    },
+    "protocol_version": "tmcp-skill-evaluation-protocol-v0.2"
+  },
+  "guidebook_candidate_patterns": [
+    {
+      "classification": "anti_pattern",
+      "evidence_level": "static_review",
+      "message": "In /Users/jakyeamos/skills/authoring/eval-skills/SKILL.md, output expectations are present but no observable output contract is defined.",
+      "pattern_id": "output.missing-observable-contract",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+    },
+    {
+      "classification": "effective_pattern",
+      "evidence_level": "static_review",
+      "message": "In /Users/jakyeamos/skills/authoring/eval-skills/SKILL.md, concrete verification language was detected.",
+      "pattern_id": "evaluation.staged-workflow-section",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+    }
+  ],
+  "observable_behavior_contract": [
+    {
+      "description": "Agent asks for approval before editing.",
+      "internal_atoms": [
+        "user-approval-gate"
+      ],
+      "observable_id": "asked_approval_before_edit"
+    },
+    {
+      "description": "Agent runs a named verification command.",
+      "internal_atoms": [
+        "behavior-verification"
+      ],
+      "observable_id": "ran_required_command"
+    },
+    {
+      "description": "Agent reports pass/fail for verification.",
+      "internal_atoms": [
+        "quality-gate-disclosure"
+      ],
+      "observable_id": "reported_pass_fail"
+    },
+    {
+      "description": "Target skill activated for the task.",
+      "internal_atoms": [
+        "tool-use-policy"
+      ],
+      "observable_id": "skill_selected"
+    }
+  ],
+  "ok": true,
+  "packet_inclusion_contracts": [
+    {
+      "expected": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+    }
+  ],
+  "promotion_policy": {
+    "auto_promote": false,
+    "harvest_warnings_only": true,
+    "notes": "Evaluation findings are advisory. Harvest may warn or label; they must not silently rewrite durable routing state."
+  },
+  "runner_instructions": [
+    "Run each task_matrix row and repetition in a fresh isolated agent session.",
+    "Attach only the listed skill_attachment for the variant under test.",
+    "Hide semantic variant labels, the hypothesis, and the grading bar from the runner.",
+    "Grade the artifact with a separate judge blinded to the assigned variant.",
+    "Record observations using schema tmcp-skill-eval-trace-v0.1.",
+    "Prefer structured observations over prose-only transcripts.",
+    "Do not auto-promote findings into durable routing state."
+  ],
+  "schema": "tmcp-skill-evaluation-plan-v0.2",
+  "stability": "experimental",
+  "task_matrix": [
+    {
+      "ablation_section": null,
+      "claim_granularity": "section",
+      "contrast_id": "eval-contrast-c5b93c3b5d72bea6",
+      "control_variant": "original",
+      "expected_effect_direction": "negative",
+      "expected_observables": [
+        "validates the skill, golden cases, rubric, and first principles before running",
+        "uses a fresh isolated runner that does not see the grading rubric",
+        "uses a separate judge with the artifact, rubric, and first principles",
+        "repeats each case and reports pass rates",
+        "diagnoses skill defects separately from bad golden cases",
+        "re-evaluates every case after changes"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "same agent performs runner and judge roles",
+        "runner receives the grading rubric",
+        "one run is treated as proof",
+        "failed cases are patched without diagnosing the case itself"
+      ],
+      "fixture_digest": "sha256:4c68beca.2043889f.1508fb26.912ebe59.d8b0099f.f08e9e4d.dadf0692.b76a39a1",
+      "fixture_family": "execution_protocol",
+      "included_slices": [
+        "frontmatter",
+        "body",
+        "all_sections"
+      ],
+      "intervention": {
+        "causal_attribution": false,
+        "kind": "full_skill"
+      },
+      "intervention_target": "workflow",
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-2944ba434721b228",
+      "pattern_id": "evaluation.staged-workflow-section",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "single_section_ablation"
+        ],
+        "allowed_targets": [
+          "workflow"
+        ],
+        "claim_granularity": "section",
+        "expected_support_direction": "negative",
+        "tested_atom": "staged_evaluation_workflow"
+      },
+      "primary_outcome": "case_passed",
+      "prompt": "Given a target skill, two golden cases, and a grading rubric, describe the exact evaluation procedure you would execute from intake through the final result. Specify roles, repetitions, and how failures change the next step.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n# Eval Skills\n\nTreat a skill like a function under test. Feed it example inputs in a clean\nroom, check the artifacts against what good looks like, and let the failures\ndrive the edits. The eval is only honest if the run is **blind**: the agent\nexecuting the skill must carry none of this conversation's context and must\nnever see the expected output. Leak either and you are teaching to the test.\n\n## Inputs you need \u2014 refuse without them\n\nConfirm all three before spawning anything. If any is missing or\nunresolvable, stop and tell the user *exactly which one* and what a good\nversion looks like. Do not invent cases, guess intent, or eval against a\nfuzzy wish.\n\n- **Target skill** \u2014 must resolve to a real `SKILL.md`. If you can't find it,\n  list the skills you can see and ask which one they mean.\n- **At least one golden case** \u2014 a concrete input the skill will actually\n  receive: a screenshot, a prompt, a file, a scene. \"Improve write-spec\"\n  with no input attached is not a case.\n- **The bar per case** \u2014 the outcome a good artifact achieves and the smells\n  that would make it bad, *not* an exhaustive parts list. The skill's\n  **judgment** is what's under test, so do not pre-enumerate every\n  requirement \u2014 that turns the eval into a conformance check and stops testing\n  whether the skill decides well. \"Sliced so each piece is independently\n  buildable and verifiable, at the granularity a competent practitioner would\n  pick \u2014 a lazy mega-slice and pointless over-splitting are both failures\" is\n  a bar a judge can hold the work to; \"slices it well\" is too thin to grade\n  and a fixed list of expected slices is too prescriptive. State the bar and\n  the smells; let the judge apply them. The exception is a **conformance-style**\n  skill that genuinely wants an exact task hit exactly \u2014 then the explicit\n  criteria *are* the bar; match the bar's shape to the skill's nature, and if\n  you can't tell which it is, ask. If the user gives only a fuzzy wish with no\n  bar, draw the bar out of them and echo it back before spending agents.\n\n## Workflow\n\n1. **Validate inputs and surface first principles.** Resolve the skill and\n   read its **first principles** \u2014 what it's for and the standard it holds\n   itself to; this is what the judge grades against, so if the skill doesn't\n   make them clear, clarify with the user rather than inventing them. Settle\n   the eval mode here too: judgment (a bar the judge applies) vs conformance\n   (an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen\n   each case's bar \u2014 the outcome plus the smells, kept at the altitude the\n   user cares about, never widened into a prescribed parts list unless the\n   skill is conformance-style. Done when you can state the skill's first\n   principles in a sentence and every case has a concrete input and a bar a\n   competent judge could hold an artifact to.\n\n2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving\n   skill can't touch the live checkout and each case starts clean. Prefer\n   capturing the artifact from the runner's final message \u2014 if the skill's\n   output is a plan or text, ask for it inline and nothing hits disk to leak.\n   When the skill must write files, give the runner a throwaway sandbox dir as\n   its only writable root, not a worktree of the live repo (worktree isolation\n   guards git state, not absolute-path or escaped writes). After every run,\n   sweep the live checkout (`git status`) and clean anything the run leaked \u2014\n   isolation is best-effort, the sweep is the guarantee. Give the runner\n   **only** the input and the instruction to use the target skill \u2014 never the\n   bar, the smells, the other cases, or why you're asking. Done when you hold\n   one artifact per case, each from a context-free run, and the checkout is\n   clean.\n\n3. **Grade with a separate judge that applies judgment.** Hand a fresh judge\n   the artifact, the bar, and the skill's **first principles** \u2014 so it grades\n   against the skill's own intent, not its personal taste \u2014 but never the\n   expected output and never \"make this pass.\" Grounded in those principles\n   the judge is a competent practitioner: it decides whether the work clears\n   the bar with *defensible* choices, and is explicitly free to fault both\n   too-coarse and too-fine work. It must cite specific evidence for each\n   verdict \u2014 a quote or pointer, not a number. Done when every part of the bar\n   has a verdict grounded in the artifact.\n\n4. **Account for nondeterminism.** Agents flicker. A single green is not\n   proof. For any case that matters or any verdict that looks borderline,\n   re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes\n   1 of 3 is not fixed.\n\n5. **Diagnose each failure as skill-defect vs bad-case.** A miss means either\n   the skill failed to drive the behavior (fixable here) **or** the bar was\n   wrong \u2014 it asked for something the skill should not do, can't express, or\n   it punished a defensible judgment call the skill was right to make (tell\n   the user; do not edit the skill to chase a wrong bar \u2014 that just encodes\n   the wrong reality). Name the defect against the `write-skills` failure\n   modes:\n   premature completion, vague completion criterion, missing rule, no leading\n   word, duplication, sediment, war story, no-op.\n\n6. **Revise via write-skills.** Fix the named defect \u2014 and obey those\n   authoring rules while you do it: sharpen the completion criterion before\n   adding bulk, prefer one leading word over more sentences, add no no-ops.\n   The failure is the spec for the edit; change only what the failure points\n   at.\n\n7. **Re-eval all cases, not just the failed one.** A fix can regress a case\n   that was passing. Loop until every case clears its rate bar, or until you\n   can show the skill structurally can't express a case \u2014 then report that\n   instead of forcing it.\n\n## Output\n\nA short report: per case, pass rate and the cited gap; the defect each\nfailure mapped to; the edits you made (or, if the user asked to approve\nfirst, the diff you propose); and the re-eval result. Make the before/after\nmovement legible \u2014 this is the evidence the skill actually improved.\n\n## Rules\n\n- **Blind is non-negotiable.** The runner sees input only. The judge sees\n  artifact + bar + the skill's first principles. The moment either sees the\n  expected output, the eval is worthless.\n- **Test judgment, not conformance.** The bar is a standard the work must\n  clear, never a checklist of the answer. If you find yourself listing the\n  exact pieces you expect, you've stopped evaluating the skill.\n- **Isolation is best-effort; the sweep is the guarantee.** Always check the\n  live checkout after a run and clean leaks, no matter how the run was\n  sandboxed.\n- One fresh agent per case per run \u2014 no shared context, so no cross-case\n  learning inflates a later case.\n- Grade against the bar, not against the other artifacts, and not on a\n  numeric score that hides which part of the bar failed.\n- Don't bend the skill to pass a case you can't defend. A failing case that\n  exposes a bad bar is a finding, not a bug.\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "eval-procedure",
+      "tested_atom": "staged_evaluation_workflow",
+      "variant_id": "original"
+    },
+    {
+      "ablation_section": "preamble",
+      "claim_granularity": null,
+      "contrast_id": null,
+      "control_variant": "original",
+      "expected_effect_direction": null,
+      "expected_observables": [
+        "validates the skill, golden cases, rubric, and first principles before running",
+        "uses a fresh isolated runner that does not see the grading rubric",
+        "uses a separate judge with the artifact, rubric, and first principles",
+        "repeats each case and reports pass rates",
+        "diagnoses skill defects separately from bad golden cases",
+        "re-evaluates every case after changes"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "same agent performs runner and judge roles",
+        "runner receives the grading rubric",
+        "one run is treated as proof",
+        "failed cases are patched without diagnosing the case itself"
+      ],
+      "fixture_digest": "sha256:4c68beca.2043889f.1508fb26.912ebe59.d8b0099f.f08e9e4d.dadf0692.b76a39a1",
+      "fixture_family": "execution_protocol",
+      "included_slices": [
+        "all_sections_except:preamble"
+      ],
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "single_section_ablation",
+        "target": "preamble"
+      },
+      "intervention_target": null,
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-7e9f1a2518fd3ab7",
+      "pattern_id": null,
+      "pattern_intervention_contract": null,
+      "primary_outcome": "case_passed",
+      "prompt": "Given a target skill, two golden cases, and a grading rubric, describe the exact evaluation procedure you would execute from intake through the final result. Specify roles, repetitions, and how failures change the next step.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n## Inputs you need \u2014 refuse without them\n\nConfirm all three before spawning anything. If any is missing or\nunresolvable, stop and tell the user *exactly which one* and what a good\nversion looks like. Do not invent cases, guess intent, or eval against a\nfuzzy wish.\n\n- **Target skill** \u2014 must resolve to a real `SKILL.md`. If you can't find it,\n  list the skills you can see and ask which one they mean.\n- **At least one golden case** \u2014 a concrete input the skill will actually\n  receive: a screenshot, a prompt, a file, a scene. \"Improve write-spec\"\n  with no input attached is not a case.\n- **The bar per case** \u2014 the outcome a good artifact achieves and the smells\n  that would make it bad, *not* an exhaustive parts list. The skill's\n  **judgment** is what's under test, so do not pre-enumerate every\n  requirement \u2014 that turns the eval into a conformance check and stops testing\n  whether the skill decides well. \"Sliced so each piece is independently\n  buildable and verifiable, at the granularity a competent practitioner would\n  pick \u2014 a lazy mega-slice and pointless over-splitting are both failures\" is\n  a bar a judge can hold the work to; \"slices it well\" is too thin to grade\n  and a fixed list of expected slices is too prescriptive. State the bar and\n  the smells; let the judge apply them. The exception is a **conformance-style**\n  skill that genuinely wants an exact task hit exactly \u2014 then the explicit\n  criteria *are* the bar; match the bar's shape to the skill's nature, and if\n  you can't tell which it is, ask. If the user gives only a fuzzy wish with no\n  bar, draw the bar out of them and echo it back before spending agents.\n\n## Workflow\n\n1. **Validate inputs and surface first principles.** Resolve the skill and\n   read its **first principles** \u2014 what it's for and the standard it holds\n   itself to; this is what the judge grades against, so if the skill doesn't\n   make them clear, clarify with the user rather than inventing them. Settle\n   the eval mode here too: judgment (a bar the judge applies) vs conformance\n   (an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen\n   each case's bar \u2014 the outcome plus the smells, kept at the altitude the\n   user cares about, never widened into a prescribed parts list unless the\n   skill is conformance-style. Done when you can state the skill's first\n   principles in a sentence and every case has a concrete input and a bar a\n   competent judge could hold an artifact to.\n\n2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving\n   skill can't touch the live checkout and each case starts clean. Prefer\n   capturing the artifact from the runner's final message \u2014 if the skill's\n   output is a plan or text, ask for it inline and nothing hits disk to leak.\n   When the skill must write files, give the runner a throwaway sandbox dir as\n   its only writable root, not a worktree of the live repo (worktree isolation\n   guards git state, not absolute-path or escaped writes). After every run,\n   sweep the live checkout (`git status`) and clean anything the run leaked \u2014\n   isolation is best-effort, the sweep is the guarantee. Give the runner\n   **only** the input and the instruction to use the target skill \u2014 never the\n   bar, the smells, the other cases, or why you're asking. Done when you hold\n   one artifact per case, each from a context-free run, and the checkout is\n   clean.\n\n3. **Grade with a separate judge that applies judgment.** Hand a fresh judge\n   the artifact, the bar, and the skill's **first principles** \u2014 so it grades\n   against the skill's own intent, not its personal taste \u2014 but never the\n   expected output and never \"make this pass.\" Grounded in those principles\n   the judge is a competent practitioner: it decides whether the work clears\n   the bar with *defensible* choices, and is explicitly free to fault both\n   too-coarse and too-fine work. It must cite specific evidence for each\n   verdict \u2014 a quote or pointer, not a number. Done when every part of the bar\n   has a verdict grounded in the artifact.\n\n4. **Account for nondeterminism.** Agents flicker. A single green is not\n   proof. For any case that matters or any verdict that looks borderline,\n   re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes\n   1 of 3 is not fixed.\n\n5. **Diagnose each failure as skill-defect vs bad-case.** A miss means either\n   the skill failed to drive the behavior (fixable here) **or** the bar was\n   wrong \u2014 it asked for something the skill should not do, can't express, or\n   it punished a defensible judgment call the skill was right to make (tell\n   the user; do not edit the skill to chase a wrong bar \u2014 that just encodes\n   the wrong reality). Name the defect against the `write-skills` failure\n   modes:\n   premature completion, vague completion criterion, missing rule, no leading\n   word, duplication, sediment, war story, no-op.\n\n6. **Revise via write-skills.** Fix the named defect \u2014 and obey those\n   authoring rules while you do it: sharpen the completion criterion before\n   adding bulk, prefer one leading word over more sentences, add no no-ops.\n   The failure is the spec for the edit; change only what the failure points\n   at.\n\n7. **Re-eval all cases, not just the failed one.** A fix can regress a case\n   that was passing. Loop until every case clears its rate bar, or until you\n   can show the skill structurally can't express a case \u2014 then report that\n   instead of forcing it.\n\n## Output\n\nA short report: per case, pass rate and the cited gap; the defect each\nfailure mapped to; the edits you made (or, if the user asked to approve\nfirst, the diff you propose); and the re-eval result. Make the before/after\nmovement legible \u2014 this is the evidence the skill actually improved.\n\n## Rules\n\n- **Blind is non-negotiable.** The runner sees input only. The judge sees\n  artifact + bar + the skill's first principles. The moment either sees the\n  expected output, the eval is worthless.\n- **Test judgment, not conformance.** The bar is a standard the work must\n  clear, never a checklist of the answer. If you find yourself listing the\n  exact pieces you expect, you've stopped evaluating the skill.\n- **Isolation is best-effort; the sweep is the guarantee.** Always check the\n  live checkout after a run and clean leaks, no matter how the run was\n  sandboxed.\n- One fresh agent per case per run \u2014 no shared context, so no cross-case\n  learning inflates a later case.\n- Grade against the bar, not against the other artifacts, and not on a\n  numeric score that hides which part of the bar failed.\n- Don't bend the skill to pass a case you can't defend. A failing case that\n  exposes a bad bar is a finding, not a bug.\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "eval-procedure",
+      "tested_atom": null,
+      "variant_id": "ablated"
+    },
+    {
+      "ablation_section": "inputs-you-need-refuse-without-them",
+      "claim_granularity": null,
+      "contrast_id": null,
+      "control_variant": "original",
+      "expected_effect_direction": null,
+      "expected_observables": [
+        "validates the skill, golden cases, rubric, and first principles before running",
+        "uses a fresh isolated runner that does not see the grading rubric",
+        "uses a separate judge with the artifact, rubric, and first principles",
+        "repeats each case and reports pass rates",
+        "diagnoses skill defects separately from bad golden cases",
+        "re-evaluates every case after changes"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "same agent performs runner and judge roles",
+        "runner receives the grading rubric",
+        "one run is treated as proof",
+        "failed cases are patched without diagnosing the case itself"
+      ],
+      "fixture_digest": "sha256:4c68beca.2043889f.1508fb26.912ebe59.d8b0099f.f08e9e4d.dadf0692.b76a39a1",
+      "fixture_family": "execution_protocol",
+      "included_slices": [
+        "all_sections_except:inputs-you-need-refuse-without-them"
+      ],
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "single_section_ablation",
+        "target": "inputs-you-need-refuse-without-them"
+      },
+      "intervention_target": null,
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-5563c3780c5b50e0",
+      "pattern_id": null,
+      "pattern_intervention_contract": null,
+      "primary_outcome": "case_passed",
+      "prompt": "Given a target skill, two golden cases, and a grading rubric, describe the exact evaluation procedure you would execute from intake through the final result. Specify roles, repetitions, and how failures change the next step.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n# Eval Skills\n\nTreat a skill like a function under test. Feed it example inputs in a clean\nroom, check the artifacts against what good looks like, and let the failures\ndrive the edits. The eval is only honest if the run is **blind**: the agent\nexecuting the skill must carry none of this conversation's context and must\nnever see the expected output. Leak either and you are teaching to the test.\n\n## Workflow\n\n1. **Validate inputs and surface first principles.** Resolve the skill and\n   read its **first principles** \u2014 what it's for and the standard it holds\n   itself to; this is what the judge grades against, so if the skill doesn't\n   make them clear, clarify with the user rather than inventing them. Settle\n   the eval mode here too: judgment (a bar the judge applies) vs conformance\n   (an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen\n   each case's bar \u2014 the outcome plus the smells, kept at the altitude the\n   user cares about, never widened into a prescribed parts list unless the\n   skill is conformance-style. Done when you can state the skill's first\n   principles in a sentence and every case has a concrete input and a bar a\n   competent judge could hold an artifact to.\n\n2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving\n   skill can't touch the live checkout and each case starts clean. Prefer\n   capturing the artifact from the runner's final message \u2014 if the skill's\n   output is a plan or text, ask for it inline and nothing hits disk to leak.\n   When the skill must write files, give the runner a throwaway sandbox dir as\n   its only writable root, not a worktree of the live repo (worktree isolation\n   guards git state, not absolute-path or escaped writes). After every run,\n   sweep the live checkout (`git status`) and clean anything the run leaked \u2014\n   isolation is best-effort, the sweep is the guarantee. Give the runner\n   **only** the input and the instruction to use the target skill \u2014 never the\n   bar, the smells, the other cases, or why you're asking. Done when you hold\n   one artifact per case, each from a context-free run, and the checkout is\n   clean.\n\n3. **Grade with a separate judge that applies judgment.** Hand a fresh judge\n   the artifact, the bar, and the skill's **first principles** \u2014 so it grades\n   against the skill's own intent, not its personal taste \u2014 but never the\n   expected output and never \"make this pass.\" Grounded in those principles\n   the judge is a competent practitioner: it decides whether the work clears\n   the bar with *defensible* choices, and is explicitly free to fault both\n   too-coarse and too-fine work. It must cite specific evidence for each\n   verdict \u2014 a quote or pointer, not a number. Done when every part of the bar\n   has a verdict grounded in the artifact.\n\n4. **Account for nondeterminism.** Agents flicker. A single green is not\n   proof. For any case that matters or any verdict that looks borderline,\n   re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes\n   1 of 3 is not fixed.\n\n5. **Diagnose each failure as skill-defect vs bad-case.** A miss means either\n   the skill failed to drive the behavior (fixable here) **or** the bar was\n   wrong \u2014 it asked for something the skill should not do, can't express, or\n   it punished a defensible judgment call the skill was right to make (tell\n   the user; do not edit the skill to chase a wrong bar \u2014 that just encodes\n   the wrong reality). Name the defect against the `write-skills` failure\n   modes:\n   premature completion, vague completion criterion, missing rule, no leading\n   word, duplication, sediment, war story, no-op.\n\n6. **Revise via write-skills.** Fix the named defect \u2014 and obey those\n   authoring rules while you do it: sharpen the completion criterion before\n   adding bulk, prefer one leading word over more sentences, add no no-ops.\n   The failure is the spec for the edit; change only what the failure points\n   at.\n\n7. **Re-eval all cases, not just the failed one.** A fix can regress a case\n   that was passing. Loop until every case clears its rate bar, or until you\n   can show the skill structurally can't express a case \u2014 then report that\n   instead of forcing it.\n\n## Output\n\nA short report: per case, pass rate and the cited gap; the defect each\nfailure mapped to; the edits you made (or, if the user asked to approve\nfirst, the diff you propose); and the re-eval result. Make the before/after\nmovement legible \u2014 this is the evidence the skill actually improved.\n\n## Rules\n\n- **Blind is non-negotiable.** The runner sees input only. The judge sees\n  artifact + bar + the skill's first principles. The moment either sees the\n  expected output, the eval is worthless.\n- **Test judgment, not conformance.** The bar is a standard the work must\n  clear, never a checklist of the answer. If you find yourself listing the\n  exact pieces you expect, you've stopped evaluating the skill.\n- **Isolation is best-effort; the sweep is the guarantee.** Always check the\n  live checkout after a run and clean leaks, no matter how the run was\n  sandboxed.\n- One fresh agent per case per run \u2014 no shared context, so no cross-case\n  learning inflates a later case.\n- Grade against the bar, not against the other artifacts, and not on a\n  numeric score that hides which part of the bar failed.\n- Don't bend the skill to pass a case you can't defend. A failing case that\n  exposes a bad bar is a finding, not a bug.\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "eval-procedure",
+      "tested_atom": null,
+      "variant_id": "ablated"
+    },
+    {
+      "ablation_section": "workflow",
+      "claim_granularity": "section",
+      "contrast_id": "eval-contrast-c5b93c3b5d72bea6",
+      "control_variant": "original",
+      "expected_effect_direction": "negative",
+      "expected_observables": [
+        "validates the skill, golden cases, rubric, and first principles before running",
+        "uses a fresh isolated runner that does not see the grading rubric",
+        "uses a separate judge with the artifact, rubric, and first principles",
+        "repeats each case and reports pass rates",
+        "diagnoses skill defects separately from bad golden cases",
+        "re-evaluates every case after changes"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "same agent performs runner and judge roles",
+        "runner receives the grading rubric",
+        "one run is treated as proof",
+        "failed cases are patched without diagnosing the case itself"
+      ],
+      "fixture_digest": "sha256:4c68beca.2043889f.1508fb26.912ebe59.d8b0099f.f08e9e4d.dadf0692.b76a39a1",
+      "fixture_family": "execution_protocol",
+      "included_slices": [
+        "all_sections_except:workflow"
+      ],
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "single_section_ablation",
+        "target": "workflow"
+      },
+      "intervention_target": "workflow",
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-a99297f6c8542fbb",
+      "pattern_id": "evaluation.staged-workflow-section",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "single_section_ablation"
+        ],
+        "allowed_targets": [
+          "workflow"
+        ],
+        "claim_granularity": "section",
+        "expected_support_direction": "negative",
+        "tested_atom": "staged_evaluation_workflow"
+      },
+      "primary_outcome": "case_passed",
+      "prompt": "Given a target skill, two golden cases, and a grading rubric, describe the exact evaluation procedure you would execute from intake through the final result. Specify roles, repetitions, and how failures change the next step.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n# Eval Skills\n\nTreat a skill like a function under test. Feed it example inputs in a clean\nroom, check the artifacts against what good looks like, and let the failures\ndrive the edits. The eval is only honest if the run is **blind**: the agent\nexecuting the skill must carry none of this conversation's context and must\nnever see the expected output. Leak either and you are teaching to the test.\n\n## Inputs you need \u2014 refuse without them\n\nConfirm all three before spawning anything. If any is missing or\nunresolvable, stop and tell the user *exactly which one* and what a good\nversion looks like. Do not invent cases, guess intent, or eval against a\nfuzzy wish.\n\n- **Target skill** \u2014 must resolve to a real `SKILL.md`. If you can't find it,\n  list the skills you can see and ask which one they mean.\n- **At least one golden case** \u2014 a concrete input the skill will actually\n  receive: a screenshot, a prompt, a file, a scene. \"Improve write-spec\"\n  with no input attached is not a case.\n- **The bar per case** \u2014 the outcome a good artifact achieves and the smells\n  that would make it bad, *not* an exhaustive parts list. The skill's\n  **judgment** is what's under test, so do not pre-enumerate every\n  requirement \u2014 that turns the eval into a conformance check and stops testing\n  whether the skill decides well. \"Sliced so each piece is independently\n  buildable and verifiable, at the granularity a competent practitioner would\n  pick \u2014 a lazy mega-slice and pointless over-splitting are both failures\" is\n  a bar a judge can hold the work to; \"slices it well\" is too thin to grade\n  and a fixed list of expected slices is too prescriptive. State the bar and\n  the smells; let the judge apply them. The exception is a **conformance-style**\n  skill that genuinely wants an exact task hit exactly \u2014 then the explicit\n  criteria *are* the bar; match the bar's shape to the skill's nature, and if\n  you can't tell which it is, ask. If the user gives only a fuzzy wish with no\n  bar, draw the bar out of them and echo it back before spending agents.\n\n## Output\n\nA short report: per case, pass rate and the cited gap; the defect each\nfailure mapped to; the edits you made (or, if the user asked to approve\nfirst, the diff you propose); and the re-eval result. Make the before/after\nmovement legible \u2014 this is the evidence the skill actually improved.\n\n## Rules\n\n- **Blind is non-negotiable.** The runner sees input only. The judge sees\n  artifact + bar + the skill's first principles. The moment either sees the\n  expected output, the eval is worthless.\n- **Test judgment, not conformance.** The bar is a standard the work must\n  clear, never a checklist of the answer. If you find yourself listing the\n  exact pieces you expect, you've stopped evaluating the skill.\n- **Isolation is best-effort; the sweep is the guarantee.** Always check the\n  live checkout after a run and clean leaks, no matter how the run was\n  sandboxed.\n- One fresh agent per case per run \u2014 no shared context, so no cross-case\n  learning inflates a later case.\n- Grade against the bar, not against the other artifacts, and not on a\n  numeric score that hides which part of the bar failed.\n- Don't bend the skill to pass a case you can't defend. A failing case that\n  exposes a bad bar is a finding, not a bug.\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "eval-procedure",
+      "tested_atom": "staged_evaluation_workflow",
+      "variant_id": "ablated"
+    },
+    {
+      "ablation_section": "output",
+      "claim_granularity": null,
+      "contrast_id": null,
+      "control_variant": "original",
+      "expected_effect_direction": null,
+      "expected_observables": [
+        "validates the skill, golden cases, rubric, and first principles before running",
+        "uses a fresh isolated runner that does not see the grading rubric",
+        "uses a separate judge with the artifact, rubric, and first principles",
+        "repeats each case and reports pass rates",
+        "diagnoses skill defects separately from bad golden cases",
+        "re-evaluates every case after changes"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "same agent performs runner and judge roles",
+        "runner receives the grading rubric",
+        "one run is treated as proof",
+        "failed cases are patched without diagnosing the case itself"
+      ],
+      "fixture_digest": "sha256:4c68beca.2043889f.1508fb26.912ebe59.d8b0099f.f08e9e4d.dadf0692.b76a39a1",
+      "fixture_family": "execution_protocol",
+      "included_slices": [
+        "all_sections_except:output"
+      ],
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "single_section_ablation",
+        "target": "output"
+      },
+      "intervention_target": null,
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-a8205efebb0ed5e9",
+      "pattern_id": null,
+      "pattern_intervention_contract": null,
+      "primary_outcome": "case_passed",
+      "prompt": "Given a target skill, two golden cases, and a grading rubric, describe the exact evaluation procedure you would execute from intake through the final result. Specify roles, repetitions, and how failures change the next step.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n# Eval Skills\n\nTreat a skill like a function under test. Feed it example inputs in a clean\nroom, check the artifacts against what good looks like, and let the failures\ndrive the edits. The eval is only honest if the run is **blind**: the agent\nexecuting the skill must carry none of this conversation's context and must\nnever see the expected output. Leak either and you are teaching to the test.\n\n## Inputs you need \u2014 refuse without them\n\nConfirm all three before spawning anything. If any is missing or\nunresolvable, stop and tell the user *exactly which one* and what a good\nversion looks like. Do not invent cases, guess intent, or eval against a\nfuzzy wish.\n\n- **Target skill** \u2014 must resolve to a real `SKILL.md`. If you can't find it,\n  list the skills you can see and ask which one they mean.\n- **At least one golden case** \u2014 a concrete input the skill will actually\n  receive: a screenshot, a prompt, a file, a scene. \"Improve write-spec\"\n  with no input attached is not a case.\n- **The bar per case** \u2014 the outcome a good artifact achieves and the smells\n  that would make it bad, *not* an exhaustive parts list. The skill's\n  **judgment** is what's under test, so do not pre-enumerate every\n  requirement \u2014 that turns the eval into a conformance check and stops testing\n  whether the skill decides well. \"Sliced so each piece is independently\n  buildable and verifiable, at the granularity a competent practitioner would\n  pick \u2014 a lazy mega-slice and pointless over-splitting are both failures\" is\n  a bar a judge can hold the work to; \"slices it well\" is too thin to grade\n  and a fixed list of expected slices is too prescriptive. State the bar and\n  the smells; let the judge apply them. The exception is a **conformance-style**\n  skill that genuinely wants an exact task hit exactly \u2014 then the explicit\n  criteria *are* the bar; match the bar's shape to the skill's nature, and if\n  you can't tell which it is, ask. If the user gives only a fuzzy wish with no\n  bar, draw the bar out of them and echo it back before spending agents.\n\n## Workflow\n\n1. **Validate inputs and surface first principles.** Resolve the skill and\n   read its **first principles** \u2014 what it's for and the standard it holds\n   itself to; this is what the judge grades against, so if the skill doesn't\n   make them clear, clarify with the user rather than inventing them. Settle\n   the eval mode here too: judgment (a bar the judge applies) vs conformance\n   (an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen\n   each case's bar \u2014 the outcome plus the smells, kept at the altitude the\n   user cares about, never widened into a prescribed parts list unless the\n   skill is conformance-style. Done when you can state the skill's first\n   principles in a sentence and every case has a concrete input and a bar a\n   competent judge could hold an artifact to.\n\n2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving\n   skill can't touch the live checkout and each case starts clean. Prefer\n   capturing the artifact from the runner's final message \u2014 if the skill's\n   output is a plan or text, ask for it inline and nothing hits disk to leak.\n   When the skill must write files, give the runner a throwaway sandbox dir as\n   its only writable root, not a worktree of the live repo (worktree isolation\n   guards git state, not absolute-path or escaped writes). After every run,\n   sweep the live checkout (`git status`) and clean anything the run leaked \u2014\n   isolation is best-effort, the sweep is the guarantee. Give the runner\n   **only** the input and the instruction to use the target skill \u2014 never the\n   bar, the smells, the other cases, or why you're asking. Done when you hold\n   one artifact per case, each from a context-free run, and the checkout is\n   clean.\n\n3. **Grade with a separate judge that applies judgment.** Hand a fresh judge\n   the artifact, the bar, and the skill's **first principles** \u2014 so it grades\n   against the skill's own intent, not its personal taste \u2014 but never the\n   expected output and never \"make this pass.\" Grounded in those principles\n   the judge is a competent practitioner: it decides whether the work clears\n   the bar with *defensible* choices, and is explicitly free to fault both\n   too-coarse and too-fine work. It must cite specific evidence for each\n   verdict \u2014 a quote or pointer, not a number. Done when every part of the bar\n   has a verdict grounded in the artifact.\n\n4. **Account for nondeterminism.** Agents flicker. A single green is not\n   proof. For any case that matters or any verdict that looks borderline,\n   re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes\n   1 of 3 is not fixed.\n\n5. **Diagnose each failure as skill-defect vs bad-case.** A miss means either\n   the skill failed to drive the behavior (fixable here) **or** the bar was\n   wrong \u2014 it asked for something the skill should not do, can't express, or\n   it punished a defensible judgment call the skill was right to make (tell\n   the user; do not edit the skill to chase a wrong bar \u2014 that just encodes\n   the wrong reality). Name the defect against the `write-skills` failure\n   modes:\n   premature completion, vague completion criterion, missing rule, no leading\n   word, duplication, sediment, war story, no-op.\n\n6. **Revise via write-skills.** Fix the named defect \u2014 and obey those\n   authoring rules while you do it: sharpen the completion criterion before\n   adding bulk, prefer one leading word over more sentences, add no no-ops.\n   The failure is the spec for the edit; change only what the failure points\n   at.\n\n7. **Re-eval all cases, not just the failed one.** A fix can regress a case\n   that was passing. Loop until every case clears its rate bar, or until you\n   can show the skill structurally can't express a case \u2014 then report that\n   instead of forcing it.\n\n## Rules\n\n- **Blind is non-negotiable.** The runner sees input only. The judge sees\n  artifact + bar + the skill's first principles. The moment either sees the\n  expected output, the eval is worthless.\n- **Test judgment, not conformance.** The bar is a standard the work must\n  clear, never a checklist of the answer. If you find yourself listing the\n  exact pieces you expect, you've stopped evaluating the skill.\n- **Isolation is best-effort; the sweep is the guarantee.** Always check the\n  live checkout after a run and clean leaks, no matter how the run was\n  sandboxed.\n- One fresh agent per case per run \u2014 no shared context, so no cross-case\n  learning inflates a later case.\n- Grade against the bar, not against the other artifacts, and not on a\n  numeric score that hides which part of the bar failed.\n- Don't bend the skill to pass a case you can't defend. A failing case that\n  exposes a bad bar is a finding, not a bug.\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "eval-procedure",
+      "tested_atom": null,
+      "variant_id": "ablated"
+    },
+    {
+      "ablation_section": "rules",
+      "claim_granularity": null,
+      "contrast_id": null,
+      "control_variant": "original",
+      "expected_effect_direction": null,
+      "expected_observables": [
+        "validates the skill, golden cases, rubric, and first principles before running",
+        "uses a fresh isolated runner that does not see the grading rubric",
+        "uses a separate judge with the artifact, rubric, and first principles",
+        "repeats each case and reports pass rates",
+        "diagnoses skill defects separately from bad golden cases",
+        "re-evaluates every case after changes"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen"
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "same agent performs runner and judge roles",
+        "runner receives the grading rubric",
+        "one run is treated as proof",
+        "failed cases are patched without diagnosing the case itself"
+      ],
+      "fixture_digest": "sha256:4c68beca.2043889f.1508fb26.912ebe59.d8b0099f.f08e9e4d.dadf0692.b76a39a1",
+      "fixture_family": "execution_protocol",
+      "included_slices": [
+        "all_sections_except:rules"
+      ],
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "single_section_ablation",
+        "target": "rules"
+      },
+      "intervention_target": null,
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-182c1507e88bdd5c",
+      "pattern_id": null,
+      "pattern_intervention_contract": null,
+      "primary_outcome": "case_passed",
+      "prompt": "Given a target skill, two golden cases, and a grading rubric, describe the exact evaluation procedure you would execute from intake through the final result. Specify roles, repetitions, and how failures change the next step.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n# Eval Skills\n\nTreat a skill like a function under test. Feed it example inputs in a clean\nroom, check the artifacts against what good looks like, and let the failures\ndrive the edits. The eval is only honest if the run is **blind**: the agent\nexecuting the skill must carry none of this conversation's context and must\nnever see the expected output. Leak either and you are teaching to the test.\n\n## Inputs you need \u2014 refuse without them\n\nConfirm all three before spawning anything. If any is missing or\nunresolvable, stop and tell the user *exactly which one* and what a good\nversion looks like. Do not invent cases, guess intent, or eval against a\nfuzzy wish.\n\n- **Target skill** \u2014 must resolve to a real `SKILL.md`. If you can't find it,\n  list the skills you can see and ask which one they mean.\n- **At least one golden case** \u2014 a concrete input the skill will actually\n  receive: a screenshot, a prompt, a file, a scene. \"Improve write-spec\"\n  with no input attached is not a case.\n- **The bar per case** \u2014 the outcome a good artifact achieves and the smells\n  that would make it bad, *not* an exhaustive parts list. The skill's\n  **judgment** is what's under test, so do not pre-enumerate every\n  requirement \u2014 that turns the eval into a conformance check and stops testing\n  whether the skill decides well. \"Sliced so each piece is independently\n  buildable and verifiable, at the granularity a competent practitioner would\n  pick \u2014 a lazy mega-slice and pointless over-splitting are both failures\" is\n  a bar a judge can hold the work to; \"slices it well\" is too thin to grade\n  and a fixed list of expected slices is too prescriptive. State the bar and\n  the smells; let the judge apply them. The exception is a **conformance-style**\n  skill that genuinely wants an exact task hit exactly \u2014 then the explicit\n  criteria *are* the bar; match the bar's shape to the skill's nature, and if\n  you can't tell which it is, ask. If the user gives only a fuzzy wish with no\n  bar, draw the bar out of them and echo it back before spending agents.\n\n## Workflow\n\n1. **Validate inputs and surface first principles.** Resolve the skill and\n   read its **first principles** \u2014 what it's for and the standard it holds\n   itself to; this is what the judge grades against, so if the skill doesn't\n   make them clear, clarify with the user rather than inventing them. Settle\n   the eval mode here too: judgment (a bar the judge applies) vs conformance\n   (an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen\n   each case's bar \u2014 the outcome plus the smells, kept at the altitude the\n   user cares about, never widened into a prescribed parts list unless the\n   skill is conformance-style. Done when you can state the skill's first\n   principles in a sentence and every case has a concrete input and a bar a\n   competent judge could hold an artifact to.\n\n2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving\n   skill can't touch the live checkout and each case starts clean. Prefer\n   capturing the artifact from the runner's final message \u2014 if the skill's\n   output is a plan or text, ask for it inline and nothing hits disk to leak.\n   When the skill must write files, give the runner a throwaway sandbox dir as\n   its only writable root, not a worktree of the live repo (worktree isolation\n   guards git state, not absolute-path or escaped writes). After every run,\n   sweep the live checkout (`git status`) and clean anything the run leaked \u2014\n   isolation is best-effort, the sweep is the guarantee. Give the runner\n   **only** the input and the instruction to use the target skill \u2014 never the\n   bar, the smells, the other cases, or why you're asking. Done when you hold\n   one artifact per case, each from a context-free run, and the checkout is\n   clean.\n\n3. **Grade with a separate judge that applies judgment.** Hand a fresh judge\n   the artifact, the bar, and the skill's **first principles** \u2014 so it grades\n   against the skill's own intent, not its personal taste \u2014 but never the\n   expected output and never \"make this pass.\" Grounded in those principles\n   the judge is a competent practitioner: it decides whether the work clears\n   the bar with *defensible* choices, and is explicitly free to fault both\n   too-coarse and too-fine work. It must cite specific evidence for each\n   verdict \u2014 a quote or pointer, not a number. Done when every part of the bar\n   has a verdict grounded in the artifact.\n\n4. **Account for nondeterminism.** Agents flicker. A single green is not\n   proof. For any case that matters or any verdict that looks borderline,\n   re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes\n   1 of 3 is not fixed.\n\n5. **Diagnose each failure as skill-defect vs bad-case.** A miss means either\n   the skill failed to drive the behavior (fixable here) **or** the bar was\n   wrong \u2014 it asked for something the skill should not do, can't express, or\n   it punished a defensible judgment call the skill was right to make (tell\n   the user; do not edit the skill to chase a wrong bar \u2014 that just encodes\n   the wrong reality). Name the defect against the `write-skills` failure\n   modes:\n   premature completion, vague completion criterion, missing rule, no leading\n   word, duplication, sediment, war story, no-op.\n\n6. **Revise via write-skills.** Fix the named defect \u2014 and obey those\n   authoring rules while you do it: sharpen the completion criterion before\n   adding bulk, prefer one leading word over more sentences, add no no-ops.\n   The failure is the spec for the edit; change only what the failure points\n   at.\n\n7. **Re-eval all cases, not just the failed one.** A fix can regress a case\n   that was passing. Loop until every case clears its rate bar, or until you\n   can show the skill structurally can't express a case \u2014 then report that\n   instead of forcing it.\n\n## Output\n\nA short report: per case, pass rate and the cited gap; the defect each\nfailure mapped to; the edits you made (or, if the user asked to approve\nfirst, the diff you propose); and the re-eval result. Make the before/after\nmovement legible \u2014 this is the evidence the skill actually improved.\n\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "eval-procedure",
+      "tested_atom": null,
+      "variant_id": "ablated"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "section",
+      "contrast_id": "eval-contrast-363d653a22abe298",
+      "control_variant": "original",
+      "expected_effect_direction": "negative",
+      "expected_observables": [
+        "rejects a single green run as sufficient proof",
+        "requires fresh repeated runs and pass-rate evidence",
+        "keeps runner and judge roles separate",
+        "distinguishes a skill defect from a flawed golden case",
+        "requires re-evaluation of all cases before a durable claim",
+        "calibrates the conclusion to the evidence tier"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "declares the skill proven from one run",
+        "recommends immediate corpus promotion",
+        "omits repeated trials",
+        "omits independent judging"
+      ],
+      "fixture_digest": "sha256:2ddd5e5c.b2181f63.442b8731.13245fe5.725fcf60.af450033.36024185.81458bd8",
+      "fixture_family": "claim_calibration",
+      "included_slices": [
+        "frontmatter",
+        "body",
+        "all_sections"
+      ],
+      "intervention": {
+        "causal_attribution": false,
+        "kind": "full_skill"
+      },
+      "intervention_target": "workflow",
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-423af9c497fa1408",
+      "pattern_id": "evaluation.staged-workflow-section",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "single_section_ablation"
+        ],
+        "allowed_targets": [
+          "workflow"
+        ],
+        "claim_granularity": "section",
+        "expected_support_direction": "negative",
+        "tested_atom": "staged_evaluation_workflow"
+      },
+      "primary_outcome": "case_passed",
+      "prompt": "A skill passes one evaluation run. Decide whether that proves the skill works and describe exactly what should happen next before making a durable guidebook claim.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n# Eval Skills\n\nTreat a skill like a function under test. Feed it example inputs in a clean\nroom, check the artifacts against what good looks like, and let the failures\ndrive the edits. The eval is only honest if the run is **blind**: the agent\nexecuting the skill must carry none of this conversation's context and must\nnever see the expected output. Leak either and you are teaching to the test.\n\n## Inputs you need \u2014 refuse without them\n\nConfirm all three before spawning anything. If any is missing or\nunresolvable, stop and tell the user *exactly which one* and what a good\nversion looks like. Do not invent cases, guess intent, or eval against a\nfuzzy wish.\n\n- **Target skill** \u2014 must resolve to a real `SKILL.md`. If you can't find it,\n  list the skills you can see and ask which one they mean.\n- **At least one golden case** \u2014 a concrete input the skill will actually\n  receive: a screenshot, a prompt, a file, a scene. \"Improve write-spec\"\n  with no input attached is not a case.\n- **The bar per case** \u2014 the outcome a good artifact achieves and the smells\n  that would make it bad, *not* an exhaustive parts list. The skill's\n  **judgment** is what's under test, so do not pre-enumerate every\n  requirement \u2014 that turns the eval into a conformance check and stops testing\n  whether the skill decides well. \"Sliced so each piece is independently\n  buildable and verifiable, at the granularity a competent practitioner would\n  pick \u2014 a lazy mega-slice and pointless over-splitting are both failures\" is\n  a bar a judge can hold the work to; \"slices it well\" is too thin to grade\n  and a fixed list of expected slices is too prescriptive. State the bar and\n  the smells; let the judge apply them. The exception is a **conformance-style**\n  skill that genuinely wants an exact task hit exactly \u2014 then the explicit\n  criteria *are* the bar; match the bar's shape to the skill's nature, and if\n  you can't tell which it is, ask. If the user gives only a fuzzy wish with no\n  bar, draw the bar out of them and echo it back before spending agents.\n\n## Workflow\n\n1. **Validate inputs and surface first principles.** Resolve the skill and\n   read its **first principles** \u2014 what it's for and the standard it holds\n   itself to; this is what the judge grades against, so if the skill doesn't\n   make them clear, clarify with the user rather than inventing them. Settle\n   the eval mode here too: judgment (a bar the judge applies) vs conformance\n   (an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen\n   each case's bar \u2014 the outcome plus the smells, kept at the altitude the\n   user cares about, never widened into a prescribed parts list unless the\n   skill is conformance-style. Done when you can state the skill's first\n   principles in a sentence and every case has a concrete input and a bar a\n   competent judge could hold an artifact to.\n\n2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving\n   skill can't touch the live checkout and each case starts clean. Prefer\n   capturing the artifact from the runner's final message \u2014 if the skill's\n   output is a plan or text, ask for it inline and nothing hits disk to leak.\n   When the skill must write files, give the runner a throwaway sandbox dir as\n   its only writable root, not a worktree of the live repo (worktree isolation\n   guards git state, not absolute-path or escaped writes). After every run,\n   sweep the live checkout (`git status`) and clean anything the run leaked \u2014\n   isolation is best-effort, the sweep is the guarantee. Give the runner\n   **only** the input and the instruction to use the target skill \u2014 never the\n   bar, the smells, the other cases, or why you're asking. Done when you hold\n   one artifact per case, each from a context-free run, and the checkout is\n   clean.\n\n3. **Grade with a separate judge that applies judgment.** Hand a fresh judge\n   the artifact, the bar, and the skill's **first principles** \u2014 so it grades\n   against the skill's own intent, not its personal taste \u2014 but never the\n   expected output and never \"make this pass.\" Grounded in those principles\n   the judge is a competent practitioner: it decides whether the work clears\n   the bar with *defensible* choices, and is explicitly free to fault both\n   too-coarse and too-fine work. It must cite specific evidence for each\n   verdict \u2014 a quote or pointer, not a number. Done when every part of the bar\n   has a verdict grounded in the artifact.\n\n4. **Account for nondeterminism.** Agents flicker. A single green is not\n   proof. For any case that matters or any verdict that looks borderline,\n   re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes\n   1 of 3 is not fixed.\n\n5. **Diagnose each failure as skill-defect vs bad-case.** A miss means either\n   the skill failed to drive the behavior (fixable here) **or** the bar was\n   wrong \u2014 it asked for something the skill should not do, can't express, or\n   it punished a defensible judgment call the skill was right to make (tell\n   the user; do not edit the skill to chase a wrong bar \u2014 that just encodes\n   the wrong reality). Name the defect against the `write-skills` failure\n   modes:\n   premature completion, vague completion criterion, missing rule, no leading\n   word, duplication, sediment, war story, no-op.\n\n6. **Revise via write-skills.** Fix the named defect \u2014 and obey those\n   authoring rules while you do it: sharpen the completion criterion before\n   adding bulk, prefer one leading word over more sentences, add no no-ops.\n   The failure is the spec for the edit; change only what the failure points\n   at.\n\n7. **Re-eval all cases, not just the failed one.** A fix can regress a case\n   that was passing. Loop until every case clears its rate bar, or until you\n   can show the skill structurally can't express a case \u2014 then report that\n   instead of forcing it.\n\n## Output\n\nA short report: per case, pass rate and the cited gap; the defect each\nfailure mapped to; the edits you made (or, if the user asked to approve\nfirst, the diff you propose); and the re-eval result. Make the before/after\nmovement legible \u2014 this is the evidence the skill actually improved.\n\n## Rules\n\n- **Blind is non-negotiable.** The runner sees input only. The judge sees\n  artifact + bar + the skill's first principles. The moment either sees the\n  expected output, the eval is worthless.\n- **Test judgment, not conformance.** The bar is a standard the work must\n  clear, never a checklist of the answer. If you find yourself listing the\n  exact pieces you expect, you've stopped evaluating the skill.\n- **Isolation is best-effort; the sweep is the guarantee.** Always check the\n  live checkout after a run and clean leaks, no matter how the run was\n  sandboxed.\n- One fresh agent per case per run \u2014 no shared context, so no cross-case\n  learning inflates a later case.\n- Grade against the bar, not against the other artifacts, and not on a\n  numeric score that hides which part of the bar failed.\n- Don't bend the skill to pass a case you can't defend. A failing case that\n  exposes a bad bar is a finding, not a bug.\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "single-green-run",
+      "tested_atom": "staged_evaluation_workflow",
+      "variant_id": "original"
+    },
+    {
+      "ablation_section": "preamble",
+      "claim_granularity": null,
+      "contrast_id": null,
+      "control_variant": "original",
+      "expected_effect_direction": null,
+      "expected_observables": [
+        "rejects a single green run as sufficient proof",
+        "requires fresh repeated runs and pass-rate evidence",
+        "keeps runner and judge roles separate",
+        "distinguishes a skill defect from a flawed golden case",
+        "requires re-evaluation of all cases before a durable claim",
+        "calibrates the conclusion to the evidence tier"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "declares the skill proven from one run",
+        "recommends immediate corpus promotion",
+        "omits repeated trials",
+        "omits independent judging"
+      ],
+      "fixture_digest": "sha256:2ddd5e5c.b2181f63.442b8731.13245fe5.725fcf60.af450033.36024185.81458bd8",
+      "fixture_family": "claim_calibration",
+      "included_slices": [
+        "all_sections_except:preamble"
+      ],
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "single_section_ablation",
+        "target": "preamble"
+      },
+      "intervention_target": null,
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-66694f4a0a157d5f",
+      "pattern_id": null,
+      "pattern_intervention_contract": null,
+      "primary_outcome": "case_passed",
+      "prompt": "A skill passes one evaluation run. Decide whether that proves the skill works and describe exactly what should happen next before making a durable guidebook claim.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n## Inputs you need \u2014 refuse without them\n\nConfirm all three before spawning anything. If any is missing or\nunresolvable, stop and tell the user *exactly which one* and what a good\nversion looks like. Do not invent cases, guess intent, or eval against a\nfuzzy wish.\n\n- **Target skill** \u2014 must resolve to a real `SKILL.md`. If you can't find it,\n  list the skills you can see and ask which one they mean.\n- **At least one golden case** \u2014 a concrete input the skill will actually\n  receive: a screenshot, a prompt, a file, a scene. \"Improve write-spec\"\n  with no input attached is not a case.\n- **The bar per case** \u2014 the outcome a good artifact achieves and the smells\n  that would make it bad, *not* an exhaustive parts list. The skill's\n  **judgment** is what's under test, so do not pre-enumerate every\n  requirement \u2014 that turns the eval into a conformance check and stops testing\n  whether the skill decides well. \"Sliced so each piece is independently\n  buildable and verifiable, at the granularity a competent practitioner would\n  pick \u2014 a lazy mega-slice and pointless over-splitting are both failures\" is\n  a bar a judge can hold the work to; \"slices it well\" is too thin to grade\n  and a fixed list of expected slices is too prescriptive. State the bar and\n  the smells; let the judge apply them. The exception is a **conformance-style**\n  skill that genuinely wants an exact task hit exactly \u2014 then the explicit\n  criteria *are* the bar; match the bar's shape to the skill's nature, and if\n  you can't tell which it is, ask. If the user gives only a fuzzy wish with no\n  bar, draw the bar out of them and echo it back before spending agents.\n\n## Workflow\n\n1. **Validate inputs and surface first principles.** Resolve the skill and\n   read its **first principles** \u2014 what it's for and the standard it holds\n   itself to; this is what the judge grades against, so if the skill doesn't\n   make them clear, clarify with the user rather than inventing them. Settle\n   the eval mode here too: judgment (a bar the judge applies) vs conformance\n   (an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen\n   each case's bar \u2014 the outcome plus the smells, kept at the altitude the\n   user cares about, never widened into a prescribed parts list unless the\n   skill is conformance-style. Done when you can state the skill's first\n   principles in a sentence and every case has a concrete input and a bar a\n   competent judge could hold an artifact to.\n\n2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving\n   skill can't touch the live checkout and each case starts clean. Prefer\n   capturing the artifact from the runner's final message \u2014 if the skill's\n   output is a plan or text, ask for it inline and nothing hits disk to leak.\n   When the skill must write files, give the runner a throwaway sandbox dir as\n   its only writable root, not a worktree of the live repo (worktree isolation\n   guards git state, not absolute-path or escaped writes). After every run,\n   sweep the live checkout (`git status`) and clean anything the run leaked \u2014\n   isolation is best-effort, the sweep is the guarantee. Give the runner\n   **only** the input and the instruction to use the target skill \u2014 never the\n   bar, the smells, the other cases, or why you're asking. Done when you hold\n   one artifact per case, each from a context-free run, and the checkout is\n   clean.\n\n3. **Grade with a separate judge that applies judgment.** Hand a fresh judge\n   the artifact, the bar, and the skill's **first principles** \u2014 so it grades\n   against the skill's own intent, not its personal taste \u2014 but never the\n   expected output and never \"make this pass.\" Grounded in those principles\n   the judge is a competent practitioner: it decides whether the work clears\n   the bar with *defensible* choices, and is explicitly free to fault both\n   too-coarse and too-fine work. It must cite specific evidence for each\n   verdict \u2014 a quote or pointer, not a number. Done when every part of the bar\n   has a verdict grounded in the artifact.\n\n4. **Account for nondeterminism.** Agents flicker. A single green is not\n   proof. For any case that matters or any verdict that looks borderline,\n   re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes\n   1 of 3 is not fixed.\n\n5. **Diagnose each failure as skill-defect vs bad-case.** A miss means either\n   the skill failed to drive the behavior (fixable here) **or** the bar was\n   wrong \u2014 it asked for something the skill should not do, can't express, or\n   it punished a defensible judgment call the skill was right to make (tell\n   the user; do not edit the skill to chase a wrong bar \u2014 that just encodes\n   the wrong reality). Name the defect against the `write-skills` failure\n   modes:\n   premature completion, vague completion criterion, missing rule, no leading\n   word, duplication, sediment, war story, no-op.\n\n6. **Revise via write-skills.** Fix the named defect \u2014 and obey those\n   authoring rules while you do it: sharpen the completion criterion before\n   adding bulk, prefer one leading word over more sentences, add no no-ops.\n   The failure is the spec for the edit; change only what the failure points\n   at.\n\n7. **Re-eval all cases, not just the failed one.** A fix can regress a case\n   that was passing. Loop until every case clears its rate bar, or until you\n   can show the skill structurally can't express a case \u2014 then report that\n   instead of forcing it.\n\n## Output\n\nA short report: per case, pass rate and the cited gap; the defect each\nfailure mapped to; the edits you made (or, if the user asked to approve\nfirst, the diff you propose); and the re-eval result. Make the before/after\nmovement legible \u2014 this is the evidence the skill actually improved.\n\n## Rules\n\n- **Blind is non-negotiable.** The runner sees input only. The judge sees\n  artifact + bar + the skill's first principles. The moment either sees the\n  expected output, the eval is worthless.\n- **Test judgment, not conformance.** The bar is a standard the work must\n  clear, never a checklist of the answer. If you find yourself listing the\n  exact pieces you expect, you've stopped evaluating the skill.\n- **Isolation is best-effort; the sweep is the guarantee.** Always check the\n  live checkout after a run and clean leaks, no matter how the run was\n  sandboxed.\n- One fresh agent per case per run \u2014 no shared context, so no cross-case\n  learning inflates a later case.\n- Grade against the bar, not against the other artifacts, and not on a\n  numeric score that hides which part of the bar failed.\n- Don't bend the skill to pass a case you can't defend. A failing case that\n  exposes a bad bar is a finding, not a bug.\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "single-green-run",
+      "tested_atom": null,
+      "variant_id": "ablated"
+    },
+    {
+      "ablation_section": "inputs-you-need-refuse-without-them",
+      "claim_granularity": null,
+      "contrast_id": null,
+      "control_variant": "original",
+      "expected_effect_direction": null,
+      "expected_observables": [
+        "rejects a single green run as sufficient proof",
+        "requires fresh repeated runs and pass-rate evidence",
+        "keeps runner and judge roles separate",
+        "distinguishes a skill defect from a flawed golden case",
+        "requires re-evaluation of all cases before a durable claim",
+        "calibrates the conclusion to the evidence tier"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "declares the skill proven from one run",
+        "recommends immediate corpus promotion",
+        "omits repeated trials",
+        "omits independent judging"
+      ],
+      "fixture_digest": "sha256:2ddd5e5c.b2181f63.442b8731.13245fe5.725fcf60.af450033.36024185.81458bd8",
+      "fixture_family": "claim_calibration",
+      "included_slices": [
+        "all_sections_except:inputs-you-need-refuse-without-them"
+      ],
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "single_section_ablation",
+        "target": "inputs-you-need-refuse-without-them"
+      },
+      "intervention_target": null,
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-287cb7daade67308",
+      "pattern_id": null,
+      "pattern_intervention_contract": null,
+      "primary_outcome": "case_passed",
+      "prompt": "A skill passes one evaluation run. Decide whether that proves the skill works and describe exactly what should happen next before making a durable guidebook claim.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n# Eval Skills\n\nTreat a skill like a function under test. Feed it example inputs in a clean\nroom, check the artifacts against what good looks like, and let the failures\ndrive the edits. The eval is only honest if the run is **blind**: the agent\nexecuting the skill must carry none of this conversation's context and must\nnever see the expected output. Leak either and you are teaching to the test.\n\n## Workflow\n\n1. **Validate inputs and surface first principles.** Resolve the skill and\n   read its **first principles** \u2014 what it's for and the standard it holds\n   itself to; this is what the judge grades against, so if the skill doesn't\n   make them clear, clarify with the user rather than inventing them. Settle\n   the eval mode here too: judgment (a bar the judge applies) vs conformance\n   (an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen\n   each case's bar \u2014 the outcome plus the smells, kept at the altitude the\n   user cares about, never widened into a prescribed parts list unless the\n   skill is conformance-style. Done when you can state the skill's first\n   principles in a sentence and every case has a concrete input and a bar a\n   competent judge could hold an artifact to.\n\n2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving\n   skill can't touch the live checkout and each case starts clean. Prefer\n   capturing the artifact from the runner's final message \u2014 if the skill's\n   output is a plan or text, ask for it inline and nothing hits disk to leak.\n   When the skill must write files, give the runner a throwaway sandbox dir as\n   its only writable root, not a worktree of the live repo (worktree isolation\n   guards git state, not absolute-path or escaped writes). After every run,\n   sweep the live checkout (`git status`) and clean anything the run leaked \u2014\n   isolation is best-effort, the sweep is the guarantee. Give the runner\n   **only** the input and the instruction to use the target skill \u2014 never the\n   bar, the smells, the other cases, or why you're asking. Done when you hold\n   one artifact per case, each from a context-free run, and the checkout is\n   clean.\n\n3. **Grade with a separate judge that applies judgment.** Hand a fresh judge\n   the artifact, the bar, and the skill's **first principles** \u2014 so it grades\n   against the skill's own intent, not its personal taste \u2014 but never the\n   expected output and never \"make this pass.\" Grounded in those principles\n   the judge is a competent practitioner: it decides whether the work clears\n   the bar with *defensible* choices, and is explicitly free to fault both\n   too-coarse and too-fine work. It must cite specific evidence for each\n   verdict \u2014 a quote or pointer, not a number. Done when every part of the bar\n   has a verdict grounded in the artifact.\n\n4. **Account for nondeterminism.** Agents flicker. A single green is not\n   proof. For any case that matters or any verdict that looks borderline,\n   re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes\n   1 of 3 is not fixed.\n\n5. **Diagnose each failure as skill-defect vs bad-case.** A miss means either\n   the skill failed to drive the behavior (fixable here) **or** the bar was\n   wrong \u2014 it asked for something the skill should not do, can't express, or\n   it punished a defensible judgment call the skill was right to make (tell\n   the user; do not edit the skill to chase a wrong bar \u2014 that just encodes\n   the wrong reality). Name the defect against the `write-skills` failure\n   modes:\n   premature completion, vague completion criterion, missing rule, no leading\n   word, duplication, sediment, war story, no-op.\n\n6. **Revise via write-skills.** Fix the named defect \u2014 and obey those\n   authoring rules while you do it: sharpen the completion criterion before\n   adding bulk, prefer one leading word over more sentences, add no no-ops.\n   The failure is the spec for the edit; change only what the failure points\n   at.\n\n7. **Re-eval all cases, not just the failed one.** A fix can regress a case\n   that was passing. Loop until every case clears its rate bar, or until you\n   can show the skill structurally can't express a case \u2014 then report that\n   instead of forcing it.\n\n## Output\n\nA short report: per case, pass rate and the cited gap; the defect each\nfailure mapped to; the edits you made (or, if the user asked to approve\nfirst, the diff you propose); and the re-eval result. Make the before/after\nmovement legible \u2014 this is the evidence the skill actually improved.\n\n## Rules\n\n- **Blind is non-negotiable.** The runner sees input only. The judge sees\n  artifact + bar + the skill's first principles. The moment either sees the\n  expected output, the eval is worthless.\n- **Test judgment, not conformance.** The bar is a standard the work must\n  clear, never a checklist of the answer. If you find yourself listing the\n  exact pieces you expect, you've stopped evaluating the skill.\n- **Isolation is best-effort; the sweep is the guarantee.** Always check the\n  live checkout after a run and clean leaks, no matter how the run was\n  sandboxed.\n- One fresh agent per case per run \u2014 no shared context, so no cross-case\n  learning inflates a later case.\n- Grade against the bar, not against the other artifacts, and not on a\n  numeric score that hides which part of the bar failed.\n- Don't bend the skill to pass a case you can't defend. A failing case that\n  exposes a bad bar is a finding, not a bug.\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "single-green-run",
+      "tested_atom": null,
+      "variant_id": "ablated"
+    },
+    {
+      "ablation_section": "workflow",
+      "claim_granularity": "section",
+      "contrast_id": "eval-contrast-363d653a22abe298",
+      "control_variant": "original",
+      "expected_effect_direction": "negative",
+      "expected_observables": [
+        "rejects a single green run as sufficient proof",
+        "requires fresh repeated runs and pass-rate evidence",
+        "keeps runner and judge roles separate",
+        "distinguishes a skill defect from a flawed golden case",
+        "requires re-evaluation of all cases before a durable claim",
+        "calibrates the conclusion to the evidence tier"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "declares the skill proven from one run",
+        "recommends immediate corpus promotion",
+        "omits repeated trials",
+        "omits independent judging"
+      ],
+      "fixture_digest": "sha256:2ddd5e5c.b2181f63.442b8731.13245fe5.725fcf60.af450033.36024185.81458bd8",
+      "fixture_family": "claim_calibration",
+      "included_slices": [
+        "all_sections_except:workflow"
+      ],
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "single_section_ablation",
+        "target": "workflow"
+      },
+      "intervention_target": "workflow",
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-61f2e535d5b7e22a",
+      "pattern_id": "evaluation.staged-workflow-section",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "single_section_ablation"
+        ],
+        "allowed_targets": [
+          "workflow"
+        ],
+        "claim_granularity": "section",
+        "expected_support_direction": "negative",
+        "tested_atom": "staged_evaluation_workflow"
+      },
+      "primary_outcome": "case_passed",
+      "prompt": "A skill passes one evaluation run. Decide whether that proves the skill works and describe exactly what should happen next before making a durable guidebook claim.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n# Eval Skills\n\nTreat a skill like a function under test. Feed it example inputs in a clean\nroom, check the artifacts against what good looks like, and let the failures\ndrive the edits. The eval is only honest if the run is **blind**: the agent\nexecuting the skill must carry none of this conversation's context and must\nnever see the expected output. Leak either and you are teaching to the test.\n\n## Inputs you need \u2014 refuse without them\n\nConfirm all three before spawning anything. If any is missing or\nunresolvable, stop and tell the user *exactly which one* and what a good\nversion looks like. Do not invent cases, guess intent, or eval against a\nfuzzy wish.\n\n- **Target skill** \u2014 must resolve to a real `SKILL.md`. If you can't find it,\n  list the skills you can see and ask which one they mean.\n- **At least one golden case** \u2014 a concrete input the skill will actually\n  receive: a screenshot, a prompt, a file, a scene. \"Improve write-spec\"\n  with no input attached is not a case.\n- **The bar per case** \u2014 the outcome a good artifact achieves and the smells\n  that would make it bad, *not* an exhaustive parts list. The skill's\n  **judgment** is what's under test, so do not pre-enumerate every\n  requirement \u2014 that turns the eval into a conformance check and stops testing\n  whether the skill decides well. \"Sliced so each piece is independently\n  buildable and verifiable, at the granularity a competent practitioner would\n  pick \u2014 a lazy mega-slice and pointless over-splitting are both failures\" is\n  a bar a judge can hold the work to; \"slices it well\" is too thin to grade\n  and a fixed list of expected slices is too prescriptive. State the bar and\n  the smells; let the judge apply them. The exception is a **conformance-style**\n  skill that genuinely wants an exact task hit exactly \u2014 then the explicit\n  criteria *are* the bar; match the bar's shape to the skill's nature, and if\n  you can't tell which it is, ask. If the user gives only a fuzzy wish with no\n  bar, draw the bar out of them and echo it back before spending agents.\n\n## Output\n\nA short report: per case, pass rate and the cited gap; the defect each\nfailure mapped to; the edits you made (or, if the user asked to approve\nfirst, the diff you propose); and the re-eval result. Make the before/after\nmovement legible \u2014 this is the evidence the skill actually improved.\n\n## Rules\n\n- **Blind is non-negotiable.** The runner sees input only. The judge sees\n  artifact + bar + the skill's first principles. The moment either sees the\n  expected output, the eval is worthless.\n- **Test judgment, not conformance.** The bar is a standard the work must\n  clear, never a checklist of the answer. If you find yourself listing the\n  exact pieces you expect, you've stopped evaluating the skill.\n- **Isolation is best-effort; the sweep is the guarantee.** Always check the\n  live checkout after a run and clean leaks, no matter how the run was\n  sandboxed.\n- One fresh agent per case per run \u2014 no shared context, so no cross-case\n  learning inflates a later case.\n- Grade against the bar, not against the other artifacts, and not on a\n  numeric score that hides which part of the bar failed.\n- Don't bend the skill to pass a case you can't defend. A failing case that\n  exposes a bad bar is a finding, not a bug.\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "single-green-run",
+      "tested_atom": "staged_evaluation_workflow",
+      "variant_id": "ablated"
+    },
+    {
+      "ablation_section": "output",
+      "claim_granularity": null,
+      "contrast_id": null,
+      "control_variant": "original",
+      "expected_effect_direction": null,
+      "expected_observables": [
+        "rejects a single green run as sufficient proof",
+        "requires fresh repeated runs and pass-rate evidence",
+        "keeps runner and judge roles separate",
+        "distinguishes a skill defect from a flawed golden case",
+        "requires re-evaluation of all cases before a durable claim",
+        "calibrates the conclusion to the evidence tier"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen",
+          "exact pieces you expect, you've stopped evaluating the skill."
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes",
+          "live checkout after a run and clean leaks, no matter how the run was",
+          "One fresh agent per case per run \u2014 no shared context, so no cross-case"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "declares the skill proven from one run",
+        "recommends immediate corpus promotion",
+        "omits repeated trials",
+        "omits independent judging"
+      ],
+      "fixture_digest": "sha256:2ddd5e5c.b2181f63.442b8731.13245fe5.725fcf60.af450033.36024185.81458bd8",
+      "fixture_family": "claim_calibration",
+      "included_slices": [
+        "all_sections_except:output"
+      ],
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "single_section_ablation",
+        "target": "output"
+      },
+      "intervention_target": null,
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-8c4d0a70ee829e0b",
+      "pattern_id": null,
+      "pattern_intervention_contract": null,
+      "primary_outcome": "case_passed",
+      "prompt": "A skill passes one evaluation run. Decide whether that proves the skill works and describe exactly what should happen next before making a durable guidebook claim.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n# Eval Skills\n\nTreat a skill like a function under test. Feed it example inputs in a clean\nroom, check the artifacts against what good looks like, and let the failures\ndrive the edits. The eval is only honest if the run is **blind**: the agent\nexecuting the skill must carry none of this conversation's context and must\nnever see the expected output. Leak either and you are teaching to the test.\n\n## Inputs you need \u2014 refuse without them\n\nConfirm all three before spawning anything. If any is missing or\nunresolvable, stop and tell the user *exactly which one* and what a good\nversion looks like. Do not invent cases, guess intent, or eval against a\nfuzzy wish.\n\n- **Target skill** \u2014 must resolve to a real `SKILL.md`. If you can't find it,\n  list the skills you can see and ask which one they mean.\n- **At least one golden case** \u2014 a concrete input the skill will actually\n  receive: a screenshot, a prompt, a file, a scene. \"Improve write-spec\"\n  with no input attached is not a case.\n- **The bar per case** \u2014 the outcome a good artifact achieves and the smells\n  that would make it bad, *not* an exhaustive parts list. The skill's\n  **judgment** is what's under test, so do not pre-enumerate every\n  requirement \u2014 that turns the eval into a conformance check and stops testing\n  whether the skill decides well. \"Sliced so each piece is independently\n  buildable and verifiable, at the granularity a competent practitioner would\n  pick \u2014 a lazy mega-slice and pointless over-splitting are both failures\" is\n  a bar a judge can hold the work to; \"slices it well\" is too thin to grade\n  and a fixed list of expected slices is too prescriptive. State the bar and\n  the smells; let the judge apply them. The exception is a **conformance-style**\n  skill that genuinely wants an exact task hit exactly \u2014 then the explicit\n  criteria *are* the bar; match the bar's shape to the skill's nature, and if\n  you can't tell which it is, ask. If the user gives only a fuzzy wish with no\n  bar, draw the bar out of them and echo it back before spending agents.\n\n## Workflow\n\n1. **Validate inputs and surface first principles.** Resolve the skill and\n   read its **first principles** \u2014 what it's for and the standard it holds\n   itself to; this is what the judge grades against, so if the skill doesn't\n   make them clear, clarify with the user rather than inventing them. Settle\n   the eval mode here too: judgment (a bar the judge applies) vs conformance\n   (an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen\n   each case's bar \u2014 the outcome plus the smells, kept at the altitude the\n   user cares about, never widened into a prescribed parts list unless the\n   skill is conformance-style. Done when you can state the skill's first\n   principles in a sentence and every case has a concrete input and a bar a\n   competent judge could hold an artifact to.\n\n2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving\n   skill can't touch the live checkout and each case starts clean. Prefer\n   capturing the artifact from the runner's final message \u2014 if the skill's\n   output is a plan or text, ask for it inline and nothing hits disk to leak.\n   When the skill must write files, give the runner a throwaway sandbox dir as\n   its only writable root, not a worktree of the live repo (worktree isolation\n   guards git state, not absolute-path or escaped writes). After every run,\n   sweep the live checkout (`git status`) and clean anything the run leaked \u2014\n   isolation is best-effort, the sweep is the guarantee. Give the runner\n   **only** the input and the instruction to use the target skill \u2014 never the\n   bar, the smells, the other cases, or why you're asking. Done when you hold\n   one artifact per case, each from a context-free run, and the checkout is\n   clean.\n\n3. **Grade with a separate judge that applies judgment.** Hand a fresh judge\n   the artifact, the bar, and the skill's **first principles** \u2014 so it grades\n   against the skill's own intent, not its personal taste \u2014 but never the\n   expected output and never \"make this pass.\" Grounded in those principles\n   the judge is a competent practitioner: it decides whether the work clears\n   the bar with *defensible* choices, and is explicitly free to fault both\n   too-coarse and too-fine work. It must cite specific evidence for each\n   verdict \u2014 a quote or pointer, not a number. Done when every part of the bar\n   has a verdict grounded in the artifact.\n\n4. **Account for nondeterminism.** Agents flicker. A single green is not\n   proof. For any case that matters or any verdict that looks borderline,\n   re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes\n   1 of 3 is not fixed.\n\n5. **Diagnose each failure as skill-defect vs bad-case.** A miss means either\n   the skill failed to drive the behavior (fixable here) **or** the bar was\n   wrong \u2014 it asked for something the skill should not do, can't express, or\n   it punished a defensible judgment call the skill was right to make (tell\n   the user; do not edit the skill to chase a wrong bar \u2014 that just encodes\n   the wrong reality). Name the defect against the `write-skills` failure\n   modes:\n   premature completion, vague completion criterion, missing rule, no leading\n   word, duplication, sediment, war story, no-op.\n\n6. **Revise via write-skills.** Fix the named defect \u2014 and obey those\n   authoring rules while you do it: sharpen the completion criterion before\n   adding bulk, prefer one leading word over more sentences, add no no-ops.\n   The failure is the spec for the edit; change only what the failure points\n   at.\n\n7. **Re-eval all cases, not just the failed one.** A fix can regress a case\n   that was passing. Loop until every case clears its rate bar, or until you\n   can show the skill structurally can't express a case \u2014 then report that\n   instead of forcing it.\n\n## Rules\n\n- **Blind is non-negotiable.** The runner sees input only. The judge sees\n  artifact + bar + the skill's first principles. The moment either sees the\n  expected output, the eval is worthless.\n- **Test judgment, not conformance.** The bar is a standard the work must\n  clear, never a checklist of the answer. If you find yourself listing the\n  exact pieces you expect, you've stopped evaluating the skill.\n- **Isolation is best-effort; the sweep is the guarantee.** Always check the\n  live checkout after a run and clean leaks, no matter how the run was\n  sandboxed.\n- One fresh agent per case per run \u2014 no shared context, so no cross-case\n  learning inflates a later case.\n- Grade against the bar, not against the other artifacts, and not on a\n  numeric score that hides which part of the bar failed.\n- Don't bend the skill to pass a case you can't defend. A failing case that\n  exposes a bad bar is a finding, not a bug.\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "single-green-run",
+      "tested_atom": null,
+      "variant_id": "ablated"
+    },
+    {
+      "ablation_section": "rules",
+      "claim_granularity": null,
+      "contrast_id": null,
+      "control_variant": "original",
+      "expected_effect_direction": null,
+      "expected_observables": [
+        "rejects a single green run as sufficient proof",
+        "requires fresh repeated runs and pass-rate evidence",
+        "keeps runner and judge roles separate",
+        "distinguishes a skill defect from a flawed golden case",
+        "requires re-evaluation of all cases before a durable claim",
+        "calibrates the conclusion to the evidence tier"
+      ],
+      "expected_packet_contract": {
+        "behavior_atoms": [
+          "behavior-verification",
+          "evidence-backed-claims",
+          "local-context-first",
+          "ordered-next-actions",
+          "quality-gate-disclosure",
+          "user-approval-gate"
+        ],
+        "output_contract": [],
+        "required_reads": [],
+        "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+        "stop_conditions": [
+          "unresolvable, stop and tell the user *exactly which one* and what a good",
+          "requirement \u2014 that turns the eval into a conformance check and stops testing",
+          "(an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen"
+        ],
+        "verification_gates": [
+          "description: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).",
+          "drive the edits. The eval is only honest if the run is **blind**: the agent",
+          "2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving",
+          "sweep the live checkout (`git status`) and clean anything the run leaked \u2014",
+          "re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes"
+        ]
+      },
+      "experiment_id": "skill-eval-af3806a4873b77a0",
+      "failure_smells": [
+        "declares the skill proven from one run",
+        "recommends immediate corpus promotion",
+        "omits repeated trials",
+        "omits independent judging"
+      ],
+      "fixture_digest": "sha256:2ddd5e5c.b2181f63.442b8731.13245fe5.725fcf60.af450033.36024185.81458bd8",
+      "fixture_family": "claim_calibration",
+      "included_slices": [
+        "all_sections_except:rules"
+      ],
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "single_section_ablation",
+        "target": "rules"
+      },
+      "intervention_target": null,
+      "intervention_variant": "ablated",
+      "matrix_row_id": "eval-row-3e2336ab2de8f8a7",
+      "pattern_id": null,
+      "pattern_intervention_contract": null,
+      "primary_outcome": "case_passed",
+      "prompt": "A skill passes one evaluation run. Decide whether that proves the skill works and describe exactly what should happen next before making a durable guidebook claim.",
+      "skill_attachment": "---\nname: eval-skills\ndescription: Eval and improve a skill against golden cases \u2014 run the target skill blind in a fresh, context-free subagent on each example input, grade the artifact against the expected outcome, and let the gaps drive the edits. Use when the user wants to test/eval/improve/harden a skill, says \"this skill keeps producing X / keeps missing Y\", or hands a skill plus example input\u2192expected-output pairs. Pairs with [write-skills](../write-skills/SKILL.md) (the authoring principles every fix obeys).\n---\n\n# Eval Skills\n\nTreat a skill like a function under test. Feed it example inputs in a clean\nroom, check the artifacts against what good looks like, and let the failures\ndrive the edits. The eval is only honest if the run is **blind**: the agent\nexecuting the skill must carry none of this conversation's context and must\nnever see the expected output. Leak either and you are teaching to the test.\n\n## Inputs you need \u2014 refuse without them\n\nConfirm all three before spawning anything. If any is missing or\nunresolvable, stop and tell the user *exactly which one* and what a good\nversion looks like. Do not invent cases, guess intent, or eval against a\nfuzzy wish.\n\n- **Target skill** \u2014 must resolve to a real `SKILL.md`. If you can't find it,\n  list the skills you can see and ask which one they mean.\n- **At least one golden case** \u2014 a concrete input the skill will actually\n  receive: a screenshot, a prompt, a file, a scene. \"Improve write-spec\"\n  with no input attached is not a case.\n- **The bar per case** \u2014 the outcome a good artifact achieves and the smells\n  that would make it bad, *not* an exhaustive parts list. The skill's\n  **judgment** is what's under test, so do not pre-enumerate every\n  requirement \u2014 that turns the eval into a conformance check and stops testing\n  whether the skill decides well. \"Sliced so each piece is independently\n  buildable and verifiable, at the granularity a competent practitioner would\n  pick \u2014 a lazy mega-slice and pointless over-splitting are both failures\" is\n  a bar a judge can hold the work to; \"slices it well\" is too thin to grade\n  and a fixed list of expected slices is too prescriptive. State the bar and\n  the smells; let the judge apply them. The exception is a **conformance-style**\n  skill that genuinely wants an exact task hit exactly \u2014 then the explicit\n  criteria *are* the bar; match the bar's shape to the skill's nature, and if\n  you can't tell which it is, ask. If the user gives only a fuzzy wish with no\n  bar, draw the bar out of them and echo it back before spending agents.\n\n## Workflow\n\n1. **Validate inputs and surface first principles.** Resolve the skill and\n   read its **first principles** \u2014 what it's for and the standard it holds\n   itself to; this is what the judge grades against, so if the skill doesn't\n   make them clear, clarify with the user rather than inventing them. Settle\n   the eval mode here too: judgment (a bar the judge applies) vs conformance\n   (an exact task hit exactly) \u2014 ask the user if it's ambiguous. Then sharpen\n   each case's bar \u2014 the outcome plus the smells, kept at the altitude the\n   user cares about, never widened into a prescribed parts list unless the\n   skill is conformance-style. Done when you can state the skill's first\n   principles in a sentence and every case has a concrete input and a bar a\n   competent judge could hold an artifact to.\n\n2. **Blind run, one fresh agent per case.** Isolate every run so a misbehaving\n   skill can't touch the live checkout and each case starts clean. Prefer\n   capturing the artifact from the runner's final message \u2014 if the skill's\n   output is a plan or text, ask for it inline and nothing hits disk to leak.\n   When the skill must write files, give the runner a throwaway sandbox dir as\n   its only writable root, not a worktree of the live repo (worktree isolation\n   guards git state, not absolute-path or escaped writes). After every run,\n   sweep the live checkout (`git status`) and clean anything the run leaked \u2014\n   isolation is best-effort, the sweep is the guarantee. Give the runner\n   **only** the input and the instruction to use the target skill \u2014 never the\n   bar, the smells, the other cases, or why you're asking. Done when you hold\n   one artifact per case, each from a context-free run, and the checkout is\n   clean.\n\n3. **Grade with a separate judge that applies judgment.** Hand a fresh judge\n   the artifact, the bar, and the skill's **first principles** \u2014 so it grades\n   against the skill's own intent, not its personal taste \u2014 but never the\n   expected output and never \"make this pass.\" Grounded in those principles\n   the judge is a competent practitioner: it decides whether the work clears\n   the bar with *defensible* choices, and is explicitly free to fault both\n   too-coarse and too-fine work. It must cite specific evidence for each\n   verdict \u2014 a quote or pointer, not a number. Done when every part of the bar\n   has a verdict grounded in the artifact.\n\n4. **Account for nondeterminism.** Agents flicker. A single green is not\n   proof. For any case that matters or any verdict that looks borderline,\n   re-run the blind run 2\u20133\u00d7 and report the pass *rate*. A skill that passes\n   1 of 3 is not fixed.\n\n5. **Diagnose each failure as skill-defect vs bad-case.** A miss means either\n   the skill failed to drive the behavior (fixable here) **or** the bar was\n   wrong \u2014 it asked for something the skill should not do, can't express, or\n   it punished a defensible judgment call the skill was right to make (tell\n   the user; do not edit the skill to chase a wrong bar \u2014 that just encodes\n   the wrong reality). Name the defect against the `write-skills` failure\n   modes:\n   premature completion, vague completion criterion, missing rule, no leading\n   word, duplication, sediment, war story, no-op.\n\n6. **Revise via write-skills.** Fix the named defect \u2014 and obey those\n   authoring rules while you do it: sharpen the completion criterion before\n   adding bulk, prefer one leading word over more sentences, add no no-ops.\n   The failure is the spec for the edit; change only what the failure points\n   at.\n\n7. **Re-eval all cases, not just the failed one.** A fix can regress a case\n   that was passing. Loop until every case clears its rate bar, or until you\n   can show the skill structurally can't express a case \u2014 then report that\n   instead of forcing it.\n\n## Output\n\nA short report: per case, pass rate and the cited gap; the defect each\nfailure mapped to; the edits you made (or, if the user asked to approve\nfirst, the diff you propose); and the re-eval result. Make the before/after\nmovement legible \u2014 this is the evidence the skill actually improved.\n\n",
+      "skill_digest": "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074",
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "task_id": "single-green-run",
+      "tested_atom": null,
+      "variant_id": "ablated"
+    }
+  ],
+  "variants": [
+    "ablated",
+    "original"
+  ]
+}
