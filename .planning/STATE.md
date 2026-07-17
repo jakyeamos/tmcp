@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Bind reviewed release evidence to replayable benchmark
+**Current focus:** Commit reviewed release evidence bound to replayable benchmark
 artifacts, then replace the current non-isolated context metric with verified
 phase capsules. Graph provenance and host/evaluator evidence are content-bound;
 keep 0.5.7 active.
@@ -27,8 +27,10 @@ controls with explicit counterfactual obligations; `d70b4e7` makes benchmark
 graph identity independent of workspace roots. `7f72822` adds bounded raw
 host/evaluator artifacts, exact replay assembly, per-rubric evidence binding,
 actual runtime receipt lineage, safe receipt projection, and direct-domain size
-limits. Release-bound bundle verification, honest phase-capsule context
-accounting, and real host-run proof remain.
+limits. `6fdf9de` restores the hard domain-size gate through
+compatibility-preserving benchmark and behavior-manifest splits. Release-bound
+bundle verification, honest phase-capsule context accounting, and real host-run
+proof remain.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -41,6 +43,10 @@ accounting, and real host-run proof remain.
 
 ## Completed Scope
 
+- `6fdf9de` separates oversized benchmark assembly/replay and behavior-manifest
+  owners behind compatibility facades, explicitly compiles the new shipped
+  modules, and restores the <600 nonblank-line hard domain-size check. Focused
+  behavior/replay/protocol tests plus install and package compilation pass.
 - `7f72822` binds every benchmark observation to a compiler replay plus explicit
   bounded host/evaluator artifacts. It validates actual phase/stage/gate/handoff
   lineage, projects nested receipts safely, rejects secret-like free text and

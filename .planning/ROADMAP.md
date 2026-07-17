@@ -93,9 +93,11 @@ outcomes while preserving deterministic compatibility.
   content-and-edge identity across source-root relocation and same-path content
   edits. `7f72822` adds bounded host/evaluator fact bundles, exact replay
   assembly, per-rubric evidence bindings, safe receipt projection, runtime
-  phase/gate/handoff lineage checks, and direct-domain artifact caps. A
-  canonical committed release bundle and honest phase-capsule context accounting
-  are next. `9f26520` keeps preflight coverage below the test-size gate.
+  phase/gate/handoff lineage checks, and direct-domain artifact caps. `6fdf9de`
+  separates benchmark assembly/replay and behavior-manifest responsibilities
+  behind compatibility facades, restoring the hard module-size gate. A canonical
+  committed release bundle and honest phase-capsule context accounting are next.
+  `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, graph-bound typed
@@ -110,4 +112,4 @@ outcomes while preserving deterministic compatibility.
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for replay-bound benchmark evidence assembly*
+*Last updated: 2026-07-17 for benchmark domain-size refactoring*
