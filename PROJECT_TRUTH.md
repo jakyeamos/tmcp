@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `716e47d` preregisters a reviewed 36-cell `eval-skills` baseline, exposes its cost sidecar through the public CLI contract, and requires per-model schema preflight plus inspectable first-principles provenance.
-- Verification: 537 tests (3 skipped), Ruff, basedpyright, compile checks, contract check, dry-run readiness, and Pre-CR changed-line readiness pass. The approved 72-artifact live rejudge remains immutable with 72 unique fresh judge threads and a digest-valid complete sidecar.
+- Last completed change: `e91e878` adds a composition regression guard for pre-action route language and records the first cross-skill packet probes plus a varied behavioral campaign queue.
+- Verification: 539 tests (3 skipped), Ruff, basedpyright, compile checks, contract check, dry-run readiness, and Pre-CR changed-line readiness pass. The approved 72-artifact live rejudge remains immutable with 72 unique fresh judge threads and a digest-valid complete sidecar.
 
 ## Current Position
 
@@ -28,15 +28,16 @@
 - A passed remote-schema preflight receipt is persisted alongside every non-dry campaign; capacity/rate-limit/network retries are bounded, classified, archived, and auditable.
 - The fresh baseline pins independently reviewed directness repairs, three distinct available Codex runner identifiers (`gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`), a distinct `gpt-5.5` judge, an inspectable first-principles file, and an all-36-trace cost bar.
 - The generated plan and dry-run select exactly 36 original-only cells. No live target-skill prompt, model schema probe, runner, judge, or cost-sidecar call was sent after the external-execution gate rejected it.
+- Local TMCP + `explore-unknowns` and TMCP + `repo-behavior-spec-loop` packet probes retain their specialized evidence and stop conditions without activating `frontend_implementation` from pre-action wording. The `refactor-clean` probe is selection-only pending behavioral fixtures.
 
 ## Next Step
 
-- Obtain explicit approval to send the pinned target skill and fixtures to the external Codex service, then run the prepared 36-cell intact-only campaign and its 36-trace independent cost rejudge. Do not run `Workflow` micro-ablations against this held baseline.
+- Obtain explicit approval to send the pinned target skill and fixtures to the external Codex service, then run the prepared 36-cell intact-only campaign and its 36-trace independent cost rejudge. Then use the reviewed candidate queue for the next behavioral campaigns. Do not run `Workflow` micro-ablations against this held baseline.
 
 ## Blockers
 
 - Corpus promotion is held: the historical plan lacks a predeclared clustered-analysis policy and its regression-retest intact-control rate is 0/6.
-- The fresh baseline is unlaunched pending explicit approval for the new external Codex model calls; its fixture repairs, model matrix, policy, generated plan, and local dry-run are complete.
+- The fresh baseline is unlaunched: the external policy rejected broad approval for model calls and requires an explicit approval that names transmission of the pinned target skill and reviewed fixtures to the Codex service.
 
 ## Risks
 
