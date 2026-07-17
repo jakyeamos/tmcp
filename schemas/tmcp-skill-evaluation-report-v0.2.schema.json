@@ -26,6 +26,14 @@
     },
     "created_at": {"type": "string"},
     "stability": {"type": "string"},
+    "study_design": {
+      "type": "string",
+      "description": "Whether the report is a baseline reliability study or a causal/unclassified evaluation."
+    },
+    "baseline_reliability": {
+      "type": ["object", "null"],
+      "description": "Original-only reliability evidence. Present only for a preregistered baseline study."
+    },
     "scorecard": {"type": "object"},
     "activation_scores": {"type": "array"},
     "packet_inclusion_scores": {"type": "array"},

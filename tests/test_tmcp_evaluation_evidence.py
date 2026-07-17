@@ -172,6 +172,39 @@ class EvaluationEvidenceServiceTests(unittest.TestCase):
         self.assertIsNone(claim["observed_summary"]["absolute_lift"])
         self.assertFalse(claim["causal_contrast_valid"])
 
+    def test_baseline_summary_reports_intact_reliability_without_a_claim(self) -> None:
+        plan = self._plan()
+        plan["experiment"]["campaign_policy"] = {
+            "schema": "tmcp-skill-eval-campaign-policy-v0.1",
+            "design": "baseline_reliability",
+            "runner_configurations": [{"model": "model", "reasoning_effort": "high"}],
+            "baseline_reliability": {
+                "control_variant": "original",
+                "minimum_control_pass_rate": 0.5,
+                "minimum_per_fixture_control_pass_rate": 0.5,
+                "require_predeclared_clustered_interval": True,
+            },
+        }
+        traces = [
+            trace for trace in self._traces(plan) if trace["variant_id"] == "original"
+        ]
+        rejudgments = {trace["trace_id"]: False for trace in traces}
+        rejudgments[traces[0]["trace_id"]] = True
+
+        summary = evaluation_evidence.baseline_reliability_summary(
+            plan, traces, cost_rejudgments=rejudgments
+        )
+
+        self.assertIsNotNone(summary)
+        assert summary is not None
+        self.assertTrue(summary["meets_predeclared_floors"])
+        self.assertEqual(summary["passed"], 4)
+        self.assertEqual(summary["total"], 4)
+        self.assertEqual(summary["minimum_per_fixture_pass_rate"], 1.0)
+        self.assertEqual(summary["adjudicated_cost_regressions"], 1)
+        self.assertEqual(summary["per_runner_model"][0]["fixture_count"], 2)
+        self.assertEqual(evaluation_evidence.analyze_pattern_evidence(plan, traces), [])
+
     def test_multi_gate_requires_72_runs(self) -> None:
         plan = self._plan(fixture_count=6)
         traces = self._traces(

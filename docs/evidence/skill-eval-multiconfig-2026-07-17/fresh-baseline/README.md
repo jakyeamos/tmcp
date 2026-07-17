@@ -85,6 +85,12 @@ diagnostics without attachment-selection telemetry in this protocol; a zero in
 those fields must not be read as evidence that the supplied skill failed to
 activate or that it was not followed.
 
+The corrected reporting pass preserves that raw evidence while making the
+study type explicit: it exposes actual baseline reliability, per-runner-model
+coverage, raw and condition-blind cost counts, and `not_applicable` causal,
+activation, and adherence surfaces. It emits no causal pattern claim from an
+original-only study.
+
 The next evidence-bearing step is diagnosis of the two 2/6 families and the
 sidecar cost finding against the target's first principles, followed—only if a
 specific target defect is confirmed—by a newly reviewed, preregistered baseline.
@@ -100,4 +106,8 @@ Do not run a Workflow microablation against this held control.
 - [`cost-rejudge/run/cost-rejudgments.json`](cost-rejudge/run/cost-rejudgments.json):
   complete independent cost sidecar.
 - [`scored/tmcp-skill-evaluation-report.json`](scored/tmcp-skill-evaluation-report.json):
-  scorecard with its causal-claim boundary.
+  original scored report, retained unchanged.
+- [`scored/reinterpreted/tmcp-skill-evaluation-report.json`](scored/reinterpreted/tmcp-skill-evaluation-report.json):
+  corrected baseline-reporting interpretation.
+- [`baseline-diagnosis.md`](baseline-diagnosis.md): local trace classification
+  and minimal target-revision proposal.

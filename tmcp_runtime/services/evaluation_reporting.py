@@ -9,8 +9,22 @@ from typing import Any
 def aggregate_dimension(scores: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     if not scores:
         return {"score": 0.0, "confidence": "low"}
-    average = sum(float(item.get("score") or 0.0) for item in scores) / len(scores)
-    confidences = {str(item.get("confidence") or "low") for item in scores}
+    applicable = [
+        item
+        for item in scores
+        if item.get("applicable", True) is not False and item.get("score") is not None
+    ]
+    if not applicable:
+        return {
+            "score": None,
+            "confidence": "not_applicable",
+            "applicable_count": 0,
+            "not_applicable_count": len(scores),
+        }
+    average = sum(float(item.get("score") or 0.0) for item in applicable) / len(
+        applicable
+    )
+    confidences = {str(item.get("confidence") or "low") for item in applicable}
     confidence = (
         "high"
         if confidences == {"high"}
@@ -18,7 +32,11 @@ def aggregate_dimension(scores: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         if "medium" in confidences
         else "low"
     )
-    return {"score": round(average, 2), "confidence": confidence}
+    result: dict[str, Any] = {"score": round(average, 2), "confidence": confidence}
+    if len(applicable) != len(scores):
+        result["applicable_count"] = len(applicable)
+        result["not_applicable_count"] = len(scores) - len(applicable)
+    return result
 
 
 def harvest_feedback(

@@ -132,6 +132,182 @@ def scorecard_claim_boundary() -> dict[str, Any]:
     }
 
 
+def _baseline_reliability_policy(plan: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    experiment = plan.get("experiment")
+    policy = (
+        experiment.get("campaign_policy") if isinstance(experiment, Mapping) else None
+    )
+    if (
+        not isinstance(policy, Mapping)
+        or policy.get("design") != "baseline_reliability"
+    ):
+        return None
+    baseline = policy.get("baseline_reliability")
+    return baseline if isinstance(baseline, Mapping) else None
+
+
+def is_baseline_reliability_plan(plan: Mapping[str, Any]) -> bool:
+    """Return whether a plan is an original-only reliability study."""
+
+    return _baseline_reliability_policy(plan) is not None
+
+
+def baseline_reliability_summary(
+    plan: Mapping[str, Any],
+    traces: Sequence[Mapping[str, Any]],
+    *,
+    cost_rejudgments: Mapping[str, bool] | None = None,
+) -> dict[str, Any] | None:
+    """Summarize intact-skill reliability without inventing a causal contrast."""
+
+    baseline_policy = _baseline_reliability_policy(plan)
+    if baseline_policy is None:
+        return None
+
+    planned_rows = [
+        dict(row)
+        for row in plan.get("task_matrix", [])
+        if isinstance(row, Mapping) and row.get("variant_id") == "original"
+    ]
+    fixture_rows: dict[str, dict[str, Any]] = {}
+    for row in planned_rows:
+        fixture_digest = str(row.get("fixture_digest") or "")
+        if fixture_digest:
+            fixture_rows.setdefault(fixture_digest, row)
+
+    records = [
+        record
+        for record in _records(plan, traces)
+        if str(record["row"].get("variant_id") or "") == "original"
+    ]
+    by_fixture: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    by_model: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in records:
+        row = record["row"]
+        fixture_digest = str(row.get("fixture_digest") or "")
+        if fixture_digest:
+            by_fixture[fixture_digest].append(record)
+        runner_model = str(record.get("runner_model") or "unspecified")
+        by_model[runner_model].append(record)
+
+    def _counts(items: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+        total = len(items)
+        passed = sum(1 for item in items if item.get("passed") is True)
+        return {
+            "passed": passed,
+            "total": total,
+            "pass_rate": round(passed / total, 3) if total else None,
+        }
+
+    per_fixture = [
+        {
+            "fixture_digest": fixture_digest,
+            "task_id": row.get("task_id"),
+            "fixture_family": row.get("fixture_family"),
+            **_counts(by_fixture.get(fixture_digest, [])),
+        }
+        for fixture_digest, row in sorted(fixture_rows.items())
+    ]
+    per_fixture_rates = [
+        float(item["pass_rate"])
+        for item in per_fixture
+        if isinstance(item.get("pass_rate"), (int, float))
+    ]
+
+    experiment = plan.get("experiment")
+    policy = (
+        experiment.get("campaign_policy") if isinstance(experiment, Mapping) else None
+    )
+    configurations = (
+        policy.get("runner_configurations") if isinstance(policy, Mapping) else None
+    )
+    expected_models = {
+        str(configuration.get("model") or "")
+        for configuration in configurations or []
+        if isinstance(configuration, Mapping) and str(configuration.get("model") or "")
+    }
+    runner_models = sorted(expected_models | set(by_model))
+    per_runner_model = []
+    for model in runner_models:
+        model_records = by_model.get(model, [])
+        model_by_fixture: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for record in model_records:
+            digest = str(record["row"].get("fixture_digest") or "")
+            if digest:
+                model_by_fixture[digest].append(record)
+        counts = _counts(model_records)
+        per_runner_model.append(
+            {
+                "model": model,
+                **counts,
+                "fixture_count": len(model_by_fixture),
+                "minimum_repetitions_per_fixture": min(
+                    (len(model_by_fixture.get(digest, [])) for digest in fixture_rows),
+                    default=0,
+                ),
+            }
+        )
+
+    totals = _counts(records)
+    valid_case_verdicts = sum(1 for record in records if not record.get("verdict_gaps"))
+    provenance_complete = all(record.get("controlled") is True for record in records)
+    raw_safety_regressions = sum(
+        1
+        for record in records
+        if isinstance(record["trace"].get("case_verdict"), Mapping)
+        and record["trace"]["case_verdict"].get("safety_regression") is True
+    )
+    raw_cost_regressions = sum(
+        1
+        for record in records
+        if isinstance(record["trace"].get("case_verdict"), Mapping)
+        and record["trace"]["case_verdict"].get("cost_regression") is True
+    )
+    trace_ids = [str(record["trace"].get("trace_id") or "") for record in records]
+    adjudicated_cost_regressions = (
+        sum(1 for trace_id in trace_ids if cost_rejudgments.get(trace_id) is True)
+        if cost_rejudgments is not None
+        else None
+    )
+    adjudicated_cost_complete = cost_rejudgments is not None and all(
+        trace_id in cost_rejudgments for trace_id in trace_ids
+    )
+    overall_floor = float(baseline_policy["minimum_control_pass_rate"])
+    per_fixture_floor = float(baseline_policy["minimum_per_fixture_control_pass_rate"])
+    floors_met = (
+        totals["pass_rate"] is not None
+        and valid_case_verdicts == totals["total"]
+        and provenance_complete
+        and len(per_fixture) == len(fixture_rows)
+        and len(per_fixture_rates) == len(per_fixture)
+        and float(totals["pass_rate"]) >= overall_floor
+        and all(rate >= per_fixture_floor for rate in per_fixture_rates)
+    )
+    return {
+        "design": "baseline_reliability",
+        "causal_contrast_applicable": False,
+        "control_variant": str(baseline_policy.get("control_variant") or "original"),
+        **totals,
+        "valid_case_verdicts": valid_case_verdicts,
+        "provenance_complete": provenance_complete,
+        "minimum_per_fixture_pass_rate": (
+            round(min(per_fixture_rates), 3) if per_fixture_rates else None
+        ),
+        "per_fixture": per_fixture,
+        "per_runner_model": per_runner_model,
+        "raw_safety_regressions": raw_safety_regressions,
+        "raw_cost_regressions": raw_cost_regressions,
+        "cost_rejudgment_applied": cost_rejudgments is not None,
+        "cost_rejudgment_complete": adjudicated_cost_complete,
+        "adjudicated_cost_regressions": adjudicated_cost_regressions,
+        "predeclared_thresholds": {
+            "minimum_control_pass_rate": overall_floor,
+            "minimum_per_fixture_control_pass_rate": per_fixture_floor,
+        },
+        "meets_predeclared_floors": floors_met,
+    }
+
+
 def validated_case_verdict(
     trace: Mapping[str, Any],
 ) -> tuple[bool | None, list[str]]:
@@ -389,6 +565,9 @@ def analyze_pattern_evidence(
     cost_rejudgments: Mapping[str, bool] | None = None,
 ) -> list[dict[str, Any]]:
     """Compute paired effects and evidence levels for explicitly tagged patterns."""
+
+    if is_baseline_reliability_plan(plan):
+        return []
 
     records = _records(plan, traces)
     thresholds = thresholds_for_plan(plan)

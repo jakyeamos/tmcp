@@ -4,12 +4,13 @@ import ast
 import inspect
 import unittest
 from pathlib import Path
+from typing import Any
 
 import tmcp_runtime.services.evaluation_scoring as evaluation_scoring
 
 
 class EvaluationScoringServiceTests(unittest.TestCase):
-    def _plan(self) -> dict[str, object]:
+    def _plan(self) -> dict[str, Any]:
         return {
             "schema": "tmcp-skill-evaluation-plan-v0.1",
             "evaluated_skills": [
@@ -217,6 +218,86 @@ class EvaluationScoringServiceTests(unittest.TestCase):
         self.assertEqual(activation["score"], 1.0)
         self.assertFalse(activation["signals"]["skill_selected"])
         self.assertFalse(activation["signals"]["skill_should_be_selected"])
+
+    def test_direct_attachment_baseline_reports_reliability_not_causal_lift(
+        self,
+    ) -> None:
+        plan = self._plan()
+        plan["experiment"] = {
+            "experiment_id": "experiment-1",
+            "campaign_policy": {
+                "schema": "tmcp-skill-eval-campaign-policy-v0.1",
+                "design": "baseline_reliability",
+                "runner_configurations": [
+                    {"model": "runner-model", "reasoning_effort": "high"}
+                ],
+                "baseline_reliability": {
+                    "control_variant": "original",
+                    "minimum_control_pass_rate": 0.5,
+                    "minimum_per_fixture_control_pass_rate": 0.5,
+                    "require_predeclared_clustered_interval": True,
+                },
+            },
+        }
+        plan["task_matrix"][0].update(
+            {
+                "matrix_row_id": "row-1",
+                "fixture_digest": "fixture-1",
+                "fixture_family": "family-1",
+            }
+        )
+        trace = {
+            "trace_id": "trace-1",
+            "experiment_id": "experiment-1",
+            "matrix_row_id": "row-1",
+            "replicate_id": "replicate-1",
+            "task_id": "task-1",
+            "variant_id": "original",
+            "agent": {
+                "name": "codex-cli-blind-runner",
+                "model": "runner-model",
+                "configuration_id": "runner-model-high",
+            },
+            "provenance": {
+                "runner_blinded": True,
+                "judge_blinded": True,
+                "isolated_session": True,
+                "instruction_delivery": "direct_attachment",
+            },
+            "campaign": {"runner_artifact": "cells/row-1/runner.txt"},
+            "observations": [{"kind": "assistant_message", "value": "artifact"}],
+            "case_verdict": {
+                "passed": True,
+                "evidence": ["judge verdict"],
+                "safety_regression": False,
+                "cost_regression": False,
+            },
+        }
+
+        report = evaluation_scoring.score_traces(
+            plan,
+            [trace],
+            anti_pattern_catalog=[],
+            effective_patterns=[],
+            report_schema="report",
+            created_at="now",
+            cost_rejudgments={"trace-1": True},
+        )
+
+        self.assertEqual(report["study_design"], "baseline_reliability")
+        self.assertEqual(report["baseline_reliability"]["pass_rate"], 1.0)
+        self.assertEqual(
+            report["baseline_reliability"]["adjudicated_cost_regressions"], 1
+        )
+        self.assertEqual(report["pattern_claims"], [])
+        self.assertIsNone(report["scorecard"]["outcome_lift"]["score"])
+        self.assertIsNone(report["scorecard"]["activation"]["score"])
+        self.assertIsNone(report["scorecard"]["adherence"]["score"])
+        self.assertEqual(report["scorecard"]["cost"]["score"], 0.0)
+        self.assertEqual(
+            report["scorecard"]["cost"]["source"],
+            "condition_blind_cost_rejudgment",
+        )
 
     def test_bound_legacy_trace_cannot_gain_controlled_provenance(self) -> None:
         plan = self._plan()

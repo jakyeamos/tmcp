@@ -477,6 +477,7 @@ async def execute_cell(
                 "runner_blinded": True,
                 "judge_blinded": True,
                 "isolated_session": True,
+                "instruction_delivery": "direct_attachment",
                 "prompt_context_sha256": args.prompt_context_sha256,
                 "disabled_features": list(DISABLED_CODEX_FEATURES),
                 "runner_event_audit": runner_stage["event_audit"],

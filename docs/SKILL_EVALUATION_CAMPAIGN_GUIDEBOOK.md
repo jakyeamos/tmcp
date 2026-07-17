@@ -58,6 +58,10 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - Treat an original-only baseline as a reliability gate, not as an empty causal
   contrast. Its paired-causal score may correctly contain zero cells; report the
   baseline summary from the campaign receipt and keep the causal claim on hold.
+- A policy-bound original-only report must expose its actual reliability,
+  per-fixture and per-runner coverage, and raw plus condition-blind cost counts.
+  Mark causal lift and all causal pattern claims not applicable rather than
+  emitting zero-count contrast summaries that look like negative evidence.
 - Do not interpret attachment-only activation or adherence heuristics without
   positive telemetry. When the protocol supplies an instruction attachment and
   records only the final artifact, a missing selection signal is

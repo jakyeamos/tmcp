@@ -13,7 +13,9 @@ from typing import Any
 from tmcp_runtime.services.evaluation_evidence import (
     aggregate_lift,
     analyze_pattern_evidence,
+    baseline_reliability_summary,
     case_scores,
+    is_baseline_reliability_plan,
     scorecard_claim_boundary,
     validated_case_verdict,
 )
@@ -110,6 +112,22 @@ def _observation_text(trace: dict[str, Any]) -> str:
     ).lower()
 
 
+def _uses_direct_instruction_attachment(trace: dict[str, Any]) -> bool:
+    provenance = trace.get("provenance")
+    if isinstance(provenance, dict) and provenance.get("instruction_delivery") == (
+        "direct_attachment"
+    ):
+        return True
+    agent = trace.get("agent")
+    campaign = trace.get("campaign")
+    return (
+        isinstance(agent, dict)
+        and agent.get("name") == "codex-cli-blind-runner"
+        and isinstance(campaign, dict)
+        and bool(campaign.get("runner_artifact"))
+    )
+
+
 def _bind_trace_to_row(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     matrix_row_id = str(trace.get("matrix_row_id") or "") or None
     row = _task_matrix_row(
@@ -203,6 +221,26 @@ def _row_for_bound_trace(
 
 
 def _score_activation(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
+    if _uses_direct_instruction_attachment(trace):
+        return {
+            "matrix_row_id": trace.get("matrix_row_id"),
+            "task_id": trace.get("task_id"),
+            "variant_id": trace.get("variant_id"),
+            "score": None,
+            "confidence": "not_applicable",
+            "applicable": False,
+            "signals": {
+                "skill_selected": None,
+                "skill_should_be_selected": None,
+                "matched_trigger_terms": [],
+                "false_positive_activation": None,
+                "false_negative_activation": None,
+            },
+            "notes": (
+                "The runner received a direct instruction attachment; this trace has "
+                "no skill-selection telemetry."
+            ),
+        }
     text = _observation_text(trace)
     row = _row_for_bound_trace(plan, trace)
     skill_terms: list[str] = []
@@ -371,6 +409,20 @@ def _label_map(trace: dict[str, Any]) -> dict[str, bool]:
 
 
 def _score_adherence(trace: dict[str, Any]) -> dict[str, Any]:
+    if _uses_direct_instruction_attachment(trace):
+        return {
+            "matrix_row_id": trace.get("matrix_row_id"),
+            "task_id": trace.get("task_id"),
+            "variant_id": trace.get("variant_id"),
+            "score": None,
+            "confidence": "not_applicable",
+            "applicable": False,
+            "signals": {},
+            "notes": (
+                "The protocol records only the final artifact, not the behavior "
+                "telemetry required for this heuristic adherence score."
+            ),
+        }
     text = _observation_text(trace)
     labels = _label_map(trace)
     signals = {
@@ -502,6 +554,38 @@ def _score_cost(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _cost_scorecard(
+    traces: list[dict[str, Any]],
+    heuristic_scores: list[dict[str, Any]],
+    cost_rejudgments: dict[str, bool] | None,
+) -> dict[str, Any]:
+    if cost_rejudgments is None:
+        return aggregate_dimension(heuristic_scores)
+    trace_ids = [str(trace.get("trace_id") or "") for trace in traces]
+    raw_regressions = sum(
+        1
+        for trace in traces
+        if isinstance(trace.get("case_verdict"), dict)
+        and trace["case_verdict"].get("cost_regression") is True
+    )
+    rejudged_regressions = sum(
+        1 for trace_id in trace_ids if cost_rejudgments.get(trace_id) is True
+    )
+    total = len(traces)
+    return {
+        "score": round((total - rejudged_regressions) / total, 2) if total else None,
+        "confidence": "high",
+        "source": "condition_blind_cost_rejudgment",
+        "trace_count": total,
+        "raw_regressions": raw_regressions,
+        "adjudicated_regressions": rejudged_regressions,
+        "notes": (
+            "Raw and condition-blind cost verdicts are retained separately; the "
+            "sidecar result is the reported cost surface."
+        ),
+    }
+
+
 def score_traces(
     plan: dict[str, Any],
     traces: list[dict[str, Any]],
@@ -517,6 +601,11 @@ def score_traces(
     cost_rejudgments: dict[str, bool] | None = None,
 ) -> dict[str, Any]:
     traces = _bind_traces_to_rows(traces, plan)
+    baseline_reliability = baseline_reliability_summary(
+        plan,
+        traces,
+        cost_rejudgments=cost_rejudgments,
+    )
     compose_cache: dict[str, dict[str, Any]] = {}
     activation_scores = [_score_activation(trace, plan) for trace in traces]
     adherence_scores = [_score_adherence(trace) for trace in traces]
@@ -593,13 +682,25 @@ def score_traces(
         )
     ]
 
+    outcome_lift = (
+        {
+            "score": None,
+            "confidence": "not_applicable",
+            "notes": (
+                "This is an original-only baseline reliability study; it contains "
+                "no intervention/control contrast."
+            ),
+        }
+        if is_baseline_reliability_plan(plan)
+        else aggregate_lift(pattern_claims)
+    )
     scorecard = {
         "claim_boundary": scorecard_claim_boundary(),
         "activation": aggregate_dimension(activation_scores),
         "packet_inclusion": aggregate_dimension(packet_scores),
         "adherence": aggregate_dimension(adherence_scores),
-        "outcome_lift": aggregate_lift(pattern_claims),
-        "cost": aggregate_dimension(cost_scores),
+        "outcome_lift": outcome_lift,
+        "cost": _cost_scorecard(traces, cost_scores, cost_rejudgments),
         "safety": {
             "score": 1.0
             if not any(
@@ -616,6 +717,12 @@ def score_traces(
         "schema": report_schema,
         "created_at": created_at,
         "evaluation_plan_schema": plan.get("schema"),
+        "study_design": (
+            "baseline_reliability"
+            if baseline_reliability is not None
+            else "causal_or_unclassified"
+        ),
+        "baseline_reliability": baseline_reliability,
         "scorecard": scorecard,
         "activation_scores": activation_scores,
         "packet_inclusion_scores": packet_scores,

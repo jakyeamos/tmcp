@@ -21,6 +21,9 @@ if str(ROOT) not in sys.path:
 
 import scripts.tmcp_skill_eval_campaign_protocol as campaign_protocol  # noqa: E402
 import scripts.tmcp_skill_eval_campaign_runtime as campaign_runtime  # noqa: E402
+from tmcp_runtime.services.evaluation_evidence import (  # noqa: E402
+    baseline_reliability_summary,
+)
 from scripts.tmcp_skill_eval_campaign_protocol import (  # noqa: E402
     CAMPAIGN_PROTOCOL,
     DISABLED_CODEX_FEATURES,
@@ -88,57 +91,6 @@ def _aggregate_usage(traces: list[dict[str, Any]]) -> dict[str, Any]:
         "by_variant": by_variant,
         "by_configuration": by_configuration,
     }
-
-
-def _baseline_reliability_summary(
-    traces: list[dict[str, Any]],
-    rows: dict[str, dict[str, Any]],
-    baseline_policy: dict[str, Any] | None,
-) -> dict[str, Any]:
-    grouped: dict[str, list[dict[str, Any]]] = {}
-    for trace in traces:
-        row = rows[str(trace["matrix_row_id"])]
-        grouped.setdefault(str(row["fixture_digest"]), []).append(trace)
-    per_fixture = [
-        {
-            "fixture_digest": fixture_digest,
-            "passed": sum(
-                1 for trace in fixture_traces if trace["case_verdict"]["passed"]
-            ),
-            "total": len(fixture_traces),
-        }
-        for fixture_digest, fixture_traces in sorted(grouped.items())
-    ]
-    for item in per_fixture:
-        item["pass_rate"] = round(item["passed"] / item["total"], 3)
-    passed = sum(item["passed"] for item in per_fixture)
-    total = sum(item["total"] for item in per_fixture)
-    result: dict[str, Any] = {
-        "passed": passed,
-        "total": total,
-        "pass_rate": round(passed / total, 3) if total else None,
-        "minimum_per_fixture_pass_rate": min(
-            (item["pass_rate"] for item in per_fixture), default=None
-        ),
-        "per_fixture": per_fixture,
-    }
-    if isinstance(baseline_policy, dict):
-        overall_floor = baseline_policy.get("minimum_control_pass_rate")
-        per_fixture_floor = baseline_policy.get("minimum_per_fixture_control_pass_rate")
-        if isinstance(overall_floor, (int, float)) and isinstance(
-            per_fixture_floor, (int, float)
-        ):
-            result["predeclared_thresholds"] = {
-                "minimum_control_pass_rate": overall_floor,
-                "minimum_per_fixture_control_pass_rate": per_fixture_floor,
-            }
-            result["meets_predeclared_floors"] = bool(
-                result["pass_rate"] is not None
-                and result["minimum_per_fixture_pass_rate"] is not None
-                and result["pass_rate"] >= overall_floor
-                and result["minimum_per_fixture_pass_rate"] >= per_fixture_floor
-            )
-    return result
 
 
 def _validate_campaign_args(args: argparse.Namespace) -> None:
@@ -643,20 +595,7 @@ async def _main(args: argparse.Namespace) -> int:
         "usage": _aggregate_usage(all_traces),
     }
     if args.design == "baseline_reliability":
-        experiment = plan.get("experiment")
-        campaign_policy = (
-            experiment.get("campaign_policy") if isinstance(experiment, dict) else None
-        )
-        baseline_policy = (
-            campaign_policy.get("baseline_reliability")
-            if isinstance(campaign_policy, dict)
-            else None
-        )
-        summary["baseline_reliability"] = _baseline_reliability_summary(
-            all_traces,
-            rows,
-            baseline_policy if isinstance(baseline_policy, dict) else None,
-        )
+        summary["baseline_reliability"] = baseline_reliability_summary(plan, all_traces)
     _atomic_json(args.output_dir / "campaign-summary.json", summary)
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 1 if errors else 0
