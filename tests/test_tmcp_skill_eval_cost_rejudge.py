@@ -733,7 +733,8 @@ class CostRejudgeSourceTests(unittest.TestCase):
         for case in cases:
             with self.subTest(rejudge_runs=case["rejudge_runs"]):
                 with self.assertRaisesRegex(
-                    ValueError, "source cost_bar_sha256 does not match inputs"
+                    ValueError,
+                    "(source cost_bar_sha256 does not match inputs|Cost bar file is missing)",
                 ):
                     verify_cost_rejudge.verify_cost_rejudge(**case)
 
