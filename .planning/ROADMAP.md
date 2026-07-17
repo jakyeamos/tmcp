@@ -86,9 +86,11 @@ outcomes while preserving deterministic compatibility.
   same-graph runtime continuity, recipe/receipt persistence, and handoff diffs.
   `9f13813` adds safe, root-independent fixture materialization and a
   content-addressed, no-oracle host-intake plan with bounded preflights for all
-  routing and behavioral requests. Compiler replay, observation assembly, and
-  derived context accounting are next. `9f26520` keeps preflight coverage below
-  the test-size gate.
+  routing and behavioral requests. `5745420` replays every proposal with those
+  exact limits, emits full compiler recipe/gate/context evidence, and labels
+  wrong-order and ablation cases as counterfactual controls rather than valid
+  composition. Source-independent graph provenance and observation assembly are
+  next. `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, graph-bound typed
@@ -102,4 +104,4 @@ outcomes while preserving deterministic compatibility.
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for prepared benchmark workspaces and replay gating*
+*Last updated: 2026-07-17 for compiler-replayed benchmark controls*

@@ -6,8 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Assemble compiler-bound host evidence from the prepared,
-isolated benchmark workspaces. Keep 0.5.7 active.
+**Current focus:** Bind compiler-replayed controls to assembled observations,
+source-independent provenance, and derived context. Keep 0.5.7 active.
 
 ## Milestone
 
@@ -19,9 +19,10 @@ deterministic path, while `9f26520` restores the test-size quality gate. Task
 identity has lexical safety at `9b4d72e` and compound-task safety at
 `5fcefab`; `271ed29` narrows compatibility activation to governing sources plus
 evidence-backed bootstrap skills. `f190a82` adds verified typed handoffs,
-runtime continuity, and receipt/diff propagation. `9f13813` now prepares exact
-fixture workspaces and host-intake manifests; replay assembly and real host-run
-proof remain.
+runtime continuity, and receipt/diff propagation. `9f13813` prepares exact
+fixture workspaces and host-intake manifests; `5745420` replays compiler-bound
+controls with explicit counterfactual obligations. Observation assembly and real
+host-run proof remain.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -34,6 +35,15 @@ proof remain.
 
 ## Completed Scope
 
+- `5745420` makes benchmark semantic evidence complete but opt-in and bounded:
+  normal low-context preflight behavior is unchanged, while benchmark sources
+  can all be cited. It replays each supplied proposal with the exact prepared
+  limits, rejects phase drift, emits hash-bound full-composition recipes with
+  stages, bridges, handoffs, gates, and derived context, and labels wrong-order
+  and leave-one-out cases as explicit counterfactual controls. Fresh semantic
+  proposal/control schemas, a no-execution control-plan assembler, deterministic
+  tamper validation, package inclusion, focused replay/safety tests, contract,
+  install, and compile checks pass.
 - `9f13813` adds a content-addressed, prepare-only benchmark protocol: five
   isolated fixture source roots, bounded preflight artifacts for every routing
   and behavioral request, a no-oracle host plan, and descriptor-safe atomic tree
@@ -349,11 +359,9 @@ _(truncated for length)_
 ## Accumulated Context
 
 ### Roadmap Evolution
-- 2026-07-17: `9f13813` makes benchmark preparation executable without granting
-  TMCP agent-execution authority: source trees and preflights are materialized
-  atomically under explicit roots, while host plans omit expected routes, order,
-  relationships, and scores. Compiler replay, derived context accounting, and
-  host-result assembly remain release blockers.
+- 2026-07-17: `9f13813` materializes no-oracle benchmark preparation and
+  `5745420` turns host proposals into exact compiler replay/control recipes;
+  source-independent graph provenance and observation assembly remain blockers.
 - 2026-07-10: Modernization audit identifies P0 package disclosure risk and
   proposes a parallel v2 runtime behind stable entrypoints.
 - 2026-07-11: Milestone 0 closes the package-disclosure blocker; next work
@@ -386,5 +394,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 scripts/prepare_composition_benchmark.py --help
+python3 scripts/assemble_composition_benchmark.py control-plan --help
 ```
