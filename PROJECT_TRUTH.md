@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `73f0c03` adds a resumable 72-cell skill-evaluation campaign harness with blind prompt preflight, fresh runner/judge sessions, exact keyed judgments, artifact-bound traces, and usage accounting.
-- Verification: 156 focused evaluator/routing tests, Ruff, basedpyright, compile, a live one-cell run, and an artifact-validating no-call resume replay passed. Pre-CR flagged the 1,296-line harness above the 700-line script budget.
+- Last completed change: `e1c9693` splits the campaign harness into protocol, runtime, and orchestration modules, binds every module digest into the run manifest, and preserves raw streams when a final-output artifact is missing.
+- Verification: nine focused harness tests, Ruff, basedpyright, compile, the 72-cell dry-run, and Pre-CR passed. Each harness module is below the 700-line script budget; the earlier live one-cell run and artifact-validating no-call resume replay also passed.
 
 ## Current Position
 
@@ -15,14 +15,15 @@
 - The scorer reports a controlled-single-configuration section claim with intervention-control lift `-1.0` and 95% interval `[-1.0, -0.02]`; promotion remains on hold.
 - The checked-in catalog and guidebook preserve the candidate status, evidence scope, promotion gaps, suspected-only static finding, and reproducible evidence bundle.
 - Route inference now uses lexical-start matching for objectives and source evidence, so promotion-oriented evaluation prompts no longer activate motion guidance.
+- Revised experiment `skill-eval-95cfdd0ee52ff673` contains six semantically distinct workflow-stage fixtures across original and exact one-section-ablation conditions, three pinned reasoning configurations, and two repetitions.
 
 ## Next Step
 
-- Split the campaign harness by responsibility to clear the source-size gate, then run the revised six-family 72-cell promotion matrix.
+- Commit the revised fixture/plan evidence, then run and score the six-family 72-cell promotion matrix.
 
 ## Blockers
 
-- The campaign harness must clear the script source-size budget before the full run is launched.
+- None. The full campaign requires live Codex API access and remains safely resumable if an infrastructure attempt is invalidated.
 
 ## Risks
 
