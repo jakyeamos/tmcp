@@ -449,6 +449,31 @@ class EvaluationEvidenceServiceTests(unittest.TestCase):
         self.assertEqual(entries[0]["evidence_level"], "static_review")
         self.assertFalse(entries[0]["promotion"]["eligible"])
 
+    def test_guidebook_entries_make_home_relative_source_paths_portable(self) -> None:
+        entries = evaluation_guidebook.guidebook_entries(
+            static_findings=[
+                {
+                    "pattern_id": PATTERN_ID,
+                    "classification": "effective_pattern",
+                    "skill_path": "/Users/example/skills/authoring/eval-skills/SKILL.md",
+                }
+            ],
+            claims=[],
+            effective_patterns=[
+                {
+                    "pattern_id": PATTERN_ID,
+                    "label": "Concrete command",
+                    "classification": "effective_pattern",
+                }
+            ],
+            anti_pattern_catalog=[],
+        )
+
+        self.assertEqual(
+            entries[0]["source_skills"],
+            ["~/skills/authoring/eval-skills/SKILL.md"],
+        )
+
     def test_case_scores_preserve_fixture_oracles(self) -> None:
         plan = self._plan()
         score = evaluation_evidence.case_scores(plan, self._traces(plan))[0]

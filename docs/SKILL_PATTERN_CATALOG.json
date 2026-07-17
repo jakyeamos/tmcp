@@ -80,7 +80,7 @@
         "trace_count": 72
       },
       "source_skills": [
-        "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+        "~/skills/authoring/eval-skills/SKILL.md"
       ],
       "status": "supported",
       "title": "Staged evaluation workflow section"
@@ -107,7 +107,7 @@
       },
       "sample": null,
       "source_skills": [
-        "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md"
+        "~/skills/authoring/eval-skills/SKILL.md"
       ],
       "status": "suspected",
       "title": "Missing observable output contract"

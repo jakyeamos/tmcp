@@ -9,6 +9,18 @@ from typing import Any
 from tmcp_runtime.services.evaluation_catalog import EVIDENCE_RANK
 
 
+def _portable_source_skill_path(value: object) -> str:
+    """Keep published guidebook provenance portable across local home directories."""
+
+    source = str(value).replace("\\", "/")
+    for home_prefix in ("/Users/", "/home/"):
+        if source.startswith(home_prefix):
+            parts = source.split("/")
+            if len(parts) >= 4:
+                return f"~/{'/'.join(parts[3:])}"
+    return source
+
+
 def guidebook_entries(
     *,
     static_findings: Sequence[Mapping[str, Any]],
@@ -83,7 +95,7 @@ def guidebook_entries(
                 "avoid": pattern.get("weak_example") or "",
                 "source_skills": sorted(
                     {
-                        str(finding.get("skill_path"))
+                        _portable_source_skill_path(finding.get("skill_path"))
                         for finding in findings_by_pattern.get(pattern_id, [])
                         if finding.get("skill_path")
                     }

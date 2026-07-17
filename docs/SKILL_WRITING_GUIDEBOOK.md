@@ -154,9 +154,9 @@ bar.
 
 ## Evidence ledger
 
-The first controlled pilot is in
-[`docs/evidence/skill-eval-dogfood-2026-07-17`](evidence/skill-eval-dogfood-2026-07-17/README.md).
-The current 72-cell bundle and its promotion hold are in
-[`docs/evidence/skill-eval-multiconfig-2026-07-17`](evidence/skill-eval-multiconfig-2026-07-17/README.md).
+The source-checkout evidence bundles are
+`docs/evidence/skill-eval-dogfood-2026-07-17` and
+`docs/evidence/skill-eval-multiconfig-2026-07-17`; they are deliberately not
+included in the immutable package.
 The machine-readable catalog is
 [`docs/SKILL_PATTERN_CATALOG.json`](SKILL_PATTERN_CATALOG.json).
