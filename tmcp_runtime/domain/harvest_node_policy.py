@@ -26,6 +26,20 @@ EVIDENCE_ONLY_PATH_COMPONENTS = frozenset(
     }
 )
 SUPPORTING_REFERENCE_PATH_COMPONENTS = frozenset({"reference", "references"})
+WORKFLOW_PROMPT_PATH_COMPONENT = "workflows"
+WORKFLOW_PROMPT_EXCLUDED_PATH_COMPONENTS = frozenset(
+    {
+        "doc",
+        "docs",
+        "guide",
+        "guides",
+        "note",
+        "notes",
+        "plan",
+        "planning",
+        "plans",
+    }
+).union(EVIDENCE_ONLY_PATH_COMPONENTS, SUPPORTING_REFERENCE_PATH_COMPONENTS)
 
 HARVEST_SOURCE_TYPE_ATOMS: dict[str, tuple[str, ...]] = {
     "skill_definition": (
@@ -67,6 +81,27 @@ def is_supporting_reference_path(value: str) -> bool:
     )
 
 
+def is_dedicated_workflow_prompt_path(value: str) -> bool:
+    """Recognize only a dedicated workflow tree as an active prompt source."""
+
+    components = _path_components(value)
+    return (
+        WORKFLOW_PROMPT_PATH_COMPONENT in components
+        and not components.intersection(WORKFLOW_PROMPT_EXCLUDED_PATH_COMPONENTS)
+    )
+
+
+def _is_dedicated_workflow_prompt(
+    rel_path: str, source_path: Path | str | None = None
+) -> bool:
+    """Preserve direct `workflows/` harvests whose relative path omits the root."""
+
+    return is_dedicated_workflow_prompt_path(rel_path) or (
+        source_path is not None
+        and is_dedicated_workflow_prompt_path(str(source_path))
+    )
+
+
 def source_role_for(
     _path: Path,
     rel_path: str,
@@ -80,6 +115,10 @@ def source_role_for(
         return "supporting_reference"
     if is_evidence_only_path(rel_path) and not explicitly_scoped:
         return "evidence_only"
+    if source_type == "workflow_prompt" and not _is_dedicated_workflow_prompt(
+        rel_path, _path
+    ):
+        return "supporting_reference"
     if source_type in {"agent_operating_contract", "cursor_rule"}:
         return "governing_instruction"
     if source_type in {"skill_definition", "scoped_packet_seed", "workflow_prompt"}:
@@ -97,12 +136,16 @@ def node_source_role(
         return "supporting_reference"
     if is_evidence_only_path(rel_path) and not explicitly_scoped:
         return "evidence_only"
+    source_type = str(node.get("source_type") or "")
+    if source_type == "workflow_prompt" and not _is_dedicated_workflow_prompt(
+        rel_path, node.get("path")
+    ):
+        return "supporting_reference"
     explicit_role = str(node.get("source_role") or "")
     if explicit_role in SOURCE_ROLES and not (
         explicitly_scoped and explicit_role == "evidence_only"
     ):
         return explicit_role
-    source_type = str(node.get("source_type") or "")
     if source_type not in HARVEST_SOURCE_TYPE_ATOMS:
         return "supporting_reference"
     return source_role_for(
@@ -130,11 +173,15 @@ def source_type_for(path: Path, rel_path: str, _text: str) -> str:
         return "cursor_rule"
     if ".github/" in rel:
         return "github_process"
-    if is_supporting_reference_path(rel):
+    if (
+        is_supporting_reference_path(rel)
+        or "/docs/" in f"/{rel}"
+        or "/doc/" in f"/{rel}"
+    ):
         return "project_documentation"
-    if "workflow" in rel:
+    if _is_dedicated_workflow_prompt(rel, path):
         return "workflow_prompt"
-    if name == "readme.md" or "/docs/" in f"/{rel}" or "/doc/" in f"/{rel}":
+    if name == "readme.md":
         return "project_documentation"
     return "markdown_process_doc"
 

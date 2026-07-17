@@ -11,7 +11,7 @@ from tmcp_runtime.domain.composition import (
     matching_reference_reads,
     merge_composition_nodes,
     normalize_cache_policy,
-    select_composition_nodes,
+    select_composition_nodes_with_diagnostics,
 )
 from tmcp_runtime.domain.declared_loads import resolve_declared_load_nodes
 from tmcp_runtime.domain.compositional_intelligence import (
@@ -72,7 +72,10 @@ def _composition_identity(
     source_nodes: list[dict[str, Any]],
 ) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any], list[str]]:
     objective = str(arguments.get("objective") or "").strip()
-    context = _compose_context(arguments)
+    context = dict(_compose_context(arguments))
+    context["explicitly_scoped_paths"] = string_list(
+        arguments.get("explicitly_scoped_paths")
+    )
     identity_context = dict(context)
     identity_context["latest_user_message"] = str(
         arguments.get("latest_user_message") or ""
@@ -251,7 +254,7 @@ def compose_packet_from_source_nodes(
     active_routes = (
         string_list(task_identity.get("active_routes")) or preliminary_routes
     )
-    selected_nodes = select_composition_nodes(
+    selected_nodes, selection_diagnostics = select_composition_nodes_with_diagnostics(
         source_nodes,
         objective,
         phase,
@@ -267,6 +270,11 @@ def compose_packet_from_source_nodes(
         family_context=family_context,
     )
     selected_nodes = merge_composition_nodes(selected_nodes, declared_load_nodes)
+    selection_diagnostics["declared_load_paths"] = declared_load_paths
+    selection_diagnostics["declared_load_sources"] = [
+        str(node.get("relative_path") or node.get("id") or "")
+        for node in declared_load_nodes
+    ]
 
     active_global_graphs: list[dict[str, Any]] = []
     active_receipts: list[dict[str, Any]] = []
@@ -363,6 +371,9 @@ def compose_packet_from_source_nodes(
         receipt_count=len(active_receipts),
         user_overrides=string_list(arguments.get("user_overrides")),
     )
+    diagnostics = dict(packet.get("composition_diagnostics") or {})
+    diagnostics["compatibility_selection"] = selection_diagnostics
+    packet["composition_diagnostics"] = diagnostics
     proposal = arguments.get("semantic_proposal")
     if proposal is None:
         return packet
