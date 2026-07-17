@@ -6,9 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Harden 0.6 in dogfood priority order: narrow deterministic
-activation, typed handoffs, then executable host-run benchmark evidence. Keep
-0.5.7 active.
+**Current focus:** Build executable host-run benchmark evidence after completing
+deterministic activation and typed-handoff hardening. Keep 0.5.7 active.
 
 ## Milestone
 
@@ -19,8 +18,9 @@ activation, typed handoffs, then executable host-run benchmark evidence. Keep
 deterministic path, while `9f26520` restores the test-size quality gate. Task
 identity has lexical safety at `9b4d72e` and compound-task safety at
 `5fcefab`; `271ed29` narrows compatibility activation to governing sources plus
-evidence-backed bootstrap skills. Typed handoffs and executable benchmark
-fixtures remain before real host-run proof.
+evidence-backed bootstrap skills. `f190a82` adds verified typed handoffs,
+runtime continuity, and receipt/diff propagation; executable benchmark fixtures
+and host-run proof remain.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -33,6 +33,13 @@ fixtures remain before real host-run proof.
 
 ## Completed Scope
 
+- `f190a82` compiles source-cited typed handoff contracts, binds each to its
+  actual graph edge and staged endpoints, blocks phase advancement without exact
+  artifact evidence, revalidates carried evidence, preserves same-graph runtime
+  continuity, and records contracts through recipes, receipts, and packet diffs.
+  It rejects forged endpoints, relationships, stage copies, and duplicate-content
+  collapse. Full unit, contract, install, release-compile, lint, and live
+  prepare → compose dogfood pass (669 tests, 3 expected skips).
 - `271ed29` makes the no-proposal compatibility path fail closed against generic
   process overlap and phase-only matches, limits automatic activation to one
   bootstrap skill, preserves scoped/family sources, and records rejection
@@ -371,5 +378,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_tmcp_composition_handoffs tests.test_tmcp_composition_runtime_handoff_enforcement tests.test_tmcp_recompile_service
+python3 scripts/run_composition_benchmark.py --help
 ```

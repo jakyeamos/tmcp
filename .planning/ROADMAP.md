@@ -81,12 +81,16 @@ outcomes while preserving deterministic compatibility.
   validated route identity, safe shortcut gating, and graph-aware facet diffs.
   `271ed29` closes broad default activation with source-role hardening, a
   one-skill compatibility bootstrap, and rejection diagnostics; `df3c8e2`
-  preserves exact route phrases. Typed artifact handoffs remain next. `9f26520`
-  keeps preflight coverage below the test-size gate.
+  preserves exact route phrases. `f190a82` completes typed artifact handoffs:
+  source-cited contracts, staged exact-evidence gates, tamper rejection,
+  same-graph runtime continuity, recipe/receipt persistence, and handoff diffs.
+  Executable benchmark proof is next. `9f26520` keeps preflight coverage below
+  the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
-- Runtime integration: complete — evidence-driven gates, plan preservation,
-  phase trace, obligations, and graph-aware diffs.
+- Runtime integration: complete — evidence-driven gates, graph-bound typed
+  handoffs, same-graph continuity, phase trace, obligations, and graph-aware
+  diffs.
 - Proof and learning: hardening required — scorer contracts and fixture metadata
   exist, but executable workspaces, exact run manifests, observation assembly,
   and tamper-resistant context accounting remain.
@@ -95,4 +99,4 @@ outcomes while preserving deterministic compatibility.
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for deterministic activation hardening and release proof gating*
+*Last updated: 2026-07-17 for typed-handoff enforcement and benchmark proof gating*
