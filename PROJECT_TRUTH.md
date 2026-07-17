@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `40f8f17` splits the cost-rejudge harness into thin CLI, source-validation, and execution modules after `78528a4` added the rejudge protocol, promotion gates, and composition regressions.
-- Verification: 525 tests (3 skipped), full Ruff/basedpyright/compile checks, score replay, TMCP doctor, the 72-source rejudge dry-run, and Pre-CR changed-line readiness pass. A sandbox-only rejudge attempted no completed judgments because network access was denied.
+- Last completed change: `86d5792` makes the cost-rejudge JSON Schema accepted by the Codex service after `40f8f17` split the harness into thin CLI, source-validation, and execution modules.
+- Verification: 525 tests (3 skipped), full Ruff/basedpyright/compile checks, score replay, TMCP doctor, the 72-source rejudge dry-run, and Pre-CR changed-line readiness pass. The first approved live attempt exposed the service-compatible schema gap before any judgment completed; its fixed-artifact evidence is retained separately.
 
 ## Current Position
 
@@ -25,11 +25,11 @@
 
 ## Next Step
 
-- If explicitly approved, send the fixed 72 runner artifacts to the Codex service for the predeclared blind cost rejudge; then score the complete sidecar without changing raw labels. Do not run `Workflow` micro-ablations unless a fresh baseline clears all control-reliability gates.
+- Rerun the explicitly approved blind cost rejudge against the fixed 72 artifacts using the service-compatible schema, then score a complete sidecar without changing raw labels. Do not run `Workflow` micro-ablations unless a fresh baseline clears all control-reliability gates.
 
 ## Blockers
 
-- External processing approval is required before the 72 fixed runner artifacts may be sent to the Codex service for independent cost judgment.
+- None; the approved rejudge is in progress.
 
 ## Risks
 
