@@ -6,70 +6,32 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Complete runtime adapter convergence after API, safe-input,
-persistence, scoring, rendering, orchestration, plan, catalog, advisory,
-redaction, and transport cutovers.
+**Current focus:** Close the remaining commit-quality size warnings, prove the
+clean-tree release package reproducible, and collect real host-run composition
+benchmark observations without advancing the active 0.5.7 release.
 
 ## Milestone
 
-**Name:** TMCP Modernization
-**Status:** Milestone 3 adapter thinning and security hardening: pure domain,
-service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
-harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
-  boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
-  read-only harvest/evaluator persistence plus packet-scoring policy, report,
-  rendering/advisory, input, compose-failure, mode-orchestration, and
-  plan-construction, server renderer, policy-catalog, runtime evaluator API,
-  harvest-advisory, runtime-redaction, MCP/CLI transport, and typed
-  request/result registry-dispatch cutovers complete; optional AIOS execution
-  runtime-state/recompile orchestration and project-local session lifecycle are
-  now runtime-owned; generic artifact-bundle persistence is now a runtime
-  service over adapter callbacks; receipt recording is now runtime-owned over
-  adapter callbacks; global-promotion manifest assembly is now runtime-owned;
-  explain assembly and evidence parsing are now runtime-owned; continue the
-  thin-adapter deletion pass is complete for private CLI, AIOS subprocess,
-  harvest-constant, and unused-schema seams; tests target runtime owners
-  directly. The release compile/install inventory now covers every runtime
-  module and is shared by the cross-platform workflow and package checks. The
-  first legacy promotion-summary reader is complete; the remaining shipped
-  receipt/session artifacts have no alternate schema and remain strict readers.
-  The 0.5.0 compatibility cutover note is active; all version surfaces now use
-  0.5.0 and the evidence record points to successful post-cutover PR run
-  `29285497867`; final evidence-pointer rerun `29285802846` also passes. The
-  draft PR is ready for a fresh adversarial review.
-  Draft PR #2's first hosted run passed Linux/macOS but failed Windows because
-  exact-file read-only inputs rejected the missing O_NOFOLLOW primitive;
-  `b99c58a` adds the validated Windows fallback. Follow-up run
-  `29284101047` reduced the residual failures to Windows path/newline contracts;
-  `1a59e2f` normalizes those boundaries. Hosted run `29285497867` now passes all
-  six matrix jobs for the 0.5.0 cutover, final rerun `29285802846` passes, and
-  post-review fix run `29287154661` passes for `1fd10f4`; docs-only rerun
-  `29287368329` also passes.
-  Fresh review closed malformed MCP transport input/notification defects and
-  packaged the compatibility note. Formatting and typecheck now pass across all
-  148 tracked Python files and the `scripts`, `tmcp_runtime`, and `tests`
-  scopes; hosted tag run `29289138645` passes the pinned quality job and all
-  six platform jobs for merge commit `1fcda48`. The GitHub release and MCP
-  Registry publication are complete.
-**Started:** 2026-07-10
+**Name:** TMCP Compositional Intelligence 0.6
+**Status:** Implementation is complete on
+`codex/tmcp-compositional-intelligence` at `318c5fb`. Prepare, assisted compose,
+typed graph planning, graph-aware recompile, project-local reviewed recipes,
+evaluation variants, receipts, fixtures, and the fail-closed future release gate
+are present. Release proof remains pending real host-run observations.
+**Started:** 2026-07-17
 
 ## Active Phase
 
-- **Phase:** Compose and recompile vertical slice
-- **Slug:** `tmcp-modernization`
-- **Status:** Receipt/artifact construction and cache policy are pure-owned;
-  storage owns bounded redacted cache reads, while adapter-owned roots, writes,
-  identity, clock, output selection, redaction, and transport remain intact;
-  generic artifact-bundle persistence is runtime-owned through explicit storage
-  and redaction callbacks, and receipt recording is runtime-owned through
-  explicit identity, path, redaction, and write callbacks; global-promotion
-  manifest assembly is runtime-owned while roots and persistence gating remain
-  adapter-owned; explain assembly and review-evidence parsing are runtime-owned
-  while AIOS choice and final redaction remain adapter-owned.
-- **Plan:** `docs/modernization/EXEC_PLAN.md`
+- **Phase:** Compositional Intelligence 0.6
+- **Slug:** `compositional-intelligence-0.6`
+- **Status:** Implementation complete; release proof and publication pending.
+- **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
+- `318c5fb` implements the compositional intelligence compiler and its public
+  contracts while preserving the deterministic compatibility path and version
+  0.5.7. The integrated suite passes 613 tests with three expected skips.
 - Modernization baseline, parallel audit, target architecture, and executable
   milestone plan recorded under `docs/modernization/`.
 - Isolated audit branch created from the 0.4.0 release baseline.
@@ -329,6 +291,9 @@ _(truncated for length)_
 ## Accumulated Context
 
 ### Roadmap Evolution
+- 2026-07-17: Compositional Intelligence 0.6 implementation lands at `318c5fb`;
+  release remains blocked on real host-run benchmark observations and reviewed
+  evidence with matching content and graph provenance.
 - 2026-07-10: Modernization audit identifies P0 package disclosure risk and
   proposes a parallel v2 runtime behind stable entrypoints.
 - 2026-07-11: Milestone 0 closes the package-disclosure blocker; next work
@@ -361,5 +326,6 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Monitor the published v0.5.0 release surfaces; no additional publication action is pending.
+# After the commit-quality cleanup and clean-tree package proof:
+python3 scripts/run_composition_benchmark.py <real-host-observations.json>
 ```
