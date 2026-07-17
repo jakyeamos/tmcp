@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `73217c1` corrects both archived cost-sidecar classifications, tests the missing-bar boundary, and remints the composition study from corrected reviewed fixtures.
-- Verification: 563 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
+- Last completed change: `734c006` adds a verified source-bundle composition scorer, binds the persisted plan/trace/sidecar digests into its report, and fixes opaque trace-ID preservation during controlled scoring.
+- Verification: 565 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
 
@@ -37,10 +37,11 @@
 - The reviewed v1 composition plan has six Stage-1 fixtures across campaign sequencing, evidence-boundary, and promotion-gate families; `packet_only` versus exact `packet_plus_explore` yields 72 blinded cells. It can test only the delivery effect of the pinned source bundle, not live selection, adherence, or corpus quality.
 - `verify_composition_study.py` now rejects input/receipt/first-principles drift, reports opted-in live-source drift without exposing source text, and is mandatory for source-bundle campaign manifests; the campaign rejects a different runner first-principles file.
 - The corrected byte-pinned study is `composition-study-f6de333293fee3f7`. Its cost sidecar requires a fresh, condition-blind, artifact-only 72-trace review using `gpt-5.6-sol` at high effort. This is process-independent but not a distinct-model claim; launcher and scored sidecar must match the policy's model, effort, seed, bar filename/digest, and trace count before scoring can clear the coverage gate. A read-only verifier must also reconstruct the completed bundle and report promotion-ready.
+- `score_composition_study.py` now runs that verifier in the same local process before scoring, refuses a non-promotion-ready sidecar, emits a new report outside raw-evidence directories, and records the exact source-plan, trace, and sidecar digests. Generic sidecar-only scores remain diagnostic. The scorer preserves opaque trace IDs until normalization, while returned reports remain redacted.
 
 ## Next Step
 
-- Obtain fresh approval to run the preregistered `composition-study-f6de333293fee3f7` 72 runner and 72 primary-judge calls. Afterward, obtain separate approval for its 72 cost-rejudge calls, verify its persisted sidecar, then score it. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
+- Obtain fresh approval to run the preregistered `composition-study-f6de333293fee3f7` 72 runner and 72 primary-judge calls. Afterward, obtain separate approval for its 72 cost-rejudge calls, run `score_composition_study.py` against the independently verified persisted bundle, then inspect the score. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
 
 ## Blockers
 
