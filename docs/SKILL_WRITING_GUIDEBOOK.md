@@ -19,6 +19,20 @@ Only a validated entry in `pattern_claims` may change a guidebook pattern's
 behavioral evidence status. Activation, packet-inclusion, adherence, cost, and
 safety scorecard dimensions are diagnostics; they are not causal promotion evidence.
 
+## Use the guidebook for corpus improvement
+
+Read the machine-readable entry's `evidence_level` together with its `promotion`
+record before applying a pattern to any skill. An entry on `hold` may guide static
+review, fixture design, or a preregistered candidate study; it is not authority for
+a corpus rewrite. An entry eligible for manual review may justify a bounded,
+reviewed rollout only after checking that the claim's tested scope matches each
+target skill. It never turns an empirical result into an automatic global edit.
+
+Every currently shipped entry is on `hold`. The present corpus-wide action is to
+surface review candidates and prepare controlled studies, not to bulk-apply any
+guidebook wording. Recheck the catalog and the linked evidence bundle after every
+new campaign before widening use.
+
 ## Author skills at testable boundaries
 
 A skill section is a useful experimental unit when it owns one coherent decision or

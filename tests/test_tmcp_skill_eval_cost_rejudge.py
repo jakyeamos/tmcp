@@ -757,8 +757,15 @@ class CostRejudgeSourceTests(unittest.TestCase):
         sample = entry["sample"]
 
         self.assertIn("diagnostic history, not a reproducible adjudication", guidebook)
+        self.assertIn("Every currently shipped entry is on `hold`.", guidebook)
         self.assertNotIn(
             "resolved the raw checkout-sweep labels as non-regressions", guidebook
+        )
+        self.assertTrue(
+            all(
+                (item.get("promotion") or {}).get("eligible") is False
+                for item in catalog["guidebook_entries"]
+            )
         )
         self.assertFalse(sample["cost_rejudgment_applied"])
         self.assertIsNone(sample["cost_regression"])
