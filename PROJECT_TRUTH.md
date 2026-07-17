@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `ef28ede` makes published guidebook provenance portable and removes package-internal links to intentionally excluded evidence; `ccfab09` and `1e0af00` remain the scanner and baseline-reporting corrections.
-- Verification: 542 tests pass (3 skipped); the scanner/package-focused suite passes 28 tests, guidebook/package-policy suite passes 53 tests, and Ruff and basedpyright pass. The live baseline completed 36/36 cells with four first-pass remote schema preflights, 72 unique runner/judge threads, zero campaign errors/retries, and a complete 36-trace independent cost sidecar.
+- Last completed change: `58dc6ef` adds the preregistered deterministic composition contract: generic research wording no longer activates frontend behavior, and test fixtures are evidence-only rather than packet instructions or declared reads.
+- Verification: 544 tests pass (3 skipped); the focused composition/source-role suite passes 72 tests, compiler checks and TMCP doctor pass, and a real project-root replay records `general_task` with no fixture citation, instruction, or required read. The commit hook could not run `pre-cr` because its CLI is unavailable on PATH.
 
 ## Current Position
 
@@ -32,15 +32,18 @@
 - Diagnosis classifies 12 traces as repeated target-defect candidates (first-principles handoff, contamination recovery, per-case reporting, or repeat-every-case discipline) and four as isolated model-sensitive omissions; no reviewed fixture or rate bar is defective.
 - The reinterpreted report correctly marks this as `baseline_reliability`: no causal pattern or lift claim, no attachment-only activation/adherence heuristic, actual 20/36 aggregate and 2/6 minimum reliability, plus raw 0/36 and sidecar 1/36 cost counts.
 - Local TMCP + `explore-unknowns` and TMCP + `repo-behavior-spec-loop` packet probes retain their specialized evidence and stop conditions without activating `frontend_implementation` from pre-action wording. The `refactor-clean` probe is selection-only pending behavioral fixtures.
+- Composition contract v1 is a deterministic regression baseline, not a behavioral claim: it preserves a valid React/motion control while keeping `tests/fixtures/**` harvest-visible but activation-ineligible, including through declared loads.
+- The local project-root composition replay is recorded with advisory receipt `packet-f62c9fd667c8`; its deterministic pass does not promote a skill-pair or wording rule.
 
 ## Next Step
 
-- Seek approval to apply the minimal evidence-bound revision to the external `eval-skills` target; independently review a v3 bounded-next-cycle fixture, then preregister a fresh intact 36-cell baseline and blind cost sidecar. Do not run `Workflow` micro-ablations against this held control.
+- Independently review and preregister a behavioral composition fixture family using the v1 source-role contract: no-specialized-skill control versus one compatible, source-role-validated pair, with blind runners, separate judges, repetitions, and cost/safety sidecars. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
 
 ## Blockers
 
 - Corpus promotion is held: the historical plan lacks a predeclared clustered-analysis policy and its regression-retest intact-control rate is 0/6.
 - The fresh baseline is held: `claim_calibration` and `regression_retest` are below the preregistered 0.5 per-fixture floor, and the independent cost sidecar has one unresolved regression. The minimal target revision is diagnosed but intentionally not yet applied.
+- Composition guidebook promotion is held: v1 proves only deterministic routing and source-role behavior; no blind behavioral pair/control contrast has been run.
 
 ## Risks
 
@@ -51,3 +54,4 @@
 - Anti-pattern claims still require a future isolated removal or presence intervention; static matches remain suspected only.
 - The attachment-only campaign protocol has no selection/adherence telemetry, so its diagnostic scorecard cannot be repurposed as behavioral activation evidence.
 - The next external model run needs fresh approval after the target revision and v3 fixture review; the corrected local report is not new remote evidence.
+- `pre-cr` is unavailable on PATH, so the project hook warns instead of supplying its changed-line readiness signal; direct tests, compiler checks, and the release-package gate remain required until that tool is restored.
