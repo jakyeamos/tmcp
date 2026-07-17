@@ -1,0 +1,14 @@
+The run is invalid. Seeing the bar breaks the required blindness; writing into the live checkout also breaches isolation.
+
+Recovery:
+
+1. Discard the artifact and all results derived from it. Do not grade or count the run.
+2. Inspect `git status` and identify exactly which files the runner created or modified.
+3. Remove only confirmed runner-created files and revert only confirmed runner changes. Preserve all unrelated tracked, untracked, staged, and unstaged user work; if ownership is uncertain, stop and ask rather than using broad cleanup or reset commands.
+4. Verify the live checkout again with `git status` to confirm the leak is gone and unrelated work remains intact.
+5. Start a fresh, context-free runner for that case.
+6. Give it only the case input and the instruction to use the target skill—never the bar, smells, expected outcome, other cases, or evaluation rationale.
+7. If file output is necessary, restrict the runner’s only writable root to a new throwaway sandbox directory. Prefer an inline final artifact when possible.
+8. After the rerun, sweep the live checkout with `git status` again and clean only attributable leaks.
+9. Grade the new artifact with a separate fresh judge that sees only the artifact, the case bar, and the skill’s first principles.
+10. Use only this clean rerun in the pass rate; repeat with fresh runners if nondeterminism requires multiple trials.

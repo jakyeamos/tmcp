@@ -1,0 +1,15 @@
+Re-evaluate all cases—A, B, and C—not just B—to detect regressions.
+
+Use fresh, context-free agents for each blind run:
+
+- Each runner sees only its case input and the revised target skill, never the bar or expected outcome.
+- A separate fresh judge receives the artifact, that case’s bar, and the skill’s first principles, and cites specific artifact evidence for every verdict.
+- Sweep the live checkout after each run for leaked changes.
+
+Before declaring success, show:
+
+- B now clears its bar, with cited evidence addressing the original gap.
+- A and C still clear their bars, proving the B-specific edit caused no regressions.
+- For important or borderline cases, 2–3 independent reruns and the resulting pass rate—not merely one green run.
+
+The fix worked only when every case clears its required rate bar; otherwise, continue revising or report that the skill cannot structurally express the case.

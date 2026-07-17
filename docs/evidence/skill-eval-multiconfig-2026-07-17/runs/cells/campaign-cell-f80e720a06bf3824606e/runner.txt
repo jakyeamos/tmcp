@@ -1,0 +1,12 @@
+Re-evaluate **all cases—A, B, and C** with fresh, context-free blind runners, not just B. This verifies the edit fixes B without regressing A or C.
+
+Before declaring success, provide:
+
+- Per-case pass rates, using 2–3 blind reruns for important or borderline cases.
+- A separate judge’s verdict for every part of each case’s bar, citing specific evidence from the artifact.
+- Confirmation that B’s original gap is resolved.
+- Confirmation that A and C still pass.
+- Confirmation that runners saw only their case input and the target skill, while judges saw only the artifact, bar, and skill first principles.
+- Confirmation that the live checkout was swept after every run and remained clean.
+
+A single successful B run is insufficient; every case must clear its required pass-rate bar.

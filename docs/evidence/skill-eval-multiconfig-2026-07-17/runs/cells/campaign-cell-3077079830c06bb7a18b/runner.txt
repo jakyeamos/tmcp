@@ -1,0 +1,8 @@
+Stop before running any evaluation.
+
+First, clarify two things with the user:
+
+1. Draw out a defensible bar for each case: the desired outcome and recognizable failure smells at the level of judgment the user cares about. “Make it good” is too vague to grade.
+2. Confirm the evaluation mode. Because the skill appears judgment-oriented, the exact answer template should not automatically become a conformance checklist. Ask whether exact template compliance is genuinely the task or merely an example of a good result.
+
+Then echo the clarified bars and mode back to the user. No blind runners or judges should be spawned until every case has a concrete, judgeable bar and the judgment-versus-conformance ambiguity is resolved.

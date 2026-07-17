@@ -1,0 +1,18 @@
+The run is invalid. Seeing the case bar breaks blindness, so discard the artifact and exclude the run from all pass-rate calculations. It cannot be salvaged by re-grading.
+
+Recovery:
+
+1. Stop the runner and prevent further writes.
+2. Record the current checkout state: tracked, staged, and untracked changes. Back up that state before cleanup.
+3. Compare it with the pre-run checkout snapshot.
+4. Remove only changes positively attributable to the runner:
+   - Reverse only its hunks in modified files.
+   - Remove only untracked files known to have been created by it.
+   - Preserve all pre-existing and ambiguous changes.
+   - Do not use blanket operations such as `reset --hard`, restoring the entire checkout, or deleting all untracked files.
+5. If there is no pre-run snapshot and ownership of a change cannot be established, stop and obtain confirmation; do not guess or delete it.
+6. Sweep the checkout again and verify it exactly matches the pre-run state—“clean” means free of runner leakage, not necessarily an empty Git status.
+7. Start a fresh, context-free runner in a throwaway sandbox whose only writable root is outside the live checkout. Give it only the case input and the instruction to use the target skill—never the bar, smells, other cases, or expected outcome.
+8. Capture the new artifact from the runner’s final response where possible. Sweep the live checkout again afterward.
+9. Grade only the replacement artifact with a separate fresh judge that sees the artifact, bar, and skill first principles.
+10. For an important or borderline case, repeat the blind run with fresh agents 2–3 times and report the resulting pass rate.

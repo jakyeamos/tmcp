@@ -1,0 +1,1 @@
+Stop and ask the user to define a gradable bar: the outcomes a good artifact should achieve and the failure smells, without prescribing the exact answer. Also clarify whether the skill is genuinely conformance-oriented; if not, the supplied template must not become the expected-output checklist. Echo the agreed bar back for confirmation before running any evaluation.

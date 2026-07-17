@@ -1,0 +1,11 @@
+Re-run all golden cases—A, B, and C—with one fresh, context-free runner per case.
+
+Evidence required:
+
+- Each runner sees only its case input, never the expected outcome or prior results.
+- Each artifact is independently judged against that case’s bar and the skill’s first principles.
+- B now passes, with the original cited gap demonstrably resolved.
+- A and C still pass, showing the B-specific edit caused no regressions.
+- The live checkout is inspected afterward and any cross-run leaks are removed.
+
+Only then can the report claim the fix worked, showing the before/after movement: previously A/C passed and B failed; after the edit, A/B/C pass.

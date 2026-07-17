@@ -1,0 +1,11 @@
+This is likely a bar-shape mismatch, not a demonstrated skill defect. A judgment-oriented skill should be evaluated on whether its artifact achieves the intended outcome and avoids meaningful failure smells—not whether it reproduces an exact seven-heading template.
+
+Before editing the skill:
+
+1. Classify the task: confirm that it genuinely tests judgment rather than conformance.
+2. Inspect the failures: if the artifacts are defensible and fail only because their headings differ, record the exact-template criterion as the mapped defect in the evaluation bar.
+3. Rewrite the bar around substantive quality—what a good artifact achieves and what would make it bad—without prescribing its answer structure.
+4. Echo the revised bar back for agreement.
+5. Re-run each golden case blind with fresh runners and judge the new artifacts against that revised bar.
+
+Only failures that remain under a defensible, judgment-shaped bar should drive skill edits. If the seven headings are genuinely an external contract, then the skill is actually conformance-oriented for this task; preserve the exact criterion and edit the skill accordingly—but establish that requirement first.

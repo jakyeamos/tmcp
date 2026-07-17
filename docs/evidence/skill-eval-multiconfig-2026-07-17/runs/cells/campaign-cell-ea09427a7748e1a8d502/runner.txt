@@ -1,0 +1,10 @@
+Diagnose this as a **bad-case/bar mismatch**, not automatically a skill defect. The skill is judgment-oriented, while the golden bar is conformance-oriented: requiring exactly seven headings tests template compliance rather than whether the artifact makes defensible decisions under the skill’s first principles.
+
+Before editing the skill:
+
+1. Reconfirm the skill’s first principles and intended eval mode.
+2. Ask why the seven-heading template is genuinely necessary.
+3. If judgment is the real goal, rewrite the bar around the outcome and failure smells, allowing defensible structure choices, then rerun the blind eval.
+4. If exact headings are truly part of the task, explicitly reclassify it as conformance-style and confirm that requirement with the user.
+
+Do not modify the skill merely to satisfy an indefensible bar; that would encode the wrong behavior and teach to the test.

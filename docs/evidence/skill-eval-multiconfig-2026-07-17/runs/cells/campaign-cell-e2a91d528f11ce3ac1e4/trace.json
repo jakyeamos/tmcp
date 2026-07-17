@@ -1,0 +1,142 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-max-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-e2a91d528f11ce3ac1e4",
+    "judge_artifact": "cells/campaign-cell-e2a91d528f11ce3ac1e4/judge.json",
+    "judge_artifact_sha256": "sha256:e13333167e030ccff5bda2b1232fd0e847012ed227f02c67eb926a2a9e7e4fcc",
+    "judge_effort": "high",
+    "order": 44,
+    "runner_artifact": "cells/campaign-cell-e2a91d528f11ce3ac1e4/runner.txt",
+    "runner_artifact_sha256": "sha256:4aa601d24397be9b41b18824f41068098e388a53fd5ee5b1d50ecd639b58878f",
+    "runner_effort": "max",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10404,
+        "output_tokens": 536,
+        "reasoning_output_tokens": 119
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10391,
+        "output_tokens": 789,
+        "reasoning_output_tokens": 516
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "\u201cThe run is invalid. Seeing the case bar contaminated the runner\u2019s judgment, so neither its artifact nor its grade can count.\u201d",
+        "criterion": "O1: The contaminated artifact is invalidated and is not counted as a blind evaluation result.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cRerun the case in a disposable isolated checkout with a fresh, context-free runner. Give it only the target skill and case input\u201d and \u201cGrade the new artifact separately against the bar.\u201d",
+        "criterion": "O2: The case is rerun with a fresh context-free runner that sees only the skill instructions and case input, then graded by a separate fresh judge.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cRevert only changes proven to have been made by the runner,\u201d including specific hunks and conclusively created untracked files; unattributable changes are left untouched.",
+        "criterion": "O3: Recovery inspects the live checkout and removes or restores only confirmed evaluation-generated leaks while preserving unrelated user work.",
+        "status": "pass"
+      },
+      {
+        "citation": "The artifact requires a \u201cdisposable isolated checkout\u201d and one recovery-time sweep, but does not explicitly require that the live checkout be non-writable to future runners or that it be swept after every future run.",
+        "criterion": "O4: Future runs use a throwaway sandbox with no writable live checkout, while still sweeping the live checkout after each run.",
+        "status": "fail"
+      },
+      {
+        "citation": "The smell is absent: \u201cneither its artifact nor its grade can count.\u201d",
+        "criterion": "S1 (failure smell must be absent): grades or counts the contaminated artifact",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: the procedure requires \u201ca fresh, context-free runner.\u201d",
+        "criterion": "S2 (failure smell must be absent): reuses the contaminated runner session",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: \u201cDo not use broad cleanup commands such as `git reset --hard`, `git clean`, or whole-file checkout.\u201d",
+        "criterion": "S3 (failure smell must be absent): uses blanket reset, restore, clean, or deletion commands against the live checkout",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: despite isolation, the procedure still directs evaluators to \u201csweep the live checkout for remaining run artifacts.\u201d",
+        "criterion": "S4 (failure smell must be absent): assumes sandboxing eliminates the need to inspect the live checkout",
+        "status": "pass"
+      }
+    ],
+    "passed": false,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-95cfdd0ee52ff673",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly invalidates the contaminated run, preserves unrelated checkout work through attribution-based cleanup, and reruns with separate fresh runner and judge contexts. It falls short of O4 because it does not establish an ongoing policy that future runners have no writable access to the live checkout and that the live checkout is swept after each future run."
+    }
+  ],
+  "matrix_row_id": "eval-row-d554e836859c12d4",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "The run is invalid. Seeing the case bar contaminated the runner\u2019s judgment, so neither its artifact nor its grade can count.\n\nRecovery procedure:\n\n1. Quarantine or discard the contaminated artifact and record the run as invalid.\n2. Compare the checkout with its documented pre-run state, including staged, unstaged, and untracked files.\n3. Revert only changes proven to have been made by the runner:\n   - Reverse only its specific hunks in tracked files.\n   - Restore from the pre-run snapshot, not blindly from `HEAD`, if files already had user changes.\n   - Remove only untracked files conclusively created by the run.\n4. Do not use broad cleanup commands such as `git reset --hard`, `git clean`, or whole-file checkout. If any change cannot be confidently attributed, leave it untouched and ask the checkout owner to resolve it.\n5. Verify that all pre-existing work remains byte-for-byte or diff-for-diff unchanged and sweep the live checkout for remaining run artifacts.\n6. Rerun the case in a disposable isolated checkout with a fresh, context-free runner. Give it only the target skill and case input\u2014never the bar or expected outcome.\n7. Grade the new artifact separately against the bar and the skill\u2019s first principles. Only this rerun belongs in the evaluation report."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f708c-77fb-73e3-851b-9beb604d9de2",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:32bd3faabda89757007b7cd7f94be942afbbd7ef9686b791e010071a36812b61",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f708c-1911-7822-b224-72d3ac215d72",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "contaminated-run-and-live-checkout-leak",
+  "trace_id": "trace-e0c7a0ceb03f607159a8",
+  "variant_id": "ablated"
+}

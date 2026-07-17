@@ -1,0 +1,109 @@
+{
+  "completed_cells": 72,
+  "completed_this_run": 72,
+  "errors": 0,
+  "expected_thread_ids_at_completion": 144,
+  "passed": 23,
+  "planned_cells": 72,
+  "resumed_this_run": 0,
+  "selected_cells": 72,
+  "unique_thread_ids": 144,
+  "usage": {
+    "by_configuration": {
+      "judge": {
+        "gpt-5.6-sol-reasoning-high-codex-cli-0.144.2": {
+          "cached_input_tokens": 45824,
+          "input_tokens": 249799,
+          "output_tokens": 17374,
+          "reasoning_output_tokens": 6055,
+          "traces": 24
+        },
+        "gpt-5.6-sol-reasoning-low-codex-cli-0.144.2": {
+          "cached_input_tokens": 49664,
+          "input_tokens": 249677,
+          "output_tokens": 17481,
+          "reasoning_output_tokens": 6025,
+          "traces": 24
+        },
+        "gpt-5.6-sol-reasoning-max-codex-cli-0.144.2": {
+          "cached_input_tokens": 57600,
+          "input_tokens": 249774,
+          "output_tokens": 17218,
+          "reasoning_output_tokens": 5777,
+          "traces": 24
+        }
+      },
+      "runner": {
+        "gpt-5.6-sol-reasoning-high-codex-cli-0.144.2": {
+          "cached_input_tokens": 39680,
+          "input_tokens": 260328,
+          "output_tokens": 5332,
+          "reasoning_output_tokens": 703,
+          "traces": 24
+        },
+        "gpt-5.6-sol-reasoning-low-codex-cli-0.144.2": {
+          "cached_input_tokens": 44800,
+          "input_tokens": 260120,
+          "output_tokens": 4810,
+          "reasoning_output_tokens": 103,
+          "traces": 24
+        },
+        "gpt-5.6-sol-reasoning-max-codex-cli-0.144.2": {
+          "cached_input_tokens": 56832,
+          "input_tokens": 260120,
+          "output_tokens": 12164,
+          "reasoning_output_tokens": 7334,
+          "traces": 24
+        }
+      }
+    },
+    "by_variant": {
+      "judge": {
+        "ablated": {
+          "cached_input_tokens": 65536,
+          "input_tokens": 374105,
+          "output_tokens": 26345,
+          "reasoning_output_tokens": 9191,
+          "traces": 36
+        },
+        "original": {
+          "cached_input_tokens": 87552,
+          "input_tokens": 375145,
+          "output_tokens": 25728,
+          "reasoning_output_tokens": 8666,
+          "traces": 36
+        }
+      },
+      "runner": {
+        "ablated": {
+          "cached_input_tokens": 73472,
+          "input_tokens": 374152,
+          "output_tokens": 10318,
+          "reasoning_output_tokens": 3645,
+          "traces": 36
+        },
+        "original": {
+          "cached_input_tokens": 67840,
+          "input_tokens": 406416,
+          "output_tokens": 11988,
+          "reasoning_output_tokens": 4495,
+          "traces": 36
+        }
+      }
+    },
+    "totals": {
+      "judge": {
+        "cached_input_tokens": 153088,
+        "input_tokens": 749250,
+        "output_tokens": 52073,
+        "reasoning_output_tokens": 17857
+      },
+      "runner": {
+        "cached_input_tokens": 141312,
+        "input_tokens": 780568,
+        "output_tokens": 22306,
+        "reasoning_output_tokens": 8140
+      }
+    }
+  }
+}

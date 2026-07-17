@@ -1,0 +1,11 @@
+Replace the vague completion rule with:
+
+> “Do not stop at ‘make it good’ or any equivalent subjective standard. Define an observable, case-specific completion bar: what the finished artifact must achieve and which smells would make it unacceptable. Keep this outcome-oriented rather than prescribing an exhaustive parts checklist. Continue until the artifact clears that bar; if the bar cannot be resolved, request it instead of declaring completion.”
+
+Then re-run all three golden cases to check both the fix and regressions:
+
+- Use one fresh, context-free runner per case with only the revised skill and case input; never expose the bar or expected outcome.
+- Use separate judges who receive the artifact, the case’s bar, and the skill’s first principles.
+- Grade each artifact directly against its bar, citing any concrete gap rather than assigning an opaque numeric score.
+- Inspect the live checkout after every run and remove any leaked state.
+- Report the original failure, its mapping to the vague completion criterion, the revision, and the before/after pass rate.

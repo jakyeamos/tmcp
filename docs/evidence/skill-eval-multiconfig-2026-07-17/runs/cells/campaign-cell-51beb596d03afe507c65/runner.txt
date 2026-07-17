@@ -1,0 +1,12 @@
+No. One passing run is only preliminary evidence; it does not prove the skill reliably works or justify a durable guidebook claim.
+
+Next:
+
+1. Repeat the evaluation across multiple representative golden cases, including edge cases and known failure modes.
+2. Use a fresh, context-free runner for every case and every run. The runner sees only the input—never the bar or expected outcome.
+3. Have judges assess each artifact independently against the case’s bar and the skill’s first principles, citing concrete gaps rather than assigning opaque scores.
+4. After every run, inspect the live checkout and remove any leaked artifacts or state that could contaminate later runs.
+5. Map failures to skill defects, make defensible edits, and rerun the full suite—including previously passing cases—to detect regressions.
+6. Record per-case pass rates, cited gaps, edits, and before/after results.
+
+Only after repeated blind sweeps show consistent performance across the representative suite, without leakage or regressions, should anyone make a durable guidebook claim—and that claim should be scoped to the tested cases and bars, not presented as universal proof.

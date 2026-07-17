@@ -1,0 +1,10 @@
+Diagnose this as a likely bar–skill mismatch, not yet a skill defect. The skill is judgment-oriented and produces defensible artifacts, while the golden bar is grading exact conformance to seven headings. That tests template compliance rather than the skill’s intended judgment.
+
+Before editing the skill:
+
+1. Reclassify the task: determine whether the seven-heading format is genuinely part of the real-world contract.
+2. If the skill is truly judgment-oriented, revise the bar to describe the outcome a good artifact must achieve and the smells that indicate poor judgment—without prescribing the answer’s structure.
+3. If exact headings are genuinely required, explicitly redefine the skill or case as conformance-oriented; only then is adding template compliance a defensible edit.
+4. Echo the corrected bar back for agreement, then rerun the blind evaluation.
+
+Do not edit the skill merely to satisfy the current cases. First validate the bar, because universal failure against a structurally prescriptive bar can reveal a defective evaluation rather than defective behavior.

@@ -1,0 +1,152 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-max-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-5fee2018774038700a2b",
+    "judge_artifact": "cells/campaign-cell-5fee2018774038700a2b/judge.json",
+    "judge_artifact_sha256": "sha256:cb4469d1a167a24a4c892830ad2a21a88a2a0fddce190a9bff6b3827fd3dc0f9",
+    "judge_effort": "high",
+    "order": 70,
+    "runner_artifact": "cells/campaign-cell-5fee2018774038700a2b/runner.txt",
+    "runner_artifact_sha256": "sha256:88893c65d946a2c1e5c69110337a16ab621767d6fcce66050d765f348495cb41",
+    "runner_effort": "max",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10433,
+        "output_tokens": 793,
+        "reasoning_output_tokens": 303
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10376,
+        "output_tokens": 242,
+        "reasoning_output_tokens": 0
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "Pass: \u201cOne passing run is evidence, not proof\u201d and \u201cIt should not claim universal reliability from a single successful run.\u201d",
+        "criterion": "O1: The answer explicitly rejects a single green run as proof and keeps the claim provisional.",
+        "status": "pass"
+      },
+      {
+        "citation": "Fail: The artifact requires fresh, context-free repetitions and says to \u201cRecord pass/fail per case,\u201d but never requires calculating or reporting per-case pass rates.",
+        "criterion": "O2: It requires fresh blind repetitions of important cases and reports per-case pass rates.",
+        "status": "fail"
+      },
+      {
+        "citation": "Pass: \u201cthe fresh runner saw only the case input, never the expected outcome; the judge saw only the artifact, the bar, and the skill\u2019s first principles.\u201d",
+        "criterion": "O3: It keeps runners separate from evidence-based judges and preserves the runner/judge information boundary.",
+        "status": "pass"
+      },
+      {
+        "citation": "Fail: It says \u201cMap failures to skill defects\u201d and \u201crerun the entire sweep blindly,\u201d but does not require distinguishing actual skill defects from invalid or bad cases.",
+        "criterion": "O4: It calls for diagnosing skill defects versus bad cases and rerunning the full suite after any justified change.",
+        "status": "fail"
+      },
+      {
+        "citation": "Fail: The claim is deferred until \u201cconsistent blind passes across a defensible sweep,\u201d but the artifact does not explicitly require repeated per-case pass rates or preservation and comparison of before-and-after evidence.",
+        "criterion": "O5: No durable claim is made until repeated per-case results and the before-and-after evidence support it.",
+        "status": "fail"
+      },
+      {
+        "citation": "Smell absent: The artifact explicitly says, \u201cOne passing run is evidence, not proof.\u201d",
+        "criterion": "S1 (failure smell must be absent): declares the skill proven from one run",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: \u201cOnly after consistent blind passes across a defensible sweep should the guidebook make a scoped claim.\u201d",
+        "criterion": "S2 (failure smell must be absent): makes a durable guidebook claim before repeated case-level evidence",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell present: Repeated blind trials are required, but per-case pass rates are omitted; only \u201cRecord pass/fail per case\u201d appears.",
+        "criterion": "S3 (failure smell must be absent): omits repeated blind trials or pass rates",
+        "status": "fail"
+      },
+      {
+        "citation": "Smell absent: The runner sees \u201conly the case input, never the expected outcome,\u201d while the judge receives the bar.",
+        "criterion": "S4 (failure smell must be absent): allows the runner to see the grading bar",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: It requires mapping failures and revising \u201conly where the evidence supports it\u201d before rerunning.",
+        "criterion": "S5 (failure smell must be absent): prescribes editing before diagnosing the failed case",
+        "status": "pass"
+      }
+    ],
+    "passed": false,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-95cfdd0ee52ff673",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly treats one green run as provisional, preserves runner/judge separation, repeats blind trials, and defers any scoped claim. It falls short of the full bar because it does not report per-case pass rates, explicitly distinguish skill defects from bad cases, or expressly require before-and-after evidence for the eventual claim."
+    }
+  ],
+  "matrix_row_id": "eval-row-32f33591d97c3b93",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "No. One passing run is evidence, not proof. It may reflect luck, an easy case, context leakage, or overfitting.\n\nBefore making a durable guidebook claim:\n\n1. Verify the run was blind: the fresh runner saw only the case input, never the expected outcome; the judge saw only the artifact, the bar, and the skill\u2019s first principles.\n2. Inspect the live checkout and remove any leaked case-specific information.\n3. Run a broader sweep covering multiple representative and adversarial golden cases, with a fresh context-free agent for every case and run.\n4. Grade each artifact independently against its case\u2019s stated bar and smells\u2014not against other artifacts or an opaque numeric score.\n5. Record pass/fail per case and cite every gap. Map failures to skill defects, revise only where the evidence supports it, then rerun the entire sweep blindly.\n6. Repeat enough times to expose nondeterministic failures and confirm improvements do not regress other cases.\n\nOnly after consistent blind passes across a defensible sweep should the guidebook make a scoped claim, such as \u201cthe skill passed these cases under this protocol.\u201d It should not claim universal reliability from a single successful run."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7090-e324-7a83-bc63-8e47ae6a39bd",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:32bd3faabda89757007b7cd7f94be942afbbd7ef9686b791e010071a36812b61",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7090-ba35-7100-870c-be2d25face5e",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-2",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "single-green-claim-calibration",
+  "trace_id": "trace-6300e95aa1c7bf333b7b",
+  "variant_id": "ablated"
+}

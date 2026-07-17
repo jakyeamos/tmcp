@@ -1,0 +1,152 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-high-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-67c768d4a918fda5cc0b",
+    "judge_artifact": "cells/campaign-cell-67c768d4a918fda5cc0b/judge.json",
+    "judge_artifact_sha256": "sha256:d73df1b5eb64ae389b329cffa7bef008d57e7a0154b75dd3d7a9b21275a8f714",
+    "judge_effort": "high",
+    "order": 66,
+    "runner_artifact": "cells/campaign-cell-67c768d4a918fda5cc0b/runner.txt",
+    "runner_artifact_sha256": "sha256:3524a6dc7f7da2ef608881b077a0a5f4b41f3f972c78622e0b6e745c8705392d",
+    "runner_effort": "high",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 9984,
+        "input_tokens": 10399,
+        "output_tokens": 897,
+        "reasoning_output_tokens": 435
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 11278,
+        "output_tokens": 208,
+        "reasoning_output_tokens": 0
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "\u201cA single passing run does not prove the skill works\u201d and \u201cBefore making a durable guidebook claim\u201d keep the conclusion provisional.",
+        "criterion": "O1: The answer explicitly rejects a single green run as proof and keeps the claim provisional.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cRepeat the same blind evaluation 2\u20133 times, using a fresh, context-free runner for every run\u201d and \u201cReport the pass rate,\u201d with the example \u201c1 pass in 3 attempts.\u201d",
+        "criterion": "O2: It requires fresh blind repetitions of important cases and reports per-case pass rates.",
+        "status": "pass"
+      },
+      {
+        "citation": "Each runner receives \u201conly the case input and target skill\u2014never the bar or expected output,\u201d while \u201ca separate fresh judge\u201d grades against the case bar.",
+        "criterion": "O3: It keeps runners separate from evidence-based judges and preserves the runner/judge information boundary.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cInvestigate failures as either skill defects or bad evaluation cases; revise only genuine skill defects\u201d and \u201cRe-run every evaluation case after edits.\u201d",
+        "criterion": "O4: It calls for diagnosing skill defects versus bad cases and rerunning the full suite after any justified change.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cOnly consistent blind passes across all cases at the required rate justify a durable guidebook claim,\u201d after the prescribed diagnosis, edits, and full-suite rerun.",
+        "criterion": "O5: No durable claim is made until repeated per-case results and the before-and-after evidence support it.",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: the artifact explicitly says one passing run \u201cdoes not prove the skill works.\u201d",
+        "criterion": "S1 (failure smell must be absent): declares the skill proven from one run",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: it permits a durable claim only after \u201cconsistent blind passes across all cases at the required rate.\u201d",
+        "criterion": "S2 (failure smell must be absent): makes a durable guidebook claim before repeated case-level evidence",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: it requires 2\u20133 blind repetitions and reporting the pass rate.",
+        "criterion": "S3 (failure smell must be absent): omits repeated blind trials or pass rates",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: runners must \u201cnever\u201d receive \u201cthe bar or expected output.\u201d",
+        "criterion": "S4 (failure smell must be absent): allows the runner to see the grading bar",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: it requires investigating whether failures are skill defects or bad cases and revising \u201conly genuine skill defects.\u201d",
+        "criterion": "S5 (failure smell must be absent): prescribes editing before diagnosing the failed case",
+        "status": "pass"
+      }
+    ],
+    "passed": true,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-95cfdd0ee52ff673",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly treats one green run as provisional, requires fresh blind repetitions with separated runners and judges, reports case repetition outcomes as pass rates, diagnoses failures before editing, reruns the entire suite after justified changes, and withholds durable claims until the repeated before-and-after evidence is consistently strong."
+    }
+  ],
+  "matrix_row_id": "eval-row-2aba6d49cee6ae2d",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "No. A single passing run does not prove the skill works; agent output is nondeterministic.\n\nBefore making a durable guidebook claim:\n\n1. Repeat the same blind evaluation 2\u20133 times, using a fresh, context-free runner for every run.\n2. Give each runner only the case input and target skill\u2014never the bar or expected output.\n3. Have a separate fresh judge grade each artifact against the case bar and the skill\u2019s first principles, citing specific evidence.\n4. Sweep the live checkout after every run and clean any leaked changes.\n5. Report the pass rate, not merely the best result.\n6. Investigate failures as either skill defects or bad evaluation cases; revise only genuine skill defects using the authoring principles.\n7. Re-run every evaluation case after edits to detect regressions.\n\nA result such as 1 pass in 3 attempts is evidence of unreliable behavior, not a validated skill. Only consistent blind passes across all cases at the required rate justify a durable guidebook claim."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7090-16f2-71c3-84bf-0d32862d30a6",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:32bd3faabda89757007b7cd7f94be942afbbd7ef9686b791e010071a36812b61",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f708f-f178-7c02-be69-e35dc0d7be0a",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "single-green-claim-calibration",
+  "trace_id": "trace-51ced091ecfae4ca0a38",
+  "variant_id": "original"
+}

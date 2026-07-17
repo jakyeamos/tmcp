@@ -1,0 +1,14 @@
+The run is invalid. Seeing the case bar compromised blindness, so neither its artifact nor grade can count.
+
+Recovery:
+
+1. Discard the contaminated artifact and all results derived from it.
+2. Compare the live checkout with its pre-run state using status/diffs.
+3. Identify only files and hunks created or changed by the runner.
+4. Revert those specific tracked-file hunks and delete only runner-created untracked files. Do not use broad cleanup, reset, checkout, or clean commands.
+5. Preserve all unrelated existing work. If ownership of any change is ambiguous, stop and ask before modifying it.
+6. Confirm the checkout contains no remaining runner leaks.
+7. Rerun the case with a fresh, context-free agent in an isolated workspace. Give the runner only the case input—no bar, expected outcome, prior artifact, or conversation context.
+8. After the run, sweep the live checkout again and remove any leaks with the same targeted procedure.
+9. Have a separate judge evaluate the new artifact using the bar and the skill’s first principles.
+10. Count only this clean rerun in the evaluation report.

@@ -1,0 +1,12 @@
+No. One passing run is evidence, not proof: it may reflect luck, a weak bar, leakage, or overfitting to one case.
+
+Before making a durable guidebook claim:
+
+1. Confirm the target skill, multiple representative golden cases, and a defensible bar with clear failure smells for each case.
+2. Re-run every case blindly with one fresh, context-free runner per case. Runners receive only the input—never the expected outcome or prior artifacts.
+3. Have judges assess each artifact independently against its case’s bar and the skill’s first principles, citing concrete gaps rather than assigning opaque scores.
+4. Inspect the live checkout after every run and remove any leaked artifacts or context.
+5. Map each failure to a general skill defect, make only defensible edits, then repeat the complete blind sweep with fresh agents.
+6. Report per-case pass rates, cited gaps, defect mappings, edits, and before/after re-evaluation results.
+
+Only repeated clean sweeps across representative cases justify a carefully scoped claim. Even then, state what was tested and the limits of the evidence—not that the skill universally “works.”

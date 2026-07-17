@@ -1,0 +1,10 @@
+Diagnose this as a likely **bad-case/bar mismatch**, not a skill defect. The skill is judgment-oriented, so defensible choices should be graded against outcome quality and failure smells. Requiring an exact seven-heading template turns the evaluation into a conformance check and can falsely fail otherwise good artifacts.
+
+Before editing the skill:
+
+1. Reconfirm the skill’s first principles and that the intended eval mode is judgment, not conformance.
+2. Ask whether the seven headings are genuinely required by the skill’s purpose or merely represent one preferred answer.
+3. If they are only a preference, rewrite the golden-case bar as an outcome-and-smells standard, then regrade or rerun the blind evaluation.
+4. If exact headings are truly mandatory, explicitly reclassify the task as conformance-style and justify that requirement.
+
+No skill edit should occur until the bar is corrected or its conformance requirement is confirmed. Otherwise, the edit would encode the wrong reality and reduce the skill’s legitimate judgment merely to teach it to the test.

@@ -1,0 +1,13 @@
+No. One passing evaluation run is evidence, not proof that the skill reliably works. It may reflect an easy case, luck, context leakage, or overfitting.
+
+Before making a durable guidebook claim:
+
+1. Verify the run was blind: the fresh runner saw only the input, never the expected outcome or prior conversation.
+2. Have an independent judge assess the artifact against the case’s stated bar and the skill’s first principles.
+3. Inspect the live checkout and remove any leaked artifacts or unintended changes.
+4. Run a broader sweep using multiple representative and adversarial golden cases, with one fresh, context-free runner per case.
+5. Grade every case against its own bar, recording pass rates and specific gaps rather than collapsing results into a numeric score.
+6. Map failures to skill defects, edit only where the evidence supports it, then rerun the entire sweep—including previously passing cases—to detect regressions.
+7. If a failure exposes a weak or misleading bar, fix the bar rather than bending the skill to pass.
+
+Only after repeated blind sweeps show consistent performance across defensible cases should the guidebook make a durable claim—and that claim should remain scoped to the behavior and cases actually demonstrated.

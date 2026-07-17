@@ -1,0 +1,13 @@
+The run is invalid: exposing the case bar broke blindness. Discard its artifact and verdict; do not count it toward the pass rate.
+
+Recovery:
+
+1. Inspect the live checkout with `git status` and identify exactly which files the runner created or modified.
+2. Remove only confirmed runner-created files and revert only confirmed runner changes. Do not use broad cleanup or destructive commands that could erase unrelated uncommitted work.
+3. Recheck `git status` and verify all pre-existing user changes remain intact. If runner changes overlap unrelated work and cannot be separated confidently, stop and ask the owner rather than cleaning them.
+4. Start a fresh, context-free runner for that case in a throwaway sandbox whose only writable root is the sandbox directory.
+5. Give the new runner only the concrete case input and instructions to use the target skill—never the bar, smells, expected outcome, other cases, or evaluation rationale.
+6. Capture text or plan artifacts from the runner’s final message when possible, avoiding filesystem writes.
+7. After the rerun, inspect the live checkout again and clean only any confirmed leaks.
+8. Grade the new artifact with a separate fresh judge that sees only the artifact, the case bar, and the skill’s first principles—not the expected output.
+9. Repeat blind runs as required for the case and report the resulting pass rate.

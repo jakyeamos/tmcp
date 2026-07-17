@@ -1,0 +1,152 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-low-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-9f56e678711fceb26791",
+    "judge_artifact": "cells/campaign-cell-9f56e678711fceb26791/judge.json",
+    "judge_artifact_sha256": "sha256:9a8b7511ed9d4afff856bebfbd31e1d470f7cc3ca5de2488570daa973a0b4eb6",
+    "judge_effort": "high",
+    "order": 57,
+    "runner_artifact": "cells/campaign-cell-9f56e678711fceb26791/runner.txt",
+    "runner_artifact_sha256": "sha256:355a7b5f95cd9b13cd40821c7a952424d37229504636a9f17d348eb716ec69e1",
+    "runner_effort": "low",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10438,
+        "output_tokens": 624,
+        "reasoning_output_tokens": 164
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10388,
+        "output_tokens": 208,
+        "reasoning_output_tokens": 0
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "\u201cThis is likely a bar\u2013skill mismatch, not a demonstrated skill defect.\u201d",
+        "criterion": "O1: The result is treated as a likely bad-case or bad-bar problem rather than automatically as a skill defect.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cA judgment-oriented skill should be graded on whether its artifacts make sound, defensible decisions\u2014not whether they reproduce an exact seven-heading template. That template turns the eval into a conformance test...\u201d",
+        "criterion": "O2: The answer distinguishes judgment evaluation from conformance testing and explains why an answer template can erase the judgment under test.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cBefore editing the skill\u201d and \u201cEditing first would teach the skill to the faulty test rather than improve its judgment.\u201d",
+        "criterion": "O3: It refuses to edit the skill merely to chase an indefensible template.",
+        "status": "pass"
+      },
+      {
+        "citation": "The artifact proposes confirming the evaluation mode and rewriting the bar, but it does not call for clarifying the skill\u2019s first principles and evaluation mode with the user. Required evidence is missing.",
+        "criterion": "O4: It calls for clarifying the skill's first principles and evaluation mode with the user, then replacing the template with a defensible outcome-and-smells bar before continuing.",
+        "status": "fail"
+      },
+      {
+        "citation": "\u201cOnly failures that remain after this re-evaluation should drive skill edits.\u201d This does not require a later edit to be tied to a named behavior defect exposed by the corrected case; required evidence is missing.",
+        "criterion": "O5: Any later skill edit must be justified by a named behavior defect exposed by the corrected case, not by the seven-heading template mismatch.",
+        "status": "fail"
+      },
+      {
+        "citation": "The smell is absent; the artifact says the result is \u201cnot a demonstrated skill defect.\u201d",
+        "criterion": "S1 (failure smell must be absent): assumes every failure is a skill defect",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent; it does not add the seven headings and instead recommends removing prescriptive answer parts when judgment is the target.",
+        "criterion": "S2 (failure smell must be absent): adds the seven headings to the skill",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent; it requires resolving whether the task is judgment- or conformance-oriented and correcting or defending the bar accordingly.",
+        "criterion": "S3 (failure smell must be absent): keeps the prescriptive bar without resolving the evaluation mode",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent; the artifact does not invent replacement first principles, though it also omits the required user clarification.",
+        "criterion": "S4 (failure smell must be absent): invented first principles replace user clarification",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent; it warns that matching the faulty test would not improve judgment.",
+        "criterion": "S5 (failure smell must be absent): recommends making the artifact match the judge's preferred answer",
+        "status": "pass"
+      }
+    ],
+    "passed": false,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-95cfdd0ee52ff673",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly diagnoses a likely bad bar, distinguishes judgment from conformance, and refuses template-chasing. It falls short because it does not require user clarification of first principles and does not explicitly gate later edits on a named behavior defect revealed by the corrected case."
+    }
+  ],
+  "matrix_row_id": "eval-row-c3ff02b4c7572b26",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "This is likely a bar\u2013skill mismatch, not a demonstrated skill defect. A judgment-oriented skill should be graded on whether its artifacts make sound, defensible decisions\u2014not whether they reproduce an exact seven-heading template. That template turns the eval into a conformance test and can create a 0% pass rate even when the underlying judgment is good.\n\nBefore editing the skill:\n\n1. Inspect each failure and separate substantive judgment gaps from heading-only mismatches.\n2. Confirm whether the skill is genuinely judgment-oriented or whether exact formatting is an actual operational requirement.\n3. If judgment is the target, rewrite the bar as outcome quality plus recognizable failure smells, without prescribing the answer\u2019s parts.\n4. If the seven headings are truly mandatory, explicitly reclassify the task as conformance-oriented and defend that requirement.\n5. Re-run the original skill blind against the corrected bar.\n\nOnly failures that remain after this re-evaluation should drive skill edits. Editing first would teach the skill to the faulty test rather than improve its judgment."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f708e-a6cb-73e0-a233-256e7a68283e",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:32bd3faabda89757007b7cd7f94be942afbbd7ef9686b791e010071a36812b61",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f708e-7509-7860-99fe-f9e413d118be",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "judgment-skill-with-prescriptive-bar",
+  "trace_id": "trace-dde610e635c0ff446432",
+  "variant_id": "ablated"
+}

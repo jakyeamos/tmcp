@@ -1,0 +1,142 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-max-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-ba3b0b1e9640cce7ff5c",
+    "judge_artifact": "cells/campaign-cell-ba3b0b1e9640cce7ff5c/judge.json",
+    "judge_artifact_sha256": "sha256:9bc4ecc51e63da3583af78d012fe078b60d4f38e030ee8d005e13b74ffe3c81f",
+    "judge_effort": "high",
+    "order": 67,
+    "runner_artifact": "cells/campaign-cell-ba3b0b1e9640cce7ff5c/runner.txt",
+    "runner_artifact_sha256": "sha256:7399f74893cce6009da847e7b872ceffb1b5a7e90706c75f53086638e524525c",
+    "runner_effort": "max",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10481,
+        "output_tokens": 437,
+        "reasoning_output_tokens": 45
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 11293,
+        "output_tokens": 1384,
+        "reasoning_output_tokens": 1034
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "\u201cThe run is invalid. Seeing the case bar breaks blindness, so discard the artifact and exclude the run from all pass-rate calculations. It cannot be salvaged by re-grading.\u201d",
+        "criterion": "O1: The contaminated artifact is invalidated and is not counted as a blind evaluation result.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cStart a fresh, context-free runner\u2026 Give it only the case input and the instruction to use the target skill\u201d and \u201cGrade only the replacement artifact with a separate fresh judge.\u201d",
+        "criterion": "O2: The case is rerun with a fresh context-free runner that sees only the skill instructions and case input, then graded by a separate fresh judge.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cRemove only changes positively attributable to the runner\u2026 Preserve all pre-existing and ambiguous changes.\u201d",
+        "criterion": "O3: Recovery inspects the live checkout and removes or restores only confirmed evaluation-generated leaks while preserving unrelated user work.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cStart a fresh, context-free runner in a throwaway sandbox whose only writable root is outside the live checkout\u201d and \u201cSweep the live checkout again afterward.\u201d",
+        "criterion": "O4: Future runs use a throwaway sandbox with no writable live checkout, while still sweeping the live checkout after each run.",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: the artifact says to \u201cexclude the run from all pass-rate calculations\u201d and \u201cGrade only the replacement artifact.\u201d",
+        "criterion": "S1 (failure smell must be absent): grades or counts the contaminated artifact",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: the artifact says \u201cStop the runner\u201d and \u201cStart a fresh, context-free runner.\u201d",
+        "criterion": "S2 (failure smell must be absent): reuses the contaminated runner session",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: \u201cDo not use blanket operations such as `reset --hard`, restoring the entire checkout, or deleting all untracked files.\u201d",
+        "criterion": "S3 (failure smell must be absent): uses blanket reset, restore, clean, or deletion commands against the live checkout",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: despite requiring a throwaway sandbox, the procedure explicitly says, \u201cSweep the live checkout again afterward.\u201d",
+        "criterion": "S4 (failure smell must be absent): assumes sandboxing eliminates the need to inspect the live checkout",
+        "status": "pass"
+      }
+    ],
+    "passed": true,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-95cfdd0ee52ff673",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly invalidates the contaminated run, prescribes a fresh blind rerun and separate fresh judging, protects unrelated checkout work through attribution-based cleanup, and combines sandbox isolation with continued checkout inspection."
+    }
+  ],
+  "matrix_row_id": "eval-row-a1cdc8938d8c86c3",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "The run is invalid. Seeing the case bar breaks blindness, so discard the artifact and exclude the run from all pass-rate calculations. It cannot be salvaged by re-grading.\n\nRecovery:\n\n1. Stop the runner and prevent further writes.\n2. Record the current checkout state: tracked, staged, and untracked changes. Back up that state before cleanup.\n3. Compare it with the pre-run checkout snapshot.\n4. Remove only changes positively attributable to the runner:\n   - Reverse only its hunks in modified files.\n   - Remove only untracked files known to have been created by it.\n   - Preserve all pre-existing and ambiguous changes.\n   - Do not use blanket operations such as `reset --hard`, restoring the entire checkout, or deleting all untracked files.\n5. If there is no pre-run snapshot and ownership of a change cannot be established, stop and obtain confirmation; do not guess or delete it.\n6. Sweep the checkout again and verify it exactly matches the pre-run state\u2014\u201cclean\u201d means free of runner leakage, not necessarily an empty Git status.\n7. Start a fresh, context-free runner in a throwaway sandbox whose only writable root is outside the live checkout. Give it only the case input and the instruction to use the target skill\u2014never the bar, smells, other cases, or expected outcome.\n8. Capture the new artifact from the runner\u2019s final response where possible. Sweep the live checkout again afterward.\n9. Grade only the replacement artifact with a separate fresh judge that sees the artifact, bar, and skill first principles.\n10. For an important or borderline case, repeat the blind run with fresh agents 2\u20133 times and report the resulting pass rate."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7091-119d-7b81-b10e-4ee8573d0282",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:32bd3faabda89757007b7cd7f94be942afbbd7ef9686b791e010071a36812b61",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7090-4ba1-7fb2-8eca-baf7e37476b1",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-2",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "contaminated-run-and-live-checkout-leak",
+  "trace_id": "trace-661482253f9282d317cc",
+  "variant_id": "original"
+}

@@ -1,0 +1,5 @@
+Stop before running any evaluation.
+
+First, clarify the skill’s first principles and confirm that the evaluation is judgment-oriented. Then draw out and echo back a defensible bar for each case: the desired outcome plus recognizable failure smells, at the level of judgment the user cares about.
+
+“Make it good” is too vague to grade, while the exact answer template would improperly turn a judgment eval into conformance testing. Do not use that template as the expected answer unless the user confirms the skill is genuinely conformance-style. Only begin blind runs once every case has a concrete, judgeable bar and the evaluation mode is settled.

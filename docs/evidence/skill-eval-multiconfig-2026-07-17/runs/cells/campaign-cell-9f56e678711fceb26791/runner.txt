@@ -1,0 +1,11 @@
+This is likely a bar–skill mismatch, not a demonstrated skill defect. A judgment-oriented skill should be graded on whether its artifacts make sound, defensible decisions—not whether they reproduce an exact seven-heading template. That template turns the eval into a conformance test and can create a 0% pass rate even when the underlying judgment is good.
+
+Before editing the skill:
+
+1. Inspect each failure and separate substantive judgment gaps from heading-only mismatches.
+2. Confirm whether the skill is genuinely judgment-oriented or whether exact formatting is an actual operational requirement.
+3. If judgment is the target, rewrite the bar as outcome quality plus recognizable failure smells, without prescribing the answer’s parts.
+4. If the seven headings are truly mandatory, explicitly reclassify the task as conformance-oriented and defend that requirement.
+5. Re-run the original skill blind against the corrected bar.
+
+Only failures that remain after this re-evaluation should drive skill edits. Editing first would teach the skill to the faulty test rather than improve its judgment.

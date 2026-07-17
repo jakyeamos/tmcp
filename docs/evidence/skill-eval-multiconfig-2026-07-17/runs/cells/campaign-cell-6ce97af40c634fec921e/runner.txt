@@ -1,0 +1,11 @@
+Replace “make it good” with:
+
+> Do not stop at a subjective quality judgment. Before finishing, derive concrete, observable completion criteria from the task’s goal and constraints, inspect the artifact against each criterion, repair every identified gap, and finish only when the artifact passes that verification. Preserve practitioner judgment; do not turn the criteria into a predetermined parts checklist.
+
+Then re-evaluate all three cases:
+
+- Blind-run each case with a fresh, context-free agent that sees only the revised skill and case input.
+- After every run, inspect the live checkout and remove any context or expected-output leakage.
+- Have separate judges assess each artifact against its case bar and the skill’s first principles, without seeing prior artifacts or judgments.
+- Report each case’s before/after result, cited gaps, defect mapping, and overall pass-rate movement.
+- If any case still fails—or a previously passing case regresses—revise from that specific defect and repeat the full three-case sweep.

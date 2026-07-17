@@ -1,0 +1,1 @@
+Stop and ask the user to define a gradeable bar for each case: the outcome a good artifact should achieve and the failure smells to reject. Also clarify that the exact answer template should not be used as the expected output unless the skill is genuinely conformance-oriented. Echo the agreed judgment-based bar back for confirmation before running any evaluation agents.

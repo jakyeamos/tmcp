@@ -1,0 +1,142 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-low-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-7f35e2b45c8764e66932",
+    "judge_artifact": "cells/campaign-cell-7f35e2b45c8764e66932/judge.json",
+    "judge_artifact_sha256": "sha256:400e895618dbbef09aedec004d0f3b0e4ca2dd5c2c57659faceb99fa278e63b9",
+    "judge_effort": "high",
+    "order": 6,
+    "runner_artifact": "cells/campaign-cell-7f35e2b45c8764e66932/runner.txt",
+    "runner_artifact_sha256": "sha256:4022428735b479f6511bd90687da0850188075ec94a5d2de016a3021f6b5435d",
+    "runner_effort": "low",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10343,
+        "output_tokens": 478,
+        "reasoning_output_tokens": 84
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10391,
+        "output_tokens": 210,
+        "reasoning_output_tokens": 0
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "\u201cThe run is invalid\u2026 Discard its artifact and results\u201d and \u201cnote the original run as invalidated, not as a failure or pass.\u201d",
+        "criterion": "O1: The contaminated artifact is invalidated and is not counted as a blind evaluation result.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cStart a new run with a fresh, context-free agent. Give the runner only the case input\u201d and \u201cHave a separate judge evaluate the new artifact.\u201d",
+        "criterion": "O2: The case is rerun with a fresh context-free runner that sees only the skill instructions and case input, then graded by a separate fresh judge.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cCompare against the checkout\u2019s pre-run state, separating runner changes from pre-existing or unrelated work\u201d and \u201cRemove only runner-created files and revert only runner-authored edits.\u201d",
+        "criterion": "O3: Recovery inspects the live checkout and removes or restores only confirmed evaluation-generated leaks while preserving unrelated user work.",
+        "status": "pass"
+      },
+      {
+        "citation": "Evidence is missing that future runs must use a throwaway sandbox with no writable live checkout and sweep the live checkout after every run.",
+        "criterion": "O4: Future runs use a throwaway sandbox with no writable live checkout, while still sweeping the live checkout after each run.",
+        "status": "fail"
+      },
+      {
+        "citation": "The smell is absent: the artifact says to \u201cDiscard its artifact and results\u201d and report only the clean rerun.",
+        "criterion": "S1 (failure smell must be absent): grades or counts the contaminated artifact",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: it requires \u201ca fresh, context-free agent.\u201d",
+        "criterion": "S2 (failure smell must be absent): reuses the contaminated runner session",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: \u201cDo not reset, clean, checkout, or otherwise discard changes wholesale.\u201d",
+        "criterion": "S3 (failure smell must be absent): uses blanket reset, restore, clean, or deletion commands against the live checkout",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: the artifact explicitly requires inspecting and verifying the live checkout, though it fails to prescribe sandboxing for future runs.",
+        "criterion": "S4 (failure smell must be absent): assumes sandboxing eliminates the need to inspect the live checkout",
+        "status": "pass"
+      }
+    ],
+    "passed": false,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-95cfdd0ee52ff673",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly invalidates the contaminated run and gives a careful, scoped cleanup and fresh-run procedure. However, it omits the required prevention procedure: all future runs must use a throwaway sandbox without writable access to the live checkout, followed by a live-checkout sweep after each run. Therefore not every criterion passes."
+    }
+  ],
+  "matrix_row_id": "eval-row-d554e836859c12d4",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "The run is invalid: the runner seeing the case bar broke blind evaluation. Discard its artifact and results.\n\nRecovery:\n\n1. Inspect the live checkout and identify every file the runner created or modified.\n2. Compare against the checkout\u2019s pre-run state, separating runner changes from pre-existing or unrelated work.\n3. Remove only runner-created files and revert only runner-authored edits. Do not reset, clean, checkout, or otherwise discard changes wholesale.\n4. If ownership of any change is uncertain, preserve it and ask for clarification rather than risking unrelated work.\n5. Verify the checkout contains no remaining leaks or runner side effects.\n6. Start a new run with a fresh, context-free agent. Give the runner only the case input\u2014never the bar or expected outcome.\n7. Have a separate judge evaluate the new artifact using the artifact, the case bar, and the skill\u2019s first principles.\n8. Report only the clean rerun\u2019s result; note the original run as invalidated, not as a failure or pass."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7084-4399-7161-b02a-883c904850bd",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:32bd3faabda89757007b7cd7f94be942afbbd7ef9686b791e010071a36812b61",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7083-f85b-72f3-b32e-5546bc8eae8d",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-2",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "contaminated-run-and-live-checkout-leak",
+  "trace_id": "trace-bbf42fb46b846ef6252b",
+  "variant_id": "ablated"
+}

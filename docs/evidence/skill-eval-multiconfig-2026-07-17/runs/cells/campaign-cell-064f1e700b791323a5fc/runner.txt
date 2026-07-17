@@ -1,0 +1,5 @@
+Stop before running any evaluation.
+
+First, clarify the skill’s first principles and whether the evaluation is judgment-based or truly conformance-based. Since the skill appears judgment-oriented, do not treat the exact answer template as the expected output by default.
+
+Draw out and echo back a defensible bar for each case: the outcome a good artifact should achieve and the failure smells that would make it bad, without prescribing the exact answer. Only after the user confirms that bar—and resolves whether the template is merely illustrative or an actual conformance requirement—may blind runs begin.

@@ -1,0 +1,10 @@
+Re-run all golden cases—A, B, and C—with one fresh, context-free runner per case. Each runner sees only its case input, never the expected outcome. Then have judges assess each artifact independently against that case’s bar and the skill’s first principles.
+
+Before declaring success, show:
+
+- B now passes, with the original cited gap resolved.
+- A and C still pass, demonstrating no regressions.
+- The live checkout was inspected after the runs and any leaked artifacts were removed.
+- A legible before/after report mapping B’s failure to the defect, the edit made, and the full re-evaluation results.
+
+B passing alone is insufficient; the complete sweep is the guarantee that the targeted fix improved the skill without damaging previously passing behavior.

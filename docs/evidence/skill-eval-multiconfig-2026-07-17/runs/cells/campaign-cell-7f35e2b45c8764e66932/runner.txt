@@ -1,0 +1,12 @@
+The run is invalid: the runner seeing the case bar broke blind evaluation. Discard its artifact and results.
+
+Recovery:
+
+1. Inspect the live checkout and identify every file the runner created or modified.
+2. Compare against the checkout’s pre-run state, separating runner changes from pre-existing or unrelated work.
+3. Remove only runner-created files and revert only runner-authored edits. Do not reset, clean, checkout, or otherwise discard changes wholesale.
+4. If ownership of any change is uncertain, preserve it and ask for clarification rather than risking unrelated work.
+5. Verify the checkout contains no remaining leaks or runner side effects.
+6. Start a new run with a fresh, context-free agent. Give the runner only the case input—never the bar or expected outcome.
+7. Have a separate judge evaluate the new artifact using the artifact, the case bar, and the skill’s first principles.
+8. Report only the clean rerun’s result; note the original run as invalidated, not as a failure or pass.

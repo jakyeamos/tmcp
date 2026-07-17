@@ -1,0 +1,152 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-high-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-04b453221a1678f2158b",
+    "judge_artifact": "cells/campaign-cell-04b453221a1678f2158b/judge.json",
+    "judge_artifact_sha256": "sha256:e8cd5010ae4fee395a33c6226338a786b1d535f0dfbeeb56a56dc1a82f20cde1",
+    "judge_effort": "high",
+    "order": 14,
+    "runner_artifact": "cells/campaign-cell-04b453221a1678f2158b/runner.txt",
+    "runner_artifact_sha256": "sha256:ae1911f3dcd4d8e3a88dc3ca456081b1dc7bc5a1f4988fa267401dfe6347bb49",
+    "runner_effort": "high",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 9984,
+        "input_tokens": 10435,
+        "output_tokens": 963,
+        "reasoning_output_tokens": 485
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 11299,
+        "output_tokens": 362,
+        "reasoning_output_tokens": 167
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "Pass: \u201cReplace \u2018make it good\u2019 with one explicit completion criterion\u201d directly targets the diagnosed defect, and \u201cevery required outcome can be verified from the artifact itself\u201d makes completion observable.",
+        "criterion": "O1: The named vague-completion defect is used as the specification for the edit, and the completion criterion is made observable before adding instructional bulk.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: \u201cChange only that criterion\u2014add no extra guidance or duplicated rules.\u201d",
+        "criterion": "O2: The revision changes only the instruction implicated by the failure rather than broadly rewriting or expanding unrelated parts of the skill.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: The revision leads with the directive \u201cDone when:\u201d and supplies a verification-based stopping condition rather than generic encouragement.",
+        "criterion": "O3: The revised instruction uses a clear leading directive and avoids vague no-op language or sediment.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: \u201cBlind-run all three cases again\u201d with \u201cone fresh, context-free agent per case,\u201d followed by \u201cseparate fresh judges.\u201d",
+        "criterion": "O4: After the edit, all three cases are rerun with fresh blind runners and separate evidence-based judges rather than retesting only the failed case.",
+        "status": "pass"
+      },
+      {
+        "citation": "Fail: The artifact says \u201creport pass rates\u201d and \u201cConfirm the failed case now passes without regressions,\u201d but it does not explicitly require per-case pass rates or a legible before-and-after comparison for every case.",
+        "criterion": "O5: The result is reported with per-case pass rates and legible before-and-after movement.",
+        "status": "fail"
+      },
+      {
+        "citation": "Pass: This smell is absent; the added criterion requires outcomes that \u201ccan be verified from the artifact itself.\u201d",
+        "criterion": "S1 (failure smell must be absent): adds more generic encouragement without an observable completion criterion",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: This smell is absent; the artifact explicitly says, \u201cChange only that criterion.\u201d",
+        "criterion": "S2 (failure smell must be absent): rewrites unrelated parts of the skill",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: This smell is absent; \u201cDone when:\u201d is a leading directive with a concrete verification condition, and extra or duplicated guidance is prohibited.",
+        "criterion": "S3 (failure smell must be absent): adds vague no-op language or accumulated prose instead of a leading directive",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: This smell is absent; it requires rerunning \u201call three cases again, including the previously passing cases.\u201d",
+        "criterion": "S4 (failure smell must be absent): only the failed case is rerun after an edit",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: This smell is absent; the whole suite is rerun, and \u201cimportant or borderline cases\u201d are repeated \u201c2\u20133 times\u201d with pass rates reported.",
+        "criterion": "S5 (failure smell must be absent): one post-edit green run is treated as proof",
+        "status": "pass"
+      }
+    ],
+    "passed": false,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-95cfdd0ee52ff673",
+  "human_labels": [
+    {
+      "judge_rationale": "The proposed edit is minimal, directly tied to the diagnosed vague stopping rule, and followed by fresh blind reruns and separate judging. However, the reporting instructions do not explicitly require per-case pass rates with a clear before-versus-after presentation, so O5 fails and the artifact does not fully pass."
+    }
+  ],
+  "matrix_row_id": "eval-row-cbe0e32553a53f6b",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "Replace \u201cmake it good\u201d with one explicit completion criterion:\n\n> **Done when:** the artifact demonstrably satisfies the skill\u2019s stated first principles and every required outcome can be verified from the artifact itself; do not stop at a plausible draft.\n\nChange only that criterion\u2014add no extra guidance or duplicated rules.\n\nThen:\n\n1. Blind-run all three cases again, including the previously passing cases, using one fresh, context-free agent per case. Each runner sees only its input and the revised skill.\n2. After every run, check the live checkout and clean any leaked changes.\n3. Have separate fresh judges grade each artifact against that case\u2019s bar and the skill\u2019s first principles, citing specific evidence.\n4. Re-run important or borderline cases 2\u20133 times and report pass rates.\n5. Confirm the failed case now passes without regressions. If any case still fails, diagnose that failure and repeat the minimal revision/re-evaluation loop."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7086-680a-7c30-b317-d06ed627e575",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:32bd3faabda89757007b7cd7f94be942afbbd7ef9686b791e010071a36812b61",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7086-117d-7952-b0c7-819061dadd4b",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "named-defect-minimal-revision",
+  "trace_id": "trace-770724d4089111d44aa4",
+  "variant_id": "original"
+}

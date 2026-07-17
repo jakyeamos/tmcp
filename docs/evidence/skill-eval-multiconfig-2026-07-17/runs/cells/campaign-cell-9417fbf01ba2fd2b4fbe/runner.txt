@@ -1,0 +1,12 @@
+The run is invalid. Seeing the case bar contaminated the runner’s judgment; sandbox isolation cannot repair that after the fact.
+
+Recovery procedure:
+
+1. Discard the contaminated artifact and all grades derived from it.
+2. Inspect the live checkout and identify every file or change created by that runner.
+3. Remove or revert only those confirmed runner-owned changes. Preserve unrelated tracked edits and untracked files; do not use broad commands such as `git reset --hard` or `git clean`.
+4. Reinspect the checkout to confirm the leak is gone and unrelated work remains intact. If ownership of any change is uncertain, stop and ask rather than deleting it.
+5. Start a fresh, context-free runner for the case. Give it only the case input and target skill—never the bar or expected outcome.
+6. Have a separate judge evaluate the resulting artifact using the bar and the skill’s first principles.
+7. Sweep the live checkout again after the rerun and clean only attributable leaks.
+8. Report only the fresh run’s result; record the original attempt as invalid, not as a failure.

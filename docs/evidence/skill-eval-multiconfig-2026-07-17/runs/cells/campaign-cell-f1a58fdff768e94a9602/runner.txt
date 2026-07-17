@@ -1,0 +1,12 @@
+The run is invalid. The runner saw the case bar, violating the requirement that it receive only the input. Its artifact must not be graded or counted.
+
+Recovery:
+
+1. Mark the run contaminated and discard its artifact and result.
+2. Inspect the live checkout and identify only changes attributable to that runner.
+3. Remove runner-created files and reverse only runner-authored changes. Preserve all pre-existing and unrelated work; do not use a broad reset or cleanup. If attribution is uncertain, stop rather than delete.
+4. Verify that no runner leaks remain and unrelated changes are intact.
+5. Invalidate any later runs that may have observed the contaminated checkout.
+6. Rerun each affected case with a fresh, context-free agent. Give the runner only the case input—no bar, expected outcome, or conversation context—and isolate its writes from the live checkout as far as possible.
+7. Have a separate judge assess the new artifact using the bar and the skill’s first principles.
+8. Sweep the live checkout again after every rerun, then compute results using only uncontaminated runs.

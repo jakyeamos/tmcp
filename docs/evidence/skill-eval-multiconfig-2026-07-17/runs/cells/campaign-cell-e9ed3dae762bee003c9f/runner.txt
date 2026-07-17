@@ -1,0 +1,9 @@
+Replace “make it good” with an explicit, observable completion criterion grounded in the skill’s first principles and the cases’ outcome-and-smell bars. Sharpen that existing instruction rather than adding bulk, duplicating rules, or prescribing an exhaustive checklist.
+
+Then:
+
+1. Blind-run all three cases again—not only the failed case—using one fresh, context-free agent per case. Each runner receives only its case input and the target skill.
+2. After every run, check the live checkout with `git status` and clean any leaked changes.
+3. Have separate fresh judges grade each artifact using only the artifact, that case’s bar, and the skill’s first principles, citing specific evidence for every verdict.
+4. Repeat important or borderline cases 2–3 times to account for nondeterminism and report pass rates.
+5. Confirm the revision fixes the vague-completion failure without regressing the two previously passing cases. If anything still fails, diagnose it as a skill defect or bad case, revise only what that failure supports, and re-evaluate all three again.

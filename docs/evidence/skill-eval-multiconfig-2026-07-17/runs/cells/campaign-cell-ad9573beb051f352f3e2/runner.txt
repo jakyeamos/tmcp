@@ -1,0 +1,14 @@
+Replace only the vague completion clause:
+
+> **Verify:** Do not stop at a plausible draft. The artifact is done only when it demonstrably satisfies the skill’s stated first principles and concrete success condition, with the identified failure smells absent. Continue revising until it clears that standard or report a structural blocker.
+
+Instantiate “concrete success condition” from the target skill’s own first principles—not from the golden answers—and do not add case-specific requirements, extra explanation, or duplicated guidance.
+
+Then:
+
+1. Blind-run all three cases again, each with a fresh context-free agent receiving only its input and the revised skill.
+2. After each run, sweep the live checkout and clean any leaked changes.
+3. Have separate fresh judges grade each artifact using only the artifact, that case’s bar, and the skill’s first principles. Require cited evidence for every verdict.
+4. Run the previously failing or borderline case 2–3 times to measure nondeterminism; repeat other material cases similarly.
+5. Report per-case pass rates and cited gaps.
+6. If anything still fails, diagnose it as a skill defect or bad case, make only the failure-driven revision, and rerun all three cases again until they meet their rate bars or reveal a structural limitation.

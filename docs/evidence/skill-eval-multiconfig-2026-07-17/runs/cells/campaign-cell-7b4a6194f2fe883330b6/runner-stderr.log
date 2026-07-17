@@ -1,0 +1,1 @@
+2026-07-17T14:39:31.128648Z  WARN codex_app_server::mcp_refresh: failed to queue MCP refresh for thread 019f7084-6fed-7b93-b4de-f7c1ad001e12: internal error; agent loop died unexpectedly

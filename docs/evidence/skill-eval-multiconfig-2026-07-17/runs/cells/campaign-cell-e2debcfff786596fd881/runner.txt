@@ -1,0 +1,8 @@
+Re-run all three golden cases against the edited skill:
+
+- B verifies the targeted defect is fixed.
+- A and C verify the edit caused no regressions.
+
+Each case needs a fresh, context-free runner that sees only its input. Judges see only the resulting artifact, that case’s original bar, and the skill’s first principles—never the expected output.
+
+The fix is proven only when B clears its unchanged bar, A and C still pass, and each result includes cited evidence against its own bar. Report the original B gap, the defect it mapped to, the edit made, and the before/after results for all cases. Also confirm the live checkout was checked for context or expected-output leakage.

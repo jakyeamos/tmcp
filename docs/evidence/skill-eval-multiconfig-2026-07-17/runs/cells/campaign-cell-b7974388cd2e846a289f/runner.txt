@@ -1,0 +1,17 @@
+The run is invalid. Seeing the bar breaks blindness, regardless of artifact quality. Discard the artifact and any grades derived from it.
+
+Recovery:
+
+1. Stop the runner so it cannot write again.
+2. Record the current worktree and index state: tracked, staged, and untracked changes.
+3. Compare that state with the pre-run snapshot. Remove only attributable deltas:
+   - Delete only runner-created untracked paths.
+   - Reverse only runner-added hunks in tracked files.
+   - Restore only runner-made index changes.
+   - Preserve all pre-existing changes exactly, including changes in the same files.
+4. Do not use blanket commands such as `git reset --hard`, `git restore .`, or `git clean -fd`.
+5. If there is no pre-run snapshot and ownership of any change is uncertain, do not modify it. Quarantine clearly identified runner files outside the checkout and ask the work’s owner to resolve ambiguous changes.
+6. Verify that the checkout’s status and diffs match the pre-run state—not necessarily a clean `HEAD`, but no runner leakage.
+7. Start a fresh, context-free runner. Give it only the case input and the instruction to use the target skill. Provide a throwaway writable directory if files are required.
+8. Afterward, compare the live checkout against the preserved baseline again and remove any newly attributable leakage.
+9. Grade the new artifact with a separate judge that sees only the artifact, bar, and skill first principles. Re-run important or borderline cases 2–3 times and report the pass rate.

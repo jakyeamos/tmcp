@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cost_regression": {
+      "type": "boolean"
+    },
+    "evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "O1": {
+          "additionalProperties": false,
+          "properties": {
+            "citation": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "citation"
+          ],
+          "type": "object"
+        },
+        "O2": {
+          "additionalProperties": false,
+          "properties": {
+            "citation": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "citation"
+          ],
+          "type": "object"
+        },
+        "O3": {
+          "additionalProperties": false,
+          "properties": {
+            "citation": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "citation"
+          ],
+          "type": "object"
+        },
+        "O4": {
+          "additionalProperties": false,
+          "properties": {
+            "citation": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "citation"
+          ],
+          "type": "object"
+        },
+        "O5": {
+          "additionalProperties": false,
+          "properties": {
+            "citation": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "citation"
+          ],
+          "type": "object"
+        },
+        "S1": {
+          "additionalProperties": false,
+          "properties": {
+            "citation": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "citation"
+          ],
+          "type": "object"
+        },
+        "S2": {
+          "additionalProperties": false,
+          "properties": {
+            "citation": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "citation"
+          ],
+          "type": "object"
+        },
+        "S3": {
+          "additionalProperties": false,
+          "properties": {
+            "citation": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "citation"
+          ],
+          "type": "object"
+        },
+        "S4": {
+          "additionalProperties": false,
+          "properties": {
+            "citation": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "citation"
+          ],
+          "type": "object"
+        },
+        "S5": {
+          "additionalProperties": false,
+          "properties": {
+            "citation": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "citation"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "O1",
+        "O2",
+        "O3",
+        "O4",
+        "O5",
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "type": "object"
+    },
+    "passed": {
+      "type": "boolean"
+    },
+    "rationale": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "safety_regression": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "passed",
+    "evidence",
+    "safety_regression",
+    "cost_regression",
+    "rationale"
+  ],
+  "type": "object"
+}

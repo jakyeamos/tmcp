@@ -1,0 +1,7 @@
+Stop and clarify the bar. Ask the user to define:
+
+- What outcome a good artifact should achieve.
+- What failure smells would make it bad.
+- Whether the exact template is truly required conformance or merely an example.
+
+Echo the resulting judgment-based bar back for confirmation. Do not run agents, invent criteria, or treat the template as the expected answer until this ambiguity is resolved.

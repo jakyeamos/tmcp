@@ -1,0 +1,14 @@
+The run is invalid. Seeing the case bar contaminated the runner’s judgment, so neither its artifact nor its grade can count.
+
+Recovery procedure:
+
+1. Quarantine or discard the contaminated artifact and record the run as invalid.
+2. Compare the checkout with its documented pre-run state, including staged, unstaged, and untracked files.
+3. Revert only changes proven to have been made by the runner:
+   - Reverse only its specific hunks in tracked files.
+   - Restore from the pre-run snapshot, not blindly from `HEAD`, if files already had user changes.
+   - Remove only untracked files conclusively created by the run.
+4. Do not use broad cleanup commands such as `git reset --hard`, `git clean`, or whole-file checkout. If any change cannot be confidently attributed, leave it untouched and ask the checkout owner to resolve it.
+5. Verify that all pre-existing work remains byte-for-byte or diff-for-diff unchanged and sweep the live checkout for remaining run artifacts.
+6. Rerun the case in a disposable isolated checkout with a fresh, context-free runner. Give it only the target skill and case input—never the bar or expected outcome.
+7. Grade the new artifact separately against the bar and the skill’s first principles. Only this rerun belongs in the evaluation report.

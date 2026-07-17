@@ -1,0 +1,13 @@
+Re-evaluate all cases—A, B, and C—not just B—to detect regressions.
+
+Because agent output is nondeterministic, run fresh blind evaluations 2–3 times per case, with one context-free runner per run. Each runner sees only its case input and the edited skill, never the bar or expected output. Grade each artifact separately using a fresh judge given only the artifact, the case’s bar, and the skill’s first principles.
+
+Before claiming success, report:
+
+- Each case’s post-edit pass rate.
+- Evidence-backed verdicts citing specific artifact text or locations for every part of each bar.
+- Confirmation that B’s original gap is resolved.
+- Confirmation that A and C still pass, showing the B-focused edit caused no regressions.
+- A clean-checkout sweep after every run, with any leaked changes removed.
+
+The fix worked only when all three cases clear their required pass-rate bars; a single green run—especially for B—is insufficient.

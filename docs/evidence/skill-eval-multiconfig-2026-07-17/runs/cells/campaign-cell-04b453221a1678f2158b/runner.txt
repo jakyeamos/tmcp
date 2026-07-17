@@ -1,0 +1,13 @@
+Replace “make it good” with one explicit completion criterion:
+
+> **Done when:** the artifact demonstrably satisfies the skill’s stated first principles and every required outcome can be verified from the artifact itself; do not stop at a plausible draft.
+
+Change only that criterion—add no extra guidance or duplicated rules.
+
+Then:
+
+1. Blind-run all three cases again, including the previously passing cases, using one fresh, context-free agent per case. Each runner sees only its input and the revised skill.
+2. After every run, check the live checkout and clean any leaked changes.
+3. Have separate fresh judges grade each artifact against that case’s bar and the skill’s first principles, citing specific evidence.
+4. Re-run important or borderline cases 2–3 times and report pass rates.
+5. Confirm the failed case now passes without regressions. If any case still fails, diagnose that failure and repeat the minimal revision/re-evaluation loop.

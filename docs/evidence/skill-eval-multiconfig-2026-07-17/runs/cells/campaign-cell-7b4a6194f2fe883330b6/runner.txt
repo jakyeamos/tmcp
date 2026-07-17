@@ -1,0 +1,11 @@
+Replace “make it good” with an operational completion gate:
+
+> Before stopping, state the artifact-specific quality bar implied by the task, inspect or test the finished artifact against that bar, and fix every material gap found. Do not treat “make it good,” subjective confidence, or mere task completion as evidence of quality. Stop only when the artifact clears the bar and the verification result can be cited.
+
+Then re-evaluate all three cases—not only the failed one:
+
+- Blind-run each case with a fresh, context-free agent using only the revised skill and case input.
+- Give each separate judge only the artifact, that case’s bar, and the skill’s first principles; never expose expected outputs to runners.
+- Inspect the live checkout after every run and remove any leaked state.
+- Confirm the failed case now clears its completion bar and the two prior passes have not regressed.
+- Report the movement from 2/3 before to the new pass rate, citing any remaining gap and mapping it to a specific defect rather than a numeric score alone.

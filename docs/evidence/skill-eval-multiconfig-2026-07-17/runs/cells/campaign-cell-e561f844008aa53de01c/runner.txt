@@ -1,0 +1,10 @@
+Re-run the full A/B/C suite with the edited skill—not just B. Each case needs a fresh, context-free runner that sees only its input, followed by grading against that case’s bar and the skill’s first principles.
+
+Before claiming success, show:
+
+- B now passes, with evidence that its original cited gap is resolved.
+- A and C still pass, proving the B-specific edit caused no regressions.
+- Per-case findings tied to the bars, yielding movement from 2/3 before to 3/3 after.
+- Confirmation that the live checkout was checked for leaked case expectations or artifacts after the run.
+
+Without the full blind regression sweep, the fix is not established.

@@ -1,0 +1,16 @@
+Replace “make it good” with a concrete completion criterion that states:
+
+- the outcome the artifact must achieve;
+- the observable smells that make it unacceptable;
+- that work continues until the artifact clears that bar.
+
+The criterion must test judgment, not prescribe an exhaustive checklist or exact answer. Because no domain-specific bar is provided, its substantive wording must be drawn from the case owner rather than invented.
+
+Then:
+
+1. Blind-run each of the three cases again with one fresh, context-free agent per case. Each runner receives only its case input—never the bar or expected outcome.
+2. Separately judge each artifact against its case’s revised bar and the skill’s first principles.
+3. Inspect the live checkout after every run and remove any context or artifact leakage.
+4. Record each case’s pass/fail result and cite any remaining gap rather than using an opaque numeric score.
+5. Map failures to skill defects, make only defensible further edits, and repeat the blind sweep until the results demonstrate improvement.
+6. Report the original failure, the completion-criterion revision, and the before/after results for all three cases.

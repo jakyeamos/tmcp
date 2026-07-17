@@ -1,0 +1,11 @@
+Re-evaluate all cases—A, B, and C—not just B—to detect regressions. Use fresh, context-free agents for each blind run: runners receive only their case input and the revised skill, never the bar or expected output. Then use separate fresh judges given only the artifact, the case bar, and the skill’s first principles.
+
+Before declaring success, show:
+
+- A, B, and C each clear their bar, with specific artifact quotes or pointers supporting every verdict.
+- B improves after the edit and passes consistently, ideally across 2–3 blind reruns with its pass rate reported.
+- A and C still pass after the edit; rerun them 2–3 times too if important or borderline.
+- Any failures are diagnosed as skill defects versus bad cases.
+- The live checkout is clean after every run.
+
+A single pass for B is insufficient; the fix worked only when B’s improvement is repeatable and A/C show no regression.

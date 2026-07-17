@@ -1,0 +1,14 @@
+The run is invalid: the runner saw the bar, violating blind evaluation. Discard its artifact and verdict entirely.
+
+Recovery:
+
+1. Inspect the live checkout with `git status` and identify every file the runner created or modified.
+2. Compare those paths against the checkout’s pre-run state or other reliable provenance.
+3. Remove only confirmed runner-created files and revert only confirmed runner changes. Preserve all unrelated tracked, untracked, staged, and unstaged work. If ownership of any change is uncertain, stop and ask rather than cleaning it.
+4. Run `git status` again to confirm all runner leaks are gone and unrelated work remains intact.
+5. Start a fresh, context-free runner for the case. Give it only the case input and instruction to use the target skill—never the bar, smells, expected outcome, other cases, or evaluation rationale.
+6. If files are required, restrict the runner’s only writable root to a new throwaway sandbox directory; otherwise capture the artifact inline.
+7. After the rerun, sweep the live checkout with `git status` again and clean only verified leaks using the same provenance-safe process.
+8. Grade the fresh artifact with a separate judge that receives only the artifact, the case bar, and the skill’s first principles.
+
+Do not reuse the contaminated runner or its artifact, even if the output appears independently defensible.

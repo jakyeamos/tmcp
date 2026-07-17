@@ -1,0 +1,9 @@
+Revise the target skill’s completion criterion so it defines an observable quality bar and explicit failure smells—what a good artifact must achieve and what defects make it unacceptable—without prescribing an exhaustive parts checklist.
+
+Then:
+
+1. Map the failure to this completion-criterion defect and record the revision.
+2. Re-run all three cases, not just the failed one, using one fresh, context-free agent per case. Each runner sees only its case input and the revised skill—never the expected outcome or prior artifacts.
+3. After each run, inspect the live checkout and remove any leaked state.
+4. Have separate judges assess each new artifact against its case’s bar and the skill’s first principles, citing any gap rather than assigning an opaque numeric score.
+5. Report the before/after pass rate per case, cited gaps, defect-to-edit mapping, and re-evaluation result.

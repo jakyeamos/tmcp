@@ -1,0 +1,11 @@
+Revise the target skill by replacing “make it good” with a concrete, observable completion criterion tied to the skill’s first principles and the case-level outcome. Specify what evidence must exist before completion, including the relevant failure smells, without prescribing an exhaustive answer or adding unrelated instructions.
+
+Then:
+
+1. Blind-run all three cases again, each in a fresh, context-free agent that sees only its case input and the target skill.
+2. Sweep the live checkout after every run and clean any leaked changes.
+3. Have separate fresh judges grade each artifact using only the artifact, that case’s bar, and the skill’s first principles.
+4. Require evidence-backed verdicts for every part of each bar.
+5. Repeat important or borderline cases 2–3 times to establish pass rates.
+6. Report each case’s before/after pass rate and cited gaps.
+7. If any case still fails, diagnose it as a skill defect or bad case, revise only the identified defect, and re-evaluate all three cases again to catch regressions.

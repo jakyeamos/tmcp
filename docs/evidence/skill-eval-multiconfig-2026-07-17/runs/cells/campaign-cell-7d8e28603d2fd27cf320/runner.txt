@@ -1,0 +1,9 @@
+Stop and clarify the bar before running any evaluation.
+
+Ask the user to define, per case:
+
+- What outcome a good artifact should achieve.
+- What observable smells would make it bad.
+- Whether the exact answer template is truly a conformance requirement or merely an example/preference.
+
+Because the skill appears judgment-oriented, do not treat the template as the expected answer or expose it to runners. Echo the clarified, judgment-based bar back to the user for confirmation. Only then begin blind runs with fresh agents.

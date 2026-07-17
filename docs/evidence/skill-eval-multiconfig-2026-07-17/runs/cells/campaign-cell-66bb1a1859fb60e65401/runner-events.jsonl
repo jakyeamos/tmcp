@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f7087-50f9-7041-bd73-75f016db87ca"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"Stop and ask the user to define a gradeable bar for each case: the outcome a good artifact should achieve and the failure smells to reject. Also clarify that the exact answer template should not be used as the expected output unless the skill is genuinely conformance-oriented. Echo the agreed judgment-based bar back for confirmation before running any evaluation agents."}}
+{"type":"turn.completed","usage":{"input_tokens":10388,"cached_input_tokens":9984,"output_tokens":72,"reasoning_output_tokens":0}}

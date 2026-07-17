@@ -1,0 +1,8 @@
+Stop before running any evaluation.
+
+First, clarify two things with the user:
+
+- Sharpen “make it good” into a defensible bar stating the desired outcome and failure smells at the judgment level—without prescribing the artifact’s exact parts.
+- Confirm whether the evaluation is judgment-based or genuinely conformance-based. Because the skill appears judgment-oriented, do not treat the supplied exact template as the expected answer unless the user confirms exact template compliance is truly the skill’s purpose.
+
+Then echo back the agreed mode and bar. Only start blind runs once each case has a concrete input and a bar a competent judge can apply.

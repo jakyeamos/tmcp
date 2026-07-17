@@ -1,0 +1,11 @@
+Run a fresh blind re-evaluation of **all three cases—A, B, and C**—using one context-free runner per case.
+
+Evidence required:
+
+- **B passes:** its new artifact clears B’s bar, with the original cited gap resolved.
+- **A and C still pass:** their artifacts independently clear their original bars, showing the B-specific edit caused no regressions.
+- Runners saw only their case inputs, never the expected outcomes or prior artifacts.
+- Judges assessed each artifact against its bar and the skill’s first principles.
+- The live checkout was swept after each run for leaks or unintended changes.
+
+Only then can you report before/after movement: previously A/C passed and B failed for a named defect; after the edit, A/B/C all pass, with B’s defect resolved and no regression in A or C.

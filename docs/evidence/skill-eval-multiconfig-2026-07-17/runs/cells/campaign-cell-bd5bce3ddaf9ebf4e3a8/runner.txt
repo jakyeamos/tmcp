@@ -1,0 +1,10 @@
+Diagnose this as a likely **bad-case/bar mismatch**, not a skill defect. The skill is judgment-oriented, so its bar should evaluate whether the artifact makes defensible choices consistent with the skill’s first principles—not whether it reproduces an exact seven-heading template. That template turns the eval into a conformance check and can falsely fail otherwise good artifacts.
+
+Before editing the skill:
+
+1. Reconfirm the skill’s first principles and that judgment mode is appropriate.
+2. Ask whether the seven headings are genuinely required by the real task.
+3. If they are not, rewrite the golden-case bar around the desired outcome and failure smells, then rerun the blind evaluation.
+4. If they truly are mandatory, explicitly reclassify the task as conformance-style and justify that requirement before reevaluating.
+
+Do not modify the skill merely to satisfy an indefensible bar; a bad bar is an eval finding, not a product bug.

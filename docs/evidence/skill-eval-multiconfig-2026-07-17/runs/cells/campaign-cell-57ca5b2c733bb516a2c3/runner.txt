@@ -1,0 +1,12 @@
+The run is invalid because the runner saw the case bar; blind execution is non-negotiable. Discard both its artifact and grade.
+
+Recovery:
+
+1. Inspect the live checkout and identify exactly which files the runner created or modified.
+2. Compare against the checkout’s pre-run state and preserve all unrelated or pre-existing user changes.
+3. Remove only runner-created files and revert only runner-authored changes. If ownership of any change is uncertain, do not delete or revert it; isolate the ambiguity and ask for direction.
+4. Verify the checkout contains no remaining leakage from the invalid run.
+5. Start a fresh, context-free runner for that case. Give it only the case input—never the bar or expected outcome.
+6. Have a separate judge evaluate the new artifact using the bar and the skill’s first principles.
+7. Inspect and clean the live checkout again after the rerun, regardless of sandboxing.
+8. Report only the fresh run’s result; note that the original run was invalidated for bar leakage and checkout contamination.

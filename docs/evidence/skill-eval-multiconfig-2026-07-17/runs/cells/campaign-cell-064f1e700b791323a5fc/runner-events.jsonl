@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f708c-fabd-7bb0-b9ef-ca67055cdc87"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"Stop before running any evaluation.\n\nFirst, clarify the skill’s first principles and whether the evaluation is judgment-based or truly conformance-based. Since the skill appears judgment-oriented, do not treat the exact answer template as the expected output by default.\n\nDraw out and echo back a defensible bar for each case: the outcome a good artifact should achieve and the failure smells that would make it bad, without prescribing the exact answer. Only after the user confirms that bar—and resolves whether the template is merely illustrative or an actual conformance requirement—may blind runs begin."}}
+{"type":"turn.completed","usage":{"input_tokens":11290,"cached_input_tokens":0,"output_tokens":115,"reasoning_output_tokens":0}}

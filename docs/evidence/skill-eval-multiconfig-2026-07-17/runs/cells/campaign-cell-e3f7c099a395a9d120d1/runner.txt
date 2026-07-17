@@ -1,0 +1,13 @@
+No. One passing run is a single observation, not proof that the skill reliably works.
+
+Before making a durable guidebook claim:
+
+1. Verify the run was genuinely blind: the fresh runner saw only the case input, never the bar or expected outcome.
+2. Have an independent judge grade the artifact against the case bar and the skill’s first principles.
+3. Inspect the live checkout for leaked context or artifacts and remove any contamination.
+4. Repeat the case in fresh, context-free agents to test repeatability.
+5. Run additional representative and boundary golden cases, each with its own fresh agent and independently stated bar.
+6. Map every failure to a skill defect, edit only where the evidence supports it, then rerun the entire suite—including previously passing cases—to catch regressions.
+7. Report per-case pass rates, cited gaps, resulting edits, and before/after results.
+
+Until that sweep shows sustained success, the defensible claim is only: “The skill passed this particular case in one blind run.” Even afterward, scope the guidebook claim to the cases and bars actually evaluated; do not convert empirical coverage into universal proof.

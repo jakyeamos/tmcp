@@ -1,0 +1,7 @@
+Stop before running anything. Clarify with the user:
+
+- The skill’s first principles, if they are not explicit.
+- A defensible bar for each case: the desired outcome plus failure smells, at the level where a competent judge can assess judgment.
+- Whether the evaluation is judgment-based or truly conformance-based.
+
+Do not treat “make it good” as gradeable or automatically use the exact answer template as a checklist. Since the skill appears judgment-oriented, confirm whether that template is merely illustrative; only use it as an exact bar if the user confirms the skill is conformance-style. Echo the sharpened bars and evaluation mode back for agreement before spending any blind runs.

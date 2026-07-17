@@ -1,0 +1,11 @@
+No. A single pass does not prove the skill works; agent outputs are nondeterministic.
+
+Before making a durable guidebook claim:
+
+1. Repeat the same blind evaluation 2–3 times, using a fresh, context-free runner for every run.
+2. Give each runner only the case input and target skill—never the bar, expected output, prior artifacts, or evaluation context.
+3. After each run, check the live checkout and clean any leaked changes.
+4. Have a separate fresh judge grade each artifact against the case’s bar and the skill’s first principles, citing specific evidence.
+5. Report the pass rate, not the best result—for example, 1/3 is not fixed.
+6. If any run fails, diagnose whether it reveals a skill defect or a bad evaluation case. Fix only genuine skill defects, then rerun all cases to check for regressions.
+7. Make the guidebook claim only after every relevant case consistently clears its required pass-rate bar.

@@ -1,0 +1,11 @@
+Re-run all golden cases—A, B, and C—with one fresh, context-free agent per case. B alone is insufficient: it verifies the targeted defect, while A and C detect regressions.
+
+Before claiming success, provide:
+
+- Blind-run artifacts: each runner saw only its case input, never the expected outcome or bar.
+- Independent judgments: each artifact was graded against that case’s bar and the skill’s first principles.
+- Results showing B now passes the previously cited gap.
+- Results showing A and C still pass without regression.
+- A post-run checkout sweep confirming no context or expected-output leakage.
+
+The fix worked only if the full re-evaluation passes and the before/after evidence clearly ties B’s improvement to the edit.

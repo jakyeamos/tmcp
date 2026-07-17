@@ -1,0 +1,10 @@
+Diagnose a bar–skill mismatch, not a skill defect. A judgment-oriented skill should be graded on whether its artifact achieves the intended outcome and avoids meaningful failure modes—not whether it reproduces an exact seven-heading template. Defensible artifacts consistently failing only on that template strongly suggests the evaluation has become a conformance check.
+
+Before editing the skill:
+
+1. Reclassify the skill correctly as judgment-oriented.
+2. Rewrite the golden-case bar as an outcome-and-smells standard, removing the prescribed headings unless each is independently essential to the real task.
+3. Echo the revised bar back for approval.
+4. Re-run the cases blindly with fresh agents and grade against that bar.
+
+Only failures that remain after this corrected evaluation should drive skill edits. If the seven headings are genuinely mandatory, document that the task is actually conformance-oriented; then exact-template failure is valid, and the skill may need revision.

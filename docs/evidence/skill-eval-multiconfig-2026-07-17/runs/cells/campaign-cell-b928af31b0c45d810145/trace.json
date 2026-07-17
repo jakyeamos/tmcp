@@ -1,0 +1,152 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-high-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-b928af31b0c45d810145",
+    "judge_artifact": "cells/campaign-cell-b928af31b0c45d810145/judge.json",
+    "judge_artifact_sha256": "sha256:be61860e70646695c44a4511cda28aed6560413f6f851cde8596a3da3922e629",
+    "judge_effort": "high",
+    "order": 9,
+    "runner_artifact": "cells/campaign-cell-b928af31b0c45d810145/runner.txt",
+    "runner_artifact_sha256": "sha256:1627f97f94feac278d666d2dd99df75f887ef34c74d56c962d51506c4ccde8f5",
+    "runner_effort": "high",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10409,
+        "output_tokens": 889,
+        "reasoning_output_tokens": 398
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 11286,
+        "output_tokens": 193,
+        "reasoning_output_tokens": 0
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "\u201cRe-evaluate all cases\u2014A, B, and C\u2014not just B\u2014to detect regressions.\u201d",
+        "criterion": "O1: Cases A, B, and C are all rerun after the edit rather than retesting only B.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cUse fresh, context-free agents for each blind run\u201d and \u201cA separate fresh judge receives the artifact, that case\u2019s bar, and the skill\u2019s first principles.\u201d",
+        "criterion": "O2: Each repeated trial uses a fresh blind runner per case and a separate evidence-based judge.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cFor important or borderline cases, 2\u20133 independent reruns and the resulting pass rate\u2014not merely one green run.\u201d",
+        "criterion": "O3: Important cases receive enough repetitions to report per-case pass rates and expose nondeterministic regressions.",
+        "status": "pass"
+      },
+      {
+        "citation": "The artifact says to \u201ccontinue revising or report that the skill cannot structurally express the case,\u201d but does not require diagnosing a new miss as a skill defect versus a bad case before revision, nor explicitly require another full A/B/C sweep after every subsequent revision.",
+        "criterion": "O4: A new miss is diagnosed as a skill defect versus a bad case before another revision, and the diagnose-revise-full-sweep loop repeats as needed.",
+        "status": "fail"
+      },
+      {
+        "citation": "The report must show \u201cB now clears its bar, with cited evidence addressing the original gap,\u201d that \u201cA and C still clear their bars,\u201d and the resulting per-case pass rates.",
+        "criterion": "O5: The final report makes the before-and-after movement legible with per-case results and cited gaps.",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: the artifact explicitly says \u201call cases\u2014A, B, and C\u2014not just B.\u201d",
+        "criterion": "S1 (failure smell must be absent): reruns only case B",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: it requires \u201cfresh, context-free agents for each blind run\u201d and \u201c2\u20133 independent reruns.\u201d",
+        "criterion": "S2 (failure smell must be absent): reuses runner context across cases or repetitions",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: \u201cA separate fresh judge\u201d evaluates each runner\u2019s artifact.",
+        "criterion": "S3 (failure smell must be absent): uses the runner as its own judge",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: it requires \u201cthe resulting pass rate\u201d for important or borderline cases and evidence for A, B, and C individually.",
+        "criterion": "S4 (failure smell must be absent): reports only an aggregate score with no per-case rate",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: success requires that \u201cA and C still clear their bars, proving the B-specific edit caused no regressions.\u201d",
+        "criterion": "S5 (failure smell must be absent): declares success without checking A and C for regressions",
+        "status": "pass"
+      }
+    ],
+    "passed": false,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-95cfdd0ee52ff673",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly requires a fresh-runner/separate-judge full-suite rerun, repeated important cases, per-case rates, and regression evidence. It falls short because it does not require classifying a new failure as a skill defect versus a bad case before revising, followed by another complete-suite sweep."
+    }
+  ],
+  "matrix_row_id": "eval-row-e7833b8f6e13f4b2",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "Re-evaluate all cases\u2014A, B, and C\u2014not just B\u2014to detect regressions.\n\nUse fresh, context-free agents for each blind run:\n\n- Each runner sees only its case input and the revised target skill, never the bar or expected outcome.\n- A separate fresh judge receives the artifact, that case\u2019s bar, and the skill\u2019s first principles, and cites specific artifact evidence for every verdict.\n- Sweep the live checkout after each run for leaked changes.\n\nBefore declaring success, show:\n\n- B now clears its bar, with cited evidence addressing the original gap.\n- A and C still clear their bars, proving the B-specific edit caused no regressions.\n- For important or borderline cases, 2\u20133 independent reruns and the resulting pass rate\u2014not merely one green run.\n\nThe fix worked only when every case clears its required rate bar; otherwise, continue revising or report that the skill cannot structurally express the case."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7084-f77c-7ae2-afbf-deb8d14943e6",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:32bd3faabda89757007b7cd7f94be942afbbd7ef9686b791e010071a36812b61",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7084-9d8d-7c31-8b20-b5d7d2b19e78",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "targeted-fix-regression-retest",
+  "trace_id": "trace-82219013969c13b1cd86",
+  "variant_id": "original"
+}

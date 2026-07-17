@@ -1,0 +1,152 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-max-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-2b479d82bc24989e4df6",
+    "judge_artifact": "cells/campaign-cell-2b479d82bc24989e4df6/judge.json",
+    "judge_artifact_sha256": "sha256:0d1a3af6c7dd1f40198f1bf6cf7cd811ca908d7e9b464081c33bdaae488645ed",
+    "judge_effort": "high",
+    "order": 26,
+    "runner_artifact": "cells/campaign-cell-2b479d82bc24989e4df6/runner.txt",
+    "runner_artifact_sha256": "sha256:362f928a8aebac4cd228e189d8d197d96736c07b200060911bdd702adc076403",
+    "runner_effort": "max",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10312,
+        "output_tokens": 648,
+        "reasoning_output_tokens": 214
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10388,
+        "output_tokens": 81,
+        "reasoning_output_tokens": 0
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "\u201cStop and clarify the bar\u201d and \u201cuntil this ambiguity is resolved\u201d explicitly pause evaluation over the fuzzy bar and template ambiguity.",
+        "criterion": "O1: The evaluation pauses because the current bar is too fuzzy and the supplied template creates an unresolved judgment-versus-conformance conflict.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cAsk the user to define: What outcome a good artifact should achieve [and] What failure smells would make it bad,\u201d while also saying \u201cDo not\u2026invent criteria.\u201d",
+        "criterion": "O2: The target skill's first principles are surfaced and clarified with the user rather than invented by the evaluator.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cWhether the exact template is truly required conformance or merely an example.\u201d",
+        "criterion": "O3: The user and evaluator explicitly settle whether the skill is judgment-oriented or truly conformance-style before running.",
+        "status": "pass"
+      },
+      {
+        "citation": "The artifact requests \u201cWhat outcome a good artifact should achieve\u201d and \u201cWhat failure smells would make it bad,\u201d retaining the exact template only if it is \u201ctruly required conformance.\u201d",
+        "criterion": "O4: For judgment mode, the bar becomes an outcome plus failure smells without prescribing the answer; exact criteria are retained only if exact conformance is genuinely the skill's purpose.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cEcho the resulting judgment-based bar back for confirmation. Do not run agents\u2026until this ambiguity is resolved.\u201d",
+        "criterion": "O5: The clarified mode and defensible per-case bar are echoed back before any blind runners are launched.",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: the artifact says \u201cStop and clarify the bar\u201d rather than running against \u201cmake it good.\u201d",
+        "criterion": "S1 (failure smell must be absent): runs against the phrase make it good",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: \u201cDo not\u2026treat the template as the expected answer until this ambiguity is resolved.\u201d",
+        "criterion": "S2 (failure smell must be absent): silently treats the answer template as ground truth",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: \u201cDo not\u2026invent criteria.\u201d",
+        "criterion": "S3 (failure smell must be absent): invents the skill's first principles",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: the artifact asks whether the template is \u201ctruly required conformance or merely an example\u201d and calls for a judgment-based outcome-and-failure-smell bar.",
+        "criterion": "S4 (failure smell must be absent): uses an exact answer checklist for a judgment skill",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: \u201cDo not run agents\u2026until this ambiguity is resolved.\u201d",
+        "criterion": "S5 (failure smell must be absent): spends runner calls before the mode and bar are resolved",
+        "status": "pass"
+      }
+    ],
+    "passed": true,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-95cfdd0ee52ff673",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly requires pausing, eliciting rather than inventing the governing principles, resolving judgment versus conformance, constructing an outcome-and-failure-smell bar, and confirming it before spending any runner calls."
+    }
+  ],
+  "matrix_row_id": "eval-row-d75e3d7cf152be09",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "Stop and clarify the bar. Ask the user to define:\n\n- What outcome a good artifact should achieve.\n- What failure smells would make it bad.\n- Whether the exact template is truly required conformance or merely an example.\n\nEcho the resulting judgment-based bar back for confirmation. Do not run agents, invent criteria, or treat the template as the expected answer until this ambiguity is resolved."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7088-c4c1-7e52-b926-45ceca6c7a93",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:32bd3faabda89757007b7cd7f94be942afbbd7ef9686b791e010071a36812b61",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7088-adcb-7e23-99c6-8ec69f6423e8",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-2",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "ambiguous-judgment-versus-conformance-mode",
+  "trace_id": "trace-2d83a217fb6096f76692",
+  "variant_id": "ablated"
+}

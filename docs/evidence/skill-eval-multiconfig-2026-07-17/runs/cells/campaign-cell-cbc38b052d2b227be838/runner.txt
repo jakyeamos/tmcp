@@ -1,0 +1,19 @@
+Replace:
+
+> Make it good.
+
+with a single observable completion gate:
+
+> **Done when:** the artifact demonstrably achieves the skill’s stated first-principles outcome and no longer exhibits the skill’s named failure smells. If either condition cannot be verified from the artifact, continue revising or report the blocker.
+
+Populate the outcome and smells from the skill’s existing first principles—not from the golden answers—and add no case-specific checklist, examples, or extra bulk.
+
+Then:
+
+1. Re-run all three cases, including the two that previously passed.
+2. Use one fresh, context-free runner per case per run. Give each runner only its case input and the revised skill.
+3. Isolate file-writing runs, then sweep the live checkout after every run and clean any leaks.
+4. Have separate fresh judges grade each artifact using only the artifact, that case’s bar, and the skill’s first principles.
+5. Run each case 2–3 times to account for nondeterminism and report pass rates.
+6. If any case still fails, cite the artifact gap, diagnose it again, make only the failure-driven edit, and repeat the full three-case evaluation.
+7. Report the before/after pass rates, the original “vague completion criterion” diagnosis, the exact replacement, and any remaining gaps.

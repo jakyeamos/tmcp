@@ -1,0 +1,11 @@
+Re-evaluate all cases—A, B, and C—not only B—using fresh, context-free blind runners, one agent per case per run.
+
+Before declaring success, show:
+
+- Each runner saw only its case input and the target skill, never the bar or expected output.
+- A separate fresh judge graded each artifact against that case’s bar and the skill’s first principles, citing specific artifact evidence for every verdict.
+- B now passes consistently across 2–3 blind reruns, with its pass rate reported.
+- A and C still pass, demonstrating the B-specific edit caused no regressions; rerun borderline or important cases 2–3 times and report their pass rates too.
+- The live checkout was checked after every run and any leaked changes were cleaned.
+
+The fix worked only when every case clears its required rate bar—not merely when B produces one passing run.

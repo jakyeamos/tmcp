@@ -1,0 +1,9 @@
+Stop before running any evaluation.
+
+First, clarify and echo back:
+
+- The skill’s first principles—its purpose and quality standard.
+- Whether the eval is judgment-based or genuinely conformance-based; since the skill appears judgment-oriented, do not assume the exact answer template is the bar.
+- For each concrete case, a defensible bar describing the desired outcome and failure smells at the level of judgment being tested.
+
+“Make it good” is too vague, and the supplied template risks turning the exercise into a conformance check. No blind-run agents should be spent until the user confirms a bar that a competent judge can apply without prescribing the answer.

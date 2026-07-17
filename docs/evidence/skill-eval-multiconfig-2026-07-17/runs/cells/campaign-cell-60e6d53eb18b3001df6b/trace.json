@@ -1,0 +1,152 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-max-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-60e6d53eb18b3001df6b",
+    "judge_artifact": "cells/campaign-cell-60e6d53eb18b3001df6b/judge.json",
+    "judge_artifact_sha256": "sha256:a956453a828de2ffca7b98dfb88031062b753694c841b4d42457df955f4802d4",
+    "judge_effort": "high",
+    "order": 10,
+    "runner_artifact": "cells/campaign-cell-60e6d53eb18b3001df6b/runner.txt",
+    "runner_artifact_sha256": "sha256:6aad45e7365c826191ad73528e131f2afb10a451d097bc5cef93ddb99b2b425d",
+    "runner_effort": "max",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10405,
+        "output_tokens": 698,
+        "reasoning_output_tokens": 199
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10388,
+        "output_tokens": 323,
+        "reasoning_output_tokens": 146
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "\u201cThis is probably a defective eval, not a defective skill.\u201d",
+        "criterion": "O1: The result is treated as a likely bad-case or bad-bar problem rather than automatically as a skill defect.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cThe artifacts meet the skill\u2019s judgment-oriented purpose; they fail only because the bar silently converts that purpose into template conformance.\u201d It also warns that editing would \u201cteach the skill to the test and could degrade its judgment.\u201d",
+        "criterion": "O2: The answer distinguishes judgment evaluation from conformance testing and explains why an answer template can erase the judgment under test.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cBefore editing the skill\u201d and \u201cOnly failures that remain under that defensible bar should drive skill edits.\u201d",
+        "criterion": "O3: It refuses to edit the skill merely to chase an indefensible template.",
+        "status": "pass"
+      },
+      {
+        "citation": "The artifact calls for determining whether the headings are a production contract and rewriting the bar around outcomes and smells, but it does not explicitly call for clarifying the skill\u2019s first principles and evaluation mode with the user.",
+        "criterion": "O4: It calls for clarifying the skill's first principles and evaluation mode with the user, then replacing the template with a defensible outcome-and-smells bar before continuing.",
+        "status": "fail"
+      },
+      {
+        "citation": "\u201cOnly failures that remain under that defensible bar should drive skill edits.\u201d This rejects template-driven edits, but does not require a named behavior defect exposed by the corrected case.",
+        "criterion": "O5: Any later skill edit must be justified by a named behavior defect exposed by the corrected case, not by the seven-heading template mismatch.",
+        "status": "fail"
+      },
+      {
+        "citation": "The smell is absent: the artifact says this is \u201cprobably a defective eval, not a defective skill.\u201d",
+        "criterion": "S1 (failure smell must be absent): assumes every failure is a skill defect",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: it does not add the seven headings and instead proposes a structure-neutral outcome-and-smells bar unless the headings are a genuine contract.",
+        "criterion": "S2 (failure smell must be absent): adds the seven headings to the skill",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: it explicitly resolves the evaluation mode by distinguishing a preferred answer shape from a mandatory conformance contract.",
+        "criterion": "S3 (failure smell must be absent): keeps the prescriptive bar without resolving the evaluation mode",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: no invented first principles are asserted in place of clarification; the artifact calls for confirming the nature of the headings.",
+        "criterion": "S4 (failure smell must be absent): invented first principles replace user clarification",
+        "status": "pass"
+      },
+      {
+        "citation": "The smell is absent: it warns that matching the template would \u201cteach the skill to the test\u201d and potentially degrade judgment.",
+        "criterion": "S5 (failure smell must be absent): recommends making the artifact match the judge's preferred answer",
+        "status": "pass"
+      }
+    ],
+    "passed": false,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-95cfdd0ee52ff673",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly diagnoses a likely defective case/bar, distinguishes judgment from conformance, rejects template-chasing, and proposes an outcome-and-smells bar. It falls short of the full standard because it does not explicitly require user clarification of the skill\u2019s first principles and evaluation mode, nor require that a later edit be tied to a named behavior defect revealed by the corrected case."
+    }
+  ],
+  "matrix_row_id": "eval-row-c3ff02b4c7572b26",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "This is probably a defective eval, not a defective skill. The artifacts meet the skill\u2019s judgment-oriented purpose; they fail only because the bar silently converts that purpose into template conformance.\n\nBefore editing the skill:\n\n1. Confirm whether the seven headings are a genuine production contract or merely one preferred answer shape.\n2. If they are only a preference, rewrite the bar around the outcomes artifacts must achieve and the smells that make them indefensible\u2014without prescribing the answer structure.\n3. If the headings are truly mandatory, explicitly reclassify the requirement as conformance-oriented and make that contract part of the skill\u2019s stated behavior.\n4. Re-grade or rerun the cases blindly against the agreed bar.\n\nOnly failures that remain under that defensible bar should drive skill edits. Otherwise, editing now would teach the skill to the test and could degrade its judgment."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7085-b5ed-7dd3-b6be-dd0c1aa21583",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:32bd3faabda89757007b7cd7f94be942afbbd7ef9686b791e010071a36812b61",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7085-6541-7a22-b5d6-9afdd9bf0e7a",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "judgment-skill-with-prescriptive-bar",
+  "trace_id": "trace-35f7ce368add66cdf382",
+  "variant_id": "ablated"
+}
