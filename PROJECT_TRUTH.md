@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `8cbdd08` replaces the campaign queue with an evidence-state ledger that distinguishes evaluated-but-held, preregistered, packet-probed, selection-only, and candidate work; it records that the current 72-cell study measures only source-bundle delivery.
-- Verification: 567 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
+- Last completed change: `e0f6061` fixes a dogfooded false frontend route: documentation that cites implementation evidence now remains `general_task`, while explicit React/component controls stay routed. The deterministic composition contract and evidence ledger record the local packet-only result.
+- Verification: 568 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
 
@@ -35,6 +35,7 @@
 - Diagnosis classifies 12 traces as repeated target-defect candidates (first-principles handoff, contamination recovery, per-case reporting, or repeat-every-case discipline) and four as isolated model-sensitive omissions; no reviewed fixture or rate bar is defective.
 - The reinterpreted report correctly marks this as `baseline_reliability`: no causal pattern or lift claim, no attachment-only activation/adherence heuristic, actual 20/36 aggregate and 2/6 minimum reliability, plus raw 0/36 and archived-sidecar 1/36 cost counts.
 - Local TMCP + `explore-unknowns` and TMCP + `repo-behavior-spec-loop` packet probes retain their specialized evidence and stop conditions without activating `frontend_implementation` from pre-action wording. The `refactor-clean` probe is selection-only pending behavioral fixtures.
+- A read-only TMCP + `write-docs` packet probe initially showed that generic “implementation evidence” activated `frontend_implementation`. The route now requires more specific frontend evidence; the exact prompt, a React control, and the source-role contract are deterministic regressions. `write-docs` is packet-probed only, pending a reviewed source-tree fixture and audience bar.
 - Composition contract v1 is a deterministic regression baseline, not a behavioral claim: it preserves a valid React/motion control while keeping `tests/fixtures/**` harvest-visible but activation-ineligible, including through declared loads.
 - The local project-root composition replay is recorded with advisory receipt `packet-f62c9fd667c8`; its deterministic pass does not promote a skill-pair or wording rule.
 - The reviewed v1 composition plan has six Stage-1 fixtures across campaign sequencing, evidence-boundary, and promotion-gate families; `packet_only` versus exact `packet_plus_explore` yields 72 blinded cells. It can test only the delivery effect of the pinned source bundle, not live selection, adherence, or corpus quality.
