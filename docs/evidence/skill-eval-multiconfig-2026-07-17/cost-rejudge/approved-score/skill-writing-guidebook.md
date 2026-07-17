@@ -56,4 +56,3 @@ Prefer:
 Avoid:
 
 > Return a helpful summary.
-
