@@ -89,19 +89,22 @@ outcomes while preserving deterministic compatibility.
   routing and behavioral requests. `5745420` replays every proposal with those
   exact limits, emits full compiler recipe/gate/context evidence, and labels
   wrong-order and ablation cases as counterfactual controls rather than valid
-  composition. Source-independent graph provenance and observation assembly are
+  composition. `d70b4e7` normalizes benchmark graph provenance to compiler
+  content-and-edge identity across source-root relocation and same-path content
+  edits. Observation assembly and honest phase-capsule context accounting are
   next. `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, graph-bound typed
   handoffs, same-graph continuity, phase trace, obligations, and graph-aware
   diffs.
-- Proof and learning: hardening required — executable workspaces and exact host
-  intake manifests now exist; compiler replay, observation assembly, and
-  tamper-resistant context accounting remain.
+- Proof and learning: hardening required — executable workspaces, exact host
+  intake manifests, compiler replay, and root-independent graph identity now
+  exist; observation assembly and tamper-resistant phase-capsule context
+  accounting remain.
 - Release proof: pending — version 0.6.0 remains blocked until the executable
   harness and real host-run observations meet every routing, safety, lift,
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for compiler-replayed benchmark controls*
+*Last updated: 2026-07-17 for content-derived benchmark graph provenance*

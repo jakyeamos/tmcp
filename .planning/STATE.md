@@ -6,8 +6,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Bind compiler-replayed controls to assembled observations,
-source-independent provenance, and derived context. Keep 0.5.7 active.
+**Current focus:** Bind compiler-replayed controls to assembled observations and
+honest phase-capsule context. Graph provenance is content-derived; keep 0.5.7
+active.
 
 ## Milestone
 
@@ -21,8 +22,9 @@ identity has lexical safety at `9b4d72e` and compound-task safety at
 evidence-backed bootstrap skills. `f190a82` adds verified typed handoffs,
 runtime continuity, and receipt/diff propagation. `9f13813` prepares exact
 fixture workspaces and host-intake manifests; `5745420` replays compiler-bound
-controls with explicit counterfactual obligations. Observation assembly and real
-host-run proof remain.
+controls with explicit counterfactual obligations; `d70b4e7` makes benchmark
+graph identity independent of workspace roots. Observation assembly, honest
+runtime-context accounting, and real host-run proof remain.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -35,6 +37,11 @@ host-run proof remain.
 
 ## Completed Scope
 
+- `d70b4e7` normalizes benchmark graph provenance to compiler-equivalent
+  content-and-edge identity, moves fixture source-node IDs to the shared source
+  contract, and keeps legacy synthetic fixtures compatible. Exact replay graph
+  identity now survives a workspace-root relocation and changes when same-path
+  source content changes; focused benchmark protocol and manifest tests pass.
 - `5745420` makes benchmark semantic evidence complete but opt-in and bounded:
   normal low-context preflight behavior is unchanged, while benchmark sources
   can all be cited. It replays each supplied proposal with the exact prepared
@@ -359,9 +366,9 @@ _(truncated for length)_
 ## Accumulated Context
 
 ### Roadmap Evolution
-- 2026-07-17: `9f13813` materializes no-oracle benchmark preparation and
-  `5745420` turns host proposals into exact compiler replay/control recipes;
-  source-independent graph provenance and observation assembly remain blockers.
+- 2026-07-17: `d70b4e7` makes replay graph identity match compiler provenance
+  across fixture-root relocation and same-path content edits; observation
+  assembly and phase-capsule context accounting remain blockers.
 - 2026-07-10: Modernization audit identifies P0 package disclosure risk and
   proposes a parallel v2 runtime behind stable entrypoints.
 - 2026-07-11: Milestone 0 closes the package-disclosure blocker; next work
@@ -394,5 +401,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 scripts/assemble_composition_benchmark.py control-plan --help
+python3 -m unittest tests.test_tmcp_composition_benchmark_protocol
 ```
