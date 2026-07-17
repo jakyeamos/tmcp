@@ -375,7 +375,7 @@ class CompositionStudyTests(unittest.TestCase):
         validated = validate_evaluation_plan(generated)
         self.assertEqual(
             validated["experiment"]["experiment_id"],
-            "composition-study-2b35bb34abeb431f",
+            "composition-study-f6de333293fee3f7",
         )
         self.assertEqual(len(validated["task_matrix"]), 12)
         self.assertEqual(

@@ -31,6 +31,9 @@ from scripts.tmcp_skill_eval_campaign_protocol import (
 )
 
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
 class CostRejudgeProtocolTests(unittest.TestCase):
     def test_judge_and_cost_rejudge_prompts_are_separate_and_blind(self) -> None:
         row = {
@@ -704,6 +707,35 @@ class CostRejudgeSourceTests(unittest.TestCase):
                     rejudge_runs=output_dir,
                     expected_trace_count=1,
                 )
+
+    def test_archived_cost_rejudges_are_not_reproducible_without_their_bars(
+        self,
+    ) -> None:
+        evidence_root = REPO_ROOT / "docs/evidence/skill-eval-multiconfig-2026-07-17"
+        cases = (
+            {
+                "source_plan": evidence_root / "generated/tmcp-skill-evaluation-plan.json",
+                "source_runs": evidence_root / "runs",
+                "cost_bar_file": evidence_root / "cost-rejudge/cost-evaluation-bar.md",
+                "rejudge_runs": evidence_root / "cost-rejudge/approved-run-v2",
+                "expected_trace_count": 72,
+            },
+            {
+                "source_plan": evidence_root
+                / "fresh-baseline/generated/tmcp-skill-evaluation-plan.json",
+                "source_runs": evidence_root / "fresh-baseline/runs",
+                "cost_bar_file": evidence_root
+                / "fresh-baseline/inputs/cost-evaluation-bar.md",
+                "rejudge_runs": evidence_root / "fresh-baseline/cost-rejudge/run",
+                "expected_trace_count": 36,
+            },
+        )
+        for case in cases:
+            with self.subTest(rejudge_runs=case["rejudge_runs"]):
+                with self.assertRaisesRegex(
+                    ValueError, "source cost_bar_sha256 does not match inputs"
+                ):
+                    verify_cost_rejudge.verify_cost_rejudge(**case)
 
     def test_rejudge_execution_writes_only_independent_output_and_keeps_prompt_blind(
         self,

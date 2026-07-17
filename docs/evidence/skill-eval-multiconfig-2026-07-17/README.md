@@ -43,11 +43,11 @@ reported interval as the protocol's score, not the last word on generalization.
 
 Promotion remains on hold. The original raw campaign has two cost labels from
 judges whose first-principles summary omitted the target skill's required
-live-checkout sweep. A complete 72-artifact blind rejudge, using a predeclared
-faithful cost bar and fresh isolated threads, reports 0/72 adjudicated cost
-regressions. The score preserves both facts, but the campaign still misses a
-predeclared clustered-analysis policy and the 50% per-fixture intact-control
-floor; it is not corpus-wide tried-and-true evidence.
+live-checkout sweep. A historical 72-artifact blind rejudge recorded 0/72 cost
+regressions, but its recorded cost-bar digest does not match the retained bar.
+It is therefore diagnostic history rather than adjudicated evidence. The
+campaign also misses a predeclared clustered-analysis policy and the 50%
+per-fixture intact-control floor; it is not corpus-wide tried-and-true evidence.
 
 ## Experiment design
 
@@ -131,24 +131,27 @@ standard, the campaign cannot determine whether the two labels represent a genui
 cost problem or a bad cost bar. TMCP correctly keeps the automatic/manual-review gate
 closed instead of silently discarding the labels.
 
-The raw judge outputs remain unchanged. Rather than hand-flip them after seeing
-the result, a predeclared campaign-wide blind rejudge used the faithful cost bar
-against only the fixed runner artifact for every trace.
+The raw judge outputs remain unchanged. A historical campaign-wide blind rejudge
+used only fixed runner artifacts, but its cost-bar source is no longer available
+at the digest recorded in the bundle. Its output must not hand-flip the raw
+labels or be used to support a current adjudicated-cost claim.
 
 The matched evidence makes calibration noise likely: all 12 regression-retest
 artifacts mention checkout or leak inspection, and only two received the cost label.
 Across the whole campaign, 47 artifacts mention checkout, `git status`, or leaks;
 45 were labeled cost-free. The labels must not be hand-flipped after seeing the
-result. A predeclared campaign-wide rejudge with a faithful cost bar is the clean
-resolution.
+result. A newly preregistered campaign-wide rejudge with a preserved, verified
+cost bar is the clean resolution.
 
-The completed [digest-bound sidecar](cost-rejudge/approved-run-v2/cost-rejudgments.json)
-records 72 fresh, condition-hidden, source-artifact-only adjudications with
-0/72 cost regressions. Its [score report](cost-rejudge/approved-score/tmcp-skill-evaluation-report.json)
-sets `raw_cost_regression=true`, adjudicated `cost_regression=false`, and
-`cost_rejudgment_applied=true` without modifying `runs/traces.json`. The
-[cost bar](cost-rejudge/cost-evaluation-bar.md) and
-[execution contract](cost-rejudge/README.md) remain the reproducible boundary.
+The retained [sidecar](cost-rejudge/approved-run-v2/cost-rejudgments.json)
+records 72 fresh, condition-hidden, source-artifact-only historical
+adjudications with 0/72 recorded cost regressions. Its
+[score report](cost-rejudge/approved-score/tmcp-skill-evaluation-report.json)
+preserves the historical replay without modifying `runs/traces.json`, but must
+not be used as a current cost adjudication: the retained
+[cost bar](cost-rejudge/cost-evaluation-bar.md) does not match the sidecar's
+recorded digest. The [execution contract](cost-rejudge/README.md) documents
+that provenance boundary.
 
 The same replay adds a fixture-block interval of `[-0.750, -0.194]` and
 explicit 50% aggregate/per-fixture intact-control floors. It confirms the
@@ -258,8 +261,8 @@ node scripts/tmcp_launcher.mjs evaluate-skills \
 - [`runs/traces.json`](runs/traces.json) — 72 normalized, artifact-bound traces
 - [`runs/cells/`](runs/cells/) — raw runner/judge outputs, event streams, schemas, usage, and stage markers
 - [`scored/tmcp-skill-evaluation-report.json`](scored/tmcp-skill-evaluation-report.json) — canonical TMCP score and promotion hold
-- [`cost-rejudge/approved-run-v2/`](cost-rejudge/approved-run-v2/) — complete blind cost sidecar and per-judge provenance
-- [`cost-rejudge/approved-score/tmcp-skill-evaluation-report.json`](cost-rejudge/approved-score/tmcp-skill-evaluation-report.json) — adjudicated-cost replay and promotion hold
+- [`cost-rejudge/approved-run-v2/`](cost-rejudge/approved-run-v2/) — archived blind cost sidecar; retained bar digest does not reproduce it
+- [`cost-rejudge/approved-score/tmcp-skill-evaluation-report.json`](cost-rejudge/approved-score/tmcp-skill-evaluation-report.json) — historical cost replay and promotion hold
 - [`scored/skill-pattern-catalog.json`](scored/skill-pattern-catalog.json) — generated candidate catalog
 - [`scored/skill-writing-guidebook.md`](scored/skill-writing-guidebook.md) — generated compact guidebook
 

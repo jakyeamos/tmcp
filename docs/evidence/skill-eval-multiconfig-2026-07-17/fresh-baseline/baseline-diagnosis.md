@@ -7,8 +7,9 @@ not alter the pinned target, fixtures, raw traces, or original verdicts.
 ## Evidence inspected
 
 - All 36 primary judge traces and their runner/judge artifacts.
-- The independently reviewed v2 fixtures, first-principles text, and cost bar.
-- The complete condition-blind 36-trace cost sidecar.
+- The independently reviewed v2 fixtures and first-principles text.
+- The archived condition-blind 36-trace cost-sidecar record and its failed
+  retained-cost-bar provenance check.
 - The target skill's preflight, isolation, nondeterminism, diagnosis, revision,
   and full-suite re-evaluation instructions.
 
@@ -36,17 +37,15 @@ contain a repeated target-defect candidate; four contain only an isolated
 model-sensitive omission. The isolated misses remain in the next baseline as
 regression probes; they do not justify broadening the target.
 
-## Cost finding
+## Archived cost record
 
-The sidecar's one regression is a real target-skill cost-control defect, not a
-bar defect. Step 7 says to loop until every case clears a rate bar, but neither
-the target nor its first principles defines that bar, a revision budget, or a
-stop point. The cost bar allows checkout sweeps, full-suite reruns, 2–3 repeats,
-and reproducibility controls; it flags only the indefinite extra loop.
-
-The sidecar verdict is one blinded observation, so its prevalence is
-model-sensitive. Preserve it unchanged, but remove the ambiguous open-ended
-instruction rather than relabeling the evidence.
+The sidecar recorded one potential target-skill cost-control defect: Step 7 says
+to loop until every case clears a rate bar, but neither the target nor its first
+principles defines that bar, a revision budget, or a stop point. The retained
+cost bar does not match the digest recorded by the sidecar, however, so that
+observation cannot establish a defect or justify a target edit. Preserve it
+unchanged as diagnostic history and re-test the bounded-cycle hypothesis only in
+a new preregistered run with a verifiable cost bar.
 
 ## Proposed minimal target revision — not applied
 
@@ -60,11 +59,13 @@ instruction rather than relabeling the evidence.
 3. Make the nondeterminism/output contract state that every important or
    release-critical case receives its own repetitions and pass rate, with a
    per-case before/after report and cited gaps after a justified edit.
-4. Replace the unbounded Step 7 loop with: after each justified edit, run the
-   preregistered full-suite/repetition schedule; if a case misses its
-   predeclared rate bar, diagnose skill defect versus bad case; start another
-   revision cycle only after naming the defect and its additional work/budget,
-   otherwise report the unresolved or structural limit.
+4. Treat a bounded replacement for the unbounded Step 7 loop as a hypothesis,
+   not an evidence-backed correction, until a new cost sidecar verifies it:
+   after each justified edit, run the preregistered full-suite/repetition
+   schedule; if a case misses its predeclared rate bar, diagnose skill defect
+   versus bad case; start another revision cycle only after naming the defect
+   and its additional work/budget, otherwise report the unresolved or structural
+   limit.
 
 Each proposed change maps to an observed omission and preserves the target's
 first principles. No edit should be made merely to improve a score.
@@ -73,8 +74,8 @@ first principles. No edit should be made merely to improve a score.
 
 TMCP now reports a policy-bound original-only study as `baseline_reliability`:
 real pass rates, per-fixture results, per-runner-model coverage, raw safety/cost
-counts, and digest-bound sidecar cost counts. It omits causal pattern claims and
-marks causal lift as not applicable. Direct-attachment traces also mark
+counts, and any separately verified sidecar cost counts. It omits causal pattern
+claims and marks causal lift as not applicable. Direct-attachment traces also mark
 activation/adherence heuristics not applicable when their protocol lacks the
 telemetry those scores require.
 
@@ -85,6 +86,6 @@ report is an interpretation correction, not a new model result.
 
 Before external execution, independently review a v3 fixture that exercises a
 persistent post-edit miss and the bounded next-cycle rule. Then run the same
-36-cell original-only baseline with a new pinned target digest and complete
-blind cost sidecar. Do not run an ablation until every baseline floor clears and
-the revised cost sidecar has no unresolved regression.
+36-cell original-only baseline with a new pinned target digest and complete,
+blind, independently verified cost sidecar. Do not run an ablation until every
+baseline floor clears and the revised sidecar is reproducible.

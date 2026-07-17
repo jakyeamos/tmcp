@@ -16,8 +16,8 @@ with three reasoning settings.
   provider, weights, or training-data independence.
 - Minimum reliability: 18/36 overall and at least 3/6 on every fixture, with the
   fixture-block clustered policy pinned before the first runner call.
-- Cost: an all-artifact, digest-bound condition-blind sidecar using the faithful
-  checkout-sweep bar. Raw judge labels remain unchanged.
+- Cost: an all-artifact, condition-blind sidecar with a retained cost-bar source
+  that must reproduce its recorded digest. Raw judge labels remain unchanged.
 
 ## Fixture repair before pinning
 
@@ -52,6 +52,8 @@ The run selected and completed exactly 36 original-only cells. All four remote
 schema probes passed on their first attempt and the runner/judge campaign completed
 with no errors or retries. The intact target passed 20/36 overall but only 2/6 on
 both `claim_calibration` and `regression_retest`, below the 3/6 floor. The
-condition-blind 36-trace cost sidecar found one materially unnecessary iterative
-loop. The baseline therefore remains held; its receipts are retained in
-[`fresh-baseline/`](fresh-baseline/).
+archived condition-blind 36-trace sidecar recorded one materially unnecessary
+iterative loop, but its recorded cost-bar digest does not match the retained
+input. The baseline therefore remains held on its reliability floors; the
+sidecar is diagnostic history, not reproducible adjudication. Its receipts are
+retained in [`fresh-baseline/`](fresh-baseline/).

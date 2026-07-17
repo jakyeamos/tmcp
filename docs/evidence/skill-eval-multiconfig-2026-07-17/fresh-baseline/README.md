@@ -32,8 +32,9 @@ does not claim cross-provider, training-data, or weight independence.
    experiment identity.
 2. Run the campaign only after the local model catalog and the isolated remote
    schema probes for all three runners and the judge pass.
-3. Run the complete 36-artifact blind cost rejudge and score its digest-bound
-   sidecar with the original traces.
+3. Run the complete 36-artifact blind cost rejudge, then independently verify
+   its source-bar digest and persisted sidecar before using it with the original
+   traces.
 4. Treat the resulting report as a baseline gate: a pass supports later causal
    testing; it never alone promotes a corpus-wide guidebook rule.
 
@@ -55,7 +56,7 @@ runner or judge errors and zero campaign retries.
 | Lowest fixture reliability | 2/6 (33.3%) | at least 3/6 (50%) on every fixture |
 | Safety regressions in primary judging | 0/36 | no unresolved regression |
 | Raw cost regressions in primary judging | 0/36 | reported separately |
-| Independent blind cost-sidecar regressions | 1/36 | blocks a future promotion until resolved |
+| Archived blind cost-sidecar record | 1/36 | diagnostic only; retained bar does not match the bundle digest |
 
 | Fixture family | Task | Passed |
 | --- | --- | --- |
@@ -70,13 +71,15 @@ The runner split was 8/12 for `gpt-5.6-sol`, 6/12 for `gpt-5.6-terra`, and 6/12
 for `gpt-5.6-luna`. These identifiers are operational replication only; they do
 not establish provider, weights, or training-data independence.
 
-The primary judge reported no cost regressions. The independent, condition-blind
-cost sidecar found one: the minimal-revision artifact prescribed an open-ended
-"continue revising and re-evaluating" loop that its cost bar judged materially
-unnecessary. The first sidecar attempt rejected one malformed `todo_list` event,
-preserved its invalidation record, and reran only that cell; the final sidecar has
-36 valid fresh judge threads and zero remaining errors. The raw and sidecar
-verdicts remain separate rather than being rewritten.
+The primary judge reported no cost regressions. The archived, condition-blind
+cost sidecar recorded one: the minimal-revision artifact prescribed an open-ended
+"continue revising and re-evaluating" loop that its recorded cost bar judged
+materially unnecessary. The first sidecar attempt rejected one malformed
+`todo_list` event, preserved its invalidation record, and reran only that cell;
+the final archive has 36 fresh judge threads and zero remaining errors. Its
+recorded cost-bar digest does not match the retained input, however, so the
+sidecar is diagnostic history rather than a valid promotion gate. The raw and
+archived labels remain separate rather than being rewritten.
 
 The scored report intentionally has no paired causal cells: this is an
 original-only reliability study, not an ablation. Its pattern claim therefore
@@ -104,7 +107,8 @@ Do not run a Workflow microablation against this held control.
   four clean remote schema probes.
 - [`runs/traces.json`](runs/traces.json): all 36 digest-bound blind-run traces.
 - [`cost-rejudge/run/cost-rejudgments.json`](cost-rejudge/run/cost-rejudgments.json):
-  complete independent cost sidecar.
+  archived independent cost sidecar; its retained cost bar does not reproduce the
+  recorded digest.
 - [`scored/tmcp-skill-evaluation-report.json`](scored/tmcp-skill-evaluation-report.json):
   original scored report, retained unchanged.
 - [`scored/reinterpreted/tmcp-skill-evaluation-report.json`](scored/reinterpreted/tmcp-skill-evaluation-report.json):
