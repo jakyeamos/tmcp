@@ -6,9 +6,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Correct a dogfood-discovered fallback activation, then replace
-the current non-isolated context metric with verified phase capsules. Reviewed
-release evidence is content-bound; keep 0.5.7 active.
+**Current focus:** Replace the current non-isolated context metric with verified
+phase capsules. Reviewed release evidence is content-bound; keep 0.5.7 active.
 
 ## Milestone
 
@@ -30,8 +29,8 @@ limits. `6fdf9de` restores the hard domain-size gate through
 compatibility-preserving benchmark and behavior-manifest splits. Release-bound
 bundle verification is in `f688c1e`: it requires an exact replayed canonical
 bundle but remains advisory evidence. `338f55e` completes package-check/test
-source-size cleanup. Dogfood routing correction, honest phase-capsule context
-accounting, and real host-run proof remain.
+source-size cleanup. `195b24f` corrects dogfood fallback activation; honest
+phase-capsule context accounting and real host-run proof remain.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -44,6 +43,10 @@ accounting, and real host-run proof remain.
 
 ## Completed Scope
 
+- `195b24f` fixes a live dogfood regression where generic planning language
+  activated the UI rubric and browser gates. Bare `design` and neutral planning
+  terms no longer qualify source activation; exact launcher dogfood now defers
+  every active skill until source-backed semantic evidence exists.
 - `338f55e` moves canonical benchmark bundle resolution/replay into a bounded
   package helper and moves its focused tests out of the broad package suite.
   Package behavior is unchanged; the checker and test owners are below the hard
