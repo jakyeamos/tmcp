@@ -31,6 +31,7 @@ class CompositionContractFixtureTests(unittest.TestCase):
         for case_id in (
             "research_goal_is_not_frontend",
             "explicit_frontend_control_remains_routed",
+            "user_reaction_is_not_react",
         ):
             with self.subTest(case_id=case_id):
                 case = self.cases[case_id]

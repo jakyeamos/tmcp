@@ -257,6 +257,14 @@ def _validate_trace(
         )
     ):
         raise ValueError("Resumed trace isolation audit is invalid.")
+    if (
+        row.get("pattern_id") == "composition.source-bundle-inclusion"
+        and provenance.get("composition_provenance")
+        != row.get("composition_provenance")
+    ):
+        raise ValueError(
+            "Resumed trace composition provenance does not match its matrix row."
+        )
     campaign = trace.get("campaign")
     if not isinstance(campaign, dict) or campaign.get("cell_id") != cell.cell_id:
         raise ValueError("Resumed trace campaign metadata is invalid.")
@@ -482,6 +490,11 @@ async def execute_cell(
                 "disabled_features": list(DISABLED_CODEX_FEATURES),
                 "runner_event_audit": runner_stage["event_audit"],
                 "judge_event_audit": judge_stage["event_audit"],
+                **(
+                    {"composition_provenance": row["composition_provenance"]}
+                    if row.get("pattern_id") == "composition.source-bundle-inclusion"
+                    else {}
+                ),
             },
             "observations": [
                 {

@@ -1,0 +1,1 @@
+For an ambiguous, evidence-bounded planning request, open a guided conversation with the known knowns: cite the supplied territory, distinguish settled facts from assumptions, show the later quadrants, and stop for the user's reaction before implementation or a durable claim.

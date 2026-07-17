@@ -164,10 +164,11 @@ def baseline_reliability_summary(
     if baseline_policy is None:
         return None
 
+    control_variant = str(baseline_policy.get("control_variant") or "original")
     planned_rows = [
         dict(row)
         for row in plan.get("task_matrix", [])
-        if isinstance(row, Mapping) and row.get("variant_id") == "original"
+        if isinstance(row, Mapping) and row.get("variant_id") == control_variant
     ]
     fixture_rows: dict[str, dict[str, Any]] = {}
     for row in planned_rows:
@@ -178,7 +179,7 @@ def baseline_reliability_summary(
     records = [
         record
         for record in _records(plan, traces)
-        if str(record["row"].get("variant_id") or "") == "original"
+        if str(record["row"].get("variant_id") or "") == control_variant
     ]
     by_fixture: dict[str, list[dict[str, Any]]] = defaultdict(list)
     by_model: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -286,7 +287,7 @@ def baseline_reliability_summary(
     return {
         "design": "baseline_reliability",
         "causal_contrast_applicable": False,
-        "control_variant": str(baseline_policy.get("control_variant") or "original"),
+        "control_variant": control_variant,
         **totals,
         "valid_case_verdicts": valid_case_verdicts,
         "provenance_complete": provenance_complete,
@@ -329,7 +330,9 @@ def validated_case_verdict(
     return (passed if isinstance(passed, bool) else None), gaps
 
 
-def _controlled_trace_gaps(trace: Mapping[str, Any]) -> list[str]:
+def _controlled_trace_gaps(
+    trace: Mapping[str, Any], row: Mapping[str, Any]
+) -> list[str]:
     gaps: list[str] = []
     supplied = trace.get("_controlled_fields_supplied")
     for field in ("trace_id", "experiment_id", "matrix_row_id", "replicate_id"):
@@ -352,6 +355,15 @@ def _controlled_trace_gaps(trace: Mapping[str, Any]) -> list[str]:
     for field in ("runner_blinded", "judge_blinded", "isolated_session"):
         if not isinstance(provenance, Mapping) or provenance.get(field) is not True:
             gaps.append(f"provenance.{field} must be true")
+    if (
+        row.get("pattern_id") == "composition.source-bundle-inclusion"
+        and (
+            not isinstance(provenance, Mapping)
+            or provenance.get("composition_provenance")
+            != row.get("composition_provenance")
+        )
+    ):
+        gaps.append("provenance.composition_provenance does not match matrix row")
     _, verdict_gaps = validated_case_verdict(trace)
     gaps.extend(verdict_gaps)
     return gaps
@@ -389,7 +401,7 @@ def _records(
         row = rows.get(row_id)
         if row is None:
             continue
-        controlled_gaps = _controlled_trace_gaps(trace)
+        controlled_gaps = _controlled_trace_gaps(trace, row)
         controlled = not controlled_gaps
         configuration_id = _configuration_id(trace, controlled=controlled)
         agent = trace.get("agent")
@@ -670,8 +682,14 @@ def analyze_pattern_evidence(
             for row in intervention_rows
         )
         matched_control_valid = bool(intervention_rows) and all(
-            row["intervention"].get("kind") == "single_section_ablation"
-            and control_variant == "original"
+            (
+                row["intervention"].get("kind") == "single_section_ablation"
+                and control_variant == "original"
+            )
+            or (
+                row["intervention"].get("kind") == "source_bundle_inclusion"
+                and control_variant == "packet_only"
+            )
             for row in intervention_rows
             if isinstance(row.get("intervention"), Mapping)
         )

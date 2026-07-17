@@ -1,0 +1,13 @@
+{
+  "activated_atoms": [],
+  "commands_run": [],
+  "created_at": "2026-07-17T20:07:53Z",
+  "ignored_atoms": [],
+  "instruction_override_policy": "Receipts may improve future ranking but cannot override higher-priority instructions.",
+  "outcome": "preregistered_local_packet",
+  "packet_id": "packet-f26f272552ee",
+  "schema": "tmcp-run-receipt-v0.1",
+  "trust": "advisory_untrusted",
+  "user_overrides": [],
+  "verification_results": []
+}

@@ -53,9 +53,18 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - Do not activate a specialized route from a generic verb such as “build” alone.
   Preserve a matched specialized control case so a routing fix cannot quietly
   weaken intended frontend or workflow behavior.
+- Treat overloaded framework names as context-sensitive route evidence. “React
+  components” may activate frontend routing; a user’s “reaction” or instruction
+  to “react to” evidence may not.
 - A packet-level pass proves only that routing and source projection held. It
   does not prove the pair changes agent behavior; that still requires approved
   golden cases, fresh blind runners, and separate judges.
+- For a source-bundle composition contrast, bind both arms to the same packet,
+  advisory receipt, task evidence, and base attachment. The treatment attachment
+  must be exactly `control + source bundle`; pin the complete bundle plus every
+  selected source path and digest in the plan and each trace. This can support
+  only a **source-bundle delivery** claim, never an unobserved live-selection,
+  adherence, or corpus-quality claim.
 
 ## Promotion rules
 
@@ -85,6 +94,9 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - Causal promotion requires the predeclared clustered analysis policy, reliability
   floors, complete provenance, complete cost sidecar where used, and no unresolved
   safety/cost regression.
+- Reject a composition trace from controlled analysis when its materialized
+  source-bundle provenance differs from the preregistered matrix row. A valid
+  runner manifest alone is not enough once a result is exported or reanalyzed.
 
 ## Anti-patterns observed in the dogfood
 
@@ -108,6 +120,10 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   question whose control behavior is still not dependable.
 - **Calling model identifiers independent models.** Identifier replication is
   operationally useful, but it cannot establish provider or training independence.
+- **Treating a larger attachment as a pure selection effect.** A packet-plus-bundle
+  result measures delivery of that exact pinned material, including any length or
+  framing effect; without separate selection telemetry it cannot establish that
+  TMCP selected or the runner followed a source independently.
 
 The 2026-07-17 campaign is a source of these operational defaults. Its section
 effect remains a held candidate because the historical plan did not preregister the

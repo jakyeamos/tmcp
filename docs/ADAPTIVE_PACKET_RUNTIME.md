@@ -97,7 +97,7 @@ Add `task_identity` as a structured, first-class field on composed and recompile
 | Route ID | Trigger signals (objective / context) |
 | --- | --- |
 | `ui_ux_redesign` | redesign, visually striking, modern, polish, landing |
-| `frontend_implementation` | implement, component, react, page, production-ready |
+| `frontend_implementation` | implement, component, React in framework context, page, production-ready |
 | `motion_interaction` | motion, animation, interactive, micro-interaction |
 | `freshness_research` | trend, current, modern, research |
 | `accessibility_validation` | a11y, accessibility, contrast, reduced motion, WCAG |

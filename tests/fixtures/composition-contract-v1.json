@@ -25,6 +25,15 @@
       }
     },
     {
+      "id": "user_reaction_is_not_react",
+      "kind": "task_identity",
+      "objective": "Establish the known knowns and stop for the user's reaction after stage one.",
+      "expected": {
+        "primary": "general_task",
+        "active_routes": []
+      }
+    },
+    {
       "id": "test_fixture_is_evidence_only",
       "kind": "source_role",
       "objective": "Build a trusted evidence-backed guidebook for agent skills and skill composition through preregistered fixture-scoped experiments.",

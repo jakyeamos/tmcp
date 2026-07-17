@@ -24,6 +24,7 @@ import scripts.tmcp_skill_eval_campaign_runtime as campaign_runtime  # noqa: E40
 from tmcp_runtime.services.evaluation_evidence import (  # noqa: E402
     baseline_reliability_summary,
 )
+from tmcp_runtime.api.evaluation import validate_evaluation_plan  # noqa: E402
 from scripts.tmcp_skill_eval_campaign_protocol import (  # noqa: E402
     CAMPAIGN_PROTOCOL,
     DISABLED_CODEX_FEATURES,
@@ -316,7 +317,7 @@ async def _main(args: argparse.Namespace) -> int:
     _resolve_first_principles(args)
     _validate_campaign_args(args)
     args.judge_model = args.judge_model or args.model
-    plan = _load_json(args.plan)
+    plan = validate_evaluation_plan(_load_json(args.plan))
     codex_version = subprocess.run(
         [args.codex_bin, "--version"],
         check=True,

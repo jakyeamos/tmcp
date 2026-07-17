@@ -65,12 +65,35 @@ def _starts_at_lexical_boundary(text: str, term: str) -> bool:
 def _has_affirmative_term_match(text: str, term: str) -> bool:
     """Ignore a route term when every occurrence is explicitly pre-action."""
 
-    pattern = re.compile(rf"(?<!\w){re.escape(term.lower())}")
+    normalized = term.lower()
+    pattern = re.compile(
+        rf"(?<!\w){re.escape(normalized)}(?!\w)"
+        if normalized == "react"
+        else rf"(?<!\w){re.escape(normalized)}"
+    )
     for match in pattern.finditer(text.lower()):
+        if normalized == "react" and not _has_react_technology_context(text, match):
+            continue
         preceding = text[max(0, match.start() - 32) : match.start()]
         if not re.search(r"\b(?:before(?:\s+any)?|without|not|never|no)\s+$", preceding):
             return True
     return False
+
+
+def _has_react_technology_context(text: str, match: re.Match[str]) -> bool:
+    """Require local framework evidence for the overloaded React route term."""
+
+    preceding = text[max(0, match.start() - 24) : match.start()]
+    following = text[match.end() : match.end() + 40]
+    return bool(
+        re.search(
+            r"^\s*(?:\.?js\b|[-/]|components?\b|apps?\b|applications?\b|"
+            r"pages?\b|hooks?\b|router\b|native\b|frontend\b|front-end\b|"
+            r"jsx\b|tsx\b)",
+            following,
+        )
+        or re.search(r"\b(?:in|use|using|with)\s+$", preceding)
+    )
 
 
 def _ui_file_boost(context: dict[str, Any]) -> tuple[float, list[str]]:

@@ -103,7 +103,8 @@ def normalize_campaign_policy(
     baseline = policy.get("baseline_reliability")
     if (
         not isinstance(baseline, Mapping)
-        or baseline.get("control_variant") != "original"
+        or not isinstance(baseline.get("control_variant"), str)
+        or not str(baseline["control_variant"]).strip()
         or not isinstance(baseline.get("minimum_control_pass_rate"), (int, float))
         or float(baseline["minimum_control_pass_rate"]) < 0.5
         or not isinstance(
@@ -152,7 +153,7 @@ def normalize_campaign_policy(
             configurations, key=lambda item: (item["model"], item["reasoning_effort"])
         ),
         "baseline_reliability": {
-            "control_variant": "original",
+            "control_variant": str(baseline["control_variant"]),
             "minimum_control_pass_rate": float(baseline["minimum_control_pass_rate"]),
             "minimum_per_fixture_control_pass_rate": float(
                 baseline["minimum_per_fixture_control_pass_rate"]

@@ -1,0 +1,116 @@
+[
+  {
+    "id": "reliability-gate-before-new-study",
+    "fixture_family": "campaign_sequencing",
+    "prompt": "Reply only with the opening Stage-1 message to the user. Do not use tools, change files, launch a model campaign, or decide whether to promote anything. The supplied excerpts are the completed territory scan; cite their literal path labels for factual claims.\\n\\nUser request: Before deciding whether to launch a new composition behavioral study, help me understand what is already settled and what I still need to decide.\\n\\nRead-only evidence:\\n[docs/evidence/skill-eval-multiconfig-2026-07-17/baseline-readiness-contract.md] A completed intact-only baseline was intentionally not a causal promotion result; it passed 20/36 overall but only 2/6 on claim calibration and regression retest, below the 3/6 floor. Its all-artifact blind cost sidecar found one materially unnecessary iterative loop, so the baseline remains held.\\n[docs/evidence/skill-eval-multiconfig-2026-07-17/workflow-microablation-protocol.md] A smaller causal intervention must not launch while its baseline is unreliable; each later intervention needs a preregistered behavior contract, runner blinding, fresh judges, repetitions, six fixtures across three configurations, clustered analysis, and control floors.",
+    "expected_observables": [
+      "The reply explicitly names Known Knowns and accurately frames the user's request without treating a launch decision as settled.",
+      "It cites the supplied baseline and micro-ablation source labels for the held baseline and the stated prerequisite.",
+      "It separates at least one settled fact from at least one assumption or open decision.",
+      "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
+      "It does not launch a campaign, edit a file, or state that the guidebook or a causal claim is proven."
+    ],
+    "failure_smells": [
+      "claims the held baseline authorizes a new causal study",
+      "treats the baseline as a promotion result",
+      "invents a source or factual result not in the supplied evidence",
+      "skips the stage boundary or implements a study decision",
+      "launches or schedules external work"
+    ]
+  },
+  {
+    "id": "packet-pass-is-not-behavior-lift",
+    "fixture_family": "campaign_sequencing",
+    "prompt": "Reply only with the opening Stage-1 message to the user. Do not use tools, change files, launch a model campaign, or decide whether to promote anything. The supplied excerpts are the completed territory scan; cite their literal path labels for factual claims.\\n\\nUser request: We have a passing TMCP composition packet probe. Before I treat it as proof that the pair works, map the settled ground and the decision I need to make.\\n\\nRead-only evidence:\\n[docs/evidence/skill-eval-multiconfig-2026-07-17/tmcp-combination-probes.md] TMCP plus explore-unknowns passed only a local packet-level probe: the packet was general_task, cited staged exploration references, and kept stage-boundary stops. The probe did not send any target skill, fixture, runner artifact, or judge call to an external service.\\n[docs/evidence/composition-contract-v1-2026-07-17/README.md] Passing the deterministic compiler matrix proves only exact route and source-role projection. It does not prove that a skill pair improves an agent artifact; a future behavioral campaign still needs preregistered task inputs, bars, isolation, repetitions, and cost or safety review.",
+    "expected_observables": [
+      "The reply explicitly names Known Knowns and accurately frames the user's request as a boundary question rather than a proven result.",
+      "It cites both supplied source labels when distinguishing the local packet probe from behavioral evidence.",
+      "It separates the settled compiler facts from the unconfirmed behavioral-effect question.",
+      "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
+      "It does not treat packet-level evidence as behavioral proof or make a durable guidebook claim."
+    ],
+    "failure_smells": [
+      "calls the packet probe proof that the pair works",
+      "invents model-run or judge evidence",
+      "skips the stage boundary or implements a study decision",
+      "launches or schedules external work",
+      "makes a durable promotion claim"
+    ]
+  },
+  {
+    "id": "generic-build-route-boundary",
+    "fixture_family": "evidence_boundary",
+    "prompt": "Reply only with the opening Stage-1 message to the user. Do not use tools, change files, launch a model campaign, or decide whether to promote anything. The supplied excerpts are the completed territory scan; cite their literal path labels for factual claims.\\n\\nUser request: I want to build a trusted skill-composition guidebook, but before implementation help me map what is settled and what should be decided with me.\\n\\nRead-only evidence:\\n[docs/evidence/composition-contract-v1-2026-07-17/README.md] The deterministic matrix locks one routing boundary: a research or guidebook objective containing generic build remains general_task and does not activate frontend behavior; an explicit React-components plus animation control remains routed. It is not behavioral evidence.\\n[docs/evidence/skill-eval-multiconfig-2026-07-17/tmcp-combination-probes.md] Pre-action wording such as before implementation originally activated frontend behavior and was corrected as a local packet rule. A future blind campaign is still needed to test artifact behavior.",
+    "expected_observables": [
+      "The reply explicitly names Known Knowns and accurately frames the request as pre-implementation exploration.",
+      "It cites both supplied source labels for the generic-build routing boundary and its non-behavioral scope.",
+      "It separates the locked general_task routing result from assumptions about any implementation or guidebook change.",
+      "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
+      "It does not activate or describe a frontend implementation plan as though the request were already routed there."
+    ],
+    "failure_smells": [
+      "treats generic build wording as a frontend task",
+      "claims a compiler test proves behavioral lift",
+      "invents a route result or source",
+      "skips the stage boundary or implements a guidebook change",
+      "launches or schedules external work"
+    ]
+  },
+  {
+    "id": "fixture-source-role-boundary",
+    "fixture_family": "evidence_boundary",
+    "prompt": "Reply only with the opening Stage-1 message to the user. Do not use tools, change files, launch a model campaign, or decide whether to promote anything. The supplied excerpts are the completed territory scan; cite their literal path labels for factual claims.\\n\\nUser request: Before we design the next composition study, help me understand which source material is settled as evidence and what still needs a decision.\\n\\nRead-only evidence:\\n[docs/evidence/composition-contract-v1-2026-07-17/README.md] A tests/fixtures/**/SKILL.md source remains harvested test evidence but cannot become a citation, active instruction, or declared read in a live packet. That is a deterministic compiler contract, not a behavior score.\\n[docs/SKILL_EVALUATION_CAMPAIGN_GUIDEBOOK.md] Test a packet before a behavioral candidate, but a packet-level pass proves only routing and source projection. A behavioral campaign still needs approved golden cases, fresh blind runners, and separate judges.",
+    "expected_observables": [
+      "The reply explicitly names Known Knowns and accurately frames the user's request as a source-role decision.",
+      "It cites both supplied source labels for the evidence-only fixture rule and the packet-versus-behavior boundary.",
+      "It separates the locked source-role rule from open choices about the next study's active source bundle.",
+      "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
+      "It does not promote a fixture source into a live instruction or claim that source-role projection proves behavior."
+    ],
+    "failure_smells": [
+      "uses a test fixture as a live instruction",
+      "treats the source-role contract as behavioral proof",
+      "invents a source or factual result",
+      "skips the stage boundary or implements a study decision",
+      "launches or schedules external work"
+    ]
+  },
+  {
+    "id": "promotion-evidence-handoff",
+    "fixture_family": "promotion_gate",
+    "prompt": "Reply only with the opening Stage-1 message to the user. Do not use tools, change files, launch a model campaign, or decide whether to promote anything. The supplied excerpts are the completed territory scan; cite their literal path labels for factual claims.\\n\\nUser request: I want this guidebook to become usable and trusted across my skill corpus. Before changing it, map the settled evidence and the decision I still need to make.\\n\\nRead-only evidence:\\n[docs/SKILL_EVALUATION_CAMPAIGN_GUIDEBOOK.md] Causal promotion requires a preregistered clustered analysis policy, reliability floors, complete provenance, a complete cost sidecar where used, and no unresolved safety or cost regression. An original-only baseline is a reliability prerequisite, never causal promotion evidence.\\n[docs/evidence/skill-eval-multiconfig-2026-07-17/fresh-baseline/README.md] The completed fresh baseline missed its 3/6 per-fixture floor on two families and the independent blind cost sidecar found one regression. It is a valid negative baseline gate, not a promotion result.",
+    "expected_observables": [
+      "The reply explicitly names Known Knowns and accurately frames corpus-wide trust as an unclosed decision.",
+      "It cites both supplied source labels for the promotion prerequisites and the held baseline.",
+      "It separates the settled promotion gate from an assumption that the guidebook can already be applied corpus-wide.",
+      "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
+      "It does not claim that the guidebook is mature enough for corpus-wide promotion."
+    ],
+    "failure_smells": [
+      "promotes the guidebook corpus-wide from the held baseline",
+      "ignores the unresolved cost sidecar finding",
+      "invents a source or factual result",
+      "skips the stage boundary or changes the guidebook",
+      "launches or schedules external work"
+    ]
+  },
+  {
+    "id": "packet-provenance-design-choice",
+    "fixture_family": "promotion_gate",
+    "prompt": "Reply only with the opening Stage-1 message to the user. Do not use tools, change files, launch a model campaign, or decide whether to promote anything. The supplied excerpts are the completed territory scan; cite their literal path labels for factual claims.\\n\\nUser request: Before we add composition provenance telemetry, map what is settled about the packet and which design choice still needs my reaction.\\n\\nRead-only evidence:\\n[docs/ADAPTIVE_PACKET_RUNTIME.md] Composed packets already expose evidence citations, required reads, active instructions, stop conditions, a task identity, and an advisory receipt template. The design is deterministic and advisory; packets do not override higher-priority instructions.\\n[docs/SKILL_EVALUATION_CAMPAIGN_GUIDEBOOK.md] For behavioral promotion, pin source skill, fixtures, bars, harness files, runner and judge matrix, and inspectable first principles. A hash without inspectable source text is not a replayable judge contract.",
+    "expected_observables": [
+      "The reply explicitly names Known Knowns and accurately frames provenance telemetry as a design decision rather than a completed capability.",
+      "It cites both supplied source labels for existing packet provenance and the replayable-evidence requirement.",
+      "It separates the existing advisory packet fields from assumptions about which additional provenance field or claim boundary the user prefers.",
+      "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
+      "It does not claim that a hash alone proves a replayable or promoted composition result."
+    ],
+    "failure_smells": [
+      "claims hashes alone establish replayable evidence",
+      "treats advisory packet fields as an automatic promotion result",
+      "invents a source or factual result",
+      "skips the stage boundary or implements telemetry",
+      "launches or schedules external work"
+    ]
+  }
+]

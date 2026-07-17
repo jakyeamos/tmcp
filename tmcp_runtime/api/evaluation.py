@@ -14,6 +14,10 @@ from tmcp_runtime.services.evaluation_catalog import (
     EFFECTIVE_PATTERNS,
     V01_ANTI_PATTERNS,
 )
+from tmcp_runtime.services.evaluation_composition import (
+    SOURCE_BUNDLE_INCLUSION_KIND,
+    validate_source_bundle_inclusion_contrast,
+)
 from tmcp_runtime.services.evaluation_orchestration import evaluate_mode
 from tmcp_runtime.services.evaluation_plan import (
     EVAL_PLAN_SCHEMA,
@@ -397,6 +401,9 @@ def _validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
             raise ValueError(
                 f"evaluation_plan contrast {contrast_id} intervention is missing."
             )
+        if intervention.get("kind") == SOURCE_BUNDLE_INCLUSION_KIND:
+            validate_source_bundle_inclusion_contrast(control_row, intervention_row)
+            continue
         if intervention.get("kind") != "single_section_ablation":
             continue
         original = control_row.get("skill_attachment")
@@ -460,6 +467,12 @@ def _load_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         )
         _merge_redactions(summary, redactions)
         plan = {**plan, "redaction_summary": summary}
+    return _validate_plan(plan)
+
+
+def validate_evaluation_plan(plan: dict[str, Any]) -> dict[str, Any]:
+    """Validate a loaded plan before an external campaign spends model calls."""
+
     return _validate_plan(plan)
 
 

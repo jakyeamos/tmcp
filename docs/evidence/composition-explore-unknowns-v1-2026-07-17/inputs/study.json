@@ -1,0 +1,40 @@
+{
+  "schema": "tmcp-composition-study-input-v0.1",
+  "packet_id": "packet-f26f272552ee",
+  "packet_sha256": "sha256:15d7c86960a57ccde551a66c4ba642bc5286f76fb07d86908bb2e826af6e7468",
+  "receipt_sha256": "sha256:1b78fb9ec34301c66bdc5b9a4cd3638f307f5944ee71d81154a674d89c498f8c",
+  "selected_sources": [
+    {
+      "path": "/Users/jakyeamos/skills/engineering/explore-unknowns/SKILL.md",
+      "sha256": "sha256:d2b29abcaee937ede07bf908ee0ab6a7ce03d429f51082d65cae7fdb0beac3fa"
+    },
+    {
+      "path": "/Users/jakyeamos/skills/engineering/explore-unknowns/references/stage-1-known-knowns.md",
+      "sha256": "sha256:bf64d44b5a879757fd9f53a59c145af57087560c7ccc5b9949d938625e4c187e"
+    }
+  ],
+  "analysis_policy": {
+    "clustered_interval": {
+      "method": "fixture_block_bootstrap_by_configuration",
+      "confidence": 0.95,
+      "cluster_unit": "fixture_digest",
+      "resamples": 10000,
+      "seed": 20260717
+    }
+  },
+  "promotion_thresholds": {
+    "controlled_multi_agent_eval": {
+      "minimum_control_pass_rate": 0.5,
+      "minimum_per_fixture_control_pass_rate": 0.5
+    }
+  },
+  "study_scope": {
+    "claim_boundary": "delivery effect of a materialized Stage-1 source bundle in a shared TMCP packet",
+    "not_measured": [
+      "live skill selection",
+      "instruction adherence telemetry",
+      "whole-corpus skill quality",
+      "corpus-wide guidebook promotion"
+    ]
+  }
+}

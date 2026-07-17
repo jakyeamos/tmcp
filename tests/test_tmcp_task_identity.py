@@ -85,6 +85,26 @@ class TmcpRouteCatalogTests(unittest.TestCase):
         self.assertNotIn("frontend_implementation", routes)
         self.assertEqual(identity["primary"], "general_task")
 
+    def test_user_reaction_language_does_not_activate_react_route(self) -> None:
+        objective = (
+            "Establish the known knowns and stop for the user's reaction after "
+            "stage one."
+        )
+
+        routes = {item["route"] for item in score_routes(objective)}
+        identity = derive_task_identity(objective)
+
+        self.assertNotIn("frontend_implementation", routes)
+        self.assertEqual(identity["primary"], "general_task")
+
+    def test_explicit_react_framework_context_still_activates_frontend_route(self) -> None:
+        routes = {
+            item["route"]
+            for item in score_routes("Build React components with motion-rich interactions.")
+        }
+
+        self.assertIn("frontend_implementation", routes)
+
     def test_intended_prefix_compounds_have_explicit_routes(self) -> None:
         cases = {
             "Rebuild the webpage.": "frontend_implementation",

@@ -117,23 +117,28 @@ def selected_rows(
         raise ValueError(
             "Campaign design must be baseline_reliability or causal_contrast."
         )
-    rows = [
-        row
-        for row in plan.get("task_matrix", [])
-        if isinstance(row, dict)
-        and row.get("pattern_id") == pattern_id
-        and row.get("intervention_target") == intervention_target
-        and (
-            row.get("variant_id") == "original"
-            if design == "baseline_reliability"
-            else row.get("variant_id") in {"original", "ablated"}
-        )
-        and (
-            design == "baseline_reliability"
-            or row.get("variant_id") == "original"
+    rows = []
+    for row in plan.get("task_matrix", []):
+        if (
+            not isinstance(row, dict)
+            or row.get("pattern_id") != pattern_id
+            or row.get("intervention_target") != intervention_target
+        ):
+            continue
+        variant_id = str(row.get("variant_id") or "")
+        control_variant = str(row.get("control_variant") or "original")
+        intervention_variant = str(row.get("intervention_variant") or "ablated")
+        if design == "baseline_reliability":
+            if variant_id == control_variant:
+                rows.append(row)
+            continue
+        if variant_id == control_variant:
+            rows.append(row)
+        elif variant_id == intervention_variant and (
+            intervention_variant != "ablated"
             or row.get("ablation_section") == intervention_target
-        )
-    ]
+        ):
+            rows.append(row)
     if not rows:
         raise ValueError("No matched pattern rows found in the evaluation plan.")
     return rows
@@ -168,10 +173,18 @@ def build_cells(
         )
     for task_id, task_rows in rows_by_task.items():
         variants = [str(row["variant_id"]) for row in task_rows]
+        control_variants = {str(row.get("control_variant") or "original") for row in task_rows}
+        intervention_variants = {
+            str(row.get("intervention_variant") or "ablated") for row in task_rows
+        }
+        if len(control_variants) != 1 or len(intervention_variants) != 1:
+            raise ValueError(f"Fixture {task_id} does not declare one matched contrast.")
+        control_variant = next(iter(control_variants))
+        intervention_variant = next(iter(intervention_variants))
         expected_variants = (
-            ["original"]
+            [control_variant]
             if design == "baseline_reliability"
-            else ["ablated", "original"]
+            else sorted({control_variant, intervention_variant})
         )
         if sorted(variants) != expected_variants:
             raise ValueError(

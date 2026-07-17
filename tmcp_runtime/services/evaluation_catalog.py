@@ -226,4 +226,33 @@ EFFECTIVE_PATTERNS: tuple[dict[str, Any], ...] = (
         "weak_example": "Test the skill a few times and improve it.",
         "applies_to": ("skill_evaluation", "skill_writing"),
     },
+    {
+        "pattern_id": "composition.source-bundle-inclusion",
+        "label": "Materialized source-bundle inclusion",
+        "classification": "effective_pattern",
+        "internal_atoms": (
+            "source-traceability",
+            "source-grounding",
+            "evidence-backed-claims",
+        ),
+        "tested_interventions": (
+            {
+                "tested_atom": "materialized_source_bundle",
+                "allowed_targets": ("source_bundle",),
+                "allowed_kinds": ("source_bundle_inclusion",),
+                "claim_granularity": "source_bundle_delivery",
+                "expected_support_direction": "positive",
+            },
+        ),
+        "detection_terms": (),
+        "good_example": (
+            "Add one byte-pinned, source-validated bundle to a shared packet "
+            "attachment and evaluate the delivery effect with blinded runners."
+        ),
+        "weak_example": (
+            "Treat a packet-selection probe or an opaque attachment change as "
+            "behavioral evidence."
+        ),
+        "applies_to": ("skill_composition", "skill_evaluation"),
+    },
 )
