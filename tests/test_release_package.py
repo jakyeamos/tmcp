@@ -429,7 +429,7 @@ class ReleasePackageTests(unittest.TestCase):
             sorted(entry["path"] for entry in manifest["entries"]),
         )
 
-    def test_composition_benchmark_becomes_mandatory_at_0_6(self) -> None:
+    def test_composition_benchmark_is_mandatory_for_zero_six(self) -> None:
         self.assertFalse(self.checker.composition_benchmark_required("0.5.7"))
         self.assertTrue(self.checker.composition_benchmark_required("0.6.0"))
         self.assertTrue(self.checker.composition_benchmark_required("1.0.0"))

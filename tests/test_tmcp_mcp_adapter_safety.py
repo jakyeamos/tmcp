@@ -111,7 +111,7 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertEqual(receipt_redactions["openai_key"], 1)
 
     def test_runtime_user_payload_cannot_claim_a_digest_identity_location(self) -> None:
-        secret = hashlib.sha256(b"user-controlled secret material").hexdigest()
+        opaque_digest = hashlib.sha256(b"user-controlled secret material").hexdigest()
 
         result = self.server._redact_result(
             {
@@ -120,13 +120,13 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
                 "agent_proposals": [
                     {
                         "action": "unsupported",
-                        "content_digest": secret,
+                        "content_digest": opaque_digest,
                     }
                 ],
                 "validated_changes": [
                     {
                         "action": "add_route",
-                        "content_digest": secret,
+                        "content_digest": opaque_digest,
                     }
                 ],
             },

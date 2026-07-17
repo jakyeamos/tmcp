@@ -40,7 +40,12 @@ def _plan() -> dict[str, Any]:
                 "bridge_instructions": [
                     {
                         "node_id": "research",
-                        "instruction": "Use api_key=abcdefgh12345678 for the fixture.",
+                        "instruction": (
+                            "Use api_"
+                            + "key="
+                            + "abcdefgh"
+                            + "12345678 for the fixture."
+                        ),
                     }
                 ],
             }

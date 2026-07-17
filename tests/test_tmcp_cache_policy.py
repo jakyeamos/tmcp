@@ -264,7 +264,7 @@ class TmcpCachePolicyTests(unittest.TestCase):
             created_at="2026-07-17T00:00:00Z",
             source_map=[],
             selected_workflows=[],
-            selected_scoped_packet_seeds=recommendations,
+            selected_scoped_packet_seeds=(recommendations),
         )
         normalized = normalize_promoted_graph(
             {

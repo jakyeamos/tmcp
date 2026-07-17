@@ -161,7 +161,7 @@ class ReleaseEvidenceTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.checker = load_check_release_evidence_module()
 
-    def test_composition_benchmark_evidence_becomes_mandatory_at_0_6(self) -> None:
+    def test_composition_benchmark_evidence_is_mandatory_for_zero_six(self) -> None:
         self.assertFalse(self.checker.composition_benchmark_required("0.5.7"))
         self.assertTrue(self.checker.composition_benchmark_required("0.6.0"))
         errors = self.checker.validate_composition_benchmark_evidence(
