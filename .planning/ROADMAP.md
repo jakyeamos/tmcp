@@ -73,18 +73,19 @@ outcomes while preserving deterministic compatibility.
 **Depends on:** Phases 2–7
 **Plans:**
 
-- Composition foundation: complete — source roles, fixture exclusion, bounded
-  ranked slices, token limits, stopwords, and zero-confidence shortcut denial.
+- Composition foundation: hardening in progress — `280fbb6` closes reference
+  authority, multi-root identity, and phase-local read gaps; manifest-first
+  behavior indexing and lazy block hydration remain.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, plan preservation,
   phase trace, obligations, and graph-aware diffs.
-- Proof and learning: complete — evaluation variants, structured receipts,
-  explicit project-local promotion, golden prompts, behavioral fixtures, and
-  fail-closed benchmark contracts.
-- Release proof: pending — version 0.6.0 remains blocked until real host-run
-  observations meet every routing, safety, lift, ordering, provenance, and
-  context threshold.
+- Proof and learning: hardening required — scorer contracts and fixture metadata
+  exist, but executable workspaces, exact run manifests, observation assembly,
+  and tamper-resistant context accounting remain.
+- Release proof: pending — version 0.6.0 remains blocked until the executable
+  harness and real host-run observations meet every routing, safety, lift,
+  ordering, provenance, and context threshold.
 
 ---
 *Last updated: 2026-07-17 for Compositional Intelligence 0.6 implementation and release proof gating*

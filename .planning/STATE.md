@@ -6,30 +6,33 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Collect real host-run composition benchmark observations and
-reviewed evidence without advancing the active 0.5.7 release prematurely.
+**Current focus:** Harden 0.6 in dogfood priority order: lazy behavior manifests,
+typed handoffs, then executable host-run benchmark evidence. Keep 0.5.7 active.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** Implementation is complete on
-`codex/tmcp-compositional-intelligence` at `318c5fb`, with warning-free
-structural cleanup at `2ceb787`. Prepare, assisted compose,
-typed graph planning, graph-aware recompile, project-local reviewed recipes,
-evaluation variants, receipts, fixtures, and the fail-closed future release gate
-are present. Release proof remains pending real host-run observations.
+**Status:** Dogfood hardening is in progress on
+`codex/tmcp-compositional-intelligence`. The initial 0.6 compiler is present;
+`280fbb6` closes the first source-authority, multi-root identity, and phase-read
+gaps. Lazy behavior manifests, typed artifact handoffs, and executable benchmark
+fixtures remain before real host-run release proof.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Implementation and reproducible package proof complete; real
-  benchmark evidence and publication remain pending.
+- **Status:** Priority hardening in progress; release evidence and publication
+  remain pending.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
+- `280fbb6` makes reference trees permanently advisory, removes content-keyword
+  workflow activation, preserves same-relative-path skills from distinct roots,
+  and hydrates only governing/current-stage reads. 178 focused tests pass; the
+  commit hook flags `harvest_nodes.py` for a later responsibility split.
 - Clean-tree reproducible package verification passes at `18a1f65`: archive
   digest `f0850b6f…`, manifest digest `e2f9e96f…`, installed compilation and 614
   tests, and packaged prepare → assisted compose → full recompile smoke all pass.
@@ -307,9 +310,9 @@ _(truncated for length)_
 ## Accumulated Context
 
 ### Roadmap Evolution
-- 2026-07-17: Compositional Intelligence 0.6 implementation lands at `318c5fb`;
-  release remains blocked on real host-run benchmark observations and reviewed
-  evidence with matching content and graph provenance.
+- 2026-07-17: Dogfood resumes after the initial 0.6 implementation. `280fbb6`
+  hardens source authority and phase-local loading; manifest hydration, typed
+  handoffs, and executable benchmark evidence remain release blockers.
 - 2026-07-10: Modernization audit identifies P0 package disclosure risk and
   proposes a parallel v2 runtime behind stable entrypoints.
 - 2026-07-11: Milestone 0 closes the package-disclosure blocker; next work
@@ -342,5 +345,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 scripts/run_composition_benchmark.py <real-host-observations.json>
+python3 -m unittest tests.test_tmcp_composition_foundation tests.test_tmcp_composition_integration
 ```
