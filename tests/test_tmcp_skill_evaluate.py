@@ -100,6 +100,16 @@ class SkillEvaluateTests(unittest.TestCase):
         variant_ids = {row["variant_id"] for row in plan["task_matrix"]}
         self.assertEqual(variant_ids, {"baseline", "original", "negative_control"})
 
+    def test_plan_preserves_nonsecret_content_digests(self) -> None:
+        plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
+
+        skill_digest = plan["evaluated_skills"][0]["skill_digest"]
+        fixture_digest = plan["task_matrix"][0]["fixture_digest"]
+        self.assertTrue(skill_digest.startswith("sha256:"))
+        self.assertTrue(fixture_digest.startswith("sha256:"))
+        self.assertNotIn("REDACTED", skill_digest)
+        self.assertNotIn("REDACTED", fixture_digest)
+
     def test_plan_rejects_oversized_variant_input(self) -> None:
         arguments = self._plan_arguments()
         arguments["variants"] = ["variant"] * (
@@ -452,6 +462,8 @@ class SkillEvaluateTests(unittest.TestCase):
         )
         self.assertEqual(diff["confidence"], "high")
         self.assertTrue(diff["signals"]["skill_selected_in_packet"])
+        self.assertTrue(diff["signals"]["included_output_contract"])
+        self.assertIn("Return a helpful summary", " ".join(composed["output_contract"]))
         self.assertIn("packet_id", composed)
 
     def test_score_packet_inclusion_reports_compose_diff(self) -> None:
@@ -501,32 +513,26 @@ class SkillEvaluateTests(unittest.TestCase):
         )
         self.assertFalse(diff["signals"]["skill_should_be_selected"])
 
-    def test_multi_agent_traces_raise_evidence_level(self) -> None:
+    def test_unmatched_trace_cannot_raise_evidence_level(self) -> None:
         plan = self.evaluate.build_evaluation_plan(self._plan_arguments())
-        report = self.evaluate.score_evidence(
-            {
-                "evaluation_plan": plan,
-                "run_evidence_json": [
-                    {
-                        "task_id": "approval-before-edit",
-                        "variant_id": "original",
-                        "agent": {"name": "codex", "model": "gpt-5"},
-                        "observations": [{"kind": "command_run", "value": "npm test"}],
-                        "outcome": "passed",
-                    },
-                    {
-                        "task_id": "approval-before-edit",
-                        "variant_id": "rewritten",
-                        "agent": {"name": "cursor", "model": "claude"},
-                        "observations": [{"kind": "command_run", "value": "npm test"}],
-                        "outcome": "passed",
-                    },
-                ],
-            },
-            compose_evaluation_row=self.server._compose_evaluation_row,
-        )
-        levels = {entry["evidence_level"] for entry in report["guidebook_entries"]}
-        self.assertIn("controlled_multi_agent_eval", levels)
+        with self.assertRaisesRegex(ValueError, "does not match the task matrix"):
+            self.evaluate.score_evidence(
+                {
+                    "evaluation_plan": plan,
+                    "run_evidence_json": [
+                        {
+                            "task_id": "approval-before-edit",
+                            "variant_id": "rewritten",
+                            "agent": {"name": "cursor", "model": "claude"},
+                            "observations": [
+                                {"kind": "command_run", "value": "npm test"}
+                            ],
+                            "outcome": "passed",
+                        }
+                    ],
+                },
+                compose_evaluation_row=self.server._compose_evaluation_row,
+            )
 
 
 if __name__ == "__main__":

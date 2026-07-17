@@ -193,6 +193,7 @@ def compose_packet_from_source_nodes(
     tool_script_prompts: list[str] = []
     verification_gates: list[str] = []
     stop_conditions: list[str] = []
+    output_contract: list[str] = []
     active_atoms: list[str] = []
     evidence_citations: list[dict[str, Any]] = []
 
@@ -209,6 +210,7 @@ def compose_packet_from_source_nodes(
             )
         )
         stop_conditions.extend(string_list(metadata.get("stop_conditions")))
+        output_contract.extend(string_list(metadata.get("output_contract")))
         active_atoms.extend(string_list(node.get("behavior_atoms")))
         evidence_citations.append(
             {
@@ -265,6 +267,7 @@ def compose_packet_from_source_nodes(
         tool_script_prompts=tool_script_prompts,
         verification_gates=verification_gates,
         stop_conditions=stop_conditions,
+        output_contract=output_contract,
         active_atoms=active_atoms,
         evidence_citations=evidence_citations,
         conflicts=conflicts,

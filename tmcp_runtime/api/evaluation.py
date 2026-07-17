@@ -206,6 +206,22 @@ def _validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
                 f"evaluation_plan packet_inclusion_contracts[{index}].expected "
                 "must be an object."
             )
+    matrix_row_ids: set[str] = set()
+    for index, row in enumerate(plan["task_matrix"]):
+        matrix_row_id = str(row.get("matrix_row_id") or "")
+        if not matrix_row_id:
+            continue
+        if matrix_row_id in matrix_row_ids:
+            raise ValueError(
+                "evaluation_plan task_matrix contains duplicate matrix_row_id values."
+            )
+        matrix_row_ids.add(matrix_row_id)
+        expected_contract = row.get("expected_packet_contract")
+        if expected_contract is not None and not isinstance(expected_contract, dict):
+            raise ValueError(
+                f"evaluation_plan task_matrix[{index}].expected_packet_contract "
+                "must be an object."
+            )
     return plan
 
 

@@ -29,6 +29,7 @@ class EvaluationPacketServiceTests(unittest.TestCase):
             "required_reads": ["AGENTS.md"],
             "verification_gates": ["Run pnpm test"],
             "stop_conditions": ["Ask before editing"],
+            "output_contract": ["Report results"],
             "active_atoms": ["behavior-verification"],
             "ignored_sources": [],
             "conflicts": [],
@@ -63,6 +64,77 @@ class EvaluationPacketServiceTests(unittest.TestCase):
 
         self.assertEqual(result, {"packet_id": "packet-2"})
         self.assertEqual(calls, [(row, "/project")])
+
+    def test_matrix_row_id_resolves_one_ablation(self) -> None:
+        plan = {
+            "task_matrix": [
+                {
+                    "matrix_row_id": "row-a",
+                    "task_id": "task-1",
+                    "variant_id": "ablated",
+                    "ablation_section": "verification",
+                },
+                {
+                    "matrix_row_id": "row-b",
+                    "task_id": "task-1",
+                    "variant_id": "ablated",
+                    "ablation_section": "output",
+                },
+            ]
+        }
+
+        row = evaluation_packets.task_matrix_row(plan, matrix_row_id="row-b")
+
+        self.assertEqual(row["ablation_section"], "output")
+        with self.assertRaisesRegex(ValueError, "multiple task-matrix rows"):
+            evaluation_packets.task_matrix_row(plan, "task-1", "ablated")
+
+    def test_row_specific_packet_contract_wins_over_full_skill_contract(self) -> None:
+        row_contract = {
+            "required_reads": [],
+            "verification_gates": ["Run pnpm test"],
+            "stop_conditions": [],
+            "output_contract": [],
+            "behavior_atoms": ["behavior-verification"],
+        }
+        plan = {
+            "packet_inclusion_contracts": [
+                {
+                    "skill_path": "/project/SKILL.md",
+                    "expected": {"required_reads": ["AGENTS.md"]},
+                }
+            ]
+        }
+        row = {
+            "skill_path": "/project/SKILL.md",
+            "variant_id": "verification-only",
+            "expected_packet_contract": row_contract,
+        }
+
+        expectations = evaluation_packets.expectations_for_plan_row(plan, row)
+
+        self.assertEqual(expectations["required_reads"], [])
+        self.assertEqual(expectations["verification_gates"], ["Run pnpm test"])
+
+    def test_packet_diff_requires_expected_output_contract(self) -> None:
+        expectations = {
+            "output_contract": ["Must include sources"],
+        }
+        composed = {
+            "evidence_citations": [
+                {"path": "/project/SKILL.md", "source": "SKILL.md"}
+            ]
+        }
+
+        diff = evaluation_packets.diff_packet_inclusion(
+            expectations,
+            composed,
+            skill_path="/project/SKILL.md",
+            variant_id="output-contract-only",
+        )
+
+        self.assertFalse(diff["signals"]["included_output_contract"])
+        self.assertLess(diff["score"], 1.0)
 
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_packets))

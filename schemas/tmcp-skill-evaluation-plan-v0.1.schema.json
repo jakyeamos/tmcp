@@ -25,6 +25,9 @@
     "stability": {
       "type": "string"
     },
+    "experiment": {
+      "type": "object"
+    },
     "evaluated_skills": {
       "type": "array"
     },

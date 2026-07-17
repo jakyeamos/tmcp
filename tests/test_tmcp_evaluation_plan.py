@@ -34,6 +34,45 @@ class EvaluationPlanServiceTests(unittest.TestCase):
         self.assertEqual(len(plan["task_matrix"]), 2)
         self.assertEqual(plan["variants"], ["negative_control", "original"])
         self.assertEqual(plan["evaluated_skills"][0]["title"], "example")
+        self.assertEqual(
+            plan["experiment"]["protocol_version"],
+            "tmcp-skill-evaluation-protocol-v0.2",
+        )
+        row_ids = [row["matrix_row_id"] for row in plan["task_matrix"]]
+        self.assertEqual(len(row_ids), len(set(row_ids)))
+        original = next(
+            row for row in plan["task_matrix"] if row["variant_id"] == "original"
+        )
+        self.assertEqual(
+            original["experiment_id"], plan["experiment"]["experiment_id"]
+        )
+        self.assertIn(
+            "AGENTS.md", original["expected_packet_contract"]["required_reads"]
+        )
+
+    def test_ablation_rows_have_unique_identifiers(self) -> None:
+        plan = evaluation_plan.build_evaluation_plan_from_sources(
+            [
+                evaluation_plan.EvaluationSource(
+                    "SKILL.md",
+                    "# Skill\n\n## Verification\nRun one.\n\n## Output\nReport it.\n",
+                )
+            ],
+            [{"id": "task-1", "expected_observables": []}],
+            ["ablated"],
+            anti_patterns=[],
+            effective_patterns=[],
+            created_at="now",
+            max_matrix_rows=10,
+        )
+
+        rows = plan["task_matrix"]
+        self.assertEqual(len(rows), 3)
+        self.assertEqual(len({row["matrix_row_id"] for row in rows}), 3)
+        self.assertEqual(
+            {row["ablation_section"] for row in rows},
+            {"preamble", "verification", "output"},
+        )
 
     def test_rejects_matrix_budget_before_rows_are_appended(self) -> None:
         with self.assertRaisesRegex(ValueError, "matrix"):
@@ -46,6 +85,26 @@ class EvaluationPlanServiceTests(unittest.TestCase):
                 created_at="now",
                 max_matrix_rows=0,
             )
+
+    def test_identical_skill_content_at_distinct_paths_has_distinct_rows(self) -> None:
+        skill_text = "# Skill\n\n## Verification\nRun `pnpm test`.\n"
+
+        plan = evaluation_plan.build_evaluation_plan_from_sources(
+            [
+                evaluation_plan.EvaluationSource("skills/a/SKILL.md", skill_text),
+                evaluation_plan.EvaluationSource("skills/b/SKILL.md", skill_text),
+            ],
+            [{"id": "task-1", "expected_observables": []}],
+            ["original"],
+            anti_patterns=[],
+            effective_patterns=[],
+            created_at="now",
+            max_matrix_rows=10,
+        )
+
+        rows = plan["task_matrix"]
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(len({row["matrix_row_id"] for row in rows}), 2)
 
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_plan))

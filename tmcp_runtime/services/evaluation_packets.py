@@ -51,27 +51,50 @@ def variant_inclusion_expectations(
 
 def task_matrix_row(
     plan: dict[str, Any],
-    task_id: str,
-    variant_id: str,
+    task_id: str = "",
+    variant_id: str = "",
     skill_path: str | None = None,
+    *,
+    matrix_row_id: str | None = None,
+    ablation_section: str | None = None,
 ) -> dict[str, Any] | None:
     """Find one task/variant row without reading any referenced path."""
 
+    matches: list[dict[str, Any]] = []
     for row in plan.get("task_matrix", []):
+        if matrix_row_id and str(row.get("matrix_row_id") or "") != matrix_row_id:
+            continue
+        if matrix_row_id:
+            matches.append(row)
+            continue
         if str(row.get("task_id")) != task_id:
             continue
         if str(row.get("variant_id")) != variant_id:
             continue
         if skill_path and str(row.get("skill_path")) != skill_path:
             continue
-        return row
-    return None
+        if ablation_section is not None and str(
+            row.get("ablation_section") or ""
+        ) != str(ablation_section):
+            continue
+        matches.append(row)
+    if len(matches) > 1:
+        raise ValueError(
+            "Evaluation trace matches multiple task-matrix rows; supply matrix_row_id."
+        )
+    return matches[0] if matches else None
 
 
 def expectations_for_plan_row(
     plan: dict[str, Any], row: dict[str, Any]
 ) -> dict[str, Any]:
     """Resolve one variant's expected packet content from a plan."""
+
+    row_contract = row.get("expected_packet_contract")
+    if isinstance(row_contract, dict):
+        return variant_inclusion_expectations(
+            dict(row_contract), str(row.get("variant_id") or "")
+        )
 
     contracts = plan.get("packet_inclusion_contracts") or []
     skill_path = str(row.get("skill_path") or "")
@@ -161,6 +184,7 @@ def diff_packet_inclusion(
     packet_reads = [str(item) for item in (composed.get("required_reads") or [])]
     packet_gates = [str(item) for item in (composed.get("verification_gates") or [])]
     packet_stops = [str(item) for item in (composed.get("stop_conditions") or [])]
+    packet_outputs = [str(item) for item in (composed.get("output_contract") or [])]
     packet_atoms = [str(item) for item in (composed.get("active_atoms") or [])]
     included_required_reads = _includes_expected_items(
         list(variant_expectations.get("required_reads") or []),
@@ -180,6 +204,12 @@ def diff_packet_inclusion(
         skill_selected=skill_selected,
         should_select=should_select,
     )
+    included_output_contract = _includes_expected_items(
+        list(variant_expectations.get("output_contract") or []),
+        packet_outputs,
+        skill_selected=skill_selected,
+        should_select=should_select,
+    )
     expected_atoms = list(variant_expectations.get("behavior_atoms") or [])
     included_behavior_atoms = True
     if expected_atoms and should_select:
@@ -195,6 +225,7 @@ def diff_packet_inclusion(
         included_required_reads,
         included_stop_conditions,
         included_verification_gates,
+        included_output_contract,
         included_behavior_atoms,
     ]
     score = round(sum(1 for item in checks if item) / len(checks), 2)
@@ -209,6 +240,7 @@ def diff_packet_inclusion(
             "included_required_reads": included_required_reads,
             "included_stop_conditions": included_stop_conditions,
             "included_verification_gates": included_verification_gates,
+            "included_output_contract": included_output_contract,
             "included_behavior_atoms": included_behavior_atoms,
             "ignored_sources": ignored_sources[:8],
             "conflicts": list(composed.get("conflicts") or []),
@@ -219,6 +251,7 @@ def diff_packet_inclusion(
             "required_reads": packet_reads,
             "verification_gates": packet_gates,
             "stop_conditions": packet_stops,
+            "output_contract": packet_outputs,
             "active_atoms": packet_atoms,
             "selected_sources": [
                 str(item.get("source") or item.get("path") or "") for item in citations

@@ -199,6 +199,11 @@ def render_composed_packet_markdown(packet: dict[str, Any]) -> str:
         lines.extend(["", "## Verification Gates"])
         for gate in gates:
             lines.append(f"- {gate}")
+    output_contract = _string_list(packet.get("output_contract"))
+    if output_contract:
+        lines.extend(["", "## Output Contract"])
+        for item in output_contract:
+            lines.append(f"- {item}")
     family_context = packet.get("family_context")
     if isinstance(family_context, dict) and family_context.get("active_seed_id"):
         lines.extend(
@@ -239,6 +244,7 @@ def build_composed_packet(
     tool_script_prompts: list[str],
     verification_gates: list[str],
     stop_conditions: list[str],
+    output_contract: list[str],
     active_atoms: list[str],
     evidence_citations: list[dict[str, Any]],
     conflicts: list[dict[str, Any]],
@@ -252,6 +258,7 @@ def build_composed_packet(
     normalized_prompts = _ordered_unique(tool_script_prompts)[:10]
     normalized_gates = _ordered_unique(verification_gates)[:10]
     normalized_stops = _ordered_unique(stop_conditions)[:8]
+    normalized_output_contract = _ordered_unique(output_contract)[:8]
     normalized_atoms = _ordered_unique(active_atoms)[:16]
     deferred_atoms = [
         atom
@@ -317,6 +324,7 @@ def build_composed_packet(
         "tool_script_prompts": normalized_prompts,
         "verification_gates": normalized_gates,
         "stop_conditions": normalized_stops,
+        "output_contract": normalized_output_contract,
         "active_atoms": normalized_atoms,
         "deferred_atoms": deferred_atoms,
         "family_context": family_context or {},

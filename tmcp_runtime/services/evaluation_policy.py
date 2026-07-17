@@ -38,33 +38,45 @@ def _body_without_frontmatter(text: str) -> str:
     return text[end + 4 :].lstrip("\n")
 
 
+def _frontmatter_block(text: str) -> str:
+    if not text.startswith("---"):
+        return ""
+    end = text.find("\n---", 3)
+    if end == -1:
+        return ""
+    return text[: end + 4].strip()
+
+
 def _sections(text: str) -> list[dict[str, str]]:
     body = _body_without_frontmatter(text)
     sections: list[dict[str, str]] = []
+    id_counts: dict[str, int] = {}
     current_title = "preamble"
     current_lines: list[str] = []
+
+    def append_section(title: str, lines: list[str]) -> None:
+        base_id = _slug(title)
+        occurrence = id_counts.get(base_id, 0) + 1
+        id_counts[base_id] = occurrence
+        section_id = base_id if occurrence == 1 else f"{base_id}-{occurrence}"
+        sections.append(
+            {
+                "id": section_id,
+                "title": title,
+                "text": "\n".join(lines).strip(),
+            }
+        )
+
     for line in body.splitlines():
         if line.startswith("## "):
             if current_lines:
-                sections.append(
-                    {
-                        "id": _slug(current_title),
-                        "title": current_title,
-                        "text": "\n".join(current_lines).strip(),
-                    }
-                )
+                append_section(current_title, current_lines)
             current_title = line[3:].strip()
             current_lines = []
         else:
             current_lines.append(line)
     if current_lines or current_title != "preamble":
-        sections.append(
-            {
-                "id": _slug(current_title),
-                "title": current_title,
-                "text": "\n".join(current_lines).strip(),
-            }
-        )
+        append_section(current_title, current_lines)
     return sections
 
 
@@ -235,9 +247,14 @@ def static_review(
 
         if pattern_id == "trigger.overbroad-description":
             description = str(frontmatter.get("description") or "").lower()
-            if description and any(
-                term in description for term in pattern["detection_terms"]
-            ):
+            overbroad = bool(
+                re.search(
+                    r"\b(any task|all tasks|every task|always use|use for any|"
+                    r"whenever (?:working on )?(?:a|any) task)\b",
+                    description,
+                )
+            )
+            if description and overbroad:
                 findings.append(
                     {
                         "pattern_id": pattern_id,
@@ -450,53 +467,151 @@ def _variant_payload(
 ) -> dict[str, Any]:
     frontmatter = decomposition["frontmatter"]
     routing = decomposition["routing_slices"]
+    supported_variants = {
+        "baseline",
+        "original",
+        "trigger-only",
+        "instruction-only",
+        "output-contract-only",
+        "verification-only",
+        "ablated",
+        "rewritten",
+        "negative_control",
+    }
+    if variant_id not in supported_variants:
+        raise ValueError(f"Unsupported evaluation variant: {variant_id}.")
+
+    intervention: dict[str, Any]
     if variant_id == "baseline":
         content = ""
         included = []
+        intervention = {"kind": "control", "causal_attribution": True}
     elif variant_id == "original":
         content = text
         included = ["frontmatter", "body", "all_sections"]
+        intervention = {"kind": "full_skill", "causal_attribution": False}
     elif variant_id == "trigger-only":
-        content = json.dumps(frontmatter, indent=2)
+        content = _frontmatter_block(text)
         included = ["frontmatter"]
+        intervention = {
+            "kind": "slice_only",
+            "target": "frontmatter",
+            "causal_attribution": True,
+        }
     elif variant_id == "instruction-only":
         content = _body_without_frontmatter(text)
         included = ["body"]
+        intervention = {
+            "kind": "slice_only",
+            "target": "body",
+            "causal_attribution": True,
+        }
     elif variant_id == "output-contract-only":
-        content = "\n".join(routing["output_contract"])
+        content = _minimal_variant_document(
+            text,
+            decomposition,
+            "Output Contract",
+            routing["output_contract"],
+        )
         included = ["output_contract"]
+        intervention = {
+            "kind": "slice_only",
+            "target": "output_contract",
+            "causal_attribution": True,
+        }
     elif variant_id == "verification-only":
-        content = "\n".join(routing["verification_gates"])
+        content = _minimal_variant_document(
+            text,
+            decomposition,
+            "Verification",
+            routing["verification_gates"],
+        )
         included = ["verification_gates"]
+        intervention = {
+            "kind": "slice_only",
+            "target": "verification_gates",
+            "causal_attribution": True,
+        }
     elif variant_id == "ablated":
         section_id = ablation_section or "preamble"
-        kept = [
+        matching = [
             section
             for section in decomposition["sections"]
-            if section["id"] != section_id
+            if section["id"] == section_id
         ]
-        content = "\n".join(
-            f"## {section['title']}\n{section['text']}" for section in kept
+        if len(matching) != 1:
+            raise ValueError(
+                f"Ablation section must identify exactly one section: {section_id}."
+            )
+        content = _render_skill_sections(
+            text,
+            [
+                section
+                for section in decomposition["sections"]
+                if section["id"] != section_id
+            ],
         )
         included = [f"all_sections_except:{section_id}"]
+        intervention = {
+            "kind": "single_section_ablation",
+            "target": section_id,
+            "causal_attribution": True,
+        }
     elif variant_id == "negative_control":
         content = (
             "Use your best judgment. Make sure everything works and keep quality high."
         )
         included = ["negative_control_stub"]
+        intervention = {"kind": "control", "causal_attribution": True}
     elif variant_id == "rewritten":
         content = _rewrite_with_guidebook_patterns(decomposition, text)
         included = ["guidebook_rewrite"]
-    else:
-        content = text
-        included = ["original_fallback"]
+        intervention = {
+            "kind": "multi_factor_rewrite",
+            "causal_attribution": False,
+        }
     return {
         "variant_id": variant_id,
         "ablation_section": ablation_section,
         "included_slices": included,
+        "intervention": intervention,
         "content": content,
         "token_estimate": max(0, len(content.split()) // 0.75),
     }
+
+
+def _minimal_variant_document(
+    text: str,
+    decomposition: dict[str, Any],
+    section_title: str,
+    lines: Sequence[str],
+) -> str:
+    parts = [
+        item
+        for item in (
+            _frontmatter_block(text),
+            f"# {decomposition['title']}",
+            f"## {section_title}\n" + "\n".join(lines),
+        )
+        if item.strip()
+    ]
+    return "\n\n".join(parts).strip() + "\n"
+
+
+def _render_skill_sections(text: str, sections: Sequence[Mapping[str, str]]) -> str:
+    body_parts: list[str] = []
+    for section in sections:
+        section_text = str(section.get("text") or "").strip()
+        if section.get("title") == "preamble":
+            if section_text:
+                body_parts.append(section_text)
+            continue
+        rendered = f"## {section['title']}"
+        if section_text:
+            rendered += f"\n{section_text}"
+        body_parts.append(rendered)
+    parts = [item for item in (_frontmatter_block(text), "\n\n".join(body_parts)) if item]
+    return "\n\n".join(parts).strip() + "\n"
 
 
 def _rewrite_with_guidebook_patterns(decomposition: dict[str, Any], text: str) -> str:

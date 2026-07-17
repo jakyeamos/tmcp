@@ -136,6 +136,66 @@ class EvaluationScoringServiceTests(unittest.TestCase):
                 created_at="now",
             )
 
+    def test_duplicate_trace_ids_are_rejected(self) -> None:
+        traces = [
+            {
+                "trace_id": "trace-1",
+                "task_id": "task-1",
+                "variant_id": "original",
+                "observations": [{"kind": "assistant_message", "value": "done"}],
+            },
+            {
+                "trace_id": "trace-1",
+                "task_id": "task-1",
+                "variant_id": "original",
+                "observations": [{"kind": "assistant_message", "value": "done"}],
+            },
+        ]
+
+        with self.assertRaisesRegex(ValueError, "Duplicate evaluation trace_id"):
+            evaluation_scoring.score_traces(
+                self._plan(),
+                traces,
+                anti_pattern_catalog=[],
+                effective_patterns=[],
+                report_schema="report",
+                created_at="now",
+            )
+
+    def test_correct_baseline_nonactivation_scores_as_success(self) -> None:
+        plan = self._plan()
+        plan["task_matrix"] = [
+            {
+                "task_id": "task-1",
+                "variant_id": "baseline",
+                "skill_path": "/project/SKILL.md",
+                "prompt": "Run the task.",
+                "skill_attachment": "",
+            }
+        ]
+
+        report = evaluation_scoring.score_traces(
+            plan,
+            [
+                {
+                    "task_id": "task-1",
+                    "variant_id": "baseline",
+                    "observations": [
+                        {"kind": "assistant_message", "value": "Completed task."}
+                    ],
+                }
+            ],
+            anti_pattern_catalog=[],
+            effective_patterns=[],
+            report_schema="report",
+            created_at="now",
+        )
+
+        activation = report["activation_scores"][0]
+        self.assertEqual(activation["score"], 1.0)
+        self.assertFalse(activation["signals"]["skill_selected"])
+        self.assertFalse(activation["signals"]["skill_should_be_selected"])
+
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_scoring))
         tree = ast.parse(source_path.read_text(encoding="utf-8"))

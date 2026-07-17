@@ -21,10 +21,6 @@ EVAL_TRACE_SCHEMA = "tmcp-skill-eval-trace-v0.1"
 ComposeEvaluationRow = Callable[[dict[str, Any], str | None], dict[str, Any]]
 
 
-def _path_name(value: str) -> str:
-    return value.replace(chr(92), "/").rsplit("/", 1)[-1]
-
-
 def _normalize_trace(item: dict[str, Any]) -> dict[str, Any]:
     if item.get("schema") == EVAL_TRACE_SCHEMA:
         raw_observations = item.get("observations")
@@ -58,11 +54,19 @@ def _normalize_trace(item: dict[str, Any]) -> dict[str, Any]:
             observations.append(_trace_line_to_observation(str(line)))
     normalized = {
         "schema": EVAL_TRACE_SCHEMA,
+        "trace_id": item.get("trace_id"),
+        "experiment_id": item.get("experiment_id"),
+        "matrix_row_id": item.get("matrix_row_id"),
+        "replicate_id": item.get("replicate_id"),
         "task_id": item.get("task_id"),
         "variant_id": item.get("variant_id"),
+        "skill_path": item.get("skill_path"),
+        "ablation_section": item.get("ablation_section"),
         "agent": item.get("agent") or {"name": "unspecified", "model": "unspecified"},
+        "provenance": item.get("provenance"),
         "observations": observations,
         "human_labels": list(item.get("human_labels") or []),
+        "case_verdict": item.get("case_verdict"),
         "outcome": item.get("outcome"),
     }
     if not all(isinstance(label, dict) for label in normalized["human_labels"]):
@@ -94,32 +98,137 @@ def _observation_text(trace: dict[str, Any]) -> str:
     ).lower()
 
 
+def _bind_trace_to_row(
+    trace: dict[str, Any], plan: dict[str, Any]
+) -> dict[str, Any]:
+    matrix_row_id = str(trace.get("matrix_row_id") or "") or None
+    row = _task_matrix_row(
+        plan,
+        str(trace.get("task_id") or ""),
+        str(trace.get("variant_id") or ""),
+        str(trace.get("skill_path") or "") or None,
+        matrix_row_id=matrix_row_id,
+        ablation_section=(
+            str(trace.get("ablation_section"))
+            if trace.get("ablation_section") is not None
+            else None
+        ),
+    )
+    if row is None:
+        identifier = matrix_row_id or (
+            f"task={trace.get('task_id')}, variant={trace.get('variant_id')}"
+        )
+        raise ValueError(f"Evaluation trace does not match the task matrix: {identifier}.")
+
+    plan_experiment = plan.get("experiment")
+    expected_experiment_id = (
+        str(plan_experiment.get("experiment_id") or "")
+        if isinstance(plan_experiment, dict)
+        else ""
+    )
+    supplied_experiment_id = str(trace.get("experiment_id") or "")
+    if (
+        supplied_experiment_id
+        and expected_experiment_id
+        and supplied_experiment_id != expected_experiment_id
+    ):
+        raise ValueError("Evaluation trace experiment_id does not match the plan.")
+
+    for field in ("task_id", "variant_id", "skill_path", "ablation_section"):
+        supplied = trace.get(field)
+        expected = row.get(field)
+        if supplied is None or supplied == "":
+            continue
+        if str(supplied) != str(expected):
+            raise ValueError(
+                f"Evaluation trace {field} does not match matrix_row_id."
+            )
+
+    bound = dict(trace)
+    bound["experiment_id"] = expected_experiment_id or supplied_experiment_id or None
+    bound["matrix_row_id"] = row.get("matrix_row_id")
+    bound["task_id"] = row.get("task_id")
+    bound["variant_id"] = row.get("variant_id")
+    bound["skill_path"] = row.get("skill_path")
+    bound["ablation_section"] = row.get("ablation_section")
+    return bound
+
+
+def _bind_traces_to_rows(
+    traces: list[dict[str, Any]], plan: dict[str, Any]
+) -> list[dict[str, Any]]:
+    explicit_trace_ids: set[str] = set()
+    bound: list[dict[str, Any]] = []
+    for trace in traces:
+        trace_id = str(trace.get("trace_id") or "")
+        if trace_id:
+            if trace_id in explicit_trace_ids:
+                raise ValueError(f"Duplicate evaluation trace_id: {trace_id}.")
+            explicit_trace_ids.add(trace_id)
+        bound.append(_bind_trace_to_row(trace, plan))
+    return bound
+
+
+def _row_for_bound_trace(
+    plan: dict[str, Any], trace: dict[str, Any]
+) -> dict[str, Any] | None:
+    matrix_row_id = str(trace.get("matrix_row_id") or "")
+    if matrix_row_id:
+        return _task_matrix_row(plan, matrix_row_id=matrix_row_id)
+    return _task_matrix_row(
+        plan,
+        str(trace.get("task_id") or ""),
+        str(trace.get("variant_id") or ""),
+        str(trace.get("skill_path") or "") or None,
+        ablation_section=(
+            str(trace.get("ablation_section"))
+            if trace.get("ablation_section") is not None
+            else None
+        ),
+    )
+
+
 def _score_activation(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     text = _observation_text(trace)
+    row = _row_for_bound_trace(plan, trace)
     skill_terms: list[str] = []
-    for skill in plan.get("evaluated_skills", []):
-        skill_terms.append(_path_name(str(skill.get("skill_path"))).lower())
-        skill_terms.append(str(skill.get("title") or "").lower())
+    if row is not None:
+        skill = next(
+            (
+                item
+                for item in plan.get("evaluated_skills", [])
+                if str(item.get("skill_path")) == str(row.get("skill_path"))
+            ),
+            None,
+        )
+        if isinstance(skill, dict):
+            skill_terms.append(str(skill.get("title") or "").lower())
+            normalized_path = str(skill.get("skill_path") or "").replace("\\", "/")
+            path_parts = [part for part in normalized_path.split("/") if part]
+            if len(path_parts) > 1:
+                skill_terms.append(path_parts[-2].lower())
     matched = [term for term in skill_terms if term and term in text]
     skill_selected = bool(matched) or any(
         label.get("observable_id") == "skill_selected" and label.get("passed")
         for label in trace.get("human_labels", [])
         if isinstance(label, dict)
     )
-    false_positive = str(trace.get("variant_id")) == "baseline" and skill_selected
-    false_negative = str(trace.get("variant_id")) == "original" and not skill_selected
-    score = 1.0 if skill_selected else 0.0
-    if false_positive:
-        score = 0.0
-    if false_negative:
-        score = 0.0
+    should_select = str(trace.get("variant_id")) not in {
+        "baseline",
+        "negative_control",
+    }
+    false_positive = not should_select and skill_selected
+    false_negative = should_select and not skill_selected
+    score = 1.0 if skill_selected == should_select else 0.0
     return {
+        "matrix_row_id": trace.get("matrix_row_id"),
         "task_id": trace.get("task_id"),
         "variant_id": trace.get("variant_id"),
         "score": score,
         "confidence": "medium",
         "signals": {
             "skill_selected": skill_selected,
+            "skill_should_be_selected": should_select,
             "matched_trigger_terms": matched,
             "false_positive_activation": false_positive,
             "false_negative_activation": false_negative,
@@ -139,9 +248,11 @@ def _score_packet_inclusion(
 ) -> dict[str, Any]:
     task_id = str(trace.get("task_id") or "")
     variant_id = str(trace.get("variant_id") or "")
-    row = _task_matrix_row(plan, task_id, variant_id)
+    matrix_row_id = str(trace.get("matrix_row_id") or "")
+    row = _row_for_bound_trace(plan, trace)
     if row is None:
         return {
+            "matrix_row_id": matrix_row_id,
             "task_id": task_id,
             "variant_id": variant_id,
             "score": 0.0,
@@ -160,6 +271,7 @@ def _score_packet_inclusion(
         cache = compose_cache if compose_cache is not None else {}
         cache_key = json.dumps(
             {
+                "matrix_row_id": matrix_row_id,
                 "task_id": task_id,
                 "variant_id": variant_id,
                 "skill_path": row.get("skill_path"),
@@ -191,6 +303,7 @@ def _score_packet_inclusion(
                 variant_id=variant_id,
             )
             return {
+                "matrix_row_id": matrix_row_id,
                 "task_id": task_id,
                 "variant_id": variant_id,
                 "score": diff["score"],
@@ -211,6 +324,7 @@ def _score_packet_inclusion(
         str(item.get("observable_id")) for item in contract
     }
     return {
+        "matrix_row_id": matrix_row_id,
         "task_id": task_id,
         "variant_id": variant_id,
         "score": 0.7,
@@ -266,6 +380,7 @@ def _score_adherence(trace: dict[str, Any]) -> dict[str, Any]:
     passed = sum(1 for value in signals.values() if value)
     score = passed / max(len(signals), 1)
     return {
+        "matrix_row_id": trace.get("matrix_row_id"),
         "task_id": trace.get("task_id"),
         "variant_id": trace.get("variant_id"),
         "score": round(score, 2),
@@ -296,6 +411,7 @@ def _score_outcome(trace: dict[str, Any]) -> dict[str, Any]:
     if human_quality is not None:
         base = max(0.0, min(1.0, human_quality / 5.0))
     return {
+        "matrix_row_id": trace.get("matrix_row_id"),
         "task_id": trace.get("task_id"),
         "variant_id": trace.get("variant_id"),
         "score": round(base, 2),
@@ -312,12 +428,8 @@ def _score_outcome(trace: dict[str, Any]) -> dict[str, Any]:
 
 def _score_cost(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     variant_id = str(trace.get("variant_id") or "")
-    matrix_rows = [
-        row
-        for row in plan.get("task_matrix", [])
-        if row.get("task_id") == trace.get("task_id")
-        and row.get("variant_id") == trace.get("variant_id")
-    ]
+    matrix_row = _row_for_bound_trace(plan, trace)
+    matrix_rows = [matrix_row] if matrix_row is not None else []
     token_estimate = max(
         (len(str(row.get("skill_attachment") or "").split()) for row in matrix_rows),
         default=0,
@@ -343,6 +455,7 @@ def _score_cost(trace: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     if overactivation == "high":
         score -= 0.2
     return {
+        "matrix_row_id": trace.get("matrix_row_id"),
         "task_id": trace.get("task_id"),
         "variant_id": trace.get("variant_id"),
         "score": round(max(0.0, min(1.0, score)), 2),
@@ -500,6 +613,7 @@ def score_traces(
     report_schema: str,
     created_at: str,
 ) -> dict[str, Any]:
+    traces = _bind_traces_to_rows(traces, plan)
     compose_cache: dict[str, dict[str, Any]] = {}
     activation_scores = [_score_activation(trace, plan) for trace in traces]
     adherence_scores = [_score_adherence(trace) for trace in traces]

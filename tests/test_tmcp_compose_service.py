@@ -134,6 +134,29 @@ class TmcpComposeServiceTests(unittest.TestCase):
             2,
         )
 
+    def test_compose_preserves_selected_source_output_contract(self) -> None:
+        source = self._source_node("SKILL.md", "Return sources inspected.")
+        source["routing_metadata"] = {
+            "output_contract": ["Return sources inspected."]
+        }
+
+        packet = compose_packet_from_source_nodes(
+            {
+                "objective": "Evaluate skill behavior",
+                "project_path": "[REDACTED:path]",
+                "phase": "start",
+                "cache_policy": "none",
+            },
+            source_nodes=[source],
+            global_graphs=[],
+            receipts=[],
+            cache_warnings=[],
+            cache_home="[REDACTED:path]",
+        )
+
+        self.assertEqual(packet["output_contract"], ["Return sources inspected."])
+        self.assertIn("## Output Contract", packet["packet_markdown"])
+
     def test_none_policy_discards_even_directly_injected_cache_inputs(self) -> None:
         arguments = {
             "objective": "Run a repo behavior sweep",

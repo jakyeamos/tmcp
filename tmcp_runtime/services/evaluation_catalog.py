@@ -53,7 +53,7 @@ V01_ANTI_PATTERNS: tuple[dict[str, Any], ...] = (
         "label": "Overbroad trigger description",
         "classification": "anti_pattern",
         "internal_atoms": ("tool-use-policy",),
-        "detection_terms": ("use when", "always", "any task", "whenever"),
+        "detection_terms": ("always use", "any task", "all tasks", "every task"),
         "weak_example": "Use when working on any task in the repository.",
         "good_example": "Use when the user asks for release readiness or ship/no-ship review.",
         "suggested_harvest_warning": (

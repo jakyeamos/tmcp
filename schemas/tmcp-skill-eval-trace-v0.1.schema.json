@@ -14,6 +14,18 @@
     "schema": {
       "const": "tmcp-skill-eval-trace-v0.1"
     },
+    "trace_id": {
+      "type": "string"
+    },
+    "experiment_id": {
+      "type": "string"
+    },
+    "matrix_row_id": {
+      "type": "string"
+    },
+    "replicate_id": {
+      "type": ["string", "integer"]
+    },
     "task_id": {
       "type": "string"
     },
@@ -21,6 +33,9 @@
       "type": "string"
     },
     "agent": {
+      "type": "object"
+    },
+    "provenance": {
       "type": "object"
     },
     "observations": {
@@ -40,6 +55,9 @@
     },
     "human_labels": {
       "type": "array"
+    },
+    "case_verdict": {
+      "type": "object"
     },
     "outcome": {
       "type": "string"

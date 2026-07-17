@@ -542,6 +542,7 @@ class CompositionDomainTests(unittest.TestCase):
         prompts = [f" prompt {index} " for index in range(12)]
         gates = [f" gate {index} " for index in range(12)]
         stops = [f" stop {index} " for index in range(10)]
+        output_contract = [f" output {index} " for index in range(10)]
         atoms = ["selected", "shared", *[f"active-{index}" for index in range(20)]]
         global_cache = {
             "cache_policy": "none",
@@ -579,6 +580,7 @@ class CompositionDomainTests(unittest.TestCase):
                 tool_script_prompts=prompts,
                 verification_gates=gates,
                 stop_conditions=stops,
+                output_contract=output_contract,
                 active_atoms=atoms,
                 evidence_citations=[{"source": "skills/selected/SKILL.md"}],
                 conflicts=[{"id": "javascript_package_manager"}],
@@ -603,6 +605,7 @@ class CompositionDomainTests(unittest.TestCase):
             "tool_script_prompts",
             "verification_gates",
             "stop_conditions",
+            "output_contract",
             "active_atoms",
             "deferred_atoms",
             "ignored_sources",
@@ -630,6 +633,9 @@ class CompositionDomainTests(unittest.TestCase):
         )
         self.assertEqual(
             first["stop_conditions"], [f"stop {index}" for index in range(8)]
+        )
+        self.assertEqual(
+            first["output_contract"], [f"output {index}" for index in range(8)]
         )
         self.assertEqual(
             first["active_atoms"],

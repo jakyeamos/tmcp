@@ -205,11 +205,17 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
         for line in text.splitlines()
         if "do not use" in line.lower() or "not for" in line.lower()
     ][:6]
-    output_contract = []
-    if "output contract" in lower:
-        output_contract.append(
-            "Source defines an output contract; preserve it in generated packets."
-        )
+    output_contract = ordered_unique(
+        [
+            line.strip(" -*#")
+            for line in text.splitlines()
+            if any(
+                marker in line.lower()
+                for marker in ("output contract", "must include", "return", "handoff")
+            )
+            and line.strip(" -*#")
+        ]
+    )[:8]
     trigger_phrases = commands + [
         term
         for term in (

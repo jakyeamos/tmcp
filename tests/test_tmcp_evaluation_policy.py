@@ -88,6 +88,105 @@ Make sure everything works.
             "read_required_file", {item["observable_id"] for item in observables}
         )
 
+    def test_ablation_preserves_frontmatter_and_removes_one_named_section(self) -> None:
+        text = """---
+name: example
+description: Use for an example.
+---
+
+# Example
+
+## Verification
+Run first check.
+
+## Verification
+Run second check.
+
+## Output Contract
+Report pass or fail.
+"""
+        decomposition = evaluation_policy.decompose_skill("SKILL.md", text)
+
+        self.assertEqual(
+            [section["id"] for section in decomposition["sections"]],
+            ["preamble", "verification", "verification-2", "output-contract"],
+        )
+        variant = evaluation_policy._variant_payload(
+            "ablated", decomposition, text, "verification"
+        )
+
+        self.assertTrue(variant["content"].startswith("---\nname: example"))
+        self.assertNotIn("Run first check.", variant["content"])
+        self.assertIn("Run second check.", variant["content"])
+        self.assertIn("Report pass or fail.", variant["content"])
+        self.assertEqual(
+            variant["intervention"],
+            {
+                "kind": "single_section_ablation",
+                "target": "verification",
+                "causal_attribution": True,
+            },
+        )
+
+    def test_trigger_only_is_skill_frontmatter_not_json(self) -> None:
+        text = """---
+name: example
+description: Use for an example.
+---
+
+# Example
+"""
+        decomposition = evaluation_policy.decompose_skill("SKILL.md", text)
+
+        variant = evaluation_policy._variant_payload(
+            "trigger-only", decomposition, text
+        )
+
+        self.assertEqual(
+            variant["content"],
+            "---\nname: example\ndescription: Use for an example.\n---",
+        )
+
+    def test_unknown_variant_is_rejected(self) -> None:
+        decomposition = evaluation_policy.decompose_skill("SKILL.md", "# Example\n")
+
+        with self.assertRaisesRegex(ValueError, "Unsupported evaluation variant"):
+            evaluation_policy._variant_payload("made-up", decomposition, "# Example\n")
+
+    def test_trigger_review_does_not_treat_use_when_as_inherently_overbroad(self) -> None:
+        trigger_pattern = {
+            "pattern_id": "trigger.overbroad-description",
+            "classification": "anti_pattern",
+            "internal_atoms": ("tool-use-policy",),
+            "detection_terms": ("always use", "any task"),
+        }
+        scoped = """---
+name: release-review
+description: Use when the user asks for release readiness.
+---
+"""
+        broad = """---
+name: everything
+description: Always use for any task in the repository.
+---
+"""
+
+        scoped_findings = evaluation_policy.static_review(
+            evaluation_policy.decompose_skill("scoped/SKILL.md", scoped),
+            scoped,
+            anti_patterns=[trigger_pattern],
+            effective_patterns=[],
+        )
+        broad_findings = evaluation_policy.static_review(
+            evaluation_policy.decompose_skill("broad/SKILL.md", broad),
+            broad,
+            anti_patterns=[trigger_pattern],
+            effective_patterns=[],
+        )
+
+        self.assertEqual(scoped_findings, [])
+        self.assertEqual(broad_findings[0]["pattern_id"], "trigger.overbroad-description")
+
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_policy))
         tree = ast.parse(source_path.read_text(encoding="utf-8"))
