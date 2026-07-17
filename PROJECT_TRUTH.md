@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `9e9c4f0` prevents lexical stems such as `motion` from matching inside unrelated words such as `promotion` while preserving suffix matches.
-- Verification: 39 focused routing and composition tests passed; Ruff lint and basedpyright passed for the changed router and regression tests. The prior 493-test full suite and 108-subtest release verification remain green.
+- Last completed change: `d3d9464` preserves intended compound routes such as `rebuild`, `webpage`, `underperformance`, and `prerelease` without reopening substring collisions.
+- Verification: 40 focused routing and composition tests passed; Ruff lint and basedpyright passed for the changed router and regression tests. The prior 493-test full suite and 108-subtest release verification remain green.
 
 ## Current Position
 
