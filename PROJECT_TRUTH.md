@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `bc6189a` moves evaluator JavaScript command examples to pnpm and regenerates catalog/report parity.
-- Verification: 43 focused evaluator tests and the prior 492-test full suite passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
+- Last completed change: `73bcfe0` shortens a test identifier that triggered the release package's high-entropy scanner.
+- Verification: 20 focused evidence tests and the prior 493-test full suite passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
 
 ## Current Position
 
