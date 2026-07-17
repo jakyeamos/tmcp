@@ -83,6 +83,22 @@ class SkillEvalCampaignTests(unittest.TestCase):
         self.assertEqual({cell.order for cell in cells}, set(range(1, 73)))
         self.assertEqual({cell.runner_effort for cell in cells}, {"low", "high", "max"})
 
+    def test_source_bundle_campaign_requires_study_directory(self) -> None:
+        args = Namespace(
+            intervention_target="source_bundle", composition_study_dir=None
+        )
+        plan = {
+            "task_matrix": [
+                {
+                    "pattern_id": "composition.source-bundle-inclusion",
+                    "intervention_target": "source_bundle",
+                }
+            ]
+        }
+
+        with self.assertRaisesRegex(ValueError, "composition-study-dir"):
+            campaign._verify_source_bundle_study(args, plan)
+
     def test_builds_baseline_and_cross_model_configuration_matrices(self) -> None:
         baseline = build_cells(
             self._plan(),

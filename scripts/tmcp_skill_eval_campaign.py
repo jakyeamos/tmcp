@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 
 import scripts.tmcp_skill_eval_campaign_protocol as campaign_protocol  # noqa: E402
 import scripts.tmcp_skill_eval_campaign_runtime as campaign_runtime  # noqa: E402
+from scripts.verify_composition_study import verify_study  # noqa: E402
 from tmcp_runtime.services.evaluation_evidence import (  # noqa: E402
     baseline_reliability_summary,
 )
@@ -299,6 +300,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-cells", type=int)
     parser.add_argument("--readiness-report", type=Path)
     parser.add_argument("--require-preregistered", action="store_true")
+    parser.add_argument("--composition-study-dir", type=Path)
     parser.add_argument("--codex-bin", default="codex")
     parser.add_argument("--dry-run", action="store_true")
     return parser
@@ -313,11 +315,55 @@ def _harness_digests() -> dict[str, str]:
     return {path.name: _sha256_file(path) for path in paths}
 
 
+def _verify_source_bundle_study(
+    args: argparse.Namespace, plan: dict[str, Any]
+) -> dict[str, Any] | None:
+    requires_study = any(
+        row.get("pattern_id") == "composition.source-bundle-inclusion"
+        and row.get("intervention_target") == args.intervention_target
+        for row in plan.get("task_matrix", [])
+        if isinstance(row, dict)
+    )
+    if not requires_study:
+        return None
+    if args.composition_study_dir is None:
+        raise ValueError(
+            "source-bundle campaigns require --composition-study-dir for "
+            "immutable-input and live-source verification."
+        )
+    report = verify_study(
+        args.composition_study_dir,
+        plan_path=args.plan,
+        check_live_sources=True,
+    )
+    if report["live_sources"]["status"] != "matched":
+        raise ValueError("source-bundle campaign live sources do not match pinned digests.")
+    first_principles_source = args.first_principles_source
+    if (
+        not isinstance(first_principles_source, dict)
+        or first_principles_source.get("kind") != "file"
+        or not isinstance(first_principles_source.get("path"), str)
+    ):
+        raise ValueError(
+            "source-bundle campaigns require --first-principles-file from the "
+            "pinned study evidence."
+        )
+    supplied_digest = _sha256_file(Path(first_principles_source["path"]))
+    expected_digest = report["static"]["input_digests"]["first-principles.txt"]
+    if supplied_digest != expected_digest:
+        raise ValueError(
+            "source-bundle campaign first-principles file does not match the "
+            "pinned study input."
+        )
+    return report
+
+
 async def _main(args: argparse.Namespace) -> int:
     _resolve_first_principles(args)
     _validate_campaign_args(args)
     args.judge_model = args.judge_model or args.model
     plan = validate_evaluation_plan(_load_json(args.plan))
+    composition_study_verification = _verify_source_bundle_study(args, plan)
     codex_version = subprocess.run(
         [args.codex_bin, "--version"],
         check=True,
@@ -455,6 +501,11 @@ async def _main(args: argparse.Namespace) -> int:
         "experiment_id": plan["experiment"]["experiment_id"],
         "plan_path": str(args.plan),
         "plan_sha256": _sha256_file(args.plan),
+        **(
+            {"composition_study_verification": composition_study_verification}
+            if composition_study_verification is not None
+            else {}
+        ),
         "harness_sha256": _sha256_text(
             json.dumps(harness_files, sort_keys=True, separators=(",", ":"))
         ),

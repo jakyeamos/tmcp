@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,17 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tmcp_runtime.services.evaluation_plan import displayed_content_digest
+
+
+REQUIRED_INPUT_DIGESTS = frozenset(
+    {
+        "campaign-policy.json",
+        "first-principles.txt",
+        "fixtures-reviewed-v1.json",
+        "packet-base.md",
+        "source-bundle.md",
+    }
+)
 
 
 def _read_json(path: Path) -> dict[str, Any] | list[dict[str, Any]]:
@@ -47,9 +59,39 @@ def _load_list(path: Path) -> list[dict[str, Any]]:
     return value
 
 
+def verify_study_input_digests(
+    study_dir: Path, definition: Mapping[str, Any]
+) -> dict[str, str]:
+    """Reject a plan when any preregistered study input has changed."""
+
+    inputs = study_dir / "inputs"
+    expected = definition.get("input_digests")
+    if not isinstance(expected, Mapping) or set(expected) != REQUIRED_INPUT_DIGESTS:
+        raise ValueError(
+            "study.json input_digests must pin every required composition study input."
+        )
+    actual: dict[str, str] = {}
+    for name in sorted(REQUIRED_INPUT_DIGESTS):
+        expected_digest = expected.get(name)
+        if not isinstance(expected_digest, str) or not expected_digest.startswith(
+            "sha256:"
+        ):
+            raise ValueError(f"study.json input_digests.{name} must be a sha256 digest.")
+        actual_digest = _sha256_file(inputs / name)
+        if actual_digest != expected_digest:
+            raise ValueError(f"study input digest does not match for {name}.")
+        actual[name] = actual_digest
+    receipt_digest = _sha256_file(inputs / "packet-receipt.json")
+    if definition.get("receipt_sha256") != receipt_digest:
+        raise ValueError("study input digest does not match for packet-receipt.json.")
+    actual["packet-receipt.json"] = receipt_digest
+    return actual
+
+
 def build_plan(study_dir: Path) -> dict[str, Any]:
     inputs = study_dir / "inputs"
     definition = _load_object(inputs / "study.json")
+    verify_study_input_digests(study_dir, definition)
     fixtures = _load_list(inputs / "fixtures-reviewed-v1.json")
     policy = _load_object(inputs / "campaign-policy.json")
     base_attachment = (inputs / "packet-base.md").read_text(encoding="utf-8").strip()

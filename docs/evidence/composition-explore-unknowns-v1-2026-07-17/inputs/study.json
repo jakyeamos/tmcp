@@ -3,6 +3,13 @@
   "packet_id": "packet-f26f272552ee",
   "packet_sha256": "sha256:15d7c86960a57ccde551a66c4ba642bc5286f76fb07d86908bb2e826af6e7468",
   "receipt_sha256": "sha256:1b78fb9ec34301c66bdc5b9a4cd3638f307f5944ee71d81154a674d89c498f8c",
+  "input_digests": {
+    "campaign-policy.json": "sha256:339da01e320d0998c7e2cf6141cd493e52483cb39afe807fdc563c2089ffee36",
+    "first-principles.txt": "sha256:8afd84272d1d26aabbb2dce55357b9472d3c6aba05b3eced05214bca33132a01",
+    "fixtures-reviewed-v1.json": "sha256:2e24ea38735fbbafebee7e63cfdd32fef98f90e2841e7e653db663080d75f117",
+    "packet-base.md": "sha256:7d7e90ea9f96bc907459b7f484069b6c556dd2b5c59b5550e1cb29d1c92cdcb3",
+    "source-bundle.md": "sha256:1ad8409a1207130b0faa74686b96c3d05c37bb27a63ceeeb5d2b3dedc9b3a801"
+  },
   "selected_sources": [
     {
       "path": "/Users/jakyeamos/skills/engineering/explore-unknowns/SKILL.md",

@@ -97,6 +97,12 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - Reject a composition trace from controlled analysis when its materialized
   source-bundle provenance differs from the preregistered matrix row. A valid
   runner manifest alone is not enough once a result is exported or reanalyzed.
+- Before a source-bundle launch, independently regenerate the plan, compare it
+  with the checked-in artifact, validate every input digest (including the
+  advisory receipt and first-principles file), and explicitly check that live
+  source paths still match their pinned digests. TMCP's source-bundle campaign
+  launcher requires the study directory and records this preflight. It proves
+  input integrity, not user approval or behavioral lift.
 
 ## Anti-patterns observed in the dogfood
 

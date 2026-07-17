@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import copy
 import json
+import shutil
+import tempfile
 import unittest
+from argparse import Namespace
 from pathlib import Path
 
 from scripts.generate_composition_study_plan import build_plan
+from scripts.tmcp_skill_eval_campaign import _verify_source_bundle_study
+from scripts.verify_composition_study import verify_study
 from scripts.tmcp_skill_eval_campaign_protocol import build_cells
 from tmcp_runtime.api.evaluation import validate_evaluation_plan
 from tmcp_runtime.services.evaluation_evidence import analyze_pattern_evidence
@@ -320,8 +325,54 @@ class CompositionStudyTests(unittest.TestCase):
 
         self.assertEqual(generated, checked_in)
         validated = validate_evaluation_plan(generated)
-        self.assertEqual(validated["experiment"]["experiment_id"], "composition-study-0a0b0787cf4c31e0")
+        self.assertEqual(
+            validated["experiment"]["experiment_id"],
+            "composition-study-e142fa5d9be1ff32",
+        )
         self.assertEqual(len(validated["task_matrix"]), 12)
+
+    def test_study_verifier_binds_inputs_and_live_sources(self) -> None:
+        if not STUDY_DIR.is_dir():
+            self.skipTest("source-only composition study evidence is not packaged")
+
+        report = verify_study(STUDY_DIR, check_live_sources=True)
+
+        self.assertTrue(report["static"]["plan_matches_generated"])
+        self.assertEqual(report["live_sources"]["status"], "matched")
+
+    def test_study_input_drift_rejects_regeneration(self) -> None:
+        if not STUDY_DIR.is_dir():
+            self.skipTest("source-only composition study evidence is not packaged")
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_study = Path(temporary) / "study"
+            shutil.copytree(STUDY_DIR, copied_study)
+            (copied_study / "inputs" / "first-principles.txt").write_text(
+                "tampered first principles\n", encoding="utf-8"
+            )
+
+            with self.assertRaisesRegex(ValueError, "first-principles.txt"):
+                build_plan(copied_study)
+
+    def test_source_bundle_campaign_rejects_other_first_principles(self) -> None:
+        if not STUDY_DIR.is_dir():
+            self.skipTest("source-only composition study evidence is not packaged")
+        plan = json.loads(
+            (STUDY_DIR / "generated" / "tmcp-composition-study-plan.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            other = Path(temporary) / "other-first-principles.txt"
+            other.write_text("different first principles\n", encoding="utf-8")
+            args = Namespace(
+                composition_study_dir=STUDY_DIR,
+                plan=STUDY_DIR / "generated" / "tmcp-composition-study-plan.json",
+                intervention_target="source_bundle",
+                first_principles_source={"kind": "file", "path": str(other)},
+            )
+
+            with self.assertRaisesRegex(ValueError, "first-principles file"):
+                _verify_source_bundle_study(args, plan)
 
 
 if __name__ == "__main__":

@@ -45,6 +45,17 @@ only from the files in `inputs/`. The test suite rebuilds the plan and asserts i
 is byte-for-byte equivalent after JSON decoding, then validates it through TMCP's
 evaluation API.
 
+Before a live campaign, verify both the immutable evidence bundle and (only when
+you explicitly opt in) whether the live source paths still match their pinned
+digests. This verifier makes no model call and prints only path/digest status, not
+source contents.
+
+```sh
+python3 scripts/verify_composition_study.py \
+  --study-dir docs/evidence/composition-explore-unknowns-v1-2026-07-17 \
+  --require-live-sources
+```
+
 ```sh
 python3 scripts/generate_composition_study_plan.py \
   --study-dir docs/evidence/composition-explore-unknowns-v1-2026-07-17 \
@@ -53,4 +64,6 @@ python3 scripts/generate_composition_study_plan.py \
 
 The campaign launcher has already accepted the generated plan in `--dry-run` mode.
 Launching runners or a judge requires fresh approval because it spends external
-model capacity and creates new behavioral evidence.
+model capacity and creates new behavioral evidence. Source-bundle launches also
+require `--composition-study-dir` so the launcher records a successful immutable
+input and live-source verification in its campaign manifest.
