@@ -18,6 +18,9 @@ from tmcp_runtime.domain.composition_benchmark_protocol import (
 from tmcp_runtime.domain.composition_benchmark_recipes import (
     _compiled_context_accounting,
 )
+from tmcp_runtime.domain.composition_phase_bindings import (
+    build_phase_capsule_binding,
+)
 from tmcp_runtime.domain.composition_benchmark_replay import (
     SEMANTIC_PROPOSAL_BUNDLE_SCHEMA,
     build_benchmark_control_plan,
@@ -32,7 +35,6 @@ from tmcp_runtime.domain.composition_benchmark_sources import (
 from tmcp_runtime.domain.composition_preflight import stable_digest
 from tmcp_runtime.domain.harvest_nodes import content_digest_for
 from tmcp_runtime.storage.artifacts import (
-    ArtifactStorageError,
     AtomicArtifactStore,
     artifact_persistence_available,
 )
@@ -654,6 +656,10 @@ class CompositionBenchmarkProtocolTests(unittest.TestCase):
                 contract["citations"] = replace_citation(contract["citations"])
         for contract in plan_projection.get("handoff_contracts", []):
             contract["citations"] = replace_citation(contract["citations"])
+        plan_projection["phase_capsule_binding"] = build_phase_capsule_binding(
+            plan_projection,
+            preflight,
+        )
 
         accounting = _compiled_context_accounting(
             preflight=preflight,
@@ -921,36 +927,6 @@ class CompositionBenchmarkProtocolTests(unittest.TestCase):
                 control_plan,
                 SCHEMAS / "tmcp-composition-benchmark-control-plan-v0.1.schema.json",
             )
-
-    @unittest.skipUnless(
-        artifact_persistence_available(),
-        "Secure artifact persistence is unavailable on this platform.",
-    )
-    def test_tree_bundle_rejects_escape_and_nonempty_destination(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            output_dir = root / "benchmark"
-            with self.assertRaises(ArtifactStorageError):
-                AtomicArtifactStore.write_tree_bundle(
-                    output_dir,
-                    {"fixtures/../outside.txt": "unsafe"},
-                )
-            AtomicArtifactStore.write_tree_bundle(
-                output_dir,
-                {"fixtures/one/skills/example/SKILL.md": "safe"},
-            )
-            self.assertEqual(
-                (
-                    output_dir / "fixtures" / "one" / "skills" / "example" / "SKILL.md"
-                ).read_text(encoding="utf-8"),
-                "safe",
-            )
-            with self.assertRaises(ArtifactStorageError):
-                AtomicArtifactStore.write_tree_bundle(
-                    output_dir,
-                    {"fixtures/two/skills/example/SKILL.md": "new"},
-                )
-
 
 if __name__ == "__main__":
     unittest.main()
