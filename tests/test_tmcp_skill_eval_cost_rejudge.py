@@ -738,6 +738,37 @@ class CostRejudgeSourceTests(unittest.TestCase):
                 ):
                     verify_cost_rejudge.verify_cost_rejudge(**case)
 
+    def test_guidebook_and_catalog_keep_archived_cost_adjudication_unresolved(
+        self,
+    ) -> None:
+        guidebook = (REPO_ROOT / "docs/SKILL_WRITING_GUIDEBOOK.md").read_text(
+            encoding="utf-8"
+        )
+        catalog = json.loads(
+            (REPO_ROOT / "docs/SKILL_PATTERN_CATALOG.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        entry = next(
+            item
+            for item in catalog["guidebook_entries"]
+            if item["pattern_id"] == "evaluation.staged-workflow-section"
+        )
+        sample = entry["sample"]
+
+        self.assertIn("diagnostic history, not a reproducible adjudication", guidebook)
+        self.assertNotIn(
+            "resolved the raw checkout-sweep labels as non-regressions", guidebook
+        )
+        self.assertFalse(sample["cost_rejudgment_applied"])
+        self.assertIsNone(sample["cost_regression"])
+        self.assertIsNone(sample["regression_free"])
+        self.assertEqual(sample["cost_adjudication"]["status"], "unresolved")
+        self.assertIn(
+            "historical cost sidecar is not reproducible against the retained cost bar",
+            entry["promotion"]["gaps"],
+        )
+
     def test_rejudge_execution_writes_only_independent_output_and_keeps_prompt_blind(
         self,
     ) -> None:

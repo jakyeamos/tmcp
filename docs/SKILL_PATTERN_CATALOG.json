@@ -25,7 +25,8 @@
         "eligible": false,
         "gaps": [
           "clustered analysis policy was not predeclared",
-          "minimum fixture control pass rate 0.000 is below required 0.500"
+          "minimum fixture control pass rate 0.000 is below required 0.500",
+          "historical cost sidecar is not reproducible against the retained cost bar"
         ]
       },
       "sample": {
@@ -62,8 +63,13 @@
           "passed": 20,
           "total": 36
         },
-        "cost_regression": false,
-        "cost_rejudgment_applied": true,
+        "cost_adjudication": {
+          "archived_sidecar": "not_reproducible",
+          "recorded_cost_bar_digest_matches_retained_input": false,
+          "status": "unresolved"
+        },
+        "cost_regression": null,
+        "cost_rejudgment_applied": false,
         "fixture_count": 6,
         "fixture_family_count": 6,
         "intervention": {
@@ -75,7 +81,7 @@
         "paired_cells": 18,
         "regression_fields_missing": 0,
         "raw_cost_regression": true,
-        "regression_free": true,
+        "regression_free": null,
         "safety_regression": false,
         "trace_count": 72
       },

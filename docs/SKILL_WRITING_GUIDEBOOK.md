@@ -73,15 +73,19 @@ absolute reliability—the intact skill still failed 16/36 runs—or the causal 
 every sentence inside the section. The three configurations are reasoning settings
 of the same `gpt-5.6-sol` model, not independent models.
 
-The matrix, lift, interval, and no-reversal gates cleared. A complete blind cost
-rejudge resolved the raw checkout-sweep labels as non-regressions without altering
-the source traces. Promotion remains held because the historical plan did not
-preregister clustered/reliability gates and the intact skill missed two fixture
-families. Until a fresh baseline clears those gates, call this behaviorally supported
+The matrix, lift, interval, and no-reversal gates cleared. Two raw checkout-sweep
+labels remain. A historical blind rejudge recorded non-regressions without altering
+the source traces, but its retained cost bar no longer matches the bundle's recorded
+digest. It is diagnostic history, not a reproducible adjudication, and cannot clear
+the cost gate. Promotion remains held because the historical plan did not preregister
+clustered/reliability gates, the intact control missed two fixture families, and the
+cost question remains unresolved. Until a fresh baseline clears the reliability gate
+and a future policy-bound rejudge preserves its bar, call this behaviorally supported
 in a controlled multi-configuration evaluation, not corpus-wide tried-and-true.
 
-The formal report preserves the raw labels and records the predeclared campaign-wide
-blind rejudge separately; no post-hoc label edit was made.
+The formal report preserves the raw labels and records the archived blind sidecar
+separately; no post-hoc label edit was made. The archived sidecar must not be
+presented as a current cost-free result.
 
 The replay added a fixture-block interval and 50% aggregate/per-fixture control
 floors, but those gates were not preregistered in the historical plan. The
