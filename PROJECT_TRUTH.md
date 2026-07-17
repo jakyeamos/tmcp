@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `f99934e` adds the revised six-fixture promotion matrix and its generated 36-row TMCP evaluation plan for experiment `skill-eval-95cfdd0ee52ff673`.
-- Verification: a clean plan replay reproduced the same experiment and all 36 rows after excluding runtime timestamp/path metadata. Nine focused harness tests, Ruff, basedpyright, compile, the 72-cell dry-run, and Pre-CR also pass.
+- Last completed change: `9361d06` requires nearby accessibility context before `contrast` can activate UI routing, harvested gates, or composed UI instructions.
+- Verification: 43 focused routing/composition/harvest tests, Ruff, basedpyright, a live compose-packet replay, and Pre-CR's 513-test run pass.
 
 ## Current Position
 
@@ -16,17 +16,20 @@
 - The checked-in catalog and guidebook preserve the candidate status, evidence scope, promotion gaps, suspected-only static finding, and reproducible evidence bundle.
 - Route inference now uses lexical-start matching for objectives and source evidence, so promotion-oriented evaluation prompts no longer activate motion guidance.
 - Revised experiment `skill-eval-95cfdd0ee52ff673` contains six semantically distinct workflow-stage fixtures across original and exact one-section-ablation conditions, three pinned reasoning configurations, and two repetitions.
+- The 72-cell matrix completed with 144 unique runner/judge threads and no invalidated stages; its raw evidence and corpus guidance are awaiting isolated commits.
+- Statistical contrast prose now composes as `general_task`; genuine color/browser contrast still activates accessibility behavior.
 
 ## Next Step
 
-- Run and score the six-family 72-cell promotion matrix, then update the evidence report and corpus guidance only to the level the controlled result earns.
+- Commit the completed 72-cell evidence bundle, then update the catalog and guidebook only to the level the controlled result earns.
 
 ## Blockers
 
-- None. The full campaign requires live Codex API access and remains safely resumable if an infrastructure attempt is invalidated.
+- None.
 
 ## Risks
 
-- The controlled single-configuration result supports an internal section-level candidate but cannot establish a corpus-wide tried-and-true pattern.
-- One blinded judge flagged live-checkout cleanup wording as a safety regression; treat it as an unresolved counterexample until the instruction and judge calibration are tested directly.
+- The same-model multi-configuration result supports an internal section-level candidate but cannot establish a corpus-wide tried-and-true pattern.
+- Two judges flagged the required live-checkout sweep as a cost regression; manual audit found false positives, but the formal promotion hold remains until a predeclared rejudge.
+- The current interval is not cluster-aware, and the promotion rule has no minimum intact-control or per-fixture reliability floor.
 - Anti-pattern claims still require a future isolated removal or presence intervention; static matches remain suspected only.
