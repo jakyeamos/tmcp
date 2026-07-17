@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `fc063dd` records the controlled dogfood plan, traces, report, generated artifacts, pattern catalog, and evidence-led guidebook.
-- Verification: 492 tests passed, 3 skipped, and 108 subtests passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
+- Last completed change: `bc6189a` moves evaluator JavaScript command examples to pnpm and regenerates catalog/report parity.
+- Verification: 43 focused evaluator tests and the prior 492-test full suite passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
 
 ## Current Position
 
@@ -17,7 +17,7 @@
 
 ## Next Step
 
-- Replace inherited npm example text with the repository's pnpm convention, regenerate catalog parity, then run the release-package and final branch gates.
+- Run the reproducible release-package and final branch gates, record the TMCP receipt, and push the completed branch.
 
 ## Blockers
 
