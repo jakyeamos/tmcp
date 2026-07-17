@@ -847,7 +847,7 @@ def _prepare_composition(arguments: dict[str, Any]) -> dict[str, Any]:
 
 def _project_composition_recipe_service() -> ProjectCompositionRecipeService:
     return ProjectCompositionRecipeService(
-        open_store=ProjectCompositionRecipeStore.open,
+        open_store=(ProjectCompositionRecipeStore.open),
         now_iso=_now_iso,
     )
 
