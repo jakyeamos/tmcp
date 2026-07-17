@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `fbbeaf5` makes source-checkout reproducibility evidence explicitly source-only so release archives retain their intended contents; `a7fab3e` fixes a release-scanner false positive and `2058bcc` binds both study arms and every trace to one exact packet, advisory receipt, task evidence, and materialized attachment.
-- Verification: 552 tests pass (3 skipped); source-bundle plan regeneration, API validation, 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook could not run `pre-cr` because its CLI is unavailable on PATH.
+- Last completed change: `be23e68` makes source-bundle launch preflight verify every immutable study input, the regenerated plan, live source paths, and the actual first-principles file supplied to runners; `fbbeaf5` keeps source-checkout evidence intentionally outside release archives.
+- Verification: 556 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook could not run `pre-cr` because its CLI is unavailable on PATH.
 
 ## Current Position
 
@@ -35,10 +35,11 @@
 - Composition contract v1 is a deterministic regression baseline, not a behavioral claim: it preserves a valid React/motion control while keeping `tests/fixtures/**` harvest-visible but activation-ineligible, including through declared loads.
 - The local project-root composition replay is recorded with advisory receipt `packet-f62c9fd667c8`; its deterministic pass does not promote a skill-pair or wording rule.
 - The reviewed v1 composition plan has six Stage-1 fixtures across campaign sequencing, evidence-boundary, and promotion-gate families; `packet_only` versus exact `packet_plus_explore` yields 72 blinded cells. It can test only the delivery effect of the pinned source bundle, not live selection, adherence, or corpus quality.
+- `verify_composition_study.py` now rejects input/receipt/first-principles drift, reports opted-in live-source drift without exposing source text, and is mandatory for source-bundle campaign manifests; the campaign rejects a different runner first-principles file.
 
 ## Next Step
 
-- Obtain fresh approval to run the preregistered `composition-study-0a0b0787cf4c31e0` 72-cell blind runner/judge campaign, then independently rejudge and score it. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
+- Obtain fresh approval to run the preregistered `composition-study-e142fa5d9be1ff32` 72-cell blind runner/judge campaign, then independently rejudge and score it. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
 
 ## Blockers
 
@@ -56,4 +57,5 @@
 - The attachment-only campaign protocol has no selection/adherence telemetry, so its diagnostic scorecard cannot be repurposed as behavioral activation evidence.
 - The next external model run needs fresh approval after the target revision and v3 fixture review; the corrected local report is not new remote evidence.
 - A positive source-bundle result would still be a delivery effect with length/framing confounded inside the pinned bundle, not proof of TMCP live selection or independent source adherence.
+- The source-bundle launcher intentionally fails closed when a source, input, generated plan, or supplied first-principles file drifts; a changed source requires a new reviewed preregistration rather than resume.
 - `pre-cr` is unavailable on PATH, so the project hook warns instead of supplying its changed-line readiness signal; direct tests, compiler checks, and the release-package gate remain required until that tool is restored.
