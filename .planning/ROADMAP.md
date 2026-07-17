@@ -101,7 +101,9 @@ outcomes while preserving deterministic compatibility.
   `338f55e` moves benchmark package checks and their focused coverage behind
   bounded owners, restoring the release source-size gate. A dogfood routing
   correction in `195b24f` removes generic planning/UI overlap and defers
-  unproven skill activation. Honest phase-capsule context accounting is next.
+  unproven skill activation. `1fb0274` adds exact cited-slice phase capsules,
+  compiler-bound replay receipts, protected project/session persistence, and
+  promotion evidence gating; runtime-capsule rehydration is next.
   `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
@@ -117,4 +119,4 @@ outcomes while preserving deterministic compatibility.
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for dogfood routing correction*
+*Last updated: 2026-07-17 for phase-capsule evidence binding*

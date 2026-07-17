@@ -6,31 +6,20 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Replace the current non-isolated context metric with verified
-phase capsules. Reviewed release evidence is content-bound; keep 0.5.7 active.
+**Current focus:** Finish the source-size cleanup after phase-capsule evidence
+binding, then bind the same capsules into runtime recompilation. Keep 0.5.7 active.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** Dogfood hardening is in progress on
-`codex/tmcp-compositional-intelligence`. The initial 0.6 compiler is present;
-`a70fd04` adds provenance-bound lazy behavior hydration and preserves the
-deterministic path, while `9f26520` restores the test-size quality gate. Task
-identity has lexical safety at `9b4d72e` and compound-task safety at
-`5fcefab`; `271ed29` narrows compatibility activation to governing sources plus
-evidence-backed bootstrap skills. `f190a82` adds verified typed handoffs,
-runtime continuity, and receipt/diff propagation. `9f13813` prepares exact
-fixture workspaces and host-intake manifests; `5745420` replays compiler-bound
-controls with explicit counterfactual obligations; `d70b4e7` makes benchmark
-graph identity independent of workspace roots. `7f72822` adds bounded raw
-host/evaluator artifacts, exact replay assembly, per-rubric evidence binding,
-actual runtime receipt lineage, safe receipt projection, and direct-domain size
-limits. `6fdf9de` restores the hard domain-size gate through
-compatibility-preserving benchmark and behavior-manifest splits. Release-bound
-bundle verification is in `f688c1e`: it requires an exact replayed canonical
-bundle but remains advisory evidence. `338f55e` completes package-check/test
-source-size cleanup. `195b24f` corrects dogfood fallback activation; honest
-phase-capsule context accounting and real host-run proof remain.
+**Status:** Dogfood hardening continues on
+`codex/tmcp-compositional-intelligence`. The 0.6 compiler, typed handoffs,
+content-bound benchmark replay, canonical release bundle, and conservative
+fallback routing are present. `1fb0274` adds compiler-issued phase-capsule
+bindings, cited-slice closures, protected recipe/session persistence, exact
+benchmark receipt provenance, and conditional schema enforcement. Release
+evidence remains advisory; 0.6.0 is blocked on real host outcomes and runtime
+capsule recompilation.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -43,6 +32,12 @@ phase-capsule context accounting and real host-run proof remain.
 
 ## Completed Scope
 
+- `1fb0274` binds each phase capsule to exact cited source slices and makes
+  benchmark replay, isolated-context receipts, promotion eligibility, project
+  recipes, sessions, package checks, and release schemas reject mismatched or
+  self-asserted evidence. Focused/full tests, contract/install/compile checks,
+  and read-only fallback plus assisted two-stage dogfood passed; no receipt was
+  persisted for the planning/dogfood run.
 - `195b24f` fixes a live dogfood regression where generic planning language
   activated the UI rubric and browser gates. Bare `design` and neutral planning
   terms no longer qualify source activation; exact launcher dogfood now defers
