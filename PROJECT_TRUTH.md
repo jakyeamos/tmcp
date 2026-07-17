@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `8c904a5` records the approved live multi-model `eval-skills` baseline, all blind-run and independent-cost receipts, and guidebook guardrails learned from it.
-- Verification: 52 focused evaluation tests pass. The live baseline completed 36/36 cells with four first-pass remote schema preflights, 72 unique runner/judge threads, zero campaign errors/retries, and a complete 36-trace independent cost sidecar.
+- Last completed change: `1e0af00` preserves the raw original-only baseline, adds its evidence-bound diagnosis, and reports baseline reliability without unsupported causal or telemetry claims.
+- Verification: 541 tests pass (3 skipped); Ruff and basedpyright pass. The live baseline completed 36/36 cells with four first-pass remote schema preflights, 72 unique runner/judge threads, zero campaign errors/retries, and a complete 36-trace independent cost sidecar.
 
 ## Current Position
 
@@ -29,17 +29,18 @@
 - The fresh baseline used independently reviewed directness repairs, three distinct available Codex runner identifiers (`gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`), a distinct `gpt-5.5` judge, an inspectable first-principles file, and an all-36-trace cost bar.
 - The approved live original-only campaign completed 36/36 cells and passed the aggregate reliability floor at 20/36, but `claim_calibration` and `regression_retest` each scored 2/6 below the 3/6 per-fixture floor. It is a valid negative baseline gate and remains held.
 - Primary judges reported 0/36 safety and raw-cost regressions. The complete condition-blind cost sidecar reported 1/36 materially unnecessary iterative loop; its one malformed first attempt was archived and rerun as a valid replacement cell. Raw and sidecar labels remain distinct.
-- The scorer correctly emits no paired causal result for this original-only study. Attachment-only activation/adherence scorecard values are non-interpretable without positive selection telemetry and may not support a behavior claim.
+- Diagnosis classifies 12 traces as repeated target-defect candidates (first-principles handoff, contamination recovery, per-case reporting, or repeat-every-case discipline) and four as isolated model-sensitive omissions; no reviewed fixture or rate bar is defective.
+- The reinterpreted report correctly marks this as `baseline_reliability`: no causal pattern or lift claim, no attachment-only activation/adherence heuristic, actual 20/36 aggregate and 2/6 minimum reliability, plus raw 0/36 and sidecar 1/36 cost counts.
 - Local TMCP + `explore-unknowns` and TMCP + `repo-behavior-spec-loop` packet probes retain their specialized evidence and stop conditions without activating `frontend_implementation` from pre-action wording. The `refactor-clean` probe is selection-only pending behavioral fixtures.
 
 ## Next Step
 
-- Diagnose the two 2/6 fixture families and the one independent cost finding against the target's first principles. If and only if a concrete target defect is found, review replacement fixtures and preregister a fresh intact baseline. Do not run `Workflow` micro-ablations against this held control.
+- Seek approval to apply the minimal evidence-bound revision to the external `eval-skills` target; independently review a v3 bounded-next-cycle fixture, then preregister a fresh intact 36-cell baseline and blind cost sidecar. Do not run `Workflow` micro-ablations against this held control.
 
 ## Blockers
 
 - Corpus promotion is held: the historical plan lacks a predeclared clustered-analysis policy and its regression-retest intact-control rate is 0/6.
-- The fresh baseline is held: `claim_calibration` and `regression_retest` are below the preregistered 0.5 per-fixture floor, and the independent cost sidecar has one unresolved regression.
+- The fresh baseline is held: `claim_calibration` and `regression_retest` are below the preregistered 0.5 per-fixture floor, and the independent cost sidecar has one unresolved regression. The minimal target revision is diagnosed but intentionally not yet applied.
 
 ## Risks
 
@@ -49,3 +50,4 @@
 - Cross-model confirmation remains model-level, not cross-provider evidence; a future plan must name available independent runner models and a distinct judge model.
 - Anti-pattern claims still require a future isolated removal or presence intervention; static matches remain suspected only.
 - The attachment-only campaign protocol has no selection/adherence telemetry, so its diagnostic scorecard cannot be repurposed as behavioral activation evidence.
+- The next external model run needs fresh approval after the target revision and v3 fixture review; the corrected local report is not new remote evidence.
