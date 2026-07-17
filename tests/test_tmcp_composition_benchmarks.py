@@ -15,7 +15,7 @@ import tmcp_runtime.domain.composition_benchmark_contracts as benchmark_contract
 import tmcp_runtime.domain.composition_benchmark_evaluator as benchmark_evaluator
 import tmcp_runtime.domain.composition_benchmark_manifests as benchmark_manifests
 import tmcp_runtime.domain.composition_benchmark_sources as benchmark_sources
-from tests.schema_assertions import assert_matches_schema
+from scripts.schema_contract_support import assert_matches_schema
 from tmcp_runtime.domain.composition_benchmarks import (
     score_behavioral_benchmark,
     score_composition_benchmark,

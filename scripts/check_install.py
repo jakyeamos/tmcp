@@ -59,6 +59,7 @@ REQUIRED_FILES = (
     "tmcp_runtime/adapters/framing.py",
     "tmcp_runtime/adapters/mcp.py",
     "tmcp_runtime/api/__init__.py",
+    "tmcp_runtime/api/composition_tool_schemas.py",
     "tmcp_runtime/domain/__init__.py",
     "tmcp_runtime/domain/declared_loads.py",
     "tmcp_runtime/domain/composition_benchmark_contracts.py",

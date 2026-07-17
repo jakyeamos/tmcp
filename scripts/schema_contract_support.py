@@ -1,4 +1,4 @@
-"""Small dependency-free JSON Schema subset used by contract instance tests."""
+"""Dependency-free JSON Schema assertion support for contract instance tests."""
 
 from __future__ import annotations
 

@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-from tests.schema_assertions import assert_matches_schema
+from scripts.schema_contract_support import assert_matches_schema
 from tests.test_tmcp_composition_benchmarks import CompositionBenchmarkTests
 from tmcp_runtime.api.evaluation import evaluate_skills
 from tmcp_runtime.domain.composition_runtime import advance_composition_runtime

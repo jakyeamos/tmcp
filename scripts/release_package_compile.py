@@ -61,6 +61,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/domain/workflow_recommendations.py",
     "tmcp_runtime/api/__init__.py",
     "tmcp_runtime/api/cli.py",
+    "tmcp_runtime/api/composition_tool_schemas.py",
     "tmcp_runtime/api/evaluation.py",
     "tmcp_runtime/api/registry.py",
     "tmcp_runtime/api/tool_schemas.py",
