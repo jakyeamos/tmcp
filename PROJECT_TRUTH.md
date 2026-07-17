@@ -18,7 +18,7 @@
 - Revised experiment `skill-eval-95cfdd0ee52ff673` contains six semantically distinct workflow-stage fixtures across original and exact one-section-ablation conditions, three pinned reasoning configurations, and two repetitions.
 - The 72-cell matrix completed with 144 unique runner/judge threads and no invalidated stages; raw evidence, catalog, and guidebook are committed on the isolated branch.
 - Statistical contrast prose now composes as `general_task`; genuine color/browser contrast still activates accessibility behavior.
-- TMCP receipt `packet-eb6a2d737fc2` records the final validations and intentionally ignored unrelated approval atoms.
+- TMCP receipt `packet-f48e7b611dac` records the campaign-hardening verification and artifact-free remote-schema smoke.
 - Remote `origin/codex/skill-eval-dogfood` contains the complete isolated dogfood branch.
 - The fixture-block replay is `[-0.750, -0.194]`; it supports the relative section effect but records a 0/6 regression-retest and 1/6 failure-diagnosis intact-control rate, so promotion remains held independently of cost.
 - The approved blind cost rejudge reports 0/72 adjudicated cost regressions, replacing the raw cost flag only in a validated sidecar; the scored claim remains `hold` because the historical cluster policy was not predeclared and fixture-level control reliability is below the 0.5 floor.
