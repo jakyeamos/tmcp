@@ -31,7 +31,11 @@ class RouteDefinition:
 
 def _terms_in_text(text: str, terms: tuple[str, ...]) -> list[str]:
     lower = text.lower()
-    return [term for term in terms if term in lower]
+    return [term for term in terms if _starts_at_lexical_boundary(lower, term)]
+
+
+def _starts_at_lexical_boundary(text: str, term: str) -> bool:
+    return re.search(rf"(?<!\w){re.escape(term.lower())}", text.lower()) is not None
 
 
 def _ui_file_boost(context: dict[str, Any]) -> tuple[float, list[str]]:
@@ -239,7 +243,7 @@ def route_affinity_overlap(seed_routes: list[str], active_routes: list[str]) -> 
 
 def _pattern_matches_node(pattern: str, rel_lower: str, text_lower: str) -> bool:
     normalized = pattern.lower().replace("_", "-")
-    if normalized in text_lower:
+    if _starts_at_lexical_boundary(text_lower, normalized):
         return True
     slug = ""
     parts = [part for part in rel_lower.split("/") if part]
@@ -250,7 +254,7 @@ def _pattern_matches_node(pattern: str, rel_lower: str, text_lower: str) -> bool
             return True
         if f"-{normalized}" in slug and normalized not in {"ui", "ux"}:
             return slug.endswith(f"-{normalized}") or f"-{normalized}-" in slug
-    return normalized in rel_lower
+    return _starts_at_lexical_boundary(rel_lower, normalized)
 
 
 def source_boost_for_node(

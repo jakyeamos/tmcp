@@ -7,6 +7,7 @@ from pathlib import Path
 from tmcp_runtime.domain.routes import (
     derive_task_identity,
     score_routes,
+    source_boost_for_node,
     task_identity_delta,
 )
 from tests import test_tmcp_mcp_server as helpers
@@ -51,6 +52,41 @@ class TmcpRouteCatalogTests(unittest.TestCase):
         assert delta is not None
         self.assertNotEqual(delta["previous"]["primary"], delta["current"]["primary"])
         self.assertEqual(delta["reason"], "user_redirect")
+
+    def test_promotion_does_not_activate_motion_route(self) -> None:
+        objective = "Run a promotion-grade multi-configuration skill evaluation."
+
+        signals = score_routes(objective)
+        identity = derive_task_identity(objective)
+
+        self.assertNotIn("motion_interaction", {item["route"] for item in signals})
+        self.assertEqual(identity["primary"], "general_task")
+        self.assertEqual(identity["active_routes"], [])
+
+    def test_lexical_stems_still_match_suffix_forms(self) -> None:
+        routes = {
+            item["route"] for item in score_routes("Build components with animations.")
+        }
+
+        self.assertIn("frontend_implementation", routes)
+        self.assertIn("motion_interaction", routes)
+
+    def test_promotion_source_text_does_not_boost_motion(self) -> None:
+        promotion_boost = source_boost_for_node(
+            "motion_interaction",
+            relative_path="skills/promotion/SKILL.md",
+            source_type="skill_definition",
+            text="Guide a promotion campaign.",
+        )
+        motion_boost = source_boost_for_node(
+            "motion_interaction",
+            relative_path="skills/product-motion/SKILL.md",
+            source_type="skill_definition",
+            text="Design motion-safe interactions.",
+        )
+
+        self.assertEqual(promotion_boost, 0.0)
+        self.assertGreater(motion_boost, 0.0)
 
 
 class TmcpComposedPacketIdentityTests(unittest.TestCase):
