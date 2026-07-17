@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `d3d9464` preserves intended compound routes such as `rebuild`, `webpage`, `underperformance`, and `prerelease` without reopening substring collisions.
-- Verification: 40 focused routing and composition tests passed; Ruff lint and basedpyright passed for the changed router and regression tests. The prior 493-test full suite and 108-subtest release verification remain green.
+- Last completed change: `73f0c03` adds a resumable 72-cell skill-evaluation campaign harness with blind prompt preflight, fresh runner/judge sessions, exact keyed judgments, artifact-bound traces, and usage accounting.
+- Verification: 156 focused evaluator/routing tests, Ruff, basedpyright, compile, a live one-cell run, and an artifact-validating no-call resume replay passed. Pre-CR flagged the 1,296-line harness above the 700-line script budget.
 
 ## Current Position
 
@@ -18,11 +18,11 @@
 
 ## Next Step
 
-- Expand the supported candidate to the 72-run multi-configuration promotion matrix and test safe cleanup wording with a dedicated contrast.
+- Split the campaign harness by responsibility to clear the source-size gate, then run the revised six-family 72-cell promotion matrix.
 
 ## Blockers
 
-- None.
+- The campaign harness must clear the script source-size budget before the full run is launched.
 
 ## Risks
 
