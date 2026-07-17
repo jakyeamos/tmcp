@@ -1,0 +1,16 @@
+{
+  "completed_cells": 36,
+  "cost_regressions": 1,
+  "errors": 0,
+  "expected_judge_threads_at_completion": 36,
+  "planned_cells": 36,
+  "selected_cells": 36,
+  "unique_judge_threads": 36,
+  "usage": {
+    "cached_input_tokens": 202240,
+    "input_tokens": 294271,
+    "output_tokens": 21675,
+    "reasoning_output_tokens": 15664,
+    "traces": 36
+  }
+}

@@ -1,0 +1,11 @@
+The run is invalid: the runner saw the bar, so it was not blind, and it wrote into the live checkout, contaminating the environment.
+
+Recovery:
+
+1. Preserve unrelated work: inspect `git status` and identify only files created or modified by the runner.
+2. Do not use broad cleanup commands (`git reset --hard`, `git clean`, or checkout-wide reverts).
+3. For each confirmed runner-only change, restore or remove that exact file individually; if ownership is uncertain, leave it untouched and ask its owner.
+4. Re-check `git status` to confirm all runner leakage is gone while unrelated changes remain intact.
+5. Re-run the case with a fresh, context-free runner. Give it only the case input and instruction to use the target skill—never the bar, smells, expected outcome, or other cases.
+6. Give any file-writing runner a throwaway sandbox as its only writable location; capture text artifacts in its final response where possible.
+7. After the rerun, sweep the live checkout again with `git status`, then send the artifact plus the skill’s first principles and the case bar to a separate fresh judge.

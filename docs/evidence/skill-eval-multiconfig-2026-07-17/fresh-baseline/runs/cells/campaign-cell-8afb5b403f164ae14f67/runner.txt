@@ -1,0 +1,10 @@
+Re-run all three cases—A, B, and C—not just B—with a fresh, context-free blind runner for each run. Each runner receives only its case input and the target skill; a separate fresh judge receives the resulting artifact, that case’s bar and smells, and the skill’s first principles. Sweep the live checkout after every run.
+
+Because every case is release-critical, repeat each case 2–3 times and report pass rates with cited artifact evidence. Do not claim the B fix worked based on one green run: B must clear its rate bar across independent blind runs, and A/C must remain passing at their required rates. The evidence is the before/after per-case pass rates, specific judge-cited gaps or confirmations, the diagnosed defect B’s edit addressed, and the clean re-evaluation result across the full suite.
+
+If B passes but A now misses, stop before making another revision. First judge whether A’s miss is:
+
+- a real skill defect/regression, mapped to a write-skills failure mode; or
+- a bad case/bar that rejects a defensible result or demands behavior outside the skill’s purpose.
+
+Only revise if the A failure is a defensible skill defect. If the bar is wrong or structurally inexpressible for the skill, report that finding rather than changing the skill to chase the case.

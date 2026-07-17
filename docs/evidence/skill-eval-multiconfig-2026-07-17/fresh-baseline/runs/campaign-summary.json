@@ -1,0 +1,144 @@
+{
+  "baseline_reliability": {
+    "meets_predeclared_floors": false,
+    "minimum_per_fixture_pass_rate": 0.333,
+    "pass_rate": 0.556,
+    "passed": 20,
+    "per_fixture": [
+      {
+        "fixture_digest": "sha256:14396a5d.df0c5e03.41b00ee7.5e718ccf.f9266ce9.11eabf7b.f2543e05.ab7df427",
+        "pass_rate": 0.333,
+        "passed": 2,
+        "total": 6
+      },
+      {
+        "fixture_digest": "sha256:19255b25.20486905.dfa01d8f.574e1229.188f6df1.7bd39bde.d7817b49.b4a519a4",
+        "pass_rate": 0.5,
+        "passed": 3,
+        "total": 6
+      },
+      {
+        "fixture_digest": "sha256:42a2cc8c.35674794.a0e9ba2d.3a28f4c9.ef2c8cee.00f5a914.25035d65.accd7167",
+        "pass_rate": 0.667,
+        "passed": 4,
+        "total": 6
+      },
+      {
+        "fixture_digest": "sha256:8b1ccf34.914d8c86.4f062586.867b02cd.3548df2f.930677c2.eb3ffb1d.6abdd224",
+        "pass_rate": 0.333,
+        "passed": 2,
+        "total": 6
+      },
+      {
+        "fixture_digest": "sha256:96a9c52a.4c748880.ce866384.a23f99cb.d575fac5.f1f5f385.dfa00dd8.23602845",
+        "pass_rate": 1.0,
+        "passed": 6,
+        "total": 6
+      },
+      {
+        "fixture_digest": "sha256:ec4867d2.e7c8aee1.39cf5835.4ff03e26.1d95b326.053c7cb9.5f659b42.5f04081c",
+        "pass_rate": 0.5,
+        "passed": 3,
+        "total": 6
+      }
+    ],
+    "predeclared_thresholds": {
+      "minimum_control_pass_rate": 0.5,
+      "minimum_per_fixture_control_pass_rate": 0.5
+    },
+    "total": 36
+  },
+  "completed_cells": 36,
+  "completed_this_run": 36,
+  "errors": 0,
+  "expected_thread_ids_at_completion": 72,
+  "passed": 20,
+  "planned_cells": 36,
+  "resumed_this_run": 0,
+  "selected_cells": 36,
+  "unique_thread_ids": 72,
+  "usage": {
+    "by_configuration": {
+      "judge": {
+        "gpt-5.6-luna-reasoning-high-codex-cli-0.144.2": {
+          "cached_input_tokens": 43520,
+          "input_tokens": 117295,
+          "output_tokens": 11458,
+          "reasoning_output_tokens": 5645,
+          "traces": 12
+        },
+        "gpt-5.6-sol-reasoning-high-codex-cli-0.144.2": {
+          "cached_input_tokens": 63488,
+          "input_tokens": 117772,
+          "output_tokens": 10811,
+          "reasoning_output_tokens": 5062,
+          "traces": 12
+        },
+        "gpt-5.6-terra-reasoning-high-codex-cli-0.144.2": {
+          "cached_input_tokens": 50688,
+          "input_tokens": 116866,
+          "output_tokens": 10964,
+          "reasoning_output_tokens": 5369,
+          "traces": 12
+        }
+      },
+      "runner": {
+        "gpt-5.6-luna-reasoning-high-codex-cli-0.144.2": {
+          "cached_input_tokens": 59904,
+          "input_tokens": 122134,
+          "output_tokens": 7394,
+          "reasoning_output_tokens": 4439,
+          "traces": 12
+        },
+        "gpt-5.6-sol-reasoning-high-codex-cli-0.144.2": {
+          "cached_input_tokens": 0,
+          "input_tokens": 135826,
+          "output_tokens": 4410,
+          "reasoning_output_tokens": 998,
+          "traces": 12
+        },
+        "gpt-5.6-terra-reasoning-high-codex-cli-0.144.2": {
+          "cached_input_tokens": 66048,
+          "input_tokens": 139426,
+          "output_tokens": 3992,
+          "reasoning_output_tokens": 1474,
+          "traces": 12
+        }
+      }
+    },
+    "by_variant": {
+      "judge": {
+        "original": {
+          "cached_input_tokens": 157696,
+          "input_tokens": 351933,
+          "output_tokens": 33233,
+          "reasoning_output_tokens": 16076,
+          "traces": 36
+        }
+      },
+      "runner": {
+        "original": {
+          "cached_input_tokens": 125952,
+          "input_tokens": 397386,
+          "output_tokens": 15796,
+          "reasoning_output_tokens": 6911,
+          "traces": 36
+        }
+      }
+    },
+    "totals": {
+      "judge": {
+        "cached_input_tokens": 157696,
+        "input_tokens": 351933,
+        "output_tokens": 33233,
+        "reasoning_output_tokens": 16076
+      },
+      "runner": {
+        "cached_input_tokens": 125952,
+        "input_tokens": 397386,
+        "output_tokens": 15796,
+        "reasoning_output_tokens": 6911
+      }
+    }
+  }
+}

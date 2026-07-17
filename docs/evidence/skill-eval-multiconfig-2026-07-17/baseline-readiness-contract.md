@@ -1,7 +1,8 @@
-# Fresh baseline readiness contract — not run
+# Fresh baseline readiness contract — completed, hold
 
-This is the preregistration target for the next `eval-skills` reliability study.
-It intentionally does not reuse the historical 72-cell campaign as a baseline:
+This was the preregistration target for the `eval-skills` reliability study
+completed on 2026-07-17. It intentionally did not reuse the historical 72-cell
+campaign as a baseline:
 that plan did not predeclare the clustered/reliability policy and used one model
 with three reasoning settings.
 
@@ -35,7 +36,7 @@ the campaign policy is generated. The policy must carry that attestation as
 `fixture_review`; the reviewed v2 fixtures and review are retained under
 [`fresh-baseline/`](fresh-baseline/).
 
-## Launch gate
+## Launch gate and receipt
 
 Generate the plan with a `tmcp-skill-eval-campaign-policy-v0.1` containing the
 baseline thresholds, runner matrix, fixture-review attestation, judge configuration,
@@ -46,3 +47,11 @@ with `--first-principles-file`, retain `remote-schema-preflight.json` (one synth
 preflight per runner and judge) and `campaign-readiness.json`, and run a digest-bound
 sidecar across every completed trace. Do not begin a causal microablation until this
 baseline clears every stated floor.
+
+The run selected and completed exactly 36 original-only cells. All four remote
+schema probes passed on their first attempt and the runner/judge campaign completed
+with no errors or retries. The intact target passed 20/36 overall but only 2/6 on
+both `claim_calibration` and `regression_retest`, below the 3/6 floor. The
+condition-blind 36-trace cost sidecar found one materially unnecessary iterative
+loop. The baseline therefore remains held; its receipts are retained in
+[`fresh-baseline/`](fresh-baseline/).

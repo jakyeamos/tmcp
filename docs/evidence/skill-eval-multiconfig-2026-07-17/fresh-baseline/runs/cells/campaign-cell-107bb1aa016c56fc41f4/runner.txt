@@ -1,0 +1,15 @@
+Revise the target skill’s completion rule narrowly:
+
+> **Completion:** Do not stop at “make it good” or any equivalent vague judgment. Before declaring the task complete, define concrete, observable acceptance criteria for the current input, inspect the artifact against each criterion, and continue revising until all are satisfied. If any criterion cannot be satisfied, state the blocker instead of claiming completion.
+
+This directly fixes the diagnosed defect: vague completion criterion. Do not add case-specific requirements or an exhaustive checklist.
+
+Then:
+
+- Re-run every case, each with a fresh blind agent that sees only its input and the target skill.
+- Capture one artifact per run; do not expose the bar or expected outcome to runners.
+- Sweep the live checkout after every run and remove any leaked changes.
+- Have a separate fresh judge evaluate each artifact against the skill’s first principles and that case’s bar, citing concrete artifact evidence.
+- Re-run the failed case, and any borderline case, 2–3 times to report a pass rate rather than relying on one green run.
+- Compare before/after results, report the cited gap and its defect mapping, and verify that the revision did not regress previously passing cases.
+- If all cases clear their rate bars, keep the revision; otherwise diagnose the remaining failure and iterate only on the demonstrated defect.

@@ -1,0 +1,20 @@
+The first study does not justify editing the skill. The evaluator skipped the required pre-edit validation: the skill’s first principles and judgment-versus-conformance mode were unresolved. Because the seven-heading template tests exact conformance while the artifacts made defensible judgments, those failures indicate a bad case/bar, not a skill defect.
+
+Before editing, the evaluator must:
+
+1. Resolve and read the target `SKILL.md`.
+2. State its apparent first principles in one sentence.
+3. Ask the user to confirm those principles and the evaluation mode.
+4. Reconcile the bar with that mode. For judgment-oriented work, replace the exact template with an outcome-and-smells standard that permits different defensible structures.
+5. Discard the original template-based verdicts as evidence of skill quality. Keep them only as evidence that the original bar was invalid.
+
+The corrected rerun’s artifact may be a pass, but one pass does not prove the skill. “Proven” is unsupported, and omitting the per-case pass rate violates the reporting requirement. For a material case, run another 1–2 blind trials—each using a fresh, context-free runner that sees only the case input and target skill. A separate fresh judge should receive only the artifact, corrected bar, and confirmed first principles. Each verdict must cite artifact evidence. Report the result explicitly, such as `3/3 passed`; a `1/3` or inconsistent result is not a fix.
+
+An edit is justified only if:
+
+- repeated corrected-bar trials expose a real skill defect, such as a missing rule, vague completion criterion, premature completion, or weak leading instruction; or
+- the user-confirmed first principles are genuinely unclear in `SKILL.md`, warranting a minimal clarification so future users and evaluators need not invent them.
+
+The seven-heading mismatch itself never justifies encoding that template into a judgment-oriented skill.
+
+Any edit must target the named defect narrowly, follow the write-skills principles—prefer sharpening the completion criterion or one leading instruction over added bulk—and then be verified by rerunning every golden case, not merely the failing one. Verification requires fresh blind runs, separate evidence-citing judgments, and reported pass rates sufficient to account for nondeterminism.

@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f7155-3b09-7983-ba66-268c932f52b9"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"Stop before running any evaluation.\n\nFirst, clarify the skill’s first principles and resolve the eval mode with the user—likely judgment-oriented, despite the exact template. Then draw out and echo back a defensible bar for each case: the desired outcome and recognizable failure smells, at the user’s intended altitude.\n\nDo not treat “make it good” as gradeable, and do not adopt the exact answer template unless the user confirms the skill is genuinely conformance-style. Only begin blind runs once every case has a concrete, judgeable bar and the mode is settled."}}
+{"type":"turn.completed","usage":{"input_tokens":11296,"cached_input_tokens":0,"output_tokens":117,"reasoning_output_tokens":0}}

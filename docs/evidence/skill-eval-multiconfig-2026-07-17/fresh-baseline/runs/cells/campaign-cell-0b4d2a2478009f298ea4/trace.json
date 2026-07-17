@@ -1,0 +1,154 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-luna-reasoning-high-codex-cli-0.144.2",
+    "model": "gpt-5.6-luna",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-0b4d2a2478009f298ea4",
+    "judge_artifact": "cells/campaign-cell-0b4d2a2478009f298ea4/judge.json",
+    "judge_artifact_sha256": "sha256:d99736640578c4830fe17474924c0a3601edbaca166f40d79097f93156d3e564",
+    "judge_effort": "high",
+    "judge_model": "gpt-5.5",
+    "order": 16,
+    "runner_artifact": "cells/campaign-cell-0b4d2a2478009f298ea4/runner.txt",
+    "runner_artifact_sha256": "sha256:e63e45c66381dcf2f170d0ea5fe9152a0689711d7b1d509822d9789aad313819",
+    "runner_effort": "high",
+    "runner_model": "gpt-5.6-luna",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 1920,
+        "input_tokens": 9738,
+        "output_tokens": 1033,
+        "reasoning_output_tokens": 516
+      },
+      "runner": {
+        "cached_input_tokens": 9984,
+        "input_tokens": 10164,
+        "output_tokens": 735,
+        "reasoning_output_tokens": 516
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "Pass: artifact specifies \u201cClassify the defect as **vague completion criterion**\u201d and replaces \u201cmake it good\u201d with \u201c**Done means:** the requested artifact is produced... corrected every material weakness found, and can cite evidence that the result is usable.\u201d",
+        "criterion": "O1: The named vague-completion defect is used as the specification for the edit, and the completion criterion is made observable before adding instructional bulk.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: artifact says to revise only by \u201creplacing \u2018make it good\u2019 with an explicit completion gate\u201d and \u201cDo not add unrelated rules or examples.\u201d",
+        "criterion": "O2: The revision changes only the instruction implicated by the failure rather than broadly rewriting or expanding unrelated parts of the skill.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: revised instruction starts with the leading directive \u201c**Done means:**\u201d and says \u201cDo not stop at an intention or a vague quality claim.\u201d",
+        "criterion": "O3: The revised instruction uses a clear leading directive and avoids vague no-op language or sediment.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: artifact says \u201cThen re-evaluate all three cases\u201d and \u201cRun each case with a fresh blind agent,\u201d then \u201cHave a separate fresh judge assess each artifact.\u201d",
+        "criterion": "O4: After the edit, all three cases are rerun with fresh blind runners and separate evidence-based judges rather than retesting only the failed case.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: artifact says \u201cRepeat important or borderline cases 2\u20133 times and report pass rates\u201d and \u201cCompare before/after results for every case.\u201d",
+        "criterion": "O5: The result is reported with per-case pass rates and legible before-and-after movement.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent; the artifact adds an explicit completion gate, not generic encouragement: \u201cthe requested artifact is produced... corrected every material weakness found, and can cite evidence that the result is usable.\u201d",
+        "criterion": "S1 (failure smell must be absent): adds more generic encouragement without an observable completion criterion",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent; artifact explicitly says \u201cDo not add unrelated rules or examples.\u201d",
+        "criterion": "S2 (failure smell must be absent): rewrites unrelated parts of the skill",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent; the proposed edit uses \u201c**Done means:**\u201d as the leading directive and rejects vague stopping with \u201cDo not stop at an intention or a vague quality claim.\u201d",
+        "criterion": "S3 (failure smell must be absent): adds vague no-op language or accumulated prose instead of a leading directive",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent; artifact requires \u201cre-evaluate all three cases,\u201d not only the failed case.",
+        "criterion": "S4 (failure smell must be absent): only the failed case is rerun after an edit",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent; artifact requires repeating cases \u201c2\u20133 times,\u201d reporting pass rates, and comparing before/after results rather than treating one green run as proof.",
+        "criterion": "S5 (failure smell must be absent): one post-edit green run is treated as proof",
+        "status": "pass"
+      }
+    ],
+    "passed": true,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-1c093069760c8dca",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact identifies the vague completion criterion defect, scopes the edit to the implicated phrase, gives a concrete replacement completion gate, and requires full fresh blind reruns with separate judges plus repeated important cases and before/after reporting."
+    }
+  ],
+  "matrix_row_id": "eval-row-1e4890343a055f38",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "Revise the target `SKILL.md` by replacing \u201cmake it good\u201d with an explicit completion gate:\n\n> **Done means:** the requested artifact is produced, it fulfills the skill\u2019s stated purpose, and the agent has reviewed it against the skill\u2019s first principles, corrected every material weakness found, and can cite evidence that the result is usable. Do not stop at an intention or a vague quality claim.\n\nClassify the defect as **vague completion criterion**. Do not add unrelated rules or examples.\n\nThen re-evaluate all three cases:\n\n1. Run each case with a fresh blind agent, providing only its input and the target skill.\n2. Capture one artifact per run and sweep the live checkout for leaks.\n3. Have a separate fresh judge assess each artifact against the original bar and the skill\u2019s first principles.\n4. Repeat important or borderline cases 2\u20133 times and report pass rates.\n5. Compare before/after results for every case, checking that the completion-gate edit fixes the original failure without regressing the two prior passes."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7155-cb02-7962-aa87-d89e068d4341",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:a874bcf1ec38f29b3e2ccffa4da2e98a4c0762a47d8a2154c557744b0f955d0d",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7155-8c67-7d31-bd2b-7cc1853d7e4c",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "named-defect-minimal-revision",
+  "trace_id": "trace-56b7320e4ee91a0e827b",
+  "variant_id": "original"
+}

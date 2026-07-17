@@ -1,0 +1,17 @@
+The run is invalid. Seeing the case bar breaks blindness, and the live-checkout writes require containment and cleanup.
+
+Recovery procedure:
+
+1. Discard the artifact and all grading derived from it. Do not count it toward the pass rate.
+2. Inspect the live checkout with `git status` and identify exactly which changes the runner introduced.
+3. Remove only those attributable changes:
+   - Delete only runner-created untracked files.
+   - Revert only runner-modified lines/files after confirming they do not overlap pre-existing user changes.
+   - Never use broad destructive commands such as `git reset --hard`, `git clean`, or blanket checkout/restore operations.
+4. If ownership or overlap is uncertain, stop and ask the user rather than risk unrelated work. Preserve evidence of the runner’s changes so they can be separated safely.
+5. Verify with another `git status` that every runner leak is gone and all unrelated pre-existing changes remain intact.
+6. Start a replacement run with a fresh, context-free agent. Give it only the concrete case input and the instruction to use the target skill—no bar, smells, expected outcome, other cases, or evaluation rationale.
+7. If files must be written, restrict the replacement runner to a throwaway sandbox directory as its only writable root. Prefer an inline final artifact when possible.
+8. After the replacement run, sweep the live checkout again with `git status` and safely remove any attributable leak before grading.
+9. Have a separate fresh judge evaluate the replacement artifact using only the artifact, the case bar, and the skill’s first principles. The judge must cite specific evidence for every verdict.
+10. Repeat blind runs as needed to establish the required pass rate; the contaminated run remains excluded permanently.

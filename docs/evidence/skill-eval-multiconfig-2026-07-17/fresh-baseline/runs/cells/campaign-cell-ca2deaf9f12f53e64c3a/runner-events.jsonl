@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f7157-a845-7192-8b86-25699f4187ba"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"Do not spend an evaluation run yet.\n\nFirst, resolve the ambiguous evaluation mode against the skill’s first principles:\n\n- If the skill is genuinely conformance-oriented, confirm that the exact template is the bar.\n- If it is judgment-oriented, treat the template as context—not the grading target—and elicit a real bar: the desired outcome plus failure smells.\n\nEcho the sharpened bar back for every case and proceed only once a competent judge could apply it without guessing."}}
+{"type":"turn.completed","usage":{"input_tokens":10155,"cached_input_tokens":0,"output_tokens":228,"reasoning_output_tokens":129}}

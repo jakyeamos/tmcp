@@ -1,0 +1,162 @@
+{
+  "passed": true,
+  "preflights": [
+    {
+      "configuration_id": "gpt-5.6-sol-reasoning-high",
+      "effort": "high",
+      "event_audit": {
+        "event_count": 4,
+        "event_types": [
+          "item.completed",
+          "thread.started",
+          "turn.completed",
+          "turn.started"
+        ],
+        "item_types": [
+          "agent_message"
+        ],
+        "passed": true,
+        "thread_id": "019f7152-da50-7980-b7b0-f8dd72769301",
+        "turn_completed": 1,
+        "turn_started": 1
+      },
+      "event_stream_sha256": "sha256:2ffcf8882a1b6a6044abb7aca735b5be40d128f4c5b2d43a66eac88b00533375",
+      "model": "gpt-5.6-sol",
+      "output_schema_sha256": "sha256:c8692b3d839c948075f53653d040d8a28109a6383ca893752c02d7ce2acc9ef9",
+      "output_sha256": "sha256:c1d63f70d535fb43cde598b10273b3e88ce0e7f61fa8d3dcbbf8f0f42eed7835",
+      "passed": true,
+      "prompt_sha256": "sha256:ecbdfd29946c76dc9c2791abfa7f86be76e82947372e7150ffe4db197ffd6b23",
+      "retry_audit": {
+        "attempts": [],
+        "successful_attempt": 1
+      },
+      "role": "runner",
+      "schema": "tmcp-remote-schema-preflight-v0.1",
+      "stderr": "",
+      "usage": {
+        "cached_input_tokens": 0,
+        "input_tokens": 9958,
+        "output_tokens": 70,
+        "reasoning_output_tokens": 0
+      }
+    },
+    {
+      "configuration_id": "gpt-5.6-terra-reasoning-high",
+      "effort": "high",
+      "event_audit": {
+        "event_count": 4,
+        "event_types": [
+          "item.completed",
+          "thread.started",
+          "turn.completed",
+          "turn.started"
+        ],
+        "item_types": [
+          "agent_message"
+        ],
+        "passed": true,
+        "thread_id": "019f7152-f786-73e0-8070-e8060841eb99",
+        "turn_completed": 1,
+        "turn_started": 1
+      },
+      "event_stream_sha256": "sha256:87395737a77f78ed2efeaf4128ca9a31a87d8e3b75e81ee7dfb6925e51c1f91e",
+      "model": "gpt-5.6-terra",
+      "output_schema_sha256": "sha256:c8692b3d839c948075f53653d040d8a28109a6383ca893752c02d7ce2acc9ef9",
+      "output_sha256": "sha256:d50f27728d3b9dc720cc9746bf8c4d2f794d68297dc8cbdba4ac3db32447d6d2",
+      "passed": true,
+      "prompt_sha256": "sha256:ecbdfd29946c76dc9c2791abfa7f86be76e82947372e7150ffe4db197ffd6b23",
+      "retry_audit": {
+        "attempts": [],
+        "successful_attempt": 1
+      },
+      "role": "runner",
+      "schema": "tmcp-remote-schema-preflight-v0.1",
+      "stderr": "",
+      "usage": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10050,
+        "output_tokens": 65,
+        "reasoning_output_tokens": 0
+      }
+    },
+    {
+      "configuration_id": "gpt-5.6-luna-reasoning-high",
+      "effort": "high",
+      "event_audit": {
+        "event_count": 4,
+        "event_types": [
+          "item.completed",
+          "thread.started",
+          "turn.completed",
+          "turn.started"
+        ],
+        "item_types": [
+          "agent_message"
+        ],
+        "passed": true,
+        "thread_id": "019f7153-070e-7101-b1d5-e8f52c254d8a",
+        "turn_completed": 1,
+        "turn_started": 1
+      },
+      "event_stream_sha256": "sha256:6ccf7b6da831faaa94092c91495b38bf39fa7b4c89f5d335d4a2c03f956841c0",
+      "model": "gpt-5.6-luna",
+      "output_schema_sha256": "sha256:c8692b3d839c948075f53653d040d8a28109a6383ca893752c02d7ce2acc9ef9",
+      "output_sha256": "sha256:64f04c5b454adb4d927aeefbc57c3f5097fe5b501a800587f739989a914db40e",
+      "passed": true,
+      "prompt_sha256": "sha256:ecbdfd29946c76dc9c2791abfa7f86be76e82947372e7150ffe4db197ffd6b23",
+      "retry_audit": {
+        "attempts": [],
+        "successful_attempt": 1
+      },
+      "role": "runner",
+      "schema": "tmcp-remote-schema-preflight-v0.1",
+      "stderr": "",
+      "usage": {
+        "cached_input_tokens": 0,
+        "input_tokens": 8607,
+        "output_tokens": 101,
+        "reasoning_output_tokens": 38
+      }
+    },
+    {
+      "configuration_id": "independent-judge",
+      "effort": "high",
+      "event_audit": {
+        "event_count": 4,
+        "event_types": [
+          "item.completed",
+          "thread.started",
+          "turn.completed",
+          "turn.started"
+        ],
+        "item_types": [
+          "agent_message"
+        ],
+        "passed": true,
+        "thread_id": "019f7153-198c-7292-8083-c7e2db3e5e40",
+        "turn_completed": 1,
+        "turn_started": 1
+      },
+      "event_stream_sha256": "sha256:c4e0d4914a31fe236a9ae09cfae5fdf55d3d5515b3cc90edf57355a2fc1b0598",
+      "model": "gpt-5.5",
+      "output_schema_sha256": "sha256:c8692b3d839c948075f53653d040d8a28109a6383ca893752c02d7ce2acc9ef9",
+      "output_sha256": "sha256:0dd9b5759beb4ca42bd7b38d764dd28246541a6d594890b26a6c014fe68d1ce1",
+      "passed": true,
+      "prompt_sha256": "sha256:ecbdfd29946c76dc9c2791abfa7f86be76e82947372e7150ffe4db197ffd6b23",
+      "retry_audit": {
+        "attempts": [],
+        "successful_attempt": 1
+      },
+      "role": "judge",
+      "schema": "tmcp-remote-schema-preflight-v0.1",
+      "stderr": "",
+      "usage": {
+        "cached_input_tokens": 1920,
+        "input_tokens": 8968,
+        "output_tokens": 134,
+        "reasoning_output_tokens": 62
+      }
+    }
+  ],
+  "schema": "tmcp-remote-schema-preflights-v0.1"
+}

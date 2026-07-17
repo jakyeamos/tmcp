@@ -1,0 +1,12 @@
+The first study should stop before any edit.
+
+- Confirm the target `SKILL.md`, concrete golden input(s), and the outcome-and-smells bar.
+- Read and state the skill’s first principles.
+- Resolve the mode with the user. Since the skill is judgment-oriented, an exact seven-heading template is the wrong evaluation bar; it converts the test into conformance.
+- Diagnose the failures as a bad case/bar, not a skill defect. Defensible artifacts failing only because they lack that template provide no justification for editing the skill.
+
+After the user approves the corrected judgment bar, the fresh rerun is valid in principle, but “proven after one pass” is unsupported. The report must include a per-case pass rate. For an important or borderline case, repeat the blind run 2–3 times and report, for example, `2/3`, with the judge citing artifact evidence for every bar component. One successful run is evidence of a pass, not proof of reliability.
+
+An edit is justified only if a valid-bar evaluation exposes a repeatable skill defect—such as premature completion, a vague completion criterion, a missing rule, duplication, sediment, a war story, or a no-op. The judge must identify the concrete gap and cite the artifact. Do not edit to satisfy the rejected seven-heading template or another indefensible bar.
+
+Any justified edit should address only that diagnosed defect, then be verified by re-running every case—not just the failed one—with fresh blind agents, isolated writable sandboxes where needed, a post-run checkout sweep, and separate judges given only the artifact, first principles, and corrected bar. Continue until all cases meet their required pass-rate bars, while checking for regressions.

@@ -1,0 +1,5 @@
+Stop before running any evaluation.
+
+First, clarify the skill’s first principles and resolve the eval mode—likely judgment-oriented, unless the user confirms it is truly conformance-style. Then ask the user to replace “make it good” with a defensible bar for each case: the desired outcome and recognizable failure smells, without prescribing the exact answer.
+
+Do not treat the supplied template as the expected output or show it to a runner. Determine whether it is merely a formatting constraint or evidence of an exact conformance task. Echo the clarified first principles, mode, and case bars back to the user before spending any blind runs.

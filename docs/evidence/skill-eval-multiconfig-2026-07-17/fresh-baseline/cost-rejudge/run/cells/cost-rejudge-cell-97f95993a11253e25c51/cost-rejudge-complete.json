@@ -1,0 +1,31 @@
+{
+  "event_audit": {
+    "event_count": 4,
+    "event_types": [
+      "item.completed",
+      "thread.started",
+      "turn.completed",
+      "turn.started"
+    ],
+    "item_types": [
+      "agent_message"
+    ],
+    "passed": true,
+    "thread_id": "019f715b-9d16-7d52-ba0f-66dfd873abff",
+    "turn_completed": 1,
+    "turn_started": 1
+  },
+  "events_sha256": "sha256:0eb648742302375cdba7887e9ad0c695425ed0af3518b5014751828a3bb8c624",
+  "output_schema_sha256": "sha256:e16b74e88431c02c59a9150aa25142f1edb2c58a779ac786c27ed9dcfd501687",
+  "output_sha256": "sha256:4ce6d6a6b75f221ad7af38505cb133d93e3688da4b0da5737810027810792f6b",
+  "prompt_sha256": "sha256:97e331efd1c1e0d7969808dce067c3287f5bfe225e0ede0a752ffd4027db1fb5",
+  "schema": "tmcp-campaign-stage-v0.1",
+  "stage": "cost-rejudge",
+  "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "usage": {
+    "cached_input_tokens": 7040,
+    "input_tokens": 7976,
+    "output_tokens": 243,
+    "reasoning_output_tokens": 107
+  }
+}

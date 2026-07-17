@@ -1,0 +1,13 @@
+The run is invalid: the runner saw the case bar, so it was not blind. Its artifact cannot be graded or counted.
+
+Recovery procedure:
+
+1. Discard the artifact and any verdict based on it.
+2. Sweep the live checkout, but first distinguish runner-created changes from pre-existing work.
+3. Remove or revert only changes you can positively attribute to that runner:
+   - revert only its exact edits/hunks in tracked files;
+   - remove or quarantine only its verified new files.
+4. If provenance is unclear—especially without a pre-run status snapshot—do not clean broadly or reset files. Preserve the checkout and ask the owner to identify the runner’s changes.
+5. Confirm the checkout is back to its pre-run state.
+6. Re-run the case with a fresh, context-free runner given only the case input, in a throwaway writable sandbox. Do not expose the bar, smells, expected outcome, or prior artifacts.
+7. Grade the new artifact with a separate fresh judge given only the artifact, the bar, and the skill’s first principles.

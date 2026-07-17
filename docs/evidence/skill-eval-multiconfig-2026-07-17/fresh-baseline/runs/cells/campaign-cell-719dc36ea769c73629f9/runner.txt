@@ -1,0 +1,15 @@
+The run is invalid: seeing the case bar broke blindness. Discard its artifact and verdict entirely.
+
+Recovery:
+
+1. Inspect `git status` and identify every file the runner created or modified.
+2. Compare those paths with the checkout’s pre-run state or known runner outputs. Treat anything not provably caused by the runner as unrelated user work.
+3. Remove runner-created untracked files and revert runner-only modifications using targeted, path-specific edits. Never use broad cleanup or destructive commands such as `git clean`, `git reset --hard`, or blanket checkout/restore.
+4. If runner changes overlap pre-existing work and cannot be separated confidently, stop and ask the user rather than risking that work.
+5. Confirm with `git status` that all runner leakage is gone and unrelated changes remain intact.
+6. Start a fresh, context-free runner in a throwaway sandbox whose only writable root is that directory. Provide only the case input and instruction to use the target skill—no bar, smells, expected outcome, other cases, or evaluation rationale.
+7. Capture the new artifact, preferably from the runner’s final message.
+8. Sweep the live checkout again with `git status` and remove any newly proven leakage using the same targeted process.
+9. Give a separate fresh judge only the new artifact, the case bar, and the skill’s first principles.
+
+Only the replacement run may count toward the pass rate.

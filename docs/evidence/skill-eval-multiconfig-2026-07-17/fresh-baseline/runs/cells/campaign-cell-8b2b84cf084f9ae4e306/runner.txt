@@ -1,0 +1,22 @@
+Post-edit protocol:
+
+- Run all three cases again, even though only B previously failed.
+- Use one fresh, context-free runner per case per run; expose only the case input and target skill.
+- Isolate file-writing runs in throwaway sandboxes, then sweep the live checkout for leaks.
+- Give each artifact to a separate fresh judge with the skill’s first principles and that case’s bar/smells—never the expected output.
+- Because every case is release-critical, repeat each case 2–3 times and report its pass rate, not a single outcome.
+
+Evidence required to claim B worked:
+
+- B clears the agreed pass-rate threshold across independent blind runs.
+- Each B verdict is grounded in specific artifact evidence cited by the judge.
+- A and C also retain their required pass rates in the same post-edit sweep.
+- The checkout remained clean after every run.
+- The report identifies any remaining gap and maps failures to a skill defect or bad case.
+
+If B passes but A develops a new miss, treat it as a regression signal and pause further revision. Re-run A independently 2–3 times to establish whether the miss is repeatable, then have a fresh judge determine whether:
+
+- the skill now violates A’s valid bar—diagnose the specific `write-skills` failure mode and revise only that defect; or
+- A’s bar is invalid or punishes a defensible judgment—in which case report the bad case and do not bend the skill to it.
+
+After any justified revision, re-run all three cases—not only A or B—until every release-critical case clears its pass-rate bar.

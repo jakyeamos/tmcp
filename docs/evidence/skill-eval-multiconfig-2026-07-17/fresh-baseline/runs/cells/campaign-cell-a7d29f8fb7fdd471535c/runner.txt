@@ -1,0 +1,15 @@
+Post-edit protocol:
+
+- Re-run blind evaluations for all three cases—A, B, and C—not only B. Each run uses a fresh, context-free agent that sees only its case input and the target skill, never the bar or expected outcome.
+- After each run, sweep the live checkout for leaked changes and clean them.
+- Grade each artifact with a separate fresh judge given only the artifact, that case’s bar, and the skill’s first principles. Every verdict must cite specific artifact evidence.
+- Because all cases are release-critical, repeat each blind run 2–3 times to account for nondeterminism and report per-case pass rates.
+
+The B fix can be claimed to work only when repeated post-edit runs show that B consistently clears its full bar, with evidence-cited judge verdicts—not merely one passing run. Release readiness additionally requires A and C to clear their required pass rates, demonstrating that the B-specific edit caused no regressions.
+
+When A produces a new miss, stop before revising again. Diagnose whether it is:
+
+- a skill regression caused by the B edit, mapped to a concrete `write-skills` failure mode; or
+- a bad case/bar that penalizes defensible behavior or asks for something outside the skill’s principles.
+
+The diagnosis must cite the A artifacts and judge findings, and borderline behavior should be rerun to distinguish a stable regression from agent flicker. If it is a genuine skill defect, use that failure as the narrowly scoped specification for the next edit. If the bar is wrong, correct or escalate the bar rather than bending the skill to pass it. Then repeat the complete A/B/C sweep. No further revision—and no release claim—should proceed until A’s miss has been classified.

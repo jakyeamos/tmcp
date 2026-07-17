@@ -1,0 +1,14 @@
+The first study does not justify a skill edit. Suspend its verdict because the skill’s first principles and evaluation mode were never confirmed. Then:
+
+1. Resolve and read the target `SKILL.md`.
+2. Ask the user to confirm the skill’s first principles and whether it is judgment- or conformance-oriented.
+3. Explain that an exact seven-heading template is a conformance bar. For a judgment skill, replace it with an outcome-and-smells standard that permits defensible variation.
+4. Echo the revised bar for approval before running or grading further.
+
+Once the user confirms judgment mode, classify the original failures as a **bad-case finding**, not a skill defect: the artifacts failed only because an inappropriate bar prescribed the answer’s form. Do not edit the skill to encode those seven headings.
+
+The corrected rerun’s pass is encouraging but does not prove reliability. Its current per-case rate is only **1/1**, which must be reported. Run another 1–2 blind trials—each with a fresh, context-free runner that sees only the case input and skill, followed by a separate judge that sees only the artifact, approved bar, and confirmed first principles. Sweep the live checkout after every run.
+
+An edit is justified only if repeated trials expose a specific, evidence-backed failure against the corrected bar and that failure reflects behavior the skill should drive. Map it to a concrete defect such as a vague completion criterion, missing rule, premature completion, or lack of a leading word. A defensible judgment call, a wrong bar, or isolated agent flicker does not justify an edit.
+
+Any justified edit must be minimal and follow `write-skills`: sharpen the completion criterion first, prefer one effective leading word over added bulk, and add no no-op guidance. Then rerun **all** golden cases—not merely the failure—with fresh blind agents, judge each artifact independently, repeat important or borderline cases 2–3 times, and report per-case before/after pass rates plus cited gaps. Only stable success across those reruns supports claiming the skill improved.

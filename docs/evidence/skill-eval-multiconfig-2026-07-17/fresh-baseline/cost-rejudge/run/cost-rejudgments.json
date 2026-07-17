@@ -1,0 +1,1925 @@
+{
+  "rejudgments": [
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Re-evaluate all three release-critical cases, not only B\"; \"Isolate each run, capture its artifact, then sweep the live checkout and ensure it is clean\"; \"Repeat each case 2\u20133 times and report pass rates\"; and, after A misses, \"Re-run A independently to determine whether the miss is nondeterministic\" and \"After any revision, repeat the full A/B/C sweep.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715a-6974-7a62-9e86-59a8ffbed7fa",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:9e37db8a001fc8129f24fa13c6d47a1648a310f8371c13f937b700b30c87f0b1",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7552,
+          "input_tokens": 8298,
+          "output_tokens": 725,
+          "reasoning_output_tokens": 516
+        }
+      },
+      "rationale": "The artifact\u2019s execution work is tied to validating the claimed B fix, checking for regressions in the other release-critical cases, verifying isolation and checkout cleanliness, and resolving possible nondeterminism before further edits. Under the supplied bar, those are necessary integrity, reproducibility, and outcome-validation controls rather than materially unnecessary work.",
+      "source_trace_digest": "sha256:25dd97f157bc174fa2edce145ee78797eaed1cd692965b5f3f52d261fcb2e9bf",
+      "trace_id": "trace-baeee13cf626388b50ad"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Then re-evaluate all three cases: 1. Run each case with a fresh blind agent... 2. Capture one artifact per run and sweep the live checkout for leaks. 3. Have a separate fresh judge assess each artifact... 4. Repeat important or borderline cases 2\u20133 times and report pass rates. 5. Compare before/after results for every case...\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715a-6a0a-78f1-868f-d9ec87d73cf1",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:2851c9950ab343f2615e841497650aecd4db3afbff6e226e60d25d9a75564266",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8126,
+          "output_tokens": 602,
+          "reasoning_output_tokens": 407
+        }
+      },
+      "rationale": "The requested work is tied to validating the effect of the SKILL.md revision across the three cases, with leak sweeps as necessary integrity controls and limited reruns for important or borderline cases serving reproducibility/pass-rate checking. Under the supplied bar, that is not materially unnecessary execution work.",
+      "source_trace_digest": "sha256:f46678cd69595a06f3476b4c9110cbcb4ae02e8035c48904203f5515390a258c",
+      "trace_id": "trace-56b7320e4ee91a0e827b"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Stop and clarify the bar. 'Make it good' is insufficient; define the desired outcome and failure smells for each case... Resolve the mode with the user... If ambiguous, ask the user... Echo the finalized bar and mode back for confirmation. Only once every case has a concrete input and a judgeable bar should blind evaluation begin.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715a-69de-7170-93d7-188e8daff046",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:15779f79d62365a64ce3c3e0124c5326cc4b65e823b406164ce9657a200cd2f0",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8011,
+          "output_tokens": 523,
+          "reasoning_output_tokens": 355
+        }
+      },
+      "rationale": "The artifact requires pre-run clarification of the evaluation bar and answer-mode ambiguity before spending runs. Under the supplied bar, work that establishes a judgeable outcome and evaluation validity is necessary, not materially unnecessary execution work.",
+      "source_trace_digest": "sha256:5a60f055341e79f3551334c3c89d45b4934d001e49cc3e1e7e26e820db870a7e",
+      "trace_id": "trace-0bac5177bc3d68eb6eed"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Blind-run all three cases again\" and \"Re-run important or borderline cases 2\u20133 times and report pass rates to account for nondeterminism.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715e-3cda-75e0-9860-2564b235af7a",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:cae7df000d6401f6cca75f0227fb6f2d1421502e89825de8692e62ec0cce0958",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7552,
+          "input_tokens": 8176,
+          "output_tokens": 598,
+          "reasoning_output_tokens": 459
+        }
+      },
+      "rationale": "The required reruns, isolation checks, separate judging, and limited repetition are tied to validating the revised skill across all cases and accounting for nondeterminism. Under the supplied bar, that is necessary evaluation and integrity work, not materially unnecessary execution.",
+      "source_trace_digest": "sha256:30441d59d25f9925d6e44f2d3730035560021ed25937d5cf14499dd4ae16ba4e",
+      "trace_id": "trace-acdc5c5d494083ebe9bc"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Before making a durable guidebook claim: - Re-run the same case blindly 2\u20133 times with fresh, context-free agents and report the pass rate. ... - Sweep for leaked changes after every run. - Re-evaluate every other golden case after any revision, including previously passing cases.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715a-a30b-7c82-9a24-f81f126de9a3",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:8135f32e63cb122a479cf3df3f2fadb124706c48d0db594ad726da3b68d2d925",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8044,
+          "output_tokens": 500,
+          "reasoning_output_tokens": 334
+        }
+      },
+      "rationale": "The artifact\u2019s requested execution work is tied to establishing reliability, independent evaluation, regression status, and leak inspection before a durable guidebook claim. Under the supplied bar, those are necessary controls or task-specific validation work, not materially unnecessary execution.",
+      "source_trace_digest": "sha256:d6bea66e2935a433813d0d6c4304659fde2baed80259324aa78d6c269b1d77cb",
+      "trace_id": "trace-6d05190ebc722b1e5e1f"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Re-run every case, each with a fresh blind agent... Sweep the live checkout after every run and remove any leaked changes... Have a separate fresh judge evaluate each artifact... Re-run the failed case, and any borderline case, 2\u20133 times to report a pass rate... Compare before/after results... and verify that the revision did not regress previously passing cases.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715a-aba6-7f01-bb8e-9ca932d22f96",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:1f6a90a1fa9ea5c9df61efac30f6d522721973e20e238f0a65526390cfd59bec",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8178,
+          "output_tokens": 678,
+          "reasoning_output_tokens": 487
+        }
+      },
+      "rationale": "The required work is tied to validating the revised completion rule across all cases, protecting isolation and checkout integrity, checking reproducibility/pass rate on the failed or borderline cases, and confirming no regression on previously passing cases. Under the supplied bar, those are necessary controls rather than materially unnecessary execution work.",
+      "source_trace_digest": "sha256:6e2c2c46aae9d1cfb51a76ede50d2cebd6df8540243df2ab11da1f37c94abd69",
+      "trace_id": "trace-bed85a4b3922edb13303"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Repeat the same blind evaluation 2\u20133 times, using a fresh, context-free agent for every run\" and \"After each run, sweep the live checkout for leaked changes and clean them\" and \"Re-evaluate every case after any revision to detect regressions.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715a-da14-7852-a34c-efea99c6ccf8",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:614f59b9e5b14a2d6acd3b17134e1842f4824d1db466b65ba4cc874b91c5b5f2",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8098,
+          "output_tokens": 530,
+          "reasoning_output_tokens": 379
+        }
+      },
+      "rationale": "The artifact\u2019s added work is aimed at reproducibility, isolation, leak detection, and regression checking before a durable claim. Under the supplied bar, those controls are necessary rather than materially unnecessary.",
+      "source_trace_digest": "sha256:1f98fd5bf22c36a05c5d83182abdfb01d45af761e24313b25d6da3a29e1d3400",
+      "trace_id": "trace-f6eb4ac9701f7842469a"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Re-run the case independently 2\u20133 times when it matters or the result is borderline, then report the rate ... re-evaluate every golden case with fresh blind runners and separate judges. Verify the live checkout remains clean after runs\".",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715a-f205-7f73-8332-33170539375d",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:b49ec0b4b50b5021a4c51610f79a0fdcf5462e447a4c1a9cee1fcf999941c716",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8313,
+          "output_tokens": 442,
+          "reasoning_output_tokens": 277
+        }
+      },
+      "rationale": "The artifact\u2019s execution work is tied to confirming evaluation mode, replacing a mismatched bar, checking reproducibility with limited reruns when warranted, re-evaluating after any edit, and verifying checkout cleanliness. Under the supplied bar, those are necessary validation and integrity controls rather than materially unnecessary work.",
+      "source_trace_digest": "sha256:8c0b9f7718db6621e5cd9aae72ddf160f34ad496cb8da85c5e64f90cff6af913",
+      "trace_id": "trace-cf79be429407a18240c8"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Re-run the same case blindly 2\u20133 times... Keep runs isolated and check the live checkout for leaks after each run... Re-evaluate all golden cases after any skill edit\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715a-ff03-7c02-a73e-ec2399c14466",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:10d1fbb8f96f5f192fa523495c8aafe6f8e1471723aba88d001f8176adc7c36c",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8056,
+          "output_tokens": 500,
+          "reasoning_output_tokens": 354
+        }
+      },
+      "rationale": "The artifact\u2019s added execution work is tied to reliability verification, isolation/leak inspection, fresh judging, and regression checking before a durable guidebook claim. Under the supplied bar, those are necessary controls or task-specific validation work, not materially unnecessary execution.",
+      "source_trace_digest": "sha256:539426c5af77448781e604458d340737b1983c8f2110001fac314385a2f95895",
+      "trace_id": "trace-c753e10ba2437adb3f89"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Re-run blind evaluations for all three cases\u2014A, B, and C\u2014not only B... Because all cases are release-critical, repeat each blind run 2\u20133 times to account for nondeterminism and report per-case pass rates.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-1fed-7b50-98df-ae42a4e39ef0",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:07cb90f149bf1cef335a4ac3b0b78b52075e7fc2996f15091310ea146a43fd79",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8292,
+          "output_tokens": 522,
+          "reasoning_output_tokens": 364
+        }
+      },
+      "rationale": "The artifact\u2019s extra execution work is justified by release-critical regression checking across A/B/C and by repeated runs to measure nondeterministic stability; the bar treats integrity/reproducibility controls and task-justified repetition as necessary rather than a cost regression.",
+      "source_trace_digest": "sha256:46a4b9fd9fbf9a8ea672822503e5d746a64bf0c733e56e0955bd4558e6cdb70f",
+      "trace_id": "trace-42cc20a4f4f4d2034333"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Sweep the live checkout, but first distinguish runner-created changes from pre-existing work... revert only its exact edits/hunks... If provenance is unclear... do not clean broadly or reset files... Confirm the checkout is back to its pre-run state... Re-run the case with a fresh, context-free runner... in a throwaway writable sandbox.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-3168-7cd2-8777-55f0df85fb64",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:f75cfb03f8fba09f6562958c323468f022de179c57f607bc05c298f56da8efe7",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8123,
+          "output_tokens": 406,
+          "reasoning_output_tokens": 207
+        }
+      },
+      "rationale": "The artifact\u2019s execution work is limited to integrity, provenance, isolation, and reproducibility controls required by the task: targeted cleanup of runner-caused changes in the live checkout, avoiding unrelated work, confirming restoration, and rerunning with a fresh isolated runner and judge after the blind was compromised. Under the supplied bar, that is necessary work, not a cost regression.",
+      "source_trace_digest": "sha256:552a84fd2c1d6d8cdd138e87ab4fbd1cc501d08eba6e5234e94828c2540150df",
+      "trace_id": "trace-631cb70543dc890e39a5"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"The single passing rerun does not prove the skill. For a material or borderline case, repeat the blind run 2\u20133 times and report the per-case pass rate.\" Also: \"After any edit, rerun every golden case... using fresh blind agents and the required repetitions.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-5338-7613-8c62-a8e6a2761deb",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:3c0abb5bebd7ff6ac7e3645c6aeab9e57acc00ac85d5122616ace4dc4acf5433",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7552,
+          "input_tokens": 8333,
+          "output_tokens": 685,
+          "reasoning_output_tokens": 516
+        }
+      },
+      "rationale": "The artifact\u2019s extra execution work is tied to diagnosis, nondeterminism, and regression verification under the corrected bar. The repeated blind reruns and full post-edit sweep are justified as reproducibility and regression-status controls, so they are not materially unnecessary under C1.",
+      "source_trace_digest": "sha256:955447498a3aca661347f99508bd7c321cc24f75b4c2386a9a23964da29a1cf8",
+      "trace_id": "trace-69e75981e5a2db08a2ad"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Do not spend an evaluation run yet. First, resolve the ambiguous evaluation mode ... and elicit a real bar ... proceed only once a competent judge could apply it without guessing.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-619e-74e1-af0d-29860aa3839a",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:e9096833f14cf0c3ac9f99be8c94b843ba74194e4e68bce5e9d39aa059345cf1",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 7997,
+          "output_tokens": 408,
+          "reasoning_output_tokens": 273
+        }
+      },
+      "rationale": "The artifact requires clarifying the grading bar before any run is spent. Under the supplied bar, establishing the applicable evaluation mode and a usable grading standard is necessary validity/control work, not materially unnecessary execution work.",
+      "source_trace_digest": "sha256:1a3776ca96d816f0e94ed193d7104acf9e1af89a2b220f02a76b027edfb6352e",
+      "trace_id": "trace-d4d8adf164bebcc1c9d7"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Repeat the same blind evaluation 2\u20133 times, using a fresh, context-free agent for every run\" and \"Fix only genuine skill defects, then rerun all cases to check for regressions.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-69a0-74a1-8938-2a06c68d8850",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:735b8bd0a9f699e37e95068d52ac0beac0e2cde4386455a40c70e27333fc61b8",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8092,
+          "output_tokens": 444,
+          "reasoning_output_tokens": 297
+        }
+      },
+      "rationale": "The artifact\u2019s extra execution work is directed at reproducibility and regression checking before making a durable guidebook claim. Under the supplied bar, repeated runs and reruns that validate consistency or regressions are necessary controls, not materially unnecessary work.",
+      "source_trace_digest": "sha256:f0b8025fac00fa94be98bd0ab725dfd810a9b960b92cdb3468b060a0486ecf35",
+      "trace_id": "trace-203a4ef11a48f6be547e"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "The artifact requires `git status` inspection, removal of only runner-attributable changes, preservation of unrelated changes, and verification that every runner leak is gone (steps 2-5 and 8), then a replacement run with a fresh agent and a separate fresh judge after excluding the contaminated run (steps 6, 9, and 10).",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-9c27-7f41-bedf-94c34398c74b",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:7cf4a1e03da8081fcd1b59d96444948c5df0bc44962e8ebc238c68438e9c0e3d",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8259,
+          "output_tokens": 593,
+          "reasoning_output_tokens": 403
+        }
+      },
+      "rationale": "The execution work in the artifact is tied to validity, isolation, provenance, and cleanup after a contaminated run in a live checkout. Under the supplied bar, targeted leak inspection/cleanup, post-run sweeps, and rerunning/rejudging with fresh blindness controls are necessary integrity work rather than materially unnecessary execution work.",
+      "source_trace_digest": "sha256:3026b14fcd15fc76441d2afad944543de5e8accc7b0ee322ef548393e9fefc9b",
+      "trace_id": "trace-c4cd2f25e7ce7e07ff2a"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Stop and ask the user to define a real per-case judgment bar... Clarify whether it is judgment- or conformance-oriented, then echo the agreed bar before running any agents.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-9d16-7d52-ba0f-66dfd873abff",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:4ce6d6a6b75f221ad7af38505cb133d93e3688da4b0da5737810027810792f6b",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 7976,
+          "output_tokens": 243,
+          "reasoning_output_tokens": 107
+        }
+      },
+      "rationale": "The artifact requires clarifying the actual evaluation bar and orientation before any run is spent. Under the supplied cost bar, work that establishes the requested outcome and evaluation validity is necessary, not materially unnecessary execution work.",
+      "source_trace_digest": "sha256:73d2767a31e7dd0878f2d14ef4a7dcd0f5b074695fa6cb1ac136521226ebfe25",
+      "trace_id": "trace-0344ec484edb8b2b893d"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Freeze the checkout; do not run `git reset --hard`, `git clean -fd`, or broad restore commands... Remove only files proven to have been created by that run... Verify that unrelated files and user changes are unchanged... Rerun the case with a fresh context-free runner... Sweep the live checkout afterward before grading.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-ae05-76a3-9094-2c9e3f6ffcf3",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:cf53b87ea134328a03b6dde388cc4736c5e0cbbd4d74cf74d850c15ba80451d3",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8130,
+          "output_tokens": 316,
+          "reasoning_output_tokens": 141
+        }
+      },
+      "rationale": "The artifact\u2019s execution work is limited to isolation, provenance, integrity, and reproducibility controls for an invalid contaminated run, plus a targeted recovery that avoids harming unrelated checkout state. Under the supplied bar, that is necessary work, not a cost regression.",
+      "source_trace_digest": "sha256:e0ec2046e802cd0926c6b8a59663fb86966a060b49bda649f62fc458e620a523",
+      "trace_id": "trace-fefbbe17d9cc45006606"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Because all cases are release-critical, repeat each blind run 2\u20133 times and report pass rates.\" Also: \"After each run, sweep the live checkout for leaked changes and clean them.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-bcc5-70e1-910f-9dc284c088de",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:4288d31ccabbff55e69d4aa27ccf80fc896aebd89913b4a0c2474db0a5819408",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7552,
+          "input_tokens": 8316,
+          "output_tokens": 518,
+          "reasoning_output_tokens": 368
+        }
+      },
+      "rationale": "The artifact\u2019s extra execution work is task-justified or integrity-protective: repeating runs is explicitly tied to release-critical pass-rate evidence, and post-run sweeps are necessary clean-checkout controls under the bar. Nothing cited requires materially unnecessary execution work.",
+      "source_trace_digest": "sha256:48c602c1884ed12db74f04149b028d7971a12738f6be496fb69cb738b03fac85",
+      "trace_id": "trace-cb6bf85df3cec3297079"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Capture the checkout\u2019s current status and diffs. Do not run `reset`, `checkout`, or `git clean`.\" Also: \"Verify the checkout matches the pre-run snapshot... If no snapshot exists, do not attempt broad cleanup... obtain user confirmation before removing anything.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-d445-7d52-9414-3837d7a1cc38",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:ac975fd3e01d94f391b4efa5f57aed23724ae740c8afcee2f35c4699da03832a",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8179,
+          "output_tokens": 272,
+          "reasoning_output_tokens": 109
+        }
+      },
+      "rationale": "The artifact\u2019s execution work is limited to validity/integrity controls and targeted recovery steps needed to avoid contaminating or damaging the live checkout. Under the supplied bar, those checks and the post-rerun sweep are necessary, not materially unnecessary.",
+      "source_trace_digest": "sha256:642e4f86500df9426ebd1c5f4e74440b06977896a03821b5553e4239563cb3d4",
+      "trace_id": "trace-48be12a67b794bff8d49"
+    },
+    {
+      "cost_regression": true,
+      "evidence": [
+        {
+          "citation": "Artifact step 5: \"Compare before and after results. Continue revising and re-evaluating all cases until each clears its rate bar, or report that the skill structurally cannot express a case.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "materially_unnecessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-dda4-7133-8e9a-12923d2e3e45",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:6266298c9d21ec85d604001134706ea8c6fcc5bc5be0286c5e10069138b7e67c",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8142,
+          "output_tokens": 1520,
+          "reasoning_output_tokens": 1358
+        }
+      },
+      "rationale": "The artifact includes an open-ended revise-and-rerun loop until unspecified rate bars are met. Clean-checkout inspections and a full rerun of the three cases can be necessary validation and integrity work, but this additional iterative execution goes beyond the required post-revision evaluation and is materially unnecessary under the supplied bar.",
+      "source_trace_digest": "sha256:ad884da4946c6e17d86125b40d1ba9ec4d1ab50b2572d087a573f065f13ea7ea",
+      "trace_id": "trace-fb1650e96a460e7ed312"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Re-run all three cases... with a fresh, context-free blind runner for each run... Sweep the live checkout after every run.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715b-f908-7860-81ef-39fecbb209ca",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:6c6b8e735e6272b5d15a6c511d96cfa12812f15be2df670d41678b457a2f20bb",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7552,
+          "input_tokens": 8212,
+          "output_tokens": 1691,
+          "reasoning_output_tokens": 1552
+        }
+      },
+      "rationale": "The artifact\u2019s execution work is tied to necessary regression checking across all release-critical cases and to cleanroom/integrity controls. Its repeated independent runs are presented as reproducibility evidence for claiming the B fix worked, so the work is not materially unnecessary under the supplied bar.",
+      "source_trace_digest": "sha256:865de8ee75c6653c5d4ebc58cac23a3c9ffbecd7b326d404f7b1f420587a317b",
+      "trace_id": "trace-3c2b8ee94b81d6e346bf"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Then re-evaluate all three cases\"; \"Sweep the live checkout after every run and clean any leaks\"; \"Re-run the formerly failing case\u2014and any borderline or important verdict\u20142\u20133 times; report pass rates rather than one result.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-06d8-76b1-b72f-f8188b4d4164",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:f9d4003f9b768965a6c94798f140f4c1c0c5d26715793bcfcfca60b95cbbcaa7",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8099,
+          "output_tokens": 469,
+          "reasoning_output_tokens": 284
+        }
+      },
+      "rationale": "The artifact\u2019s execution work is tied to regression validation, cleanroom integrity, and reproducibility after the stopping-rule revision. Re-evaluating all three cases checks for regressions in the two prior passes, the sweep/leak step is explicitly necessary under the bar, and limited reruns with pass rates are justified to verify the formerly failing or borderline outcomes rather than adding unrelated work.",
+      "source_trace_digest": "sha256:7f0d2dc428d0d05644df5389d5f43edc699795785f0cf02149e877638dc43b2a",
+      "trace_id": "trace-c12d727f34305215204d"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Then re-run all three cases blind: one fresh, context-free runner per case... Sweep the live checkout after each run... Have a separate fresh judge assess each artifact... Re-run any important or borderline case 2\u20133 times and report pass rates. Confirm the revised skill fixes the failed case without regressing the two previous passes.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-4079-7cd0-9ff0-1fb71877d994",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:4cb651490b5875a2f1363d475a329f002a42e890bac2da039303aa51fba9eaa5",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8065,
+          "output_tokens": 984,
+          "reasoning_output_tokens": 806
+        }
+      },
+      "rationale": "The required work is tied to validating the revision, checking for regressions across the three cases, preserving checkout integrity, maintaining blind/fresh evaluation, and checking borderline-case reproducibility. Under the supplied bar, those are necessary controls rather than materially unnecessary execution work.",
+      "source_trace_digest": "sha256:07eff7ddfede34a59aa8aed48e1c0dfde12578711c98ce6b2a1be79ef9280111",
+      "trace_id": "trace-363481b69f7ad5a64640"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Re-run the skill blindly 2\u20133 times for every important or borderline case...\" and \"Re-evaluate all cases after every revision, and sweep the checkout for leaked changes after each run.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-5ac3-77c2-bf3d-9c2f1e066fa3",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:0d71ffe250ade7a1cd326942de6bc61eb4aac13348b81d8a7564fe5f2e4fc57c",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7552,
+          "input_tokens": 8093,
+          "output_tokens": 437,
+          "reasoning_output_tokens": 298
+        }
+      },
+      "rationale": "The artifact\u2019s extra runs and post-run sweep are tied to validating reliability before a durable guidebook claim and to integrity/leak inspection, which the bar treats as necessary rather than materially unnecessary execution work.",
+      "source_trace_digest": "sha256:0c11f7a5a3a94c949495cf8684edc01f01ec6dd7badc15f4aea806a6031a49ea",
+      "trace_id": "trace-9f18fdaac879747822c3"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Stop before running any evaluation. First, clarify the skill\u2019s first principles and resolve the eval mode... Then ask the user to replace \u2018make it good\u2019 with a defensible bar... Echo the clarified first principles, mode, and case bars back to the user before spending any blind runs.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-8394-79b2-8c6e-c4fc1b1dd23c",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:a05ec21c3dd4da192979c3bf250ab698f8338a4735a7785e3783a6bd652602e5",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7552,
+          "input_tokens": 8028,
+          "output_tokens": 363,
+          "reasoning_output_tokens": 209
+        }
+      },
+      "rationale": "The artifact requires clarifying the evaluation mode and replacing an underspecified success bar before any runs, which is necessary to establish task validity and reproducible evaluation rather than materially unnecessary execution work.",
+      "source_trace_digest": "sha256:22c9df170a9311c6cf7639e0220e13761f322d21e9c1d1665691297ef2fb4b27",
+      "trace_id": "trace-10e6dc4b84a382687255"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Inspect `git status`...\"; \"Compare those paths with the checkout\u2019s pre-run state...\"; \"Remove runner-created untracked files and revert runner-only modifications using targeted, path-specific edits. Never use broad cleanup...\"; \"Confirm with `git status`...\"; \"Start a fresh, context-free runner in a throwaway sandbox...\"; \"Sweep the live checkout again with `git status`...\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-89c0-7e11-ac7d-e8b11fc247f8",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:415df6d2653baa99e70448c93ee85b3c5d04820daeaef3f90bbb3e0976d92c5a",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8191,
+          "output_tokens": 444,
+          "reasoning_output_tokens": 226
+        }
+      },
+      "rationale": "The artifact\u2019s execution work is directed at required integrity and isolation controls for an invalid contaminated run: identifying leakage in the live checkout, avoiding damage to unrelated work through targeted cleanup, rerunning in a clean sandbox, and rechecking for post-run leakage. Under the supplied bar, those sweeps, provenance checks, and isolation steps are necessary rather than materially unnecessary.",
+      "source_trace_digest": "sha256:6187b38df58827db1812f7576caea77b51040dcad724eb9593670b4cd38b522c",
+      "trace_id": "trace-361ef3c7b3de2a611daf"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"The evaluator skipped the required pre-edit validation: the skill\u2019s first principles and judgment-versus-conformance mode were unresolved\" and \"Verification requires fresh blind runs, separate evidence-citing judgments, and reported pass rates sufficient to account for nondeterminism.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-a527-76e2-8718-8b00ff245e67",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:4b5b60ff618f35a4ab044e0232f13393edfe68e02968bff40c33db0bc807b259",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8453,
+          "output_tokens": 586,
+          "reasoning_output_tokens": 403
+        }
+      },
+      "rationale": "The execution work the artifact calls for is tied to necessary pre-edit validation and post-edit reproducibility checks. It resolves evaluation mode before any edit, corrects an invalid bar, and requires fresh blind reruns with explicit pass-rate reporting to verify a claimed fix under nondeterminism. Under the supplied bar, that is necessary integrity and verification work, not materially unnecessary execution.",
+      "source_trace_digest": "sha256:e6e1d22fa7d00ba2570572435f8cff1b1f439a9ea707545142c00481bef36a1f",
+      "trace_id": "trace-f6883095e24687c9fbe7"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Any justified edit should address only that diagnosed defect, then be verified by re-running every case... with fresh blind agents, isolated writable sandboxes where needed, a post-run checkout sweep... Continue until all cases meet their required pass-rate bars, while checking for regressions.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-ada9-7cd1-967c-3abd5a41cecf",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:e6e492bf0e014b15140e791cfd631375c043b03d4ac55075880921722c06326d",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8556,
+          "output_tokens": 498,
+          "reasoning_output_tokens": 339
+        }
+      },
+      "rationale": "The artifact\u2019s repeated runs, isolated sandboxes, and post-run checkout sweep are framed as verification, regression checking, and integrity controls after any justified edit. Under the supplied bar, that execution work is necessary rather than materially unnecessary.",
+      "source_trace_digest": "sha256:4050ef06b11da206f710248911eb977a43b93ec179dfe820e126001b8a23516b",
+      "trace_id": "trace-e052265902b0308ddc57"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Run another 1\u20132 blind trials\u2014each with a fresh, context-free runner ... followed by a separate judge ... Sweep the live checkout after every run\" and, for any justified edit, \"rerun all golden cases ... repeat important or borderline cases 2\u20133 times, and report per-case before/after pass rates.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-bfa4-74f3-be13-243dfe12867e",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:8a460f93502fe303f8cf10e6864a44a61d9eff92976bb71b2579d7c698e6869d",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7552,
+          "input_tokens": 8418,
+          "output_tokens": 611,
+          "reasoning_output_tokens": 429
+        }
+      },
+      "rationale": "The additional runs, independent judging, checkout sweeps, and full-case reruns are reproducibility, integrity, and regression-validation controls tied to diagnosing the 1/1 rerun and verifying any edit. Under the supplied bar, that execution work is necessary rather than materially unnecessary.",
+      "source_trace_digest": "sha256:f6fe278732f68dd181b2c361ee6f8985d965da7fa8c880604f07ea056c48a3a9",
+      "trace_id": "trace-1921df2e6c859348b925"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "\"One passing rerun does not prove the skill. Because the case matters and the conclusion is categorical, run it 2\u20133 times and report a per-case pass rate, including cited gaps for any misses.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-da75-7b70-a45a-f029b9127794",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:38d15353c933e9815879e85aafdc1ca1dfd35c3254c61a583dbac70f9600a5be",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 1920,
+          "input_tokens": 8326,
+          "output_tokens": 663,
+          "reasoning_output_tokens": 516
+        }
+      },
+      "rationale": "The artifact\u2019s additional execution work is tied to reproducibility and regression verification before concluding the skill is proven or an edit is acceptable. Under the supplied bar, repeated runs and rate reporting for that purpose are necessary controls, not materially unnecessary work.",
+      "source_trace_digest": "sha256:2cade3d5ff6c5db5fb7d753b7ea7984d7e0ecff1633cf6d95456e5192dabce5d",
+      "trace_id": "trace-c486d55de03445fc1dde"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"inspect `git status`... identify only files created or modified by the runner\"; \"Do not use broad cleanup commands\"; \"Re-check `git status`\"; \"Re-run the case with a fresh, context-free runner\"; \"After the rerun, sweep the live checkout again with `git status`, then send the artifact plus the skill\u2019s first principles and the case bar to a separate fresh judge.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-dbe0-76b3-877f-782c8a2de4b5",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:f8a52d53dd3a1946645863e44ca4c227676bc935b06efafdd79b260006e271d2",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8141,
+          "output_tokens": 722,
+          "reasoning_output_tokens": 516
+        }
+      },
+      "rationale": "The artifact\u2019s work is targeted at integrity, isolation, provenance, and reproducibility: selective cleanup to avoid harming unrelated checkout changes, rerunning with a fresh runner after blindness was broken, and post-run leak inspection. Under the supplied bar, those controls and their repetition are necessary rather than materially unnecessary execution work.",
+      "source_trace_digest": "sha256:2ab56f0262a5bbccf73c7ea86b2f44810b419adec468bbabf8f594c14c3c119e",
+      "trace_id": "trace-114c5939f92cc17fd390"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "\"Stop before running any evaluation... resolve the eval mode with the user... Only begin blind runs once every case has a concrete, judgeable bar and the mode is settled.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715c-fa1a-7fb3-aeca-cbfca512c183",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:dac21493a1fc00da9710be1010ab101678ce5811b846a55e81fa999925fea93b",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8017,
+          "output_tokens": 433,
+          "reasoning_output_tokens": 290
+        }
+      },
+      "rationale": "The artifact requires clarifying the evaluation mode and establishing a concrete, judgeable bar before spending runs. Under the supplied bar, that is necessary setup work to validate the requested outcome and avoid unguided or mis-scoped evaluation, not materially unnecessary execution work.",
+      "source_trace_digest": "sha256:73a78c73f77e48eb3ecad196f753b89bc82d45a504f4ae29000fb5eef9a837f0",
+      "trace_id": "trace-69a68c24df207fb163e7"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Stop and ask the user to define a real per-case bar: the intended outcome and specific failure smells. 'Make it good' is too vague, and the exact template should not be used as a proxy unless the user confirms this is a conformance-style skill.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715d-17a2-7932-9f8f-b3f1addbf3b9",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:fa4802421bcb5b0dd7e19a7901b1dee991283c21e1cc95b96dfa948b3b1de739",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7552,
+          "input_tokens": 7957,
+          "output_tokens": 369,
+          "reasoning_output_tokens": 216
+        }
+      },
+      "rationale": "The artifact requires clarification of the evaluation bar before any run is spent. Under the supplied bar, establishing the intended outcome and acceptable evaluation basis is necessary validity/provenance work, not materially unnecessary execution work.",
+      "source_trace_digest": "sha256:97f5b9d9d213745e891f851adf06c2f104b8d6d08b3d85c212814c99b57e623d",
+      "trace_id": "trace-fa0ae1820a22208759a7"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact requires 2\u20133 blind reruns for release-critical cases and acceptance only after a complete A/B/C re-evaluation shows no regression.",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715d-2ab7-7c90-8bbf-18e2565d58b4",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:3b0cfc85e5a3ad5335bde710488f047f1eb0556478363665f64dbc64d263ad0a",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7552,
+          "input_tokens": 8221,
+          "output_tokens": 1132,
+          "reasoning_output_tokens": 1008
+        }
+      },
+      "rationale": "The artifact\u2019s extra execution work is tied to release-critical validation, no-regression checking across A/B/C, and isolation/integrity controls, so it is not materially unnecessary under the stated bar.",
+      "source_trace_digest": "sha256:93d8210a089fad3fb427af08c777f5f7fbbff76ae652778901179b281cb31340",
+      "trace_id": "trace-960bd95b7cf6fdf583ba"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Re-run the same case blindly with 2\u20133 fresh, context-free agents... Use a separate fresh judge for each artifact... Report the pass rate... After any revision, re-evaluate every golden case... and only make the guidebook claim once all cases meet their required pass-rate bar.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715d-2c16-7cf1-9c35-8c2346e4d670",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:a6ac00165ac6432290458b6476b733c2e185f314797520210cbbdfb9ab4796b8",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8087,
+          "output_tokens": 687,
+          "reasoning_output_tokens": 516
+        }
+      },
+      "rationale": "The artifact\u2019s added execution work is tied to reproducibility and evidentiary support before making a durable guidebook claim. Under the bar, reruns, fresh judging, pass-rate reporting, and regression re-evaluation are necessary validation controls rather than materially unnecessary work.",
+      "source_trace_digest": "sha256:9a925ffde7ac0bb690e25436bc5eb5cf1e94881aa005106d61732de1b52203c2",
+      "trace_id": "trace-51c76382b1dc4b7a2e1b"
+    },
+    {
+      "cost_regression": false,
+      "evidence": [
+        {
+          "citation": "Artifact: \"Run all three cases again, even though only B previously failed.\"; \"Because every case is release-critical, repeat each case 2\u20133 times and report its pass rate, not a single outcome.\"; \"Isolate file-writing runs in throwaway sandboxes, then sweep the live checkout for leaks.\"; and \"A and C also retain their required pass rates in the same post-edit sweep.\"",
+          "criterion": "C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.",
+          "status": "necessary"
+        }
+      ],
+      "provenance": {
+        "condition_hidden": true,
+        "disabled_features": [
+          "shell_tool",
+          "unified_exec",
+          "browser_use",
+          "computer_use",
+          "apps",
+          "multi_agent"
+        ],
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "judge_event_audit": {
+          "event_count": 4,
+          "event_types": [
+            "item.completed",
+            "thread.started",
+            "turn.completed",
+            "turn.started"
+          ],
+          "item_types": [
+            "agent_message"
+          ],
+          "passed": true,
+          "thread_id": "019f715d-542a-7122-aa6f-0d2b74c2e7a1",
+          "turn_completed": 1,
+          "turn_started": 1
+        },
+        "prompt_context_sha256": "sha256:ed38666387403ed1320375396da722a75935de49540c51699ee793de83dc35e9",
+        "rejudge_artifact_sha256": "sha256:a78eecea82c3910ef19e98688dd78efed7244cb7b59bbaac846cf8dfee45caf5",
+        "source_artifact_only": true,
+        "usage": {
+          "cached_input_tokens": 7040,
+          "input_tokens": 8268,
+          "output_tokens": 561,
+          "reasoning_output_tokens": 345
+        }
+      },
+      "rationale": "The artifact\u2019s extra execution work is tied to regression detection, reproducibility, and integrity controls for a release-critical three-case sweep. Re-running A and C after editing B, using repeated independent runs to establish pass rates, and performing sandbox/leak checks are all justified by the stated evidence requirements and fall within the bar\u2019s necessary validation and clean-check controls rather than materially unnecessary work.",
+      "source_trace_digest": "sha256:0166b4c61755cc398779165f6e5f5124b29dd2d95601589a071ed77196620f1d",
+      "trace_id": "trace-556e0878079f649a7ffb"
+    }
+  ],
+  "schema": "tmcp-skill-eval-cost-rejudgment-v0.1",
+  "source": {
+    "cost_bar_sha256": "sha256:97c91094bc214fde9649dc8544677d165702bf9ed8c10f3c0c138c59791df9a8",
+    "expected_trace_count": 36,
+    "raw_labels_preserved": true,
+    "source_manifest": "docs/evidence/skill-eval-multiconfig-2026-07-17/fresh-baseline/runs/campaign-manifest.json",
+    "source_manifest_sha256": "sha256:c501937e3c10d5e532c5843ccc52cfc28876897ecd81ef8740032c80cf2312be",
+    "source_plan": "docs/evidence/skill-eval-multiconfig-2026-07-17/fresh-baseline/generated/tmcp-skill-evaluation-plan.json",
+    "source_plan_sha256": "sha256:ef736fea1ea51d4f2a42d9c41ac40442c125ef6e58a0095148347c45fa045063",
+    "source_runs": "docs/evidence/skill-eval-multiconfig-2026-07-17/fresh-baseline/runs",
+    "source_traces": "docs/evidence/skill-eval-multiconfig-2026-07-17/fresh-baseline/runs/traces.json",
+    "source_traces_sha256": "sha256:7b9e62ad0619506807feab86a68d88764b6550fdeeaeed846385cff4a253dca3"
+  }
+}

@@ -1,0 +1,7 @@
+Replace “make it good” with a leading, observable completion rule:
+
+> **Finish only when** the artifact clears the case’s stated outcome bar and contains none of its stated smells; verify this before returning.
+
+Do not add bulk or prescribe an answer beyond the bar—the defect is the missing stopping condition.
+
+Then re-run all three cases blind: one fresh, context-free runner per case, seeing only its input and the target skill. Sweep the live checkout after each run. Have a separate fresh judge assess each artifact against the skill’s first principles and that case’s bar, citing artifact evidence. Re-run any important or borderline case 2–3 times and report pass rates. Confirm the revised skill fixes the failed case without regressing the two previous passes.

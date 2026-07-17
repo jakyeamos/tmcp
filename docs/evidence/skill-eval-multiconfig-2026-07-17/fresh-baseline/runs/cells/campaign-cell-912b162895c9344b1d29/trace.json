@@ -1,0 +1,154 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-terra-reasoning-high-codex-cli-0.144.2",
+    "model": "gpt-5.6-terra",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-912b162895c9344b1d29",
+    "judge_artifact": "cells/campaign-cell-912b162895c9344b1d29/judge.json",
+    "judge_artifact_sha256": "sha256:9d0c57f3c457337dabe8375a9eff235c80f773df7651612b4d238a57256a226c",
+    "judge_effort": "high",
+    "judge_model": "gpt-5.5",
+    "order": 1,
+    "runner_artifact": "cells/campaign-cell-912b162895c9344b1d29/runner.txt",
+    "runner_artifact_sha256": "sha256:95535ab84d3715413ddbc2b281ad04aaf016a0e380106127a3488696d396ab38",
+    "runner_effort": "high",
+    "runner_model": "gpt-5.6-terra",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 1920,
+        "input_tokens": 9711,
+        "output_tokens": 976,
+        "reasoning_output_tokens": 516
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 11605,
+        "output_tokens": 483,
+        "reasoning_output_tokens": 291
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "\u201cRevise only the vague stopping rule. Replace \u2018make it good\u2019 with a concrete definition of done... [and] the observable checks the agent must satisfy before it may stop.\u201d",
+        "criterion": "O1: The named vague-completion defect is used as the specification for the edit, and the completion criterion is made observable before adding instructional bulk.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cRevise only the vague stopping rule\u201d and \u201cDo not add unrelated guidance or bulk.\u201d",
+        "criterion": "O2: The revision changes only the instruction implicated by the failure rather than broadly rewriting or expanding unrelated parts of the skill.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cReplace \u2018make it good\u2019 with a concrete definition of done...\u201d is a clear leading directive; vague no-op language or sediment is absent.",
+        "criterion": "O3: The revised instruction uses a clear leading directive and avoids vague no-op language or sediment.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201cThen re-evaluate all three cases\u201d with \u201ca fresh, context-free runner\u201d and \u201ca separate fresh judge.\u201d",
+        "criterion": "O4: After the edit, all three cases are rerun with fresh blind runners and separate evidence-based judges rather than retesting only the failed case.",
+        "status": "pass"
+      },
+      {
+        "citation": "\u201creport pass rates rather than one result\u201d and \u201cReport before/after pass rates... [and] confirm... without regressing the two previously passing cases.\u201d",
+        "criterion": "O5: The result is reported with per-case pass rates and legible before-and-after movement.",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: artifact requires \u201ca concrete definition of done\u201d and \u201cobservable checks.\u201d",
+        "criterion": "S1 (failure smell must be absent): adds more generic encouragement without an observable completion criterion",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: artifact says \u201cRevise only the vague stopping rule\u201d and \u201cDo not add unrelated guidance or bulk.\u201d",
+        "criterion": "S2 (failure smell must be absent): rewrites unrelated parts of the skill",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: artifact leads with \u201cReplace \u2018make it good\u2019 with a concrete definition of done\u201d; no vague no-op language is added.",
+        "criterion": "S3 (failure smell must be absent): adds vague no-op language or accumulated prose instead of a leading directive",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: artifact says \u201cThen re-evaluate all three cases,\u201d not only the failed case.",
+        "criterion": "S4 (failure smell must be absent): only the failed case is rerun after an edit",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: artifact says to rerun important cases \u201c2\u20133 times\u201d and \u201creport pass rates rather than one result.\u201d",
+        "criterion": "S5 (failure smell must be absent): one post-edit green run is treated as proof",
+        "status": "pass"
+      }
+    ],
+    "passed": true,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-1c093069760c8dca",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact gives a narrow edit targeted at the vague completion criterion, makes the done condition observable, avoids unrelated rewrite or generic encouragement, and requires full-suite reevaluation with fresh runners, separate judges, repeated important cases, checkout sweeps, and before/after pass-rate reporting."
+    }
+  ],
+  "matrix_row_id": "eval-row-1e4890343a055f38",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "Revise only the vague stopping rule. Replace \u201cmake it good\u201d with a concrete definition of done tied to the skill\u2019s first principles: state what completed output must achieve and the observable checks the agent must satisfy before it may stop. Do not add unrelated guidance or bulk.\n\nThen re-evaluate all three cases:\n\n- Run each case with a fresh, context-free runner that receives only the case input and target skill.\n- Sweep the live checkout after every run and clean any leaks.\n- Have a separate fresh judge assess each artifact against that case\u2019s bar and the skill\u2019s first principles, citing artifact evidence.\n- Re-run the formerly failing case\u2014and any borderline or important verdict\u20142\u20133 times; report pass rates rather than one result.\n- Report before/after pass rates, the cited gap now resolved or remaining, and confirm the edit addressed the vague-completion-criterion defect without regressing the two previously passing cases."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7153-6c65-7021-999b-cb937998e32a",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:a874bcf1ec38f29b3e2ccffa4da2e98a4c0762a47d8a2154c557744b0f955d0d",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7153-38e8-7af3-af68-429b8da087dc",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "named-defect-minimal-revision",
+  "trace_id": "trace-c12d727f34305215204d",
+  "variant_id": "original"
+}

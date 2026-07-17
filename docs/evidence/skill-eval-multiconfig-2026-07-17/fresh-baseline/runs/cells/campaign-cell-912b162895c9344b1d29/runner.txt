@@ -1,0 +1,9 @@
+Revise only the vague stopping rule. Replace “make it good” with a concrete definition of done tied to the skill’s first principles: state what completed output must achieve and the observable checks the agent must satisfy before it may stop. Do not add unrelated guidance or bulk.
+
+Then re-evaluate all three cases:
+
+- Run each case with a fresh, context-free runner that receives only the case input and target skill.
+- Sweep the live checkout after every run and clean any leaks.
+- Have a separate fresh judge assess each artifact against that case’s bar and the skill’s first principles, citing artifact evidence.
+- Re-run the formerly failing case—and any borderline or important verdict—2–3 times; report pass rates rather than one result.
+- Report before/after pass rates, the cited gap now resolved or remaining, and confirm the edit addressed the vague-completion-criterion defect without regressing the two previously passing cases.

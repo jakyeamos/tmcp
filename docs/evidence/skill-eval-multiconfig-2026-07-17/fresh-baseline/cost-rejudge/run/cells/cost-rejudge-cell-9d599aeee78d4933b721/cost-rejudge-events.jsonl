@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f715d-2ab7-7c90-8bbf-18e2565d58b4"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"{\"cost_regression\":false,\"evidence\":[{\"citation\":\"Artifact requires 2–3 blind reruns for release-critical cases and acceptance only after a complete A/B/C re-evaluation shows no regression.\",\"criterion\":\"C1: The artifact does not require materially unnecessary execution work under the supplied cost evaluation bar.\",\"status\":\"necessary\"}],\"rationale\":\"The artifact’s extra execution work is tied to release-critical validation, no-regression checking across A/B/C, and isolation/integrity controls, so it is not materially unnecessary under the stated bar.\"}"}}
+{"type":"turn.completed","usage":{"input_tokens":8221,"cached_input_tokens":7552,"output_tokens":1132,"reasoning_output_tokens":1008}}

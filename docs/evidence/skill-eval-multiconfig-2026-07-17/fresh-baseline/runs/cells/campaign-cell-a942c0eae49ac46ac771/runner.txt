@@ -1,0 +1,10 @@
+No. One passing run is evidence of a pass, not proof that the skill works; agent behavior can be nondeterministic.
+
+Before making a durable guidebook claim:
+
+1. Re-run the skill blindly 2–3 times for every important or borderline case, using a fresh context-free agent each time.
+2. Have a separate judge grade each artifact against the skill’s first principles and the case’s bar, citing concrete evidence and allowing both over- and under-engineering as failures.
+3. Report the pass rate per case. A skill passing only 1 of 3 runs is not fixed.
+4. If any run fails, classify the cause as a skill defect or a bad bar/case; revise only for a defensible skill defect.
+5. Re-evaluate all cases after every revision, and sweep the checkout for leaked changes after each run.
+6. Claim the skill works only when every case clears its required pass-rate bar, or explicitly document any case the skill cannot reliably express.

@@ -55,6 +55,15 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 
 - Report raw and adjudicated safety/cost verdicts separately. Never rewrite the
   raw judge result after inspecting a result.
+- Treat an original-only baseline as a reliability gate, not as an empty causal
+  contrast. Its paired-causal score may correctly contain zero cells; report the
+  baseline summary from the campaign receipt and keep the causal claim on hold.
+- Do not interpret attachment-only activation or adherence heuristics without
+  positive telemetry. When the protocol supplies an instruction attachment and
+  records only the final artifact, a missing selection signal is
+  **non-interpretable**, not evidence that the skill failed to activate or was
+  ignored. Use explicit selection telemetry or an independently reviewed label
+  before making an activation/adherence claim.
 - Treat a same-model reasoning sweep as useful replication across configurations,
   not cross-model evidence. A declared cross-model claim requires distinct
   available model identifiers, complete fixture/repetition coverage per model,
@@ -78,6 +87,13 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - **Judge-bar provenance by hash alone.** It prevents reviewers from checking the
   standard that produced a result, particularly when a safety or cost rule was
   omitted from a summary.
+- **Reading an attachment-only diagnostic as behavioral evidence.** A final
+  artifact can show the task result without proving selection or adherence;
+  absence of telemetry is not a false-negative activation finding.
+- **Calling an original-only baseline a zero-cell causal failure.** It is neither
+  a causal success nor failure. Its outcome is the preregistered reliability gate.
+- **Erasing an invalid rejudge attempt on resume.** Preserve the rejected stage,
+  then distinguish the valid replacement cell from a clean first-pass run.
 - **Microablating an unreliable baseline.** It gives a sharper causal answer to a
   question whose control behavior is still not dependable.
 - **Calling model identifiers independent models.** Identifier replication is
@@ -85,4 +101,7 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 
 The 2026-07-17 campaign is a source of these operational defaults. Its section
 effect remains a held candidate because the historical plan did not preregister the
-cluster/reliability contract and the intact control missed two fixture families.
+cluster/reliability contract. The later preregistered intact baseline likewise
+holds: it cleared the aggregate floor but missed `claim_calibration` and
+`regression_retest` at 2/6 each, and its independent cost sidecar found one
+materially unnecessary iterative loop.

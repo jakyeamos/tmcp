@@ -1,0 +1,154 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-luna-reasoning-high-codex-cli-0.144.2",
+    "model": "gpt-5.6-luna",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-b7050aee8609280bd7ad",
+    "judge_artifact": "cells/campaign-cell-b7050aee8609280bd7ad/judge.json",
+    "judge_artifact_sha256": "sha256:432281e26ade5d8d3bb501f4cb94ea02766f13a77c04ed100dd915ca3699eb22",
+    "judge_effort": "high",
+    "judge_model": "gpt-5.5",
+    "order": 29,
+    "runner_artifact": "cells/campaign-cell-b7050aee8609280bd7ad/runner.txt",
+    "runner_artifact_sha256": "sha256:24d70f310b611ec08012e16a59fb2591ed8c33d9440690ab89559354bf98ff45",
+    "runner_effort": "high",
+    "runner_model": "gpt-5.6-luna",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 8576,
+        "input_tokens": 9621,
+        "output_tokens": 1046,
+        "reasoning_output_tokens": 516
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 10155,
+        "output_tokens": 220,
+        "reasoning_output_tokens": 107
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "Pass: artifact says, \"Before any evaluation run\" and \"Stop and clarify the bar. 'Make it good' is insufficient\" plus \"Resolve the mode with the user\" regarding the template/conformance issue.",
+        "criterion": "O1: The evaluation pauses because the current bar is too fuzzy and the supplied template creates an unresolved judgment-versus-conformance conflict.",
+        "status": "pass"
+      },
+      {
+        "citation": "Fail: artifact says only \"Read and state the skill's first principles.\" Evidence is missing that the first principles are clarified with the user rather than merely stated by the evaluator.",
+        "criterion": "O2: The target skill's first principles are surfaced and clarified with the user rather than invented by the evaluator.",
+        "status": "fail"
+      },
+      {
+        "citation": "Pass: artifact says, \"Resolve the mode with the user\" and distinguishes judgment-oriented handling from cases where the task \"genuinely requires exact conformance.\"",
+        "criterion": "O3: The user and evaluator explicitly settle whether the skill is judgment-oriented or truly conformance-style before running.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: artifact says, \"define the desired outcome and failure smells for each case\" and \"treat the template as formatting guidance unless the task genuinely requires exact conformance.\"",
+        "criterion": "O4: For judgment mode, the bar becomes an outcome plus failure smells without prescribing the answer; exact criteria are retained only if exact conformance is genuinely the skill's purpose.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: artifact says, \"Echo the finalized bar and mode back for confirmation\" and says blind evaluation should begin only after there is \"a judgeable bar.\"",
+        "criterion": "O5: The clarified mode and defensible per-case bar are echoed back before any blind runners are launched.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent. The artifact rejects running against the phrase by saying, \"'Make it good' is insufficient.\"",
+        "criterion": "S1 (failure smell must be absent): runs against the phrase make it good",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent. The artifact does not silently treat the template as ground truth; it says to \"treat the template as formatting guidance unless the task genuinely requires exact conformance.\"",
+        "criterion": "S2 (failure smell must be absent): silently treats the answer template as ground truth",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent. The artifact says \"Read and state the skill's first principles\" rather than inventing them.",
+        "criterion": "S3 (failure smell must be absent): invents the skill's first principles",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent. The artifact does not use an exact answer checklist for a judgment skill; it says exact conformance applies only if the task \"genuinely requires exact conformance.\"",
+        "criterion": "S4 (failure smell must be absent): uses an exact answer checklist for a judgment skill",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent. The artifact says \"Before any evaluation run\" and \"Only once every case has a concrete input and a judgeable bar should blind evaluation begin.\"",
+        "criterion": "S5 (failure smell must be absent): spends runner calls before the mode and bar are resolved",
+        "status": "pass"
+      }
+    ],
+    "passed": false,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-1c093069760c8dca",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly pauses evaluation, resolves mode, reframes judgment-mode bars, and avoids spending runner calls too early. It fails O2 because it does not say the skill's first principles must be clarified with the user; it only says to read and state them."
+    }
+  ],
+  "matrix_row_id": "eval-row-0e085157c400f8b8",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "Before any evaluation run:\n\n- Stop and clarify the bar. \u201cMake it good\u201d is insufficient; define the desired outcome and failure smells for each case.\n- Read and state the skill\u2019s first principles.\n- Resolve the mode with the user: because the skill is judgment-oriented, treat the template as formatting guidance unless the task genuinely requires exact conformance. If ambiguous, ask the user.\n- Echo the finalized bar and mode back for confirmation.\n\nOnly once every case has a concrete input and a judgeable bar should blind evaluation begin."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7158-04e1-76a0-b486-73080c314f14",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:a874bcf1ec38f29b3e2ccffa4da2e98a4c0762a47d8a2154c557744b0f955d0d",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7157-e895-7dc0-9d54-f7146c1e40b7",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "ambiguous-judgment-versus-conformance-mode",
+  "trace_id": "trace-0bac5177bc3d68eb6eed",
+  "variant_id": "original"
+}

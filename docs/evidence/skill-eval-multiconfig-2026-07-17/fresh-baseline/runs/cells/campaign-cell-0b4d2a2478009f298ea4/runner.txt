@@ -1,0 +1,13 @@
+Revise the target `SKILL.md` by replacing “make it good” with an explicit completion gate:
+
+> **Done means:** the requested artifact is produced, it fulfills the skill’s stated purpose, and the agent has reviewed it against the skill’s first principles, corrected every material weakness found, and can cite evidence that the result is usable. Do not stop at an intention or a vague quality claim.
+
+Classify the defect as **vague completion criterion**. Do not add unrelated rules or examples.
+
+Then re-evaluate all three cases:
+
+1. Run each case with a fresh blind agent, providing only its input and the target skill.
+2. Capture one artifact per run and sweep the live checkout for leaks.
+3. Have a separate fresh judge assess each artifact against the original bar and the skill’s first principles.
+4. Repeat important or borderline cases 2–3 times and report pass rates.
+5. Compare before/after results for every case, checking that the completion-gate edit fixes the original failure without regressing the two prior passes.

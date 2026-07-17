@@ -1,0 +1,10 @@
+No. One passing run can be luck or agent variability, not evidence the skill reliably works.
+
+Before making a durable guidebook claim:
+
+1. Re-run the same case blindly 2–3 times, each with a fresh context-free runner that sees only the input and target skill.
+2. Keep runs isolated and check the live checkout for leaks after each run.
+3. Have a separate fresh judge assess each artifact against the case’s stated bar and the skill’s first principles, citing concrete evidence.
+4. Report the pass rate and any recurring gaps—not merely “it passed once.”
+5. If the case matters or results are borderline, do not claim success unless the repeated runs clear the intended reliability bar.
+6. Re-evaluate all golden cases after any skill edit, since a fix can regress previously passing behavior.

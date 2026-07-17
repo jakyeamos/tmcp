@@ -1,0 +1,7 @@
+The first study is not evidence of a skill defect. Before any edit, the evaluator must confirm the skill’s first principles and whether it is judgment- or conformance-oriented. Once confirmed judgment-oriented, an exact seven-heading template is a bad bar unless those headings are genuinely essential to the intended outcome. Defensible artifacts failing only that template indicates a bad-case/bar finding, not a reason to edit the skill.
+
+The proper pre-edit action is to stop, explain that mismatch, and obtain a replacement bar stated as the desired outcome plus failure smells—not a prescribed answer structure. No skill change should be made to chase the seven-heading requirement.
+
+After the user confirms judgment mode and approves the outcome-and-smells bar, the fresh blind rerun is valid evidence but one pass does not prove the skill. The report is incomplete: it must give a per-case pass rate and cite artifact evidence against each part of the bar. Re-run the case independently 2–3 times when it matters or the result is borderline, then report the rate (for example, 3/3), not merely “passed.”
+
+An edit is justified only if repeated blind failures against the corrected, defensible bar expose a real skill defect—such as a missing rule, vague completion criterion, or premature completion. Map the failure to that defect, make the smallest `write-skills`-consistent change, then re-evaluate every golden case with fresh blind runners and separate judges. Verify the live checkout remains clean after runs and report before/after pass rates with cited gaps.

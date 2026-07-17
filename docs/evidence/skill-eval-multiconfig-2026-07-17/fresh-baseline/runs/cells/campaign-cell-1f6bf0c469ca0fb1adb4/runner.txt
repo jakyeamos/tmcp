@@ -1,0 +1,12 @@
+The run is invalid. The bar was exposed, violating blind evaluation, and live-checkout writes violated isolation. Do not grade, count, or reuse its artifact.
+
+Recovery:
+
+1. Stop the runner and preserve its artifact only as an invalid-run record.
+2. Freeze the checkout; do not run `git reset --hard`, `git clean -fd`, or broad restore commands.
+3. Compare the checkout with the pre-run snapshot or runner write manifest.
+4. Remove only files proven to have been created by that run.
+5. For tracked files, restore only run-created changes. If a file also contained pre-existing user edits, preserve it and manually remove the runner’s changes from a saved diff or backup.
+6. Check for writes outside Git’s view as well, using the runner’s declared sandbox/write log. Remove only confirmed run outputs.
+7. Verify that unrelated files and user changes are unchanged.
+8. Rerun the case with a fresh context-free runner, exposing only the concrete input; keep the bar hidden and use a throwaway writable sandbox. Sweep the live checkout afterward before grading.

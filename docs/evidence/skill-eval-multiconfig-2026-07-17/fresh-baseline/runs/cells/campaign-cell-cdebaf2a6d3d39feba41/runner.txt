@@ -1,0 +1,11 @@
+Re-run all three cases blind, not only B: use a fresh, context-free runner for each case/run, give it only that case’s input and the target skill, isolate any file-writing, and sweep the live checkout after every run. Grade each artifact with a separate fresh judge that sees only the artifact, that case’s bar/smells, and the skill’s first principles.
+
+Because all cases are release-critical, repeat each blind run 2–3 times and report pass rates with cited artifact evidence—not a single green result. Claim the B fix worked only if B clears its required rate bar and the complete A/B/C re-evaluation shows no regression, with judges’ specific evidence for every part of each bar.
+
+The new A miss must first be diagnosed, before revising again:
+
+- Determine whether it is a real skill regression caused by the B edit, or whether A’s bar/case is defective or penalizes a defensible judgment call.
+- Cite the artifact evidence and map a real defect to a `write-skills` failure mode.
+- Do not add another skill change merely to chase A until that diagnosis is made.
+
+If A is a real regression, the next edit must address the identified defect while preserving B, followed again by a full blind A/B/C sweep. If A’s bar is wrong, report that finding and do not distort the skill to satisfy it.

@@ -1,0 +1,159 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-luna-reasoning-high-codex-cli-0.144.2",
+    "model": "gpt-5.6-luna",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-f9ceb9cde71267756efc",
+    "judge_artifact": "cells/campaign-cell-f9ceb9cde71267756efc/judge.json",
+    "judge_artifact_sha256": "sha256:6af76ec93703242bf02dca32fbe2b5abf9c86fc04bc827b203db0852373918c0",
+    "judge_effort": "high",
+    "judge_model": "gpt-5.5",
+    "order": 36,
+    "runner_artifact": "cells/campaign-cell-f9ceb9cde71267756efc/runner.txt",
+    "runner_artifact_sha256": "sha256:7813517b7d40133cb9ae22577950dd307fe1433ff41d2345a6eb82ed6533b623",
+    "runner_effort": "high",
+    "runner_model": "gpt-5.6-luna",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 1920,
+        "input_tokens": 10060,
+        "output_tokens": 1084,
+        "reasoning_output_tokens": 516
+      },
+      "runner": {
+        "cached_input_tokens": 9984,
+        "input_tokens": 10255,
+        "output_tokens": 725,
+        "reasoning_output_tokens": 375
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "Pass: artifact says, \u201cDiagnose the failures as a bad case/bar, not a skill defect.\u201d",
+        "criterion": "O1: The template-only first result is diagnosed as a bad-case or bad-bar problem, not automatically as a skill defect.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: artifact says, \u201cSince the skill is judgment-oriented, an exact seven-heading template is the wrong evaluation bar; it converts the test into conformance.\u201d",
+        "criterion": "O2: The answer distinguishes judgment evaluation from conformance testing and explains why an exact answer template can erase the judgment under test.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: artifact says, \u201cDo not edit to satisfy the rejected seven-heading template or another indefensible bar.\u201d",
+        "criterion": "O3: It refuses to edit the skill merely to make artifacts match the seven-heading template.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: artifact requires: \u201cConfirm the target `SKILL.md`, concrete golden input(s), and the outcome-and-smells bar,\u201d \u201cRead and state the skill\u2019s first principles,\u201d and \u201cResolve the mode with the user.\u201d",
+        "criterion": "O4: Before the corrected run, it requires the user to clarify the skill's first principles and settle the evaluation mode, then replace the template with a defensible outcome-and-smells bar.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: artifact diagnoses the corrected result: \u201c\u2018proven after one pass\u2019 is unsupported\u201d and \u201cThe report must include a per-case pass rate.\u201d It also names possible valid-bar defects justifying edit, including \u201cpremature completion\u201d and \u201ca vague completion criterion.\u201d",
+        "criterion": "O5: It identifies the corrected run's single-pass/no-per-case-rate result as the named behavior defect that can justify a scoped edit, rather than blaming the template mismatch.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: artifact requires \u201cre-running every case,\u201d with \u201cfresh blind agents,\u201d \u201cseparate judges given only the artifact, first principles, and corrected bar,\u201d and continuing until \u201call cases meet their required pass-rate bars,\u201d with judges \u201cciting artifact evidence.\u201d",
+        "criterion": "O6: After a justified edit, it requires a full rerun with fresh blind runners and separate evidence-based judges, reporting per-case pass rates and cited gaps.",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent. Artifact says the template-only failures are \u201ca bad case/bar, not a skill defect.\u201d",
+        "criterion": "S1 (failure smell must be absent): treats the seven-heading template mismatch itself as a skill defect",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent. Artifact says, \u201cDo not edit to satisfy the rejected seven-heading template.\u201d",
+        "criterion": "S2 (failure smell must be absent): adds the seven headings to the skill",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent. Artifact says to \u201cResolve the mode with the user\u201d and \u201cRead and state the skill\u2019s first principles,\u201d not invent them.",
+        "criterion": "S3 (failure smell must be absent): invents the skill's first principles or evaluation mode instead of clarifying them with the user",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent. Artifact places the rerun \u201cAfter the user approves the corrected judgment bar.\u201d",
+        "criterion": "S4 (failure smell must be absent): runs a corrected study before the user settles the mode and bar",
+        "status": "pass"
+      },
+      {
+        "citation": "Pass: smell absent. Artifact says \u201cOne successful run is evidence of a pass, not proof of reliability,\u201d and edit is justified only if a valid-bar evaluation exposes \u201ca repeatable skill defect.\u201d",
+        "criterion": "S5 (failure smell must be absent): treats the corrected single green as proof or edits without naming its actual behavior defect",
+        "status": "pass"
+      }
+    ],
+    "passed": true,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-1c093069760c8dca",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly separates the bad template bar from skill quality, requires pre-edit clarification and bar replacement, rejects template-chasing edits, diagnoses the corrected one-pass report as insufficient, and requires scoped edits plus full fresh blind reruns with evidence-based judging."
+    }
+  ],
+  "matrix_row_id": "eval-row-85d6cdf6d46e68e5",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "The first study should stop before any edit.\n\n- Confirm the target `SKILL.md`, concrete golden input(s), and the outcome-and-smells bar.\n- Read and state the skill\u2019s first principles.\n- Resolve the mode with the user. Since the skill is judgment-oriented, an exact seven-heading template is the wrong evaluation bar; it converts the test into conformance.\n- Diagnose the failures as a bad case/bar, not a skill defect. Defensible artifacts failing only because they lack that template provide no justification for editing the skill.\n\nAfter the user approves the corrected judgment bar, the fresh rerun is valid in principle, but \u201cproven after one pass\u201d is unsupported. The report must include a per-case pass rate. For an important or borderline case, repeat the blind run 2\u20133 times and report, for example, `2/3`, with the judge citing artifact evidence for every bar component. One successful run is evidence of a pass, not proof of reliability.\n\nAn edit is justified only if a valid-bar evaluation exposes a repeatable skill defect\u2014such as premature completion, a vague completion criterion, a missing rule, duplication, sediment, a war story, or a no-op. The judge must identify the concrete gap and cite the artifact. Do not edit to satisfy the rejected seven-heading template or another indefensible bar.\n\nAny justified edit should address only that diagnosed defect, then be verified by re-running every case\u2014not just the failed one\u2014with fresh blind agents, isolated writable sandboxes where needed, a post-run checkout sweep, and separate judges given only the artifact, first principles, and corrected bar. Continue until all cases meet their required pass-rate bars, while checking for regressions."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7159-403a-71b0-bb1f-75999f57cf54",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:a874bcf1ec38f29b3e2ccffa4da2e98a4c0762a47d8a2154c557744b0f955d0d",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7158-fcb0-7de0-a74c-5b8d245a9431",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "judgment-skill-corrected-bar-followup",
+  "trace_id": "trace-e052265902b0308ddc57",
+  "variant_id": "original"
+}

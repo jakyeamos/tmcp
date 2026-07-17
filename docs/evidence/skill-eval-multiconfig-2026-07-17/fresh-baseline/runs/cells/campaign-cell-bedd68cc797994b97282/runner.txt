@@ -1,0 +1,1 @@
+Stop and ask the user to define a real per-case bar: the intended outcome and specific failure smells. “Make it good” is too vague, and the exact template should not be used as a proxy unless the user confirms this is a conformance-style skill.

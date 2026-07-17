@@ -1,0 +1,8 @@
+Before any evaluation run:
+
+- Stop and clarify the bar. “Make it good” is insufficient; define the desired outcome and failure smells for each case.
+- Read and state the skill’s first principles.
+- Resolve the mode with the user: because the skill is judgment-oriented, treat the template as formatting guidance unless the task genuinely requires exact conformance. If ambiguous, ask the user.
+- Echo the finalized bar and mode back for confirmation.
+
+Only once every case has a concrete input and a judgeable bar should blind evaluation begin.

@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f7158-9b4b-7431-9974-016e95aed076"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"Stop and ask the user to define a real per-case bar: the intended outcome and specific failure smells. “Make it good” is too vague, and the exact template should not be used as a proxy unless the user confirms this is a conformance-style skill."}}
+{"type":"turn.completed","usage":{"input_tokens":11596,"cached_input_tokens":0,"output_tokens":57,"reasoning_output_tokens":0}}

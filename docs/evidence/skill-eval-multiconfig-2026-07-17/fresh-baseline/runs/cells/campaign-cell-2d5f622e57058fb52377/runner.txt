@@ -1,0 +1,17 @@
+Post-edit protocol:
+
+- Re-evaluate all three release-critical cases, not only B.
+- Run each case with a fresh, context-free agent that sees only its input and the target skill.
+- Isolate each run, capture its artifact, then sweep the live checkout and ensure it is clean.
+- Grade each artifact with a separate judge given the skill’s first principles and that case’s bar, but not the expected output or other cases.
+- Repeat each case 2–3 times and report pass rates; require the pre-established release threshold, conservatively 3/3 for release-critical cases.
+
+Before claiming B is fixed, the evidence must show that B clears its bar across the required independent blind runs, with judge-cited artifact evidence for every part of the bar, plus a clean checkout and no unexplained nondeterminism. A single passing B run is insufficient.
+
+Because A now misses after the B-focused edit, treat it as a regression finding before revising again:
+
+1. Re-run A independently to determine whether the miss is nondeterministic and record its pass rate.
+2. Have a separate judge cite the exact artifact evidence and compare it with A’s bar and the skill’s first principles.
+3. Diagnose whether it is a genuine skill defect—likely an interaction introduced by the B fix—or a bad bar/case. Map the defect to the applicable authoring failure mode.
+4. Do not edit the skill until that diagnosis is defensible. If the bar is wrong, report the finding and do not encode it into the skill; if it is a skill regression, revise only the behavior implicated by the evidence.
+5. After any revision, repeat the full A/B/C sweep, since the B fix and the new A miss must both be revalidated.

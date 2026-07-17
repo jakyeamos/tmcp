@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f7157-e895-7dc0-9d54-f7146c1e40b7"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"Before any evaluation run:\n\n- Stop and clarify the bar. “Make it good” is insufficient; define the desired outcome and failure smells for each case.\n- Read and state the skill’s first principles.\n- Resolve the mode with the user: because the skill is judgment-oriented, treat the template as formatting guidance unless the task genuinely requires exact conformance. If ambiguous, ask the user.\n- Echo the finalized bar and mode back for confirmation.\n\nOnly once every case has a concrete input and a judgeable bar should blind evaluation begin."}}
+{"type":"turn.completed","usage":{"input_tokens":10155,"cached_input_tokens":0,"output_tokens":220,"reasoning_output_tokens":107}}

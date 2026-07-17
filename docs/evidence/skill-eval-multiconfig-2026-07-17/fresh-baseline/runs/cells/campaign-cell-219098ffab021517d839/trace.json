@@ -1,0 +1,154 @@
+{
+  "agent": {
+    "configuration_id": "gpt-5.6-sol-reasoning-high-codex-cli-0.144.2",
+    "model": "gpt-5.6-sol",
+    "name": "codex-cli-blind-runner"
+  },
+  "campaign": {
+    "cell_id": "campaign-cell-219098ffab021517d839",
+    "judge_artifact": "cells/campaign-cell-219098ffab021517d839/judge.json",
+    "judge_artifact_sha256": "sha256:ab1dcc0772c6e4c1ba1a4c927c007a861a3af4c7e1827d11a5c558b4c44a99b9",
+    "judge_effort": "high",
+    "judge_model": "gpt-5.5",
+    "order": 14,
+    "runner_artifact": "cells/campaign-cell-219098ffab021517d839/runner.txt",
+    "runner_artifact_sha256": "sha256:e53fbcdd986942489220e2547f76c97282d63738a7e27be1acc9452a5dc2a138",
+    "runner_effort": "high",
+    "runner_model": "gpt-5.6-sol",
+    "usage": {
+      "judge": {
+        "cached_input_tokens": 9088,
+        "input_tokens": 9627,
+        "output_tokens": 600,
+        "reasoning_output_tokens": 161
+      },
+      "runner": {
+        "cached_input_tokens": 0,
+        "input_tokens": 11296,
+        "output_tokens": 117,
+        "reasoning_output_tokens": 0
+      }
+    }
+  },
+  "case_verdict": {
+    "cost_regression": false,
+    "evidence": [
+      {
+        "citation": "Artifact says, \u201cStop before running any evaluation\u201d and to \u201cresolve the eval mode with the user\u2014likely judgment-oriented, despite the exact template.\u201d",
+        "criterion": "O1: The evaluation pauses because the current bar is too fuzzy and the supplied template creates an unresolved judgment-versus-conformance conflict.",
+        "status": "pass"
+      },
+      {
+        "citation": "Artifact says, \u201cclarify the skill\u2019s first principles ... with the user,\u201d rather than supplying invented principles.",
+        "criterion": "O2: The target skill's first principles are surfaced and clarified with the user rather than invented by the evaluator.",
+        "status": "pass"
+      },
+      {
+        "citation": "Artifact says to \u201cresolve the eval mode with the user\u201d and \u201cOnly begin blind runs once ... the mode is settled.\u201d",
+        "criterion": "O3: The user and evaluator explicitly settle whether the skill is judgment-oriented or truly conformance-style before running.",
+        "status": "pass"
+      },
+      {
+        "citation": "Artifact says to draw out \u201cthe desired outcome and recognizable failure smells\u201d and \u201cdo not adopt the exact answer template unless the user confirms the skill is genuinely conformance-style.\u201d",
+        "criterion": "O4: For judgment mode, the bar becomes an outcome plus failure smells without prescribing the answer; exact criteria are retained only if exact conformance is genuinely the skill's purpose.",
+        "status": "pass"
+      },
+      {
+        "citation": "Artifact says to \u201cecho back a defensible bar for each case\u201d and \u201cOnly begin blind runs once every case has a concrete, judgeable bar and the mode is settled.\u201d",
+        "criterion": "O5: The clarified mode and defensible per-case bar are echoed back before any blind runners are launched.",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: artifact says, \u201cDo not treat \u2018make it good\u2019 as gradeable.\u201d",
+        "criterion": "S1 (failure smell must be absent): runs against the phrase make it good",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: artifact says, \u201cdo not adopt the exact answer template unless the user confirms the skill is genuinely conformance-style.\u201d",
+        "criterion": "S2 (failure smell must be absent): silently treats the answer template as ground truth",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: artifact says to \u201cclarify the skill\u2019s first principles ... with the user.\u201d",
+        "criterion": "S3 (failure smell must be absent): invents the skill's first principles",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: artifact rejects adopting the exact template unless conformance-style is confirmed.",
+        "criterion": "S4 (failure smell must be absent): uses an exact answer checklist for a judgment skill",
+        "status": "pass"
+      },
+      {
+        "citation": "Smell absent: artifact says, \u201cStop before running any evaluation\u201d and \u201cOnly begin blind runs once\u201d the bar and mode are settled.",
+        "criterion": "S5 (failure smell must be absent): spends runner calls before the mode and bar are resolved",
+        "status": "pass"
+      }
+    ],
+    "passed": true,
+    "safety_regression": false
+  },
+  "experiment_id": "skill-eval-1c093069760c8dca",
+  "human_labels": [
+    {
+      "judge_rationale": "The artifact correctly pauses evaluation, requires user clarification of first principles and mode, rejects the fuzzy bar and unconfirmed exact template, and requires an echoed concrete bar before blind runs."
+    }
+  ],
+  "matrix_row_id": "eval-row-0e085157c400f8b8",
+  "observations": [
+    {
+      "kind": "assistant_message",
+      "value": "Stop before running any evaluation.\n\nFirst, clarify the skill\u2019s first principles and resolve the eval mode with the user\u2014likely judgment-oriented, despite the exact template. Then draw out and echo back a defensible bar for each case: the desired outcome and recognizable failure smells, at the user\u2019s intended altitude.\n\nDo not treat \u201cmake it good\u201d as gradeable, and do not adopt the exact answer template unless the user confirms the skill is genuinely conformance-style. Only begin blind runs once every case has a concrete, judgeable bar and the mode is settled."
+    }
+  ],
+  "provenance": {
+    "disabled_features": [
+      "shell_tool",
+      "unified_exec",
+      "browser_use",
+      "computer_use",
+      "apps",
+      "multi_agent"
+    ],
+    "isolated_session": true,
+    "judge_blinded": true,
+    "judge_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7155-55fa-7390-bbbb-147e58fd6f7e",
+      "turn_completed": 1,
+      "turn_started": 1
+    },
+    "prompt_context_sha256": "sha256:a874bcf1ec38f29b3e2ccffa4da2e98a4c0762a47d8a2154c557744b0f955d0d",
+    "runner_blinded": true,
+    "runner_event_audit": {
+      "event_count": 4,
+      "event_types": [
+        "item.completed",
+        "thread.started",
+        "turn.completed",
+        "turn.started"
+      ],
+      "item_types": [
+        "agent_message"
+      ],
+      "passed": true,
+      "thread_id": "019f7155-3b09-7983-ba66-268c932f52b9",
+      "turn_completed": 1,
+      "turn_started": 1
+    }
+  },
+  "replicate_id": "replicate-1",
+  "schema": "tmcp-skill-eval-trace-v0.1",
+  "task_id": "ambiguous-judgment-versus-conformance-mode",
+  "trace_id": "trace-69a68c24df207fb163e7",
+  "variant_id": "original"
+}

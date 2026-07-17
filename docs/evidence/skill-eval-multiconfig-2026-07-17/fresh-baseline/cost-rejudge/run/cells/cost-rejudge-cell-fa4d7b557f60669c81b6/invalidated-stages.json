@@ -1,0 +1,8 @@
+[
+  {
+    "archive": "invalidated/cost-rejudge-attempt-1",
+    "output_sha256": "sha256:d5d51065cf037f9ffce9ff54b07d3c8b57bc3564eb60265a35f949662fe99f96",
+    "reason": "Disallowed Codex item type observed: todo_list.",
+    "stage": "cost-rejudge"
+  }
+]

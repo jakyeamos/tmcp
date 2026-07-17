@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f7157-27e6-7fe3-87ff-678a66ee399f"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"Stop before running any evaluation.\n\nFirst, clarify the skill’s first principles and resolve the eval mode—likely judgment-oriented, unless the user confirms it is truly conformance-style. Then ask the user to replace “make it good” with a defensible bar for each case: the desired outcome and recognizable failure smells, without prescribing the exact answer.\n\nDo not treat the supplied template as the expected output or show it to a runner. Determine whether it is merely a formatting constraint or evidence of an exact conformance task. Echo the clarified first principles, mode, and case bars back to the user before spending any blind runs."}}
+{"type":"turn.completed","usage":{"input_tokens":11296,"cached_input_tokens":0,"output_tokens":128,"reasoning_output_tokens":0}}

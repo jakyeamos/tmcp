@@ -1,0 +1,37 @@
+{
+  "effort": "high",
+  "event_audit": {
+    "event_count": 4,
+    "event_types": [
+      "item.completed",
+      "thread.started",
+      "turn.completed",
+      "turn.started"
+    ],
+    "item_types": [
+      "agent_message"
+    ],
+    "passed": true,
+    "thread_id": "019f715e-1eb8-7722-8210-536a6fc6e8d0",
+    "turn_completed": 1,
+    "turn_started": 1
+  },
+  "event_stream_sha256": "sha256:f14ae224aa25c75c4b868d40f6d32bfe580a9923861baad137d18edfc8cb39b2",
+  "model": "gpt-5.4",
+  "output_schema_sha256": "sha256:e16b74e88431c02c59a9150aa25142f1edb2c58a779ac786c27ed9dcfd501687",
+  "output_sha256": "sha256:7c1eb45b116640b96f89fedc1e95317460e222ca36ba0c875bf1b9d05c030161",
+  "passed": true,
+  "prompt_sha256": "sha256:20aea4ba206b26e4255cc4cd6e47bc322e6e4005250526dacd9a0b420705c097",
+  "retry_audit": {
+    "attempts": [],
+    "successful_attempt": 1
+  },
+  "schema": "tmcp-remote-schema-preflight-v0.1",
+  "stderr": "",
+  "usage": {
+    "cached_input_tokens": 7040,
+    "input_tokens": 7597,
+    "output_tokens": 216,
+    "reasoning_output_tokens": 129
+  }
+}
