@@ -3,18 +3,20 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `bb8041a` makes skill-evaluation evidence claim-specific, paired, blinded, repeatable, and promotion-gated.
-- Verification: 492 tests passed, 3 skipped, and 108 subtests passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
+- Last completed change: `3ab7510` makes scorecard claim boundaries and signed guidebook effects explicit while keeping evaluator modules under the source-size gate.
+- Verification: 35 focused evaluator tests pass; Ruff formatting/lint and the changed-source size gate pass.
 
 ## Current Position
 
 - Plan/report v0.2 validates stable row identity, canonical pattern contracts, exact original/one-section-ablation attachments, blinded provenance, judge evidence, paired repetitions, and actual intervention-control lift.
 - Whole-section ablations can support only section-granularity claims. Static detections and legacy v0.1 plans remain hypotheses.
 - Corpus promotion remains manual and requires 72 runs, a 95% lift interval above zero, no agent-configuration reversal, and no safety or cost regression.
+- Dogfood experiment `skill-eval-af3806a4873b77a0` completed 8 blind judged traces: intact `eval-skills` passed 4/4 and the `Workflow`-section ablation passed 0/4.
+- The scorer reports a controlled-single-configuration section claim with intervention-control lift `-1.0` and 95% interval `[-1.0, -0.02]`; promotion remains on hold.
 
 ## Next Step
 
-- Run the repeated blind `eval-skills` Workflow-section dogfood and record its plan, artifacts, judged traces, report, and bounded guidebook conclusion.
+- Regenerate the report with the clarified renderer, record the evidence bundle and bounded guidebook conclusion, then run the full release gates.
 
 ## Blockers
 
@@ -22,5 +24,6 @@
 
 ## Risks
 
-- A controlled single-agent dogfood result can support an internal section-level candidate but cannot establish a corpus-wide tried-and-true pattern.
+- The controlled single-configuration result supports an internal section-level candidate but cannot establish a corpus-wide tried-and-true pattern.
+- One blinded judge flagged live-checkout cleanup wording as a safety regression; treat it as an unresolved counterexample until the instruction and judge calibration are tested directly.
 - Anti-pattern claims still require a future isolated removal or presence intervention; static matches remain suspected only.
