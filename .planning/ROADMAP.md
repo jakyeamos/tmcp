@@ -74,8 +74,10 @@ outcomes while preserving deterministic compatibility.
 **Plans:**
 
 - Composition foundation: hardening in progress — `280fbb6` closes reference
-  authority, multi-root identity, and phase-local read gaps; manifest-first
-  behavior indexing and lazy block hydration remain.
+  authority, multi-root identity, and phase-local read gaps; `a70fd04` adds
+  provenance-bound manifest-first indexing, lazy block hydration, compact
+  always-on context, and compatibility-safe preflight extensions. Task identity
+  hardening remains.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, plan preservation,

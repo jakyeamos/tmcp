@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Harden 0.6 in dogfood priority order: lazy behavior manifests,
+**Current focus:** Harden 0.6 in dogfood priority order: task identity,
 typed handoffs, then executable host-run benchmark evidence. Keep 0.5.7 active.
 
 ## Milestone
@@ -14,9 +14,9 @@ typed handoffs, then executable host-run benchmark evidence. Keep 0.5.7 active.
 **Name:** TMCP Compositional Intelligence 0.6
 **Status:** Dogfood hardening is in progress on
 `codex/tmcp-compositional-intelligence`. The initial 0.6 compiler is present;
-`280fbb6` closes the first source-authority, multi-root identity, and phase-read
-gaps. Lazy behavior manifests, typed artifact handoffs, and executable benchmark
-fixtures remain before real host-run release proof.
+`a70fd04` adds provenance-bound lazy behavior hydration and preserves the
+deterministic path. Task identity, typed artifact handoffs, and executable
+benchmark fixtures remain before real host-run release proof.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -29,10 +29,14 @@ fixtures remain before real host-run release proof.
 
 ## Completed Scope
 
+- `a70fd04` adds provenance-bound, content-addressed behavior manifests, compact
+  always-on indexes, bounded lazy hydration, target-aware source selection, and
+  backward-compatible schemas. 584 tests pass (3 expected skips); live dogfood
+  compiles 1,472 tokens from a 9,188-token naïve union (16.0%).
 - `280fbb6` makes reference trees permanently advisory, removes content-keyword
   workflow activation, preserves same-relative-path skills from distinct roots,
-  and hydrates only governing/current-stage reads. 178 focused tests pass; the
-  commit hook flags `harvest_nodes.py` for a later responsibility split.
+  and hydrates only governing/current-stage reads. Its `harvest_nodes.py`
+  responsibility split is completed by `a70fd04`.
 - Clean-tree reproducible package verification passes at `18a1f65`: archive
   digest `f0850b6f…`, manifest digest `e2f9e96f…`, installed compilation and 614
   tests, and packaged prepare → assisted compose → full recompile smoke all pass.
@@ -310,9 +314,10 @@ _(truncated for length)_
 ## Accumulated Context
 
 ### Roadmap Evolution
-- 2026-07-17: Dogfood resumes after the initial 0.6 implementation. `280fbb6`
-  hardens source authority and phase-local loading; manifest hydration, typed
-  handoffs, and executable benchmark evidence remain release blockers.
+- 2026-07-17: `a70fd04` closes manifest-first hydration dogfood findings:
+  compact indexes, hard token accounting, block/source provenance binding, and
+  compatibility-safe contracts. Task identity, handoffs, and executable proof
+  remain release blockers.
 - 2026-07-10: Modernization audit identifies P0 package disclosure risk and
   proposes a parallel v2 runtime behind stable entrypoints.
 - 2026-07-11: Milestone 0 closes the package-disclosure blocker; next work
@@ -345,5 +350,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_tmcp_composition_foundation tests.test_tmcp_composition_integration
+python3 -m unittest tests.test_tmcp_task_identity tests.test_tmcp_composition_foundation
 ```
