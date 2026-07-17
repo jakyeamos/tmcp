@@ -175,6 +175,11 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
         rejected = self._compose(rejected_proposal)
         runtime = advance_composition_runtime(accepted["composition_plan"], {})
         compatibility = self._compose(None)
+        self.assertEqual(accepted["task_identity"]["primary"], "compound_task")
+        self.assertEqual(
+            accepted["task_identity"]["routing_status"], "compound_fallback"
+        )
+        self.assertEqual(accepted["task_identity"]["validated_routes"], [])
         state = {
             "objective": self.arguments["objective"],
             "combined_objective": self.arguments["objective"],

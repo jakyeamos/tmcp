@@ -81,6 +81,12 @@ Add `task_identity` as a structured, first-class field on composed and recompile
       "motion_interaction",
       "freshness_research"
     ],
+    "intent_facets": ["planning", "implementation", "verification"],
+    "facet_signals": [
+      {"facet": "planning", "evidence": ["objective: design"]},
+      {"facet": "implementation", "evidence": ["objective: production-ready"]}
+    ],
+    "routing_status": "catalog_match",
     "confidence": 0.82,
     "signals": [
       {
@@ -96,9 +102,20 @@ Add `task_identity` as a structured, first-class field on composed and recompile
 **Derivation rules (deterministic, no LLM inside TMCP):**
 
 1. Run a **route catalog scorer** over `objective` + `latest_user_message` + runtime context (`files_changed`, `failures`, `browser_evidence`).
-2. Map top-scoring routes to `primary` (highest) and `secondary` (score ≥ threshold, max 6).
-3. When a scoped packet seed matches, seed `primary` from seed `id` / `name` and merge seed `behavior_atoms` into routes.
-4. On recompile, compare new `task_identity` to `previous_task_identity`; emit `task_identity_delta` when primary or secondary sets change.
+2. Retain an `active_routes` entry only when it clears the deterministic route threshold. `validated_routes` records that threshold-clearing subset; a low-scoring hint is retained in `signals`, but cannot activate behavior or shortcut reuse.
+3. When a scoped packet seed matches, seed `primary` from seed `id` / `name` and merge its explicit route affinity and `behavior_atoms` into routes. This reports `routing_status: family_match`.
+4. Independently derive deterministic `intent_facets` and cited `facet_signals` from the objective and latest user message (such as discovery, planning, implementation, verification, and lifecycle). Facets express the shape of the work; they are not routes.
+5. If neither a catalog route nor scoped family is validated but at least two facets are present, emit `primary: compound_task`, `active_routes: []`, and `routing_status: compound_fallback`. If that structural evidence is absent, preserve the compatibility `general_task` identity with `routing_status: unresolved`.
+6. On recompile, compare new `task_identity` to `previous_task_identity`; emit `task_identity_delta` when primary, active routes, facets, or routing status changes.
+
+The resulting status is intentionally narrow:
+
+| `routing_status` | Safe source of identity |
+| --- | --- |
+| `catalog_match` | One or more catalog routes cleared threshold. |
+| `family_match` | A matched scoped seed supplied identity/route affinity. |
+| `compound_fallback` | Two or more facets describe substantial work, with no activated route. |
+| `unresolved` | No catalog/family match and insufficient facet evidence. |
 
 **Route catalog** (initial set, extensible in `tmcp_runtime/domain/routes.py`):
 
@@ -112,6 +129,7 @@ Add `task_identity` as a structured, first-class field on composed and recompile
 | `performance_validation` | performance, bundle, latency, lighthouse |
 | `debugging_regression` | bug, failing, failure, debug |
 | `release_readiness` | release, ship, deploy, changelog |
+| `skill_composition` | compositional intelligence, skill graph, semantic proposal, behavior manifest |
 
 Routes are not skills. They are compile-time labels that drive selection, gates, and markdown rendering.
 
@@ -124,7 +142,7 @@ Additive fields on `tmcp-composed-packet-v0.1` (per [PACKET_STABILITY.md](PACKET
 
 Additive fields on `tmcp-runtime-next-v0.1`:
 
-- `task_identity_delta` (object: `previous`, `current`, `changed_routes`, `reason`)
+- `task_identity_delta` (object: `previous`, `current`, `changed_routes`, `changed_facets`, `changed_validated_routes`, `routing_status_changed`, `reason`)
 
 ### Implementation
 
@@ -416,6 +434,14 @@ Ship a reference seed at `examples/seeds/frontend-redesign-runtime.json` (not au
 #### Layer 4c — Cached shortcut packets (compiled views)
 
 Shortcut candidates are **not** source of truth. They are advisory compile metadata; the current runtime emits them for provenance but does not reuse them as a memoized execution path.
+
+Eligibility is conservative: a current scoped-family match or at least one
+threshold-validated active route is required. A `compound_task` identity is
+useful for selecting a fresh composition path, but it has no active routes and
+cannot make a shortcut eligible. `general_task`, unresolved identities,
+low-scoring signals, and facets alone are likewise ineligible. This prevents a
+generic multi-step prompt from acquiring durable behavior because of a
+single lexical coincidence.
 
 ```json
 {

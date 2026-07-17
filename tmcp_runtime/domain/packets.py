@@ -8,7 +8,7 @@ from typing import Any
 
 from .harvest_nodes import node_source_role, source_role_is_activation_eligible
 from .receipts import build_receipt_template
-from .routes import ROUTE_CATALOG_VERSION
+from .routes import KNOWN_ROUTE_IDS, ROUTE_CATALOG_VERSION
 
 
 def _json_list(value: object) -> list[Any]:
@@ -91,10 +91,16 @@ def shortcut_candidate_for_composed_packet(
             "fallback": "router_traversal",
             "reason": "No scoped seed or stable route identity matched.",
         }
+    routing_status = ""
+    validated_routes: list[str] = []
     confidence = 0.0
     task_primary = ""
     if isinstance(task_identity, dict):
         task_primary = str(task_identity.get("primary") or "").strip()
+        routing_status = str(task_identity.get("routing_status") or "").strip()
+        validated_routes = _string_list(task_identity.get("validated_routes"))
+        if not routing_status and not validated_routes:
+            validated_routes = _string_list(task_identity.get("active_routes"))
         try:
             confidence = float(task_identity.get("confidence") or 0.0)
         except (TypeError, ValueError):
@@ -116,6 +122,26 @@ def shortcut_candidate_for_composed_packet(
             "fallback": "router_traversal",
             "reason": (
                 "Zero-confidence general_task identities cannot become reusable shortcuts."
+            ),
+        }
+    has_validated_route = bool(set(validated_routes).intersection(KNOWN_ROUTE_IDS))
+    if not seed_id and routing_status and not (
+        routing_status == "catalog_match" and has_validated_route
+    ):
+        return {
+            "status": "ineligible",
+            "shortcut_id": shortcut_id,
+            "matched": False,
+            "compiled_from": {**compiled_from, "receipt_count": receipt_count},
+            "regenerate_when": [
+                "task identity gains a validated active route",
+                "graph_version changes",
+                "user_override present",
+            ],
+            "fallback": "router_traversal",
+            "reason": (
+                "Compound or unresolved task identities cannot become reusable shortcuts "
+                "without a scoped seed or validated active route."
             ),
         }
     overrides = _string_list(user_overrides)
@@ -147,13 +173,27 @@ def selection_rationale(packet: dict[str, Any]) -> str:
     if not isinstance(task_identity, dict):
         return "TMCP selected sources from the harvested skill graph for the stated objective."
     primary = str(task_identity.get("primary") or "general_task")
+    routing_status = str(task_identity.get("routing_status") or "")
+    facets = _string_list(task_identity.get("intent_facets"))
     signals = [
         item
         for item in _json_list(task_identity.get("signals"))
         if isinstance(item, dict)
     ]
     if not signals:
+        if routing_status == "compound_fallback":
+            return (
+                "TMCP recognized a compound task across facets "
+                f"({', '.join(facets) or 'unspecified'}); no catalog route cleared "
+                "the activation threshold, so selection remains source-backed."
+            )
         return f"TMCP inferred primary task identity `{primary}` from the objective and runtime context."
+    if routing_status == "compound_fallback":
+        return (
+            "TMCP recognized a compound task across facets "
+            f"({', '.join(facets) or 'unspecified'}); route signals remain advisory "
+            "until a catalog route clears the activation threshold."
+        )
     top = signals[0]
     route = str(top.get("route") or primary)
     evidence = ", ".join(_string_list(top.get("evidence"))[:3])
@@ -192,6 +232,12 @@ def render_composed_packet_markdown(packet: dict[str, Any]) -> str:
         "## Task Identity",
         f"Primary: {primary}",
     ]
+    routing_status = str(task_identity.get("routing_status") or "")
+    facets = _string_list(task_identity.get("intent_facets"))
+    if routing_status:
+        lines.append(f"Routing status: {routing_status}")
+    if facets:
+        lines.append(f"Intent facets: {', '.join(facets)}")
     if secondary:
         lines.append(f"Secondary: {', '.join(secondary)}")
     if active_routes:
@@ -395,7 +441,16 @@ def build_composed_packet(
                     "sources": [item.get("source") for item in normalized_citations],
                     "graph_version": compiled_from["graph_version"],
                     "atoms": normalized_atoms,
-                    "active_routes": task_identity.get("active_routes"),
+                    "task_identity": {
+                        "primary": task_identity.get("primary"),
+                        "active_routes": task_identity.get("active_routes"),
+                        "validated_routes": task_identity.get("validated_routes"),
+                        "intent_facets": task_identity.get("intent_facets"),
+                        "routing_status": task_identity.get("routing_status"),
+                        "route_catalog_version": task_identity.get(
+                            "route_catalog_version"
+                        ),
+                    },
                 },
                 sort_keys=True,
             ).encode()

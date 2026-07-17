@@ -63,10 +63,13 @@ def resolve_recompile_reason(arguments: Packet, state: Packet) -> str:
     ):
         return "user_redirect"
     identity_delta = state.get("task_identity_delta")
-    if isinstance(identity_delta, dict) and identity_delta.get("reason") in {
-        "task_identity_primary_changed",
-        "user_redirect",
-    }:
+    if isinstance(identity_delta, dict) and (
+        identity_delta.get("changed_facets")
+        or identity_delta.get("changed_validated_routes")
+        or identity_delta.get("routing_status_changed")
+        or identity_delta.get("reason")
+        in {"task_identity_primary_changed", "user_redirect"}
+    ):
         return "task_identity_shift"
     if _string_list(arguments.get("failures")):
         return "verification_failure"
@@ -275,6 +278,12 @@ def packet_diff(
     curr_routes = set(
         _string_list((current.get("task_identity") or {}).get("active_routes"))
     )
+    prev_facets = set(
+        _string_list((previous.get("task_identity") or {}).get("intent_facets"))
+    )
+    curr_facets = set(
+        _string_list((current.get("task_identity") or {}).get("intent_facets"))
+    )
     dropped: list[dict[str, str]] = []
     for atom in sorted(prev_atoms - curr_atoms):
         dropped.append(
@@ -290,6 +299,14 @@ def packet_diff(
                 "kind": "route",
                 "id": route,
                 "reason": _drop_reason(route, recompile_reason, packet_delta),
+            }
+        )
+    for facet in sorted(prev_facets - curr_facets):
+        dropped.append(
+            {
+                "kind": "task_facet",
+                "id": facet,
+                "reason": _drop_reason(facet, recompile_reason, packet_delta),
             }
         )
     added: list[dict[str, str]] = []
@@ -315,6 +332,14 @@ def packet_diff(
                 "kind": "route",
                 "id": route,
                 "reason": "Route activated from runtime evidence.",
+            }
+        )
+    for facet in sorted(curr_facets - prev_facets):
+        added.append(
+            {
+                "kind": "task_facet",
+                "id": facet,
+                "reason": "Task facet activated from runtime evidence.",
             }
         )
     derived_graph_diff = _composition_graph_diff(previous, current)
@@ -469,13 +494,18 @@ def apply_validated_proposals(
         return packet
     task_identity = dict(packet.get("task_identity") or {})
     active_routes = _string_list(task_identity.get("active_routes"))
+    validated_routes = _string_list(task_identity.get("validated_routes"))
     for change in validated_changes:
         action = str(change.get("action") or "")
         if action == "add_route":
             route = str(change.get("route") or "")
-            if route and route not in active_routes:
+            route_added = bool(route and route not in active_routes)
+            if route_added:
                 active_routes.append(route)
+            if route_added and route not in validated_routes:
+                validated_routes.append(route)
     task_identity["active_routes"] = active_routes
+    task_identity["validated_routes"] = validated_routes
     secondary = _string_list(task_identity.get("secondary"))
     for route in active_routes:
         if route != task_identity.get("primary") and route not in secondary:

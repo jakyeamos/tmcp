@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -16,6 +17,9 @@ from tests import test_tmcp_mcp_server as helpers
 REDESIGN_OBJECTIVE = (
     "Redesign these pages. Make them visually striking, interactive, modern, "
     "motion-rich, and production-ready."
+)
+ROUTING_GOLDEN = (
+    Path(__file__).resolve().parent / "fixtures" / "composition_routing_golden_v0_6.json"
 )
 
 
@@ -126,6 +130,90 @@ class TmcpRouteCatalogTests(unittest.TestCase):
             with self.subTest(objective=objective):
                 routes = {item["route"] for item in score_routes(objective, context)}
                 self.assertIn("accessibility_validation", routes)
+
+    def test_compound_fallback_keeps_weak_route_signals_advisory(self) -> None:
+        identity = derive_task_identity(
+            "Research the evidence, write a decision brief, and review every claim."
+        )
+
+        self.assertEqual(identity["primary"], "compound_task")
+        self.assertEqual(identity["routing_status"], "compound_fallback")
+        self.assertEqual(identity["active_routes"], [])
+        self.assertEqual(identity["validated_routes"], [])
+        self.assertGreater(float(identity["confidence"]), 0.0)
+        self.assertEqual(
+            [item["facet"] for item in identity["facet_signals"]],
+            identity["intent_facets"],
+        )
+        self.assertTrue(
+            all(
+                evidence.startswith("objective:")
+                for item in identity["facet_signals"]
+                for evidence in item["evidence"]
+            )
+        )
+        self.assertIn("freshness_research", [item["route"] for item in identity["signals"]])
+
+    def test_weak_single_route_signal_remains_unresolved(self) -> None:
+        identity = derive_task_identity("Research a generic work item.")
+
+        self.assertEqual(identity["primary"], "general_task")
+        self.assertEqual(identity["routing_status"], "unresolved")
+        self.assertEqual(identity["active_routes"], [])
+        self.assertEqual(identity["validated_routes"], [])
+        self.assertTrue(identity["signals"])
+
+    def test_skill_composition_route_uses_narrow_compound_phrases(self) -> None:
+        identity = derive_task_identity(
+            "Build a compositional intelligence skill graph and validate a semantic proposal."
+        )
+
+        self.assertEqual(identity["primary"], "skill_composition")
+        self.assertEqual(identity["routing_status"], "catalog_match")
+        self.assertEqual(identity["active_routes"], ["skill_composition"])
+        self.assertEqual(identity["validated_routes"], ["skill_composition"])
+        self.assertNotIn(
+            "skill_composition",
+            {item["route"] for item in score_routes("Run a skill evaluation.")},
+        )
+
+    def test_scoped_seed_remains_a_separate_safe_identity_source(self) -> None:
+        identity = derive_task_identity(
+            "Review the readiness record.",
+            family_context={
+                "active_seed_id": "review-seed",
+                "seed_name": "Review seed",
+                "route_affinity": ["skill_composition"],
+            },
+        )
+
+        self.assertEqual(identity["primary"], "review-seed")
+        self.assertEqual(identity["routing_status"], "family_match")
+        self.assertEqual(identity["validated_routes"], [])
+        self.assertIn("review-seed", identity["active_routes"])
+
+    def test_facet_only_task_identity_delta_is_material(self) -> None:
+        previous = derive_task_identity("Research and write a brief.")
+        current = derive_task_identity(
+            "Research, write, verify, and release a brief."
+        )
+
+        delta = task_identity_delta(previous, current)
+
+        self.assertIsNotNone(delta)
+        assert delta is not None
+        self.assertIn("verification", delta["changed_facets"])
+        self.assertIn("lifecycle", delta["changed_facets"])
+        self.assertEqual(delta["reason"], "task_identity_facets_changed")
+
+    def test_every_composition_routing_golden_has_a_substantial_identity(self) -> None:
+        golden = json.loads(ROUTING_GOLDEN.read_text(encoding="utf-8"))
+
+        for case in golden["cases"]:
+            with self.subTest(case_id=case["case_id"]):
+                identity = derive_task_identity(case["objective"])
+                self.assertNotEqual(identity["primary"], "general_task")
+                self.assertGreaterEqual(len(identity["intent_facets"]), 2)
 
 
 class TmcpComposedPacketIdentityTests(unittest.TestCase):

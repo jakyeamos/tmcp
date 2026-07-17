@@ -237,7 +237,10 @@ class CompositionFoundationTests(unittest.TestCase):
             )
 
     def test_graph_identity_tracks_selected_content_digest(self) -> None:
-        def build(text: str) -> dict[str, Any]:
+        def build(
+            text: str,
+            task_identity: dict[str, Any] | None = None,
+        ) -> dict[str, Any]:
             node = source_node_from_text(
                 root_path="/project",
                 source_path="/project/skills/review/SKILL.md",
@@ -252,7 +255,8 @@ class CompositionFoundationTests(unittest.TestCase):
                 objective="Review the project.",
                 project_path="/project",
                 phase="start",
-                task_identity={
+                task_identity=task_identity
+                or {
                     "primary": "review",
                     "confidence": 0.8,
                     "active_routes": ["review"],
@@ -276,12 +280,37 @@ class CompositionFoundationTests(unittest.TestCase):
 
         first = build("# Review\nVerify the output.\n")
         changed = build("# Review\nVerify the output and audit evidence.\n")
+        compound = build(
+            "# Review\nVerify the output.\n",
+            {
+                "primary": "compound_task",
+                "active_routes": [],
+                "validated_routes": [],
+                "intent_facets": ["discovery", "verification"],
+                "routing_status": "compound_fallback",
+            },
+        )
+        unvalidated_catalog = {
+            "primary": "frontend_implementation",
+            "active_routes": ["frontend_implementation"],
+            "validated_routes": [],
+            "intent_facets": [],
+            "routing_status": "catalog_match",
+        }
+        validated_catalog = {
+            **unvalidated_catalog,
+            "validated_routes": ["frontend_implementation"],
+        }
+        unvalidated = build("# Review\nVerify the output.\n", unvalidated_catalog)
+        validated = build("# Review\nVerify the output.\n", validated_catalog)
 
         self.assertNotEqual(
             first["compiled_from"]["graph_version"],
             changed["compiled_from"]["graph_version"],
         )
         self.assertNotEqual(first["packet_id"], changed["packet_id"])
+        self.assertNotEqual(first["packet_id"], compound["packet_id"])
+        self.assertNotEqual(unvalidated["packet_id"], validated["packet_id"])
         self.assertEqual(
             first["evidence_citations"][0]["content_digest"],
             content_digest_for("# Review\nVerify the output.\n"),
@@ -319,6 +348,31 @@ class CompositionFoundationTests(unittest.TestCase):
         self.assertEqual(shortcut["status"], "ineligible")
         self.assertFalse(shortcut["matched"])
         self.assertIn("Zero-confidence", shortcut["reason"])
+
+    def test_compound_task_is_not_shortcut_eligible_or_rendered_as_a_route(self) -> None:
+        packet = {
+            "objective": "Research, write, and review a brief.",
+            "task_identity": {
+                "primary": "compound_task",
+                "active_routes": [],
+                "validated_routes": [],
+                "intent_facets": ["discovery", "implementation", "verification"],
+                "routing_status": "compound_fallback",
+                "confidence": 0.65,
+                "signals": [{"route": "freshness_research", "score": 1.5}],
+            },
+        }
+        shortcut = packets.shortcut_candidate_for_composed_packet(
+            packet=packet,
+            compiled_from={"graph_version": "graph"},
+            receipt_count=3,
+        )
+
+        self.assertEqual(shortcut["status"], "ineligible")
+        self.assertFalse(shortcut["matched"])
+        self.assertIn("validated active route", shortcut["reason"])
+        self.assertIn("Routing status: compound_fallback", packets.render_composed_packet_markdown(packet))
+        self.assertIn("compound task across facets", packets.selection_rationale(packet))
 
 
 if __name__ == "__main__":

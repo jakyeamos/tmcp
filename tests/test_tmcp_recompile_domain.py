@@ -77,6 +77,18 @@ class RecompileDomainTests(unittest.TestCase):
         self.assertEqual(
             recompile.resolve_recompile_reason({}, {}), "runtime_context_changed"
         )
+        self.assertEqual(
+            recompile.resolve_recompile_reason(
+                {"failures": ["test failed"]},
+                {
+                    "task_identity_delta": {
+                        "changed_facets": ["verification"],
+                        "reason": "runtime_context_changed",
+                    }
+                },
+            ),
+            "task_identity_shift",
+        )
 
     def test_packet_diff_records_sorted_changes_and_reasons(self) -> None:
         previous = {
@@ -152,6 +164,31 @@ class RecompileDomainTests(unittest.TestCase):
                 "unchanged": [],
                 "all": ["AGENTS.md", "skills/implement/SKILL.md"],
             },
+        )
+
+    def test_packet_diff_tracks_task_facet_changes(self) -> None:
+        result = recompile.packet_diff(
+            {"task_identity": {"intent_facets": ["discovery", "planning"]}},
+            {"task_identity": {"intent_facets": ["planning", "verification"]}},
+            packet_delta={},
+            recompile_reason="task_identity_shift",
+        )
+
+        self.assertIn(
+            {
+                "kind": "task_facet",
+                "id": "discovery",
+                "reason": "Not required after task_identity_shift.",
+            },
+            result["dropped"],
+        )
+        self.assertIn(
+            {
+                "kind": "task_facet",
+                "id": "verification",
+                "reason": "Task facet activated from runtime evidence.",
+            },
+            result["added"],
         )
 
     def test_packet_diff_includes_all_graph_runtime_surfaces(self) -> None:
@@ -347,6 +384,7 @@ class RecompileDomainTests(unittest.TestCase):
             identity["active_routes"],
             ["primary-route", "existing-route", "accessibility_validation"],
         )
+        self.assertEqual(identity["validated_routes"], ["accessibility_validation"])
         self.assertEqual(
             identity["secondary"],
             ["existing-route", "accessibility_validation"],

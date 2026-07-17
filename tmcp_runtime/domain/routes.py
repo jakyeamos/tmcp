@@ -5,7 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-ROUTE_CATALOG_VERSION = "2026-07-17.1"
+from .task_facets import derive_intent_facets, lexical_term_matches
+
+ROUTE_CATALOG_VERSION = "2026-07-17.2"
 ROUTE_SCORE_THRESHOLD = 2.0
 MAX_SECONDARY_ROUTES = 6
 
@@ -59,7 +61,7 @@ def _terms_in_text(text: str, terms: tuple[str, ...]) -> list[str]:
 
 
 def _starts_at_lexical_boundary(text: str, term: str) -> bool:
-    return re.search(rf"(?<!\w){re.escape(term.lower())}", text.lower()) is not None
+    return lexical_term_matches(text, term)
 
 
 def _ui_file_boost(context: dict[str, Any]) -> tuple[float, list[str]]:
@@ -204,6 +206,22 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "production release",
         ),
     ),
+    RouteDefinition(
+        "skill_composition",
+        (
+            "compositional intelligence",
+            "skill composition",
+            "skill graph",
+            "skill packet",
+            "skill-packet",
+            "semantic proposal",
+            "behavior manifest",
+            "behavioral manifest",
+            "lazy hydration",
+            "composition recipe",
+            "runtime recompile",
+        ),
+    ),
 )
 
 COMPOSITE_PRIMARY_ROUTES: dict[str, frozenset[str]] = {
@@ -270,6 +288,12 @@ ROUTE_SOURCE_SLUG_PATTERNS: dict[str, tuple[str, ...]] = {
         "release readiness",
         "ship",
         "changelog",
+    ),
+    "skill_composition": (
+        "tmcp-composition",
+        "composition-intelligence",
+        "eval-skills",
+        "skill-creator",
     ),
 }
 
@@ -465,12 +489,17 @@ def derive_task_identity(
     family_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     context = context or {}
+    latest_user_message = str(context.get("latest_user_message") or "")
+    intent_facets, facet_signals = derive_intent_facets(
+        objective, latest_user_message
+    )
     signals = score_routes(objective, context)
-    active_routes = [
+    validated_routes = [
         str(item["route"])
         for item in signals
         if float(item["score"]) >= ROUTE_SCORE_THRESHOLD
     ]
+    active_routes = list(validated_routes)
     if family_context:
         seed_id = str(family_context.get("active_seed_id") or "").strip()
         seed_name = str(family_context.get("seed_name") or "").strip()
@@ -490,20 +519,34 @@ def derive_task_identity(
                 active_routes.append(route)
         if seed_name and not active_routes:
             active_routes.append(seed_id or seed_name)
-    if not active_routes and signals:
-        active_routes = [str(signals[0]["route"])]
-    primary = _resolve_primary_route(active_routes) if active_routes else "general_task"
+    routing_status = "catalog_match" if active_routes else "unresolved"
+    if family_context and str(family_context.get("active_seed_id") or "").strip():
+        routing_status = "family_match"
+    if not active_routes and len(intent_facets) >= 2:
+        primary = "compound_task"
+        routing_status = "compound_fallback"
+    else:
+        primary = _resolve_primary_route(active_routes)
     secondary = [route for route in active_routes if route != primary][
         :MAX_SECONDARY_ROUTES
     ]
     top_score = float(signals[0]["score"]) if signals else 0.0
-    confidence = min(0.99, round(0.35 + (top_score / 10.0), 2)) if signals else 0.0
+    if routing_status == "compound_fallback":
+        confidence = min(0.8, round(0.35 + (len(intent_facets) / 10.0), 2))
+    else:
+        confidence = (
+            min(0.99, round(0.35 + (top_score / 10.0), 2)) if signals else 0.0
+        )
     return {
         "primary": primary,
         "secondary": secondary,
         "active_routes": active_routes[: MAX_SECONDARY_ROUTES + 1],
+        "validated_routes": validated_routes[: MAX_SECONDARY_ROUTES + 1],
         "confidence": confidence,
         "signals": signals[:10],
+        "intent_facets": intent_facets,
+        "facet_signals": facet_signals,
+        "routing_status": routing_status,
         "route_catalog_version": ROUTE_CATALOG_VERSION,
     }
 
@@ -521,12 +564,30 @@ def task_identity_delta(
     prev_routes = set(_string_list(previous.get("active_routes")))
     curr_routes = set(_string_list(current.get("active_routes")))
     changed_routes = sorted(prev_routes ^ curr_routes)
-    if prev_primary == curr_primary and not changed_routes:
+    prev_facets = set(_string_list(previous.get("intent_facets")))
+    curr_facets = set(_string_list(current.get("intent_facets")))
+    changed_facets = sorted(prev_facets ^ curr_facets)
+    prev_validated = set(_string_list(previous.get("validated_routes")))
+    curr_validated = set(_string_list(current.get("validated_routes")))
+    changed_validated_routes = sorted(prev_validated ^ curr_validated)
+    routing_status_changed = str(previous.get("routing_status") or "") != str(
+        current.get("routing_status") or ""
+    )
+    if (
+        prev_primary == curr_primary
+        and not changed_routes
+        and not changed_facets
+        and not changed_validated_routes
+        and not routing_status_changed
+    ):
         return None
     return {
         "previous": previous,
         "current": current,
         "changed_routes": changed_routes,
+        "changed_facets": changed_facets,
+        "changed_validated_routes": changed_validated_routes,
+        "routing_status_changed": routing_status_changed,
         "reason": reason or _delta_reason(previous, current, changed_routes),
     }
 
@@ -540,6 +601,18 @@ def _delta_reason(
         return "task_identity_primary_changed"
     if changed_routes:
         return "task_identity_routes_changed"
+    if set(_string_list(previous.get("intent_facets"))) != set(
+        _string_list(current.get("intent_facets"))
+    ):
+        return "task_identity_facets_changed"
+    if str(previous.get("routing_status") or "") != str(
+        current.get("routing_status") or ""
+    ):
+        return "task_identity_routing_status_changed"
+    if set(_string_list(previous.get("validated_routes"))) != set(
+        _string_list(current.get("validated_routes"))
+    ):
+        return "task_identity_validated_routes_changed"
     return "task_identity_updated"
 
 

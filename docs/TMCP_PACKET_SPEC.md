@@ -16,7 +16,7 @@ Composable runtime packets (`tmcp-composed-packet-v0.1`) and the Adaptive Packet
 
 | Field | Meaning |
 | --- | --- |
-| `task_identity` | Structured task classification: `primary`, `secondary`, `active_routes`, `confidence`, `signals`. |
+| `task_identity` | Structured task classification: `primary`, `secondary`, `active_routes`, `validated_routes`, `intent_facets`, `facet_signals`, `routing_status`, `confidence`, and `signals`. |
 | `compiled_from` | Provenance for the compile: `graph_version`, `route_catalog_version`, `seed_id`, `cache_policy`. |
 | `packet_markdown` | Human-readable operating contract rendered from structured packet fields. |
 | `shortcut_candidate` | Advisory compiled-route shortcut metadata with `compiled_from` provenance. |
@@ -33,6 +33,42 @@ Composition and runtime routing are stateless by default: `cache_policy` default
 to `none`. `project` opts into explicitly reviewed project-local recipes;
 `global` separately opts into advisory promoted graphs and receipts from
 `TMCP_HOME`. No policy promotes a recipe automatically.
+
+## Task Identity Safety
+
+`task_identity` separates **what kind of work the prompt contains** from
+**which catalog routes have been validated for activation**. `intent_facets`
+is the ordered set of deterministic work modes found in the objective and
+latest user message (for example `discovery`, `planning`, `implementation`,
+`verification`, and `lifecycle`). `facet_signals` preserves the corresponding
+prompt evidence. Facets describe the shape of a substantial task; they are not
+instructions and never activate a skill or route by themselves.
+
+`active_routes` contains threshold-validated catalog routes plus any explicit
+route affinity supplied by a matched scoped family. `validated_routes` records
+only the threshold-validated catalog routes (or later TMCP-validated route
+proposals). A low-scoring catalog hint, a facet, and a source-name coincidence
+are insufficient. `routing_status`
+states which safe identity source won:
+
+| Status | Meaning |
+| --- | --- |
+| `catalog_match` | One or more catalog routes cleared the deterministic activation threshold. |
+| `family_match` | A scoped family/seed supplied the task identity and its explicit route affinity. |
+| `compound_fallback` | No route or family was validated, but two or more intent facets establish a substantial composite task. |
+| `unresolved` | Neither a validated route/family nor enough facets establish a safe nontrivial identity. |
+
+For `compound_fallback`, `primary` is `compound_task` and `active_routes` is
+empty. This preserves a useful structural identity without pretending that a
+keyword match selected an instruction source. `unresolved` normally uses the
+compatibility primary `general_task` with no active routes.
+
+A shortcut candidate is eligible only when a scoped family is matched or an
+active catalog route is validated for the current compile. `compound_task`,
+`general_task`, low-confidence hints, and facets alone are ineligible for
+shortcut reuse or promotion. Recompilation reports changes to routes, validated
+routes, facets, and routing status so a prior shortcut cannot silently survive
+an identity shift.
 
 ## Assisted Composition Contracts
 

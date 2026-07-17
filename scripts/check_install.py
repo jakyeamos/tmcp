@@ -89,6 +89,7 @@ REQUIRED_FILES = (
     "tmcp_runtime/domain/review_results.py",
     "tmcp_runtime/domain/runtime_state.py",
     "tmcp_runtime/domain/scoped_seeds.py",
+    "tmcp_runtime/domain/task_facets.py",
     "tmcp_runtime/domain/routes.py",
     "tmcp_runtime/domain/standalone_packets.py",
     "tmcp_runtime/domain/workflow_activation.py",
