@@ -7,20 +7,23 @@ score, or a guidebook promotion candidate.
 ## Preregistered matrix
 
 The canonical fixture matrix is
-`tests/fixtures/composition-contract-v1.json`. It has three cases:
+`tests/fixtures/composition-contract-v1.json`. It has five cases:
 
 | Case | Contract |
 | --- | --- |
 | `research_goal_is_not_frontend` | A research/guidebook objective with a generic "build" verb remains `general_task`; it does not activate frontend behavior. |
 | `explicit_frontend_control_remains_routed` | Explicit React components plus animation still activate frontend and motion routes. |
+| `user_reaction_is_not_react` | A user reaction is not React framework evidence. |
+| `implementation_evidence_is_not_frontend` | Documentation that cites implementation evidence remains `general_task`; a generic implementation reference is not frontend evidence. |
 | `test_fixture_is_evidence_only` | A project-root `tests/fixtures/**/SKILL.md` source is retained as test evidence but cannot become a citation, active instruction, or declared read in a live packet. |
 
-The first local composition probe exposed the two failure modes this matrix
-captures: the research objective selected `frontend_implementation` from the
-generic word "build", and an approval fixture appeared in the active packet.
-That observation was recorded as an advisory failed receipt. The fixture matrix
-turns it into a deterministic regression contract without relabeling it as a
-model result.
+Local composition dogfooding exposed the failure modes this matrix captures: a
+research objective selected `frontend_implementation` from the generic word
+"build", an approval fixture appeared in the active packet, user reaction was
+ambiguous with React, and a documentation-only objective selected frontend from
+the generic implementation stem. Those are local compiler observations, not
+model results. The fixture matrix turns them into deterministic regression
+contracts without relabeling them as behavioral evidence.
 
 ## Local verification
 
@@ -41,7 +44,7 @@ isolation, repetitions, and an independent rejudge where cost or safety matters.
 
 Until such a campaign replicates, this unit contributes an operational default:
 test fixtures are evidence-only during project-root composition, and generic
-verbs are not enough to activate a specialized route.
+build or implementation language is not enough to activate a specialized route.
 
 ## Next evidence gate
 

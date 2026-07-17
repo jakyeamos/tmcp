@@ -159,7 +159,6 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
     RouteDefinition(
         "frontend_implementation",
         (
-            "implement",
             "rebuild",
             "component",
             "react",

@@ -34,6 +34,15 @@
       }
     },
     {
+      "id": "implementation_evidence_is_not_frontend",
+      "kind": "task_identity",
+      "objective": "Draft source-grounded documentation for a skeptical internal engineering audience. Cite implementation evidence and keep unsupported claims unknown.",
+      "expected": {
+        "primary": "general_task",
+        "active_routes": []
+      }
+    },
+    {
       "id": "test_fixture_is_evidence_only",
       "kind": "source_role",
       "objective": "Build a trusted evidence-backed guidebook for agent skills and skill composition through preregistered fixture-scoped experiments.",

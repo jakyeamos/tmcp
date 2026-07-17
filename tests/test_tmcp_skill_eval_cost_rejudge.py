@@ -792,6 +792,7 @@ class CostRejudgeSourceTests(unittest.TestCase):
         self.assertIn("Packet-probed", ledger)
         self.assertIn("Selection-only", ledger)
         self.assertIn("Candidate", ledger)
+        self.assertIn("TMCP compiler + `write-docs` | Packet-probed", ledger)
         self.assertIn("no behavioral calls have\n  been made", ledger)
         self.assertIn(
             "cannot authorize a corpus rewrite or a behavioral claim", ledger

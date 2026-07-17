@@ -85,6 +85,19 @@ class TmcpRouteCatalogTests(unittest.TestCase):
         self.assertNotIn("frontend_implementation", routes)
         self.assertEqual(identity["primary"], "general_task")
 
+    def test_implementation_evidence_does_not_activate_frontend_route(self) -> None:
+        objective = (
+            "Draft source-grounded documentation for a skeptical internal "
+            "engineering audience. Cite implementation evidence and keep "
+            "unsupported claims unknown."
+        )
+
+        routes = {item["route"] for item in score_routes(objective)}
+        identity = derive_task_identity(objective)
+
+        self.assertNotIn("frontend_implementation", routes)
+        self.assertEqual(identity["primary"], "general_task")
+
     def test_user_reaction_language_does_not_activate_react_route(self) -> None:
         objective = (
             "Establish the known knowns and stop for the user's reaction after "
