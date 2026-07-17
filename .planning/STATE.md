@@ -16,8 +16,8 @@ typed handoffs, then executable host-run benchmark evidence. Keep 0.5.7 active.
 `codex/tmcp-compositional-intelligence`. The initial 0.6 compiler is present;
 `a70fd04` adds provenance-bound lazy behavior hydration and preserves the
 deterministic path, while `9f26520` restores the test-size quality gate. Task
-identity, typed artifact handoffs, and executable benchmark fixtures remain
-before real host-run release proof.
+identity now has lexical safety at `9b4d72e`; compound facets, typed artifact
+handoffs, and executable benchmark fixtures remain before real host-run proof.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -30,6 +30,9 @@ before real host-run release proof.
 
 ## Completed Scope
 
+- `9b4d72e` eliminates embedded route-term collisions, preserves intended lexical
+  forms, contextualizes contrast, and invalidates stale routing provenance. The
+  590-test suite passes with three expected skips.
 - `9f26520` moves preflight budget and identity cases into a focused test module;
   the pre-CR quality gate is clean and the full 584-test suite remains green.
 - `a70fd04` adds provenance-bound, content-addressed behavior manifests, compact
@@ -320,7 +323,8 @@ _(truncated for length)_
 - 2026-07-17: `a70fd04` closes manifest-first hydration dogfood findings:
   compact indexes, hard token accounting, block/source provenance binding, and
   compatibility-safe contracts; `9f26520` restores the test-size gate. Task
-  identity, handoffs, and executable proof remain release blockers.
+  identity lexical safety is at `9b4d72e`; compound facets, handoffs, and
+  executable proof remain release blockers.
 - 2026-07-10: Modernization audit identifies P0 package disclosure risk and
   proposes a parallel v2 runtime behind stable entrypoints.
 - 2026-07-11: Milestone 0 closes the package-disclosure blocker; next work
@@ -353,5 +357,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_tmcp_task_identity tests.test_tmcp_composition_foundation
+python3 -m unittest tests.test_tmcp_task_identity tests.test_tmcp_route_inference
 ```
