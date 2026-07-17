@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `be23e68` makes source-bundle launch preflight verify every immutable study input, the regenerated plan, live source paths, and the actual first-principles file supplied to runners; `fbbeaf5` keeps source-checkout evidence intentionally outside release archives.
-- Verification: 556 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook could not run `pre-cr` because its CLI is unavailable on PATH.
+- Last completed change: `d615e0d` preregisters the exact 72-trace composition cost rejudge, binds its cost bar and process boundary into the immutable study input, and makes scoring hold a claim until that sidecar is complete; `be23e68` verifies source-bundle launch inputs and live sources.
+- Verification: 557 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook warns that `evaluation_evidence.py` exceeds the source-size limit and could not run `pre-cr` because its CLI is unavailable on PATH.
 
 ## Current Position
 
@@ -36,10 +36,11 @@
 - The local project-root composition replay is recorded with advisory receipt `packet-f62c9fd667c8`; its deterministic pass does not promote a skill-pair or wording rule.
 - The reviewed v1 composition plan has six Stage-1 fixtures across campaign sequencing, evidence-boundary, and promotion-gate families; `packet_only` versus exact `packet_plus_explore` yields 72 blinded cells. It can test only the delivery effect of the pinned source bundle, not live selection, adherence, or corpus quality.
 - `verify_composition_study.py` now rejects input/receipt/first-principles drift, reports opted-in live-source drift without exposing source text, and is mandatory for source-bundle campaign manifests; the campaign rejects a different runner first-principles file.
+- Its byte-pinned cost sidecar requires a fresh, condition-blind, artifact-only 72-trace review using `gpt-5.6-sol` at high effort. This is process-independent but not a distinct-model claim; raw labels remain separate, and scoring holds promotion until coverage is complete.
 
 ## Next Step
 
-- Obtain fresh approval to run the preregistered `composition-study-e142fa5d9be1ff32` 72-cell blind runner/judge campaign, then independently rejudge and score it. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
+- Obtain fresh approval to run the preregistered `composition-study-2b35bb34abeb431f` 72 runner and 72 primary-judge calls. Afterward, obtain separate approval for its 72 cost-rejudge calls, then score it. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
 
 ## Blockers
 
