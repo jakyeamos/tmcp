@@ -9,6 +9,7 @@ from pathlib import Path
 import tmcp_runtime.domain.runtime_state as runtime_state
 from tmcp_runtime.domain.routes import derive_task_identity
 from tmcp_runtime.domain.runtime_state import derive_runtime_state
+from tests.test_tmcp_composition_runtime import _plan as composition_runtime_plan
 
 
 class TmcpRuntimeStateDomainTests(unittest.TestCase):
@@ -40,6 +41,13 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
                 "signal_excerpt": "Use existing components before implementation.",
             },
         ]
+
+    @staticmethod
+    def _runtime_plan() -> dict[str, object]:
+        plan = composition_runtime_plan()
+        plan["current_phase"] = "runtime"
+        plan["ordered_stages"][0]["phase"] = "runtime"
+        return plan
 
     def test_context_only_state_is_data_only_and_does_not_use_cache_warnings(
         self,
@@ -150,6 +158,143 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
         assert isinstance(delta, dict)
         self.assertEqual(delta["previous"], previous_identity)
         self.assertEqual(delta["reason"], "runtime_context_changed")
+
+    def test_composition_runtime_blocks_family_phase_until_named_gates_pass(
+        self,
+    ) -> None:
+        state = derive_runtime_state(
+            {
+                "objective": "Use runtime to implement onboarding",
+                "current_phase": "runtime",
+                "previous_packet": {"composition_plan": self._runtime_plan()},
+                "files_read": ["docs/research.md"],
+                "files_changed": ["app/page.tsx"],
+                "commands_run": ["python3 -m unittest"],
+                "verification_results": ["looks good"],
+                "failures": ["visual check still pending"],
+                "browser_evidence": ["screenshot captured"],
+                "latest_user_message": "Continue with the implementation.",
+                "user_overrides": ["Keep the current labels"],
+                "cache_policy": "none",
+            },
+            source_nodes=self._family_nodes(),
+            cache_warnings=[],
+        )
+
+        runtime = state["composition_runtime"]
+        self.assertIsInstance(runtime, dict)
+        assert isinstance(runtime, dict)
+        self.assertEqual(runtime["current_phase"], "runtime")
+        self.assertEqual(
+            runtime["phase_advance"]["blocked_reason"],
+            "runtime_failures_present",
+        )
+        self.assertEqual(state["suggested_phase"], "")
+        self.assertEqual(state["packet_delta"]["suggested_skills"], [])
+        observation_kinds = {
+            item["kind"] for item in runtime["runtime_observations"] if "kind" in item
+        }
+        self.assertTrue(
+            {
+                "files_read",
+                "files_changed",
+                "commands_run",
+                "failures",
+                "browser_evidence",
+                "user_overrides",
+                "latest_user_message",
+            }.issubset(observation_kinds)
+        )
+
+    def test_composition_runtime_advances_after_structured_gate_results(self) -> None:
+        state = derive_runtime_state(
+            {
+                "objective": "Use runtime to implement onboarding",
+                "current_phase": "runtime",
+                "previous_packet": {"composition_plan": self._runtime_plan()},
+                "verification_results": [
+                    {"gate": "Research brief approved", "status": "passed"}
+                ],
+                "gate_results": [
+                    {"gate": "Research handoff available", "status": "passed"}
+                ],
+                "cache_policy": "none",
+            },
+            source_nodes=self._family_nodes(),
+            cache_warnings=[],
+        )
+
+        runtime = state["composition_runtime"]
+        self.assertIsInstance(runtime, dict)
+        assert isinstance(runtime, dict)
+        self.assertTrue(runtime["phase_advance"]["allowed"])
+        self.assertEqual(runtime["current_phase"], "implementation")
+        self.assertEqual(state["suggested_phase"], "implementation")
+        self.assertEqual(state["packet_delta"]["suggested_skills"], ["implement"])
+
+    def test_reported_current_phase_is_a_gated_request_when_plan_is_behind(
+        self,
+    ) -> None:
+        state = derive_runtime_state(
+            {
+                "objective": "Implement onboarding",
+                "current_phase": "implementation",
+                "previous_packet": {"composition_plan": self._runtime_plan()},
+                "gate_results": [
+                    {"gate": "Research brief approved", "status": "passed"},
+                    {"gate": "Research handoff available", "status": "passed"},
+                ],
+                "cache_policy": "none",
+            },
+            source_nodes=[],
+            cache_warnings=[],
+        )
+
+        self.assertEqual(state["phase"], "runtime")
+        self.assertEqual(state["runtime_evidence"]["requested_phase"], "implementation")
+        self.assertEqual(
+            state["composition_runtime"]["current_phase"], "implementation"
+        )
+
+    def test_fresh_composition_cannot_bypass_the_previous_plan_gates(self) -> None:
+        state = derive_runtime_state(
+            {
+                "objective": "Verify onboarding",
+                "current_phase": "runtime",
+                "previous_packet": {"composition_plan": self._runtime_plan()},
+                "semantic_proposal": {
+                    "schema": "tmcp-semantic-proposal-v0.1",
+                    "current_phase": "verification",
+                },
+                "cache_policy": "none",
+            },
+            source_nodes=[],
+            cache_warnings=[],
+        )
+
+        runtime = state["composition_runtime"]
+        self.assertTrue(state["semantic_proposal_supplied"])
+        self.assertEqual(runtime["current_phase"], "runtime")
+        self.assertFalse(runtime["phase_advance"]["allowed"])
+        self.assertEqual(
+            runtime["phase_advance"]["blocked_reason"],
+            "required_gates_not_passed",
+        )
+
+    def test_explicit_project_recipe_is_treated_as_fresh_composition(self) -> None:
+        state = derive_runtime_state(
+            {
+                "objective": "Implement onboarding",
+                "previous_packet": {"composition_plan": self._runtime_plan()},
+                "project_recipe_id": "reviewed-onboarding",
+                "cache_policy": "project",
+            },
+            source_nodes=[],
+            cache_warnings=[],
+        )
+
+        self.assertTrue(state["semantic_proposal_supplied"])
+        self.assertIsInstance(state["composition_runtime"], dict)
 
     def test_runtime_state_domain_has_no_adapter_or_io_imports(self) -> None:
         source_path = Path(inspect.getfile(runtime_state))

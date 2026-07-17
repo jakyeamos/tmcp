@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-routing-golden-v0.1.schema.json",
+  "title": "TMCP Composition Routing Golden v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "cases"],
+  "properties": {
+    "schema": {"const": "tmcp-composition-routing-golden-v0.1"},
+    "cases": {
+      "type": "array",
+      "minItems": 20,
+      "items": {"$ref": "#/$defs/case"}
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "domain", "objective", "expected_skill_ids"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "domain": {
+          "enum": [
+            "ui_product",
+            "migration_data",
+            "agent_workflow",
+            "research_writing_review",
+            "diagnose_fix_regression"
+          ]
+        },
+        "objective": {"type": "string", "minLength": 1},
+        "expected_skill_ids": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

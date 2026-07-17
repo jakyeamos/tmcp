@@ -16,6 +16,8 @@ from typing import Any, Protocol, cast
 
 from unittest.mock import patch
 
+from tests import test_tmcp_composition_benchmarks as benchmark_test_support
+from tmcp_runtime.domain.composition_benchmarks import score_composition_benchmark
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 RELEASE_ARCHIVE_PATH = PLUGIN_ROOT / "scripts" / "tmcp_release_archive.py"
@@ -427,6 +429,58 @@ class ReleasePackageTests(unittest.TestCase):
             sorted(entry["path"] for entry in manifest["entries"]),
         )
 
+    def test_composition_benchmark_becomes_mandatory_at_0_6(self) -> None:
+        self.assertFalse(self.checker.composition_benchmark_required("0.5.7"))
+        self.assertTrue(self.checker.composition_benchmark_required("0.6.0"))
+        self.assertTrue(self.checker.composition_benchmark_required("1.0.0"))
+
+        current_ok, current_output = self.checker.check_composition_benchmark(
+            PLUGIN_ROOT,
+            None,
+            release_version="0.5.7",
+        )
+        future_ok, future_output = self.checker.check_composition_benchmark(
+            PLUGIN_ROOT,
+            None,
+            release_version="0.6.0",
+        )
+
+        self.assertTrue(current_ok, current_output)
+        self.assertFalse(future_ok)
+        self.assertIn("require an explicit real", future_output)
+
+    def test_composition_benchmark_validates_supplied_observations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            observations = Path(tmp) / "observations.json"
+            observations.write_text('{"schema":"observed"}\n', encoding="utf-8")
+            expected_digest = hashlib.sha256(observations.read_bytes()).hexdigest()
+            builder = benchmark_test_support.CompositionBenchmarkTests()
+            builder.setUpClass()
+            summary = {
+                "ok": True,
+                **score_composition_benchmark(
+                    golden_cases=builder.golden_cases,
+                    fixture_definitions=builder.fixture_definitions,
+                    routing_results=builder._routing_results(),
+                    behavioral_results=builder._behavioral_results(),
+                ),
+                "observations_sha256": expected_digest,
+            }
+            with patch.object(
+                self.checker,
+                "run_json",
+                return_value=(True, json.dumps(summary), summary),
+            ) as benchmark_runner:
+                ok, output = self.checker.check_composition_benchmark(
+                    PLUGIN_ROOT,
+                    observations,
+                    release_version="0.6.0",
+                )
+
+        self.assertTrue(ok, output)
+        self.assertEqual(json.loads(output)["observations_sha256"], expected_digest)
+        benchmark_runner.assert_called_once()
+
     def test_cli_reports_reproducibility_digests(self) -> None:
         checks: dict[str, object] = {
             key: "pass"
@@ -445,6 +499,7 @@ class ReleasePackageTests(unittest.TestCase):
                 "sample_expert_rubric",
                 "adaptive_workflow_surface",
                 "composition_surface",
+                "composition_benchmark",
             )
         }
         checks["output"] = {}

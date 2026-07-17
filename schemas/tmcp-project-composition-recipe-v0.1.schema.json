@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-project-composition-recipe-v0.1.schema.json",
+  "title": "TMCP Project Composition Recipe v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "format_version",
+    "created_at",
+    "recipe_id",
+    "recipe_key",
+    "composition_plan_id",
+    "graph_digest",
+    "source_plan_schema",
+    "composition_recipe",
+    "promotion_eligibility",
+    "cache_policy",
+    "status",
+    "explicit_promotion",
+    "activation_policy",
+    "trust",
+    "instruction_override_policy",
+    "redaction_summary"
+  ],
+  "properties": {
+    "schema": { "const": "tmcp-project-composition-recipe-v0.1" },
+    "format_version": { "const": 1 },
+    "created_at": { "type": "string", "minLength": 1 },
+    "recipe_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$"
+    },
+    "recipe_key": {
+      "type": "string",
+      "pattern": "^recipe-[a-f0-9]{32}$"
+    },
+    "composition_plan_id": { "type": "string", "minLength": 1 },
+    "graph_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "source_plan_schema": { "const": "tmcp-composition-plan-v0.1" },
+    "composition_recipe": { "$ref": "#/$defs/composition_recipe" },
+    "promotion_eligibility": { "$ref": "#/$defs/promotion_eligibility" },
+    "cache_policy": { "const": "project" },
+    "status": { "const": "reviewed_promoted" },
+    "explicit_promotion": { "const": true },
+    "activation_policy": { "const": "explicit_load_only" },
+    "trust": { "const": "advisory_untrusted" },
+    "instruction_override_policy": { "type": "string", "minLength": 1 },
+    "redaction_summary": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    }
+  },
+  "$defs": {
+    "composition_recipe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "composition_plan_id",
+        "graph_digest",
+        "current_phase",
+        "task_model",
+        "skill_roles",
+        "typed_edges",
+        "ordered_stages",
+        "coverage",
+        "trust",
+        "instruction_override_policy"
+      ],
+      "properties": {
+        "composition_plan_id": { "type": "string", "minLength": 1 },
+        "graph_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "current_phase": { "type": "string", "minLength": 1 },
+        "task_model": { "type": "object" },
+        "skill_roles": { "type": "array", "items": { "type": "object" } },
+        "typed_edges": { "type": "array", "items": { "type": "object" } },
+        "scoped_seed_graph_hints": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "ordered_stages": { "type": "array", "items": { "type": "object" } },
+        "coverage": { "type": "object" },
+        "trust": { "const": "advisory_untrusted" },
+        "instruction_override_policy": { "type": "string", "minLength": 1 }
+      }
+    },
+    "promotion_eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "recipe_id",
+        "graph_digest",
+        "cache_policy",
+        "explicit_promotion_required",
+        "auto_promote",
+        "eligible",
+        "blocking_reasons",
+        "thresholds",
+        "evidence",
+        "aggregate_metrics"
+      ],
+      "properties": {
+        "schema": { "const": "tmcp-project-recipe-promotion-eligibility-v0.1" },
+        "recipe_id": { "type": "string", "minLength": 1 },
+        "graph_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "cache_policy": { "const": "project" },
+        "explicit_promotion_required": { "const": true },
+        "auto_promote": { "const": false },
+        "eligible": { "const": true },
+        "blocking_reasons": { "type": "array", "maxItems": 0 },
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "minimum_receipts",
+            "minimum_fixtures",
+            "minimum_synergy_lift",
+            "minimum_compiler_lift",
+            "minimum_order_lift",
+            "maximum_context_ratio"
+          ],
+          "properties": {
+            "minimum_receipts": { "type": "integer", "minimum": 3 },
+            "minimum_fixtures": { "type": "integer", "minimum": 2 },
+            "minimum_synergy_lift": { "type": "number", "minimum": 0.1 },
+            "minimum_compiler_lift": { "type": "number", "minimum": 0.05 },
+            "minimum_order_lift": { "type": "number", "minimum": 0.05 },
+            "maximum_context_ratio": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.75
+            }
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "verified_receipt_count",
+            "fixture_count",
+            "safety_failure_receipts",
+            "missing_safety_gate_receipts",
+            "override_receipts"
+          ],
+          "properties": {
+            "verified_receipt_count": { "type": "integer", "minimum": 3 },
+            "fixture_count": { "type": "integer", "minimum": 2 },
+            "safety_failure_receipts": { "type": "array", "maxItems": 0 },
+            "missing_safety_gate_receipts": { "type": "array", "maxItems": 0 },
+            "override_receipts": { "type": "array", "maxItems": 0 }
+          }
+        },
+        "aggregate_metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "synergy_lift",
+            "compiler_lift",
+            "order_lift",
+            "context_ratio"
+          ],
+          "properties": {
+            "synergy_lift": { "type": "number", "minimum": 0.1 },
+            "compiler_lift": { "type": "number", "minimum": 0.05 },
+            "order_lift": { "type": "number", "minimum": 0.05 },
+            "context_ratio": { "type": "number", "minimum": 0, "maximum": 0.75 }
+          }
+        }
+      }
+    }
+  }
+}

@@ -81,6 +81,12 @@ CLI_TOOL_ALIASES = {
     "promote-workflows": "tmcp_promote_harvest",
     "tmcp-promote-harvest": "tmcp_promote_harvest",
     "tmcp_promote_harvest": "tmcp_promote_harvest",
+    "prepare-composition": "tmcp_prepare_composition",
+    "tmcp-prepare-composition": "tmcp_prepare_composition",
+    "tmcp_prepare_composition": "tmcp_prepare_composition",
+    "promote-composition-recipe": "tmcp_promote_composition_recipe",
+    "tmcp-promote-composition-recipe": "tmcp_promote_composition_recipe",
+    "tmcp_promote_composition_recipe": "tmcp_promote_composition_recipe",
     "compose": "tmcp_compose_packet",
     "compose-packet": "tmcp_compose_packet",
     "tmcp-compose-packet": "tmcp_compose_packet",
@@ -139,6 +145,8 @@ CLI_CANONICAL_COMMANDS: Final[dict[str, str]] = {
     "tmcp_evaluate_skills": "evaluate-skills",
     "tmcp_recommend_workflows": "recommend",
     "tmcp_promote_harvest": "promote-harvest",
+    "tmcp_prepare_composition": "prepare-composition",
+    "tmcp_promote_composition_recipe": "promote-composition-recipe",
     "tmcp_compose_packet": "compose-packet",
     "tmcp_runtime_next": "runtime-next",
     "tmcp_record_receipt": "record-receipt",
@@ -154,6 +162,8 @@ TOOL_STABILITY: Final[dict[str, ToolStability]] = {
     "tmcp_evaluate_skills": "experimental",
     "tmcp_recommend_workflows": "experimental",
     "tmcp_promote_harvest": "experimental",
+    "tmcp_prepare_composition": "experimental",
+    "tmcp_promote_composition_recipe": "experimental",
     "tmcp_compose_packet": "stable",
     "tmcp_runtime_next": "stable",
     "tmcp_record_receipt": "experimental",
@@ -168,6 +178,8 @@ TOOL_STATE_EFFECTS: Final[dict[str, StateEffect]] = {
     "tmcp_evaluate_skills": "optional_write",
     "tmcp_recommend_workflows": "optional_write",
     "tmcp_promote_harvest": "default_write",
+    "tmcp_prepare_composition": "read_only",
+    "tmcp_promote_composition_recipe": "default_write",
     "tmcp_compose_packet": "optional_write",
     "tmcp_runtime_next": "optional_write",
     "tmcp_record_receipt": "default_write",
@@ -182,9 +194,13 @@ TOOL_OUTPUT_SCHEMA_IDS: Final[dict[str, tuple[str, ...]]] = {
     "tmcp_evaluate_skills": (
         "tmcp-skill-evaluation-plan-v0.1",
         "tmcp-skill-evaluation-report-v0.1",
+        "tmcp-composition-evaluation-plan-v0.1",
+        "tmcp-composition-evaluation-summary-v0.1",
     ),
     "tmcp_recommend_workflows": ("tmcp-workflow-recommendation-v1",),
     "tmcp_promote_harvest": ("tmcp-harvest-promotion-v0.1",),
+    "tmcp_prepare_composition": ("tmcp-composition-preflight-v0.1",),
+    "tmcp_promote_composition_recipe": ("tmcp-project-recipe-promotion-v0.1",),
     "tmcp_compose_packet": ("tmcp-composed-packet-v0.1",),
     "tmcp_runtime_next": (
         "tmcp-runtime-next-v0.1",
@@ -261,6 +277,8 @@ Usage:
   node scripts/tmcp_launcher.mjs {commands["tmcp_evaluate_skills"]} [--skill-paths path/to/SKILL.md] [--task-fixtures '[...]'] [--write-artifacts]
   node scripts/tmcp_launcher.mjs {commands["tmcp_recommend_workflows"]} [source_path] [--candidate-workflows ui_quality] [--write-artifacts]
   node scripts/tmcp_launcher.mjs {commands["tmcp_promote_harvest"]} [source_path] [--selected-workflows workflow_id] [--write-artifacts]
+  node scripts/tmcp_launcher.mjs {commands["tmcp_prepare_composition"]} \"<objective>\" [--project-path .] [--source-path .]
+  node scripts/tmcp_launcher.mjs {commands["tmcp_promote_composition_recipe"]} <recipe-id> --project-path /absolute/project --composition-plan '{{...}}' --receipts '[...]' --explicit-promotion
   node scripts/tmcp_launcher.mjs {commands["tmcp_compose_packet"]} \"<objective>\" [--project-path .] [--source-path .] [--session-id run-name --project-path /absolute/project]
   node scripts/tmcp_launcher.mjs {commands["tmcp_runtime_next"]} \"<objective>\" [--current-phase verification] [--files-changed app/page.tsx] [--output-mode full] [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project]
   node scripts/tmcp_launcher.mjs recompile-packet \"<objective>\" [--previous-packet '{{...}}' | --session-id run-name --project-path /absolute/project] [--current-phase runtime] [--files-changed app/page.tsx]

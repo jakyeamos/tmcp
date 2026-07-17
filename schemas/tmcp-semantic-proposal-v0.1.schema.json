@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-semantic-proposal-v0.1.schema.json",
+  "title": "TMCP Semantic Proposal v0.1",
+  "description": "Host-proposed, advisory semantics that TMCP must validate against harvested source slices.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "preflight_id",
+    "current_phase",
+    "task_model",
+    "skill_roles",
+    "relationships",
+    "coverage",
+    "trust"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-semantic-proposal-v0.1"
+    },
+    "preflight_id": {
+      "type": "string",
+      "pattern": "^preflight-[a-f0-9]{20}$"
+    },
+    "current_phase": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_model": {
+      "$ref": "#/$defs/task_model"
+    },
+    "skill_roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/skill_role"
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relationship"
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["facets", "unresolved_gaps"],
+      "properties": {
+        "facets": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "unresolved_gaps": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "trust": {
+      "const": "advisory_untrusted"
+    }
+  },
+  "$defs": {
+    "string_list": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "task_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deliverables",
+        "success_criteria",
+        "constraints",
+        "subgoals",
+        "evidence_needs"
+      ],
+      "properties": {
+        "deliverables": {
+          "allOf": [{ "$ref": "#/$defs/string_list" }],
+          "minItems": 1
+        },
+        "success_criteria": {
+          "allOf": [{ "$ref": "#/$defs/string_list" }],
+          "minItems": 1
+        },
+        "constraints": { "$ref": "#/$defs/string_list" },
+        "subgoals": {
+          "allOf": [{ "$ref": "#/$defs/string_list" }],
+          "minItems": 1
+        },
+        "evidence_needs": {
+          "allOf": [{ "$ref": "#/$defs/string_list" }],
+          "minItems": 1
+        }
+      }
+    },
+    "skill_role": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "node_id",
+        "role",
+        "inputs",
+        "outputs",
+        "phase_affinity",
+        "exit_gates",
+        "context_cost",
+        "citations"
+      ],
+      "properties": {
+        "node_id": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "minLength": 1 },
+        "inputs": {
+          "allOf": [{ "$ref": "#/$defs/string_list" }],
+          "minItems": 1
+        },
+        "outputs": {
+          "allOf": [{ "$ref": "#/$defs/string_list" }],
+          "minItems": 1
+        },
+        "phase_affinity": {
+          "allOf": [{ "$ref": "#/$defs/string_list" }],
+          "minItems": 1
+        },
+        "entry_gates": { "$ref": "#/$defs/string_list" },
+        "exit_gates": {
+          "allOf": [{ "$ref": "#/$defs/string_list" }],
+          "minItems": 1
+        },
+        "context_cost": { "type": "integer", "minimum": 0 },
+        "covers": { "$ref": "#/$defs/string_list" },
+        "citations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^slice-[a-f0-9]{20}$"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "type", "citations"],
+      "properties": {
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "type": {
+          "description": "Direction: requires, consumes, and verifies order `to` before `from`; precedes, enables, and produces order `from` before `to`; complements imposes no order; conflicts_with forbids same-phase activation.",
+          "enum": [
+            "requires",
+            "precedes",
+            "enables",
+            "complements",
+            "conflicts_with",
+            "verifies",
+            "produces",
+            "consumes"
+          ]
+        },
+        "citations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^slice-[a-f0-9]{20}$"
+          },
+          "uniqueItems": true
+        },
+        "rationale": { "type": "string" }
+      }
+    }
+  }
+}

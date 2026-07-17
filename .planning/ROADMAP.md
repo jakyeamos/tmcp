@@ -25,7 +25,7 @@ fixtures.
 **Goal:** Centralize path, redaction, and persistence safety.
 **Requirements:** MOD-SAFE, MOD-STATE, MOD-ARCH
 **Depends on:** Phase 1
-**Plans:** In progress — safe harvest/storage slice complete 2026-07-11
+**Plans:** Complete in the 0.5.x runtime baseline
 
 ### Phase 3: Compose/recompile vertical slice
 
@@ -33,7 +33,7 @@ fixtures.
 output.
 **Requirements:** MOD-FLOW, MOD-CONTRACTS, MOD-ARCH
 **Depends on:** Phase 2
-**Plans:** Pending approval
+**Plans:** Complete in the 0.5.x runtime baseline
 
 ### Phase 4: Advanced discovery migration
 
@@ -41,28 +41,50 @@ output.
 safe core.
 **Requirements:** MOD-SAFE, MOD-CONTRACTS, MOD-ARCH
 **Depends on:** Phase 2
-**Plans:** Pending approval
+**Plans:** Complete in the 0.5.x runtime baseline
 
 ### Phase 5: Evidence-review vertical slice
 
 **Goal:** Make review evidence, artifact writes, and AIOS choices explicit.
 **Requirements:** MOD-STATE, MOD-FLOW
 **Depends on:** Phase 2
-**Plans:** Pending approval
+**Plans:** Complete in the 0.5.x runtime baseline
 
 ### Phase 6: Thin-adapter cutover and deletion
 
 **Goal:** Complete the modular migration and remove old implementations.
 **Requirements:** MOD-ARCH, MOD-CONTRACTS
 **Depends on:** Phases 3–5
-**Plans:** Pending approval
+**Plans:** Complete in the 0.5.x runtime baseline
 
 ### Phase 7: Release hardening and adversarial review
 
 **Goal:** Complete validation, cleanup, and release readiness.
 **Requirements:** MOD-OPS, MOD-SAFE
 **Depends on:** Phase 6
-**Plans:** Pending approval
+**Plans:** Complete for release 0.5.7
+
+### Phase 8: Compositional Intelligence 0.6
+
+**Goal:** Compile substantial prompts into source-backed typed skill graphs,
+ordered execution recipes, graph-aware runtime updates, and evaluated compound
+outcomes while preserving deterministic compatibility.
+**Requirements:** MOD-FLOW, MOD-CONTRACTS, MOD-STATE, MOD-SAFE, MOD-OPS
+**Depends on:** Phases 2–7
+**Plans:**
+
+- Composition foundation: complete — source roles, fixture exclusion, bounded
+  ranked slices, token limits, stopwords, and zero-confidence shortcut denial.
+- Semantic compiler: complete — validated task model, typed graph, dependency
+  closure, phase ordering, bridges, diagnostics, and content-derived provenance.
+- Runtime integration: complete — evidence-driven gates, plan preservation,
+  phase trace, obligations, and graph-aware diffs.
+- Proof and learning: complete — evaluation variants, structured receipts,
+  explicit project-local promotion, golden prompts, behavioral fixtures, and
+  fail-closed benchmark contracts.
+- Release proof: pending — version 0.6.0 remains blocked until real host-run
+  observations meet every routing, safety, lift, ordering, provenance, and
+  context threshold.
 
 ---
-*Last updated: 2026-07-11 after the Milestone 2 safe-harvest slice*
+*Last updated: 2026-07-17 for Compositional Intelligence 0.6 implementation and release proof gating*

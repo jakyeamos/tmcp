@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Added experimental host-assisted compositional intelligence: bounded source
+  preparation, source-backed semantic proposals, validated typed skill graphs,
+  ordered phase recipes, graph-aware recompilation, and explicit project-local
+  recipe promotion while preserving the deterministic compose path.
+- Added compound evaluation variants, structured composition receipts, 25
+  routing goldens, five materializable behavioral fixtures, and fail-closed
+  benchmark contracts. A 0.6.0 release remains blocked until real host-run
+  observations meet every routing, provenance, safety, lift, order, and context
+  threshold.
+
 ## 0.5.7 - 2026-07-16
 
 - Fixed profile-coverage matching for rubric definitions represented as

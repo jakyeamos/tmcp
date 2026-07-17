@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import copy
 import inspect
+import json
 import unittest
 from pathlib import Path
 
@@ -60,6 +61,49 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
         ):
             build_run_receipt({"packet_id": "   "}, created_at="2026-07-12T00:00:00Z")
 
+    def test_build_run_receipt_adds_structured_composition_evidence(self) -> None:
+        arguments: dict[str, object] = {
+            "packet_id": "packet-123",
+            "recipe_id": " recipe-123 ",
+            "task_identity": {"primary": "compound_task", "secondary": ["review"]},
+            "graph_digest": " graph-123 ",
+            "content_digests": ["a" * 64, "b" * 64],
+            "selected_skill_ids": ["research", "writing", "review"],
+            "phase_trace": [
+                {"phase": "research", "status": "passed"},
+                "not-structured",
+            ],
+            "gate_results": [{"gate_id": "safety", "passed": True}],
+            "quality_metrics": {
+                "synergy_lift": 0.12,
+                "compiler_lift": 0.08,
+                "order_lift": 0.06,
+            },
+            "cost_metrics": {"context_ratio": 0.70},
+            "composition_fixture_id": " fixture-a ",
+        }
+        original = copy.deepcopy(arguments)
+
+        receipt = build_run_receipt(
+            arguments,
+            created_at="2026-07-12T16:00:00Z",
+        )
+
+        self.assertEqual(arguments, original)
+        self.assertEqual(receipt["recipe_id"], "recipe-123")
+        self.assertEqual(receipt["graph_digest"], "graph-123")
+        self.assertEqual(receipt["content_digests"], ["a" * 64, "b" * 64])
+        self.assertEqual(receipt["composition_fixture_id"], "fixture-a")
+        self.assertEqual(
+            receipt["selected_skill_ids"], ["research", "writing", "review"]
+        )
+        self.assertEqual(
+            receipt["phase_trace"], [{"phase": "research", "status": "passed"}]
+        )
+        self.assertEqual(receipt["quality_metrics"]["synergy_lift"], 0.12)
+        arguments["task_identity"]["secondary"].append("later-change")  # type: ignore[index]
+        self.assertEqual(receipt["task_identity"]["secondary"], ["review"])
+
     def test_receipt_template_copies_activated_atoms(self) -> None:
         activated_atoms = ["behavior-verification"]
 
@@ -82,6 +126,50 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
                 "outcome": "",
             },
         )
+
+    def test_receipt_template_accepts_optional_composition_fields(self) -> None:
+        composition_fields = {
+            "recipe_id": "recipe-123",
+            "graph_digest": "graph-123",
+            "content_digests": ["c" * 64],
+            "selected_skill_ids": ["research", "review"],
+            "composition_fixture_id": "fixture-a",
+        }
+
+        template = build_receipt_template(
+            packet_id="packet-123",
+            activated_atoms=["behavior-verification"],
+            composition_fields=composition_fields,
+        )
+
+        self.assertEqual(template["recipe_id"], "recipe-123")
+        self.assertEqual(template["graph_digest"], "graph-123")
+        self.assertEqual(template["content_digests"], ["c" * 64])
+        self.assertEqual(template["selected_skill_ids"], ["research", "review"])
+        self.assertEqual(template["composition_fixture_id"], "fixture-a")
+
+    def test_receipt_schema_keeps_composition_fields_optional(self) -> None:
+        schema_path = (
+            Path(__file__).resolve().parents[1]
+            / "schemas"
+            / "tmcp-run-receipt-v0.1.schema.json"
+        )
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        composition_fields = {
+            "recipe_id",
+            "task_identity",
+            "graph_digest",
+            "content_digests",
+            "selected_skill_ids",
+            "phase_trace",
+            "gate_results",
+            "quality_metrics",
+            "cost_metrics",
+            "composition_fixture_id",
+        }
+
+        self.assertTrue(composition_fields.issubset(schema["properties"]))
+        self.assertTrue(composition_fields.isdisjoint(schema["required"]))
 
     def test_recorded_receipt_result_uses_only_safe_public_fields(self) -> None:
         safe_receipt: dict[str, object] = {

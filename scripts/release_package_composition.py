@@ -2,10 +2,96 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+from typing import Any
 
 from scripts.release_package_sessions import RunJson, check_session_surface
 from tmcp_runtime.storage import artifact_persistence_available
+
+
+def _semantic_release_smoke_proposal(
+    preflight: dict[str, Any],
+) -> dict[str, Any]:
+    slices = [
+        item
+        for item in preflight.get("candidate_source_slices", [])
+        if isinstance(item, dict)
+    ]
+    governing = [
+        item for item in slices if item.get("source_role") == "governing_instruction"
+    ]
+    skills = [item for item in slices if item.get("source_role") == "active_skill"]
+    if not governing or not skills:
+        raise ValueError(
+            "composition release smoke requires governing and active-skill slices"
+        )
+
+    criterion = "Installed-package composition verification passes"
+    roles: list[dict[str, Any]] = []
+    for item in governing:
+        roles.append(
+            {
+                "node_id": item["source_node_id"],
+                "role": "Preserve governing project constraints",
+                "inputs": ["task objective"],
+                "outputs": ["bounded project constraints"],
+                "phase_affinity": ["start"],
+                "entry_gates": [],
+                "exit_gates": ["Governing constraints are available"],
+                "context_cost": item["token_estimate"],
+                "covers": [],
+                "citations": [item["slice_id"]],
+            }
+        )
+    for item in skills:
+        roles.append(
+            {
+                "node_id": item["source_node_id"],
+                "role": "Verify the installed composition workflow",
+                "inputs": ["bounded project constraints"],
+                "outputs": ["installed-package verification evidence"],
+                "phase_affinity": ["implementation"],
+                "entry_gates": ["Governing constraints are available"],
+                "exit_gates": [criterion],
+                "context_cost": item["token_estimate"],
+                "covers": [criterion],
+                "citations": [item["slice_id"]],
+            }
+        )
+
+    relationships: list[dict[str, Any]] = []
+    for root in governing:
+        for skill in skills:
+            relationships.append(
+                {
+                    "from": root["source_node_id"],
+                    "to": skill["source_node_id"],
+                    "type": "enables",
+                    "citations": [root["slice_id"], skill["slice_id"]],
+                    "rationale": (
+                        "The active skill must operate within the governing project "
+                        "constraints."
+                    ),
+                }
+            )
+
+    return {
+        "schema": "tmcp-semantic-proposal-v0.1",
+        "preflight_id": preflight["preflight_id"],
+        "current_phase": "implementation",
+        "task_model": {
+            "deliverables": ["Installed-package composition smoke result"],
+            "success_criteria": [criterion],
+            "constraints": ["Preserve governing project instructions"],
+            "subgoals": ["Compose", "Recompile", "Verify provenance"],
+            "evidence_needs": ["Structured package verification result"],
+        },
+        "skill_roles": roles,
+        "relationships": relationships,
+        "coverage": {"facets": [criterion], "unresolved_gaps": []},
+        "trust": "advisory_untrusted",
+    }
 
 
 def check_composition_surface(
@@ -90,6 +176,104 @@ def check_composition_surface(
     verification_text = " ".join(compose.get("verification_gates", [])).lower()
     if "browser" in verification_text:
         return False, "release composition smoke unexpectedly activated browser gate"
+
+    ok, output, preflight = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "prepare-composition",
+            "Compose and verify the installed package workflow",
+            "--project-path",
+            str(source_root),
+            "--source-path",
+            str(source_root),
+            "--phase",
+            "implementation",
+            "--compact",
+        ],
+        plugin_root,
+        env,
+    )
+    if not ok or preflight is None:
+        return False, output
+    if preflight.get("schema") != "tmcp-composition-preflight-v0.1":
+        return (
+            False,
+            f"unexpected composition preflight schema: {preflight.get('schema')}",
+        )
+    try:
+        semantic_proposal = _semantic_release_smoke_proposal(preflight)
+    except (KeyError, TypeError, ValueError) as exc:
+        return False, str(exc)
+
+    ok, output, assisted_compose = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "compose-packet",
+            "Compose and verify the installed package workflow",
+            "--project-path",
+            str(source_root),
+            "--source-path",
+            str(source_root),
+            "--phase",
+            "implementation",
+            "--cache-policy",
+            "none",
+            "--semantic-proposal",
+            json.dumps(semantic_proposal, separators=(",", ":")),
+            "--compact",
+        ],
+        plugin_root,
+        env,
+    )
+    if not ok or assisted_compose is None:
+        return False, output
+    plan = assisted_compose.get("composition_plan")
+    validation = assisted_compose.get("semantic_proposal_validation")
+    if not isinstance(plan, dict) or plan.get("schema") != "tmcp-composition-plan-v0.1":
+        return False, "assisted compose output missing composition plan"
+    if not isinstance(validation, dict) or validation.get("accepted") is not True:
+        return False, "assisted compose semantic proposal was not accepted"
+
+    ok, output, recompiled = run_json(
+        [
+            "node",
+            "scripts/tmcp_launcher.mjs",
+            "recompile-packet",
+            "Compose and verify the installed package workflow",
+            "--project-path",
+            str(source_root),
+            "--source-path",
+            str(source_root),
+            "--current-phase",
+            "implementation",
+            "--previous-packet",
+            json.dumps(assisted_compose, separators=(",", ":")),
+            "--files-read",
+            "AGENTS.md",
+            "--commands-run",
+            "python3 -m unittest",
+            "--verification-results",
+            '{"gate":"Installed-package composition verification passes","status":"passed"}',
+            "--output-mode",
+            "full",
+            "--cache-policy",
+            "none",
+            "--compact",
+        ],
+        plugin_root,
+        env,
+    )
+    if not ok or recompiled is None:
+        return False, output
+    if recompiled.get("schema") != "tmcp-recompiled-packet-v0.1":
+        return False, f"unexpected recompile schema: {recompiled.get('schema')}"
+    recompiled_plan = recompiled.get("packet", {}).get("composition_plan")
+    if not isinstance(recompiled_plan, dict):
+        return False, "recompiled packet did not preserve the composition plan"
+    if recompiled_plan.get("composition_plan_id") != plan.get("composition_plan_id"):
+        return False, "recompile changed the deterministic composition plan identity"
 
     sessions_ok, session_mode = check_session_surface(
         plugin_root,
@@ -228,5 +412,11 @@ def check_composition_surface(
         else "portable receipt denial smoke passed"
     )
     return True, "\n".join(
-        [output, persistence_mode, session_mode, "composition surface smoke passed"]
+        [
+            output,
+            persistence_mode,
+            session_mode,
+            "assisted composition and recompile smoke passed",
+            "composition surface smoke passed",
+        ]
     )

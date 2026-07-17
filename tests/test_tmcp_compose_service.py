@@ -167,6 +167,129 @@ class TmcpComposeServiceTests(unittest.TestCase):
             " ".join(injected["active_instructions"]).lower(),
         )
 
+    def test_declared_supporting_read_never_activates_behavior(self) -> None:
+        skill = self._source_node(
+            "skills/onboarding/SKILL.md",
+            "Implement the onboarding experience.",
+            behavior_atoms=["onboarding-skill"],
+            source_type="skill_definition",
+        )
+        skill["routing_metadata"] = {
+            "declared_loads": ["docs/onboarding.md"],
+        }
+        supporting_read = self._source_node(
+            "docs/onboarding.md",
+            "Supporting onboarding product context.",
+            behavior_atoms=["supporting-behavior-must-not-activate"],
+            source_type="project_documentation",
+        )
+
+        packet = compose_packet_from_source_nodes(
+            {
+                "objective": "Implement the onboarding experience",
+                "project_path": "[REDACTED:path]",
+                "phase": "start",
+                "cache_policy": "none",
+            },
+            source_nodes=[skill, supporting_read],
+            global_graphs=[],
+            receipts=[],
+            cache_warnings=[],
+            cache_home="[REDACTED:path]",
+        )
+
+        self.assertIn("docs/onboarding.md", packet["required_reads"])
+        self.assertIn(
+            "docs/onboarding.md",
+            [item["source"] for item in packet["evidence_citations"]],
+        )
+        self.assertIn("onboarding-skill", packet["active_atoms"])
+        self.assertNotIn(
+            "supporting-behavior-must-not-activate",
+            packet["active_atoms"],
+        )
+        self.assertNotIn(
+            "supporting-behavior-must-not-activate",
+            packet["deferred_atoms"],
+        )
+
+    def test_unselected_support_evidence_and_fixture_atoms_never_defer(self) -> None:
+        governing = self._source_node(
+            "AGENTS.md",
+            "Read before modifying.",
+            behavior_atoms=["governing-behavior"],
+        )
+        supporting = self._source_node(
+            "docs/context.md",
+            "Supporting reference material.",
+            behavior_atoms=["supporting-deferred-must-not-appear"],
+            source_type="project_documentation",
+        )
+        evidence = self._source_node(
+            "audit/evidence.md",
+            "Observed evidence only.",
+            behavior_atoms=["evidence-deferred-must-not-appear"],
+            source_type="project_documentation",
+        )
+        evidence["source_role"] = "evidence_only"
+        fixture = self._source_node(
+            "tests/fixtures/review/SKILL.md",
+            "Fixture instructions must remain inactive.",
+            behavior_atoms=["fixture-deferred-must-not-appear"],
+            source_type="skill_definition",
+        )
+
+        packet = compose_packet_from_source_nodes(
+            {
+                "objective": "Read before modifying the implementation",
+                "project_path": "[REDACTED:path]",
+                "phase": "start",
+                "cache_policy": "none",
+            },
+            source_nodes=[governing, supporting, evidence, fixture],
+            global_graphs=[],
+            receipts=[],
+            cache_warnings=[],
+            cache_home="[REDACTED:path]",
+        )
+
+        forbidden_atoms = {
+            "supporting-deferred-must-not-appear",
+            "evidence-deferred-must-not-appear",
+            "fixture-deferred-must-not-appear",
+        }
+        self.assertTrue(forbidden_atoms.isdisjoint(packet["active_atoms"]))
+        self.assertTrue(forbidden_atoms.isdisjoint(packet["deferred_atoms"]))
+        ignored_roles = {
+            item["source"]: item["source_role"] for item in packet["ignored_sources"]
+        }
+        self.assertEqual(ignored_roles["docs/context.md"], "supporting_reference")
+        self.assertEqual(ignored_roles["audit/evidence.md"], "evidence_only")
+        self.assertEqual(
+            ignored_roles["tests/fixtures/review/SKILL.md"],
+            "evidence_only",
+        )
+
+    def test_project_policy_never_activates_injected_global_cache_inputs(self) -> None:
+        packet = compose_packet_from_source_nodes(
+            {
+                "objective": "Run a repo behavior sweep",
+                "project_path": "[REDACTED:path]",
+                "phase": "start",
+                "cache_policy": "project",
+            },
+            source_nodes=[],
+            global_graphs=[self._global_graph()],
+            receipts=[{"packet_id": "packet-1"}],
+            cache_warnings=["global warning"],
+            cache_home="[REDACTED:path]",
+        )
+
+        self.assertEqual(packet["global_cache"]["cache_policy"], "project")
+        self.assertEqual(packet["global_cache"]["promoted_graph_count"], 0)
+        self.assertEqual(packet["global_cache"]["receipt_count"], 0)
+        self.assertEqual(packet["global_cache"]["warnings"], [])
+
     def test_unknown_cache_policy_discards_injected_cache_inputs(self) -> None:
         packet = compose_packet_from_source_nodes(
             {

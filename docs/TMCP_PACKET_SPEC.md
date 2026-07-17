@@ -21,13 +21,28 @@ Composable runtime packets (`tmcp-composed-packet-v0.1`) and the Adaptive Packet
 | `packet_markdown` | Human-readable operating contract rendered from structured packet fields. |
 | `shortcut_candidate` | Advisory compiled-route shortcut metadata with `compiled_from` provenance. |
 | `family_context` | Optional skill-family orchestration context from scoped seeds or router skills. |
+| `composition_plan` | Optional validated `tmcp-composition-plan-v0.1` with task model, skill roles, typed edges, ordered stages, coverage, diagnostics, and graph provenance. |
+| `semantic_proposal_validation` | Acceptance, errors, and warnings for the host proposal; rejected proposals do not activate fallback behavior. |
+| `composition_diagnostics` | Missing capabilities, uncovered criteria, conflicts, rejected elements, truncation, and process-only warnings. |
+| `project_recipe` | Optional metadata for an explicitly named, reviewed project-local recipe revalidated against the current graph. |
 | `session` | Optional reference to one explicitly persisted project-local latest-packet record. |
 
 `tmcp_runtime_next` may also return `task_identity` for the current runtime state and `task_identity_delta` when `previous_task_identity` is supplied. With `output_mode: "full"` and `previous_packet`, TMCP returns `tmcp-recompiled-packet-v0.1` containing a full regenerated packet plus `packet_diff`.
 
 Composition and runtime routing are stateless by default: `cache_policy` defaults
-to `none`. Pass `cache_policy: "global"` only when the caller explicitly wants
-to read advisory promoted graphs and receipts from `TMCP_HOME`.
+to `none`. `project` opts into explicitly reviewed project-local recipes;
+`global` separately opts into advisory promoted graphs and receipts from
+`TMCP_HOME`. No policy promotes a recipe automatically.
+
+## Assisted Composition Contracts
+
+For substantial work, `tmcp_prepare_composition` returns `tmcp-composition-preflight-v0.1`: bounded source slices, roles/digests, deterministic identity, diagnostics, and a `tmcp-semantic-proposal-v0.1` starter. The host supplies semantic judgment, but every skill role and typed relationship must cite returned slices.
+
+TMCP validates the proposal before compiling it. Unknown nodes, unsupported relationships, cycles, active conflicts, missing citations, and attempts to override governing instructions are rejection conditions. The preflight's `relationship_type_semantics` makes direction explicit: `requires`, `consumes`, and `verifies` order `to` before `from`; `precedes`, `enables`, and `produces` order `from` before `to`; `complements` adds no order; and `conflicts_with` forbids same-phase activation. An accepted proposal becomes `tmcp-composition-plan-v0.1`; a rejected proposal produces diagnostics and no semantic activation. Omitting `semantic_proposal` preserves the existing deterministic composed-packet contract.
+
+The plan activates the current phase and defers later stages with entry conditions and explicit handoffs. The agent executes the plan; TMCP does not run tools or mutations. Runtime evidence may trigger a full recompile, but unmet gates remain obligations unless the user explicitly redirects the work.
+
+The machine-readable definitions live in [composition preflight](../schemas/tmcp-composition-preflight-v0.1.schema.json), [semantic proposal](../schemas/tmcp-semantic-proposal-v0.1.schema.json), [composition plan](../schemas/tmcp-composition-plan-v0.1.schema.json), and [project-local recipe](../schemas/tmcp-project-composition-recipe-v0.1.schema.json). Evaluation variants and observed-result summaries use [composition evaluation plan](../schemas/tmcp-composition-evaluation-plan-v0.1.schema.json) and [composition evaluation summary](../schemas/tmcp-composition-evaluation-summary-v0.1.schema.json).
 
 ## Packet Sessions
 
@@ -81,6 +96,9 @@ Harvested source nodes include:
 - `title`
 - `source_type`
 - `source_tier`
+- `source_role`
+- `activation_eligible`
+- `content_digest`
 - `frontmatter`
 - `token_estimate`
 - `behavior_atoms`
@@ -90,6 +108,8 @@ Harvested source nodes include:
 - `redactions`
 
 Source types are descriptive, not vendor-specific. Examples include `skill_definition`, `agent_operating_contract`, `cursor_rule`, `github_process`, `workflow_prompt`, `project_documentation`, and `markdown_process_doc`.
+
+Source roles govern activation. `governing_instruction` and `active_skill` may contribute behavior. `supporting_reference` may supply reads or evidence but never instructions. `evidence_only` remains inactive; test, fixture, and example paths receive this role unless explicitly scoped. Content digests, rather than path names alone, participate in graph provenance.
 
 ## Substance Check
 

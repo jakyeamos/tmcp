@@ -229,6 +229,51 @@ class TmcpMcpCliTests(unittest.TestCase):
     def test_cli_parser_accepts_composition_commands_and_flags(self) -> None:
         tool_name, arguments, compact = cli.parse_cli_arguments(
             [
+                "prepare-composition",
+                "Research, implement, and verify the migration",
+                "--project-path",
+                "/tmp/project",
+                "--candidate-limit",
+                "8",
+                "--explicitly-scoped-paths",
+                "tests/fixtures/migration.md",
+            ]
+        )
+
+        self.assertEqual(tool_name, "tmcp_prepare_composition")
+        self.assertFalse(compact)
+        self.assertEqual(
+            arguments["objective"],
+            "Research, implement, and verify the migration",
+        )
+        self.assertEqual(arguments["candidate_limit"], 8)
+        self.assertEqual(
+            arguments["explicitly_scoped_paths"],
+            ["tests/fixtures/migration.md"],
+        )
+
+        tool_name, arguments, _ = cli.parse_cli_arguments(
+            [
+                "promote-composition-recipe",
+                "migration-review",
+                "--project-path",
+                "/tmp/project",
+                "--composition-plan",
+                '{"schema":"tmcp-composition-plan-v0.1"}',
+                "--receipts",
+                '[{"packet_id":"one"}]',
+                "--explicit-promotion",
+            ]
+        )
+
+        self.assertEqual(tool_name, "tmcp_promote_composition_recipe")
+        self.assertEqual(arguments["recipe_id"], "migration-review")
+        self.assertTrue(arguments["explicit_promotion"])
+        self.assertIsInstance(arguments["composition_plan"], dict)
+        self.assertIsInstance(arguments["receipts"], list)
+
+        tool_name, arguments, compact = cli.parse_cli_arguments(
+            [
                 "compose-packet",
                 "Improve the dashboard UI",
                 "--project-path",

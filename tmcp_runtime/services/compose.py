@@ -14,11 +14,17 @@ from tmcp_runtime.domain.composition import (
     select_composition_nodes,
 )
 from tmcp_runtime.domain.declared_loads import resolve_declared_load_nodes
+from tmcp_runtime.domain.compositional_intelligence import (
+    compile_semantic_composition,
+    prepare_composition,
+)
 from tmcp_runtime.domain.families import compose_family_context
 from tmcp_runtime.domain.harvest_nodes import (
     json_list,
+    node_source_role,
     node_signal_text,
     ordered_unique,
+    source_role_is_activation_eligible,
     string_list,
 )
 from tmcp_runtime.domain.packets import build_composed_packet
@@ -27,6 +33,7 @@ from tmcp_runtime.domain.workflow_activation import (
     build_global_workflow_activation,
     select_global_workflows,
 )
+from tmcp_runtime.services.semantic_compose import apply_semantic_composition
 
 
 COMPOSED_PACKET_SCHEMA = "tmcp-composed-packet-v0.1"
@@ -42,9 +49,107 @@ def _compose_context(arguments: Mapping[str, Any]) -> dict[str, Any]:
     return context if isinstance(context, dict) else {}
 
 
+def _composition_limit(
+    arguments: Mapping[str, Any],
+    name: str,
+    *,
+    default: int,
+    minimum: int,
+    maximum: int,
+) -> int:
+    value = arguments.get(name)
+    if value is None:
+        return default
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{name} must be an integer.")
+    if value < minimum or value > maximum:
+        raise ValueError(f"{name} must be between {minimum} and {maximum}.")
+    return value
+
+
+def _composition_identity(
+    arguments: Mapping[str, Any],
+    source_nodes: list[dict[str, Any]],
+) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any], list[str]]:
+    objective = str(arguments.get("objective") or "").strip()
+    context = _compose_context(arguments)
+    identity_context = dict(context)
+    identity_context["latest_user_message"] = str(
+        arguments.get("latest_user_message") or ""
+    )
+    preliminary_routes = string_list(
+        derive_task_identity(objective, identity_context).get("active_routes")
+    )
+    family_context = compose_family_context(
+        source_nodes,
+        objective,
+        context=identity_context,
+        active_routes=preliminary_routes,
+        node_signal_text=node_signal_text,
+    )
+    task_identity = derive_task_identity(
+        objective,
+        identity_context,
+        family_context if family_context else None,
+    )
+    return context, family_context, task_identity, preliminary_routes
+
+
+def prepare_composition_from_source_nodes(
+    arguments: Mapping[str, Any],
+    *,
+    source_nodes: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Prepare the same semantic evidence identity consumed by compose."""
+
+    objective = str(arguments.get("objective") or "").strip()
+    if not objective:
+        raise ValueError("tmcp_prepare_composition requires objective.")
+    _context, _family_context, task_identity, _routes = _composition_identity(
+        arguments,
+        source_nodes,
+    )
+    return prepare_composition(
+        source_nodes,
+        objective,
+        task_identity=task_identity,
+        explicitly_scoped_paths=string_list(arguments.get("explicitly_scoped_paths")),
+        max_slices=_composition_limit(
+            arguments,
+            "candidate_limit",
+            default=12,
+            minimum=1,
+            maximum=24,
+        ),
+        max_chars_per_slice=_composition_limit(
+            arguments,
+            "max_excerpt_chars",
+            default=1200,
+            minimum=64,
+            maximum=48000,
+        ),
+        max_total_chars=_composition_limit(
+            arguments,
+            "max_total_chars",
+            default=12000,
+            minimum=1000,
+            maximum=48000,
+        ),
+        max_total_tokens=_composition_limit(
+            arguments,
+            "max_total_tokens",
+            default=3000,
+            minimum=250,
+            maximum=12000,
+        ),
+    )
+
+
 def active_instructions_for_source_node(node: Mapping[str, Any]) -> list[str]:
     """Derive advisory instructions from one already-harvested source node."""
 
+    if not source_role_is_activation_eligible(node_source_role(dict(node))):
+        return []
     rel_path = str(node.get("relative_path") or node.get("path") or "source")
     text = node_signal_text(dict(node))
     instructions: list[str] = []
@@ -139,25 +244,9 @@ def compose_packet_from_source_nodes(
         raise ValueError("tmcp_compose_packet requires objective.")
     phase = str(arguments.get("phase") or "start")
     cache_policy = normalize_cache_policy(arguments.get("cache_policy"))
-    context = _compose_context(arguments)
-    identity_context = dict(context)
-    identity_context["latest_user_message"] = str(
-        arguments.get("latest_user_message") or ""
-    )
-    preliminary_routes = string_list(
-        derive_task_identity(objective, identity_context).get("active_routes")
-    )
-    family_context = compose_family_context(
+    context, family_context, task_identity, preliminary_routes = _composition_identity(
+        arguments,
         source_nodes,
-        objective,
-        context=identity_context,
-        active_routes=preliminary_routes,
-        node_signal_text=node_signal_text,
-    )
-    task_identity = derive_task_identity(
-        objective,
-        identity_context,
-        family_context if family_context else None,
     )
     active_routes = (
         string_list(task_identity.get("active_routes")) or preliminary_routes
@@ -182,7 +271,7 @@ def compose_packet_from_source_nodes(
     active_global_graphs: list[dict[str, Any]] = []
     active_receipts: list[dict[str, Any]] = []
     active_cache_warnings: list[str] = []
-    if cache_policy != "none":
+    if cache_policy == "global":
         active_global_graphs = global_graphs
         active_receipts = receipts
         active_cache_warnings = cache_warnings
@@ -209,7 +298,8 @@ def compose_packet_from_source_nodes(
             )
         )
         stop_conditions.extend(string_list(metadata.get("stop_conditions")))
-        active_atoms.extend(string_list(node.get("behavior_atoms")))
+        if source_role_is_activation_eligible(node_source_role(node)):
+            active_atoms.extend(string_list(node.get("behavior_atoms")))
         evidence_citations.append(
             {
                 "source": node.get("relative_path"),
@@ -251,7 +341,7 @@ def compose_packet_from_source_nodes(
         "warnings": active_cache_warnings,
         "trust": "advisory_untrusted",
     }
-    return build_composed_packet(
+    packet = build_composed_packet(
         composed_packet_schema=COMPOSED_PACKET_SCHEMA,
         objective=objective,
         project_path=str(arguments.get("project_path") or "."),
@@ -272,4 +362,25 @@ def compose_packet_from_source_nodes(
         global_cache=global_cache,
         receipt_count=len(active_receipts),
         user_overrides=string_list(arguments.get("user_overrides")),
+    )
+    proposal = arguments.get("semantic_proposal")
+    if proposal is None:
+        return packet
+    if not isinstance(proposal, Mapping):
+        raise ValueError("semantic_proposal must be an object.")
+    preflight = prepare_composition_from_source_nodes(
+        arguments,
+        source_nodes=source_nodes,
+    )
+    compiled = compile_semantic_composition(
+        dict(proposal),
+        preflight,
+        current_phase=phase,
+    )
+    return apply_semantic_composition(
+        packet,
+        source_nodes=source_nodes,
+        preflight=preflight,
+        compiled=compiled,
+        instruction_builder=active_instructions_for_source_node,
     )

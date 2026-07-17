@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+import hashlib
+from collections.abc import Callable, Mapping
 from typing import Any
 
 
@@ -101,12 +102,166 @@ def _drop_reason(item_id: str, recompile_reason: str, packet_delta: Packet) -> s
     return f"Not required after {recompile_reason}."
 
 
+def _composition_plan(packet: Mapping[str, Any]) -> dict[str, Any] | None:
+    plan = packet.get("composition_plan")
+    return dict(plan) if isinstance(plan, Mapping) else None
+
+
+def _graph_item_id(prefix: str, item: Mapping[str, Any]) -> str:
+    if prefix == "relationship":
+        identity: object = [
+            item.get("from"),
+            item.get("type"),
+            item.get("to"),
+            sorted(_string_list(item.get("citations"))),
+        ]
+    elif prefix == "instruction":
+        identity = [
+            item.get("node_id"),
+            item.get("instruction"),
+            sorted(_string_list(item.get("citations"))),
+        ]
+    else:
+        identity = dict(item)
+    payload = json.dumps(identity, sort_keys=True, separators=(",", ":"))
+    return f"{prefix}-" + hashlib.sha256(payload.encode()).hexdigest()[:16]
+
+
+def _plan_graph_snapshot(plan: Mapping[str, Any]) -> dict[str, Any]:
+    roles = [
+        dict(item)
+        for item in _json_list(plan.get("skill_roles"))
+        if isinstance(item, Mapping)
+    ]
+    active_skills = sorted(
+        str(role.get("node_id") or "")
+        for role in roles
+        if role.get("activation") == "active"
+        or role.get("source_role") == "governing_instruction"
+    )
+    deferred_skills = sorted(
+        str(role.get("node_id") or "")
+        for role in roles
+        if str(role.get("node_id") or "") not in active_skills
+    )
+    active_nodes = set(active_skills)
+    edges = [
+        dict(item)
+        for item in _json_list(plan.get("typed_edges"))
+        if isinstance(item, Mapping)
+    ]
+    active_edges = [
+        edge
+        for edge in edges
+        if str(edge.get("from") or "") in active_nodes
+        or str(edge.get("to") or "") in active_nodes
+    ]
+    relationships = {
+        _graph_item_id("relationship", edge): edge for edge in active_edges
+    }
+    active_stages = [
+        item
+        for item in _json_list(plan.get("ordered_stages"))
+        if isinstance(item, Mapping) and item.get("status") == "active"
+    ]
+    bridges = [
+        dict(bridge)
+        for stage in active_stages
+        for bridge in _json_list(stage.get("bridge_instructions"))
+        if isinstance(bridge, Mapping)
+    ]
+    instructions = {_graph_item_id("instruction", bridge): bridge for bridge in bridges}
+    state = plan.get("runtime_state")
+    runtime_state = dict(state) if isinstance(state, Mapping) else {}
+    fulfilled = [
+        dict(item)
+        for item in _json_list(runtime_state.get("fulfilled_obligations"))
+        if isinstance(item, Mapping)
+    ]
+    return {
+        "active_skills": active_skills,
+        "deferred_skills": deferred_skills,
+        "relationships": relationships,
+        "instructions": instructions,
+        "conflicts": [
+            edge
+            for edge in active_edges
+            if edge.get("type") == "conflicts_with"
+            and str(edge.get("from") or "") in active_nodes
+            and str(edge.get("to") or "") in active_nodes
+        ],
+        "reads": _string_list(runtime_state.get("files_read")),
+        "fulfilled": fulfilled,
+    }
+
+
+def _composition_graph_diff(previous: Packet, current: Packet) -> Packet | None:
+    previous_plan = _composition_plan(previous)
+    current_plan = _composition_plan(current)
+    if previous_plan is None and current_plan is None:
+        return None
+    previous_snapshot = _plan_graph_snapshot(previous_plan or {})
+    current_snapshot = _plan_graph_snapshot(current_plan or {})
+    previous_skills = set(previous_snapshot["active_skills"])
+    current_skills = set(current_snapshot["active_skills"])
+    previous_relationships = set(previous_snapshot["relationships"])
+    current_relationships = set(current_snapshot["relationships"])
+    previous_instructions = set(previous_snapshot["instructions"])
+    current_instructions = set(current_snapshot["instructions"])
+    previous_reads = set(previous_snapshot["reads"])
+    previous_fulfilled = {
+        str(item.get("gate_id") or "") for item in previous_snapshot["fulfilled"]
+    }
+    current_fulfilled = {
+        str(item.get("gate_id") or "") for item in current_snapshot["fulfilled"]
+    }
+    return {
+        "skills": {
+            "added": sorted(current_skills - previous_skills),
+            "dropped": sorted(previous_skills - current_skills),
+            "unchanged": sorted(previous_skills & current_skills),
+            "deferred": current_snapshot["deferred_skills"],
+        },
+        "relationships": {
+            "added": sorted(current_relationships - previous_relationships),
+            "dropped": sorted(previous_relationships - current_relationships),
+            "unchanged": sorted(previous_relationships & current_relationships),
+            "active": list(current_snapshot["relationships"].values()),
+        },
+        "instructions": {
+            "added": sorted(current_instructions - previous_instructions),
+            "dropped": sorted(previous_instructions - current_instructions),
+            "unchanged": sorted(previous_instructions & current_instructions),
+            "active": list(current_snapshot["instructions"].values()),
+        },
+        "reads": {
+            "added": [
+                path for path in current_snapshot["reads"] if path not in previous_reads
+            ],
+            "all": current_snapshot["reads"],
+        },
+        "gates": {
+            "newly_fulfilled": sorted(current_fulfilled - previous_fulfilled),
+            "failed": [],
+            "pending": [],
+            "bypassed": [],
+        },
+        "conflicts": {"active": current_snapshot["conflicts"]},
+        "fulfilled_obligations": {
+            "added": sorted(current_fulfilled - previous_fulfilled),
+            "all": sorted(current_fulfilled),
+        },
+    }
+
+
 def packet_diff(
     previous: Packet,
     current: Packet,
     *,
     packet_delta: Packet,
     recompile_reason: str,
+    graph_diff: Mapping[str, Any] | None = None,
+    merge_graph_runtime: bool = False,
 ) -> Packet:
     prev_atoms = set(_string_list(previous.get("active_atoms")))
     curr_atoms = set(_string_list(current.get("active_atoms")))
@@ -158,17 +313,82 @@ def packet_diff(
                 "reason": "Route activated from runtime evidence.",
             }
         )
+    derived_graph_diff = _composition_graph_diff(previous, current)
+    resolved_graph_diff = derived_graph_diff
+    if graph_diff is not None:
+        runtime_graph_diff = {key: value for key, value in graph_diff.items()}
+        if not merge_graph_runtime or derived_graph_diff is None:
+            resolved_graph_diff = runtime_graph_diff
+        else:
+            resolved_graph_diff = dict(derived_graph_diff)
+            for key in ("reads", "gates", "conflicts", "fulfilled_obligations"):
+                value = runtime_graph_diff.get(key)
+                if isinstance(value, Mapping):
+                    resolved_graph_diff[key] = dict(value)
+            for key, active_field in (
+                ("skills", "deferred"),
+                ("relationships", "active"),
+                ("instructions", "active"),
+            ):
+                runtime_value = runtime_graph_diff.get(key)
+                resolved_value = resolved_graph_diff.get(key)
+                if isinstance(runtime_value, Mapping) and isinstance(
+                    resolved_value, Mapping
+                ):
+                    merged_value = dict(resolved_value)
+                    merged_value[active_field] = runtime_value.get(active_field, [])
+                    resolved_graph_diff[key] = merged_value
+    if resolved_graph_diff is not None:
+        skill_changes = resolved_graph_diff.get("skills")
+        if isinstance(skill_changes, Mapping):
+            existing_added_skills = {
+                item["id"] for item in added if item.get("kind") == "skill"
+            }
+            for skill in _string_list(skill_changes.get("added")):
+                if skill in existing_added_skills:
+                    continue
+                added.append(
+                    {
+                        "kind": "skill",
+                        "id": skill,
+                        "reason": "Activated by composition graph runtime.",
+                    }
+                )
+            for skill in _string_list(skill_changes.get("dropped")):
+                dropped.append(
+                    {
+                        "kind": "skill",
+                        "id": skill,
+                        "reason": "Deferred by composition graph runtime.",
+                    }
+                )
     phase_change = None
     previous_phase = str(previous.get("phase") or "")
     current_phase = str(current.get("phase") or "")
     if previous_phase and current_phase and previous_phase != current_phase:
         phase_change = {"from": previous_phase, "to": current_phase}
-    return {
+    result = {
         "dropped": dropped,
         "added": added,
         "unchanged": sorted(prev_atoms & curr_atoms),
         "phase_change": phase_change,
     }
+    if resolved_graph_diff is not None:
+        graph_phase_change = resolved_graph_diff.get("phase_change")
+        if graph_phase_change is not None:
+            result["phase_change"] = graph_phase_change
+        for key in (
+            "skills",
+            "relationships",
+            "instructions",
+            "reads",
+            "gates",
+            "conflicts",
+            "fulfilled_obligations",
+        ):
+            value = resolved_graph_diff.get(key)
+            result[key] = dict(value) if isinstance(value, Mapping) else {}
+    return result
 
 
 def merge_packet_delta(

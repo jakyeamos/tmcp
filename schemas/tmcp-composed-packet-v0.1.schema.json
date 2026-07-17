@@ -126,6 +126,25 @@
       "type": "object",
       "additionalProperties": true
     },
+    "composition_plan": {
+      "anyOf": [
+        { "$ref": "tmcp-composition-plan-v0.1.schema.json" },
+        { "type": "null" }
+      ]
+    },
+    "semantic_proposal_validation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["accepted", "errors", "warnings"]
+    },
+    "composition_diagnostics": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "project_recipe": {
+      "type": "object",
+      "additionalProperties": true
+    },
     "session": {
       "$ref": "tmcp-run-session-v0.1.schema.json#/$defs/session_reference"
     },

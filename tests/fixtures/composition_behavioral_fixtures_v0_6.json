@@ -1,0 +1,211 @@
+{
+  "schema": "tmcp-composition-behavioral-fixtures-v0.1",
+  "observation_contract": {
+    "required_fields": [
+      "fixture_id",
+      "preflight_id",
+      "composition_plan_id",
+      "graph_digest",
+      "task_identity",
+      "selected_skill_ids",
+      "source_slices",
+      "ordered_skill_ids",
+      "active_stages",
+      "relationships",
+      "compiled_context_tokens",
+      "naive_context_tokens",
+      "quality_scores",
+      "evaluation_provenance",
+      "run_receipt"
+    ],
+    "quality_scores": ["no_skill", "singletons", "naive_union", "full_composition", "leave_one_out", "wrong_order"],
+    "note": "Fixture definitions contain expectations and review rubrics only. Quality, context, harvested-slice bindings, and evaluator provenance must come from observed benchmark runs."
+  },
+  "fixtures": [
+    {
+      "fixture_id": "behavior-ui-product",
+      "domain": "ui_product",
+      "root_node_id": "product-discovery",
+      "objective": "Discover product needs, establish UI structure, implement the surface, and verify rendered accessibility.",
+      "quality_rubric": {
+        "rubric_id": "tmcp-ui-product-quality-v0.1",
+        "version": "0.1",
+        "aggregation": "weighted_mean",
+        "score_scale": {"minimum": 0, "maximum": 1, "higher_is_better": true},
+        "dimensions": [
+          {"dimension_id": "needs_coverage", "weight": 0.25, "criterion": "The outcome traces product and user decisions to explicit needs.", "evidence_required": ["decision rationale", "covered user states"]},
+          {"dimension_id": "surface_integrity", "weight": 0.30, "criterion": "The implemented surface preserves the intended hierarchy and interaction behavior.", "evidence_required": ["implementation evidence", "state and interaction coverage"]},
+          {"dimension_id": "accessibility_verification", "weight": 0.30, "criterion": "Rendered accessibility, responsive behavior, and reduced motion are verified.", "evidence_required": ["browser evidence", "accessibility verification results"]},
+          {"dimension_id": "handoff_clarity", "weight": 0.15, "criterion": "The final artifact states residual gaps and the evidence supporting completion.", "evidence_required": ["verification handoff", "residual risk statement"]}
+        ]
+      },
+      "skill_sources": [
+        {"skill_id": "product-discovery", "relative_path": "skills/product-discovery/SKILL.md", "content": "---\nname: product-discovery\n---\nElicit explicit user needs, product states, and decision criteria before design."},
+        {"skill_id": "pixel-lock", "relative_path": "skills/pixel-lock/SKILL.md", "content": "---\nname: pixel-lock\n---\nFreeze visual details before discovery; this intentionally conflicts with discovery in the same stage."},
+        {"skill_id": "ui-architecture", "relative_path": "skills/ui-architecture/SKILL.md", "content": "---\nname: ui-architecture\n---\nTranslate product needs into reusable hierarchy, states, components, and interaction structure."},
+        {"skill_id": "frontend-implementation", "relative_path": "skills/frontend-implementation/SKILL.md", "content": "---\nname: frontend-implementation\n---\nImplement the approved interface structure with shared components and bounded interactions."},
+        {"skill_id": "accessibility-verification", "relative_path": "skills/accessibility-verification/SKILL.md", "content": "---\nname: accessibility-verification\n---\nVerify rendered keyboard, contrast, responsive, and reduced-motion behavior with evidence."}
+      ],
+      "expected_skill_ids": ["product-discovery", "ui-architecture", "frontend-implementation", "accessibility-verification"],
+      "expected_order": ["product-discovery", "ui-architecture", "frontend-implementation", "accessibility-verification"],
+      "candidate_skill_ids": ["product-discovery", "pixel-lock", "ui-architecture", "frontend-implementation", "accessibility-verification"],
+      "expected_relationships": [
+        {"source_id": "product-discovery", "target_id": "ui-architecture", "relation": "enables"},
+        {"source_id": "ui-architecture", "target_id": "frontend-implementation", "relation": "precedes"},
+        {"source_id": "frontend-implementation", "target_id": "accessibility-verification", "relation": "enables"},
+        {"source_id": "accessibility-verification", "target_id": "frontend-implementation", "relation": "verifies"}
+      ],
+      "incompatible_skill_pairs": [
+        {"conflict_id": "discovery-before-pixel-lock", "skill_ids": ["product-discovery", "pixel-lock"], "same_stage_only": true}
+      ]
+    },
+    {
+      "fixture_id": "behavior-migration-data",
+      "domain": "migration_data",
+      "root_node_id": "migration-readiness",
+      "objective": "Assess migration readiness, verify data integrity, prove rollback, and execute the regression strategy.",
+      "quality_rubric": {
+        "rubric_id": "tmcp-migration-data-quality-v0.1",
+        "version": "0.1",
+        "aggregation": "weighted_mean",
+        "score_scale": {"minimum": 0, "maximum": 1, "higher_is_better": true},
+        "dimensions": [
+          {"dimension_id": "invariant_coverage", "weight": 0.30, "criterion": "The migration identifies and tests the material data invariants.", "evidence_required": ["invariant inventory", "integrity results"]},
+          {"dimension_id": "reversibility", "weight": 0.25, "criterion": "Rollback triggers, procedure, and recovery evidence are concrete and executable.", "evidence_required": ["rollback procedure", "recovery verification"]},
+          {"dimension_id": "regression_strength", "weight": 0.25, "criterion": "Focused tests cover partial, repeated, failed, and successful migration paths.", "evidence_required": ["regression results", "failure-path coverage"]},
+          {"dimension_id": "cutover_readiness", "weight": 0.20, "criterion": "The final recommendation connects evidence to a bounded cutover decision.", "evidence_required": ["readiness decision", "remaining risk statement"]}
+        ]
+      },
+      "skill_sources": [
+        {"skill_id": "migration-readiness", "relative_path": "skills/migration-readiness/SKILL.md", "content": "---\nname: migration-readiness\n---\nInventory migration dependencies, cutover gates, rollback triggers, and unresolved readiness risks."},
+        {"skill_id": "unreviewed-cutover", "relative_path": "skills/unreviewed-cutover/SKILL.md", "content": "---\nname: unreviewed-cutover\n---\nPerform a cutover before readiness review; this intentionally conflicts with readiness in one stage."},
+        {"skill_id": "data-integrity-audit", "relative_path": "skills/data-integrity-audit/SKILL.md", "content": "---\nname: data-integrity-audit\n---\nDefine data invariants and verify identity, ordering, parity, and referential integrity."},
+        {"skill_id": "rollback-verification", "relative_path": "skills/rollback-verification/SKILL.md", "content": "---\nname: rollback-verification\n---\nProve rollback procedures, recovery checkpoints, and restored data integrity with evidence."},
+        {"skill_id": "test-strategy", "relative_path": "skills/test-strategy/SKILL.md", "content": "---\nname: test-strategy\n---\nCover successful, partial, repeated, interrupted, and failed migration behavior with focused tests."}
+      ],
+      "expected_skill_ids": ["migration-readiness", "data-integrity-audit", "rollback-verification", "test-strategy"],
+      "expected_order": ["migration-readiness", "data-integrity-audit", "rollback-verification", "test-strategy"],
+      "candidate_skill_ids": ["migration-readiness", "unreviewed-cutover", "data-integrity-audit", "rollback-verification", "test-strategy"],
+      "expected_relationships": [
+        {"source_id": "migration-readiness", "target_id": "data-integrity-audit", "relation": "precedes"},
+        {"source_id": "data-integrity-audit", "target_id": "rollback-verification", "relation": "enables"},
+        {"source_id": "rollback-verification", "target_id": "test-strategy", "relation": "enables"},
+        {"source_id": "test-strategy", "target_id": "rollback-verification", "relation": "verifies"}
+      ],
+      "incompatible_skill_pairs": [
+        {"conflict_id": "readiness-before-cutover", "skill_ids": ["migration-readiness", "unreviewed-cutover"], "same_stage_only": true}
+      ]
+    },
+    {
+      "fixture_id": "behavior-agent-workflow",
+      "domain": "agent_workflow",
+      "root_node_id": "workflow-design",
+      "objective": "Design the agent workflow, define routing, audit safety boundaries, and verify receipts before promotion.",
+      "quality_rubric": {
+        "rubric_id": "tmcp-agent-workflow-quality-v0.1",
+        "version": "0.1",
+        "aggregation": "weighted_mean",
+        "score_scale": {"minimum": 0, "maximum": 1, "higher_is_better": true},
+        "dimensions": [
+          {"dimension_id": "workflow_coherence", "weight": 0.30, "criterion": "Stages, handoffs, entry gates, and exit gates form an executable workflow.", "evidence_required": ["stage trace", "gate results"]},
+          {"dimension_id": "routing_precision", "weight": 0.25, "criterion": "Routing activates the required capabilities without unrelated or conflicting skills.", "evidence_required": ["selected skill trace", "conflict diagnostics"]},
+          {"dimension_id": "safety_boundaries", "weight": 0.25, "criterion": "External effects, sensitive data, and instruction precedence remain explicitly bounded.", "evidence_required": ["safety gate results", "override record"]},
+          {"dimension_id": "promotion_evidence", "weight": 0.20, "criterion": "Receipts and promotion eligibility are reviewable and never imply automatic learning.", "evidence_required": ["receipt evidence", "promotion decision"]}
+        ]
+      },
+      "skill_sources": [
+        {"skill_id": "workflow-design", "relative_path": "skills/workflow-design/SKILL.md", "content": "---\nname: workflow-design\n---\nDefine executable workflow stages, inputs, outputs, handoffs, entry gates, and exit gates."},
+        {"skill_id": "routing-policy", "relative_path": "skills/routing-policy/SKILL.md", "content": "---\nname: routing-policy\n---\nMap task and evidence signals to deterministic capability routes and deferral conditions."},
+        {"skill_id": "security-privacy-audit", "relative_path": "skills/security-privacy-audit/SKILL.md", "content": "---\nname: security-privacy-audit\n---\nAudit sensitive data, permissions, instruction precedence, and external side-effect boundaries."},
+        {"skill_id": "unreviewed-auto-promotion", "relative_path": "skills/unreviewed-auto-promotion/SKILL.md", "content": "---\nname: unreviewed-auto-promotion\n---\nPromote workflow state without receipts; this intentionally conflicts with verified promotion."},
+        {"skill_id": "receipt-verification", "relative_path": "skills/receipt-verification/SKILL.md", "content": "---\nname: receipt-verification\n---\nVerify structured outcomes, gates, provenance, lift, and explicit promotion eligibility."}
+      ],
+      "expected_skill_ids": ["workflow-design", "routing-policy", "security-privacy-audit", "receipt-verification"],
+      "expected_order": ["workflow-design", "routing-policy", "security-privacy-audit", "receipt-verification"],
+      "candidate_skill_ids": ["workflow-design", "routing-policy", "security-privacy-audit", "unreviewed-auto-promotion", "receipt-verification"],
+      "expected_relationships": [
+        {"source_id": "workflow-design", "target_id": "routing-policy", "relation": "produces"},
+        {"source_id": "routing-policy", "target_id": "security-privacy-audit", "relation": "precedes"},
+        {"source_id": "security-privacy-audit", "target_id": "receipt-verification", "relation": "enables"},
+        {"source_id": "receipt-verification", "target_id": "security-privacy-audit", "relation": "verifies"}
+      ],
+      "incompatible_skill_pairs": [
+        {"conflict_id": "receipts-before-promotion", "skill_ids": ["receipt-verification", "unreviewed-auto-promotion"], "same_stage_only": true}
+      ]
+    },
+    {
+      "fixture_id": "behavior-research-writing-review",
+      "domain": "research_writing_review",
+      "root_node_id": "source-research",
+      "objective": "Research sources, write the domain artifact, review the draft, and verify all citations.",
+      "quality_rubric": {
+        "rubric_id": "tmcp-research-writing-review-quality-v0.1",
+        "version": "0.1",
+        "aggregation": "weighted_mean",
+        "score_scale": {"minimum": 0, "maximum": 1, "higher_is_better": true},
+        "dimensions": [
+          {"dimension_id": "source_quality", "weight": 0.30, "criterion": "Material claims are grounded in authoritative, relevant sources.", "evidence_required": ["source inventory", "claim-source mapping"]},
+          {"dimension_id": "domain_synthesis", "weight": 0.30, "criterion": "The artifact converts evidence into accurate domain reasoning and decisions.", "evidence_required": ["draft artifact", "decision rationale"]},
+          {"dimension_id": "editorial_quality", "weight": 0.20, "criterion": "Structure, clarity, and audience fit survive an explicit editorial review.", "evidence_required": ["review findings", "revised artifact"]},
+          {"dimension_id": "citation_integrity", "weight": 0.20, "criterion": "Every material citation resolves and supports the associated claim.", "evidence_required": ["citation verification", "unresolved citation gaps"]}
+        ]
+      },
+      "skill_sources": [
+        {"skill_id": "source-research", "relative_path": "skills/source-research/SKILL.md", "content": "---\nname: source-research\n---\nGather authoritative sources and map each material claim to explicit supporting evidence."},
+        {"skill_id": "draft-before-sources", "relative_path": "skills/draft-before-sources/SKILL.md", "content": "---\nname: draft-before-sources\n---\nDraft claims before research; this intentionally conflicts with source-first work in one stage."},
+        {"skill_id": "domain-writing", "relative_path": "skills/domain-writing/SKILL.md", "content": "---\nname: domain-writing\n---\nSynthesize verified evidence into an accurate, audience-specific domain artifact."},
+        {"skill_id": "editorial-review", "relative_path": "skills/editorial-review/SKILL.md", "content": "---\nname: editorial-review\n---\nReview structure, clarity, claim precision, and audience fit, then require a revised artifact."},
+        {"skill_id": "citation-verification", "relative_path": "skills/citation-verification/SKILL.md", "content": "---\nname: citation-verification\n---\nResolve each citation and verify that it directly supports the associated material claim."}
+      ],
+      "expected_skill_ids": ["source-research", "domain-writing", "editorial-review", "citation-verification"],
+      "expected_order": ["source-research", "domain-writing", "editorial-review", "citation-verification"],
+      "candidate_skill_ids": ["source-research", "draft-before-sources", "domain-writing", "editorial-review", "citation-verification"],
+      "expected_relationships": [
+        {"source_id": "source-research", "target_id": "domain-writing", "relation": "produces"},
+        {"source_id": "domain-writing", "target_id": "editorial-review", "relation": "precedes"},
+        {"source_id": "editorial-review", "target_id": "citation-verification", "relation": "enables"},
+        {"source_id": "citation-verification", "target_id": "editorial-review", "relation": "verifies"}
+      ],
+      "incompatible_skill_pairs": [
+        {"conflict_id": "sources-before-draft", "skill_ids": ["source-research", "draft-before-sources"], "same_stage_only": true}
+      ]
+    },
+    {
+      "fixture_id": "behavior-diagnose-fix-regression",
+      "domain": "diagnose_fix_regression",
+      "root_node_id": "root-cause-analysis",
+      "objective": "Diagnose the failure, implement the narrow fix, protect it with regression coverage, and verify release behavior.",
+      "quality_rubric": {
+        "rubric_id": "tmcp-diagnose-fix-regression-quality-v0.1",
+        "version": "0.1",
+        "aggregation": "weighted_mean",
+        "score_scale": {"minimum": 0, "maximum": 1, "higher_is_better": true},
+        "dimensions": [
+          {"dimension_id": "root_cause_evidence", "weight": 0.30, "criterion": "The diagnosis explains the observed failure with reproducible evidence.", "evidence_required": ["failure reproduction", "root cause evidence"]},
+          {"dimension_id": "fix_precision", "weight": 0.25, "criterion": "The implementation fixes the cause with bounded collateral change.", "evidence_required": ["focused diff", "targeted verification"]},
+          {"dimension_id": "regression_protection", "weight": 0.25, "criterion": "Behavioral coverage fails before the fix and passes after it where reproducible.", "evidence_required": ["regression test", "before-and-after result"]},
+          {"dimension_id": "release_verification", "weight": 0.20, "criterion": "The relevant release or installed behavior is verified and residual risk is explicit.", "evidence_required": ["release smoke evidence", "residual risk statement"]}
+        ]
+      },
+      "skill_sources": [
+        {"skill_id": "root-cause-analysis", "relative_path": "skills/root-cause-analysis/SKILL.md", "content": "---\nname: root-cause-analysis\n---\nReproduce the failure, distinguish symptoms from causes, and cite evidence for the diagnosis."},
+        {"skill_id": "quick-patch", "relative_path": "skills/quick-patch/SKILL.md", "content": "---\nname: quick-patch\n---\nPatch the symptom before diagnosis; this intentionally conflicts with root-cause work in one stage."},
+        {"skill_id": "targeted-fix", "relative_path": "skills/targeted-fix/SKILL.md", "content": "---\nname: targeted-fix\n---\nImplement the narrowest change that resolves the evidenced root cause and limits collateral effects."},
+        {"skill_id": "regression-testing", "relative_path": "skills/regression-testing/SKILL.md", "content": "---\nname: regression-testing\n---\nProtect confirmed behavior with focused regression coverage and before-and-after evidence."},
+        {"skill_id": "release-verification", "relative_path": "skills/release-verification/SKILL.md", "content": "---\nname: release-verification\n---\nVerify installed or release behavior, disclose residual risks, and retain completion evidence."}
+      ],
+      "expected_skill_ids": ["root-cause-analysis", "targeted-fix", "regression-testing", "release-verification"],
+      "expected_order": ["root-cause-analysis", "targeted-fix", "regression-testing", "release-verification"],
+      "candidate_skill_ids": ["root-cause-analysis", "quick-patch", "targeted-fix", "regression-testing", "release-verification"],
+      "expected_relationships": [
+        {"source_id": "root-cause-analysis", "target_id": "targeted-fix", "relation": "enables"},
+        {"source_id": "targeted-fix", "target_id": "regression-testing", "relation": "precedes"},
+        {"source_id": "regression-testing", "target_id": "release-verification", "relation": "enables"},
+        {"source_id": "release-verification", "target_id": "regression-testing", "relation": "verifies"}
+      ],
+      "incompatible_skill_pairs": [
+        {"conflict_id": "diagnosis-before-quick-patch", "skill_ids": ["root-cause-analysis", "quick-patch"], "same_stage_only": true}
+      ]
+    }
+  ]
+}

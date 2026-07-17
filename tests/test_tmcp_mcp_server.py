@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import cast
 from unittest.mock import patch
 
+from tests.schema_assertions import assert_matches_schema
 from tests.tmcp_test_client import (
     TestWorkspace,
     run_mcp_requests as run_hermetic_mcp_requests,
@@ -36,6 +37,9 @@ RUN_RECEIPT_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-run-receipt-v0.1.schem
 RUN_SESSION_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-run-session-v0.1.schema.json"
 PROMOTED_GRAPH_SCHEMA_PATH = (
     PLUGIN_ROOT / "schemas" / "tmcp-promoted-harvest-graph-v0.1.schema.json"
+)
+PROJECT_RECIPE_PROMOTION_SCHEMA_PATH = (
+    PLUGIN_ROOT / "schemas" / "tmcp-project-recipe-promotion-v0.1.schema.json"
 )
 _SERVER_RUNTIME = tempfile.TemporaryDirectory(prefix="tmcp-server-tests-")
 
@@ -751,6 +755,8 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "tmcp_explain",
                 "tmcp_harvest_skills",
                 "tmcp_promote_harvest",
+                "tmcp_prepare_composition",
+                "tmcp_promote_composition_recipe",
                 "tmcp_record_receipt",
                 "tmcp_recommend_workflows",
                 "tmcp_runtime_next",
@@ -764,6 +770,229 @@ class TmcpMcpServerTests(unittest.TestCase):
             Mapping[str, Mapping[str, object]], status_result_map["structuredContent"]
         )
         self.assertTrue(structured["standalone"]["available"])
+
+    def test_prepare_composition_is_available_over_mcp_without_writes(self) -> None:
+        with TestWorkspace() as workspace:
+            assert workspace.project is not None
+            assert workspace.tmcp_home is not None
+            (workspace.project / "AGENTS.md").write_text(
+                "# Instructions\n\nRead before modifying. Verify focused tests.\n",
+                encoding="utf-8",
+            )
+            skill_dir = workspace.project / "skills" / "review"
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(
+                "# Review\n\nInspect the implementation and verify behavior.\n",
+                encoding="utf-8",
+            )
+            responses = workspace.run_mcp(
+                [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "tmcp_prepare_composition",
+                            "arguments": {
+                                "objective": "Implement and verify the change",
+                                "project_path": str(workspace.project),
+                                "source_path": str(workspace.project),
+                            },
+                        },
+                    }
+                ]
+            )
+
+            result = cast(Mapping[str, object], responses[0]["result"])
+            structured = cast(Mapping[str, object], result["structuredContent"])
+            self.assertEqual(structured["schema"], "tmcp-composition-preflight-v0.1")
+            self.assertEqual(
+                cast(Mapping[str, object], structured["semantic_proposal_contract"])[
+                    "schema"
+                ],
+                "tmcp-semantic-proposal-v0.1",
+            )
+            self.assertEqual(list(workspace.tmcp_home.iterdir()), [])
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
+    def test_project_recipe_promotes_loads_revalidates_and_rejects_stale_content(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory) / "project"
+            project.mkdir()
+            (project / "AGENTS.md").write_text(
+                "# Rules\nRead before modifying and preserve evidence.\n",
+                encoding="utf-8",
+            )
+            skill = project / "skills" / "research" / "SKILL.md"
+            skill.parent.mkdir(parents=True)
+            skill.write_text(
+                "# Research\nProduce a cited evidence brief and verify sources.\n",
+                encoding="utf-8",
+            )
+            arguments = {
+                "objective": "Research and verify a cited report",
+                "project_path": str(project),
+                "source_path": str(project),
+                "phase": "start",
+                "cache_policy": "none",
+            }
+            preflight = self.server._prepare_composition(arguments)
+            slices = preflight["candidate_source_slices"]
+            by_role = {item["source_role"]: item for item in slices}
+            governing = by_role["governing_instruction"]
+            research = by_role["active_skill"]
+
+            def role(item, name, phase, inputs, outputs, gate, covers=None):
+                return {
+                    "node_id": item["source_node_id"],
+                    "role": name,
+                    "inputs": inputs,
+                    "outputs": outputs,
+                    "phase_affinity": [phase],
+                    "entry_gates": [],
+                    "exit_gates": [gate],
+                    "context_cost": 999999,
+                    "covers": covers or [],
+                    "citations": [item["slice_id"]],
+                }
+
+            proposal = {
+                "schema": "tmcp-semantic-proposal-v0.1",
+                "preflight_id": preflight["preflight_id"],
+                "current_phase": "start",
+                "task_model": {
+                    "deliverables": ["Cited report"],
+                    "success_criteria": ["Sources are verified"],
+                    "constraints": ["Preserve governing instructions"],
+                    "subgoals": ["Research evidence", "Verify sources"],
+                    "evidence_needs": ["Citations and verification result"],
+                },
+                "skill_roles": [
+                    role(
+                        governing,
+                        "governing authority",
+                        "start",
+                        ["task objective"],
+                        ["bounded constraints"],
+                        "constraints applied",
+                    ),
+                    role(
+                        research,
+                        "researcher and verifier",
+                        "discovery",
+                        ["bounded objective"],
+                        ["cited evidence brief"],
+                        "Sources are verified",
+                        ["Sources are verified"],
+                    ),
+                ],
+                "relationships": [
+                    {
+                        "from": governing["source_node_id"],
+                        "to": research["source_node_id"],
+                        "type": "enables",
+                        "citations": [
+                            governing["slice_id"],
+                            research["slice_id"],
+                        ],
+                        "rationale": "The governing scope enables bounded research.",
+                    }
+                ],
+                "coverage": {
+                    "facets": ["Sources are verified"],
+                    "unresolved_gaps": [],
+                },
+                "trust": "advisory_untrusted",
+            }
+            packet = self.server._compose_packet(
+                {**arguments, "semantic_proposal": proposal}
+            )
+            plan = packet["composition_plan"]
+            graph_digest = plan["provenance"]["graph_digest"]
+            receipts = [
+                {
+                    "packet_id": f"packet-{index}",
+                    "recipe_id": "research-review",
+                    "graph_digest": graph_digest,
+                    "composition_fixture_id": fixture,
+                    "outcome": "passed",
+                    "verification_results": ["focused verification passed"],
+                    "gate_results": [
+                        {
+                            "gate_id": "safety",
+                            "category": "safety",
+                            "passed": True,
+                        }
+                    ],
+                    "user_overrides": [],
+                    "quality_metrics": {
+                        "synergy_lift": 0.12,
+                        "compiler_lift": 0.08,
+                        "order_lift": 0.07,
+                    },
+                    "cost_metrics": {"context_ratio": 0.70},
+                }
+                for index, fixture in enumerate(
+                    ("fixture-a", "fixture-a", "fixture-b"), start=1
+                )
+            ]
+            promoted = self.server._tool_promote_composition_recipe(
+                {
+                    "project_path": str(project),
+                    "recipe_id": "research-review",
+                    "composition_plan": plan,
+                    "receipts": receipts,
+                    "explicit_promotion": True,
+                }
+            )
+            cached = self.server._compose_packet(
+                {
+                    **arguments,
+                    "cache_policy": "project",
+                    "project_recipe_id": "research-review",
+                }
+            )
+            compatibility = self.server._compose_packet(arguments)
+
+            self.assertEqual(promoted["status"], "promoted")
+            self.assertEqual(
+                promoted["schema"],
+                "tmcp-project-recipe-promotion-v0.1",
+            )
+            self.assertEqual(
+                promoted["promotion_eligibility"]["schema"],
+                "tmcp-project-recipe-promotion-eligibility-v0.1",
+            )
+            self.assertEqual(
+                promoted["recipe"]["promotion_eligibility"]["schema"],
+                "tmcp-project-recipe-promotion-eligibility-v0.1",
+            )
+            assert_matches_schema(promoted, PROJECT_RECIPE_PROMOTION_SCHEMA_PATH)
+            self.assertEqual(cached["project_recipe"]["recipe_id"], "research-review")
+            self.assertEqual(
+                cached["composition_plan"]["provenance"]["graph_digest"],
+                graph_digest,
+            )
+            self.assertNotIn("composition_plan", compatibility)
+            self.assertEqual(compatibility["global_cache"]["cache_policy"], "none")
+
+            skill.write_text(
+                "# Research\nProduce a cited brief, verify sources, and audit claims.\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "stale"):
+                self.server._compose_packet(
+                    {
+                        **arguments,
+                        "cache_policy": "project",
+                        "project_recipe_id": "research-review",
+                    }
+                )
 
     def test_doctor_reports_first_run_readiness(self) -> None:
         result = self.server._call_tool("tmcp_doctor", {"client": "plain_mcp"})

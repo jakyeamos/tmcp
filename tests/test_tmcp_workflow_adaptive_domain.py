@@ -14,6 +14,8 @@ class WorkflowAdaptiveDomainTests(unittest.TestCase):
                     "seed_id": "release-packet",
                     "title": "Release packet",
                     "source_type": "scoped_packet_seed",
+                    "source_role": "active_skill",
+                    "activation_eligible": True,
                     "relative_path": "seeds/release.json",
                     "canonical_source": "skills/release/SKILL.md",
                     "source_references": ["README.md"],
@@ -21,6 +23,15 @@ class WorkflowAdaptiveDomainTests(unittest.TestCase):
                     "chains_before": ["harvest"],
                     "chains_after": ["review"],
                     "do_not_activate_with": ["migration"],
+                    "route_affinity": ["release_readiness"],
+                    "objective_patterns": ["release"],
+                    "phase_transitions": {
+                        "review": {
+                            "next_phases": ["verification"],
+                            "activate_skills": ["test-strategy"],
+                            "verification_gates": ["Run release checks."],
+                        }
+                    },
                     "use_when": ["release readiness"],
                     "modes": ["review"],
                     "minimum_spec_fields": ["version"],
@@ -45,7 +56,51 @@ class WorkflowAdaptiveDomainTests(unittest.TestCase):
         self.assertTrue(recommendation["approval_required"])
         self.assertTrue(recommendation["promote_as_single_global_graph"])
         self.assertEqual(recommendation["loads"], ["release"])
+        self.assertEqual(recommendation["route_affinity"], ["release_readiness"])
+        self.assertEqual(
+            recommendation["phase_transitions"]["review"]["activate_skills"],
+            ["test-strategy"],
+        )
+        self.assertEqual(recommendation["chains_before"], ["harvest"])
+        self.assertEqual(recommendation["chains_after"], ["review"])
+        self.assertEqual(recommendation["do_not_activate_with"], ["migration"])
+        self.assertEqual(recommendation["required_receipts"], ["ci output"])
+        relations = {item["relation"] for item in recommendation["typed_relationships"]}
+        self.assertTrue(
+            {
+                "activates",
+                "affinity_for_route",
+                "conflicts_with",
+                "defines_phase_transition",
+                "enables",
+                "precedes",
+                "requires_receipt",
+                "transitions_to",
+            }.issubset(relations)
+        )
         self.assertIn("`release-packet`", recommendation["routing_trigger"])
+
+    def test_inactive_source_roles_do_not_become_scoped_seed_recommendations(
+        self,
+    ) -> None:
+        recommendations = workflow_adaptive.recommended_scoped_packet_seeds(
+            [
+                {
+                    "id": "fixture-seed",
+                    "source_type": "scoped_packet_seed",
+                    "source_role": "evidence_only",
+                    "activation_eligible": False,
+                },
+                {
+                    "id": "explicit-seed",
+                    "source_type": "scoped_packet_seed",
+                    "source_role": "supporting_reference",
+                    "activation_eligible": True,
+                },
+            ]
+        )
+
+        self.assertEqual(recommendations, [])
 
     def test_adaptive_pack_groups_sources_and_uses_selection_fallback(self) -> None:
         source_nodes = [

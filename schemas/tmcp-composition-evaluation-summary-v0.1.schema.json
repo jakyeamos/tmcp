@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-evaluation-summary-v0.1.schema.json",
+  "title": "TMCP Composition Evaluation Summary v0.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "ok",
+    "schema",
+    "variant_count",
+    "quality_metrics",
+    "cost_metrics",
+    "best_singleton",
+    "safety",
+    "eligible",
+    "ineligibility_reasons"
+  ],
+  "properties": {
+    "ok": { "const": true },
+    "schema": { "const": "tmcp-composition-evaluation-summary-v0.1" },
+    "variant_count": { "type": "integer", "minimum": 8 },
+    "quality_metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["synergy_lift", "compiler_lift", "order_lift"]
+    },
+    "cost_metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "naive_union_context_tokens",
+        "full_composition_context_tokens",
+        "context_ratio"
+      ]
+    },
+    "best_singleton": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["variant_id", "skill_id", "quality_score"],
+      "properties": {
+        "variant_id": { "type": "string", "minLength": 1 },
+        "skill_id": { "type": "string", "minLength": 1 },
+        "quality_score": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "failed_variants"],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "failed_variants": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "eligible": { "type": "boolean" },
+    "ineligibility_reasons": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

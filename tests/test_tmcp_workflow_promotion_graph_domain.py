@@ -104,9 +104,23 @@ class WorkflowPromotionGraphDomainTests(unittest.TestCase):
                 {
                     "id": "release-seed",
                     "name": "Release seed",
+                    "source_role": "active_skill",
+                    "activation_eligible": True,
                     "source_references": ["RELEASE.md", "RELEASE.md"],
+                    "route_affinity": ["release_readiness"],
+                    "chains_before": ["package"],
+                    "chains_after": ["review"],
+                    "do_not_activate_with": ["migration"],
+                    "phase_transitions": {
+                        "review": {
+                            "next_phases": ["verification"],
+                            "activate_skills": ["test-strategy"],
+                            "verification_gates": ["Run the release checks."],
+                        }
+                    },
                     "behavior_atoms": ["quality-gate-disclosure"],
                     "verification_expectations": ["Run the release checks."],
+                    "required_receipts": ["verified CI receipt"],
                     "routing_trigger": "Use the release seed.",
                 }
             ],
@@ -119,9 +133,27 @@ class WorkflowPromotionGraphDomainTests(unittest.TestCase):
             graph["cross_source_behavior_atoms"], [graph["behavior_atoms"][0]]
         )
         self.assertEqual(graph["scoped_packet_seed_nodes"][0]["id"], "release-seed")
+        seed = graph["scoped_packet_seed_nodes"][0]
+        self.assertEqual(seed["route_affinity"], ["release_readiness"])
+        self.assertEqual(
+            seed["phase_transitions"]["review"]["activate_skills"],
+            ["test-strategy"],
+        )
+        self.assertEqual(seed["chains_before"], ["package"])
+        self.assertEqual(seed["chains_after"], ["review"])
+        self.assertEqual(seed["do_not_activate_with"], ["migration"])
+        self.assertEqual(seed["required_receipts"], ["verified CI receipt"])
         self.assertEqual(
             graph["verification_expectation_nodes"][0]["id"],
             "verification:release-seed:1",
+        )
+        self.assertEqual(
+            graph["phase_transition_nodes"][0]["id"],
+            "phase-transition:release-seed:review",
+        )
+        self.assertEqual(
+            graph["receipt_requirement_nodes"][0]["id"],
+            "receipt-requirement:release-seed:1",
         )
         self.assertEqual(
             sum(
@@ -137,6 +169,23 @@ class WorkflowPromotionGraphDomainTests(unittest.TestCase):
                 and edge["relation"] == "supports_workflow"
                 for edge in graph["edges"]
             )
+        )
+        scoped_relations = {
+            edge["relation"]
+            for edge in graph["edges"]
+            if edge["from"] == "release-seed"
+            or edge["from"] == "phase-transition:release-seed:review"
+        }
+        self.assertTrue(
+            {
+                "affinity_for_route",
+                "conflicts_with",
+                "defines_phase_transition",
+                "enables",
+                "precedes",
+                "requires_receipt",
+                "transitions_to",
+            }.issubset(scoped_relations)
         )
         self.assertTrue(
             any(

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Container
+from collections.abc import Callable, Container, Mapping
 from datetime import datetime
 from typing import Any, SupportsInt, cast
 
@@ -13,6 +13,175 @@ def _json_list(value: object) -> list[Any]:
 
 def _string_list(value: object) -> list[str]:
     return [str(item) for item in _json_list(value) if str(item)]
+
+
+def _ordered_string_list(value: object) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for item in _json_list(value):
+        normalized = str(item).strip()
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        result.append(normalized)
+    return result
+
+
+def _normalize_cached_phase_transitions(
+    value: object,
+) -> dict[str, dict[str, list[str]]]:
+    if not isinstance(value, Mapping):
+        return {}
+    transitions: dict[str, dict[str, list[str]]] = {}
+    for raw_phase, raw_transition in value.items():
+        phase = str(raw_phase).strip().lower()
+        if not phase or not isinstance(raw_transition, Mapping):
+            continue
+        next_phases = _ordered_string_list(raw_transition.get("next_phases"))
+        if not next_phases:
+            next_phases = _ordered_string_list(raw_transition.get("next"))
+        transitions[phase] = {
+            "next_phases": next_phases,
+            "activate_skills": _ordered_string_list(
+                raw_transition.get("activate_skills")
+            ),
+            "verification_gates": _ordered_string_list(
+                raw_transition.get("verification_gates")
+            ),
+        }
+    return transitions
+
+
+def _normalize_cached_scoped_seed(node: Mapping[str, Any]) -> dict[str, Any]:
+    seed_id = str(node.get("id") or node.get("seed_id") or "").strip()
+    if not seed_id:
+        return {}
+    source_role = str(node.get("source_role") or "active_skill").strip()
+    explicit_activation = node.get("activation_eligible")
+    role_eligible = source_role in {"active_skill", "governing_instruction"}
+    activation_eligible = role_eligible and explicit_activation is not False
+    return {
+        "id": seed_id,
+        "name": str(node.get("name") or node.get("title") or seed_id),
+        "kind": "scoped_packet_seed",
+        "promotion_status": str(
+            node.get("promotion_status") or "proposal_not_promoted"
+        ),
+        "promote_as_single_global_graph": bool(
+            node.get("promote_as_single_global_graph", False)
+        ),
+        "relative_path": node.get("relative_path"),
+        "canonical_source": node.get("canonical_source"),
+        "source_role": source_role,
+        "activation_eligible": activation_eligible,
+        "source_references": _ordered_string_list(node.get("source_references")),
+        "loads": _ordered_string_list(node.get("loads")),
+        "route_affinity": _ordered_string_list(node.get("route_affinity")),
+        "objective_patterns": _ordered_string_list(node.get("objective_patterns")),
+        "phase_transitions": _normalize_cached_phase_transitions(
+            node.get("phase_transitions")
+        ),
+        "chains_before": _ordered_string_list(node.get("chains_before")),
+        "chains_after": _ordered_string_list(node.get("chains_after")),
+        "do_not_activate_with": _ordered_string_list(node.get("do_not_activate_with")),
+        "use_when": _ordered_string_list(node.get("use_when")),
+        "modes": _ordered_string_list(node.get("modes")),
+        "minimum_spec_fields": _ordered_string_list(node.get("minimum_spec_fields")),
+        "ticket_types": _ordered_string_list(node.get("ticket_types")),
+        "behavior_atoms": _ordered_string_list(node.get("behavior_atoms")),
+        "verification_expectations": _ordered_string_list(
+            node.get("verification_expectations")
+        ),
+        "required_receipts": _ordered_string_list(node.get("required_receipts")),
+        "constraints": _ordered_string_list(node.get("constraints")),
+        "routing_trigger": node.get("routing_trigger"),
+        "trust": "advisory_untrusted",
+    }
+
+
+def _cached_scoped_seed_graph_metadata(
+    seeds: list[dict[str, Any]],
+) -> dict[str, list[dict[str, Any]]]:
+    route_nodes: list[dict[str, Any]] = []
+    phase_nodes: list[dict[str, Any]] = []
+    receipt_nodes: list[dict[str, Any]] = []
+    verification_nodes: list[dict[str, Any]] = []
+    edges: list[dict[str, Any]] = []
+    seen_nodes: set[str] = set()
+    seen_edges: set[tuple[str, str, str]] = set()
+
+    def add_node(target: list[dict[str, Any]], node: dict[str, Any]) -> None:
+        node_id = str(node.get("id") or "")
+        if not node_id or node_id in seen_nodes:
+            return
+        seen_nodes.add(node_id)
+        target.append(node)
+
+    def add_edge(from_id: str, to_id: str, relation: str) -> None:
+        key = (from_id, to_id, relation)
+        if key in seen_edges:
+            return
+        seen_edges.add(key)
+        edges.append({"from": from_id, "to": to_id, "relation": relation})
+
+    for seed in seeds:
+        seed_id = str(seed["id"])
+        for source_ref in seed["source_references"]:
+            add_edge(source_ref, seed_id, "supports_scoped_packet_seed")
+        for atom in seed["behavior_atoms"]:
+            add_edge(seed_id, atom, "declares_behavior_atom")
+        for route_id in seed["route_affinity"]:
+            route_node_id = f"route:{route_id}"
+            add_node(
+                route_nodes,
+                {"id": route_node_id, "route_id": route_id},
+            )
+            add_edge(seed_id, route_node_id, "affinity_for_route")
+        for skill_id in seed["chains_before"]:
+            add_edge(seed_id, f"skill:{skill_id}", "precedes")
+        for skill_id in seed["chains_after"]:
+            add_edge(seed_id, f"skill:{skill_id}", "enables")
+        for skill_id in seed["do_not_activate_with"]:
+            add_edge(seed_id, f"skill:{skill_id}", "conflicts_with")
+        for phase, transition in seed["phase_transitions"].items():
+            phase_node_id = f"phase-transition:{seed_id}:{phase}"
+            add_node(
+                phase_nodes,
+                {
+                    "id": phase_node_id,
+                    "seed_id": seed_id,
+                    "from_phase": phase,
+                    "next_phases": list(transition["next_phases"]),
+                    "activate_skills": list(transition["activate_skills"]),
+                    "verification_gates": list(transition["verification_gates"]),
+                },
+            )
+            add_edge(seed_id, phase_node_id, "defines_phase_transition")
+            for next_phase in transition["next_phases"]:
+                add_edge(phase_node_id, f"phase:{next_phase}", "transitions_to")
+            for skill_id in transition["activate_skills"]:
+                add_edge(phase_node_id, f"skill:{skill_id}", "activates")
+        for index, expectation in enumerate(seed["verification_expectations"], start=1):
+            node_id = f"verification:{seed_id}:{index}"
+            add_node(
+                verification_nodes,
+                {"id": node_id, "seed_id": seed_id, "expectation": expectation},
+            )
+            add_edge(seed_id, node_id, "requires_verification")
+        for index, requirement in enumerate(seed["required_receipts"], start=1):
+            node_id = f"receipt-requirement:{seed_id}:{index}"
+            add_node(
+                receipt_nodes,
+                {"id": node_id, "seed_id": seed_id, "requirement": requirement},
+            )
+            add_edge(seed_id, node_id, "requires_receipt")
+    return {
+        "route_affinity_nodes": route_nodes,
+        "phase_transition_nodes": phase_nodes,
+        "receipt_requirement_nodes": receipt_nodes,
+        "verification_expectation_nodes": verification_nodes,
+        "edges": edges,
+    }
 
 
 def append_bounded_warning(
@@ -105,38 +274,29 @@ def normalize_promoted_graph(
     for node in _json_list(graph.get("scoped_packet_seed_nodes")):
         if not isinstance(node, dict):
             continue
-        scoped_packet_seed_nodes.append(
-            {
-                "id": node.get("id"),
-                "name": node.get("name"),
-                "kind": node.get("kind"),
-                "promotion_status": node.get("promotion_status"),
-                "promote_as_single_global_graph": bool(
-                    node.get("promote_as_single_global_graph", False)
-                ),
-                "relative_path": node.get("relative_path"),
-                "canonical_source": node.get("canonical_source"),
-                "source_references": _string_list(node.get("source_references")),
-                "behavior_atoms": _string_list(node.get("behavior_atoms")),
-                "verification_expectations": _string_list(
-                    node.get("verification_expectations")
-                ),
-                "required_receipts": _string_list(node.get("required_receipts")),
-                "trust": "advisory_untrusted",
-            }
-        )
+        normalized = _normalize_cached_scoped_seed(node)
+        if normalized:
+            scoped_packet_seed_nodes.append(normalized)
+    scoped_seed_metadata = _cached_scoped_seed_graph_metadata(scoped_packet_seed_nodes)
+    edges = list(_json_list(graph.get("edges")))
+    for edge in scoped_seed_metadata["edges"]:
+        if edge not in edges:
+            edges.append(edge)
     return {
         "schema": graph_schema,
         "promotion_name": result.get("promotion_name") or graph.get("promotion_name"),
         "created_at": graph.get("created_at") or created_at,
         "source_nodes": source_nodes,
         "scoped_packet_seed_nodes": scoped_packet_seed_nodes,
-        "verification_expectation_nodes": _json_list(
-            graph.get("verification_expectation_nodes")
-        ),
+        "route_affinity_nodes": scoped_seed_metadata["route_affinity_nodes"],
+        "phase_transition_nodes": scoped_seed_metadata["phase_transition_nodes"],
+        "receipt_requirement_nodes": scoped_seed_metadata["receipt_requirement_nodes"],
+        "verification_expectation_nodes": scoped_seed_metadata[
+            "verification_expectation_nodes"
+        ],
         "behavior_atoms": _json_list(graph.get("behavior_atoms")),
         "workflow_nodes": workflow_nodes,
-        "edges": _json_list(graph.get("edges")),
+        "edges": edges,
         "cross_source_behavior_atoms": _json_list(
             graph.get("cross_source_behavior_atoms")
         ),
@@ -194,10 +354,26 @@ def project_cached_promotion_graph(
         seen_workflows.add(workflow_id)
         workflow_nodes.append({"id": workflow_id})
 
-    if not workflow_nodes:
+    scoped_packet_seed_nodes: list[dict[str, Any]] = []
+    seen_seed_ids: set[str] = set()
+    for node in _json_list(payload.get("scoped_packet_seed_nodes")):
+        if not isinstance(node, Mapping):
+            unknown_nodes = True
+            continue
+        normalized_seed = _normalize_cached_scoped_seed(node)
+        seed_id = str(normalized_seed.get("id") or "")
+        if not seed_id:
+            unknown_nodes = True
+            continue
+        if seed_id in seen_seed_ids:
+            continue
+        seen_seed_ids.add(seed_id)
+        scoped_packet_seed_nodes.append(normalized_seed)
+
+    if not workflow_nodes and not scoped_packet_seed_nodes:
         return (
             None,
-            "Skipped global cache graph without recognized workflow IDs: "
+            "Skipped global cache graph without recognized workflow or scoped seed IDs: "
             f"{display_path}",
         )
     graph = {
@@ -207,6 +383,26 @@ def project_cached_promotion_graph(
         "_global_cache_path": display_path,
         "trust": "advisory_untrusted",
     }
+    if scoped_packet_seed_nodes:
+        scoped_seed_metadata = _cached_scoped_seed_graph_metadata(
+            scoped_packet_seed_nodes
+        )
+        graph.update(
+            {
+                "scoped_packet_seed_nodes": scoped_packet_seed_nodes,
+                "route_affinity_nodes": scoped_seed_metadata["route_affinity_nodes"],
+                "phase_transition_nodes": scoped_seed_metadata[
+                    "phase_transition_nodes"
+                ],
+                "receipt_requirement_nodes": scoped_seed_metadata[
+                    "receipt_requirement_nodes"
+                ],
+                "verification_expectation_nodes": scoped_seed_metadata[
+                    "verification_expectation_nodes"
+                ],
+                "edges": scoped_seed_metadata["edges"],
+            }
+        )
     warning = None
     if unknown_nodes:
         warning = f"Skipped unknown workflow IDs in global cache graph: {display_path}"

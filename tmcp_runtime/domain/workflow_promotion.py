@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .scoped_seeds import normalize_scoped_seed, scoped_seed_graph_metadata
 from .workflow_catalog import workflow_catalog
 
 
@@ -174,69 +175,13 @@ def _promotion_atom_nodes(
 
 def _promotion_scoped_packet_seed_nodes(
     selected_scoped_packet_seeds: list[dict[str, Any]],
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+) -> tuple[list[dict[str, Any]], dict[str, list[dict[str, Any]]]]:
     seed_nodes: list[dict[str, Any]] = []
-    verification_nodes: list[dict[str, Any]] = []
-    edges: list[dict[str, Any]] = []
-    seen_edges: set[tuple[str, str, str]] = set()
-
-    def add_edge(from_id: str, to_id: str, relation: str) -> None:
-        key = (from_id, to_id, relation)
-        if key in seen_edges:
-            return
-        seen_edges.add(key)
-        edges.append({"from": from_id, "to": to_id, "relation": relation})
-
     for seed in selected_scoped_packet_seeds:
-        seed_id = str(seed.get("id") or "").strip()
-        if not seed_id:
-            continue
-        seed_nodes.append(
-            {
-                "id": seed_id,
-                "name": seed.get("name"),
-                "kind": "scoped_packet_seed",
-                "promotion_status": seed.get("promotion_status"),
-                "promote_as_single_global_graph": bool(
-                    seed.get("promote_as_single_global_graph", False)
-                ),
-                "relative_path": seed.get("relative_path"),
-                "canonical_source": seed.get("canonical_source"),
-                "source_references": _string_list(seed.get("source_references")),
-                "loads": _string_list(seed.get("loads")),
-                "chains_before": _string_list(seed.get("chains_before")),
-                "chains_after": _string_list(seed.get("chains_after")),
-                "do_not_activate_with": _string_list(seed.get("do_not_activate_with")),
-                "use_when": _string_list(seed.get("use_when")),
-                "modes": _string_list(seed.get("modes")),
-                "minimum_spec_fields": _string_list(seed.get("minimum_spec_fields")),
-                "ticket_types": _string_list(seed.get("ticket_types")),
-                "behavior_atoms": _string_list(seed.get("behavior_atoms")),
-                "verification_expectations": _string_list(
-                    seed.get("verification_expectations")
-                ),
-                "required_receipts": _string_list(seed.get("required_receipts")),
-                "routing_trigger": seed.get("routing_trigger"),
-                "trust": "advisory_untrusted",
-            }
-        )
-        for source_ref in _string_list(seed.get("source_references")):
-            add_edge(source_ref, seed_id, "supports_scoped_packet_seed")
-        for atom in _string_list(seed.get("behavior_atoms")):
-            add_edge(seed_id, atom, "declares_behavior_atom")
-        for index, expectation in enumerate(
-            _string_list(seed.get("verification_expectations")), start=1
-        ):
-            expectation_id = f"verification:{seed_id}:{index}"
-            verification_nodes.append(
-                {
-                    "id": expectation_id,
-                    "seed_id": seed_id,
-                    "expectation": expectation,
-                }
-            )
-            add_edge(seed_id, expectation_id, "requires_verification")
-    return seed_nodes, verification_nodes, edges
+        normalized = normalize_scoped_seed(seed)
+        if normalized:
+            seed_nodes.append(normalized)
+    return seed_nodes, scoped_seed_graph_metadata(seed_nodes)
 
 
 def _promotion_workflow_edges(
@@ -325,8 +270,8 @@ def build_promotion_graph(
 ) -> dict[str, Any]:
     behavior_atoms, source_edges = _promotion_atom_nodes(source_map)
     workflow_edges = _promotion_workflow_edges(selected_workflows, behavior_atoms)
-    scoped_seed_nodes, verification_nodes, scoped_seed_edges = (
-        _promotion_scoped_packet_seed_nodes(selected_scoped_packet_seeds)
+    scoped_seed_nodes, scoped_seed_metadata = _promotion_scoped_packet_seed_nodes(
+        selected_scoped_packet_seeds
     )
     return {
         "schema": "tmcp-promoted-harvest-graph-v0.1",
@@ -334,7 +279,12 @@ def build_promotion_graph(
         "created_at": created_at,
         "source_nodes": source_map,
         "scoped_packet_seed_nodes": scoped_seed_nodes,
-        "verification_expectation_nodes": verification_nodes,
+        "route_affinity_nodes": scoped_seed_metadata["route_affinity_nodes"],
+        "phase_transition_nodes": scoped_seed_metadata["phase_transition_nodes"],
+        "receipt_requirement_nodes": scoped_seed_metadata["receipt_requirement_nodes"],
+        "verification_expectation_nodes": scoped_seed_metadata[
+            "verification_expectation_nodes"
+        ],
         "behavior_atoms": behavior_atoms,
         "workflow_nodes": [
             {
@@ -348,7 +298,7 @@ def build_promotion_graph(
             }
             for item in selected_workflows
         ],
-        "edges": source_edges + workflow_edges + scoped_seed_edges,
+        "edges": source_edges + workflow_edges + scoped_seed_metadata["edges"],
         "cross_source_behavior_atoms": [
             item for item in behavior_atoms if int(item.get("source_count") or 0) > 1
         ],

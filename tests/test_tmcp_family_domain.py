@@ -82,6 +82,45 @@ class FamilyDomainTests(unittest.TestCase):
             ["ui_ux_redesign", "frontend_implementation"],
         )
 
+    def test_inactive_source_roles_cannot_activate_scoped_seed_families(self) -> None:
+        for source_role in ("evidence_only", "supporting_reference"):
+            with self.subTest(source_role=source_role):
+                family_context = families.compose_family_context(
+                    [
+                        {
+                            "source_type": "scoped_packet_seed",
+                            "source_role": source_role,
+                            "seed_id": "redesign_seed",
+                            "objective_patterns": ["redesign"],
+                            "route_affinity": ["ui_ux_redesign"],
+                            "source_references": ["skills/redesign/SKILL.md"],
+                        }
+                    ],
+                    "Redesign the dashboard.",
+                    active_routes=["ui_ux_redesign"],
+                    node_signal_text=_signal_text,
+                )
+
+                self.assertIsNone(family_context)
+
+    def test_explicit_activation_flag_cannot_enable_supporting_seed(self) -> None:
+        family_context = families.compose_family_context(
+            [
+                {
+                    "source_type": "scoped_packet_seed",
+                    "source_role": "supporting_reference",
+                    "activation_eligible": True,
+                    "seed_id": "reviewed_seed",
+                    "objective_patterns": ["reviewed"],
+                    "source_references": ["skills/reviewed/SKILL.md"],
+                }
+            ],
+            "Use the reviewed seed.",
+            node_signal_text=_signal_text,
+        )
+
+        self.assertIsNone(family_context)
+
     def test_router_fallback_preserves_child_order_and_declared_loads(self) -> None:
         router = {
             "source_type": "skill_definition",
@@ -153,9 +192,18 @@ class FamilyDomainTests(unittest.TestCase):
             "deferred_skill_slugs": ["ui-implementation"],
             "family_skills_root": "skills/",
         }
-        primary = {"relative_path": "skills/product-design-runtime/SKILL.md"}
-        sibling = {"relative_path": "skills/ui-implementation/SKILL.md"}
-        install = {"relative_path": "INSTALL.md"}
+        primary = {
+            "relative_path": "skills/product-design-runtime/SKILL.md",
+            "source_type": "skill_definition",
+        }
+        sibling = {
+            "relative_path": "skills/ui-implementation/SKILL.md",
+            "source_type": "skill_definition",
+        }
+        install = {
+            "relative_path": "INSTALL.md",
+            "source_type": "project_documentation",
+        }
 
         self.assertTrue(
             families.node_matches_family_primary(
@@ -233,6 +281,26 @@ class FamilyDomainTests(unittest.TestCase):
             family_context["primary_source_patterns"], ["skills/runtime/SKILL.md"]
         )
 
+    def test_transition_only_inactive_seed_cannot_activate_at_runtime(self) -> None:
+        family_context, seed_node = families.runtime_family_seed_context(
+            [
+                {
+                    "source_type": "scoped_packet_seed",
+                    "source_role": "evidence_only",
+                    "seed_id": "fixture-seed",
+                    "phase_transitions": {
+                        "runtime": {"next_phases": ["implementation"]}
+                    },
+                }
+            ],
+            "Inspect unrelated service logs.",
+            "start",
+            node_signal_text=_signal_text,
+        )
+
+        self.assertIsNone(family_context)
+        self.assertIsNone(seed_node)
+
     def test_runtime_delta_preserves_phase_and_read_order_without_mutation(
         self,
     ) -> None:
@@ -244,13 +312,20 @@ class FamilyDomainTests(unittest.TestCase):
         source_nodes = [
             {
                 "relative_path": "skills/ui-polish-verification/SKILL.md",
+                "source_type": "skill_definition",
                 "routing_metadata": {
                     "declared_loads": ["decisions/**"],
                     "required_reads": ["references/frame-audit-checklist.md"],
                 },
             },
-            {"relative_path": "skills/unrelated/SKILL.md"},
-            {"relative_path": "decisions/dashboard.md"},
+            {
+                "relative_path": "skills/unrelated/SKILL.md",
+                "source_type": "skill_definition",
+            },
+            {
+                "relative_path": "decisions/dashboard.md",
+                "source_type": "project_documentation",
+            },
         ]
         seed_node = {
             "phase_transitions": {
@@ -320,7 +395,12 @@ class FamilyDomainTests(unittest.TestCase):
             "primary_skill_slugs": ["runtime"],
             "deferred_skill_slugs": ["ui-implementation", "ui-review"],
         }
-        source_nodes = [{"relative_path": "skills/ui-implementation/SKILL.md"}]
+        source_nodes = [
+            {
+                "relative_path": "skills/ui-implementation/SKILL.md",
+                "source_type": "skill_definition",
+            }
+        ]
         delta = families.runtime_family_packet_delta(
             current_phase="start",
             family_context=family_context,

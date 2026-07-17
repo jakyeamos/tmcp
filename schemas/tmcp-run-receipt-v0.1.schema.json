@@ -57,6 +57,95 @@
         "type": "string"
       }
     },
+    "recipe_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_identity": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "graph_digest": {
+      "type": "string",
+      "minLength": 1
+    },
+    "content_digests": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "uniqueItems": true
+    },
+    "selected_skill_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "phase_trace": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "gate_results": {
+      "type": "array",
+      "description": "Structured gate outcomes. Project-recipe promotion requires at least one safety-classified gate with an explicit passing result, and rejects missing, ambiguous, or failing safety evidence.",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "gate_id": { "type": "string" },
+          "category": { "type": "string" },
+          "safety": { "type": "boolean" },
+          "passed": { "type": "boolean" },
+          "status": { "type": "string" },
+          "outcome": { "type": "string" },
+          "result": { "type": "string" }
+        }
+      }
+    },
+    "quality_metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "synergy_lift": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "compiler_lift": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "order_lift": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        }
+      }
+    },
+    "cost_metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "context_tokens": {
+          "type": "number",
+          "minimum": 0
+        },
+        "context_ratio": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "composition_fixture_id": {
+      "type": "string",
+      "minLength": 1
+    },
     "outcome": {
       "type": "string"
     },

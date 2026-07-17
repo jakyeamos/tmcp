@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from collections.abc import Callable
 from pathlib import Path
@@ -17,6 +18,23 @@ from .standalone_packets import MODULE_BEHAVIOR_ATOMS
 
 
 SourceAdvisories = Callable[[Path, str, str, str], list[dict[str, Any]]]
+
+SOURCE_ROLES = frozenset(
+    {"governing_instruction", "active_skill", "supporting_reference", "evidence_only"}
+)
+ACTIVATION_ELIGIBLE_SOURCE_ROLES = frozenset({"governing_instruction", "active_skill"})
+EVIDENCE_ONLY_PATH_COMPONENTS = frozenset(
+    {
+        "__fixtures__",
+        "__tests__",
+        "example",
+        "examples",
+        "fixture",
+        "fixtures",
+        "test",
+        "tests",
+    }
+)
 
 
 def json_list(value: object) -> list[Any]:
@@ -33,6 +51,72 @@ def text_tokens(value: str) -> set[str]:
 
 def estimate_tokens(value: str) -> int:
     return max(1, len(value) // 4)
+
+
+def normalized_source_content(value: str) -> str:
+    """Normalize inconsequential line-ending and trailing-space differences."""
+
+    normalized = value.replace("\r\n", "\n").replace("\r", "\n")
+    return "\n".join(line.rstrip() for line in normalized.split("\n")).strip()
+
+
+def content_digest_for(value: str) -> str:
+    """Return the stable digest used by source and graph provenance."""
+
+    return hashlib.sha256(normalized_source_content(value).encode()).hexdigest()
+
+
+def _path_components(value: str) -> set[str]:
+    return {
+        component for component in re.split(r"[\\/]+", str(value).lower()) if component
+    }
+
+
+def is_evidence_only_path(value: str) -> bool:
+    """Identify non-governing test, fixture, and example source locations."""
+
+    return bool(_path_components(value).intersection(EVIDENCE_ONLY_PATH_COMPONENTS))
+
+
+def source_role_for(
+    _path: Path,
+    rel_path: str,
+    source_type: str,
+    *,
+    explicitly_scoped: bool = False,
+) -> str:
+    """Classify how a harvested source may participate in composition."""
+
+    if is_evidence_only_path(rel_path) and not explicitly_scoped:
+        return "evidence_only"
+    if source_type in {"agent_operating_contract", "cursor_rule"}:
+        return "governing_instruction"
+    if source_type in {"skill_definition", "scoped_packet_seed", "workflow_prompt"}:
+        return "active_skill"
+    return "supporting_reference"
+
+
+def node_source_role(node: dict[str, Any]) -> str:
+    """Resolve additive source roles while keeping legacy nodes composable."""
+
+    explicit_role = str(node.get("source_role") or "")
+    if explicit_role in SOURCE_ROLES:
+        return explicit_role
+    rel_path = str(node.get("relative_path") or node.get("path") or "")
+    if is_evidence_only_path(rel_path):
+        return "evidence_only"
+    source_type = str(node.get("source_type") or "")
+    known_source_types = set(HARVEST_SOURCE_TYPE_ATOMS)
+    known_source_types.add("scoped_packet_seed")
+    if not source_type or source_type not in known_source_types:
+        return "supporting_reference"
+    return source_role_for(
+        Path(str(node.get("path") or rel_path)), rel_path, source_type
+    )
+
+
+def source_role_is_activation_eligible(source_role: str) -> bool:
+    return source_role in ACTIVATION_ELIGIBLE_SOURCE_ROLES
 
 
 HARVEST_SOURCE_TYPE_ATOMS: dict[str, tuple[str, ...]] = {
@@ -265,6 +349,13 @@ def node_harvest_sort_key(node: dict[str, Any]) -> tuple[int, int, str]:
         rel_path,
         source_type,
     )
+    role_score = {
+        "governing_instruction": 0,
+        "active_skill": 1,
+        "supporting_reference": 2,
+        "evidence_only": 3,
+    }.get(node_source_role(node), 3)
+    type_score += role_score * 10
     if source_type == "scoped_packet_seed":
         return type_score, int(node.get("seed_index") or 0), fallback_path
     return type_score, 0, fallback_path
@@ -346,6 +437,8 @@ def scoped_seed_signal_text(seed: dict[str, Any]) -> str:
         "route_affinity",
         "objective_patterns",
         "verification_expectations",
+        "required_receipts",
+        "constraints",
     ):
         value = seed.get(key)
         if isinstance(value, list):
@@ -373,6 +466,7 @@ def scoped_packet_seed_nodes(
     payload: dict[str, Any],
     max_excerpt_chars: int,
     redactions: dict[str, int],
+    explicitly_scoped: bool = False,
 ) -> list[dict[str, Any]]:
     promotion = payload.get("promotion_recommendation")
     promotion_map = promotion if isinstance(promotion, dict) else {}
@@ -381,6 +475,11 @@ def scoped_packet_seed_nodes(
     promotion_status = str(payload.get("status") or "proposal_not_promoted")
     promote_as_single_global_graph = bool(
         promotion_map.get("promote_as_single_global_graph", False)
+    )
+    payload_content = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
     )
     nodes: list[dict[str, Any]] = []
     for index, seed in enumerate(json_list(payload.get("seeds"))):
@@ -391,6 +490,12 @@ def scoped_packet_seed_nodes(
             continue
         signal_text = scoped_seed_signal_text(seed)
         virtual_rel_path = f"{rel_path}#{seed_id}"
+        source_role = source_role_for(
+            Path(source_path),
+            virtual_rel_path,
+            "scoped_packet_seed",
+            explicitly_scoped=explicitly_scoped,
+        )
         seed_loads = [
             normalize_declared_load_pattern(pattern)
             for pattern in string_list(seed.get("loads"))
@@ -409,6 +514,9 @@ def scoped_packet_seed_nodes(
                 "title": str(seed.get("name") or seed_id),
                 "source_type": "scoped_packet_seed",
                 "source_tier": "scoped_packet_seed",
+                "source_role": source_role,
+                "activation_eligible": source_role_is_activation_eligible(source_role),
+                "content_digest": content_digest_for(payload_content),
                 "frontmatter": {
                     "schema": SCOPED_PACKET_SEEDS_SCHEMA,
                     "status": promotion_status,
@@ -487,14 +595,22 @@ def source_node_from_text(
     redactions: dict[str, int],
     source_type: str,
     source_advisories: SourceAdvisories | None = None,
+    explicitly_scoped: bool = False,
 ) -> dict[str, Any]:
     """Build one already-redacted source node without filesystem access."""
 
     display_path = Path(source_path)
     signal_text = positive_signal_text(text)
-    node_id = hashlib.sha256(
-        f"{source_path}:{hashlib.sha256(text.encode()).hexdigest()}".encode()
-    ).hexdigest()[:12]
+    source_role = source_role_for(
+        display_path,
+        relative_path,
+        source_type,
+        explicitly_scoped=explicitly_scoped,
+    )
+    content_digest = content_digest_for(text)
+    node_id = hashlib.sha256(f"{source_path}:{content_digest}".encode()).hexdigest()[
+        :12
+    ]
     skill_eval_advisories = (
         source_advisories(display_path, text, relative_path, source_type)
         if source_advisories is not None
@@ -508,6 +624,9 @@ def source_node_from_text(
         "title": title_for(display_path, text),
         "source_type": source_type,
         "source_tier": source_type,
+        "source_role": source_role,
+        "activation_eligible": source_role_is_activation_eligible(source_role),
+        "content_digest": content_digest,
         "frontmatter": frontmatter_for(text),
         "token_estimate": estimate_tokens(text),
         "behavior_atoms": classify_atoms(text, source_type),
@@ -538,6 +657,7 @@ def node_signal_text(node: dict[str, Any]) -> str:
             str(node.get("title") or ""),
             str(node.get("relative_path") or ""),
             str(node.get("source_type") or ""),
+            str(node.get("source_role") or ""),
             " ".join(string_list(node.get("behavior_atoms"))),
             " ".join(string_list(node.get("keywords"))),
             signal_frontmatter,

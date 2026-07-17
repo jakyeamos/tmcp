@@ -30,8 +30,7 @@
       "type": "string"
     },
     "packet": {
-      "type": "object",
-      "additionalProperties": true
+      "$ref": "tmcp-composed-packet-v0.1.schema.json"
     },
     "packet_diff": {
       "type": "object",

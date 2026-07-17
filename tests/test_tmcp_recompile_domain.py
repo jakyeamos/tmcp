@@ -144,6 +144,139 @@ class RecompileDomainTests(unittest.TestCase):
             result["phase_change"], {"from": "research", "to": "implementation"}
         )
 
+    def test_packet_diff_includes_all_graph_runtime_surfaces(self) -> None:
+        graph_diff = {
+            "phase_change": {"from": "discovery", "to": "implementation"},
+            "skills": {
+                "added": ["implement"],
+                "dropped": ["research"],
+                "unchanged": [],
+                "deferred": ["verify"],
+            },
+            "relationships": {
+                "added": ["relationship-new"],
+                "dropped": [],
+                "unchanged": [],
+                "active": [],
+            },
+            "instructions": {
+                "added": ["instruction-new"],
+                "dropped": ["instruction-old"],
+                "unchanged": [],
+                "active": [],
+            },
+            "reads": {"added": ["docs/brief.md"], "all": ["docs/brief.md"]},
+            "gates": {
+                "newly_fulfilled": ["gate-research"],
+                "failed": [],
+                "pending": ["gate-implementation"],
+                "bypassed": [],
+            },
+            "conflicts": {"active": []},
+            "fulfilled_obligations": {
+                "added": ["gate-research"],
+                "all": ["gate-research"],
+            },
+        }
+
+        result = recompile.packet_diff(
+            {"phase": "discovery"},
+            {"phase": "implementation"},
+            packet_delta={},
+            recompile_reason="phase_transition",
+            graph_diff=graph_diff,
+        )
+
+        self.assertEqual(result["phase_change"], graph_diff["phase_change"])
+        self.assertTrue(
+            any(
+                item["kind"] == "skill" and item["id"] == "implement"
+                for item in result["added"]
+            )
+        )
+        self.assertTrue(
+            any(
+                item["kind"] == "skill" and item["id"] == "research"
+                for item in result["dropped"]
+            )
+        )
+        for field in (
+            "skills",
+            "relationships",
+            "instructions",
+            "reads",
+            "gates",
+            "conflicts",
+            "fulfilled_obligations",
+        ):
+            self.assertEqual(result[field], graph_diff[field])
+
+    def test_fresh_graph_diff_keeps_structural_changes_and_runtime_gate_truth(
+        self,
+    ) -> None:
+        previous = {
+            "phase": "discovery",
+            "composition_plan": {
+                "skill_roles": [
+                    {
+                        "node_id": "research",
+                        "source_role": "active_skill",
+                        "activation": "active",
+                    }
+                ],
+                "typed_edges": [],
+                "ordered_stages": [],
+            },
+        }
+        current = {
+            "phase": "implementation",
+            "composition_plan": {
+                "skill_roles": [
+                    {
+                        "node_id": "implement",
+                        "source_role": "active_skill",
+                        "activation": "active",
+                    }
+                ],
+                "typed_edges": [],
+                "ordered_stages": [],
+            },
+        }
+        runtime_graph_diff = {
+            "skills": {
+                "added": [],
+                "dropped": [],
+                "unchanged": ["implement"],
+                "deferred": ["verify"],
+            },
+            "relationships": {"active": []},
+            "instructions": {"active": []},
+            "reads": {"added": ["docs/brief.md"], "all": ["docs/brief.md"]},
+            "gates": {
+                "newly_fulfilled": [],
+                "failed": ["gate-failed"],
+                "pending": ["gate-pending"],
+                "bypassed": ["gate-bypassed"],
+            },
+            "conflicts": {"active": []},
+            "fulfilled_obligations": {"added": [], "all": []},
+        }
+
+        result = recompile.packet_diff(
+            previous,
+            current,
+            packet_delta={},
+            recompile_reason="phase_transition",
+            graph_diff=runtime_graph_diff,
+            merge_graph_runtime=True,
+        )
+
+        self.assertEqual(result["skills"]["added"], ["implement"])
+        self.assertEqual(result["skills"]["dropped"], ["research"])
+        self.assertEqual(result["skills"]["deferred"], ["verify"])
+        self.assertEqual(result["gates"], runtime_graph_diff["gates"])
+        self.assertEqual(result["reads"], runtime_graph_diff["reads"])
+
     def test_merge_packet_delta_preserves_order_limits_and_context(self) -> None:
         packet = {
             "active_atoms": ["first", "remove", "second"],

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-evaluation-plan-v0.1.schema.json",
+  "title": "TMCP Composition Evaluation Plan v0.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "ok",
+    "schema",
+    "selected_skill_ids",
+    "variants",
+    "execution_policy"
+  ],
+  "properties": {
+    "ok": { "const": true },
+    "schema": { "const": "tmcp-composition-evaluation-plan-v0.1" },
+    "selected_skill_ids": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/variant" }
+    },
+    "execution_policy": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variant_id",
+        "variant_kind",
+        "selected_skill_ids",
+        "ordered_skill_ids",
+        "omitted_skill_ids",
+        "composition_enabled"
+      ],
+      "properties": {
+        "variant_id": { "type": "string", "minLength": 1 },
+        "variant_kind": {
+          "enum": [
+            "no_skill",
+            "naive_union",
+            "singleton",
+            "full_composition",
+            "leave_one_out",
+            "wrong_order"
+          ]
+        },
+        "selected_skill_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "ordered_skill_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "omitted_skill_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "composition_enabled": { "type": "boolean" }
+      }
+    }
+  }
+}

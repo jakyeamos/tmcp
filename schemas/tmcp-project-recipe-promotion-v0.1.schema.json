@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-project-recipe-promotion-v0.1.schema.json",
+  "title": "TMCP Project Recipe Promotion v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ok",
+    "schema",
+    "status",
+    "recipe_id",
+    "graph_digest",
+    "promotion_eligibility",
+    "recipe",
+    "storage",
+    "redaction_summary"
+  ],
+  "properties": {
+    "ok": { "const": true },
+    "schema": { "const": "tmcp-project-recipe-promotion-v0.1" },
+    "status": { "const": "promoted" },
+    "recipe_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$"
+    },
+    "graph_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "promotion_eligibility": {
+      "$ref": "tmcp-project-composition-recipe-v0.1.schema.json#/$defs/promotion_eligibility"
+    },
+    "recipe": {
+      "$ref": "tmcp-project-composition-recipe-v0.1.schema.json"
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "record_schema",
+        "key",
+        "path",
+        "recipe_id",
+        "graph_digest",
+        "state_effect",
+        "activation_policy"
+      ],
+      "properties": {
+        "record_schema": {
+          "const": "tmcp-project-composition-recipe-v0.1"
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^recipe-[a-f0-9]{32}$"
+        },
+        "path": { "type": "string", "minLength": 1 },
+        "recipe_id": { "type": "string", "minLength": 1 },
+        "graph_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "state_effect": { "const": "project_local_write" },
+        "activation_policy": { "const": "explicit_load_only" }
+      }
+    },
+    "redaction_summary": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    }
+  }
+}

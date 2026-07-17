@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import tmcp_runtime.storage.cache_policy as cache_policy
+from tmcp_runtime.domain.workflow_adaptive import recommended_scoped_packet_seeds
+from tmcp_runtime.domain.workflow_promotion import build_promotion_graph
 from tmcp_runtime.storage.cache_policy import (
     append_bounded_warning,
     bounded_cache_limit,
@@ -230,6 +232,87 @@ class TmcpCachePolicyTests(unittest.TestCase):
         self.assertEqual(graph["workflow_nodes"][0]["id"], "release_readiness_workflow")
         self.assertNotIn("MALICIOUS", str(graph))
         self.assertEqual(graph["trust"], "advisory_untrusted")
+
+    def test_scoped_seed_semantics_survive_cache_normalization_and_projection(
+        self,
+    ) -> None:
+        recommendations = recommended_scoped_packet_seeds(
+            [
+                {
+                    "id": "release-seed",
+                    "source_type": "scoped_packet_seed",
+                    "name": "Release seed",
+                    "source_role": "active_skill",
+                    "activation_eligible": True,
+                    "route_affinity": ["release_readiness"],
+                    "phase_transitions": {
+                        "review": {
+                            "next_phases": ["verification"],
+                            "activate_skills": ["test-strategy"],
+                            "verification_gates": ["Run checks."],
+                        }
+                    },
+                    "chains_before": ["package"],
+                    "chains_after": ["review"],
+                    "do_not_activate_with": ["migration"],
+                    "required_receipts": ["verified CI receipt"],
+                }
+            ]
+        )
+        promotion_graph = build_promotion_graph(
+            promotion_name="release-seed",
+            created_at="2026-07-17T00:00:00Z",
+            source_map=[],
+            selected_workflows=[],
+            selected_scoped_packet_seeds=recommendations,
+        )
+        normalized = normalize_promoted_graph(
+            {
+                "promotion_name": "release-seed",
+                "promotion_graph": promotion_graph,
+            },
+            graph_schema=GRAPH_SCHEMA,
+            created_at="2026-07-17T00:00:00Z",
+        )
+
+        projected, warning = project_cached_promotion_graph(
+            normalized,
+            "promotion-graph.json",
+            graph_schema=GRAPH_SCHEMA,
+            known_workflow_ids=set(),
+            redact_value=_redact,
+        )
+
+        self.assertIsNone(warning)
+        assert projected is not None
+        seed = projected["scoped_packet_seed_nodes"][0]
+        self.assertEqual(seed["route_affinity"], ["release_readiness"])
+        self.assertEqual(
+            seed["phase_transitions"]["review"]["activate_skills"],
+            ["test-strategy"],
+        )
+        self.assertEqual(seed["chains_before"], ["package"])
+        self.assertEqual(seed["chains_after"], ["review"])
+        self.assertEqual(seed["do_not_activate_with"], ["migration"])
+        self.assertEqual(seed["required_receipts"], ["verified CI receipt"])
+        self.assertEqual(projected["phase_transition_nodes"][0]["from_phase"], "review")
+        self.assertEqual(
+            projected["receipt_requirement_nodes"][0]["requirement"],
+            "verified CI receipt",
+        )
+        relations = {edge["relation"] for edge in projected["edges"]}
+        self.assertTrue(
+            {
+                "activates",
+                "affinity_for_route",
+                "conflicts_with",
+                "defines_phase_transition",
+                "enables",
+                "precedes",
+                "requires_receipt",
+                "transitions_to",
+            }.issubset(relations)
+        )
 
     def test_cache_bounds_and_warning_cap_are_enforced(self) -> None:
         warnings: list[str] = []

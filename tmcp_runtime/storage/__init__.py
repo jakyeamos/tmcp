@@ -11,6 +11,12 @@ from tmcp_runtime.storage.sessions import (
     PacketSessionSnapshot,
     PacketSessionStore,
 )
+from tmcp_runtime.storage.project_recipes import (
+    PROJECT_COMPOSITION_RECIPE_SCHEMA,
+    ProjectCompositionRecipeStore,
+    ProjectRecipeError,
+    ProjectRecipeSnapshot,
+)
 from tmcp_runtime.storage.migrations import (
     LEGACY_GLOBAL_PROMOTION_SCHEMA,
     migrate_legacy_promotion_summary,
@@ -24,6 +30,10 @@ __all__ = [
     "PacketSessionError",
     "PacketSessionSnapshot",
     "PacketSessionStore",
+    "PROJECT_COMPOSITION_RECIPE_SCHEMA",
+    "ProjectCompositionRecipeStore",
+    "ProjectRecipeError",
+    "ProjectRecipeSnapshot",
     "LEGACY_GLOBAL_PROMOTION_SCHEMA",
     "migrate_legacy_promotion_summary",
 ]

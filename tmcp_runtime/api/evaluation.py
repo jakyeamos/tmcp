@@ -14,6 +14,10 @@ from tmcp_runtime.services.evaluation_catalog import (
     EFFECTIVE_PATTERNS,
     V01_ANTI_PATTERNS,
 )
+from tmcp_runtime.services.composition_evaluation import (
+    build_composition_evaluation_variants,
+    score_composition_results,
+)
 from tmcp_runtime.services.evaluation_orchestration import evaluate_mode
 from tmcp_runtime.services.evaluation_plan import (
     EVAL_PLAN_SCHEMA,
@@ -342,6 +346,29 @@ def evaluate_skills(
     compose_evaluation_row: ComposeEvaluationRow | None = None,
     artifact_writer: EvaluationArtifactWriter | None = None,
 ) -> dict[str, Any]:
+    mode = str(arguments.get("mode") or "auto")
+    has_composition_results = arguments.get("composition_results") is not None
+    has_composition_skills = arguments.get("composition_skill_ids") is not None
+    if mode == "composition-plan" or (
+        mode == "auto" and has_composition_skills and not has_composition_results
+    ):
+        skill_ids = arguments.get("composition_skill_ids")
+        if not isinstance(skill_ids, list):
+            raise ValueError("composition_skill_ids is required for composition-plan.")
+        return _redact_output(
+            {
+                "ok": True,
+                "schema": "tmcp-composition-evaluation-plan-v0.1",
+                "selected_skill_ids": list(skill_ids),
+                "variants": build_composition_evaluation_variants(skill_ids),
+                "execution_policy": "The host executes variants; TMCP only scores supplied evidence.",
+            }
+        )
+    if mode == "composition-score" or (mode == "auto" and has_composition_results):
+        results = arguments.get("composition_results")
+        if not isinstance(results, list):
+            raise ValueError("composition_results is required for composition-score.")
+        return _redact_output({"ok": True, **score_composition_results(results)})
     return evaluate_mode(
         arguments,
         build_plan=build_evaluation_plan,

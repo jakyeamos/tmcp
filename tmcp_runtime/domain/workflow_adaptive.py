@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .scoped_seeds import normalize_scoped_seed, scoped_seed_graph_metadata
 from .workflow_recommendations import source_scope_for
 
 
@@ -36,42 +37,20 @@ def recommended_scoped_packet_seeds(
     for node in source_nodes:
         if str(node.get("source_type") or "") != "scoped_packet_seed":
             continue
-        seed_id = str(node.get("seed_id") or node.get("id") or "").strip()
-        if not seed_id:
+        normalized_seed = normalize_scoped_seed(node)
+        seed_id = str(normalized_seed.get("id") or "")
+        if not seed_id or not bool(normalized_seed.get("activation_eligible")):
             continue
+        graph_metadata = scoped_seed_graph_metadata([normalized_seed])
         recommendations.append(
             {
-                "id": seed_id,
-                "name": str(node.get("title") or seed_id),
-                "kind": "scoped_packet_seed",
+                **normalized_seed,
                 "basis": "curated_scoped_packet_seed",
                 "confidence": 1.0,
-                "promotion_status": str(
-                    node.get("promotion_status") or "proposal_not_promoted"
-                ),
-                "promote_as_single_global_graph": bool(
-                    node.get("promote_as_single_global_graph", False)
-                ),
-                "relative_path": node.get("relative_path"),
-                "canonical_source": node.get("canonical_source"),
-                "source_references": _string_list(node.get("source_references")),
-                "loads": _string_list(node.get("loads")),
-                "chains_before": _string_list(node.get("chains_before")),
-                "chains_after": _string_list(node.get("chains_after")),
-                "do_not_activate_with": _string_list(node.get("do_not_activate_with")),
-                "use_when": _string_list(node.get("use_when")),
-                "modes": _string_list(node.get("modes")),
-                "minimum_spec_fields": _string_list(node.get("minimum_spec_fields")),
-                "ticket_types": _string_list(node.get("ticket_types")),
-                "behavior_atoms": _string_list(node.get("behavior_atoms")),
-                "verification_expectations": _string_list(
-                    node.get("verification_expectations")
-                ),
-                "required_receipts": _string_list(node.get("required_receipts")),
                 "guidance_labels": _json_list(node.get("guidance_labels")),
                 "routing_trigger": _scoped_seed_routing_trigger(node),
+                "typed_relationships": graph_metadata["edges"],
                 "approval_required": True,
-                "trust": "advisory_untrusted",
                 "why": (
                     "Curated scoped packet seed from a constrained TMCP harvest; "
                     "use as a scoped candidate, not as global default behavior."

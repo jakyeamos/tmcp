@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
+import os
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path, PureWindowsPath
 
+from tests import test_tmcp_composition_benchmarks as benchmark_test_support
+from tmcp_runtime.domain.composition_benchmarks import score_composition_benchmark
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 CHECK_RELEASE_EVIDENCE_PATH = PLUGIN_ROOT / "scripts" / "check_release_evidence.py"
@@ -58,6 +63,49 @@ def write_verification_workflow(path: Path) -> None:
     )
 
 
+def commit_file(root: Path, relative_path: str) -> None:
+    environment = {
+        key: value for key, value in os.environ.items() if not key.startswith("GIT_")
+    }
+    home = root.parent / f"{root.name}-git-home"
+    template = root.parent / f"{root.name}-git-template"
+    home.mkdir()
+    template.mkdir()
+    environment["GIT_CONFIG_NOSYSTEM"] = "1"
+    environment["HOME"] = str(home)
+    environment["XDG_CONFIG_HOME"] = str(home / "config")
+    subprocess.run(
+        ["git", "init", "--quiet", f"--template={template}"],
+        cwd=root,
+        env=environment,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "add", "--", relative_path],
+        cwd=root,
+        env=environment,
+        check=True,
+    )
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            f"core.hooksPath={template}",
+            "-c",
+            "user.name=TMCP Test",
+            "-c",
+            "user.email=tmcp@example.test",
+            "commit",
+            "--quiet",
+            "-m",
+            "benchmark summary fixture",
+        ],
+        cwd=root,
+        env=environment,
+        check=True,
+    )
+
+
 def copy_release_evidence_fixture(root: Path) -> None:
     for relative in (
         ".codex-plugin/plugin.json",
@@ -78,10 +126,152 @@ def copy_release_evidence_fixture(root: Path) -> None:
     )
 
 
+def composition_benchmark_summary() -> dict[str, object]:
+    builder = benchmark_test_support.CompositionBenchmarkTests()
+    builder.setUpClass()
+    summary = score_composition_benchmark(
+        golden_cases=builder.golden_cases,
+        fixture_definitions=builder.fixture_definitions,
+        routing_results=builder._routing_results(),
+        behavioral_results=builder._behavioral_results(),
+    )
+    return {"ok": True, **summary, "observations_sha256": "a" * 64}
+
+
+def composition_benchmark_evidence(summary_digest: str) -> dict[str, object]:
+    return {
+        "composition_benchmark": {
+            "schema": "tmcp-composition-benchmark-release-evidence-v0.1",
+            "version": "0.6.0",
+            "status": "reviewed",
+            "summary_path": "docs/COMPOSITION_BENCHMARK_SUMMARY.json",
+            "observations_sha256": "a" * 64,
+            "summary_sha256": summary_digest,
+            "review": {
+                "status": "approved",
+                "reviewer": "release-owner",
+                "reviewed_at": "2026-07-17T12:00:00Z",
+            },
+        }
+    }
+
+
 class ReleaseEvidenceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.checker = load_check_release_evidence_module()
+
+    def test_composition_benchmark_evidence_becomes_mandatory_at_0_6(self) -> None:
+        self.assertFalse(self.checker.composition_benchmark_required("0.5.7"))
+        self.assertTrue(self.checker.composition_benchmark_required("0.6.0"))
+        errors = self.checker.validate_composition_benchmark_evidence(
+            PLUGIN_ROOT,
+            "0.6.0",
+            {},
+        )
+        self.assertEqual(
+            errors,
+            ["docs/RELEASE_EVIDENCE.json composition_benchmark must be an object"],
+        )
+
+    def test_composition_benchmark_evidence_accepts_reviewed_committed_summary(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            summary_path = root / "docs" / "COMPOSITION_BENCHMARK_SUMMARY.json"
+            write_json(summary_path, composition_benchmark_summary())
+            summary_digest = hashlib.sha256(summary_path.read_bytes()).hexdigest()
+            commit_file(root, "docs/COMPOSITION_BENCHMARK_SUMMARY.json")
+
+            errors = self.checker.validate_composition_benchmark_evidence(
+                root,
+                "0.6.0",
+                composition_benchmark_evidence(summary_digest),
+            )
+
+        self.assertEqual(errors, [])
+
+    def test_composition_benchmark_evidence_rejects_incomplete_handcrafted_summary(
+        self,
+    ) -> None:
+        summary = {
+            "schema": "tmcp-composition-benchmark-summary-v0.1",
+            "eligible": True,
+            "failed_checks": [],
+            "acceptance_checks": {"expected_skill_recall": True},
+            "routing_metrics": {
+                "case_count": 25,
+                "observed_case_count": 25,
+                "missing_case_ids": [],
+            },
+            "behavioral_metrics": {"fixture_count": 5},
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            summary_path = root / "docs" / "COMPOSITION_BENCHMARK_SUMMARY.json"
+            write_json(summary_path, summary)
+            summary_digest = hashlib.sha256(summary_path.read_bytes()).hexdigest()
+            commit_file(root, "docs/COMPOSITION_BENCHMARK_SUMMARY.json")
+
+            errors = self.checker.validate_composition_benchmark_evidence(
+                root,
+                "0.6.0",
+                composition_benchmark_evidence(summary_digest),
+            )
+
+        self.assertIn(
+            "composition benchmark summary fields must match bundled schema", errors
+        )
+        self.assertIn("composition benchmark summary must be fully eligible", errors)
+
+    def test_composition_benchmark_evidence_binds_observations_digest(self) -> None:
+        summary = composition_benchmark_summary()
+        summary["observations_sha256"] = "b" * 64
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            summary_path = root / "docs" / "COMPOSITION_BENCHMARK_SUMMARY.json"
+            write_json(summary_path, summary)
+            summary_digest = hashlib.sha256(summary_path.read_bytes()).hexdigest()
+            commit_file(root, "docs/COMPOSITION_BENCHMARK_SUMMARY.json")
+
+            errors = self.checker.validate_composition_benchmark_evidence(
+                root,
+                "0.6.0",
+                composition_benchmark_evidence(summary_digest),
+            )
+
+        self.assertIn(
+            "composition_benchmark.observations_sha256 does not match summary",
+            errors,
+        )
+
+    def test_composition_benchmark_evidence_rejects_changed_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            summary_path = root / "docs" / "COMPOSITION_BENCHMARK_SUMMARY.json"
+            write_json(summary_path, composition_benchmark_summary())
+            summary_digest = hashlib.sha256(summary_path.read_bytes()).hexdigest()
+            commit_file(root, "docs/COMPOSITION_BENCHMARK_SUMMARY.json")
+            changed = composition_benchmark_summary()
+            changed["eligible"] = False
+            write_json(summary_path, changed)
+
+            errors = self.checker.validate_composition_benchmark_evidence(
+                root,
+                "0.6.0",
+                composition_benchmark_evidence(summary_digest),
+            )
+
+        self.assertIn(
+            "composition benchmark summary must be committed and unchanged at "
+            "docs/COMPOSITION_BENCHMARK_SUMMARY.json",
+            errors,
+        )
+        self.assertIn(
+            "composition_benchmark.summary_sha256 does not match summary", errors
+        )
+        self.assertIn("composition benchmark summary must be fully eligible", errors)
 
     def test_release_evidence_accepts_current_tag_run(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

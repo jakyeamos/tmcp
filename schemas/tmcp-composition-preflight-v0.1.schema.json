@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-preflight-v0.1.schema.json",
+  "title": "TMCP Composition Preflight v0.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "preflight_id",
+    "objective",
+    "task_identity",
+    "candidate_source_slices",
+    "source_roles",
+    "semantic_proposal_contract",
+    "relationship_type_semantics",
+    "diagnostics",
+    "trust",
+    "instruction_override_policy"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-composition-preflight-v0.1"
+    },
+    "preflight_id": {
+      "type": "string",
+      "pattern": "^preflight-[a-f0-9]{20}$"
+    },
+    "objective": {
+      "type": "string"
+    },
+    "task_identity": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "candidate_source_slices": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source_slice"
+      }
+    },
+    "source_roles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "active_skill",
+        "evidence_only",
+        "governing_instruction",
+        "supporting_reference"
+      ],
+      "properties": {
+        "active_skill": { "type": "integer", "minimum": 0 },
+        "evidence_only": { "type": "integer", "minimum": 0 },
+        "governing_instruction": { "type": "integer", "minimum": 0 },
+        "supporting_reference": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "semantic_proposal_contract": {
+      "$ref": "#/$defs/semantic_proposal_starter"
+    },
+    "relationship_type_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires",
+        "precedes",
+        "enables",
+        "complements",
+        "conflicts_with",
+        "verifies",
+        "produces",
+        "consumes"
+      ],
+      "properties": {
+        "requires": { "$ref": "#/$defs/relationship_semantics" },
+        "precedes": { "$ref": "#/$defs/relationship_semantics" },
+        "enables": { "$ref": "#/$defs/relationship_semantics" },
+        "complements": { "$ref": "#/$defs/relationship_semantics" },
+        "conflicts_with": { "$ref": "#/$defs/relationship_semantics" },
+        "verifies": { "$ref": "#/$defs/relationship_semantics" },
+        "produces": { "$ref": "#/$defs/relationship_semantics" },
+        "consumes": { "$ref": "#/$defs/relationship_semantics" }
+      }
+    },
+    "scoped_seed_graph_hints": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["scoped_seeds", "typed_edges"]
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "truncated",
+        "candidate_slice_count",
+        "returned_slice_count",
+        "excluded_slice_count",
+        "excluded_source_count",
+        "total_chars",
+        "total_tokens",
+        "limits"
+      ]
+    },
+    "trust": {
+      "const": "advisory_untrusted"
+    },
+    "instruction_override_policy": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "relationship_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ordering", "meaning"],
+      "properties": {
+        "ordering": {
+          "enum": [
+            "from_before_to",
+            "to_before_from",
+            "none",
+            "incompatible_same_phase"
+          ]
+        },
+        "meaning": { "type": "string", "minLength": 1 }
+      }
+    },
+    "semantic_proposal_starter": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "preflight_id",
+        "current_phase",
+        "task_model",
+        "skill_roles",
+        "relationships",
+        "coverage",
+        "trust"
+      ],
+      "properties": {
+        "schema": { "const": "tmcp-semantic-proposal-v0.1" },
+        "preflight_id": { "type": "string" },
+        "current_phase": { "type": "string" },
+        "task_model": {
+          "type": "object",
+          "required": [
+            "deliverables",
+            "success_criteria",
+            "constraints",
+            "subgoals",
+            "evidence_needs"
+          ],
+          "properties": {
+            "deliverables": { "type": "array" },
+            "success_criteria": { "type": "array" },
+            "constraints": { "type": "array" },
+            "subgoals": { "type": "array" },
+            "evidence_needs": { "type": "array" }
+          }
+        },
+        "skill_roles": { "type": "array", "maxItems": 0 },
+        "relationships": { "type": "array", "maxItems": 0 },
+        "coverage": { "type": "object" },
+        "trust": { "const": "advisory_untrusted" }
+      }
+    },
+    "source_slice": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "slice_id",
+        "source_node_id",
+        "source_digest",
+        "slice_digest",
+        "source_role",
+        "source_type",
+        "content",
+        "char_start",
+        "char_end",
+        "token_estimate",
+        "mandatory",
+        "explicitly_scoped",
+        "trust"
+      ],
+      "properties": {
+        "slice_id": {
+          "type": "string",
+          "pattern": "^slice-[a-f0-9]{20}$"
+        },
+        "source_node_id": { "type": "string", "minLength": 1 },
+        "source_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "slice_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_role": {
+          "enum": [
+            "governing_instruction",
+            "active_skill",
+            "supporting_reference",
+            "evidence_only"
+          ]
+        },
+        "source_type": { "type": "string" },
+        "relative_path": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "char_start": { "type": "integer", "minimum": 0 },
+        "char_end": { "type": "integer", "minimum": 0 },
+        "token_estimate": { "type": "integer", "minimum": 1 },
+        "behavior_atoms": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "phase_hints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "incompatibilities": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "mandatory": { "type": "boolean" },
+        "explicitly_scoped": { "type": "boolean" },
+        "trust": { "const": "advisory_untrusted" }
+      }
+    }
+  }
+}

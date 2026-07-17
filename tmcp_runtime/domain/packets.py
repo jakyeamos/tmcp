@@ -6,6 +6,7 @@ import hashlib
 import json
 from typing import Any
 
+from .harvest_nodes import node_source_role, source_role_is_activation_eligible
 from .receipts import build_receipt_template
 from .routes import ROUTE_CATALOG_VERSION
 
@@ -35,13 +36,24 @@ def compiled_from_packet(
     cache_policy: str,
     family_context: dict[str, Any] | None,
     evidence_citations: list[dict[str, Any]],
+    selected_nodes: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     seed_id = str((family_context or {}).get("active_seed_id") or "").strip()
-    source_keys = sorted(
-        str(item.get("source") or item.get("path") or "")
-        for item in evidence_citations
-        if str(item.get("source") or item.get("path") or "")
-    )
+    graph_inputs: dict[str, str] = {}
+    for item in evidence_citations:
+        source = str(item.get("source") or item.get("path") or "")
+        if source:
+            graph_inputs[source] = str(item.get("content_digest") or "")
+    for node in selected_nodes or []:
+        source = str(node.get("relative_path") or node.get("path") or "")
+        if source:
+            graph_inputs[source] = str(
+                node.get("content_digest") or graph_inputs.get(source) or ""
+            )
+    source_keys = [
+        {"source": source, "content_digest": graph_inputs[source] or None}
+        for source in sorted(graph_inputs)
+    ]
     graph_version = hashlib.sha256(
         json.dumps(source_keys, sort_keys=True).encode()
     ).hexdigest()[:16]
@@ -78,6 +90,33 @@ def shortcut_candidate_for_composed_packet(
             "regenerate_when": [],
             "fallback": "router_traversal",
             "reason": "No scoped seed or stable route identity matched.",
+        }
+    confidence = 0.0
+    task_primary = ""
+    if isinstance(task_identity, dict):
+        task_primary = str(task_identity.get("primary") or "").strip()
+        try:
+            confidence = float(task_identity.get("confidence") or 0.0)
+        except (TypeError, ValueError):
+            confidence = 0.0
+    if task_primary == "general_task" and confidence <= 0.0:
+        return {
+            "status": "ineligible",
+            "shortcut_id": shortcut_id,
+            "matched": False,
+            "compiled_from": {
+                **compiled_from,
+                "receipt_count": receipt_count,
+            },
+            "regenerate_when": [
+                "task identity gains positive confidence",
+                "graph_version changes",
+                "user_override present",
+            ],
+            "fallback": "router_traversal",
+            "reason": (
+                "Zero-confidence general_task identities cannot become reusable shortcuts."
+            ),
         }
     overrides = _string_list(user_overrides)
     status = "eligible"
@@ -158,6 +197,37 @@ def render_composed_packet_markdown(packet: dict[str, Any]) -> str:
     if active_routes:
         lines.extend(["", "## Active Routes"])
         lines.extend(f"- {route}" for route in active_routes)
+    composition_plan = packet.get("composition_plan")
+    if isinstance(composition_plan, dict):
+        lines.extend(
+            [
+                "",
+                "## Composition Plan",
+                f"Recipe: `{composition_plan.get('composition_plan_id', '')}`",
+                "Graph: `"
+                + str(
+                    dict(composition_plan.get("provenance") or {}).get(
+                        "graph_digest", ""
+                    )
+                )
+                + "`",
+            ]
+        )
+        for stage in _json_list(composition_plan.get("ordered_stages")):
+            if not isinstance(stage, dict):
+                continue
+            status = str(stage.get("status") or "deferred")
+            node_ids = ", ".join(_string_list(stage.get("node_ids")))
+            lines.append(f"- {stage.get('stage_id', 'stage')} [{status}]: {node_ids}")
+            if status == "deferred":
+                conditions = "; ".join(_string_list(stage.get("entry_conditions")))
+                if conditions:
+                    lines.append(f"  - enter when: {conditions}")
+        coverage = composition_plan.get("coverage")
+        if isinstance(coverage, dict):
+            gaps = _string_list(coverage.get("unresolved_gaps"))
+            if gaps:
+                lines.append(f"- unresolved gaps: {', '.join(gaps)}")
     citations = [
         item
         for item in _json_list(packet.get("evidence_citations"))
@@ -260,6 +330,7 @@ def build_composed_packet(
                 atom
                 for node in source_nodes
                 if node not in selected_nodes
+                and source_role_is_activation_eligible(node_source_role(node))
                 for atom in _string_list(node.get("behavior_atoms"))
             ]
         )
@@ -268,15 +339,42 @@ def build_composed_packet(
     ignored_sources = [
         {
             "source": node.get("relative_path"),
-            "reason": "No objective, phase, command, or runtime-context match for this packet.",
+            "source_role": node_source_role(node),
+            "reason": (
+                "Evidence-only source remains harvestable but is inactive unless explicitly scoped."
+                if node_source_role(node) == "evidence_only"
+                else "Supporting reference may be read as evidence but cannot activate behavior."
+                if node_source_role(node) == "supporting_reference"
+                else "No objective, phase, command, or runtime-context match for this packet."
+            ),
         }
         for node in source_nodes
         if node not in selected_nodes
     ][:12]
+    digest_by_source: dict[str, str] = {}
+    for node in selected_nodes:
+        digest = str(node.get("content_digest") or "")
+        if not digest:
+            continue
+        for source in (node.get("relative_path"), node.get("path")):
+            source_key = str(source or "")
+            if source_key:
+                digest_by_source[source_key] = digest
+    normalized_citations: list[dict[str, Any]] = []
+    for citation in evidence_citations:
+        normalized = dict(citation)
+        source = str(citation.get("source") or citation.get("path") or "")
+        digest = str(
+            citation.get("content_digest") or digest_by_source.get(source) or ""
+        )
+        if digest:
+            normalized["content_digest"] = digest
+        normalized_citations.append(normalized)
     compiled_from = compiled_from_packet(
         cache_policy=cache_policy,
         family_context=family_context,
-        evidence_citations=evidence_citations,
+        evidence_citations=normalized_citations,
+        selected_nodes=selected_nodes,
     )
     shortcut_candidate = shortcut_candidate_for_composed_packet(
         packet={
@@ -294,7 +392,8 @@ def build_composed_packet(
                 {
                     "objective": objective,
                     "phase": phase,
-                    "sources": [item.get("source") for item in evidence_citations],
+                    "sources": [item.get("source") for item in normalized_citations],
+                    "graph_version": compiled_from["graph_version"],
                     "atoms": normalized_atoms,
                     "active_routes": task_identity.get("active_routes"),
                 },
@@ -322,7 +421,33 @@ def build_composed_packet(
         "family_context": family_context or {},
         "ignored_sources": ignored_sources,
         "conflicts": conflicts,
-        "evidence_citations": evidence_citations,
+        "evidence_citations": normalized_citations,
+        "composition_diagnostics": {
+            "source_role_counts": {
+                role: sum(1 for node in source_nodes if node_source_role(node) == role)
+                for role in (
+                    "governing_instruction",
+                    "active_skill",
+                    "supporting_reference",
+                    "evidence_only",
+                )
+            },
+            "composition_ineligible_sources": [
+                {
+                    "source": node.get("relative_path"),
+                    "source_role": node_source_role(node),
+                    "reason": (
+                        "Source role cannot activate packet behavior."
+                        if not source_role_is_activation_eligible(
+                            node_source_role(node)
+                        )
+                        else "Source was eligible but did not match this packet."
+                    ),
+                }
+                for node in source_nodes
+                if not source_role_is_activation_eligible(node_source_role(node))
+            ][:20],
+        },
         "global_cache": global_cache,
         "receipt_template": build_receipt_template(
             packet_id=packet_id,

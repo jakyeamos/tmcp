@@ -11,14 +11,18 @@ from tmcp_runtime.domain.harvest_nodes import (
     SCOPED_PACKET_SEEDS_SCHEMA,
     SourceAdvisories,
     instruction_override_warnings,
+    is_evidence_only_path,
     json_list,
+    node_source_role,
     node_harvest_sort_key,
+    node_signal_text,
     scoped_packet_seed_nodes,
     skill_eval_advisory_summary,
     string_list,
     source_node_from_text,
     source_type_for,
 )
+from tmcp_runtime.domain.composition import composition_terms
 from tmcp_runtime.domain.standalone_packets import compile_standalone_packet
 from tmcp_runtime.safety import (
     collect_harvest_roots,
@@ -32,6 +36,49 @@ from tmcp_runtime.safety import (
 def merge_redactions(target: dict[str, int], source: dict[str, int]) -> None:
     for key, value in source.items():
         target[key] = target.get(key, 0) + value
+
+
+def source_role_diagnostics(
+    ranked_nodes: list[dict[str, Any]],
+    truncated_nodes: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Summarize why harvestable sources cannot participate in composition."""
+
+    role_counts: dict[str, int] = {}
+    for node in ranked_nodes:
+        role = node_source_role(node)
+        role_counts[role] = role_counts.get(role, 0) + 1
+    ineligible_nodes = [
+        node
+        for node in ranked_nodes
+        if node_source_role(node) in {"supporting_reference", "evidence_only"}
+    ]
+    return {
+        "ranked_before_limit": True,
+        "source_role_counts": role_counts,
+        "composition_ineligible_source_count": len(ineligible_nodes),
+        "composition_ineligible_sources": [
+            {
+                "source": node.get("relative_path"),
+                "source_role": node_source_role(node),
+                "reason": (
+                    "Evidence-only source remains harvestable but is inactive unless explicitly scoped."
+                    if node_source_role(node) == "evidence_only"
+                    else "Supporting reference may be read as evidence but cannot activate behavior."
+                ),
+            }
+            for node in ineligible_nodes[:20]
+        ],
+        "truncated_source_count": len(truncated_nodes),
+        "truncated_sources": [
+            {
+                "source": node.get("relative_path"),
+                "source_role": node_source_role(node),
+                "reason": "Harvest result limit applied after deterministic source ranking.",
+            }
+            for node in truncated_nodes[:20]
+        ],
+    }
 
 
 DEFAULT_HARVEST_INCLUDE_GLOBS = (
@@ -134,6 +181,45 @@ DEFAULT_HARVEST_EXCLUDE_GLOBS = (
 
 DEFAULT_HARVEST_MAX_SCAN_ENTRIES = 4096
 DEFAULT_HARVEST_MAX_TOTAL_BYTES = 8 * 1024 * 1024
+
+
+def _composition_candidate_sort_key(
+    candidate: Any,
+    objective_terms: set[str],
+) -> tuple[int, int, str]:
+    """Prioritize likely governing/relevant files before bounded reads."""
+
+    relative_path = str(candidate.relative_path).lower()
+    parts = {part for part in relative_path.split("/") if part}
+    name = candidate.logical_path.name.lower()
+    if name in {"agents.md", "claude.md", ".cursorrules"}:
+        role_rank = 0
+    elif "skill.md" == name or name == "scoped-packet-seeds.json":
+        role_rank = 1
+    elif parts.intersection(
+        {"test", "tests", "fixture", "fixtures", "example", "examples"}
+    ):
+        role_rank = 3
+    else:
+        role_rank = 2
+    relevance = len(objective_terms.intersection(composition_terms(relative_path)))
+    return role_rank, -relevance, relative_path
+
+
+def _composition_node_sort_key(
+    node: dict[str, Any],
+    objective_terms: set[str],
+) -> tuple[int, int, tuple[Any, ...]]:
+    role_rank = {
+        "governing_instruction": 0,
+        "active_skill": 1,
+        "supporting_reference": 2,
+        "evidence_only": 3,
+    }.get(node_source_role(node), 3)
+    relevance = len(
+        objective_terms.intersection(composition_terms(node_signal_text(node)))
+    )
+    return role_rank, -relevance, node_harvest_sort_key(node)
 
 
 def normalize_string_list(
@@ -243,6 +329,8 @@ def harvest_skills(
     source_advisories: SourceAdvisories | None = None,
 ) -> dict[str, Any]:
     objective = str(arguments.get("objective") or "Harvest reusable skill behavior")
+    rank_for_composition = bool(arguments.get("rank_for_composition", False))
+    objective_terms = composition_terms(objective)
     limit = max(1, int(arguments.get("limit") or 40))
     max_file_bytes = max(1024, int(arguments.get("max_file_bytes") or 262144))
     max_excerpt_chars = max(200, int(arguments.get("max_excerpt_chars") or 1200))
@@ -274,6 +362,13 @@ def harvest_skills(
         max_scan_entries=DEFAULT_HARVEST_MAX_SCAN_ENTRIES,
     )
     warnings.extend(traversal_warnings)
+    if rank_for_composition:
+        candidates.sort(
+            key=lambda candidate: _composition_candidate_sort_key(
+                candidate,
+                objective_terms,
+            )
+        )
     nodes: list[dict[str, Any]] = []
     redaction_totals: dict[str, int] = {}
     harvested_bytes = 0
@@ -289,6 +384,9 @@ def harvest_skills(
         display_path = Path(candidate.display_path)
         raw_rel_path = candidate.relative_path
         rel_path = candidate.display_relative_path
+        explicitly_scoped = candidate.root.kind == "file" or is_evidence_only_path(
+            str(candidate.root.logical_path)
+        )
         if (
             path.name == "scoped-packet-seeds.md"
             and str(candidate.resolved_path.with_suffix(".json"))
@@ -357,6 +455,7 @@ def harvest_skills(
                     payload=scoped_seed_payload,
                     max_excerpt_chars=max_excerpt_chars,
                     redactions=redactions,
+                    explicitly_scoped=explicitly_scoped,
                 )
             )
             continue
@@ -370,16 +469,28 @@ def harvest_skills(
             redactions=redactions,
             source_type=source_type,
             source_advisories=source_advisories,
+            explicitly_scoped=explicitly_scoped,
         )
         for advisory in json_list(node.get("skill_eval_advisories")):
             if len(warnings) < 50:
                 warnings.append(str(advisory["warning"]))
         nodes.append(node)
-    nodes.sort(key=node_harvest_sort_key)
+    nodes.sort(
+        key=(
+            lambda node: (
+                _composition_node_sort_key(node, objective_terms)
+                if rank_for_composition
+                else node_harvest_sort_key(node)
+            )
+        )
+    )
+    ranked_nodes = nodes
+    truncated_nodes: list[dict[str, Any]] = []
     if len(nodes) > limit:
         warnings.append(
             f"Harvest limit reached: kept {limit} of {len(nodes)} matched source files."
         )
+        truncated_nodes = nodes[limit:]
         nodes = nodes[:limit]
     project_path = (
         str(
@@ -428,6 +539,10 @@ def harvest_skills(
             ),
         },
         "warnings": warnings,
+        "source_role_diagnostics": source_role_diagnostics(
+            ranked_nodes,
+            truncated_nodes,
+        ),
         "skill_eval_advisory_summary": skill_eval_advisory_summary(nodes),
         "matched_source_count": len(candidates),
         "source_count": len(nodes),

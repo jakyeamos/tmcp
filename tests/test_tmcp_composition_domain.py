@@ -13,8 +13,9 @@ def _node_signal_text(node: dict[str, object]) -> str:
 
 
 class CompositionDomainTests(unittest.TestCase):
-    def test_cache_policy_requires_explicit_global_opt_in(self) -> None:
+    def test_cache_policy_requires_explicit_project_or_global_opt_in(self) -> None:
         self.assertEqual(composition.normalize_cache_policy("global"), "global")
+        self.assertEqual(composition.normalize_cache_policy("project"), "project")
         for value in (None, "globla", " global", True):
             with self.subTest(value=value):
                 self.assertEqual(composition.normalize_cache_policy(value), "none")
@@ -142,7 +143,11 @@ class CompositionDomainTests(unittest.TestCase):
             "deferred_skill_slugs": ["ui-implementation"],
             "family_skills_root": "skills/",
         }
-        deferred = {"relative_path": "skills/ui-implementation/SKILL.md"}
+        deferred = {
+            "relative_path": "skills/ui-implementation/SKILL.md",
+            "source_type": "skill_definition",
+            "source_role": "active_skill",
+        }
 
         def signal_must_not_run(_: dict[str, object]) -> str:
             raise AssertionError(
@@ -162,6 +167,8 @@ class CompositionDomainTests(unittest.TestCase):
         )
 
         repo_behavior = {
+            "source_type": "skill_definition",
+            "source_role": "active_skill",
             "relative_path": "skills/repo-behavior/SKILL.md",
             "signal": "behavior inventory",
         }
@@ -177,6 +184,8 @@ class CompositionDomainTests(unittest.TestCase):
         )
 
         ui_rubric = {
+            "source_type": "skill_definition",
+            "source_role": "active_skill",
             "relative_path": "skills/ui-rubric/SKILL.md",
             "signal": "browser contrast responsive dashboard",
         }
@@ -202,6 +211,8 @@ class CompositionDomainTests(unittest.TestCase):
         )
 
         release_node = {
+            "source_type": "skill_definition",
+            "source_role": "active_skill",
             "relative_path": "skills/release-readiness/SKILL.md",
             "signal": "package checks release readiness",
         }
@@ -527,11 +538,13 @@ class CompositionDomainTests(unittest.TestCase):
     ) -> None:
         selected = {
             "relative_path": "skills/selected/SKILL.md",
+            "source_type": "skill_definition",
             "behavior_atoms": ["selected", "shared"],
         }
         unselected = [
             {
                 "relative_path": f"skills/deferred-{index}/SKILL.md",
+                "source_type": "skill_definition",
                 "behavior_atoms": ["shared", f"deferred-{index}"],
             }
             for index in range(13)

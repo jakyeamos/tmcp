@@ -20,6 +20,8 @@ node scripts/tmcp_launcher.mjs doctor
 node scripts/tmcp_launcher.mjs status
 node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --adapter standalone
 node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --compose
+node scripts/tmcp_launcher.mjs prepare-composition "Fix and verify the dashboard workflow" --project-path "$PWD"
+node scripts/tmcp_launcher.mjs promote-composition-recipe research-review --project-path "$PWD" --composition-plan '{...}' --receipts '[...]' --explicit-promotion
 node scripts/tmcp_launcher.mjs compose-packet "Fix the dashboard UI bug" --project-path "$PWD" --phase start --session-id dashboard-run
 node scripts/tmcp_launcher.mjs runtime-next "Fix the dashboard UI bug" --current-phase verification --files-changed app/page.tsx --failures "vitest failed"
 node scripts/tmcp_launcher.mjs recompile-packet "Fix the dashboard UI bug" --project-path "$PWD" --session-id dashboard-run --current-phase runtime
@@ -33,13 +35,23 @@ node scripts/tmcp_launcher.mjs review-plan "Review release portability" --projec
 
 ## Composable Packets
 
-Use `tmcp_compose_packet` / `compose-packet` when an agent needs a small current-task packet instead of a workflow list. The output includes active instructions, required reads, tool/script prompts, verification gates, stop conditions, deferred atoms, ignored sources, conflicts, citations, and a receipt template.
+For substantial multi-step, tool-using, high-stakes, or skill-relevant work, ordinary hosts should run this flow without asking the user to name TMCP or skills:
 
-Use `tmcp_runtime_next` / `runtime-next` after changed files, failures, browser evidence, phase changes, or user redirects. Use `tmcp_record_receipt` / `record-receipt` after meaningful verification or outcome when secure artifact persistence is available.
+1. `tmcp_prepare_composition` / `prepare-composition` returns bounded candidate slices, source roles and content digests, diagnostics, and a `tmcp-semantic-proposal-v0.1` starter.
+2. The host fills that contract using cited slices. TMCP remains the validator; the proposal cannot create authority, unknown nodes, unsupported relationships, cycles, or active conflicts.
+3. `tmcp_compose_packet` / `compose-packet` validates the proposal and adds `tmcp-composition-plan-v0.1` to the familiar packet. The agent executes its active stage and honors entry, exit, and verification gates.
+
+Bypass the assisted flow for trivial conversation and simple status replies. Calling compose without `semantic_proposal` remains the compatible deterministic path. TMCP compiles and validates; it does not execute tools or mutations.
+
+MCP hosts should pass the proposal object directly. CLI hosts can pass the same host-produced JSON through `--semantic-proposal '<json>'`; do not invent unsupported nodes or citations merely to fill the flag.
+
+Use `tmcp_runtime_next` / `runtime-next` after reads, commands, changed files, failures, browser evidence, verification results, phase changes, or user redirects. Prefer a full recompile when relationships, stages, gates, or obligations may change. Use `tmcp_record_receipt` / `record-receipt` after meaningful verification or outcome when secure artifact persistence is available; receipts never auto-promote a recipe.
+
+Use `tmcp_promote_composition_recipe` / `promote-composition-recipe` only after review. It requires `explicit_promotion=true`, at least three verified receipts across two fixtures, identical graph provenance, passing safety gates, median synergy lift of at least `0.10`, median compiler and order lift of at least `0.05`, and context ratio at or below `0.75`. Every matching receipt must include a structured safety-classified gate (`safety=true` or a safety/security/privacy category, type, or identifier) with an explicit passing result; missing, ambiguous, or failing safety-gate evidence blocks promotion. A named recipe is project-local, create-only, and revalidated against current source content every time it loads.
 
 `tmcp_explain --compose` and `tmcp_recommend_workflows --compose` preserve their legacy output and add a composed packet.
 
-The machine-readable contracts are `tmcp-composed-packet-v0.1`, `tmcp-runtime-next-v0.1`, `tmcp-recompiled-packet-v0.1`, `tmcp-run-receipt-v0.1`, and the project-local `tmcp-run-session-v0.1`. Promoted harvest cache entries use `tmcp-promoted-harvest-graph-v0.1`.
+The assisted contracts are `tmcp-composition-preflight-v0.1`, `tmcp-semantic-proposal-v0.1`, and `tmcp-composition-plan-v0.1`. Existing packet/runtime contracts remain unchanged and compose without a proposal stays supported.
 
 ## Packet Sessions
 
@@ -78,8 +90,10 @@ Running a review without `--evidence-json` returns `evidence_contract.starter_te
 `evaluate-skills` follows the safety boundary described in the README: pass explicit `SKILL.md` files, optionally constrain them with a project root, and use a new or empty directory when writing an initial evaluation plan.
 
 On secure-persistence hosts, `promote-harvest` also writes a redacted promoted graph to `TMCP_HOME/promoted-harvests/<opaque-promotion-key>/`, or `~/.tmcp/promoted-harvests/<opaque-promotion-key>/` when `TMCP_HOME` is unset. Receipts are written under `TMCP_HOME/receipts/<yyyy-mm>/`. Global cache content is advisory and cannot override higher-priority instructions.
-`compose-packet` and `runtime-next` use `cache_policy=none` by default; pass
-`--cache-policy global` only to opt into those advisory global artifacts.
+`compose-packet` and `runtime-next` use `cache_policy=none` by default. Pass
+`--cache-policy project` only for reviewed project-local recipes, or
+`--cache-policy global` to opt into advisory shared artifacts. Promotion remains
+an explicit reviewed command under every policy.
 
 ## Argument Rules
 
@@ -91,10 +105,20 @@ On secure-persistence hosts, `promote-harvest` also writes a redacted promoted g
 - Use `--compact` when another tool will parse the output.
 
 `doctor`, `status`, `explain`, `harvest`, `evaluate-skills`, `recommend`,
-`promote-harvest`, `compose-packet`, `runtime-next`, `record-receipt`, and
+`promote-harvest`, `prepare-composition`, `promote-composition-recipe`, `compose-packet`, `runtime-next`, `record-receipt`, and
 `review-plan` are the canonical CLI names. Compatibility aliases remain
 supported and are frozen in `tmcp_runtime/api/registry.py`; use `list-tools`
 for the live MCP schema surface.
+
+## Composition Acceptance Benchmark
+
+Run the release gate only with complete observed host-run evidence:
+
+```bash
+python3 scripts/run_composition_benchmark.py path/to/observations.json
+```
+
+The command rejects missing cases, fixtures, singleton/leave-one-out controls, provenance, ordering, quality scores, or context measurements. Repository unit fixtures validate scoring math; they do not demonstrate lift. See [COMPOSITION_BENCHMARK.md](COMPOSITION_BENCHMARK.md).
 
 ## Fallback Order
 
@@ -122,6 +146,7 @@ Workflow outputs should include or cite:
 - sources inspected
 - skipped sources and why
 - packet summary
+- validated composition plan and diagnostics when assisted composition was used
 - extracted behavior atoms
 - evidence gaps
 - recommendation or remediation plan

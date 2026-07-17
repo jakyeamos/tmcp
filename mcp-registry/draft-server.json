@@ -30,6 +30,8 @@
       "tmcp_evaluate_skills",
       "tmcp_recommend_workflows",
       "tmcp_promote_harvest",
+      "tmcp_prepare_composition",
+      "tmcp_promote_composition_recipe",
       "tmcp_compose_packet",
       "tmcp_runtime_next",
       "tmcp_record_receipt",

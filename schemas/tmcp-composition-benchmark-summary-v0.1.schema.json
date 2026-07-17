@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-benchmark-summary-v0.1.schema.json",
+  "title": "TMCP Composition Benchmark Summary v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ok",
+    "schema",
+    "observations_sha256",
+    "eligible",
+    "failed_checks",
+    "acceptance_checks",
+    "thresholds",
+    "routing_metrics",
+    "behavioral_metrics"
+  ],
+  "properties": {
+    "ok": {"const": true},
+    "schema": {"const": "tmcp-composition-benchmark-summary-v0.1"},
+    "observations_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "eligible": {"type": "boolean"},
+    "failed_checks": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "acceptance_checks": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "boolean"}
+    },
+    "thresholds": {"$ref": "#/$defs/thresholds"},
+    "routing_metrics": {"$ref": "#/$defs/routing_metrics"},
+    "behavioral_metrics": {"$ref": "#/$defs/behavioral_metrics"}
+  },
+  "$defs": {
+    "ratio": {"type": "number", "minimum": 0, "maximum": 1},
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_skill_recall",
+        "selected_skill_precision",
+        "provenance_relationship_coverage",
+        "synergy_lift",
+        "compiler_lift",
+        "order_lift",
+        "maximum_context_ratio",
+        "order_match_rate"
+      ],
+      "properties": {
+        "expected_skill_recall": {"$ref": "#/$defs/ratio"},
+        "selected_skill_precision": {"$ref": "#/$defs/ratio"},
+        "provenance_relationship_coverage": {"$ref": "#/$defs/ratio"},
+        "synergy_lift": {"type": "number", "minimum": -1, "maximum": 1},
+        "compiler_lift": {"type": "number", "minimum": -1, "maximum": 1},
+        "order_lift": {"type": "number", "minimum": -1, "maximum": 1},
+        "maximum_context_ratio": {"type": "number", "minimum": 0},
+        "order_match_rate": {"$ref": "#/$defs/ratio"}
+      }
+    },
+    "routing_metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "case_count",
+        "observed_case_count",
+        "missing_case_ids",
+        "expected_skill_count",
+        "selected_skill_count",
+        "matched_skill_count",
+        "expected_skill_recall",
+        "selected_skill_precision",
+        "cases"
+      ],
+      "properties": {
+        "case_count": {"type": "integer", "minimum": 20},
+        "observed_case_count": {"type": "integer", "minimum": 20},
+        "missing_case_ids": {"type": "array", "maxItems": 0},
+        "expected_skill_count": {"type": "integer", "minimum": 1},
+        "selected_skill_count": {"type": "integer", "minimum": 0},
+        "matched_skill_count": {"type": "integer", "minimum": 0},
+        "expected_skill_recall": {"$ref": "#/$defs/ratio"},
+        "selected_skill_precision": {"$ref": "#/$defs/ratio"},
+        "cases": {"type": "array", "minItems": 20}
+      }
+    },
+    "behavioral_metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "fixture_count",
+        "active_conflict_violation_count",
+        "active_conflict_violations",
+        "selected_non_root_skill_count",
+        "incoming_provenance_relationship_count",
+        "missing_incoming_relationships",
+        "expected_relationship_count",
+        "matched_expected_relationship_count",
+        "missing_expected_relationships",
+        "expected_relationship_coverage",
+        "provenance_relationship_coverage",
+        "context_ratio",
+        "maximum_fixture_context_ratio",
+        "quality_metrics",
+        "order_match_rate",
+        "fixtures"
+      ],
+      "properties": {
+        "fixture_count": {"type": "integer", "minimum": 5},
+        "active_conflict_violation_count": {"type": "integer", "minimum": 0},
+        "active_conflict_violations": {"type": "array"},
+        "selected_non_root_skill_count": {"type": "integer", "minimum": 0},
+        "incoming_provenance_relationship_count": {"type": "integer", "minimum": 0},
+        "missing_incoming_relationships": {"type": "array"},
+        "expected_relationship_count": {"type": "integer", "minimum": 1},
+        "matched_expected_relationship_count": {"type": "integer", "minimum": 0},
+        "missing_expected_relationships": {"type": "array"},
+        "expected_relationship_coverage": {"$ref": "#/$defs/ratio"},
+        "provenance_relationship_coverage": {"$ref": "#/$defs/ratio"},
+        "context_ratio": {"type": "number", "minimum": 0},
+        "maximum_fixture_context_ratio": {"type": "number", "minimum": 0},
+        "quality_metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["synergy_lift", "compiler_lift", "order_lift"],
+          "properties": {
+            "synergy_lift": {"type": "number", "minimum": -1, "maximum": 1},
+            "compiler_lift": {"type": "number", "minimum": -1, "maximum": 1},
+            "order_lift": {"type": "number", "minimum": -1, "maximum": 1}
+          }
+        },
+        "order_match_rate": {"$ref": "#/$defs/ratio"},
+        "fixtures": {"type": "array", "minItems": 5}
+      }
+    }
+  }
+}

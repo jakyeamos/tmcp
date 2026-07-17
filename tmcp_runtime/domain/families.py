@@ -12,6 +12,7 @@ from .declared_loads import (
     normalize_declared_load_pattern,
     resolve_declared_load_paths,
 )
+from .harvest_nodes import node_source_role, source_role_is_activation_eligible
 from .routes import derive_task_identity, score_scoped_seed, scoped_seed_threshold
 
 
@@ -53,6 +54,14 @@ def _routing_metadata(node: Node) -> dict[str, Any]:
     return metadata if isinstance(metadata, dict) else {}
 
 
+def _node_is_activation_eligible(node: Node) -> bool:
+    role_eligible = source_role_is_activation_eligible(node_source_role(node))
+    explicit = node.get("activation_eligible")
+    if isinstance(explicit, bool):
+        return role_eligible and explicit
+    return role_eligible
+
+
 def normalize_skill_slug(value: str) -> str:
     """Normalize a skill name for deterministic family comparisons."""
 
@@ -77,7 +86,9 @@ def _objective_names_skill_slug(objective: str, slug: str) -> bool:
 
 
 def _is_skill_family_router(node: Node, node_signal_text: NodeSignalText) -> bool:
-    if str(node.get("source_type") or "") != "skill_definition":
+    if str(
+        node.get("source_type") or ""
+    ) != "skill_definition" or not _node_is_activation_eligible(node):
         return False
     text = node_signal_text(node).lower()
     rel_path = str(node.get("relative_path") or "").lower()
@@ -179,13 +190,15 @@ def _family_context_from_router(
     primary_patterns = [
         str(node.get("relative_path") or "")
         for node in source_nodes
-        if skill_slug_from_relative_path(str(node.get("relative_path") or ""))
+        if _node_is_activation_eligible(node)
+        and skill_slug_from_relative_path(str(node.get("relative_path") or ""))
         == primary_slug
     ]
     declared_loads: list[str] = []
     for node in source_nodes:
         if (
-            skill_slug_from_relative_path(str(node.get("relative_path") or ""))
+            not _node_is_activation_eligible(node)
+            or skill_slug_from_relative_path(str(node.get("relative_path") or ""))
             != primary_slug
         ):
             continue
@@ -223,7 +236,9 @@ def compose_family_context(
         )
     seed_candidates: list[tuple[float, Node]] = []
     for node in source_nodes:
-        if str(node.get("source_type") or "") != "scoped_packet_seed":
+        if str(
+            node.get("source_type") or ""
+        ) != "scoped_packet_seed" or not _node_is_activation_eligible(node):
             continue
         score = score_scoped_seed(node, objective, resolved_routes)
         threshold = scoped_seed_threshold(node, resolved_routes)
@@ -261,6 +276,8 @@ def node_matches_family_primary(
     """Return whether a harvested node is the active family primary source."""
 
     if not family_context:
+        return False
+    if not _node_is_activation_eligible(node):
         return False
     rel_path = str(node.get("relative_path") or "")
     slug = skill_slug_from_relative_path(rel_path)
@@ -337,7 +354,10 @@ def _seed_node_for_family_context(
     if not seed_id:
         return None
     for node in source_nodes:
-        if str(node.get("seed_id") or node.get("id") or "") == seed_id:
+        if (
+            _node_is_activation_eligible(node)
+            and str(node.get("seed_id") or node.get("id") or "") == seed_id
+        ):
             return node
     return None
 
@@ -406,6 +426,8 @@ def _skill_relative_paths_for_slugs(
         return []
     paths: list[str] = []
     for node in source_nodes:
+        if not _node_is_activation_eligible(node):
+            continue
         rel_path = str(node.get("relative_path") or "")
         slug = skill_slug_from_relative_path(rel_path)
         if normalize_skill_slug(slug) in wanted:
@@ -518,7 +540,9 @@ def runtime_family_seed_context(
 
     normalized_phase = normalize_family_phase(current_phase)
     for node in source_nodes:
-        if str(node.get("source_type") or "") != "scoped_packet_seed":
+        if str(
+            node.get("source_type") or ""
+        ) != "scoped_packet_seed" or not _node_is_activation_eligible(node):
             continue
         transitions = _phase_transitions_for_seed_node(node, None)
         if normalized_phase not in transitions:

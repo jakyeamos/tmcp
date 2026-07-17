@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-behavioral-fixtures-v0.1.schema.json",
+  "title": "TMCP Composition Behavioral Fixtures v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "observation_contract", "fixtures"],
+  "properties": {
+    "schema": {"const": "tmcp-composition-behavioral-fixtures-v0.1"},
+    "observation_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_fields", "quality_scores", "note"],
+      "properties": {
+        "required_fields": {
+          "type": "array",
+          "minItems": 10,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "quality_scores": {
+          "type": "array",
+          "minItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "no_skill",
+              "singletons",
+              "naive_union",
+              "full_composition",
+              "leave_one_out",
+              "wrong_order"
+            ]
+          }
+        },
+        "note": {"type": "string", "minLength": 1}
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"$ref": "#/$defs/fixture"}
+    }
+  },
+  "$defs": {
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture_id",
+        "domain",
+        "root_node_id",
+        "objective",
+        "quality_rubric",
+        "skill_sources",
+        "expected_skill_ids",
+        "expected_order",
+        "candidate_skill_ids",
+        "expected_relationships",
+        "incompatible_skill_pairs"
+      ],
+      "properties": {
+        "fixture_id": {"type": "string", "minLength": 1},
+        "domain": {
+          "enum": [
+            "ui_product",
+            "migration_data",
+            "agent_workflow",
+            "research_writing_review",
+            "diagnose_fix_regression"
+          ]
+        },
+        "root_node_id": {"type": "string", "minLength": 1},
+        "objective": {"type": "string", "minLength": 1},
+        "quality_rubric": {"$ref": "#/$defs/quality_rubric"},
+        "skill_sources": {
+          "type": "array",
+          "minItems": 3,
+          "items": {"$ref": "#/$defs/skill_source"}
+        },
+        "expected_skill_ids": {"$ref": "#/$defs/skill_ids"},
+        "expected_order": {"$ref": "#/$defs/skill_ids"},
+        "candidate_skill_ids": {"$ref": "#/$defs/skill_ids"},
+        "expected_relationships": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/relationship"}
+        },
+        "incompatible_skill_pairs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/conflict"}
+        }
+      }
+    },
+    "skill_ids": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "skill_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skill_id", "relative_path", "content"],
+      "properties": {
+        "skill_id": {"type": "string", "minLength": 1},
+        "relative_path": {
+          "type": "string",
+          "pattern": "^skills/[^/]+/SKILL\\.md$"
+        },
+        "content": {"type": "string", "minLength": 40}
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "target_id", "relation"],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "target_id": {"type": "string", "minLength": 1},
+        "relation": {
+          "enum": [
+            "requires",
+            "precedes",
+            "enables",
+            "complements",
+            "conflicts_with",
+            "verifies",
+            "produces",
+            "consumes"
+          ]
+        }
+      }
+    },
+    "conflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conflict_id", "skill_ids", "same_stage_only"],
+      "properties": {
+        "conflict_id": {"type": "string", "minLength": 1},
+        "skill_ids": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "same_stage_only": {"type": "boolean"}
+      }
+    },
+    "quality_rubric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rubric_id",
+        "version",
+        "aggregation",
+        "score_scale",
+        "dimensions"
+      ],
+      "properties": {
+        "rubric_id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "aggregation": {"const": "weighted_mean"},
+        "score_scale": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minimum", "maximum", "higher_is_better"],
+          "properties": {
+            "minimum": {"const": 0},
+            "maximum": {"const": 1},
+            "higher_is_better": {"const": true}
+          }
+        },
+        "dimensions": {
+          "type": "array",
+          "minItems": 3,
+          "items": {"$ref": "#/$defs/rubric_dimension"}
+        }
+      }
+    },
+    "rubric_dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension_id", "weight", "criterion", "evidence_required"],
+      "properties": {
+        "dimension_id": {"type": "string", "minLength": 1},
+        "weight": {"type": "number", "minimum": 0, "maximum": 1},
+        "criterion": {"type": "string", "minLength": 1},
+        "evidence_required": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

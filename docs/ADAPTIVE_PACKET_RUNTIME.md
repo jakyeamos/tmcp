@@ -14,18 +14,26 @@ The agent-facing loop:
 
 ```text
 user prompt
-  -> tmcp_compose_packet (intake compile)
-  -> agent executes under packet
+  -> substantiality gate (trivial/status work bypasses)
+  -> tmcp_prepare_composition (bounded source slices)
+  -> host semantic proposal (source-backed judgment)
+  -> tmcp_compose_packet (validated typed graph and staged packet)
+  -> agent executes the active stage under gates
   -> tmcp_runtime_next / tmcp_recompile_packet (mid-run recompile)
   -> tmcp_record_receipt (outcome)
 ```
 
-This document covers four gaps between that thesis and the current implementation, with concrete design and a phased build plan.
+The assisted path is for substantial multi-step, tool-using, high-stakes, or skill-relevant work and stays invisible to ordinary users. The host supplies semantic judgment; TMCP deterministically validates citations, relationships, ordering, conflicts, and precedence. Calling compose without a proposal preserves the original deterministic path.
+
+Only governing instructions and active skills can activate behavior. Supporting references and evidence-only sources may inform provenance but cannot become instructions. TMCP compiles; the agent executes. Cache use, receipt recording, and promotion remain separate explicit choices, with `cache_policy=none` as the default.
+
+The remainder documents the adaptive runtime foundations that the compositional layer builds on.
 
 ## Current architecture (baseline)
 
 | Primitive | Tool / function | Role today |
 | --- | --- | --- |
+| Semantic preparation | `tmcp_prepare_composition` | Bound and rank source slices; publish the host proposal contract |
 | Intake compile | `tmcp_compose_packet` → `_compose_packet()` | Harvest sources, score nodes, emit composed JSON packet |
 | Route compile | `tmcp_explain` → `standalone_packets.compile_standalone_packet()` | Task routing to `@task:*` nodes with `packet_markdown` |
 | Runtime delta | `tmcp_runtime_next` → `_runtime_next()` | Phase-aware atom/read/gate deltas; family seed transitions |
@@ -340,17 +348,17 @@ Detail: Work moved from visual exploration into production implementation.
 
 ---
 
-## Gap 4 — Natural-language multi-route inference is shallow
+## Gap 4 — Resolved by hybrid compositional inference
 
-### Problem
+### Legacy compatibility-path limitation
 
-Compose selection (`_selected_compose_nodes`, `_node_composition_score`) scores individual source nodes. It does not:
+Direct compose without `semantic_proposal` still scores individual source nodes and intentionally retains these limitations:
 
 - Decompose a rich prompt into concurrent routes with per-route rationale
 - Select **scoped packet seeds** from natural language without near-explicit seed naming
 - Roll up repeated patterns into cached shortcut routes while preserving graph provenance
 
-Result: *"Redesign these pages, visually striking, motion-rich, production-ready"* may miss the optimal skill family unless a curated seed or explicit skill name is present.
+The 0.6 assisted path resolves this for substantial work with prepare → host semantic proposal → deterministic graph validation/compilation. The legacy path remains for compatibility and trivial work.
 
 ### Design
 
@@ -563,7 +571,7 @@ node scripts/tmcp_launcher.mjs record-receipt packet-def456 \
 
 1. **Packet persistence:** Is inline `previous_packet` sufficient for v1, or should compose always write `.tmcp/runs/<id>.json` when `write_artifacts: true`?
 2. **Route catalog ownership:** Ship catalog in-repo only, or allow project-local `.tmcp/route-catalog.json` overlays?
-3. **LLM-assisted identity:** Keep inference deterministic for auditability, or optional `inference_mode: "assisted"` for hosts that want model-based decomposition (off by default)?
+3. **LLM-assisted identity (resolved):** substantial work uses hybrid host-assisted semantics; TMCP deterministically validates citations, authority, conflicts, graph structure, ordering, and gates. Direct compose remains deterministic.
 4. **Naming in public docs:** Product name "Adaptive Packet Runtime" vs internal "Context Packet Recompiler" — use both (product / implementation) per audience.
 
 ---

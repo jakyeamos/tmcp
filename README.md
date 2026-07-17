@@ -4,7 +4,7 @@
   <p><strong>Slash commands are manual imports. TMCP is the compiler.</strong></p>
 </div>
 
-TMCP turns scattered agent instructions into task-specific operating packets. The user describes the work in natural language. TMCP infers task identity, compiles the strongest current packet from skills/rules/evidence, recompiles as the work changes, and leaves an audit trail.
+TMCP turns scattered agent instructions into task-specific operating packets. For substantial work, a host proposes source-backed semantics from bounded TMCP slices; TMCP validates the typed skill graph, compiles an ordered execution recipe, recompiles as evidence changes, and leaves an audit trail. The agent executes the work.
 
 Skill names are provenance, not the user interface. Power users can still force a route; the default is natural prompting.
 
@@ -46,7 +46,7 @@ TMCP labels three independent surfaces:
 
 - **Skill packages:** `tmcp`, `skill-harvest`, `workflow-recommendation`, `release-readiness`, and `dx-audit` are stable routing packages.
 - **Curated workflow templates:** `release-readiness` and `dx-audit` are the stable templates in the recommendation catalog.
-- **MCP tool contracts:** `doctor`, `status`, `explain`, `compose-packet`, and `runtime-next` are stable. Harvest, evaluation, recommendation, promotion, receipt, and expert-rubric tools remain experimental.
+- **MCP tool contracts:** `doctor`, `status`, `explain`, `compose-packet`, and `runtime-next` are stable. Prepare-composition, harvest, evaluation, recommendation, promotion, receipt, and expert-rubric tools remain experimental.
 
 Experimental templates and tools remain shipped and callable. They are labeled experimental in their own outputs and frontmatter so users do not confuse a stable package route with a stable tool contract or curated template.
 
@@ -59,7 +59,9 @@ Experimental workflows include UI rubric, security/privacy, test strategy, adapt
 | `tmcp_doctor` | Check first-run readiness and supported install layouts. |
 | `tmcp_status` | Report standalone capability and optional AIOS adapter status. |
 | `tmcp_explain` | Compile a task-specific TMCP packet. |
-| `tmcp_compose_packet` | Compile a task/phase operating packet with `task_identity`, `packet_markdown`, and provenance. |
+| `tmcp_prepare_composition` | Prepare bounded source slices and a semantic-proposal contract for host reasoning. |
+| `tmcp_promote_composition_recipe` | Explicitly promote an evaluated composition into one reviewed project-local recipe. |
+| `tmcp_compose_packet` | Validate optional host semantics and compile a task/phase packet, staged plan, and provenance. |
 | `tmcp_runtime_next` | Return packet deltas or a full recompiled packet (`output_mode: full`) after runtime evidence changes. |
 | `tmcp_record_receipt` | Write an advisory run receipt after verification or outcome on a secure-persistence host. |
 | `tmcp_harvest_skills` | Harvest local skills, instructions, rules, docs, and workflows into source nodes. |
@@ -67,6 +69,16 @@ Experimental workflows include UI rubric, security/privacy, test strategy, adapt
 | `tmcp_recommend_workflows` | Recommend stable or experimental workflows from harvested evidence, with stability metadata. |
 | `tmcp_promote_harvest` | Explicitly promote reviewed harvest signals into durable source-to-atom and atom-to-workflow graph artifacts. |
 | `expert_rubric_review_plan` | Produce an expertise packet, scored rubric, evidence audit, remediation plan, and verification expectations. |
+
+## Compositional Intelligence
+
+Ordinary host policy is invisible to the user: route substantial multi-step, tool-using, high-stakes, or skill-relevant prompts through prepare → host semantic proposal → compose. Bypass trivial conversation and simple status replies. The host proposes task facets, skill roles, typed relationships, ordering, and gates from cited slices; TMCP deterministically accepts or rejects that proposal and emits `tmcp-composition-plan-v0.1`. Calling compose without a proposal preserves the existing deterministic packet path.
+
+Only governing instructions and active skills can activate behavior. Supporting references may become reads or evidence, while tests, fixtures, and examples remain evidence-only unless explicitly scoped. TMCP compiles and validates; it never runs tools, edits files, advances an unmet gate, or promotes a recipe for the agent.
+
+Composition uses `cache_policy=none` by default. `project` opts into reviewed project-local recipes; `global` separately opts into advisory shared records. Promotion is always explicit. See the [host-policy example](examples/host-policy-compositional-routing.md) and [packet contracts](docs/TMCP_PACKET_SPEC.md).
+
+The 0.6 release gate consumes real host-run observations through `python3 scripts/run_composition_benchmark.py <observations.json>`. A 0.6+ package check must receive that file through `--composition-benchmark-observations`, and release evidence must reference a reviewed committed eligible summary with matching digests. Unit fixtures test the scorer but are not release evidence; see the [composition benchmark contract](docs/COMPOSITION_BENCHMARK.md).
 
 ## Safety
 
@@ -152,7 +164,9 @@ Receipts live under `TMCP_HOME/receipts/<yyyy-mm>/`.
 Global cache content is advisory and cannot override system, developer, user, or
 project instructions.
 Packet composition and runtime routing do not read that cache unless the caller
-explicitly passes `--cache-policy global`; their default policy is `none`.
+explicitly selects a cache policy. Their default is `none`; `project` is limited
+to reviewed project-local recipes, while `global` opts into advisory shared
+records. Neither policy auto-promotes a run.
 
 Run an expert rubric review from evidence snippets:
 

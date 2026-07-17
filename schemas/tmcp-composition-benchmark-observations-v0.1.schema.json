@@ -1,0 +1,397 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-benchmark-observations-v0.1.schema.json",
+  "title": "TMCP Composition Benchmark Observations v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "routing_results", "behavioral_results"],
+  "properties": {
+    "schema": {"const": "tmcp-composition-benchmark-observations-v0.1"},
+    "routing_results": {
+      "type": "array",
+      "minItems": 20,
+      "items": {"$ref": "#/$defs/routing_result"}
+    },
+    "behavioral_results": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"$ref": "#/$defs/behavioral_result"}
+    }
+  },
+  "$defs": {
+    "routing_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "selected_skill_ids",
+        "execution_manifest",
+        "evidence_manifest"
+      ],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "selected_skill_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "execution_manifest": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {"$ref": "#/$defs/execution_record"}
+        },
+        "evidence_manifest": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/evidence_record"}
+        }
+      }
+    },
+    "behavioral_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture_id",
+        "preflight_id",
+        "composition_plan_id",
+        "graph_digest",
+        "task_identity",
+        "selected_skill_ids",
+        "source_slices",
+        "ordered_skill_ids",
+        "active_stages",
+        "relationships",
+        "compiled_context_tokens",
+        "naive_context_tokens",
+        "quality_scores",
+        "evaluation_provenance",
+        "execution_manifest",
+        "evidence_manifest",
+        "run_receipt"
+      ],
+      "properties": {
+        "fixture_id": {"type": "string", "minLength": 1},
+        "preflight_id": {
+          "type": "string",
+          "pattern": "^preflight-[a-f0-9]{20}$"
+        },
+        "composition_plan_id": {
+          "type": "string",
+          "pattern": "^composition-[a-f0-9]{20}$"
+        },
+        "graph_digest": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+        "task_identity": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["primary"],
+          "properties": {
+            "primary": {"type": "string", "minLength": 1}
+          }
+        },
+        "selected_skill_ids": {"$ref": "#/$defs/skill_ids"},
+        "source_slices": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/source_slice"}
+        },
+        "ordered_skill_ids": {"$ref": "#/$defs/skill_ids"},
+        "active_stages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/active_stage"}
+        },
+        "relationships": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/relationship"}
+        },
+        "compiled_context_tokens": {"type": "number", "minimum": 0},
+        "naive_context_tokens": {"type": "number", "minimum": 1},
+        "quality_scores": {"$ref": "#/$defs/quality_scores"},
+        "evaluation_provenance": {"$ref": "#/$defs/evaluation_provenance"},
+        "execution_manifest": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/execution_record"}
+        },
+        "evidence_manifest": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/evidence_record"}
+        },
+        "run_receipt": {"$ref": "#/$defs/run_receipt"}
+      }
+    },
+    "skill_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "source_slice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "skill_id",
+        "source_node_id",
+        "relative_path",
+        "source_path",
+        "content",
+        "char_start",
+        "char_end",
+        "slice_id",
+        "source_digest",
+        "slice_digest",
+        "content_digest"
+      ],
+      "properties": {
+        "skill_id": {"type": "string", "minLength": 1},
+        "source_node_id": {"type": "string", "minLength": 1},
+        "relative_path": {
+          "type": "string",
+          "pattern": "^skills/[^/]+/SKILL\\.md$"
+        },
+        "source_path": {"type": "string", "minLength": 1},
+        "content": {"type": "string", "minLength": 1},
+        "char_start": {"const": 0},
+        "char_end": {"type": "integer", "minimum": 1},
+        "slice_id": {"type": "string", "pattern": "^slice-[a-f0-9]{20}$"},
+        "source_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "slice_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "content_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "active_stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage_id", "active_skill_ids"],
+      "properties": {
+        "stage_id": {"type": "string", "minLength": 1},
+        "active_skill_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "target_id", "relation", "citations"],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "target_id": {"type": "string", "minLength": 1},
+        "relation": {
+          "enum": [
+            "requires",
+            "precedes",
+            "enables",
+            "complements",
+            "conflicts_with",
+            "verifies",
+            "produces",
+            "consumes"
+          ]
+        },
+        "citations": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^slice-[a-f0-9]{20}$"}
+        }
+      }
+    },
+    "quality_scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_skill",
+        "singletons",
+        "naive_union",
+        "full_composition",
+        "leave_one_out",
+        "wrong_order"
+      ],
+      "properties": {
+        "no_skill": {"$ref": "#/$defs/quality_score"},
+        "singletons": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"$ref": "#/$defs/quality_score"}
+        },
+        "naive_union": {"$ref": "#/$defs/quality_score"},
+        "full_composition": {"$ref": "#/$defs/quality_score"},
+        "leave_one_out": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"$ref": "#/$defs/quality_score"}
+        },
+        "wrong_order": {"$ref": "#/$defs/quality_score"}
+      }
+    },
+    "quality_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "evaluation_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluator_id",
+        "evaluator_version",
+        "evaluation_run_id",
+        "evaluated_at",
+        "method",
+        "rubric_id",
+        "rubric_version",
+        "rubric_digest",
+        "variant_evidence",
+        "variant_dimension_scores"
+      ],
+      "properties": {
+        "evaluator_id": {"type": "string", "minLength": 1},
+        "evaluator_version": {"type": "string", "minLength": 1},
+        "evaluation_run_id": {"type": "string", "minLength": 1},
+        "evaluated_at": {"type": "string", "minLength": 1},
+        "method": {"type": "string", "minLength": 1},
+        "rubric_id": {"type": "string", "minLength": 1},
+        "rubric_version": {"type": "string", "minLength": 1},
+        "rubric_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "variant_evidence": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          }
+        },
+        "variant_dimension_scores": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    },
+    "execution_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_id",
+        "variant_id",
+        "input_digest",
+        "artifact",
+        "artifact_digest",
+        "result_digest",
+        "run_receipt",
+        "receipt_digest",
+        "evidence_ids",
+        "execution_digest"
+      ],
+      "properties": {
+        "execution_id": {
+          "type": "string",
+          "pattern": "^execution-[a-f0-9]{20}$"
+        },
+        "variant_id": {"type": "string", "minLength": 1},
+        "input_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "artifact": {"type": "string", "minLength": 1},
+        "artifact_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "result_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "run_receipt": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["run_id", "variant_id", "outcome", "artifact_digest"],
+          "properties": {
+            "run_id": {"type": "string", "minLength": 1},
+            "variant_id": {"type": "string", "minLength": 1},
+            "outcome": {"const": "passed"},
+            "artifact_digest": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        },
+        "receipt_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "evidence_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^evidence-[a-f0-9]{20}$"}
+        },
+        "execution_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "evidence_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "execution_id",
+        "media_type",
+        "content",
+        "content_digest"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "pattern": "^evidence-[a-f0-9]{20}$"
+        },
+        "execution_id": {
+          "type": "string",
+          "pattern": "^execution-[a-f0-9]{20}$"
+        },
+        "media_type": {"type": "string", "minLength": 1},
+        "content": {"type": "string", "minLength": 1},
+        "content_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "run_receipt": {
+      "allOf": [
+        {"$ref": "tmcp-run-receipt-v0.1.schema.json"},
+        {
+          "type": "object",
+          "required": [
+            "recipe_id",
+            "task_identity",
+            "graph_digest",
+            "content_digests",
+            "selected_skill_ids",
+            "phase_trace",
+            "gate_results",
+            "quality_metrics",
+            "cost_metrics"
+          ],
+          "properties": {
+            "recipe_id": {
+              "type": "string",
+              "pattern": "^composition-[a-f0-9]{20}$"
+            },
+            "graph_digest": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "phase_trace": {"type": "array", "minItems": 1},
+            "gate_results": {"type": "array", "minItems": 1},
+            "quality_metrics": {
+              "type": "object",
+              "required": ["synergy_lift", "compiler_lift", "order_lift"]
+            },
+            "cost_metrics": {
+              "type": "object",
+              "required": ["context_tokens", "context_ratio"]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

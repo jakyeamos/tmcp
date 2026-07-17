@@ -94,10 +94,16 @@ def parse_cli_arguments(argv: list[str]) -> tuple[str, dict[str, Any], bool]:
     if positionals:
         if tool_name in {"tmcp_explain", "expert_rubric_review_plan"}:
             arguments.setdefault("objective", positionals[0])
-        elif tool_name in {"tmcp_compose_packet", "tmcp_runtime_next"}:
+        elif tool_name in {
+            "tmcp_prepare_composition",
+            "tmcp_compose_packet",
+            "tmcp_runtime_next",
+        }:
             arguments.setdefault("objective", positionals[0])
         elif tool_name == "tmcp_record_receipt":
             arguments.setdefault("packet_id", positionals[0])
+        elif tool_name == "tmcp_promote_composition_recipe":
+            arguments.setdefault("recipe_id", positionals[0])
         elif tool_name in {
             "tmcp_harvest_skills",
             "tmcp_recommend_workflows",

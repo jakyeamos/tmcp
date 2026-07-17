@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+import hashlib
+import io
 import json
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from tests import test_tmcp_mcp_server as helpers
 import tmcp_runtime.adapters.aios as aios_adapter
+from tmcp_runtime.adapters.cli import run_cli
 from tmcp_runtime.storage import ArtifactStorageError
 
 
@@ -49,6 +53,264 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertFalse(result["aios_adapter"]["available"])
         self.assertFalse(result["aios_adapter"]["configured"])
         self.assertIsNone(result["aios_adapter"]["aios_root"])
+
+    def test_composition_redaction_preserves_only_canonical_digest_fields(
+        self,
+    ) -> None:
+        digest = hashlib.sha256(b"public composition provenance").hexdigest()
+        secret = "sk-" + "S" * 40
+
+        result = self.server._redact_result(
+            {
+                "schema": "tmcp-composition-preflight-v0.1",
+                "candidate_source_slices": [
+                    {
+                        "source_digest": digest,
+                        "slice_digest": digest,
+                        "content_digest": digest,
+                    }
+                ],
+                "arbitrary_value": digest,
+                "graph_digest": secret,
+                "secret": secret,
+            },
+            preserve_composition_digests=True,
+        )
+
+        source_slice = result["candidate_source_slices"][0]
+        self.assertEqual(source_slice["source_digest"], digest)
+        self.assertEqual(source_slice["slice_digest"], digest)
+        self.assertEqual(
+            source_slice["content_digest"],
+            "[REDACTED:long_high_entropy]",
+        )
+        self.assertEqual(
+            result["arbitrary_value"],
+            "[REDACTED:long_high_entropy]",
+        )
+        self.assertEqual(result["graph_digest"], "[REDACTED:openai_key]")
+        self.assertNotIn(secret, json.dumps(result))
+        self.assertEqual(result["redaction_summary"]["long_high_entropy"], 2)
+        self.assertEqual(result["redaction_summary"]["openai_key"], 2)
+
+        receipt, receipt_redactions = self.server._redact_receipt(
+            {
+                "schema": "tmcp-run-receipt-v0.1",
+                "content_digests": [digest],
+                "task_identity": {"content_digest": digest},
+                "secret": secret,
+            }
+        )
+        self.assertEqual(receipt["content_digests"], [digest])
+        self.assertEqual(
+            receipt["task_identity"]["content_digest"],
+            "[REDACTED:long_high_entropy]",
+        )
+        self.assertNotIn(secret, json.dumps(receipt))
+        self.assertEqual(receipt_redactions["long_high_entropy"], 1)
+        self.assertEqual(receipt_redactions["openai_key"], 1)
+
+    def test_runtime_user_payload_cannot_claim_a_digest_identity_location(self) -> None:
+        secret = hashlib.sha256(b"user-controlled secret material").hexdigest()
+
+        result = self.server._redact_result(
+            {
+                "schema": "tmcp-recompiled-packet-v0.1",
+                "packet": {},
+                "agent_proposals": [
+                    {
+                        "action": "unsupported",
+                        "content_digest": secret,
+                    }
+                ],
+                "validated_changes": [
+                    {
+                        "action": "add_route",
+                        "content_digest": secret,
+                    }
+                ],
+            },
+            preserve_composition_digests=True,
+        )
+
+        self.assertEqual(
+            result["agent_proposals"][0]["content_digest"],
+            "[REDACTED:long_high_entropy]",
+        )
+        self.assertEqual(
+            result["validated_changes"][0]["content_digest"],
+            "[REDACTED:long_high_entropy]",
+        )
+
+    def test_cli_composition_packet_round_trips_through_full_recompile(
+        self,
+    ) -> None:
+        def invoke(argv: list[str]) -> dict[str, Any]:
+            output = io.StringIO()
+            errors = io.StringIO()
+            status = run_cli(
+                argv,
+                call_tool=self.server._call_tool,
+                stdout=output,
+                stderr=errors,
+            )
+            self.assertEqual(status, 0, errors.getvalue())
+            return json.loads(output.getvalue())
+
+        objective = "Implement and verify a reliable change"
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            (project / "AGENTS.md").write_text(
+                "# Rules\n\nRead before modifying and verify results.\n",
+                encoding="utf-8",
+            )
+            (project / "SKILL.md").write_text(
+                "# Verification Skill\n\nImplement the task and run focused verification.\n",
+                encoding="utf-8",
+            )
+            common = [
+                objective,
+                "--project-path",
+                str(project),
+                "--source-path",
+                str(project),
+                "--phase",
+                "start",
+                "--compact",
+            ]
+            preflight = invoke(["prepare-composition", *common])
+            slices = preflight["candidate_source_slices"]
+            self.assertIsInstance(slices, list)
+            by_role = {
+                str(item["source_role"]): item
+                for item in slices
+                if isinstance(item, dict)
+            }
+            governing = by_role["governing_instruction"]
+            skill = by_role["active_skill"]
+            for item in (governing, skill):
+                self.assertEqual(len(str(item["source_digest"])), 64)
+                self.assertEqual(len(str(item["slice_digest"])), 64)
+                self.assertNotIn("[REDACTED:", str(item["source_digest"]))
+
+            criterion = "Focused verification passes"
+
+            def role(
+                item: dict[str, object],
+                name: str,
+                *,
+                covers: list[str] | None = None,
+            ) -> dict[str, object]:
+                covered = covers or []
+                return {
+                    "node_id": item["source_node_id"],
+                    "role": name,
+                    "inputs": ["task objective"],
+                    "outputs": ["validated handoff"],
+                    "phase_affinity": ["start"],
+                    "entry_gates": [],
+                    "exit_gates": [
+                        criterion if covered else "Governing constraints are applied"
+                    ],
+                    "context_cost": 100,
+                    "covers": covered,
+                    "citations": [item["slice_id"]],
+                }
+
+            proposal = {
+                "schema": "tmcp-semantic-proposal-v0.1",
+                "preflight_id": preflight["preflight_id"],
+                "current_phase": "start",
+                "task_model": {
+                    "deliverables": ["Verified change"],
+                    "success_criteria": [criterion],
+                    "constraints": ["Preserve governing instructions"],
+                    "subgoals": ["Implement", "Verify"],
+                    "evidence_needs": ["Focused verification"],
+                },
+                "skill_roles": [
+                    role(governing, "governing constraints"),
+                    role(skill, "implementation verifier", covers=[criterion]),
+                ],
+                "relationships": [
+                    {
+                        "from": governing["source_node_id"],
+                        "to": skill["source_node_id"],
+                        "type": "enables",
+                        "citations": [
+                            governing["slice_id"],
+                            skill["slice_id"],
+                        ],
+                        "rationale": (
+                            "Governing constraints enable safe implementation."
+                        ),
+                    }
+                ],
+                "coverage": {
+                    "facets": [criterion],
+                    "unresolved_gaps": [],
+                },
+                "trust": "advisory_untrusted",
+            }
+            packet = invoke(
+                [
+                    "compose-packet",
+                    *common,
+                    "--cache-policy",
+                    "none",
+                    "--semantic-proposal",
+                    json.dumps(proposal),
+                ]
+            )
+            citations = packet["evidence_citations"]
+            self.assertIsInstance(citations, list)
+            self.assertTrue(
+                all(
+                    len(str(item["content_digest"])) == 64
+                    and "[REDACTED:" not in str(item["content_digest"])
+                    for item in citations
+                    if isinstance(item, dict)
+                )
+            )
+
+            recompiled = invoke(
+                [
+                    "runtime-next",
+                    objective,
+                    "--project-path",
+                    str(project),
+                    "--source-path",
+                    str(project),
+                    "--cache-policy",
+                    "none",
+                    "--output-mode",
+                    "full",
+                    "--previous-packet",
+                    json.dumps(packet),
+                    "--compact",
+                ]
+            )
+
+        self.assertTrue(recompiled["ok"])
+        recompiled_packet = recompiled["packet"]
+        self.assertIsInstance(recompiled_packet, dict)
+        self.assertNotEqual(
+            recompiled_packet.get("composition_plan_status"),
+            "stale_source_provenance",
+        )
+        runtime_validation = dict(
+            dict(recompiled_packet.get("composition_diagnostics") or {}).get(
+                "runtime_source_validation"
+            )
+            or {}
+        )
+        self.assertFalse(
+            any(
+                error.get("code") == "composition_source_content_changed"
+                for error in runtime_validation.get("errors", [])
+                if isinstance(error, dict)
+            )
+        )
 
     def test_aios_auto_missing_falls_back_to_standalone(self) -> None:
         original_root = getattr(self.server, "AIOS_ROOT")

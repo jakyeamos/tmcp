@@ -1,0 +1,155 @@
+{
+  "schema": "tmcp-composition-routing-golden-v0.1",
+  "cases": [
+    {
+      "case_id": "ui-product-01-dashboard-redesign",
+      "domain": "ui_product",
+      "objective": "Discover the operators' dashboard needs, redesign the information hierarchy, implement the React surface, and verify accessibility in a browser.",
+      "expected_skill_ids": ["product-discovery", "ui-architecture", "frontend-implementation", "accessibility-verification"]
+    },
+    {
+      "case_id": "ui-product-02-onboarding-flow",
+      "domain": "ui_product",
+      "objective": "Model the onboarding journey, decide the product states, build the interactive flow, and inspect responsive and reduced-motion behavior.",
+      "expected_skill_ids": ["product-discovery", "ui-architecture", "frontend-implementation", "accessibility-verification"]
+    },
+    {
+      "case_id": "ui-product-03-settings-navigation",
+      "domain": "ui_product",
+      "objective": "Audit user confusion in settings, restructure navigation, implement the shared components, and verify keyboard and contrast behavior.",
+      "expected_skill_ids": ["product-discovery", "ui-architecture", "frontend-implementation", "accessibility-verification"]
+    },
+    {
+      "case_id": "ui-product-04-empty-states",
+      "domain": "ui_product",
+      "objective": "Define empty-state user needs, establish reusable visual patterns, ship the states across the app, and validate them at multiple viewports.",
+      "expected_skill_ids": ["product-discovery", "ui-architecture", "frontend-implementation", "accessibility-verification"]
+    },
+    {
+      "case_id": "ui-product-05-command-center",
+      "domain": "ui_product",
+      "objective": "Clarify the command center's product priorities, design its hierarchy, implement polished interactions, and verify browser evidence before completion.",
+      "expected_skill_ids": ["product-discovery", "ui-architecture", "frontend-implementation", "accessibility-verification"]
+    },
+    {
+      "case_id": "migration-data-01-schema-cutover",
+      "domain": "migration_data",
+      "objective": "Assess a schema migration, audit data invariants, define rollback checkpoints, and build a regression strategy for the cutover.",
+      "expected_skill_ids": ["migration-readiness", "data-integrity-audit", "rollback-verification", "test-strategy"]
+    },
+    {
+      "case_id": "migration-data-02-legacy-import",
+      "domain": "migration_data",
+      "objective": "Plan the legacy import, reconcile record identities, prove a reversible rollback, and test partial and repeated imports.",
+      "expected_skill_ids": ["migration-readiness", "data-integrity-audit", "rollback-verification", "test-strategy"]
+    },
+    {
+      "case_id": "migration-data-03-storage-provider",
+      "domain": "migration_data",
+      "objective": "Prepare a storage-provider move, verify object and metadata parity, specify rollback evidence, and cover failures with focused tests.",
+      "expected_skill_ids": ["migration-readiness", "data-integrity-audit", "rollback-verification", "test-strategy"]
+    },
+    {
+      "case_id": "migration-data-04-identifier-remap",
+      "domain": "migration_data",
+      "objective": "Design an identifier remap, audit referential integrity, preserve a recovery path, and test collisions plus interrupted batches.",
+      "expected_skill_ids": ["migration-readiness", "data-integrity-audit", "rollback-verification", "test-strategy"]
+    },
+    {
+      "case_id": "migration-data-05-event-backfill",
+      "domain": "migration_data",
+      "objective": "Evaluate an event backfill, validate ordering and deduplication, define rollback criteria, and verify idempotency regressions.",
+      "expected_skill_ids": ["migration-readiness", "data-integrity-audit", "rollback-verification", "test-strategy"]
+    },
+    {
+      "case_id": "agent-workflow-01-review-router",
+      "domain": "agent_workflow",
+      "objective": "Design a review workflow, generate deterministic routing policy, audit its security boundaries, and require receipts before promotion.",
+      "expected_skill_ids": ["workflow-design", "routing-policy", "security-privacy-audit", "receipt-verification"]
+    },
+    {
+      "case_id": "agent-workflow-02-install-harvest",
+      "domain": "agent_workflow",
+      "objective": "Compose an install-and-harvest workflow, define route triggers, protect secrets and permissions, and verify every promoted recommendation with receipts.",
+      "expected_skill_ids": ["workflow-design", "routing-policy", "security-privacy-audit", "receipt-verification"]
+    },
+    {
+      "case_id": "agent-workflow-03-release-agent",
+      "domain": "agent_workflow",
+      "objective": "Specify a release agent's stages, route failure states, review external side effects, and gate completion on structured evidence.",
+      "expected_skill_ids": ["workflow-design", "routing-policy", "security-privacy-audit", "receipt-verification"]
+    },
+    {
+      "case_id": "agent-workflow-04-browser-audit",
+      "domain": "agent_workflow",
+      "objective": "Build a browser-audit workflow, route evidence changes between phases, enforce privacy boundaries, and retain verification receipts.",
+      "expected_skill_ids": ["workflow-design", "routing-policy", "security-privacy-audit", "receipt-verification"]
+    },
+    {
+      "case_id": "agent-workflow-05-incident-handoff",
+      "domain": "agent_workflow",
+      "objective": "Create an incident handoff workflow, route investigation and remediation stages, review sensitive-data handling, and verify the final handoff record.",
+      "expected_skill_ids": ["workflow-design", "routing-policy", "security-privacy-audit", "receipt-verification"]
+    },
+    {
+      "case_id": "research-writing-01-market-brief",
+      "domain": "research_writing_review",
+      "objective": "Research primary market sources, write a decision brief, perform an editorial review, and verify every material citation.",
+      "expected_skill_ids": ["source-research", "domain-writing", "editorial-review", "citation-verification"]
+    },
+    {
+      "case_id": "research-writing-02-technical-guide",
+      "domain": "research_writing_review",
+      "objective": "Gather authoritative technical evidence, draft an implementation guide, review it for reader clarity, and validate source attribution.",
+      "expected_skill_ids": ["source-research", "domain-writing", "editorial-review", "citation-verification"]
+    },
+    {
+      "case_id": "research-writing-03-policy-analysis",
+      "domain": "research_writing_review",
+      "objective": "Investigate current policy sources, synthesize a domain analysis, review claims and structure, and check citation coverage.",
+      "expected_skill_ids": ["source-research", "domain-writing", "editorial-review", "citation-verification"]
+    },
+    {
+      "case_id": "research-writing-04-architecture-report",
+      "domain": "research_writing_review",
+      "objective": "Research architecture precedents, write a recommendation report, challenge it through editorial review, and verify provenance links.",
+      "expected_skill_ids": ["source-research", "domain-writing", "editorial-review", "citation-verification"]
+    },
+    {
+      "case_id": "research-writing-05-user-research",
+      "domain": "research_writing_review",
+      "objective": "Analyze user-research evidence, write the product narrative, review tone and unsupported claims, and confirm source traceability.",
+      "expected_skill_ids": ["source-research", "domain-writing", "editorial-review", "citation-verification"]
+    },
+    {
+      "case_id": "diagnose-fix-01-cache-race",
+      "domain": "diagnose_fix_regression",
+      "objective": "Diagnose the cache race from evidence, implement the narrow fix, add a regression test, and verify the release-facing behavior.",
+      "expected_skill_ids": ["root-cause-analysis", "targeted-fix", "regression-testing", "release-verification"]
+    },
+    {
+      "case_id": "diagnose-fix-02-auth-redirect",
+      "domain": "diagnose_fix_regression",
+      "objective": "Find the cause of an auth redirect loop, patch the correct boundary, protect it with regression coverage, and verify login flows.",
+      "expected_skill_ids": ["root-cause-analysis", "targeted-fix", "regression-testing", "release-verification"]
+    },
+    {
+      "case_id": "diagnose-fix-03-import-duplication",
+      "domain": "diagnose_fix_regression",
+      "objective": "Trace duplicate imports to their root cause, apply a scoped correction, test idempotency, and verify existing import behavior.",
+      "expected_skill_ids": ["root-cause-analysis", "targeted-fix", "regression-testing", "release-verification"]
+    },
+    {
+      "case_id": "diagnose-fix-04-mobile-layout",
+      "domain": "diagnose_fix_regression",
+      "objective": "Diagnose the mobile layout regression, fix the shared component, add focused viewport coverage, and verify the rendered release surface.",
+      "expected_skill_ids": ["root-cause-analysis", "targeted-fix", "regression-testing", "release-verification"]
+    },
+    {
+      "case_id": "diagnose-fix-05-worker-retry",
+      "domain": "diagnose_fix_regression",
+      "objective": "Investigate runaway worker retries, implement the minimal retry fix, cover failure and recovery paths, and verify production-safe behavior.",
+      "expected_skill_ids": ["root-cause-analysis", "targeted-fix", "regression-testing", "release-verification"]
+    }
+  ]
+}

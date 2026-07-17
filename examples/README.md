@@ -2,6 +2,8 @@
 
 These examples show TMCP as a portable skill-packet workflow system. Stable examples match the first public workflow contract; experimental examples remain shipped and callable.
 
+For an ordinary-agent integration, start with the experimental [compositional host policy](host-policy-compositional-routing.md). It keeps prepare → host proposal → compose behind natural-language prompting while preserving direct compose compatibility.
+
 ## Stable Examples
 
 - [Developer onboarding audit](workflows/developer-onboarding-audit.md)

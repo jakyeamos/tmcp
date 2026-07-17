@@ -59,6 +59,7 @@ SHIPPED_DOC_PATHS = {
     "docs/CLAUDE_CODE.md",
     "docs/CLAUDE_DESKTOP.md",
     "docs/CLI.md",
+    "docs/COMPOSITION_BENCHMARK.md",
     "docs/COMPATIBILITY.md",
     "docs/CENTRAL_RUNTIME.md",
     "docs/DISTRIBUTION.md",

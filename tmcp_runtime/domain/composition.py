@@ -11,6 +11,7 @@ from .families import (
     node_is_deferred_family_sibling,
     node_matches_family_primary,
 )
+from .harvest_nodes import node_source_role, source_role_is_activation_eligible
 from .routes import composition_route_boost, derive_task_identity
 
 
@@ -19,9 +20,9 @@ NodeSignalText = Callable[[Node], str]
 
 
 def normalize_cache_policy(value: object) -> str:
-    """Allow shared cache input only through the explicit global opt-in."""
+    """Allow cache input only through explicit project or global opt-in."""
 
-    return "global" if value == "global" else "none"
+    return str(value) if value in {"global", "project"} else "none"
 
 
 UI_SIGNAL_TERMS = (
@@ -74,25 +75,124 @@ UI_VERIFICATION_TERMS = (
     "responsive",
 )
 COMPOSITION_GENERIC_TERMS = {
+    "about",
+    "above",
+    "across",
+    "after",
+    "again",
+    "against",
+    "all",
+    "also",
+    "and",
+    "any",
+    "are",
+    "around",
+    "because",
+    "been",
     "agent",
     "agents",
     "before",
+    "being",
+    "below",
+    "between",
+    "both",
+    "but",
+    "can",
     "codex",
+    "could",
     "current",
+    "does",
+    "doing",
+    "done",
+    "each",
+    "few",
+    "for",
+    "from",
+    "further",
+    "get",
+    "give",
+    "given",
+    "has",
+    "have",
+    "having",
+    "help",
+    "here",
+    "how",
+    "into",
+    "its",
+    "just",
+    "like",
     "improve",
     "make",
+    "may",
+    "more",
+    "most",
+    "much",
+    "must",
+    "need",
+    "needs",
+    "new",
+    "nor",
+    "not",
+    "now",
+    "off",
+    "once",
+    "only",
+    "other",
+    "our",
+    "out",
+    "over",
+    "own",
     "packet",
     "packets",
+    "please",
+    "prompt",
     "readiness",
     "release",
+    "should",
     "skill",
     "skills",
+    "some",
     "start",
+    "such",
     "task",
+    "than",
+    "that",
+    "the",
+    "their",
+    "them",
+    "then",
+    "there",
+    "these",
+    "they",
+    "this",
+    "those",
+    "through",
     "tmcp",
+    "too",
+    "under",
+    "use",
+    "using",
+    "very",
+    "want",
+    "was",
+    "were",
+    "what",
+    "when",
+    "where",
+    "which",
+    "while",
+    "who",
+    "why",
+    "will",
+    "with",
+    "would",
     "workflow",
     "workflows",
+    "you",
+    "your",
 }
+COMPOSITION_SHORT_SIGNAL_TERMS = frozenset({"ai", "ci", "db", "pr", "qa", "ui", "ux"})
 RELEASE_READINESS_PHRASES = (
     "release readiness",
     "ship no ship",
@@ -150,7 +250,11 @@ def _contains_signal_term(text: str, term: str) -> bool:
 
 
 def _text_tokens(value: str) -> set[str]:
-    return set(re.findall(r"[a-z0-9_]{3,}", value.lower()))
+    return {
+        token
+        for token in re.findall(r"[a-z0-9]+", value.lower())
+        if len(token) >= 3 or token in COMPOSITION_SHORT_SIGNAL_TERMS
+    }
 
 
 def composition_terms(value: str) -> set[str]:
@@ -162,9 +266,7 @@ def composition_terms(value: str) -> set[str]:
 def objective_has_phrase(objective: str, phrases: tuple[str, ...]) -> bool:
     """Match a phrase despite dash or underscore spelling differences."""
 
-    lower = objective.lower()
-    normalized = lower.replace("-", " ").replace("_", " ")
-    return any(phrase in lower or phrase in normalized for phrase in phrases)
+    return any(_contains_signal_term(objective, phrase) for phrase in phrases)
 
 
 def is_uiish_text(value: str) -> bool:
@@ -192,11 +294,12 @@ def score_composition_node(
 ) -> float:
     """Score one harvested node for inclusion in a composed packet."""
 
+    if not source_role_is_activation_eligible(node_source_role(node)):
+        return 0.0
     if node_is_deferred_family_sibling(node, family_context, objective):
         return 0.0
 
     text = node_signal_text(node)
-    objective_lower = objective.lower()
     objective_terms = composition_terms(objective)
     node_terms = composition_terms(text)
     metadata = _routing_metadata(node)
@@ -204,7 +307,7 @@ def score_composition_node(
     source_type = str(node.get("source_type") or "")
     rel_path = str(node.get("relative_path") or "").lower()
 
-    if "repo-behavior" in rel_path and not objective_has_phrase(
+    if _contains_signal_term(rel_path, "repo behavior") and not objective_has_phrase(
         objective,
         REPO_BEHAVIOR_PHRASES,
     ):
@@ -213,31 +316,33 @@ def score_composition_node(
     ui_files_changed = any(
         is_ui_file(path) for path in _string_list(context.get("files_changed"))
     )
-    if any(term in rel_path for term in ("ui-rubric", "impeccable")) and not (
-        is_uiish_text(objective) or ui_files_changed
-    ):
+    if any(
+        _contains_signal_term(rel_path, term) for term in ("ui rubric", "impeccable")
+    ) and not (is_uiish_text(objective) or ui_files_changed):
         return 0.0
 
     if source_type == "agent_operating_contract":
         score += 5.0
     if rel_path.endswith("skill.md") and any(
-        term in rel_path for term in objective_terms
+        _contains_signal_term(rel_path, term) for term in objective_terms
     ):
         score += 4.0
-    if "release-readiness" in rel_path and objective_has_phrase(
+    if _contains_signal_term(rel_path, "release readiness") and objective_has_phrase(
         objective,
         RELEASE_READINESS_PHRASES,
     ):
         score += 5.0
-    if "pr-risk" in rel_path and not objective_has_phrase(objective, PR_RISK_PHRASES):
+    if _contains_signal_term(rel_path, "pr risk") and not objective_has_phrase(
+        objective, PR_RISK_PHRASES
+    ):
         score -= 5.0
     for trigger in _string_list(metadata.get("trigger_phrases")):
-        if trigger.lower() in COMPOSITION_GENERIC_TERMS:
+        if not composition_terms(trigger):
             continue
-        if trigger.lower() in objective_lower:
+        if _contains_signal_term(objective, trigger):
             score += 3.0
     for command in _string_list(metadata.get("commands")):
-        if command.lower() in objective_lower:
+        if _contains_signal_term(objective, command):
             score += 4.0
     if phase and phase in _string_list(metadata.get("phase_hints")):
         score += 2.0
@@ -251,7 +356,7 @@ def score_composition_node(
     if ui_files_changed and is_uiish_text(text):
         score += 2.0
     if any(
-        boundary.lower() in objective_lower
+        _contains_signal_term(objective, boundary)
         for boundary in _string_list(metadata.get("do_not_use_when"))
     ):
         score -= 6.0
@@ -280,7 +385,7 @@ def select_composition_nodes(
     active_routes: list[str] | None = None,
     node_signal_text: NodeSignalText,
 ) -> list[Node]:
-    """Return the eight highest-scoring harvested nodes without mutating inputs."""
+    """Return governing sources then top active skills without mutating inputs."""
 
     active_family_context = family_context or compose_family_context(
         source_nodes,
@@ -292,7 +397,7 @@ def select_composition_nodes(
     resolved_routes = active_routes or _string_list(
         derive_task_identity(objective, context).get("active_routes")
     )
-    scored: list[tuple[float, str, Node]] = []
+    scored: list[tuple[int, float, str, Node]] = []
     for node in source_nodes:
         score = score_composition_node(
             node,
@@ -305,9 +410,10 @@ def select_composition_nodes(
         )
         if score <= 0:
             continue
-        scored.append((score, str(node.get("relative_path") or ""), node))
-    scored.sort(key=lambda item: (-item[0], item[1]))
-    return [node for _, _, node in scored[:8]]
+        role_order = 0 if node_source_role(node) == "governing_instruction" else 1
+        scored.append((role_order, score, str(node.get("relative_path") or ""), node))
+    scored.sort(key=lambda item: (item[0], -item[1], item[2]))
+    return [node for _, _, _, node in scored[:8]]
 
 
 def merge_composition_nodes(
@@ -424,7 +530,6 @@ def matching_reference_reads(
     source_nodes: list[dict[str, Any]],
     objective: str,
 ) -> list[str]:
-    objective_lower = objective.lower()
     reads: list[str] = []
     for node in source_nodes:
         rel_path = str(node.get("relative_path") or "")
@@ -434,19 +539,21 @@ def matching_reference_reads(
             and "/references/" not in f"/{rel_lower}"
         ):
             continue
-        if "craft" in objective_lower and rel_lower.endswith("craft.md"):
+        if _contains_signal_term(objective, "craft") and rel_lower.endswith("craft.md"):
             reads.append(rel_path)
         if any(
-            term in objective_lower for term in ("landing", "brand", "site")
+            _contains_signal_term(objective, term)
+            for term in ("landing", "brand", "site")
         ) and rel_lower.endswith("brand.md"):
             reads.append(rel_path)
         if any(
-            term in objective_lower for term in ("dashboard", "product", "audit")
+            _contains_signal_term(objective, term)
+            for term in ("dashboard", "product", "audit")
         ) and rel_lower.endswith("product.md"):
             reads.append(rel_path)
         if (
             any(
-                term in objective_lower
+                _contains_signal_term(objective, term)
                 for term in ("verify", "verification", "browser")
             )
             and "verification" in rel_lower

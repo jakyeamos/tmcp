@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -26,9 +27,11 @@ from scripts.tmcp_release_archive import (  # noqa: E402
     verify_reproducibility,
 )
 from scripts.release_package_compile import compile_command  # noqa: E402
+from scripts.check_release_evidence import validate_benchmark_summary  # noqa: E402
 from scripts.release_package_composition import (  # noqa: E402
     check_composition_surface as _check_composition_surface,
 )
+from tmcp_runtime.api.registry import VERSION  # noqa: E402
 
 HARDCODED_USER_PATH_PATTERNS = (
     re.compile(r"/" r"Users/(?!example\b|you\b|your\b|name\b)[^\s)\"'`]+"),
@@ -76,7 +79,10 @@ PACKAGE_CHECK_NAMES = (
     "sample_expert_rubric",
     "adaptive_workflow_surface",
     "composition_surface",
+    "composition_benchmark",
 )
+COMPOSITION_BENCHMARK_MINIMUM_VERSION = (0, 6, 0)
+COMPOSITION_BENCHMARK_SUMMARY_SCHEMA = "tmcp-composition-benchmark-summary-v0.1"
 
 
 def run(
@@ -399,6 +405,69 @@ def check_composition_surface(
     return _check_composition_surface(plugin_root, scratch_root, run_json)
 
 
+def _release_version_tuple(version: str) -> tuple[int, int, int]:
+    release = version.partition("+")[0]
+    match = re.fullmatch(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", release)
+    if match is None:
+        raise ValueError(f"invalid release version: {version}")
+    major, minor, patch = match.groups()
+    return int(major), int(minor), int(patch)
+
+
+def composition_benchmark_required(version: str) -> bool:
+    return _release_version_tuple(version) >= COMPOSITION_BENCHMARK_MINIMUM_VERSION
+
+
+def check_composition_benchmark(
+    plugin_root: Path,
+    observations_path: Path | None,
+    *,
+    release_version: str,
+) -> tuple[bool, str]:
+    required = composition_benchmark_required(release_version)
+    if observations_path is None:
+        if required:
+            return (
+                False,
+                "TMCP 0.6.0 and newer require an explicit real composition "
+                "benchmark observations file.",
+            )
+        return True, f"not required for TMCP {release_version}"
+    try:
+        observations = observations_path.expanduser().resolve(strict=True)
+        if not observations.is_file():
+            return False, "composition benchmark observations must be one regular file"
+        observations_digest = hashlib.sha256(observations.read_bytes()).hexdigest()
+    except OSError as exc:
+        return False, f"could not resolve composition benchmark observations: {exc}"
+    ok, output, payload = run_json(
+        [
+            sys.executable,
+            "scripts/run_composition_benchmark.py",
+            str(observations),
+        ],
+        plugin_root,
+    )
+    if not ok or payload is None:
+        return False, output
+    if validate_benchmark_summary(payload):
+        return False, "composition benchmark runner did not return an eligible summary"
+    if payload.get("observations_sha256") != observations_digest:
+        return False, "composition benchmark summary does not bind observations digest"
+    return (
+        True,
+        json.dumps(
+            {
+                "schema": COMPOSITION_BENCHMARK_SUMMARY_SCHEMA,
+                "eligible": True,
+                "observations_sha256": observations_digest,
+                "summary": payload,
+            },
+            sort_keys=True,
+        ),
+    )
+
+
 def failed_package_check(manifest_output: str) -> dict[str, Any]:
     return {
         **{check: "fail" for check in PACKAGE_CHECK_NAMES},
@@ -406,7 +475,12 @@ def failed_package_check(manifest_output: str) -> dict[str, Any]:
     }
 
 
-def check_package(package_path: Path) -> dict[str, Any]:
+def check_package(
+    package_path: Path,
+    *,
+    observations_path: Path | None = None,
+    release_version: str = VERSION.release,
+) -> dict[str, Any]:
     manifest_ok, manifest_output = check_archive_manifest(package_path)
     if not manifest_ok:
         return failed_package_check(manifest_output)
@@ -451,6 +525,11 @@ def check_package(package_path: Path) -> dict[str, Any]:
         composition_ok, composition_output = check_composition_surface(
             plugin_root, tmp_path
         )
+        benchmark_ok, benchmark_output = check_composition_benchmark(
+            plugin_root,
+            observations_path,
+            release_version=release_version,
+        )
     return {
         "archive_manifest": "pass",
         "install_check": "pass" if install_ok else "fail",
@@ -466,6 +545,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
         "sample_expert_rubric": "pass" if review_ok else "fail",
         "adaptive_workflow_surface": "pass" if adaptive_ok else "fail",
         "composition_surface": "pass" if composition_ok else "fail",
+        "composition_benchmark": "pass" if benchmark_ok else "fail",
         "output": {
             "archive_manifest": manifest_output,
             "install": install_output,
@@ -481,6 +561,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
             "sample_expert_rubric": review_output,
             "adaptive_workflow_surface": adaptive_output,
             "composition_surface": composition_output,
+            "composition_benchmark": benchmark_output,
         },
     }
 
@@ -497,6 +578,15 @@ def main() -> int:
         "--verify-reproducible",
         action="store_true",
         help="Build a second archive from the same Git tree and compare digests",
+    )
+    parser.add_argument(
+        "--composition-benchmark-observations",
+        type=Path,
+        help=(
+            "Explicit host-run composition benchmark observations. Required for "
+            "TMCP 0.6.0 and newer; when supplied for an earlier release it is "
+            "still validated."
+        ),
     )
     args = parser.parse_args()
 
@@ -521,7 +611,11 @@ def main() -> int:
             "archive_digest": build["archive_digest"],
             "manifest_path": build["manifest_path"],
             "manifest_digest": build["manifest_digest"],
-            **check_package(output_path),
+            **check_package(
+                output_path,
+                observations_path=args.composition_benchmark_observations,
+                release_version=VERSION.release,
+            ),
         }
         if args.verify_reproducible:
             reproducibility = verify_reproducibility(plugin_root, build)

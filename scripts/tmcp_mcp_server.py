@@ -61,6 +61,7 @@ from tmcp_runtime.storage import (  # noqa: E402
     ArtifactStorageError,
     AtomicArtifactStore,
     PacketSessionStore,
+    ProjectCompositionRecipeStore,
     artifact_persistence_available,
 )
 from tmcp_runtime.storage.cache_policy import (  # noqa: E402
@@ -78,6 +79,7 @@ from tmcp_runtime.services.harvest import (  # noqa: E402
 )
 from tmcp_runtime.services.compose import (  # noqa: E402
     compose_packet_from_source_nodes as _runtime_compose_packet_from_source_nodes,
+    prepare_composition_from_source_nodes as _runtime_prepare_composition_from_source_nodes,
 )
 from tmcp_runtime.services.evaluation_rendering import (  # noqa: E402
     build_pattern_catalog as _runtime_build_pattern_catalog,
@@ -89,6 +91,10 @@ from tmcp_runtime.services.harvest_advisories import (  # noqa: E402
 from tmcp_runtime.services.global_promotion import (  # noqa: E402
     GlobalPromotionArtifactService,
     GlobalPromotionContext,
+)
+from tmcp_runtime.services.project_recipes import (  # noqa: E402
+    PROJECT_COMPOSITION_RECIPE_PROMOTION_SCHEMA,
+    ProjectCompositionRecipeService,
 )
 from tmcp_runtime.services.explain import (  # noqa: E402
     ExplainService,
@@ -177,15 +183,320 @@ def _redacted_mapping(value: dict[str, Any]) -> dict[str, Any]:
     return safe_value if isinstance(safe_value, dict) else {}
 
 
+_LONG_HIGH_ENTROPY_REDACTION = "[REDACTED:long_high_entropy]"
+_COMPOSED_PACKET_SCHEMA = "tmcp-composed-packet-v0.1"
+_COMPOSITION_PLAN_SCHEMA = "tmcp-composition-plan-v0.1"
+_COMPOSITION_PREFLIGHT_SCHEMA = "tmcp-composition-preflight-v0.1"
+_RECOMPILED_PACKET_SCHEMA = "tmcp-recompiled-packet-v0.1"
+_RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
+_PROJECT_RECIPE_PROMOTION_ELIGIBILITY_SCHEMA = (
+    "tmcp-project-recipe-promotion-eligibility-v0.1"
+)
+
+
+def _is_canonical_composition_digest(
+    value: object,
+    lengths: frozenset[int],
+) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) in lengths
+        and re.fullmatch(r"[a-f0-9]+", value) is not None
+    )
+
+
+def _restore_digest_scalar(
+    source: object,
+    redacted: object,
+    key: str,
+    lengths: frozenset[int],
+) -> int:
+    if not isinstance(source, dict) or not isinstance(redacted, dict):
+        return 0
+    source_value = source.get(key)
+    if redacted.get(
+        key
+    ) == _LONG_HIGH_ENTROPY_REDACTION and _is_canonical_composition_digest(
+        source_value, lengths
+    ):
+        redacted[key] = source_value
+        return 1
+    return 0
+
+
+def _restore_digest_list(
+    source: object,
+    redacted: object,
+    key: str,
+    lengths: frozenset[int],
+) -> int:
+    if not isinstance(source, dict) or not isinstance(redacted, dict):
+        return 0
+    source_values = source.get(key)
+    redacted_values = redacted.get(key)
+    if not isinstance(source_values, list) or not isinstance(redacted_values, list):
+        return 0
+    restored = 0
+    for index, source_value in enumerate(source_values):
+        if (
+            index < len(redacted_values)
+            and redacted_values[index] == _LONG_HIGH_ENTROPY_REDACTION
+            and _is_canonical_composition_digest(source_value, lengths)
+        ):
+            redacted_values[index] = source_value
+            restored += 1
+    return restored
+
+
+def _restore_composition_plan_digests(source: object, redacted: object) -> int:
+    if (
+        not isinstance(source, dict)
+        or not isinstance(redacted, dict)
+        or source.get("schema") != _COMPOSITION_PLAN_SCHEMA
+    ):
+        return 0
+    source_provenance = source.get("provenance")
+    redacted_provenance = redacted.get("provenance")
+    restored = _restore_digest_scalar(
+        source_provenance,
+        redacted_provenance,
+        "graph_digest",
+        frozenset({32, 64}),
+    )
+    restored += _restore_digest_scalar(
+        source_provenance,
+        redacted_provenance,
+        "recipe_digest",
+        frozenset({32, 64}),
+    )
+    restored += _restore_digest_list(
+        source_provenance,
+        redacted_provenance,
+        "content_digests",
+        frozenset({64}),
+    )
+    return restored
+
+
+def _restore_run_receipt_digests(source: object, redacted: object) -> int:
+    if (
+        not isinstance(source, dict)
+        or not isinstance(redacted, dict)
+        or source.get("schema") != _RUN_RECEIPT_SCHEMA
+    ):
+        return 0
+    restored = _restore_digest_scalar(
+        source,
+        redacted,
+        "graph_digest",
+        frozenset({32, 64}),
+    )
+    restored += _restore_digest_list(
+        source,
+        redacted,
+        "content_digests",
+        frozenset({64}),
+    )
+    return restored
+
+
+def _restore_runtime_validation_digests(source: object, redacted: object) -> int:
+    if not isinstance(source, dict) or not isinstance(redacted, dict):
+        return 0
+    source_diagnostics = source.get("composition_diagnostics")
+    redacted_diagnostics = redacted.get("composition_diagnostics")
+    if not isinstance(source_diagnostics, dict) or not isinstance(
+        redacted_diagnostics, dict
+    ):
+        return 0
+    source_validation = source_diagnostics.get("runtime_source_validation")
+    redacted_validation = redacted_diagnostics.get("runtime_source_validation")
+    if not isinstance(source_validation, dict) or not isinstance(
+        redacted_validation, dict
+    ):
+        return 0
+    source_errors = source_validation.get("errors")
+    redacted_errors = redacted_validation.get("errors")
+    if not isinstance(source_errors, list) or not isinstance(redacted_errors, list):
+        return 0
+    restored = 0
+    for source_error, redacted_error in zip(source_errors, redacted_errors):
+        for key in ("expected_content_digest", "actual_content_digest"):
+            restored += _restore_digest_scalar(
+                source_error,
+                redacted_error,
+                key,
+                frozenset({64}),
+            )
+    return restored
+
+
+def _restore_composed_packet_digests(source: object, redacted: object) -> int:
+    if (
+        not isinstance(source, dict)
+        or not isinstance(redacted, dict)
+        or source.get("schema") != _COMPOSED_PACKET_SCHEMA
+    ):
+        return 0
+    restored = 0
+    source_citations = source.get("evidence_citations")
+    redacted_citations = redacted.get("evidence_citations")
+    if isinstance(source_citations, list) and isinstance(redacted_citations, list):
+        for source_citation, redacted_citation in zip(
+            source_citations, redacted_citations
+        ):
+            restored += _restore_digest_scalar(
+                source_citation,
+                redacted_citation,
+                "content_digest",
+                frozenset({64}),
+            )
+    restored += _restore_composition_plan_digests(
+        source.get("composition_plan"),
+        redacted.get("composition_plan"),
+    )
+    restored += _restore_run_receipt_digests(
+        source.get("receipt_template"),
+        redacted.get("receipt_template"),
+    )
+    restored += _restore_digest_scalar(
+        source.get("compiled_from"),
+        redacted.get("compiled_from"),
+        "composition_graph_digest",
+        frozenset({32, 64}),
+    )
+    restored += _restore_runtime_validation_digests(source, redacted)
+    return restored
+
+
+def _restore_composition_preflight_digests(source: object, redacted: object) -> int:
+    if (
+        not isinstance(source, dict)
+        or not isinstance(redacted, dict)
+        or source.get("schema") != _COMPOSITION_PREFLIGHT_SCHEMA
+    ):
+        return 0
+    source_slices = source.get("candidate_source_slices")
+    redacted_slices = redacted.get("candidate_source_slices")
+    if not isinstance(source_slices, list) or not isinstance(redacted_slices, list):
+        return 0
+    restored = 0
+    for source_slice, redacted_slice in zip(source_slices, redacted_slices):
+        for key in ("source_digest", "slice_digest"):
+            restored += _restore_digest_scalar(
+                source_slice,
+                redacted_slice,
+                key,
+                frozenset({64}),
+            )
+    return restored
+
+
+def _restore_composition_digests(source: object, redacted: object) -> int:
+    """Restore compiler-owned identities at explicit public contract locations."""
+
+    if not isinstance(source, dict) or not isinstance(redacted, dict):
+        return 0
+    schema = source.get("schema")
+    if schema == _COMPOSITION_PREFLIGHT_SCHEMA:
+        return _restore_composition_preflight_digests(source, redacted)
+    if schema == _COMPOSED_PACKET_SCHEMA:
+        return _restore_composed_packet_digests(source, redacted)
+    if schema == _RUN_RECEIPT_SCHEMA:
+        return _restore_run_receipt_digests(source, redacted)
+    if schema == _RECOMPILED_PACKET_SCHEMA:
+        return _restore_composed_packet_digests(
+            source.get("packet"), redacted.get("packet")
+        )
+    restored = 0
+    if (
+        source.get("command") == "tmcp-explain"
+        or schema == "tmcp-workflow-recommendation-v1"
+    ):
+        restored += _restore_composed_packet_digests(
+            source.get("composed_packet"),
+            redacted.get("composed_packet"),
+        )
+    return restored
+
+
+def _restore_composition_digest_redactions(
+    source: object,
+    redacted: object,
+    redactions: dict[str, int],
+) -> None:
+    restored = _restore_composition_digests(source, redacted)
+    remaining = redactions.get("long_high_entropy", 0) - restored
+    if remaining > 0:
+        redactions["long_high_entropy"] = remaining
+    else:
+        redactions.pop("long_high_entropy", None)
+
+
+def _restore_fixed_literal(
+    source: object,
+    redacted: object,
+    key: str,
+    literal: str,
+) -> int:
+    if not isinstance(source, dict) or not isinstance(redacted, dict):
+        return 0
+    redacted_literal, literal_redactions = redact_json_value(literal, enabled=True)
+    if source.get(key) != literal or redacted.get(key) != redacted_literal:
+        return 0
+    redacted[key] = literal
+    return int(literal_redactions.get("long_high_entropy", 0))
+
+
+def _restore_project_recipe_promotion_literals(
+    source: object,
+    redacted: object,
+    redactions: dict[str, int],
+) -> None:
+    if (
+        not isinstance(source, dict)
+        or not isinstance(redacted, dict)
+        or source.get("schema") != PROJECT_COMPOSITION_RECIPE_PROMOTION_SCHEMA
+    ):
+        return
+    restored = _restore_fixed_literal(
+        source.get("promotion_eligibility"),
+        redacted.get("promotion_eligibility"),
+        "schema",
+        _PROJECT_RECIPE_PROMOTION_ELIGIBILITY_SCHEMA,
+    )
+    source_recipe = source.get("recipe")
+    redacted_recipe = redacted.get("recipe")
+    if isinstance(source_recipe, dict) and isinstance(redacted_recipe, dict):
+        restored += _restore_fixed_literal(
+            source_recipe.get("promotion_eligibility"),
+            redacted_recipe.get("promotion_eligibility"),
+            "schema",
+            _PROJECT_RECIPE_PROMOTION_ELIGIBILITY_SCHEMA,
+        )
+    remaining = redactions.get("long_high_entropy", 0) - restored
+    if remaining > 0:
+        redactions["long_high_entropy"] = remaining
+    else:
+        redactions.pop("long_high_entropy", None)
+
+
 def _opaque_storage_key(raw_value: str, display_value: str) -> str:
     digest = hashlib.sha256(raw_value.encode()).hexdigest()[:32]
     return f"{_promotion_slug(display_value)[:80]}-{digest}"
 
 
-def _redact_result(result: dict[str, Any]) -> dict[str, Any]:
+def _redact_result(
+    result: dict[str, Any],
+    *,
+    preserve_composition_digests: bool = False,
+) -> dict[str, Any]:
     safe_result, redactions = redact_json_value(result, enabled=True)
     if not isinstance(safe_result, dict):
         raise ValueError("TMCP result must be a JSON object.")
+    if preserve_composition_digests:
+        _restore_composition_digest_redactions(result, safe_result, redactions)
+    _restore_project_recipe_promotion_literals(result, safe_result, redactions)
     existing = safe_result.get("redaction_summary")
     summary = dict(existing) if isinstance(existing, dict) else {}
     merge_redactions(summary, redactions)
@@ -510,7 +821,86 @@ def _global_promotion_service() -> GlobalPromotionArtifactService:
 
 
 def _compose_harvest_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
-    return _runtime_read_only_harvest_arguments(arguments)
+    harvest_arguments = _runtime_read_only_harvest_arguments(arguments)
+    harvest_arguments["rank_for_composition"] = True
+    return harvest_arguments
+
+
+def _prepare_composition(arguments: dict[str, Any]) -> dict[str, Any]:
+    objective = str(arguments.get("objective") or "").strip()
+    if not objective:
+        raise ValueError("tmcp_prepare_composition requires objective.")
+    harvest = _harvest_skills(_compose_harvest_arguments(arguments))
+    source_nodes = [
+        item
+        for item in _json_list(harvest.get("source_nodes"))
+        if isinstance(item, dict)
+    ]
+    result = _runtime_prepare_composition_from_source_nodes(
+        arguments,
+        source_nodes=source_nodes,
+    )
+    result["project_path"] = str(arguments.get("project_path") or ".")
+    result["harvest_warnings"] = _string_list(harvest.get("warnings"))
+    return _redact_result(result, preserve_composition_digests=True)
+
+
+def _project_composition_recipe_service() -> ProjectCompositionRecipeService:
+    return ProjectCompositionRecipeService(
+        open_store=ProjectCompositionRecipeStore.open,
+        now_iso=_now_iso,
+    )
+
+
+def _load_project_composition_recipe(
+    arguments: dict[str, Any],
+    source_nodes: list[dict[str, Any]],
+) -> dict[str, Any]:
+    recipe_id = str(arguments.get("project_recipe_id") or "").strip()
+    if not recipe_id:
+        raise ValueError("cache_policy=project requires an explicit project_recipe_id.")
+    if arguments.get("semantic_proposal") is not None:
+        raise ValueError("semantic_proposal and project_recipe_id cannot be combined.")
+    preflight = _runtime_prepare_composition_from_source_nodes(
+        arguments,
+        source_nodes=source_nodes,
+    )
+    return _project_composition_recipe_service().load_for_preflight(
+        {
+            "project_path": arguments.get("project_path"),
+            "recipe_id": recipe_id,
+            "composition_preflight": preflight,
+            "current_phase": arguments.get("phase") or "start",
+        }
+    )
+
+
+def _apply_project_recipe_metadata(
+    packet: dict[str, Any], loaded: dict[str, Any]
+) -> dict[str, Any]:
+    recipe_id = str(loaded.get("recipe_id") or "")
+    graph_digest = str(loaded.get("graph_digest") or "")
+    metadata = {
+        "recipe_id": recipe_id,
+        "status": "loaded_and_revalidated",
+        "graph_digest": graph_digest,
+        "origin_composition_plan_id": loaded.get("origin_composition_plan_id"),
+        "activation_policy": "explicit_load_only",
+        "trust": "advisory_untrusted",
+    }
+    packet["project_recipe"] = metadata
+    cache = dict(packet.get("global_cache") or {})
+    cache["project_recipe"] = metadata
+    packet["global_cache"] = cache
+    receipt = dict(packet.get("receipt_template") or {})
+    receipt["recipe_id"] = recipe_id
+    receipt["graph_digest"] = graph_digest
+    packet["receipt_template"] = receipt
+    safety = dict(packet.get("safety") or {})
+    safety["project_recipe_auto_promoted"] = False
+    safety["project_recipe_revalidated"] = True
+    packet["safety"] = safety
+    return packet
 
 
 def _compose_packet_from_source_nodes(
@@ -523,8 +913,17 @@ def _compose_packet_from_source_nodes(
         compose_arguments.get("cache_policy")
     )
     compose_arguments["cache_policy"] = cache_policy
+    loaded_project_recipe: dict[str, Any] | None = None
+    if cache_policy == "project":
+        loaded_project_recipe = _load_project_composition_recipe(
+            compose_arguments,
+            source_nodes,
+        )
+        compose_arguments["semantic_proposal"] = loaded_project_recipe[
+            "semantic_proposal"
+        ]
     snapshot = _global_cache_snapshot(cache_policy)
-    return _runtime_compose_packet_from_source_nodes(
+    packet = _runtime_compose_packet_from_source_nodes(
         compose_arguments,
         source_nodes=source_nodes,
         global_graphs=list(snapshot.promoted_graphs),
@@ -532,6 +931,9 @@ def _compose_packet_from_source_nodes(
         cache_warnings=list(snapshot.warnings),
         cache_home=redact_path(_tmcp_home()),
     )
+    if loaded_project_recipe is not None:
+        packet = _apply_project_recipe_metadata(packet, loaded_project_recipe)
+    return packet
 
 
 def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -648,13 +1050,21 @@ def _runtime_next(arguments: dict[str, Any]) -> dict[str, Any]:
         recompile_packet=_recompile_packet,
         now_iso=_now_iso,
     )
-    return _redact_result(service.run(arguments))
+    return _redact_result(
+        service.run(arguments),
+        preserve_composition_digests=True,
+    )
 
 
 def _redact_receipt(
     receipt: Mapping[str, Any],
 ) -> tuple[dict[str, Any], dict[str, int]]:
     redacted_receipt, redactions = redact_json_value(receipt, enabled=True)
+    _restore_composition_digest_redactions(
+        dict(receipt),
+        redacted_receipt,
+        redactions,
+    )
     return (
         redacted_receipt if isinstance(redacted_receipt, dict) else {},
         redactions,
@@ -908,7 +1318,20 @@ def _tool_evaluate_skills(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _tool_compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
-    return _redact_result(_compose_packet(arguments))
+    return _redact_result(
+        _compose_packet(arguments),
+        preserve_composition_digests=True,
+    )
+
+
+def _tool_prepare_composition(arguments: dict[str, Any]) -> dict[str, Any]:
+    return _prepare_composition(arguments)
+
+
+def _tool_promote_composition_recipe(
+    arguments: dict[str, Any],
+) -> dict[str, Any]:
+    return _redact_result(_project_composition_recipe_service().promote(arguments))
 
 
 def _tool_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -951,6 +1374,8 @@ _TOOL_HANDLERS = {
     "tmcp_harvest_skills": _harvest_skills,
     "tmcp_evaluate_skills": _tool_evaluate_skills,
     "tmcp_recommend_workflows": _recommend_workflows,
+    "tmcp_prepare_composition": _tool_prepare_composition,
+    "tmcp_promote_composition_recipe": _tool_promote_composition_recipe,
     "tmcp_compose_packet": _tool_compose_packet,
     "tmcp_runtime_next": _runtime_next,
     "tmcp_record_receipt": _record_receipt,
