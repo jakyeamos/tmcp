@@ -3,7 +3,7 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `9b50778` removes the remaining high-entropy false positives from evaluator test identifiers.
+- Last completed change: `bd8a2a0` moves evaluator command fixtures to pnpm after the package-safe test-name fixes.
 - Verification: 35 focused evaluator API tests and the prior 493-test full suite passed; Ruff formatting/lint, basedpyright, contract, install-shape, and release-evidence checks passed.
 
 ## Current Position
@@ -17,7 +17,7 @@
 
 ## Next Step
 
-- Move inherited evaluator test command fixtures to pnpm, rerun the reproducible release-package and final branch gates, record the TMCP receipt, and push the completed branch.
+- Rerun the reproducible release-package and final branch gates, record the TMCP receipt, and push the completed branch.
 
 ## Blockers
 
