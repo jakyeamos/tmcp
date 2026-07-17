@@ -274,6 +274,20 @@ class TmcpComposeServiceTests(unittest.TestCase):
         self.assertEqual(enriched["active_instructions"][0], "Existing instruction")
         self.assertEqual(len(enriched["active_instructions"]), 8)
 
+    def test_statistical_contrast_does_not_project_ui_instructions(self) -> None:
+        statistical_node = self._source_node(
+            "docs/evaluation.md",
+            "Score the causal contrast in a controlled experimental design.",
+            behavior_atoms=["evidence-backed-claims"],
+        )
+
+        self.assertEqual(
+            active_instructions_for_source_node(statistical_node),
+            [
+                "Apply relevant harvested behavior atoms from docs/evaluation.md: evidence-backed-claims."
+            ],
+        )
+
     def test_compose_rejects_blank_objective(self) -> None:
         with self.assertRaisesRegex(
             ValueError,

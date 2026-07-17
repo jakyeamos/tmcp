@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import tmcp_runtime.services.harvest as harvest_service
 from tests import test_tmcp_mcp_server as helpers
-from tmcp_runtime.domain.harvest_nodes import source_node_from_text
+from tmcp_runtime.domain.harvest_nodes import routing_metadata_for, source_node_from_text
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -17,6 +17,19 @@ HARVEST_SERVICE_PATH = PLUGIN_ROOT / "tmcp_runtime" / "services" / "harvest.py"
 
 
 class HarvestDomainTests(unittest.TestCase):
+    def test_contrast_gate_requires_accessibility_context(self) -> None:
+        statistical = routing_metadata_for(
+            "docs/evaluation.md",
+            "Score the causal contrast in a controlled experimental design.",
+        )
+        visual = routing_metadata_for(
+            "docs/ui.md",
+            "Verify color contrast on the rendered interface.",
+        )
+
+        self.assertNotIn("Verify contrast.", statistical["verification_gates"])
+        self.assertIn("Verify contrast.", visual["verification_gates"])
+
     def test_source_node_uses_an_explicit_advisory_callback(self) -> None:
         source_path = "/tmp/example/SKILL.md"
         source_text = "# Skill\nUse browser evidence before release."

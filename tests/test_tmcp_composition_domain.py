@@ -26,6 +26,14 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertFalse(
             composition.is_uiish_text("Build a guide for the API service.")
         )
+        self.assertFalse(
+            composition.is_uiish_text(
+                "Score the causal contrast in a controlled experimental design."
+            )
+        )
+        self.assertTrue(
+            composition.is_uiish_text("Verify color contrast on the rendered page.")
+        )
         self.assertTrue(composition.is_ui_file("app/page.astro"))
         self.assertTrue(composition.is_ui_file("src/styles/site.CSS"))
         self.assertFalse(composition.is_ui_file("src/service.py"))

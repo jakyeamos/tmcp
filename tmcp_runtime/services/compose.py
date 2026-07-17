@@ -22,7 +22,10 @@ from tmcp_runtime.domain.harvest_nodes import (
     string_list,
 )
 from tmcp_runtime.domain.packets import build_composed_packet
-from tmcp_runtime.domain.routes import derive_task_identity
+from tmcp_runtime.domain.routes import (
+    derive_task_identity,
+    has_accessibility_contrast_context,
+)
 from tmcp_runtime.domain.workflow_activation import (
     build_global_workflow_activation,
     select_global_workflows,
@@ -72,7 +75,11 @@ def active_instructions_for_source_node(node: Mapping[str, Any]) -> list[str]:
         )
     if "last tested commit" in text:
         instructions.append("Record the last tested commit with verification evidence.")
-    if "contrast" in text or "reduced motion" in text or "responsive" in text:
+    if (
+        has_accessibility_contrast_context(text)
+        or "reduced motion" in text
+        or "responsive" in text
+    ):
         instructions.append(
             "Apply UI verification atoms for contrast, reduced motion, responsive behavior, and browser evidence."
         )

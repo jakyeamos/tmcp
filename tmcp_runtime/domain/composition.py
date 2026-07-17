@@ -11,7 +11,11 @@ from .families import (
     node_is_deferred_family_sibling,
     node_matches_family_primary,
 )
-from .routes import composition_route_boost, derive_task_identity
+from .routes import (
+    composition_route_boost,
+    derive_task_identity,
+    has_accessibility_contrast_context,
+)
 
 
 Node = dict[str, Any]
@@ -36,10 +40,11 @@ UI_SIGNAL_TERMS = (
     "css",
     "dashboard",
     "landing page",
-    "design",
+    "web design",
+    "visual design",
+    "interface design",
     "browser",
     "responsive",
-    "contrast",
     "button",
     "buttons",
     "controls",
@@ -168,7 +173,9 @@ def objective_has_phrase(objective: str, phrases: tuple[str, ...]) -> bool:
 
 
 def is_uiish_text(value: str) -> bool:
-    return any(_contains_signal_term(value, term) for term in UI_SIGNAL_TERMS)
+    return has_accessibility_contrast_context(value) or any(
+        _contains_signal_term(value, term) for term in UI_SIGNAL_TERMS
+    )
 
 
 def is_ui_file(path: str) -> bool:

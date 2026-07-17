@@ -100,6 +100,28 @@ class TmcpRouteCatalogTests(unittest.TestCase):
         self.assertEqual(promotion_boost, 0.0)
         self.assertGreater(motion_boost, 0.0)
 
+    def test_statistical_contrast_does_not_activate_accessibility(self) -> None:
+        objective = "Score the workflow-section contrast in a skill evaluation."
+
+        signals = score_routes(objective)
+        identity = derive_task_identity(objective)
+
+        self.assertNotIn(
+            "accessibility_validation", {item["route"] for item in signals}
+        )
+        self.assertEqual(identity["primary"], "general_task")
+
+    def test_visual_contrast_still_activates_accessibility(self) -> None:
+        cases = (
+            ("Verify color contrast in the browser.", None),
+            ("Verify contrast.", {"files_changed": ["app/page.tsx"]}),
+        )
+
+        for objective, context in cases:
+            with self.subTest(objective=objective):
+                routes = {item["route"] for item in score_routes(objective, context)}
+                self.assertIn("accessibility_validation", routes)
+
 
 class TmcpComposedPacketIdentityTests(unittest.TestCase):
     @classmethod

@@ -13,6 +13,7 @@ from .declared_loads import (
     normalize_declared_load_pattern,
 )
 from .harvest_labels import guidance_labels_for, positive_signal_text
+from .routes import has_accessibility_contrast_context
 from .standalone_packets import MODULE_BEHAVIOR_ATOMS
 
 
@@ -177,7 +178,6 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
     ][:8]
     verification_gates: list[str] = []
     gate_terms = {
-        "contrast": "Verify contrast.",
         "reduced motion": "Verify reduced motion behavior.",
         "browser": "Verify rendered behavior in a browser.",
         "screenshot": "Capture or inspect screenshot evidence.",
@@ -187,6 +187,8 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
         "canonical spreadsheet": "Verify canonical spreadsheet status and evidence.",
         "last tested commit": "Record the last tested commit.",
     }
+    if has_accessibility_contrast_context(text):
+        verification_gates.append("Verify contrast.")
     for term, gate in gate_terms.items():
         if term in lower:
             verification_gates.append(gate)
