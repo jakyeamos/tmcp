@@ -3,7 +3,7 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `8d7c556` binds a composition rejudge launcher and scored sidecar to its exact preregistered policy; `bef899f` splits trace-validation and cost-sidecar concerns out of `evaluation_evidence.py`, resolving its source-size gate.
+- Last completed change: `a37c584` makes the new rejudge-binding schema release-scanner-safe without changing its value; `8d7c556` binds a composition rejudge launcher and scored sidecar to its exact preregistered policy.
 - Verification: 560 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
