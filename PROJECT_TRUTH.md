@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `86d5792` makes the cost-rejudge JSON Schema accepted by the Codex service after `40f8f17` split the harness into thin CLI, source-validation, and execution modules.
-- Verification: 525 tests (3 skipped), full Ruff/basedpyright/compile checks, score replay, TMCP doctor, the 72-source rejudge dry-run, and Pre-CR changed-line readiness pass. The first approved live attempt exposed the service-compatible schema gap before any judgment completed; its fixed-artifact evidence is retained separately.
+- Last completed change: `0d77875` binds blind cost rejudgments before evidence redaction and accepts the harness's canonical `C1:` criterion after `86d5792` made the service schema compatible.
+- Verification: 525 tests (3 skipped), full Ruff/basedpyright/compile checks, score replay, TMCP doctor, the 72-source rejudge dry-run, and Pre-CR changed-line readiness pass. The approved 72-artifact live rejudge completed with 72 unique fresh judge threads and a digest-valid complete sidecar.
 
 ## Current Position
 
@@ -21,19 +21,20 @@
 - TMCP receipt `packet-eb6a2d737fc2` records the final validations and intentionally ignored unrelated approval atoms.
 - Remote `origin/codex/skill-eval-dogfood` contains the complete isolated dogfood branch.
 - The fixture-block replay is `[-0.750, -0.194]`; it supports the relative section effect but records a 0/6 regression-retest and 1/6 failure-diagnosis intact-control rate, so promotion remains held independently of cost.
+- The approved blind cost rejudge reports 0/72 adjudicated cost regressions, replacing the raw cost flag only in a validated sidecar; the scored claim remains `hold` because the historical cluster policy was not predeclared and fixture-level control reliability is below the 0.5 floor.
 - Incidental bare `SKILL.md` mentions no longer load every harvested skill, and detailed objectives require meaningful source overlap unless explicit routing metadata applies.
 
 ## Next Step
 
-- Rerun the explicitly approved blind cost rejudge against the fixed 72 artifacts using the service-compatible schema, then score a complete sidecar without changing raw labels. Do not run `Workflow` micro-ablations unless a fresh baseline clears all control-reliability gates.
+- Preserve the completed evidence bundle, then run a fresh preregistered campaign only after its cluster policy and fixture-level intact-control reliability can clear the promotion floors. Do not run `Workflow` micro-ablations against this held baseline.
 
 ## Blockers
 
-- None; the approved rejudge is in progress.
+- Corpus promotion is held: the historical plan lacks a predeclared clustered-analysis policy and its regression-retest intact-control rate is 0/6.
 
 ## Risks
 
 - The same-model multi-configuration result supports an internal section-level candidate but cannot establish a corpus-wide tried-and-true pattern.
-- Two raw judges flagged the required live-checkout sweep as a cost regression; the formal cost decision remains held until the complete blind sidecar exists.
+- Two raw judges flagged the required live-checkout sweep as a cost regression; the preserved raw labels and the 0/72 adjudicated blind sidecar should continue to be reported separately.
 - The historical 72-cell plan did not predeclare the clustered analysis policy, so its cluster interval is diagnostic only and cannot upgrade promotion.
 - Anti-pattern claims still require a future isolated removal or presence intervention; static matches remain suspected only.
