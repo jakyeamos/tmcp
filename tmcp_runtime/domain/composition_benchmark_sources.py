@@ -47,6 +47,23 @@ def _relationship_target(relationship: Mapping[str, Any]) -> str:
     ).strip()
 
 
+def fixture_source_node_id(
+    fixture_id: str,
+    skill_id: str,
+    content: str,
+) -> str:
+    """Return the content-derived source identity used by benchmark replays."""
+
+    return "benchmark-source-" + stable_digest(
+        {
+            "fixture_id": fixture_id,
+            "skill_id": skill_id,
+            "content_digest": content_digest_for(content),
+        },
+        20,
+    )
+
+
 def validate_fixture_skill_sources(
     fixture_id: str,
     fixture: Mapping[str, Any],
@@ -177,12 +194,18 @@ def validate_source_slice_bindings(
             raise ValueError(
                 f"{field}.slice_digest must match the source slice content."
             )
-        expected_node_id = hashlib.sha256(
+        legacy_path_node_id = hashlib.sha256(
             f"{source_path}:{digests['source_digest']}".encode()
         ).hexdigest()[:12]
-        if source_node_id != expected_node_id:
+        content_node_id = fixture_source_node_id(
+            fixture_id,
+            skill_id,
+            declared_content,
+        )
+        if source_node_id not in {legacy_path_node_id, content_node_id}:
             raise ValueError(
-                f"{field}.source_node_id must match the materialized source identity."
+                f"{field}.source_node_id must match the content-derived benchmark "
+                "or legacy materialized source identity."
             )
         expected_slice_id = "slice-" + stable_digest(
             [
@@ -249,10 +272,8 @@ def graph_digest_for_observation(
     normalized_edges = sorted(
         {
             (
-                source_node_by_skill[_relationship_source(relationship)],
-                str(relationship.get("relation") or relationship.get("type") or ""),
-                source_node_by_skill[_relationship_target(relationship)],
                 source_digests[_relationship_source(relationship)],
+                str(relationship.get("relation") or relationship.get("type") or ""),
                 source_digests[_relationship_target(relationship)],
                 tuple(
                     sorted(

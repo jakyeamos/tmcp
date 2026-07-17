@@ -20,6 +20,11 @@ from tmcp_runtime.domain.composition_benchmark_replay import (
     build_benchmark_control_plan,
     validate_benchmark_control_plan,
 )
+from tmcp_runtime.domain.composition_benchmark_sources import (
+    graph_digest_for_observation,
+    validate_fixture_skill_sources,
+    validate_source_slice_bindings,
+)
 from tmcp_runtime.storage.artifacts import (
     ArtifactStorageError,
     AtomicArtifactStore,
@@ -162,6 +167,38 @@ def _semantic_proposal_bundle(
         "routing_proposals": routing_proposals,
         "behavioral_proposals": behavioral_proposals,
     }
+
+
+def _replayed_source_slices(
+    control: dict[str, object],
+    *,
+    workspace_root: str,
+) -> list[dict[str, object]]:
+    replay = control["replay"]
+    preflight = replay["preflight"]
+    candidates = {
+        str(item["source_node_id"]): item
+        for item in preflight["candidate_source_slices"]
+    }
+    result = []
+    for binding in control["source_bindings"]:
+        candidate = candidates[str(binding["source_node_id"])]
+        result.append(
+            {
+                "skill_id": binding["skill_id"],
+                "source_node_id": binding["source_node_id"],
+                "relative_path": binding["relative_path"],
+                "source_path": f"{workspace_root}/{binding['relative_path']}",
+                "content": candidate["content"],
+                "char_start": candidate["char_start"],
+                "char_end": candidate["char_end"],
+                "slice_id": candidate["slice_id"],
+                "source_digest": candidate["source_digest"],
+                "slice_digest": candidate["slice_digest"],
+                "content_digest": candidate["source_digest"],
+            }
+        )
+    return result
 
 
 class CompositionBenchmarkProtocolTests(unittest.TestCase):
@@ -395,6 +432,116 @@ class CompositionBenchmarkProtocolTests(unittest.TestCase):
                 routing_golden=self.routing,
                 behavioral_fixtures=self.behavioral,
             )
+
+    def test_replayed_graph_identity_matches_compiler_and_ignores_workspace_root(
+        self,
+    ) -> None:
+        plan, _artifacts = build_benchmark_preparation(
+            routing_golden=self.routing,
+            behavioral_fixtures=self.behavioral,
+        )
+        controls = build_benchmark_control_plan(
+            run_plan=plan,
+            semantic_proposals=_semantic_proposal_bundle(
+                plan,
+                self.routing,
+                self.behavioral,
+            ),
+            routing_golden=self.routing,
+            behavioral_fixtures=self.behavioral,
+        )
+        control = controls["behavioral_controls"][0]
+        fixture = next(
+            item
+            for item in self.behavioral["fixtures"]
+            if item["fixture_id"] == control["fixture_id"]
+        )
+        source_slices = _replayed_source_slices(
+            control,
+            workspace_root="/one/fixtures",
+        )
+        bindings, _slice_ids, source_nodes, slices_by_id = (
+            validate_source_slice_bindings(
+                str(fixture["fixture_id"]),
+                list(control["selected_skill_ids"]),
+                {"source_slices": source_slices},
+                validate_fixture_skill_sources(str(fixture["fixture_id"]), fixture),
+            )
+        )
+        self.assertEqual(set(bindings), set(control["selected_skill_ids"]))
+        node_to_skill = {
+            item["source_node_id"]: item["skill_id"] for item in source_slices
+        }
+        compiler_plan = control["replay"]["packet"]["composition_plan"]
+        relationships = [
+            {
+                "source_id": node_to_skill[edge["from"]],
+                "target_id": node_to_skill[edge["to"]],
+                "relation": edge["type"],
+                "citations": edge["citations"],
+            }
+            for edge in compiler_plan["typed_edges"]
+        ]
+        graph_digest = graph_digest_for_observation(
+            list(control["selected_skill_ids"]),
+            relationships,
+            source_node_by_skill=source_nodes,
+            slices_by_id=slices_by_id,
+        )
+        relocated = copy.deepcopy(source_slices)
+        for item in relocated:
+            item["source_path"] = "/another/fixture-root/" + item["relative_path"]
+        _bindings, _slice_ids, relocated_nodes, relocated_slices = (
+            validate_source_slice_bindings(
+                str(fixture["fixture_id"]),
+                list(control["selected_skill_ids"]),
+                {"source_slices": relocated},
+                validate_fixture_skill_sources(str(fixture["fixture_id"]), fixture),
+            )
+        )
+
+        self.assertEqual(
+            graph_digest,
+            compiler_plan["provenance"]["graph_digest"],
+        )
+        self.assertEqual(
+            graph_digest,
+            graph_digest_for_observation(
+                list(control["selected_skill_ids"]),
+                relationships,
+                source_node_by_skill=relocated_nodes,
+                slices_by_id=relocated_slices,
+            ),
+        )
+        changed_behavioral = copy.deepcopy(self.behavioral)
+        changed_behavioral["fixtures"][0]["skill_sources"][0]["content"] += (
+            "\nCapture changed product evidence before the next stage."
+        )
+        changed_plan, _artifacts = build_benchmark_preparation(
+            routing_golden=self.routing,
+            behavioral_fixtures=changed_behavioral,
+        )
+        changed_controls = build_benchmark_control_plan(
+            run_plan=changed_plan,
+            semantic_proposals=_semantic_proposal_bundle(
+                changed_plan,
+                self.routing,
+                changed_behavioral,
+            ),
+            routing_golden=self.routing,
+            behavioral_fixtures=changed_behavioral,
+        )
+        changed_control = next(
+            item
+            for item in changed_controls["behavioral_controls"]
+            if item["fixture_id"] == control["fixture_id"]
+        )
+        self.assertNotEqual(
+            graph_digest,
+            changed_control["replay"]["packet"]["composition_plan"]["provenance"][
+                "graph_digest"
+            ],
+        )
 
     @unittest.skipUnless(
         artifact_persistence_available(),

@@ -11,6 +11,7 @@ from typing import Any
 from tmcp_runtime.api.registry import VERSION
 from tmcp_runtime.domain.composition_benchmark_manifests import routing_input_digest
 from tmcp_runtime.domain.composition_benchmark_sources import (
+    fixture_source_node_id,
     validate_fixture_skill_sources,
 )
 from tmcp_runtime.domain.composition_preflight import stable_digest
@@ -92,23 +93,6 @@ def _routing_records(payload: Mapping[str, Any]) -> list[Mapping[str, Any]]:
             raise ValueError(f"routing.cases has duplicate case_id {case_id}.")
         case_ids.add(case_id)
     return cases
-
-
-def fixture_source_node_id(
-    fixture_id: str,
-    skill_id: str,
-    content: str,
-) -> str:
-    """Return a source identity stable across ephemeral fixture roots."""
-
-    return "benchmark-source-" + stable_digest(
-        {
-            "fixture_id": fixture_id,
-            "skill_id": skill_id,
-            "content_digest": content_digest_for(content),
-        },
-        20,
-    )
 
 
 def fixture_workspace_relative_path(fixture: Mapping[str, Any]) -> str:
