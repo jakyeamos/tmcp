@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `e1c9693` splits the campaign harness into protocol, runtime, and orchestration modules, binds every module digest into the run manifest, and preserves raw streams when a final-output artifact is missing.
-- Verification: nine focused harness tests, Ruff, basedpyright, compile, the 72-cell dry-run, and Pre-CR passed. Each harness module is below the 700-line script budget; the earlier live one-cell run and artifact-validating no-call resume replay also passed.
+- Last completed change: `f99934e` adds the revised six-fixture promotion matrix and its generated 36-row TMCP evaluation plan for experiment `skill-eval-95cfdd0ee52ff673`.
+- Verification: a clean plan replay reproduced the same experiment and all 36 rows after excluding runtime timestamp/path metadata. Nine focused harness tests, Ruff, basedpyright, compile, the 72-cell dry-run, and Pre-CR also pass.
 
 ## Current Position
 
@@ -19,7 +19,7 @@
 
 ## Next Step
 
-- Commit the revised fixture/plan evidence, then run and score the six-family 72-cell promotion matrix.
+- Run and score the six-family 72-cell promotion matrix, then update the evidence report and corpus guidance only to the level the controlled result earns.
 
 ## Blockers
 
