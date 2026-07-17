@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-benchmark-semantic-proposals-v0.1.schema.json",
+  "title": "TMCP Composition Benchmark Semantic Proposals v0.1",
+  "description": "Host-supplied semantic proposals bound to one prepared benchmark run.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "run_manifest_id",
+    "run_manifest_digest",
+    "routing_proposals",
+    "behavioral_proposals"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-benchmark-semantic-proposals-v0.1"},
+    "run_manifest_id": {"type": "string", "pattern": "^benchmark-run-[a-f0-9]{20}$"},
+    "run_manifest_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "routing_proposals": {
+      "type": "array",
+      "minItems": 20,
+      "items": {"$ref": "#/$defs/routing_proposal"}
+    },
+    "behavioral_proposals": {
+      "type": "array",
+      "minItems": 5,
+      "items": {"$ref": "#/$defs/behavioral_proposal"}
+    }
+  },
+  "$defs": {
+    "routing_proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "semantic_proposal"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "semantic_proposal": {"$ref": "tmcp-semantic-proposal-v0.1.schema.json"}
+      }
+    },
+    "behavioral_proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixture_id", "semantic_proposal"],
+      "properties": {
+        "fixture_id": {"type": "string", "minLength": 1},
+        "semantic_proposal": {"$ref": "tmcp-semantic-proposal-v0.1.schema.json"}
+      }
+    }
+  }
+}

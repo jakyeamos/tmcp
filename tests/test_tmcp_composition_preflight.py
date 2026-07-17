@@ -33,11 +33,22 @@ class CompositionPreflightBudgetTests(unittest.TestCase):
             "Verify output.",
         )
         renamed = ci.prepare_composition(
-            [_node("two", "skill_definition", "renamed/two/SKILL.md", "Verify output.")],
+            [
+                _node(
+                    "two", "skill_definition", "renamed/two/SKILL.md", "Verify output."
+                )
+            ],
             "Verify output.",
         )
         edited = ci.prepare_composition(
-            [_node("one", "skill_definition", "skills/one/SKILL.md", "Verify all output.")],
+            [
+                _node(
+                    "one",
+                    "skill_definition",
+                    "skills/one/SKILL.md",
+                    "Verify all output.",
+                )
+            ],
             "Verify output.",
         )
 
@@ -79,7 +90,9 @@ class CompositionPreflightBudgetTests(unittest.TestCase):
             ],
             24,
         )
-        self.assertGreater(preflight["diagnostics"]["unindexed_behavior_block_count"], 0)
+        self.assertGreater(
+            preflight["diagnostics"]["unindexed_behavior_block_count"], 0
+        )
         self.assertTrue(preflight["diagnostics"]["source_block_truncations"])
 
     def test_preflight_uses_one_active_bootstrap_when_target_is_unachievable(
@@ -104,11 +117,52 @@ class CompositionPreflightBudgetTests(unittest.TestCase):
 
         costs = preflight["diagnostics"]["context_cost"]
         self.assertEqual(len(preflight["candidate_source_slices"]), 1)
-        self.assertLess(costs["hydrated_candidate_tokens"], costs["naive_candidate_tokens"])
+        self.assertLess(
+            costs["hydrated_candidate_tokens"], costs["naive_candidate_tokens"]
+        )
         self.assertFalse(costs["context_target_achievable"])
         self.assertFalse(costs["context_target_met"])
         self.assertEqual(costs["mandatory_context_overrides"], [])
         self.assertTrue(costs["minimum_active_context_override"])
+
+    def test_preflight_can_expose_bounded_evidence_for_every_active_source(
+        self,
+    ) -> None:
+        nodes = [
+            _node(
+                f"skill-{index}",
+                "skill_definition",
+                f"skills/{index}/SKILL.md",
+                f"Tiny behavior {index}.",
+                token_estimate=4,
+            )
+            for index in range(10)
+        ]
+
+        preflight = ci.prepare_composition(
+            nodes,
+            "Use tiny behavior.",
+            max_total_tokens=1_000,
+            include_all_active_source_slices=True,
+        )
+
+        self.assertEqual(len(preflight["candidate_source_slices"]), 10)
+        self.assertEqual(
+            preflight["diagnostics"]["semantic_evidence"]["selection_policy"],
+            "all_active_source_candidates",
+        )
+        self.assertEqual(
+            preflight["diagnostics"]["semantic_evidence"]["selected_active_source_ids"],
+            [f"skill-{index}" for index in range(10)],
+        )
+        with self.assertRaisesRegex(ValueError, "every active source"):
+            ci.prepare_composition(
+                nodes,
+                "Use tiny behavior.",
+                max_slices=9,
+                max_total_tokens=1_000,
+                include_all_active_source_slices=True,
+            )
 
 
 if __name__ == "__main__":

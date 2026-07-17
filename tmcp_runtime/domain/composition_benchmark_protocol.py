@@ -155,7 +155,7 @@ def fixture_source_nodes(
     return nodes
 
 
-def _prepare_request(
+def prepare_fixture_preflight(
     *,
     fixture: Mapping[str, Any],
     objective: str,
@@ -172,6 +172,7 @@ def _prepare_request(
             "max_total_chars": 48_000,
             "max_total_tokens": 12_000,
             "explicitly_scoped_paths": ["skills"],
+            "include_all_active_source_slices": True,
         },
         source_nodes=fixture_source_nodes(fixture),
     )
@@ -278,7 +279,7 @@ def build_benchmark_preparation(
             artifacts[f"{workspace}/{source_path}"] = _nonempty(
                 source.get("content"), field=f"{fixture_id}.{skill_id}.content"
             )
-        preflight = _prepare_request(fixture=fixture, objective=objective)
+        preflight = prepare_fixture_preflight(fixture=fixture, objective=objective)
         preflight_path = f"host-inputs/behavioral-{fixture_id}-preflight.json"
         artifacts[preflight_path] = _json_text(preflight)
         behavioral_requests.append(
@@ -316,7 +317,7 @@ def build_benchmark_preparation(
         fixture = fixtures_by_domain[
             _nonempty(case.get("domain"), field=f"{case_id}.domain")
         ]
-        preflight = _prepare_request(fixture=fixture, objective=objective)
+        preflight = prepare_fixture_preflight(fixture=fixture, objective=objective)
         preflight_path = f"host-inputs/routing-{case_id}-preflight.json"
         artifacts[preflight_path] = _json_text(preflight)
         routing_requests.append(

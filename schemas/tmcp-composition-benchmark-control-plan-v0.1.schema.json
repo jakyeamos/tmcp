@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-benchmark-control-plan-v0.1.schema.json",
+  "title": "TMCP Composition Benchmark Control Plan v0.1",
+  "description": "Compiler-replayed execution controls for a prepared composition benchmark.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "run_manifest_id",
+    "run_manifest_digest",
+    "semantic_proposals_digest",
+    "routing_controls",
+    "behavioral_controls",
+    "automatic_tool_execution",
+    "receipt_persistence",
+    "control_plan_digest",
+    "control_plan_id"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-benchmark-control-plan-v0.1"},
+    "run_manifest_id": {"type": "string", "pattern": "^benchmark-run-[a-f0-9]{20}$"},
+    "run_manifest_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "semantic_proposals_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "routing_controls": {
+      "type": "array",
+      "minItems": 20,
+      "items": {"$ref": "#/$defs/routing_control"}
+    },
+    "behavioral_controls": {
+      "type": "array",
+      "minItems": 5,
+      "items": {"$ref": "#/$defs/behavioral_control"}
+    },
+    "automatic_tool_execution": {"const": false},
+    "receipt_persistence": {"const": "not_performed"},
+    "control_plan_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "control_plan_id": {"type": "string", "pattern": "^benchmark-control-[a-f0-9]{20}$"}
+  },
+  "$defs": {
+    "source_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skill_id", "source_node_id", "relative_path", "content_digest", "activation"],
+      "properties": {
+        "skill_id": {"type": "string", "minLength": 1},
+        "source_node_id": {"type": "string", "pattern": "^benchmark-source-[a-f0-9]{20}$"},
+        "relative_path": {"type": "string", "pattern": "^skills/[^/]+/SKILL\\.md$"},
+        "content_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "activation": {"enum": ["active", "deferred"]}
+      }
+    },
+    "replay": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "preflight",
+        "preflight_digest",
+        "semantic_proposal",
+        "semantic_proposal_digest",
+        "packet",
+        "packet_digest",
+        "composition_plan_digest"
+      ],
+      "properties": {
+        "preflight": {"$ref": "tmcp-composition-preflight-v0.1.schema.json"},
+        "preflight_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "semantic_proposal": {"$ref": "tmcp-semantic-proposal-v0.1.schema.json"},
+        "semantic_proposal_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "packet": {"type": "object"},
+        "packet_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "composition_plan_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "routing_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "request_id", "input_digest", "selected_skill_ids", "replay"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "request_id": {"type": "string", "minLength": 1},
+        "input_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "selected_skill_ids": {"$ref": "#/$defs/skill_ids"},
+        "replay": {"$ref": "#/$defs/replay"}
+      }
+    },
+    "behavioral_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture_id",
+        "request_id",
+        "selected_skill_ids",
+        "ordered_skill_ids",
+        "source_bindings",
+        "ordering_edges",
+        "variants",
+        "replay"
+      ],
+      "properties": {
+        "fixture_id": {"type": "string", "minLength": 1},
+        "request_id": {"type": "string", "minLength": 1},
+        "selected_skill_ids": {"$ref": "#/$defs/skill_ids"},
+        "ordered_skill_ids": {"$ref": "#/$defs/skill_ids"},
+        "source_bindings": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/source_binding"}},
+        "ordering_edges": {"type": "array", "items": {"type": "object"}},
+        "variants": {"type": "array", "minItems": 7, "items": {"$ref": "#/$defs/variant"}},
+        "replay": {"$ref": "#/$defs/replay"}
+      }
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "fixture_id",
+        "request_id",
+        "variant_id",
+        "cache_policy",
+        "composition_enabled",
+        "ordered_skill_ids",
+        "omitted_skill_ids",
+        "source_bindings",
+        "replay_packet_id",
+        "replay_packet_digest",
+        "execution_recipe",
+        "execution_recipe_digest",
+        "input_packet_digest"
+      ],
+      "properties": {
+        "schema": {"const": "tmcp-composition-benchmark-control-input-v0.1"},
+        "fixture_id": {"type": "string", "minLength": 1},
+        "request_id": {"type": "string", "minLength": 1},
+        "variant_id": {"type": "string", "minLength": 1},
+        "cache_policy": {"const": "none"},
+        "composition_enabled": {"type": "boolean"},
+        "ordered_skill_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "omitted_skill_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "source_bindings": {"type": "array", "items": {"$ref": "#/$defs/source_binding"}},
+        "replay_packet_id": {"type": "string", "pattern": "^packet-[a-f0-9]{12}$"},
+        "replay_packet_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "execution_recipe": {"$ref": "#/$defs/execution_recipe"},
+        "execution_recipe_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "input_packet_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "execution_recipe": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "fixture_id",
+        "request_id",
+        "variant_id",
+        "cache_policy",
+        "execution_mode",
+        "source_composition_plan_id",
+        "source_composition_plan_digest",
+        "graph_digest",
+        "ordered_skill_ids",
+        "source_bindings",
+        "required_gate_overrides",
+        "recipe_digest"
+      ],
+      "properties": {
+        "schema": {"const": "tmcp-composition-benchmark-execution-recipe-v0.1"},
+        "fixture_id": {"type": "string", "minLength": 1},
+        "request_id": {"type": "string", "minLength": 1},
+        "variant_id": {"type": "string", "minLength": 1},
+        "cache_policy": {"const": "none"},
+        "execution_mode": {
+          "enum": [
+            "compiled_composition",
+            "counterfactual_wrong_order",
+            "counterfactual_ablation",
+            "no_skill_baseline",
+            "naive_union_baseline",
+            "singleton_baseline"
+          ]
+        },
+        "source_composition_plan_id": {"type": "string", "pattern": "^composition-[a-f0-9]{20}$"},
+        "source_composition_plan_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "graph_digest": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+        "ordered_skill_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "source_bindings": {"type": "array", "items": {"$ref": "#/$defs/source_binding"}},
+        "required_gate_overrides": {"type": "array", "items": {"type": "object"}},
+        "recipe_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "skill_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

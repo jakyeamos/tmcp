@@ -67,6 +67,20 @@ def _composition_limit(
     return value
 
 
+def _composition_boolean(
+    arguments: Mapping[str, Any],
+    name: str,
+    *,
+    default: bool,
+) -> bool:
+    value = arguments.get(name)
+    if value is None:
+        return default
+    if not isinstance(value, bool):
+        raise ValueError(f"{name} must be a boolean.")
+    return value
+
+
 def _composition_identity(
     arguments: Mapping[str, Any],
     source_nodes: list[dict[str, Any]],
@@ -144,6 +158,11 @@ def prepare_composition_from_source_nodes(
             default=3000,
             minimum=250,
             maximum=12000,
+        ),
+        include_all_active_source_slices=_composition_boolean(
+            arguments,
+            "include_all_active_source_slices",
+            default=False,
         ),
     )
 

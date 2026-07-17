@@ -131,6 +131,7 @@ def build_source_slices(
     max_chars_per_slice: int = 1600,
     max_total_chars: int = 12000,
     max_total_tokens: int = 3000,
+    include_all_active_source_slices: bool = False,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Rank and bound immutable content slices for host semantic reasoning."""
 
@@ -141,6 +142,8 @@ def build_source_slices(
         or max_total_tokens < 16
     ):
         raise ValueError("Composition slice limits must be positive and bounded.")
+    if not isinstance(include_all_active_source_slices, bool):
+        raise ValueError("include_all_active_source_slices must be a boolean.")
     explicit = set(explicitly_scoped_paths or [])
     objective_tokens = _tokens(objective)
     governing_source_count = sum(
@@ -187,7 +190,10 @@ def build_source_slices(
             "Composition token limit cannot accommodate the behavior manifest index."
         )
     available_hydration_tokens = max_total_tokens - bootstrap_index_tokens
-    if governing_source_count and available_hydration_tokens < governing_source_count * 16:
+    if (
+        governing_source_count
+        and available_hydration_tokens < governing_source_count * 16
+    ):
         raise ValueError(
             "Composition token limit cannot include every governing source with the behavior manifest index."
         )
@@ -278,13 +284,14 @@ def build_source_slices(
             )
         raw_candidates.extend(node_candidates[:per_source_block_limit])
         source_token_estimate = node.get("token_estimate")
-        has_declared_source_tokens = (
-            not isinstance(source_token_estimate, bool)
-            and isinstance(source_token_estimate, int)
-        )
+        has_declared_source_tokens = not isinstance(
+            source_token_estimate, bool
+        ) and isinstance(source_token_estimate, int)
         if not has_declared_source_tokens:
             source_token_estimates_complete = False
-        declared_source_tokens = int(source_token_estimate) if has_declared_source_tokens else 0
+        declared_source_tokens = (
+            int(source_token_estimate) if has_declared_source_tokens else 0
+        )
         source_token_baselines[source_node_id] = max(
             declared_source_tokens,
             sum(int(candidate["token_estimate"]) for candidate in node_candidates),
@@ -305,8 +312,7 @@ def build_source_slices(
         source_node_id = str(candidate["source_node_id"])
         manifest = manifests_by_source[source_node_id]
         block_by_locator = {
-            str(block["source_locator"]): block
-            for block in manifest["behavior_blocks"]
+            str(block["source_locator"]): block for block in manifest["behavior_blocks"]
         }
         block = block_by_locator[str(candidate["slice_id"])]
         metadata = manifest["behavior_metadata"]
@@ -368,6 +374,7 @@ def build_source_slices(
         max_hydration_tokens=max_hydration_tokens,
         target_hydration_tokens=target_hydration_tokens,
         governing_source_count=governing_source_count,
+        include_all_active_source_slices=include_all_active_source_slices,
     )
     selected = selection["selected"]
     total_chars = int(selection["total_chars"])
@@ -401,10 +408,7 @@ def build_source_slices(
             "target_context_tokens": target_context_tokens,
             "target_hydration_tokens": target_hydration_tokens,
             "max_hydration_tokens": max_hydration_tokens,
-            "preflight_total_tokens": int(
-                manifest_index_tokens
-            )
-            + total_tokens,
+            "preflight_total_tokens": int(manifest_index_tokens) + total_tokens,
             "deferred_behavior_block_count": int(
                 full_manifest_cost["behavior_block_count"]
             )
@@ -416,20 +420,37 @@ def build_source_slices(
             "context_target_met": source_token_estimates_complete
             and manifest_index_tokens + total_tokens <= target_context_tokens,
             "mandatory_context_overrides": selection["mandatory_context_overrides"],
-            "minimum_active_context_override": selection["minimum_active_context_override"],
+            "minimum_active_context_override": selection[
+                "minimum_active_context_override"
+            ],
+            "required_active_context_overrides": selection[
+                "required_active_context_overrides"
+            ],
             "hydration_ratio": round(
                 total_tokens / max(1, naive_candidate_tokens),
                 4,
             ),
             "preflight_context_ratio": round(
-                (
-                    int(manifest_cost["always_on_index_tokens"])
-                    + total_tokens
-                )
+                (int(manifest_cost["always_on_index_tokens"]) + total_tokens)
                 / max(1, naive_candidate_tokens),
                 4,
             ),
             "cost_policy": "candidate_slices_and_manifest_index_only",
+        },
+        "semantic_evidence": {
+            "selection_policy": (
+                "all_active_source_candidates"
+                if include_all_active_source_slices
+                else "ranked_candidates"
+            ),
+            "eligible_active_source_count": len(
+                {
+                    str(candidate["source_node_id"])
+                    for _, candidate in candidates
+                    if candidate["source_role"] == "active_skill"
+                }
+            ),
+            "selected_active_source_ids": selection["represented_active_source_ids"],
         },
         "limits": {
             "max_slices": max_slices,
@@ -531,6 +552,7 @@ def prepare_composition(
     max_chars_per_slice: int = 1600,
     max_total_chars: int = 12000,
     max_total_tokens: int = 3000,
+    include_all_active_source_slices: bool = False,
 ) -> dict[str, Any]:
     """Prepare deterministic, bounded evidence for host-assisted composition."""
 
@@ -542,6 +564,7 @@ def prepare_composition(
         max_chars_per_slice=max_chars_per_slice,
         max_total_chars=max_total_chars,
         max_total_tokens=max_total_tokens,
+        include_all_active_source_slices=include_all_active_source_slices,
     )
     behavior_manifest_index = diagnostics.pop("behavior_manifest_index")
     identity_input = {
@@ -550,6 +573,11 @@ def prepare_composition(
         "source_digests": sorted({str(item["source_digest"]) for item in slices}),
         "slice_digests": sorted(str(item["slice_digest"]) for item in slices),
         "behavior_manifest_index_digest": behavior_manifest_index["index_digest"],
+        "semantic_evidence_policy": (
+            "all_active_source_candidates"
+            if include_all_active_source_slices
+            else "ranked_candidates"
+        ),
     }
     preflight_id = "preflight-" + stable_digest(identity_input, 20)
     role_counts = {

@@ -8,14 +8,27 @@ import re
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from .harvest_nodes import content_digest_for, estimate_tokens, node_source_role, normalized_source_content
+from .harvest_nodes import (
+    content_digest_for,
+    estimate_tokens,
+    node_source_role,
+    normalized_source_content,
+)
 
 
 BEHAVIOR_MANIFEST_SCHEMA = "tmcp-behavior-manifest-v0.1"
 BEHAVIOR_MANIFEST_INDEX_SCHEMA = "tmcp-behavior-manifest-index-v0.1"
 BEHAVIOR_HYDRATION_SCHEMA = "tmcp-behavior-hydration-v0.1"
 REFERENCE_POLICY = "advisory_only_never_activates_behavior"
-DEFAULT_METADATA_LIMITS = {"triggers": 16, "facets": 16, "phases": 8, "gates": 16, "inputs": 12, "outputs": 12, "references": 16}
+DEFAULT_METADATA_LIMITS = {
+    "triggers": 16,
+    "facets": 16,
+    "phases": 8,
+    "gates": 16,
+    "inputs": 12,
+    "outputs": 12,
+    "references": 16,
+}
 _DIGEST = re.compile(r"[a-f0-9]{64}")
 
 
@@ -30,18 +43,30 @@ def _items(value: object) -> list[Any]:
 def _strings(value: object) -> list[str]:
     if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
         return []
-    return sorted({normalized_source_content(str(item)) for item in value if normalized_source_content(str(item))})
+    return sorted(
+        {
+            normalized_source_content(str(item))
+            for item in value
+            if normalized_source_content(str(item))
+        }
+    )
 
 
 def _hash(value: object) -> str:
-    payload = value if isinstance(value, str) else json.dumps(
-        value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    payload = (
+        value
+        if isinstance(value, str)
+        else json.dumps(
+            value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
     )
     return hashlib.sha256(str(payload).encode()).hexdigest()
 
 
 def _source(node: Mapping[str, Any]) -> dict[str, str]:
-    signal = normalized_source_content(str(node.get("signal_excerpt") or node.get("excerpt") or ""))
+    signal = normalized_source_content(
+        str(node.get("signal_excerpt") or node.get("excerpt") or "")
+    )
     digest = str(node.get("content_digest") or "").strip().lower()
     if not _DIGEST.fullmatch(digest):
         digest = content_digest_for(signal)
@@ -52,7 +77,9 @@ def _source(node: Mapping[str, Any]) -> dict[str, str]:
         "source_role": node_source_role(dict(node)),
         "source_type": str(node.get("source_type") or "unknown").strip(),
         "content_digest": digest,
-        "relative_path": str(node.get("relative_path") or node.get("path") or "").strip(),
+        "relative_path": str(
+            node.get("relative_path") or node.get("path") or ""
+        ).strip(),
     }
 
 
@@ -62,16 +89,24 @@ def _limits(overrides: Mapping[str, int] | None) -> dict[str, int]:
         if field not in limits:
             raise ValueError(f"Unknown behavior manifest metadata field: {field}")
         if isinstance(limit, bool) or not isinstance(limit, int) or limit < 0:
-            raise ValueError(f"Behavior metadata limit for {field} must be nonnegative.")
+            raise ValueError(
+                f"Behavior metadata limit for {field} must be nonnegative."
+            )
         limits[field] = limit
     return limits
 
 
-def behavior_metadata_from_node(source_node: Mapping[str, Any], *, metadata_limits: Mapping[str, int] | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
+def behavior_metadata_from_node(
+    source_node: Mapping[str, Any], *, metadata_limits: Mapping[str, int] | None = None
+) -> tuple[dict[str, Any], dict[str, Any]]:
     """Project bounded routing metadata without granting references authority."""
 
     routing = _mapping(source_node.get("routing_metadata"))
-    labels = [str(item.get("id") or "") for item in _items(source_node.get("guidance_labels")) if isinstance(item, Mapping)]
+    labels = [
+        str(item.get("id") or "")
+        for item in _items(source_node.get("guidance_labels"))
+        if isinstance(item, Mapping)
+    ]
     candidates = {
         "triggers": _strings(routing.get("commands"))
         + _strings(routing.get("trigger_phrases"))
@@ -104,11 +139,15 @@ def behavior_metadata_from_node(source_node: Mapping[str, Any], *, metadata_limi
         "truncated": {
             field: len(values) > limits[field] for field, values in normalized.items()
         },
-        "available_counts": {field: len(values) for field, values in normalized.items()},
+        "available_counts": {
+            field: len(values) for field, values in normalized.items()
+        },
     }
 
 
-def _candidates(node: Mapping[str, Any], slices: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+def _candidates(
+    node: Mapping[str, Any], slices: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
     source = _source(node)
     source_id = source["source_node_id"]
     result: list[dict[str, Any]] = []
@@ -116,17 +155,22 @@ def _candidates(node: Mapping[str, Any], slices: Sequence[Mapping[str, Any]]) ->
         if str(item.get("source_node_id") or "") != source_id:
             continue
         declared_source_digest = str(item.get("source_digest") or "").strip().lower()
-        if _DIGEST.fullmatch(declared_source_digest) and declared_source_digest != source[
-            "content_digest"
-        ]:
-            raise ValueError(f"Source slice digest does not match source: {item.get('slice_id')}")
+        if (
+            _DIGEST.fullmatch(declared_source_digest)
+            and declared_source_digest != source["content_digest"]
+        ):
+            raise ValueError(
+                f"Source slice digest does not match source: {item.get('slice_id')}"
+            )
         content = normalized_source_content(str(item.get("content") or ""))
         if not content:
             continue
         digest = content_digest_for(content)
         declared = str(item.get("slice_digest") or "").strip().lower()
         if _DIGEST.fullmatch(declared) and declared != digest:
-            raise ValueError(f"Source slice digest does not match: {item.get('slice_id')}")
+            raise ValueError(
+                f"Source slice digest does not match: {item.get('slice_id')}"
+            )
         start = int(item.get("char_start") or 0)
         result.append(
             {
@@ -135,14 +179,18 @@ def _candidates(node: Mapping[str, Any], slices: Sequence[Mapping[str, Any]]) ->
                 "block_digest": digest,
                 "char_start": start,
                 "char_end": int(item.get("char_end") or start + len(content)),
-                "token_estimate": max(1, int(item.get("token_estimate") or estimate_tokens(content))),
+                "token_estimate": max(
+                    1, int(item.get("token_estimate") or estimate_tokens(content))
+                ),
                 "facets": _strings(item.get("behavior_atoms")),
                 "phases": _strings(item.get("phase_hints")),
                 "content": content,
             }
         )
     if not result:
-        content = normalized_source_content(str(node.get("signal_excerpt") or node.get("excerpt") or ""))
+        content = normalized_source_content(
+            str(node.get("signal_excerpt") or node.get("excerpt") or "")
+        )
         if content:
             result.append(
                 {
@@ -153,11 +201,16 @@ def _candidates(node: Mapping[str, Any], slices: Sequence[Mapping[str, Any]]) ->
                     "char_end": len(content),
                     "token_estimate": estimate_tokens(content),
                     "facets": _strings(node.get("behavior_atoms")),
-                    "phases": _strings(_mapping(node.get("routing_metadata")).get("phase_hints")),
+                    "phases": _strings(
+                        _mapping(node.get("routing_metadata")).get("phase_hints")
+                    ),
                     "content": content,
                 }
             )
-    return sorted(result, key=lambda item: (item["char_start"], item["char_end"], item["source_locator"]))
+    return sorted(
+        result,
+        key=lambda item: (item["char_start"], item["char_end"], item["source_locator"]),
+    )
 
 
 def markdown_behavior_chunks(text: str, max_chars: int) -> list[tuple[int, int, str]]:
@@ -199,13 +252,25 @@ def behavior_block_descriptors(
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Describe hydratable blocks without retaining their content."""
 
-    if any(isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in (max_blocks, max_block_facets)):
+    if any(
+        isinstance(value, bool) or not isinstance(value, int) or value < 0
+        for value in (max_blocks, max_block_facets)
+    ):
         raise ValueError("Behavior block limits must be nonnegative integers.")
     candidates = _candidates(source_node, source_slices)
     source_id = _source(source_node)["source_node_id"]
     blocks = []
     for item in candidates[:max_blocks]:
-        identity = {key: item[key] for key in ("source_kind", "source_locator", "block_digest", "char_start", "char_end")}
+        identity = {
+            key: item[key]
+            for key in (
+                "source_kind",
+                "source_locator",
+                "block_digest",
+                "char_start",
+                "char_end",
+            )
+        }
         blocks.append(
             {
                 "block_id": f"behavior-block-{_hash([source_id, identity])[:20]}",
@@ -260,12 +325,24 @@ def _manifest_identity(
     }
 
 
-def build_behavior_manifest(source_node: Mapping[str, Any], source_slices: Sequence[Mapping[str, Any]] = (), *, metadata_limits: Mapping[str, int] | None = None, max_blocks: int = 24, max_block_facets: int = 8) -> dict[str, Any]:
+def build_behavior_manifest(
+    source_node: Mapping[str, Any],
+    source_slices: Sequence[Mapping[str, Any]] = (),
+    *,
+    metadata_limits: Mapping[str, int] | None = None,
+    max_blocks: int = 24,
+    max_block_facets: int = 8,
+) -> dict[str, Any]:
     """Build one deterministic always-on behavior index."""
 
-    metadata, metadata_bounds = behavior_metadata_from_node(source_node, metadata_limits=metadata_limits)
+    metadata, metadata_bounds = behavior_metadata_from_node(
+        source_node, metadata_limits=metadata_limits
+    )
     blocks, block_bounds = behavior_block_descriptors(
-        source_node, source_slices, max_blocks=max_blocks, max_block_facets=max_block_facets
+        source_node,
+        source_slices,
+        max_blocks=max_blocks,
+        max_block_facets=max_block_facets,
     )
     source = _source(source_node)
     core = {
@@ -276,12 +353,18 @@ def build_behavior_manifest(source_node: Mapping[str, Any], source_slices: Seque
         "bounds": {"metadata": metadata_bounds, "blocks": block_bounds},
     }
     digest = _hash(_manifest_identity(source, metadata, blocks, core["bounds"]))
-    manifest = {**core, "manifest_id": f"behavior-manifest-{digest[:20]}", "manifest_digest": digest}
+    manifest = {
+        **core,
+        "manifest_id": f"behavior-manifest-{digest[:20]}",
+        "manifest_digest": digest,
+    }
     source_tokens = source_node.get("token_estimate")
     if isinstance(source_tokens, bool) or not isinstance(source_tokens, int):
         source_tokens = sum(item["token_estimate"] for item in blocks)
     manifest["cost_telemetry"] = {
-        "always_on_index_tokens": estimate_tokens(json.dumps(manifest, sort_keys=True, separators=(",", ":"))),
+        "always_on_index_tokens": estimate_tokens(
+            json.dumps(manifest, sort_keys=True, separators=(",", ":"))
+        ),
         "hydration_tokens": sum(item["token_estimate"] for item in blocks),
         "source_tokens": max(0, source_tokens),
         "indexed_block_count": len(blocks),
@@ -290,11 +373,18 @@ def build_behavior_manifest(source_node: Mapping[str, Any], source_slices: Seque
     return manifest
 
 
-def build_behavior_manifest_index(source_nodes: Sequence[Mapping[str, Any]], source_slices: Sequence[Mapping[str, Any]] = (), **options: Any) -> dict[str, Any]:
+def build_behavior_manifest_index(
+    source_nodes: Sequence[Mapping[str, Any]],
+    source_slices: Sequence[Mapping[str, Any]] = (),
+    **options: Any,
+) -> dict[str, Any]:
     """Build a canonical manifest set with aggregate cost telemetry."""
 
     manifests = sorted(
-        [build_behavior_manifest(node, source_slices, **options) for node in source_nodes],
+        [
+            build_behavior_manifest(node, source_slices, **options)
+            for node in source_nodes
+        ],
         key=lambda item: (item["source"]["source_node_id"], item["manifest_digest"]),
     )
     digest = _hash(sorted(item["manifest_digest"] for item in manifests))
@@ -307,10 +397,18 @@ def build_behavior_manifest_index(source_nodes: Sequence[Mapping[str, Any]], sou
     index["cost_telemetry"] = {
         "manifest_count": len(manifests),
         "behavior_block_count": sum(len(item["behavior_blocks"]) for item in manifests),
-        "always_on_index_tokens": estimate_tokens(json.dumps(index, sort_keys=True, separators=(",", ":"))),
-        "manifest_core_tokens": sum(item["cost_telemetry"]["always_on_index_tokens"] for item in manifests),
-        "hydration_tokens": sum(item["cost_telemetry"]["hydration_tokens"] for item in manifests),
-        "source_tokens": sum(item["cost_telemetry"]["source_tokens"] for item in manifests),
+        "always_on_index_tokens": estimate_tokens(
+            json.dumps(index, sort_keys=True, separators=(",", ":"))
+        ),
+        "manifest_core_tokens": sum(
+            item["cost_telemetry"]["always_on_index_tokens"] for item in manifests
+        ),
+        "hydration_tokens": sum(
+            item["cost_telemetry"]["hydration_tokens"] for item in manifests
+        ),
+        "source_tokens": sum(
+            item["cost_telemetry"]["source_tokens"] for item in manifests
+        ),
         "cost_policy": "canonical_json_chars_divided_by_four",
     }
     return index
@@ -322,9 +420,7 @@ def compact_behavior_manifest_index(full_index: Mapping[str, Any]) -> dict[str, 
     manifests = _items(full_index.get("manifests"))
     summaries = [
         {
-            "source_node_id": str(
-                _mapping(item.get("source")).get("source_node_id")
-            ),
+            "source_node_id": str(_mapping(item.get("source")).get("source_node_id")),
             "behavior_block_count": len(_items(item.get("behavior_blocks"))),
         }
         for item in manifests
@@ -351,8 +447,15 @@ def select_hydrated_behavior_blocks(
     max_hydration_tokens: int,
     target_hydration_tokens: int,
     governing_source_count: int,
+    include_all_active_source_slices: bool = False,
 ) -> dict[str, Any]:
-    """Select bounded behavior blocks with explicit context-budget exceptions."""
+    """Select bounded behavior blocks with explicit context-budget exceptions.
+
+    ``include_all_active_source_slices`` is an opt-in semantic-evidence mode.
+    It still honors the hard slice, character, and token ceilings, but ensures a
+    host can cite one ranked slice for every active source.  It deliberately
+    does not change the default low-context hydration policy.
+    """
 
     selected: list[dict[str, Any]] = []
     selected_slice_ids: set[str] = set()
@@ -361,6 +464,7 @@ def select_hydrated_behavior_blocks(
     represented_supporting_sources: set[str] = set()
     mandatory_context_overrides: list[str] = []
     minimum_active_context_override = ""
+    required_active_context_overrides: list[str] = []
     total_chars = 0
     total_tokens = 0
 
@@ -373,7 +477,9 @@ def select_hydrated_behavior_blocks(
             or total_tokens + token_size > max_hydration_tokens
         ):
             return False
-        return not (enforce_target and total_tokens + token_size > target_hydration_tokens)
+        return not (
+            enforce_target and total_tokens + token_size > target_hydration_tokens
+        )
 
     def select(candidate: Mapping[str, Any]) -> None:
         nonlocal total_chars, total_tokens
@@ -409,12 +515,37 @@ def select_hydrated_behavior_blocks(
             continue
         select(candidate)
         represented_active_sources.add(source_node_id)
-    if not represented_active_sources:
+    if include_all_active_source_slices:
+        required_active_source_ids = {
+            str(candidate.get("source_node_id") or "")
+            for candidate in candidates
+            if str(candidate.get("source_role") or "") == "active_skill"
+        }
         for candidate in candidates:
             source_node_id = str(candidate.get("source_node_id") or "")
             if (
                 str(candidate.get("source_role") or "") != "active_skill"
+                or source_node_id in represented_active_sources
                 or not fits(candidate, enforce_target=False)
+            ):
+                continue
+            if not fits(candidate, enforce_target=True):
+                required_active_context_overrides.append(source_node_id)
+            select(candidate)
+            represented_active_sources.add(source_node_id)
+        missing_active_source_ids = sorted(
+            required_active_source_ids.difference(represented_active_sources)
+        )
+        if missing_active_source_ids:
+            raise ValueError(
+                "Composition limits cannot include every active source for "
+                "semantic proposal evidence."
+            )
+    if not represented_active_sources:
+        for candidate in candidates:
+            source_node_id = str(candidate.get("source_node_id") or "")
+            if str(candidate.get("source_role") or "") != "active_skill" or not fits(
+                candidate, enforce_target=False
             ):
                 continue
             select(candidate)
@@ -445,17 +576,32 @@ def select_hydrated_behavior_blocks(
         "total_tokens": total_tokens,
         "mandatory_context_overrides": mandatory_context_overrides,
         "minimum_active_context_override": minimum_active_context_override,
+        "required_active_context_overrides": required_active_context_overrides,
+        "represented_active_source_ids": sorted(represented_active_sources),
     }
 
 
-def hydrate_behavior_blocks(manifest: Mapping[str, Any], *, source_node: Mapping[str, Any], source_slices: Sequence[Mapping[str, Any]] = (), block_ids: Sequence[str] | None = None, max_tokens: int = 3000) -> dict[str, Any]:
+def hydrate_behavior_blocks(
+    manifest: Mapping[str, Any],
+    *,
+    source_node: Mapping[str, Any],
+    source_slices: Sequence[Mapping[str, Any]] = (),
+    block_ids: Sequence[str] | None = None,
+    max_tokens: int = 3000,
+) -> dict[str, Any]:
     """Resolve selected content and fail closed on provenance mismatch."""
 
     if max_tokens < 1 or str(manifest.get("schema") or "") != BEHAVIOR_MANIFEST_SCHEMA:
-        raise ValueError("Behavior hydration requires a supported manifest and positive token limit.")
+        raise ValueError(
+            "Behavior hydration requires a supported manifest and positive token limit."
+        )
     if _mapping(manifest.get("source")) != _source(source_node):
         raise ValueError("Hydration source does not match the behavior manifest.")
-    descriptors = [item for item in _items(manifest.get("behavior_blocks")) if isinstance(item, Mapping)]
+    descriptors = [
+        item
+        for item in _items(manifest.get("behavior_blocks"))
+        if isinstance(item, Mapping)
+    ]
     expected_manifest_digest = _hash(
         _manifest_identity(
             _source(source_node),
@@ -484,7 +630,9 @@ def hydrate_behavior_blocks(manifest: Mapping[str, Any], *, source_node: Mapping
         block_id = str(descriptor.get("block_id") or "")
         if block_id not in requested_ids:
             continue
-        candidate = content_by_locator.get((descriptor["source_kind"], descriptor["source_locator"]))
+        candidate = content_by_locator.get(
+            (descriptor["source_kind"], descriptor["source_locator"])
+        )
         if candidate is None:
             missing.append(block_id)
             continue
@@ -494,7 +642,19 @@ def hydrate_behavior_blocks(manifest: Mapping[str, Any], *, source_node: Mapping
         if tokens + block_tokens > max_tokens:
             skipped.append(block_id)
             continue
-        hydrated.append({key: descriptor[key] for key in ("block_id", "block_digest", "source_kind", "source_locator", "token_estimate")} | {"content": candidate["content"]})
+        hydrated.append(
+            {
+                key: descriptor[key]
+                for key in (
+                    "block_id",
+                    "block_digest",
+                    "source_kind",
+                    "source_locator",
+                    "token_estimate",
+                )
+            }
+            | {"content": candidate["content"]}
+        )
         tokens += block_tokens
     return {
         "schema": BEHAVIOR_HYDRATION_SCHEMA,
