@@ -216,6 +216,10 @@ def _records(
         controlled_gaps = _controlled_trace_gaps(trace)
         controlled = not controlled_gaps
         configuration_id = _configuration_id(trace, controlled=controlled)
+        agent = trace.get("agent")
+        runner_model = (
+            str(agent.get("model") or "").strip() if isinstance(agent, Mapping) else ""
+        )
         replicate_id = str(trace.get("replicate_id") or "")
         if controlled:
             cell = (row_id, configuration_id, replicate_id)
@@ -236,9 +240,121 @@ def _records(
                 "controlled": controlled,
                 "controlled_gaps": controlled_gaps,
                 "configuration_id": configuration_id,
+                "runner_model": runner_model,
             }
         )
     return records
+
+
+def _cross_model_confirmation(
+    plan: Mapping[str, Any],
+    records: Sequence[Mapping[str, Any]],
+    *,
+    intervention_variant: str,
+    control_variant: str,
+    direction: str,
+) -> dict[str, Any]:
+    """Assess only a policy-declared independent-model replication requirement."""
+
+    experiment = plan.get("experiment")
+    policy = (
+        experiment.get("campaign_policy") if isinstance(experiment, Mapping) else None
+    )
+    confirmation = (
+        policy.get("cross_model_confirmation") if isinstance(policy, Mapping) else None
+    )
+    if (
+        not isinstance(confirmation, Mapping)
+        or confirmation.get("required") is not True
+    ):
+        return {"required": False, "passed": True, "gaps": [], "model_effects": []}
+    required_models = int(confirmation.get("minimum_distinct_runner_models") or 2)
+    required_fixtures = int(confirmation.get("minimum_fixture_count_per_model") or 1)
+    required_repetitions = int(confirmation.get("minimum_repetitions_per_cell") or 1)
+    directional = confirmation.get("require_directional_replication") is True
+    eligible = [
+        record
+        for record in records
+        if record.get("controlled") is True
+        and record.get("runner_model")
+        and str(record["row"].get("variant_id") or "")
+        in {intervention_variant, control_variant}
+    ]
+    model_records: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for record in eligible:
+        model_records[str(record["runner_model"])].append(record)
+    gaps: list[str] = []
+    if len(model_records) < required_models:
+        gaps.append(
+            f"runner model count {len(model_records)} is below required {required_models}"
+        )
+    configuration_models: dict[str, set[str]] = defaultdict(set)
+    for record in eligible:
+        configuration_models[str(record["configuration_id"])].add(
+            str(record["runner_model"])
+        )
+    ambiguous = sorted(
+        configuration
+        for configuration, models in configuration_models.items()
+        if len(models) > 1
+    )
+    if ambiguous:
+        gaps.append(
+            "configuration IDs span multiple runner models: " + ", ".join(ambiguous)
+        )
+    model_effects: list[dict[str, Any]] = []
+    for model, items in sorted(model_records.items()):
+        summary = evaluation_summary(
+            items,
+            intervention_variant=intervention_variant,
+            control_variant=control_variant,
+            controlled_only=True,
+        )
+        effect = summary.get("absolute_lift")
+        aligned_effect = (
+            -float(effect)
+            if direction == "negative" and isinstance(effect, (int, float))
+            else effect
+        )
+        model_effects.append(
+            {
+                "model": model,
+                "fixture_count": summary["fixture_count"],
+                "minimum_repetitions_per_cell": summary["minimum_repetitions_per_cell"],
+                "configuration_count": summary["agent_configuration_count"],
+                "absolute_lift": effect,
+            }
+        )
+        if int(summary["fixture_count"]) < required_fixtures:
+            gaps.append(
+                f"runner model {model} fixture count {summary['fixture_count']} is below required {required_fixtures}"
+            )
+        if int(summary["minimum_repetitions_per_cell"]) < required_repetitions:
+            gaps.append(
+                f"runner model {model} repetitions are below required {required_repetitions}"
+            )
+        if directional and (
+            not isinstance(aligned_effect, (int, float)) or float(aligned_effect) <= 0
+        ):
+            gaps.append(
+                f"runner model {model} does not replicate the expected direction"
+            )
+    configured_judge = (
+        policy.get("judge_configuration") if isinstance(policy, Mapping) else None
+    )
+    judge_model = (
+        str(configured_judge.get("model") or "")
+        if isinstance(configured_judge, Mapping)
+        else ""
+    )
+    if not judge_model or judge_model in model_records:
+        gaps.append("judge model is not independent from runner models")
+    return {
+        "required": True,
+        "passed": not gaps,
+        "gaps": gaps,
+        "model_effects": model_effects,
+    }
 
 
 def case_scores(
@@ -421,6 +537,13 @@ def analyze_pattern_evidence(
             clustered_analysis_policy=clustered_policy,
             cost_rejudgments=cost_rejudgments,
         )
+        cross_model_confirmation = _cross_model_confirmation(
+            plan,
+            pattern_records,
+            intervention_variant=intervention_variant,
+            control_variant=control_variant,
+            direction=direction,
+        )
         evidence_level = "hypothesis"
         if causal_contrast_valid and meets_threshold(observed, thresholds["dogfooded"]):
             evidence_level = "dogfooded"
@@ -450,6 +573,7 @@ def analyze_pattern_evidence(
             "evidence_level": evidence_level,
             "observed_summary": observed,
             "controlled_summary": controlled,
+            "cross_model_confirmation": cross_model_confirmation,
             "excluded_controlled_trace_count": sum(
                 1 for record in pattern_records if not record["controlled"]
             ),

@@ -491,6 +491,12 @@ def promotion_gaps(
         gaps.append("intervention is not a one-factor causal contrast")
     if not claim.get("analysis_policy_predeclared"):
         gaps.append("clustered analysis policy was not predeclared")
+    confirmation = claim.get("cross_model_confirmation")
+    if isinstance(confirmation, Mapping) and confirmation.get("required") is True:
+        gaps.extend(
+            "cross-model confirmation: " + str(gap)
+            for gap in confirmation.get("gaps", [])
+        )
     summary = claim["controlled_summary"]
     multi = thresholds["controlled_multi_agent_eval"]
     for threshold_key, metric_key in (

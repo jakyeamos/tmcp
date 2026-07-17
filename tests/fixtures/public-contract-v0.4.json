@@ -1,5 +1,5 @@
 {
-  "mcp_tools_sha256": "sha256:ff1646ba978a295cc126ef3f6fb98e9d04b0356ad446f256927708689d47777f",
+  "mcp_tools_sha256": "sha256:6bda503ff30dcb42ef6fe797b672777116c273d9cf5feb693c73e2d5bf39cb6f",
   "pseudo_commands": {
     "help": ["help", "-h", "--help"],
     "list_tools": ["list-tools", "tools", "tools-list"],
@@ -60,7 +60,7 @@
       "cli_aliases": ["evaluate-skills", "evaluate", "tmcp-evaluate-skills", "tmcp_evaluate_skills"],
       "cli_defaults": {},
       "description_sha256": "sha256:aa3650435913eecf8c056f04360b994f500cc7682e80fc00b1762c35c45be04a",
-      "input_schema_sha256": "sha256:ce55ede71fc852d0f6605ad3420c1be14a8ae7d600f5d1dbc0ff5cfd8e35be68",
+      "input_schema_sha256": "sha256:b38f8ab83f2cb6942386306c602835169eb645236d61a36d98856043c09df74f",
       "name": "tmcp_evaluate_skills",
       "output_schema_ids": ["tmcp-skill-evaluation-plan-v0.1", "tmcp-skill-evaluation-plan-v0.2", "tmcp-skill-evaluation-report-v0.1", "tmcp-skill-evaluation-report-v0.2"],
       "stability": "experimental",

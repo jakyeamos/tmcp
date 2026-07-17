@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -127,52 +128,96 @@ async def _run_stage(
     prompt: str,
     effort: str,
     args: argparse.Namespace,
+    model: str | None = None,
 ) -> dict[str, Any]:
-    command = codex_command(
-        codex_bin=args.codex_bin,
-        model=args.model,
-        effort=effort,
-        cleanroom=args.cleanroom,
-        output_path=output_path,
-        output_schema=output_schema,
-    )
-    try:
-        stdout, stderr, usage, event_audit = await _run_codex(
-            command=command,
-            prompt=prompt,
-            base_codex_home=args.codex_home,
-            timeout_seconds=args.timeout_seconds,
+    selected_model = model or args.model
+    max_retries = int(getattr(args, "max_transient_retries", 2))
+    retry_backoff_seconds = float(getattr(args, "retry_backoff_seconds", 2.0))
+    if max_retries < 0 or retry_backoff_seconds < 0:
+        raise ValueError("Transient retry settings must be non-negative.")
+    retry_attempts: list[dict[str, Any]] = []
+    attempt = 0
+    while True:
+        command = codex_command(
+            codex_bin=args.codex_bin,
+            model=selected_model,
+            effort=effort,
+            cleanroom=args.cleanroom,
+            output_path=output_path,
+            output_schema=output_schema,
         )
-        events_path = cell_dir / f"{stage}-events.jsonl"
-        stderr_path = cell_dir / f"{stage}-stderr.log"
-        _atomic_text(events_path, stdout)
-        _atomic_text(stderr_path, stderr)
-        if not output_path.is_file():
-            raise ValueError("Codex completed without writing its final message.")
-        _atomic_json(cell_dir / f"{stage}-usage.json", usage)
-        marker = {
-            "schema": "tmcp-campaign-stage-v0.1",
-            "stage": stage,
-            "prompt_sha256": _sha256_text(prompt),
-            "output_schema_sha256": (
-                _sha256_file(output_schema) if output_schema is not None else None
-            ),
-            "output_sha256": _sha256_file(output_path),
-            "events_sha256": _sha256_file(events_path),
-            "stderr_sha256": _sha256_file(stderr_path),
-            "event_audit": event_audit,
-            "usage": usage,
-        }
-        _atomic_json(cell_dir / f"{stage}-complete.json", marker)
-        return marker
-    except CodexRunError as exc:
-        _atomic_text(cell_dir / f"{stage}-events.jsonl", exc.stdout)
-        _atomic_text(cell_dir / f"{stage}-stderr.log", exc.stderr)
-        _invalidate_stage(cell_dir, stage, output_path, reason=str(exc))
-        raise RuntimeError(f"{stage} stage failed: {exc}") from exc
-    except BaseException as exc:
-        _invalidate_stage(cell_dir, stage, output_path, reason=str(exc))
-        raise RuntimeError(f"{stage} stage failed: {exc}") from exc
+        try:
+            stdout, stderr, usage, event_audit = await _run_codex(
+                command=command,
+                prompt=prompt,
+                base_codex_home=args.codex_home,
+                timeout_seconds=args.timeout_seconds,
+            )
+            events_path = cell_dir / f"{stage}-events.jsonl"
+            stderr_path = cell_dir / f"{stage}-stderr.log"
+            _atomic_text(events_path, stdout)
+            _atomic_text(stderr_path, stderr)
+            if not output_path.is_file():
+                raise ValueError("Codex completed without writing its final message.")
+            _atomic_json(cell_dir / f"{stage}-usage.json", usage)
+            marker = {
+                "schema": "tmcp-campaign-stage-v0.1",
+                "stage": stage,
+                "prompt_sha256": _sha256_text(prompt),
+                "output_schema_sha256": (
+                    _sha256_file(output_schema) if output_schema is not None else None
+                ),
+                "output_sha256": _sha256_file(output_path),
+                "events_sha256": _sha256_file(events_path),
+                "stderr_sha256": _sha256_file(stderr_path),
+                "event_audit": event_audit,
+                "usage": usage,
+            }
+            _atomic_json(cell_dir / f"{stage}-complete.json", marker)
+            return marker
+        except CodexRunError as exc:
+            _atomic_text(cell_dir / f"{stage}-events.jsonl", exc.stdout)
+            _atomic_text(cell_dir / f"{stage}-stderr.log", exc.stderr)
+            _invalidate_stage(cell_dir, stage, output_path, reason=str(exc))
+            classification = _transient_failure_classification(exc)
+            if classification is None or attempt >= max_retries:
+                raise RuntimeError(f"{stage} stage failed: {exc}") from exc
+            backoff_seconds = retry_backoff_seconds * (2**attempt)
+            retry_attempts.append(
+                {
+                    "attempt": attempt + 1,
+                    "classification": classification,
+                    "backoff_seconds": backoff_seconds,
+                    "error": str(exc),
+                }
+            )
+            _atomic_json(
+                cell_dir / f"{stage}-retry-audit.json",
+                {
+                    "schema": "tmcp-campaign-stage-retry-audit-v0.1",
+                    "stage": stage,
+                    "model": selected_model,
+                    "attempts": retry_attempts,
+                },
+            )
+            attempt += 1
+            await asyncio.sleep(backoff_seconds)
+        except BaseException as exc:
+            _invalidate_stage(cell_dir, stage, output_path, reason=str(exc))
+            raise RuntimeError(f"{stage} stage failed: {exc}") from exc
+
+
+def _transient_failure_classification(error: CodexRunError) -> str | None:
+    diagnostic = f"{error}\n{error.stdout}\n{error.stderr}".lower()
+    if re.search(r"at capacity|model capacity", diagnostic):
+        return "model_capacity"
+    if re.search(r"rate limit|too many requests|\\b429\\b", diagnostic):
+        return "rate_limited"
+    if re.search(r"temporarily unavailable|service unavailable|\\b503\\b", diagnostic):
+        return "service_unavailable"
+    if re.search(r"timed out|connection reset|network", diagnostic):
+        return "transient_network"
+    return None
 
 
 def _validate_trace(
@@ -203,7 +248,7 @@ def _validate_trace(
     if (
         not isinstance(agent, dict)
         or agent.get("name") != "codex-cli-blind-runner"
-        or agent.get("model") != args.model
+        or agent.get("model") != cell.runner_model
         or agent.get("configuration_id") != cell.configuration_id
     ):
         raise ValueError(
@@ -282,7 +327,9 @@ def _validate_trace(
     expected_campaign = {
         "cell_id": cell.cell_id,
         "order": cell.order,
+        "runner_model": cell.runner_model,
         "runner_effort": cell.runner_effort,
+        "judge_model": getattr(args, "judge_model", args.model),
         "judge_effort": args.judge_effort,
         "runner_artifact": str(runner_output.relative_to(args.output_dir)),
         "judge_artifact": str(judge_output.relative_to(args.output_dir)),
@@ -361,6 +408,7 @@ async def execute_cell(
                 prompt=runner_input,
                 effort=cell.runner_effort,
                 args=args,
+                model=cell.runner_model,
             )
         _assert_empty_cleanroom(args.cleanroom)
         artifact = runner_output.read_text(encoding="utf-8").strip()
@@ -412,6 +460,7 @@ async def execute_cell(
                 prompt=judge_input,
                 effort=args.judge_effort,
                 args=args,
+                model=getattr(args, "judge_model", args.model),
             )
             try:
                 judgment = _validate_judgment(
@@ -434,7 +483,7 @@ async def execute_cell(
             "variant_id": cell.variant_id,
             "agent": {
                 "name": "codex-cli-blind-runner",
-                "model": args.model,
+                "model": cell.runner_model,
                 "configuration_id": cell.configuration_id,
             },
             "provenance": {
@@ -462,7 +511,9 @@ async def execute_cell(
             "campaign": {
                 "cell_id": cell.cell_id,
                 "order": cell.order,
+                "runner_model": cell.runner_model,
                 "runner_effort": cell.runner_effort,
+                "judge_model": getattr(args, "judge_model", args.model),
                 "judge_effort": args.judge_effort,
                 "runner_artifact": str(runner_output.relative_to(args.output_dir)),
                 "judge_artifact": str(judge_output.relative_to(args.output_dir)),

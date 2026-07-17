@@ -19,6 +19,7 @@ from tmcp_runtime.services.evaluation_policy import (
 
 EVAL_PLAN_SCHEMA = "tmcp-skill-evaluation-plan-v0.2"
 EVAL_PROTOCOL = "tmcp-skill-evaluation-protocol-v0.2"
+CAMPAIGN_POLICY_SCHEMA = "tmcp-skill-eval-campaign-policy-v0.1"
 
 
 def _json_digest(value: Any) -> str:
@@ -60,6 +61,123 @@ class EvaluationSource:
     text: str
 
 
+def normalize_campaign_policy(
+    policy: Mapping[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Validate and canonicalize an optional runnable campaign contract."""
+
+    if policy is None:
+        return None
+    if policy.get("schema") != CAMPAIGN_POLICY_SCHEMA:
+        raise ValueError("campaign_policy schema does not match.")
+    design = policy.get("design")
+    if design not in {"baseline_reliability", "causal_contrast"}:
+        raise ValueError("campaign_policy design is invalid.")
+    raw_configurations = policy.get("runner_configurations")
+    if not isinstance(raw_configurations, Sequence) or isinstance(
+        raw_configurations, (str, bytes)
+    ):
+        raise ValueError("campaign_policy runner_configurations must be a list.")
+    configurations: list[dict[str, str]] = []
+    for item in raw_configurations:
+        if not isinstance(item, Mapping):
+            raise ValueError("campaign_policy runner configuration is invalid.")
+        model = item.get("model")
+        effort = item.get("reasoning_effort")
+        if (
+            not isinstance(model, str)
+            or not model.strip()
+            or not isinstance(effort, str)
+            or not effort.strip()
+        ):
+            raise ValueError("campaign_policy runner configuration is invalid.")
+        configurations.append({"model": model, "reasoning_effort": effort})
+    if (
+        len(configurations) != 3
+        or len({(item["model"], item["reasoning_effort"]) for item in configurations})
+        != 3
+    ):
+        raise ValueError(
+            "campaign_policy requires exactly three distinct configurations."
+        )
+    baseline = policy.get("baseline_reliability")
+    if (
+        not isinstance(baseline, Mapping)
+        or baseline.get("control_variant") != "original"
+        or not isinstance(baseline.get("minimum_control_pass_rate"), (int, float))
+        or float(baseline["minimum_control_pass_rate"]) < 0.5
+        or not isinstance(
+            baseline.get("minimum_per_fixture_control_pass_rate"), (int, float)
+        )
+        or float(baseline["minimum_per_fixture_control_pass_rate"]) < 0.5
+        or baseline.get("require_predeclared_clustered_interval") is not True
+    ):
+        raise ValueError("campaign_policy baseline_reliability is invalid.")
+    judge = policy.get("judge_configuration")
+    if (
+        not isinstance(judge, Mapping)
+        or not isinstance(judge.get("model"), str)
+        or not str(judge["model"]).strip()
+        or not isinstance(judge.get("reasoning_effort"), str)
+        or not str(judge["reasoning_effort"]).strip()
+    ):
+        raise ValueError("campaign_policy judge_configuration is invalid.")
+    confirmation = policy.get("cross_model_confirmation")
+    if (
+        not isinstance(confirmation, Mapping)
+        or not isinstance(confirmation.get("required"), bool)
+        or not isinstance(confirmation.get("minimum_distinct_runner_models"), int)
+        or int(confirmation["minimum_distinct_runner_models"]) < 1
+        or not isinstance(confirmation.get("minimum_fixture_count_per_model"), int)
+        or int(confirmation["minimum_fixture_count_per_model"]) < 1
+        or not isinstance(confirmation.get("minimum_repetitions_per_cell"), int)
+        or int(confirmation["minimum_repetitions_per_cell"]) < 1
+        or not isinstance(confirmation.get("require_directional_replication"), bool)
+    ):
+        raise ValueError("campaign_policy cross_model_confirmation is invalid.")
+    normalized = {
+        "schema": CAMPAIGN_POLICY_SCHEMA,
+        "design": design,
+        "runner_configurations": sorted(
+            configurations, key=lambda item: (item["model"], item["reasoning_effort"])
+        ),
+        "baseline_reliability": {
+            "control_variant": "original",
+            "minimum_control_pass_rate": float(baseline["minimum_control_pass_rate"]),
+            "minimum_per_fixture_control_pass_rate": float(
+                baseline["minimum_per_fixture_control_pass_rate"]
+            ),
+            "require_predeclared_clustered_interval": True,
+        },
+        "judge_configuration": {
+            "model": str(judge["model"]),
+            "reasoning_effort": str(judge["reasoning_effort"]),
+        },
+        "cross_model_confirmation": {
+            "required": confirmation["required"],
+            "minimum_distinct_runner_models": confirmation[
+                "minimum_distinct_runner_models"
+            ],
+            "minimum_fixture_count_per_model": confirmation[
+                "minimum_fixture_count_per_model"
+            ],
+            "minimum_repetitions_per_cell": confirmation[
+                "minimum_repetitions_per_cell"
+            ],
+            "require_directional_replication": confirmation[
+                "require_directional_replication"
+            ],
+        },
+    }
+    if (
+        normalized["cross_model_confirmation"]["required"]
+        and len({item["model"] for item in configurations})
+        < normalized["cross_model_confirmation"]["minimum_distinct_runner_models"]
+    ):
+        raise ValueError("campaign_policy requires more distinct runner models.")
+    return normalized
+
+
 def build_evaluation_plan_from_sources(
     sources: Sequence[EvaluationSource],
     task_fixtures: Sequence[Mapping[str, Any]],
@@ -69,6 +187,7 @@ def build_evaluation_plan_from_sources(
     effective_patterns: Sequence[Mapping[str, Any]],
     created_at: str,
     max_matrix_rows: int,
+    campaign_policy: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build an evaluation plan without filesystem, redaction, or storage access."""
 
@@ -83,6 +202,7 @@ def build_evaluation_plan_from_sources(
     if not all(isinstance(fixture, Mapping) for fixture in task_fixtures):
         raise ValueError("Evaluation task fixtures must be objects.")
 
+    normalized_campaign_policy = normalize_campaign_policy(campaign_policy)
     evaluated_skills: list[dict[str, Any]] = []
     task_matrix: list[dict[str, Any]] = []
     observable_contract: list[dict[str, Any]] = []
@@ -105,6 +225,7 @@ def build_evaluation_plan_from_sources(
             "source_digests": source_digests,
             "fixture_digests": fixture_digests,
             "variants": list(variants),
+            "campaign_policy": normalized_campaign_policy,
         },
     )
 
@@ -479,6 +600,7 @@ def build_evaluation_plan_from_sources(
                     "seed": 20_260_717,
                 }
             },
+            "campaign_policy": normalized_campaign_policy,
         },
         "evaluated_skills": [
             {

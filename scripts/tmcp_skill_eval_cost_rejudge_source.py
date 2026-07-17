@@ -351,6 +351,10 @@ def _validate_args(args: argparse.Namespace) -> None:
         raise ValueError("concurrency must be at least 1.")
     if args.timeout_seconds < 1:
         raise ValueError("timeout-seconds must be at least 1.")
+    if args.max_transient_retries < 0:
+        raise ValueError("max-transient-retries must be non-negative.")
+    if args.retry_backoff_seconds < 0:
+        raise ValueError("retry-backoff-seconds must be non-negative.")
     if args.expected_trace_count != 72:
         raise ValueError("This campaign-wide cost rejudge requires exactly 72 traces.")
     if (

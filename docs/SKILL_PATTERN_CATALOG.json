@@ -24,7 +24,8 @@
         "decision": "hold",
         "eligible": false,
         "gaps": [
-          "cost regression detected"
+          "clustered analysis policy was not predeclared",
+          "minimum fixture control pass rate 0.000 is below required 0.500"
         ]
       },
       "sample": {
@@ -61,7 +62,8 @@
           "passed": 20,
           "total": 36
         },
-        "cost_regression": true,
+        "cost_regression": false,
+        "cost_rejudgment_applied": true,
         "fixture_count": 6,
         "fixture_family_count": 6,
         "intervention": {
@@ -72,7 +74,8 @@
         "minimum_repetitions_per_cell": 2,
         "paired_cells": 18,
         "regression_fields_missing": 0,
-        "regression_free": false,
+        "raw_cost_regression": true,
+        "regression_free": true,
         "safety_regression": false,
         "trace_count": 72
       },
@@ -186,7 +189,8 @@
         "decision": "hold",
         "eligible": false,
         "gaps": [
-          "cost regression detected"
+          "clustered analysis policy was not predeclared",
+          "minimum fixture control pass rate 0.000 is below required 0.500"
         ]
       },
       "status": "supported",

@@ -4,6 +4,16 @@ This bundle answers a narrow question: does the explicit `Workflow` section in
 `eval-skills` materially improve the quality of evaluation-procedure answers under
 matched blind conditions?
 
+The reusable operating rules are in the
+[campaign guidebook](../../SKILL_EVALUATION_CAMPAIGN_GUIDEBOOK.md). The next
+experiment is deliberately not launched yet: its
+[fresh baseline readiness contract](baseline-readiness-contract.md) requires two
+fixture directness repairs and a newly pinned multi-model policy.
+
+The artifact-free live [remote schema preflight](remote-schema-preflight-smoke.json)
+passed against `gpt-5.6-sol` before any future campaign fixture or target-skill
+content is sent to a runner or judge.
+
 ## Result
 
 Yes, within the tested boundary. The intact skill passed 20 of 36 judged runs

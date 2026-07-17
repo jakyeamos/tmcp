@@ -1,0 +1,33 @@
+{
+  "effort": "high",
+  "event_audit": {
+    "event_count": 4,
+    "event_types": [
+      "item.completed",
+      "thread.started",
+      "turn.completed",
+      "turn.started"
+    ],
+    "item_types": [
+      "agent_message"
+    ],
+    "passed": true,
+    "thread_id": "019f7124-c2f0-7170-90b3-2f51651c463c",
+    "turn_completed": 1,
+    "turn_started": 1
+  },
+  "event_stream_sha256": "sha256:867ea00fd039d58a2dfc7a6156da8d19673bd1bc16a15e7b1da57cb0a19abc64",
+  "model": "gpt-5.6-sol",
+  "output_schema_sha256": "sha256:c8692b3d839c948075f53653d040d8a28109a6383ca893752c02d7ce2acc9ef9",
+  "output_sha256": "sha256:c1d63f70d535fb43cde598b10273b3e88ce0e7f61fa8d3dcbbf8f0f42eed7835",
+  "passed": true,
+  "prompt_sha256": "sha256:ecbdfd29946c76dc9c2791abfa7f86be76e82947372e7150ffe4db197ffd6b23",
+  "schema": "tmcp-remote-schema-preflight-v0.1",
+  "stderr": "",
+  "usage": {
+    "cached_input_tokens": 0,
+    "input_tokens": 9752,
+    "output_tokens": 70,
+    "reasoning_output_tokens": 0
+  }
+}

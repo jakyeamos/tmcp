@@ -30,10 +30,13 @@ from scripts.tmcp_skill_eval_campaign_protocol import (  # noqa: E402
     _sha256_file,
     _sha256_text,
     build_cells,
+    campaign_readiness_report,
     judge_output_schema,
     judge_prompt,
+    remote_schema_preflight,
     runner_prompt,
     selected_rows,
+    _validate_judgment,
 )
 from scripts.tmcp_skill_eval_campaign_runtime import (  # noqa: E402
     _assert_empty_cleanroom,
@@ -87,18 +90,83 @@ def _aggregate_usage(traces: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _baseline_reliability_summary(
+    traces: list[dict[str, Any]],
+    rows: dict[str, dict[str, Any]],
+    baseline_policy: dict[str, Any] | None,
+) -> dict[str, Any]:
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for trace in traces:
+        row = rows[str(trace["matrix_row_id"])]
+        grouped.setdefault(str(row["fixture_digest"]), []).append(trace)
+    per_fixture = [
+        {
+            "fixture_digest": fixture_digest,
+            "passed": sum(
+                1 for trace in fixture_traces if trace["case_verdict"]["passed"]
+            ),
+            "total": len(fixture_traces),
+        }
+        for fixture_digest, fixture_traces in sorted(grouped.items())
+    ]
+    for item in per_fixture:
+        item["pass_rate"] = round(item["passed"] / item["total"], 3)
+    passed = sum(item["passed"] for item in per_fixture)
+    total = sum(item["total"] for item in per_fixture)
+    result: dict[str, Any] = {
+        "passed": passed,
+        "total": total,
+        "pass_rate": round(passed / total, 3) if total else None,
+        "minimum_per_fixture_pass_rate": min(
+            (item["pass_rate"] for item in per_fixture), default=None
+        ),
+        "per_fixture": per_fixture,
+    }
+    if isinstance(baseline_policy, dict):
+        overall_floor = baseline_policy.get("minimum_control_pass_rate")
+        per_fixture_floor = baseline_policy.get("minimum_per_fixture_control_pass_rate")
+        if isinstance(overall_floor, (int, float)) and isinstance(
+            per_fixture_floor, (int, float)
+        ):
+            result["predeclared_thresholds"] = {
+                "minimum_control_pass_rate": overall_floor,
+                "minimum_per_fixture_control_pass_rate": per_fixture_floor,
+            }
+            result["meets_predeclared_floors"] = bool(
+                result["pass_rate"] is not None
+                and result["minimum_per_fixture_pass_rate"] is not None
+                and result["pass_rate"] >= overall_floor
+                and result["minimum_per_fixture_pass_rate"] >= per_fixture_floor
+            )
+    return result
+
+
 def _validate_campaign_args(args: argparse.Namespace) -> None:
     if args.concurrency < 1:
         raise ValueError("concurrency must be at least 1.")
     if args.timeout_seconds < 1:
         raise ValueError("timeout-seconds must be at least 1.")
+    if args.max_transient_retries < 0:
+        raise ValueError("max-transient-retries must be non-negative.")
+    if args.retry_backoff_seconds < 0:
+        raise ValueError("retry-backoff-seconds must be non-negative.")
     if args.max_cells is not None and args.max_cells < 1:
         raise ValueError("max-cells must be at least 1 when supplied.")
     if args.repetitions != 2:
         raise ValueError("This promotion campaign requires exactly two repetitions.")
     if args.expected_fixtures != 6:
         raise ValueError("This promotion campaign requires exactly six fixtures.")
-    if len(args.runner_effort) != 3:
+    if args.runner_config and args.runner_effort:
+        raise ValueError("Use runner-config or runner-effort, not both.")
+    if args.runner_config:
+        if len(args.runner_config) != 3:
+            raise ValueError("This campaign requires exactly three configurations.")
+        for value in args.runner_config:
+            if value.count(":") != 1 or any(
+                not part.strip() for part in value.split(":")
+            ):
+                raise ValueError("runner-config entries must use MODEL:EFFORT.")
+    elif len(args.runner_effort) != 3:
         raise ValueError(
             "This promotion campaign requires exactly three configurations."
         )
@@ -106,6 +174,12 @@ def _validate_campaign_args(args: argparse.Namespace) -> None:
         raise ValueError("first-principles must be non-empty.")
     if args.cleanroom.resolve() == args.output_dir.resolve():
         raise ValueError("cleanroom and output-dir must be distinct.")
+
+
+def _runner_configurations(args: argparse.Namespace) -> list[tuple[str, str]]:
+    if args.runner_config:
+        return [tuple(value.split(":")) for value in args.runner_config]
+    return [(args.model, effort) for effort in args.runner_effort]
 
 
 def _message_text(message: dict[str, Any]) -> str:
@@ -202,14 +276,25 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--pattern-id", required=True)
     parser.add_argument("--intervention-target", required=True)
     parser.add_argument("--model", default="gpt-5.6-sol")
-    parser.add_argument("--runner-effort", action="append", required=True)
+    parser.add_argument("--runner-effort", action="append", default=[])
+    parser.add_argument("--runner-config", action="append", default=[])
+    parser.add_argument(
+        "--design",
+        choices=("baseline_reliability", "causal_contrast"),
+        default="causal_contrast",
+    )
+    parser.add_argument("--judge-model")
     parser.add_argument("--judge-effort", default="high")
     parser.add_argument("--repetitions", type=int, default=2)
     parser.add_argument("--expected-fixtures", type=int, default=6)
     parser.add_argument("--seed", type=int, default=20260717)
     parser.add_argument("--concurrency", type=int, default=3)
     parser.add_argument("--timeout-seconds", type=int, default=300)
+    parser.add_argument("--max-transient-retries", type=int, default=2)
+    parser.add_argument("--retry-backoff-seconds", type=float, default=2.0)
     parser.add_argument("--max-cells", type=int)
+    parser.add_argument("--readiness-report", type=Path)
+    parser.add_argument("--require-preregistered", action="store_true")
     parser.add_argument("--codex-bin", default="codex")
     parser.add_argument("--dry-run", action="store_true")
     return parser
@@ -226,6 +311,7 @@ def _harness_digests() -> dict[str, str]:
 
 async def _main(args: argparse.Namespace) -> int:
     _validate_campaign_args(args)
+    args.judge_model = args.judge_model or args.model
     plan = _load_json(args.plan)
     codex_version = subprocess.run(
         [args.codex_bin, "--version"],
@@ -239,14 +325,22 @@ async def _main(args: argparse.Namespace) -> int:
         intervention_target=args.intervention_target,
         model=args.model,
         runner_efforts=args.runner_effort,
+        runner_configurations=_runner_configurations(args),
+        design=args.design,
         repetitions=args.repetitions,
         expected_fixtures=args.expected_fixtures,
         seed=args.seed,
         codex_version=codex_version,
     )
-    if len(cells) != 72:
+    expected_cell_count = (
+        args.expected_fixtures
+        * (1 if args.design == "baseline_reliability" else 2)
+        * 3
+        * args.repetitions
+    )
+    if len(cells) != expected_cell_count:
         raise ValueError(
-            f"Promotion campaign must contain 72 cells, found {len(cells)}."
+            f"Campaign must contain {expected_cell_count} cells, found {len(cells)}."
         )
     if args.max_cells is not None and args.max_cells > len(cells):
         raise ValueError("max-cells cannot exceed the planned campaign size.")
@@ -256,9 +350,26 @@ async def _main(args: argparse.Namespace) -> int:
             plan,
             pattern_id=args.pattern_id,
             intervention_target=args.intervention_target,
+            design=args.design,
         )
     }
+    readiness = campaign_readiness_report(
+        plan,
+        cells=cells,
+        design=args.design,
+        judge_model=args.judge_model,
+    )
+    if args.readiness_report is not None:
+        _atomic_json(args.readiness_report, readiness)
+    if args.require_preregistered and not readiness["ready"]:
+        raise ValueError(
+            "Campaign preregistration is incomplete: " + ", ".join(readiness["gaps"])
+        )
+    if args.readiness_report is not None and not args.require_preregistered:
+        print(json.dumps(readiness, indent=2, sort_keys=True))
+        return 0
     preflight: dict[str, Any]
+    remote_schema: dict[str, Any]
     if args.dry_run:
         preflight = {
             "audit": {
@@ -266,6 +377,11 @@ async def _main(args: argparse.Namespace) -> int:
                 "status": "not_run_in_dry_run",
                 "prompt_context_sha256": "not-run",
             }
+        }
+        remote_schema = {
+            "schema": "tmcp-remote-schema-preflight-v0.1",
+            "passed": False,
+            "status": "not_run_in_dry_run",
         }
     else:
         args.cleanroom.mkdir(parents=True, exist_ok=True)
@@ -275,6 +391,28 @@ async def _main(args: argparse.Namespace) -> int:
     example_schema = judge_output_schema(
         ["O1: <OBSERVABLE>", "S1 (failure smell must be absent): <SMELL>"]
     )
+    if not args.dry_run:
+        synthetic_criteria = ["O1: The sentence is present."]
+        remote_schema = await remote_schema_preflight(
+            codex_bin=args.codex_bin,
+            model=args.judge_model,
+            effort=args.judge_effort,
+            base_codex_home=args.codex_home,
+            timeout_seconds=args.timeout_seconds,
+            output_schema=judge_output_schema(synthetic_criteria),
+            prompt=judge_prompt(
+                {
+                    "prompt": "State whether the supplied sentence is present.",
+                    "expected_observables": ["The sentence is present."],
+                    "failure_smells": [],
+                },
+                "The sentence is present.",
+                first_principles="Use only the supplied sentence.",
+            ),
+            validate_output=lambda payload: _validate_judgment(
+                payload, expected_criteria=synthetic_criteria
+            ),
+        )
     schema_digest = _sha256_text(
         json.dumps(example_schema, sort_keys=True, separators=(",", ":"))
     )
@@ -309,9 +447,16 @@ async def _main(args: argparse.Namespace) -> int:
         "judge_protocol_sha256": judge_protocol_digest,
         "pattern_id": args.pattern_id,
         "intervention_target": args.intervention_target,
+        "design": args.design,
         "model": args.model,
-        "runner_efforts": args.runner_effort,
+        "runner_configurations": [
+            {"model": model, "reasoning_effort": effort}
+            for model, effort in _runner_configurations(args)
+        ],
+        "judge_model": args.judge_model,
         "judge_effort": args.judge_effort,
+        "max_transient_retries": args.max_transient_retries,
+        "retry_backoff_seconds": args.retry_backoff_seconds,
         "codex_version": codex_version,
         "seed": args.seed,
         "repetitions": args.repetitions,
@@ -326,6 +471,7 @@ async def _main(args: argparse.Namespace) -> int:
             "cleanroom": str(args.cleanroom),
             "sandbox": "read-only",
             "prompt_input_preflight": preflight["audit"],
+            "remote_schema_preflight_required": True,
         },
     }
     if args.dry_run:
@@ -346,6 +492,8 @@ async def _main(args: argparse.Namespace) -> int:
     _atomic_json(manifest_path, manifest)
     _atomic_json(args.output_dir / "judge-output.schema.example.json", example_schema)
     _atomic_json(args.output_dir / "prompt-input-preflight.json", preflight)
+    _atomic_json(args.output_dir / "remote-schema-preflight.json", remote_schema)
+    _atomic_json(args.output_dir / "campaign-readiness.json", readiness)
     selected_cells = cells[: args.max_cells] if args.max_cells else cells
     preexisting_cells = {
         cell.cell_id
@@ -426,6 +574,21 @@ async def _main(args: argparse.Namespace) -> int:
         "expected_thread_ids_at_completion": len(cells) * 2,
         "usage": _aggregate_usage(all_traces),
     }
+    if args.design == "baseline_reliability":
+        experiment = plan.get("experiment")
+        campaign_policy = (
+            experiment.get("campaign_policy") if isinstance(experiment, dict) else None
+        )
+        baseline_policy = (
+            campaign_policy.get("baseline_reliability")
+            if isinstance(campaign_policy, dict)
+            else None
+        )
+        summary["baseline_reliability"] = _baseline_reliability_summary(
+            all_traces,
+            rows,
+            baseline_policy if isinstance(baseline_policy, dict) else None,
+        )
     _atomic_json(args.output_dir / "campaign-summary.json", summary)
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 1 if errors else 0

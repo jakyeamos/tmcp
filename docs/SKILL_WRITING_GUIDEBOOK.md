@@ -57,7 +57,8 @@ controlled intervention before becoming a corpus recommendation.
 - Intervention-control lift: `-0.473`, where negative is the expected support
   direction; 95% Newcombe-Wilson interval `[-0.676, -0.178]`
 - Configuration effects: high `-0.333`, low `-0.500`, max `-0.583`; no reversal
-- Promotion: hold — cost regression
+- Promotion: hold — historical plan lacks preregistered clustered/reliability
+  gates; the intact control also misses the 50% floor on two fixture families
 
 Prefer an explicit workflow section that separates input validation, blind fresh
 runners, independent evidence-based judges, repeated trials and pass rates,
@@ -72,20 +73,21 @@ absolute reliability—the intact skill still failed 16/36 runs—or the causal 
 every sentence inside the section. The three configurations are reasoning settings
 of the same `gpt-5.6-sol` model, not independent models.
 
-The matrix, lift, interval, and no-reversal gates cleared. Promotion remains held
-until the per-run checkout-sweep cost signal is isolated or resolved and any revised
-skill clears a fresh full matrix. Until then, call this behaviorally supported in a
-controlled multi-configuration evaluation, not corpus-wide tried-and-true.
+The matrix, lift, interval, and no-reversal gates cleared. A complete blind cost
+rejudge resolved the raw checkout-sweep labels as non-regressions without altering
+the source traces. Promotion remains held because the historical plan did not
+preregister clustered/reliability gates and the intact skill missed two fixture
+families. Until a fresh baseline clears those gates, call this behaviorally supported
+in a controlled multi-configuration evaluation, not corpus-wide tried-and-true.
 
-Manual contract review adjudicated the two cost labels as false positives caused by
-an incomplete judge bar. The formal report is deliberately unchanged: a predeclared
-campaign-wide rejudge, not a post-hoc label edit, is required to clear the hold.
+The formal report preserves the raw labels and records the predeclared campaign-wide
+blind rejudge separately; no post-hoc label edit was made.
 
-Manual review also identified two protocol gaps: the reported interval pools repeated
-fixture/configuration outcomes rather than using cluster-aware uncertainty, and the
-promotion policy has no minimum intact-control or per-fixture reliability floor. The
+The replay added a fixture-block interval and 50% aggregate/per-fixture control
+floors, but those gates were not preregistered in the historical plan. The
 regression-retest fixture passed 0/6 in both conditions. Future promotion-grade
-protocols should close both gaps before treating relative lift as general reliability.
+protocols must pin the policy before launch and clear it before treating relative
+lift as general reliability.
 
 ## Corpus evaluation protocol
 

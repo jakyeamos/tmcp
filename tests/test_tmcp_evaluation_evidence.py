@@ -187,6 +187,59 @@ class EvaluationEvidenceServiceTests(unittest.TestCase):
         self.assertTrue(claim["promotion_eligible"])
         self.assertEqual(claim["promotion_gaps"], [])
 
+    def test_preregistered_cross_model_confirmation_is_scored_per_model(self) -> None:
+        plan = self._plan(fixture_count=6)
+        plan["experiment"]["campaign_policy"] = {
+            "schema": "tmcp-skill-eval-campaign-policy-v0.1",
+            "design": "causal_contrast",
+            "runner_configurations": [
+                {"model": "model-a", "reasoning_effort": "low"},
+                {"model": "model-a", "reasoning_effort": "high"},
+                {"model": "model-b", "reasoning_effort": "high"},
+            ],
+            "baseline_reliability": {
+                "control_variant": "original",
+                "minimum_control_pass_rate": 0.5,
+                "minimum_per_fixture_control_pass_rate": 0.5,
+                "require_predeclared_clustered_interval": True,
+            },
+            "judge_configuration": {"model": "judge-model", "reasoning_effort": "high"},
+            "cross_model_confirmation": {
+                "required": True,
+                "minimum_distinct_runner_models": 2,
+                "minimum_fixture_count_per_model": 6,
+                "minimum_repetitions_per_cell": 2,
+                "require_directional_replication": True,
+            },
+        }
+        traces = self._traces(plan, configurations=("config-a", "config-b", "config-c"))
+        for trace in traces:
+            trace["agent"]["model"] = (
+                "model-b"
+                if trace["agent"]["configuration_id"] == "config-c"
+                else "model-a"
+            )
+
+        claim = evaluation_evidence.analyze_pattern_evidence(plan, traces)[0]
+
+        self.assertTrue(claim["cross_model_confirmation"]["passed"])
+        self.assertEqual(
+            {
+                effect["model"]
+                for effect in claim["cross_model_confirmation"]["model_effects"]
+            },
+            {"model-a", "model-b"},
+        )
+        self.assertTrue(claim["promotion_eligible"])
+
+        for trace in traces:
+            trace["agent"]["model"] = "model-a"
+        held = evaluation_evidence.analyze_pattern_evidence(plan, traces)[0]
+        self.assertFalse(held["promotion_eligible"])
+        self.assertTrue(
+            any("runner model count" in gap for gap in held["promotion_gaps"])
+        )
+
     def test_multi_agent_promotion_requires_interval_to_clear_zero(self) -> None:
         plan = self._plan(fixture_count=6)
         traces = self._traces(

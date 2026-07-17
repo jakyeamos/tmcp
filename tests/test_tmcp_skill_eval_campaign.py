@@ -3,13 +3,16 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+import asyncio
 from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
 
 import scripts.tmcp_skill_eval_campaign_runtime as campaign_runtime
+import scripts.tmcp_skill_eval_campaign_protocol as campaign_protocol
 from scripts.tmcp_skill_eval_campaign_protocol import (
     CampaignCell,
+    CodexRunError,
     DISABLED_CODEX_FEATURES,
     _audit_event_stream,
     _sha256_file,
@@ -17,10 +20,12 @@ from scripts.tmcp_skill_eval_campaign_protocol import (
     _stable_id,
     _validate_judgment,
     build_cells,
+    campaign_readiness_report,
     codex_command,
     judge_criteria,
     judge_output_schema,
     judge_prompt,
+    remote_schema_preflight,
     runner_prompt,
 )
 from scripts.tmcp_skill_eval_campaign_runtime import (
@@ -76,6 +81,32 @@ class SkillEvalCampaignTests(unittest.TestCase):
         self.assertEqual(len({cell.cell_id for cell in cells}), 72)
         self.assertEqual({cell.order for cell in cells}, set(range(1, 73)))
         self.assertEqual({cell.runner_effort for cell in cells}, {"low", "high", "max"})
+
+    def test_builds_baseline_and_cross_model_configuration_matrices(self) -> None:
+        baseline = build_cells(
+            self._plan(),
+            pattern_id="evaluation.staged-workflow-section",
+            intervention_target="workflow",
+            model="fallback-model",
+            runner_efforts=[],
+            runner_configurations=[
+                ("model-a", "low"),
+                ("model-a", "high"),
+                ("model-b", "high"),
+            ],
+            design="baseline_reliability",
+            repetitions=2,
+            expected_fixtures=6,
+            seed=7,
+            codex_version="codex-cli-0.144.2",
+        )
+
+        self.assertEqual(len(baseline), 36)
+        self.assertEqual({cell.variant_id for cell in baseline}, {"original"})
+        self.assertEqual(
+            {cell.runner_model for cell in baseline}, {"model-a", "model-b"}
+        )
+        self.assertEqual(len({cell.cell_id for cell in baseline}), 36)
 
     def test_runner_prompt_does_not_leak_bar_or_variant(self) -> None:
         row = self._plan()["task_matrix"][0]
@@ -168,6 +199,12 @@ class SkillEvalCampaignTests(unittest.TestCase):
         self.assertEqual(normalized["evidence"], valid["evidence"])
         schema = judge_output_schema(criteria)
         self.assertEqual(schema["properties"]["evidence"]["required"], ["O1", "S1"])
+        self.assertEqual(
+            schema["properties"]["evidence"]["properties"]["O1"]["properties"][
+                "status"
+            ]["type"],
+            "string",
+        )
 
     def test_event_audit_rejects_tool_items(self) -> None:
         safe_events = "\n".join(
@@ -190,6 +227,55 @@ class SkillEvalCampaignTests(unittest.TestCase):
         unknown_events = safe_events.replace("turn.started", "turn.failed")
         with self.assertRaisesRegex(ValueError, "Disallowed Codex event"):
             _audit_event_stream(unknown_events)
+
+    def test_remote_schema_preflight_uses_a_synthetic_isolated_output(self) -> None:
+        criteria = ["O1: expected"]
+
+        async def fake_run_codex(**kwargs: object) -> tuple:
+            command = kwargs.get("command")
+            if not isinstance(command, list) or not all(
+                isinstance(item, str) for item in command
+            ):
+                raise AssertionError("test double expected a Codex command list")
+            output_path = Path(command[command.index("-o") + 1])
+            output_path.write_text(
+                json.dumps(
+                    {
+                        "passed": True,
+                        "evidence": {"O1": {"status": "pass", "citation": "yes"}},
+                        "safety_regression": False,
+                        "cost_regression": False,
+                        "rationale": "The synthetic sentence is present.",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            return (
+                "events",
+                "",
+                {"input_tokens": 1},
+                {"passed": True, "thread_id": "schema-thread"},
+            )
+
+        with patch.object(campaign_protocol, "_run_codex", fake_run_codex):
+            preflight = asyncio.run(
+                remote_schema_preflight(
+                    codex_bin="codex",
+                    model="judge-model",
+                    effort="high",
+                    base_codex_home=Path("/unused"),
+                    timeout_seconds=10,
+                    output_schema=judge_output_schema(criteria),
+                    prompt="Synthetic schema acceptance prompt.",
+                    validate_output=lambda payload: _validate_judgment(
+                        payload, expected_criteria=criteria
+                    ),
+                )
+            )
+
+        self.assertTrue(preflight["passed"])
+        self.assertEqual(preflight["model"], "judge-model")
+        self.assertEqual(preflight["event_audit"]["thread_id"], "schema-thread")
 
     def test_partial_stage_is_invalidated_instead_of_resumed(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -252,6 +338,129 @@ class SkillEvalCampaignTests(unittest.TestCase):
             )
             self.assertEqual((archive / "runner-stderr.log").read_text(), "diagnostic")
 
+    def test_transient_capacity_failure_is_archived_and_retried(self) -> None:
+        calls = 0
+
+        async def capacity_then_success(**kwargs: object) -> tuple:
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                raise CodexRunError(
+                    "Codex process exited 1: Selected model is at capacity.",
+                    stdout='{"type":"error","message":"Selected model is at capacity."}',
+                )
+            command = kwargs.get("command")
+            if not isinstance(command, list) or not all(
+                isinstance(item, str) for item in command
+            ):
+                raise AssertionError("test double expected a Codex command list")
+            output_path = Path(command[command.index("-o") + 1])
+            output_path.write_text("artifact", encoding="utf-8")
+            return (
+                '{"type":"thread.started","thread_id":"thread-2"}\n'
+                '{"type":"turn.started"}\n'
+                '{"type":"turn.completed","usage":{"input_tokens":1}}\n',
+                "",
+                {"input_tokens": 1},
+                {"passed": True, "thread_id": "thread-2"},
+            )
+
+        async def no_sleep(_seconds: float) -> None:
+            return None
+
+        with tempfile.TemporaryDirectory() as temporary:
+            cell_dir = Path(temporary)
+            args = Namespace(
+                codex_bin="codex",
+                model="gpt-5.6-sol",
+                cleanroom=cell_dir,
+                codex_home=cell_dir,
+                timeout_seconds=10,
+                max_transient_retries=1,
+                retry_backoff_seconds=0,
+            )
+            with (
+                patch.object(campaign_runtime, "_run_codex", capacity_then_success),
+                patch.object(campaign_runtime.asyncio, "sleep", no_sleep),
+            ):
+                marker = asyncio.run(
+                    _run_stage(
+                        cell_dir=cell_dir,
+                        stage="runner",
+                        output_path=cell_dir / "runner.txt",
+                        output_schema=None,
+                        prompt="prompt",
+                        effort="low",
+                        args=args,
+                    )
+                )
+
+            self.assertEqual(calls, 2)
+            self.assertEqual(marker["usage"], {"input_tokens": 1})
+            audit = json.loads((cell_dir / "runner-retry-audit.json").read_text())
+            self.assertEqual(audit["attempts"][0]["classification"], "model_capacity")
+            self.assertTrue((cell_dir / "invalidated" / "runner-attempt-1").is_dir())
+
+    def test_preregistered_readiness_requires_independent_models(self) -> None:
+        plan = self._plan()
+        plan["experiment"]["analysis_policy"] = {
+            "clustered_interval": {
+                "method": "fixture_block_bootstrap_by_configuration",
+                "confidence": 0.95,
+                "cluster_unit": "fixture_digest",
+                "resamples": 10000,
+                "seed": 7,
+            }
+        }
+        plan["experiment"]["promotion_thresholds"] = {
+            "controlled_multi_agent_eval": {
+                "minimum_control_pass_rate": 0.5,
+                "minimum_per_fixture_control_pass_rate": 0.5,
+            }
+        }
+        configurations = [("model-a", "low"), ("model-a", "high"), ("model-b", "high")]
+        plan["experiment"]["campaign_policy"] = {
+            "schema": "tmcp-skill-eval-campaign-policy-v0.1",
+            "design": "baseline_reliability",
+            "runner_configurations": [
+                {"model": model, "reasoning_effort": effort}
+                for model, effort in configurations
+            ],
+            "baseline_reliability": {
+                "control_variant": "original",
+                "minimum_control_pass_rate": 0.5,
+                "minimum_per_fixture_control_pass_rate": 0.5,
+                "require_predeclared_clustered_interval": True,
+            },
+            "judge_configuration": {"model": "judge-model", "reasoning_effort": "high"},
+            "cross_model_confirmation": {
+                "required": True,
+                "minimum_distinct_runner_models": 2,
+                "minimum_fixture_count_per_model": 6,
+                "minimum_repetitions_per_cell": 2,
+                "require_directional_replication": True,
+            },
+        }
+        cells = build_cells(
+            plan,
+            pattern_id="evaluation.staged-workflow-section",
+            intervention_target="workflow",
+            model="fallback-model",
+            runner_efforts=[],
+            runner_configurations=configurations,
+            design="baseline_reliability",
+            repetitions=2,
+            expected_fixtures=6,
+            seed=7,
+            codex_version="codex-cli-0.144.2",
+        )
+
+        readiness = campaign_readiness_report(
+            plan, cells=cells, design="baseline_reliability", judge_model="judge-model"
+        )
+
+        self.assertTrue(readiness["ready"])
+
     def test_resumed_trace_is_bound_to_stage_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             output_dir = Path(temporary)
@@ -264,6 +473,7 @@ class SkillEvalCampaignTests(unittest.TestCase):
                 fixture_family="family-0",
                 fixture_digest="fixture-0",
                 replicate_id="replicate-1",
+                runner_model="gpt-5.6-sol",
                 runner_effort="low",
                 configuration_id="config-1",
             )
@@ -389,7 +599,9 @@ class SkillEvalCampaignTests(unittest.TestCase):
                 "campaign": {
                     "cell_id": cell.cell_id,
                     "order": cell.order,
+                    "runner_model": cell.runner_model,
                     "runner_effort": cell.runner_effort,
+                    "judge_model": args.model,
                     "judge_effort": args.judge_effort,
                     "runner_artifact": "cells/cell-1/runner.txt",
                     "judge_artifact": "cells/cell-1/judge.json",

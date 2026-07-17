@@ -41,7 +41,20 @@
             "judge": {"const": true}
           }
         },
-        "promotion_thresholds": {"type": "object"}
+        "promotion_thresholds": {"type": "object"},
+        "campaign_policy": {
+          "type": ["object", "null"],
+          "properties": {
+            "schema": {"const": "tmcp-skill-eval-campaign-policy-v0.1"},
+            "design": {
+              "type": "string",
+              "enum": ["baseline_reliability", "causal_contrast"]
+            },
+            "runner_configurations": {"type": "array"},
+            "judge_configuration": {"type": "object"},
+            "cross_model_confirmation": {"type": "object"}
+          }
+        }
       }
     },
     "evaluated_skills": {

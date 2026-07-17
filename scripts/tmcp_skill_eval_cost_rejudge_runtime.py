@@ -32,6 +32,7 @@ from scripts.tmcp_skill_eval_campaign_protocol import (
     _sha256_text,
     cost_rejudge_output_schema,
     cost_rejudge_prompt,
+    remote_schema_preflight,
     validate_cost_rejudgment,
 )  # noqa: E402
 from scripts.tmcp_skill_eval_campaign_runtime import (
@@ -274,6 +275,11 @@ async def run(args: argparse.Namespace) -> int:
             }
         }
         codex_version = "not-run-in-dry-run"
+        remote_schema = {
+            "schema": "tmcp-remote-schema-preflight-v0.1",
+            "passed": False,
+            "status": "not_run_in_dry_run",
+        }
     else:
         args.cleanroom.mkdir(parents=True, exist_ok=True)
         _assert_empty_cleanroom(args.cleanroom)
@@ -300,6 +306,24 @@ async def run(args: argparse.Namespace) -> int:
         cost_rejudge_prompt("<TASK>", "<ARTIFACT>", cost_bar="<COST_BAR>")
     )
     schema = cost_rejudge_output_schema()
+    if not args.dry_run:
+        remote_schema = await remote_schema_preflight(
+            codex_bin=args.codex_bin,
+            model=args.model,
+            effort=args.judge_effort,
+            base_codex_home=args.codex_home,
+            timeout_seconds=args.timeout_seconds,
+            output_schema=schema,
+            prompt=cost_rejudge_prompt(
+                "State whether the sentence requires unnecessary work.",
+                "The sentence states one necessary verification step.",
+                cost_bar=(
+                    "Necessary verification work is not a cost regression; mark a "
+                    "regression only for material unnecessary execution work."
+                ),
+            ),
+            validate_output=validate_cost_rejudgment,
+        )
     manifest = {
         "schema": COST_REJUDGE_PROTOCOL,
         "cost_rejudgments_schema": COST_REJUDGMENTS_SCHEMA,
@@ -316,6 +340,8 @@ async def run(args: argparse.Namespace) -> int:
         "cost_rejudge_protocol_sha256": prompt_digest,
         "model": args.model,
         "judge_effort": args.judge_effort,
+        "max_transient_retries": args.max_transient_retries,
+        "retry_backoff_seconds": args.retry_backoff_seconds,
         "codex_version": codex_version,
         "seed": args.seed,
         "cell_count": len(cells),
@@ -329,6 +355,7 @@ async def run(args: argparse.Namespace) -> int:
             "cleanroom": str(args.cleanroom),
             "sandbox": "read-only",
             "prompt_input_preflight": preflight["audit"],
+            "remote_schema_preflight_required": True,
         },
     }
     if args.dry_run:
@@ -349,6 +376,7 @@ async def run(args: argparse.Namespace) -> int:
     _atomic_json(manifest_path, manifest)
     _atomic_json(args.output_dir / "cost-rejudge-output.schema.json", schema)
     _atomic_json(args.output_dir / "prompt-input-preflight.json", preflight)
+    _atomic_json(args.output_dir / "remote-schema-preflight.json", remote_schema)
     selected_cells = cells[: args.max_cells] if args.max_cells else cells
     semaphore = asyncio.Semaphore(args.concurrency)
     results = await asyncio.gather(

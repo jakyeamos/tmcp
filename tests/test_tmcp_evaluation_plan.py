@@ -82,6 +82,68 @@ class EvaluationPlanServiceTests(unittest.TestCase):
             {"preamble", "verification", "output"},
         )
 
+    def test_campaign_policy_is_normalized_and_bound_to_experiment_identity(
+        self,
+    ) -> None:
+        source = [evaluation_plan.EvaluationSource("SKILL.md", "# Skill\n")]
+        fixtures = [{"id": "task-1", "expected_observables": []}]
+        policy = {
+            "schema": "tmcp-skill-eval-campaign-policy-v0.1",
+            "design": "baseline_reliability",
+            "runner_configurations": [
+                {"model": "model-b", "reasoning_effort": "high"},
+                {"model": "model-a", "reasoning_effort": "low"},
+                {"model": "model-a", "reasoning_effort": "high"},
+            ],
+            "baseline_reliability": {
+                "control_variant": "original",
+                "minimum_control_pass_rate": 0.5,
+                "minimum_per_fixture_control_pass_rate": 0.5,
+                "require_predeclared_clustered_interval": True,
+            },
+            "judge_configuration": {"model": "judge-model", "reasoning_effort": "high"},
+            "cross_model_confirmation": {
+                "required": True,
+                "minimum_distinct_runner_models": 2,
+                "minimum_fixture_count_per_model": 1,
+                "minimum_repetitions_per_cell": 2,
+                "require_directional_replication": True,
+            },
+        }
+        with_policy = evaluation_plan.build_evaluation_plan_from_sources(
+            source,
+            fixtures,
+            ["original"],
+            anti_patterns=[],
+            effective_patterns=[],
+            created_at="now",
+            max_matrix_rows=10,
+            campaign_policy=policy,
+        )
+        without_policy = evaluation_plan.build_evaluation_plan_from_sources(
+            source,
+            fixtures,
+            ["original"],
+            anti_patterns=[],
+            effective_patterns=[],
+            created_at="now",
+            max_matrix_rows=10,
+        )
+
+        self.assertEqual(
+            [
+                item["model"]
+                for item in with_policy["experiment"]["campaign_policy"][
+                    "runner_configurations"
+                ]
+            ],
+            ["model-a", "model-a", "model-b"],
+        )
+        self.assertNotEqual(
+            with_policy["experiment"]["experiment_id"],
+            without_policy["experiment"]["experiment_id"],
+        )
+
     def test_rejects_matrix_budget_before_rows_are_appended(self) -> None:
         with self.assertRaisesRegex(ValueError, "matrix"):
             evaluation_plan.build_evaluation_plan_from_sources(

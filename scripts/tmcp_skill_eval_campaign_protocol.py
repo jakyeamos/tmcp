@@ -11,6 +11,7 @@ import re
 import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from collections.abc import Callable
 from typing import Any
 
 
@@ -50,6 +51,7 @@ class CampaignCell:
     fixture_family: str
     fixture_digest: str
     replicate_id: str
+    runner_model: str
     runner_effort: str
     configuration_id: str
 
@@ -94,16 +96,26 @@ def selected_rows(
     *,
     pattern_id: str,
     intervention_target: str,
+    design: str = "causal_contrast",
 ) -> list[dict[str, Any]]:
+    if design not in {"baseline_reliability", "causal_contrast"}:
+        raise ValueError(
+            "Campaign design must be baseline_reliability or causal_contrast."
+        )
     rows = [
         row
         for row in plan.get("task_matrix", [])
         if isinstance(row, dict)
         and row.get("pattern_id") == pattern_id
         and row.get("intervention_target") == intervention_target
-        and row.get("variant_id") in {"original", "ablated"}
         and (
             row.get("variant_id") == "original"
+            if design == "baseline_reliability"
+            else row.get("variant_id") in {"original", "ablated"}
+        )
+        and (
+            design == "baseline_reliability"
+            or row.get("variant_id") == "original"
             or row.get("ablation_section") == intervention_target
         )
     ]
@@ -119,6 +131,8 @@ def build_cells(
     intervention_target: str,
     model: str,
     runner_efforts: list[str],
+    runner_configurations: list[tuple[str, str]] | None = None,
+    design: str = "causal_contrast",
     repetitions: int,
     expected_fixtures: int,
     seed: int,
@@ -128,6 +142,7 @@ def build_cells(
         plan,
         pattern_id=pattern_id,
         intervention_target=intervention_target,
+        design=design,
     )
     rows_by_task: dict[str, list[dict[str, Any]]] = {}
     for row in rows:
@@ -138,9 +153,14 @@ def build_cells(
         )
     for task_id, task_rows in rows_by_task.items():
         variants = [str(row["variant_id"]) for row in task_rows]
-        if sorted(variants) != ["ablated", "original"]:
+        expected_variants = (
+            ["original"]
+            if design == "baseline_reliability"
+            else ["ablated", "original"]
+        )
+        if sorted(variants) != expected_variants:
             raise ValueError(
-                f"Fixture {task_id} must contain one original and one ablated row."
+                f"Fixture {task_id} does not match {design} variant requirements."
             )
         fixture_digests = {str(row.get("fixture_digest") or "") for row in task_rows}
         if len(fixture_digests) != 1 or "" in fixture_digests:
@@ -170,13 +190,25 @@ def build_cells(
     }
     if len(fixture_families) < 3:
         raise ValueError("Campaign requires at least three fixture families.")
-    if len(set(runner_efforts)) != len(runner_efforts):
-        raise ValueError("runner_efforts must be distinct configurations.")
+    configurations = (
+        list(runner_configurations)
+        if runner_configurations is not None
+        else [(model, effort) for effort in runner_efforts]
+    )
+    if not configurations or any(
+        not runner_model.strip() or not effort.strip()
+        for runner_model, effort in configurations
+    ):
+        raise ValueError(
+            "runner configurations must contain non-empty model and effort."
+        )
+    if len(set(configurations)) != len(configurations):
+        raise ValueError("runner configurations must be distinct.")
     cells: list[CampaignCell] = []
     for row in rows:
-        for effort in runner_efforts:
+        for runner_model, effort in configurations:
             configuration_id = (
-                f"{model}-reasoning-{effort}-{codex_version.replace(' ', '-')}"
+                f"{runner_model}-reasoning-{effort}-{codex_version.replace(' ', '-')}"
             )
             for replicate in range(1, repetitions + 1):
                 cell_id = _stable_id(
@@ -196,6 +228,7 @@ def build_cells(
                         fixture_family=str(row["fixture_family"]),
                         fixture_digest=str(row["fixture_digest"]),
                         replicate_id=f"replicate-{replicate}",
+                        runner_model=runner_model,
                         runner_effort=effort,
                         configuration_id=configuration_id,
                     )
@@ -205,6 +238,138 @@ def build_cells(
         CampaignCell(**{**asdict(cell), "order": index})
         for index, cell in enumerate(cells, start=1)
     ]
+
+
+def campaign_readiness_report(
+    plan: dict[str, Any],
+    *,
+    cells: list[CampaignCell],
+    design: str,
+    judge_model: str,
+) -> dict[str, Any]:
+    """Return launch readiness without starting a runner or judge session."""
+
+    gaps: list[str] = []
+    experiment = plan.get("experiment")
+    policy = experiment.get("campaign_policy") if isinstance(experiment, dict) else None
+    if not isinstance(policy, dict):
+        gaps.append("missing_campaign_policy")
+        policy = {}
+    if policy.get("schema") != "tmcp-skill-eval-campaign-policy-v0.1":
+        gaps.append("invalid_campaign_policy_schema")
+    if policy.get("design") != design:
+        gaps.append("campaign_design_not_preregistered")
+    analysis_policy = (
+        experiment.get("analysis_policy") if isinstance(experiment, dict) else None
+    )
+    clustered_interval = (
+        analysis_policy.get("clustered_interval")
+        if isinstance(analysis_policy, dict)
+        else None
+    )
+    if not isinstance(clustered_interval, dict) or not {
+        "method",
+        "confidence",
+        "cluster_unit",
+        "resamples",
+        "seed",
+    }.issubset(clustered_interval):
+        gaps.append("clustered_interval_not_preregistered")
+    thresholds = (
+        experiment.get("promotion_thresholds", {}).get("controlled_multi_agent_eval")
+        if isinstance(experiment, dict)
+        and isinstance(experiment.get("promotion_thresholds"), dict)
+        else None
+    )
+    if not isinstance(thresholds, dict) or any(
+        not isinstance(thresholds.get(key), (int, float))
+        or float(thresholds[key]) < 0.5
+        for key in (
+            "minimum_control_pass_rate",
+            "minimum_per_fixture_control_pass_rate",
+        )
+    ):
+        gaps.append("control_reliability_floors_not_preregistered")
+    configured = policy.get("runner_configurations")
+    observed_configurations = [
+        {"model": model, "reasoning_effort": effort}
+        for model, effort in sorted(
+            {(cell.runner_model, cell.runner_effort) for cell in cells}
+        )
+    ]
+    configured_normalized = (
+        sorted(
+            (
+                {
+                    "model": str(item.get("model") or ""),
+                    "reasoning_effort": str(item.get("reasoning_effort") or ""),
+                }
+                for item in configured
+                if isinstance(item, dict)
+            ),
+            key=lambda item: (item["model"], item["reasoning_effort"]),
+        )
+        if isinstance(configured, list)
+        else []
+    )
+    if (
+        not isinstance(configured, list)
+        or len(configured_normalized) != len(configured)
+        or configured_normalized != observed_configurations
+    ):
+        gaps.append("runner_configuration_matrix_not_preregistered")
+    configured_judge = policy.get("judge_configuration")
+    if (
+        not isinstance(configured_judge, dict)
+        or configured_judge.get("model") != judge_model
+        or not isinstance(configured_judge.get("reasoning_effort"), str)
+    ):
+        gaps.append("judge_configuration_not_preregistered")
+    runner_models = sorted({cell.runner_model for cell in cells})
+    confirmation = policy.get("cross_model_confirmation")
+    if not isinstance(confirmation, dict):
+        gaps.append("cross_model_confirmation_not_preregistered")
+    elif confirmation.get("required") is True:
+        minimum_models = int(confirmation.get("minimum_distinct_runner_models") or 2)
+        minimum_fixtures = int(confirmation.get("minimum_fixture_count_per_model") or 1)
+        minimum_repetitions = int(confirmation.get("minimum_repetitions_per_cell") or 1)
+        if len(runner_models) < minimum_models:
+            gaps.append("insufficient_distinct_runner_models")
+        for model in runner_models:
+            model_cells = [cell for cell in cells if cell.runner_model == model]
+            if len({cell.fixture_digest for cell in model_cells}) < minimum_fixtures:
+                gaps.append(f"insufficient_fixture_coverage_for_{model}")
+            repetitions_by_cell: dict[tuple[str, str], int] = {}
+            for cell in model_cells:
+                key = (cell.matrix_row_id, cell.configuration_id)
+                repetitions_by_cell[key] = repetitions_by_cell.get(key, 0) + 1
+            if min(repetitions_by_cell.values(), default=0) < minimum_repetitions:
+                gaps.append(f"insufficient_repetitions_for_{model}")
+        if judge_model in runner_models:
+            gaps.append("judge_model_not_independent")
+    if design == "baseline_reliability" and {cell.variant_id for cell in cells} != {
+        "original"
+    }:
+        gaps.append("baseline_contains_non_original_variant")
+    baseline = policy.get("baseline_reliability")
+    if design == "baseline_reliability" and (
+        not isinstance(baseline, dict)
+        or baseline.get("control_variant") != "original"
+        or not isinstance(baseline.get("minimum_control_pass_rate"), (int, float))
+        or not isinstance(
+            baseline.get("minimum_per_fixture_control_pass_rate"), (int, float)
+        )
+    ):
+        gaps.append("baseline_reliability_not_preregistered")
+    return {
+        "schema": "tmcp-skill-eval-campaign-readiness-v0.1",
+        "ready": not gaps,
+        "design": design,
+        "runner_models": runner_models,
+        "judge_model": judge_model,
+        "cell_count": len(cells),
+        "gaps": gaps,
+    }
 
 
 def runner_prompt(row: dict[str, Any]) -> str:
@@ -248,7 +413,7 @@ def judge_output_schema(expected_criteria: list[str]) -> dict[str, Any]:
         "additionalProperties": False,
         "required": ["status", "citation"],
         "properties": {
-            "status": {"enum": ["pass", "fail"]},
+            "status": {"type": "string", "enum": ["pass", "fail"]},
             "citation": {"type": "string", "minLength": 1},
         },
     }
@@ -521,8 +686,9 @@ async def _run_codex(
     stdout = stdout_bytes.decode("utf-8", errors="replace")
     stderr = stderr_bytes.decode("utf-8", errors="replace")
     if process.returncode != 0:
+        diagnostic = stderr[-1000:] or stdout[-1000:]
         raise CodexRunError(
-            f"Codex process exited {process.returncode}: {stderr[-1000:]}",
+            f"Codex process exited {process.returncode}: {diagnostic}",
             stdout=stdout,
             stderr=stderr,
         )
@@ -538,6 +704,65 @@ async def _run_codex(
             stderr=stderr,
         )
     return stdout, stderr, usage, event_audit
+
+
+async def remote_schema_preflight(
+    *,
+    codex_bin: str,
+    model: str,
+    effort: str,
+    base_codex_home: Path,
+    timeout_seconds: int,
+    output_schema: dict[str, Any],
+    prompt: str,
+    validate_output: Callable[[Any], dict[str, Any]],
+) -> dict[str, Any]:
+    """Exercise the live schema service without exposing campaign artifacts."""
+
+    with tempfile.TemporaryDirectory(
+        prefix="tmcp-codex-schema-preflight-"
+    ) as temporary:
+        root = Path(temporary)
+        cleanroom = root / "cleanroom"
+        cleanroom.mkdir()
+        schema_path = root / "output.schema.json"
+        output_path = root / "output.json"
+        _atomic_json(schema_path, output_schema)
+        stdout, stderr, usage, event_audit = await _run_codex(
+            command=codex_command(
+                codex_bin=codex_bin,
+                model=model,
+                effort=effort,
+                cleanroom=cleanroom,
+                output_path=output_path,
+                output_schema=schema_path,
+            ),
+            prompt=prompt,
+            base_codex_home=base_codex_home,
+            timeout_seconds=timeout_seconds,
+        )
+        if not output_path.is_file():
+            raise ValueError(
+                "Remote schema preflight did not write an output artifact."
+            )
+        try:
+            payload = _load_json(output_path)
+        except json.JSONDecodeError as exc:
+            raise ValueError("Remote schema preflight output is not JSON.") from exc
+        validate_output(payload)
+        return {
+            "schema": "tmcp-remote-schema-preflight-v0.1",
+            "passed": True,
+            "model": model,
+            "effort": effort,
+            "output_schema_sha256": _sha256_file(schema_path),
+            "prompt_sha256": _sha256_text(prompt),
+            "output_sha256": _sha256_file(output_path),
+            "event_audit": event_audit,
+            "usage": usage,
+            "stderr": stderr,
+            "event_stream_sha256": _sha256_text(stdout),
+        }
 
 
 def _validate_judgment(payload: Any, *, expected_criteria: list[str]) -> dict[str, Any]:

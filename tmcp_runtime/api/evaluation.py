@@ -20,6 +20,7 @@ from tmcp_runtime.services.evaluation_plan import (
     EvaluationSource,
     build_evaluation_plan_from_sources,
     displayed_content_digest,
+    normalize_campaign_policy,
     section_ablation_content,
 )
 from tmcp_runtime.services.evaluation_scoring import _normalize_trace, score_traces
@@ -155,6 +156,19 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
             f"{MAX_EVALUATION_VARIANTS}."
         )
 
+    raw_campaign_policy = arguments.get("campaign_policy")
+    campaign_policy = (
+        _safe_bounded_json_value(
+            raw_campaign_policy,
+            label="campaign_policy",
+            redactions=redactions,
+        )
+        if raw_campaign_policy is not None
+        else None
+    )
+    if campaign_policy is not None and not isinstance(campaign_policy, dict):
+        raise ValueError("campaign_policy must be an object.")
+
     sources = tuple(
         EvaluationSource(display_path=str(item.display_path), text=item.text)
         for item in skill_inputs
@@ -167,6 +181,7 @@ def build_evaluation_plan(arguments: dict[str, Any]) -> dict[str, Any]:
         effective_patterns=EFFECTIVE_PATTERNS,
         created_at=_iso_now(),
         max_matrix_rows=MAX_EVALUATION_MATRIX_ROWS,
+        campaign_policy=campaign_policy,
     )
     safe_plan = _redact_output(plan, redactions)
     if len(_json_text(safe_plan, label="Evaluation plan").encode("utf-8")) > (
@@ -187,6 +202,9 @@ def _validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
             f"{LEGACY_EVAL_PLAN_SCHEMA} or {EVAL_PLAN_SCHEMA}."
         )
     legacy_plan = plan_schema == LEGACY_EVAL_PLAN_SCHEMA
+    experiment = plan.get("experiment")
+    if isinstance(experiment, dict) and experiment.get("campaign_policy") is not None:
+        normalize_campaign_policy(experiment["campaign_policy"])
     for key in (
         "evaluated_skills",
         "task_matrix",

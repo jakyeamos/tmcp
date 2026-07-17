@@ -129,6 +129,13 @@ TOOLS: dict[str, dict[str, object]] = {
                     "items": {"type": "string"},
                     "description": "Variant ids for the behavioral A/B matrix.",
                 },
+                "campaign_policy": {
+                    "type": "object",
+                    "description": (
+                        "Optional immutable runner/judge matrix and cross-model "
+                        "confirmation contract for a preregistered campaign."
+                    ),
+                },
                 "evaluation_plan": {
                     "description": "Evaluation plan object or path (for score mode).",
                 },

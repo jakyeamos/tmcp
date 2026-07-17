@@ -69,6 +69,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=20260717)
     parser.add_argument("--concurrency", type=int, default=3)
     parser.add_argument("--timeout-seconds", type=int, default=300)
+    parser.add_argument("--max-transient-retries", type=int, default=2)
+    parser.add_argument("--retry-backoff-seconds", type=float, default=2.0)
     parser.add_argument("--max-cells", type=int)
     parser.add_argument("--expected-trace-count", type=int, default=72)
     parser.add_argument("--codex-bin", default="codex")
