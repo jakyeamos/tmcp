@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `d615e0d` preregisters the exact 72-trace composition cost rejudge, binds its cost bar and process boundary into the immutable study input, and makes scoring hold a claim until that sidecar is complete; `be23e68` verifies source-bundle launch inputs and live sources.
-- Verification: 557 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook warns that `evaluation_evidence.py` exceeds the source-size limit and could not run `pre-cr` because its CLI is unavailable on PATH.
+- Last completed change: `bef899f` splits trace-validation and cost-sidecar concerns out of `evaluation_evidence.py`, resolving its source-size gate; `d615e0d` preregisters the exact 72-trace composition cost rejudge and makes scoring hold a claim until that sidecar is complete.
+- Verification: 557 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook could not run `pre-cr` because its CLI is unavailable on PATH.
 
 ## Current Position
 
