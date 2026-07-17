@@ -16,6 +16,26 @@ from tmcp_runtime.services.evaluation_statistics import (
 )
 
 
+def scorecard_claim_boundary() -> dict[str, Any]:
+    """Describe which report surface may support guidebook promotion."""
+
+    return {
+        "promotion_source": "pattern_claims",
+        "diagnostic_only_dimensions": [
+            "activation",
+            "packet_inclusion",
+            "adherence",
+            "cost",
+            "safety",
+        ],
+        "notes": (
+            "Only validated, behaviorally judged pattern_claims can change guidebook "
+            "evidence status. Other scorecard dimensions are heuristic diagnostics "
+            "and must not be read as causal effects."
+        ),
+    }
+
+
 def validated_case_verdict(
     trace: Mapping[str, Any],
 ) -> tuple[bool | None, list[str]]:
