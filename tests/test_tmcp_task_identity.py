@@ -71,6 +71,18 @@ class TmcpRouteCatalogTests(unittest.TestCase):
         self.assertIn("frontend_implementation", routes)
         self.assertIn("motion_interaction", routes)
 
+    def test_intended_prefix_compounds_have_explicit_routes(self) -> None:
+        cases = {
+            "Rebuild the webpage.": "frontend_implementation",
+            "Diagnose underperformance.": "performance_validation",
+            "Prepare the prerelease.": "release_readiness",
+        }
+
+        for objective, expected_route in cases.items():
+            with self.subTest(objective=objective):
+                routes = {item["route"] for item in score_routes(objective)}
+                self.assertIn(expected_route, routes)
+
     def test_promotion_source_text_does_not_boost_motion(self) -> None:
         promotion_boost = source_boost_for_node(
             "motion_interaction",

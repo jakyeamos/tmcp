@@ -83,6 +83,7 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
         "frontend_implementation",
         (
             "implement",
+            "rebuild",
             "component",
             "react",
             "page",
@@ -91,6 +92,7 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "production-ready",
             "tsx",
             "frontend",
+            "webpage",
         ),
         _ui_file_boost,
     ),
@@ -129,6 +131,7 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
         "performance_validation",
         (
             "performance",
+            "underperformance",
             "bundle",
             "latency",
             "lighthouse",
@@ -151,6 +154,7 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
         "release_readiness",
         (
             "release",
+            "prerelease",
             "ship",
             "deploy",
             "changelog",
