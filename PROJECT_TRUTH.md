@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `012e550` adds an explicit corpus-adoption boundary: every shipped guidebook entry is held, so it may seed reviews and studies but cannot authorize a bulk rewrite.
-- Verification: 566 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog archival-boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
+- Last completed change: `8cbdd08` replaces the campaign queue with an evidence-state ledger that distinguishes evaluated-but-held, preregistered, packet-probed, selection-only, and candidate work; it records that the current 72-cell study measures only source-bundle delivery.
+- Verification: 567 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
 
@@ -24,6 +24,7 @@
 - The historical 72-cell and fresh-baseline 36-cell cost sidecars are now diagnostic archives, not reproducible evidence: each records a cost-bar digest that does not match the retained input file. The 72-cell claim remains `hold` because its cluster policy was not predeclared and fixture-level control reliability is below the 0.5 floor.
 - The shipped writing guidebook and catalog preserve that same boundary: the staged-workflow candidate records its raw cost signal but marks cost adjudication unresolved, removes the historical sidecar from current scoring, and lists non-reproducibility as a promotion gap.
 - The guidebook now ties corpus use to catalog state: held entries support review and preregistered study design only; a future eligible entry still requires scope-matched manual review and a bounded rollout, never automatic global edits.
+- The campaign ledger extends that boundary to source intake: it records the evidence state and next admissible gate for each candidate, prevents packet probes from appearing as a live campaign ranking, and names `composition-study-f6de333293fee3f7` as a source-bundle delivery test rather than a TMCP selection claim.
 - Incidental bare `SKILL.md` mentions no longer load every harvested skill, and detailed objectives require meaningful source overlap unless explicit routing metadata applies.
 - Fresh plan generation can bind `tmcp-skill-eval-campaign-policy-v0.1` into experiment identity; launch readiness enforces the pinned matrix, cluster/control contract, baseline shape, and independent judge model before any campaign artifact is sent.
 - The campaign harness accepts three explicit model/effort configurations, runs original-only baseline reliability studies as 36 cells, and treats cross-model confirmation as an explicit policy and scoring gate rather than a same-model reasoning sweep.
