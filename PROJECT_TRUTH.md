@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `1e0af00` preserves the raw original-only baseline, adds its evidence-bound diagnosis, and reports baseline reliability without unsupported causal or telemetry claims.
-- Verification: 541 tests pass (3 skipped); Ruff and basedpyright pass. The live baseline completed 36/36 cells with four first-pass remote schema preflights, 72 unique runner/judge threads, zero campaign errors/retries, and a complete 36-trace independent cost sidecar.
+- Last completed change: `ccfab09` fixes the release scanner's numeric snake-case false positive while preserving opaque-token detection; `1e0af00` remains the baseline-reporting correction.
+- Verification: 541 tests pass (3 skipped); the scanner and package-focused suite pass 28 tests, and Ruff and basedpyright pass. The live baseline completed 36/36 cells with four first-pass remote schema preflights, 72 unique runner/judge threads, zero campaign errors/retries, and a complete 36-trace independent cost sidecar.
 
 ## Current Position
 
