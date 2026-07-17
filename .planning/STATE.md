@@ -6,69 +6,34 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Complete runtime adapter convergence after API, safe-input,
-persistence, scoring, rendering, orchestration, plan, catalog, advisory,
-redaction, and transport cutovers.
+**Current focus:** Canonical package-root `tmcp` launcher cleanup and release-package
+parity are complete on `codex/tmcp-clean-launcher`; the legacy MCP stdio path remains
+supported and no external publication action is in scope.
 
 ## Milestone
 
 **Name:** TMCP Modernization
-**Status:** Milestone 3 adapter thinning and security hardening: pure domain,
-service, artifact-manifest, receipt-cache, storage-ingress, CLI-parser, and
-harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
-  boundaries plus CLI/harvest safety hardening, diagnostic-report assembly, and
-  read-only harvest/evaluator persistence plus packet-scoring policy, report,
-  rendering/advisory, input, compose-failure, mode-orchestration, and
-  plan-construction, server renderer, policy-catalog, runtime evaluator API,
-  harvest-advisory, runtime-redaction, MCP/CLI transport, and typed
-  request/result registry-dispatch cutovers complete; optional AIOS execution
-  runtime-state/recompile orchestration and project-local session lifecycle are
-  now runtime-owned; generic artifact-bundle persistence is now a runtime
-  service over adapter callbacks; receipt recording is now runtime-owned over
-  adapter callbacks; global-promotion manifest assembly is now runtime-owned;
-  explain assembly and evidence parsing are now runtime-owned; continue the
-  thin-adapter deletion pass is complete for private CLI, AIOS subprocess,
-  harvest-constant, and unused-schema seams; tests target runtime owners
-  directly. The release compile/install inventory now covers every runtime
-  module and is shared by the cross-platform workflow and package checks. The
-  first legacy promotion-summary reader is complete; the remaining shipped
-  receipt/session artifacts have no alternate schema and remain strict readers.
-  The 0.5.0 compatibility cutover note is active; all version surfaces now use
-  0.5.0 and the evidence record points to successful post-cutover PR run
-  `29285497867`; final evidence-pointer rerun `29285802846` also passes. The
-  draft PR is ready for a fresh adversarial review.
-  Draft PR #2's first hosted run passed Linux/macOS but failed Windows because
-  exact-file read-only inputs rejected the missing O_NOFOLLOW primitive;
-  `b99c58a` adds the validated Windows fallback. Follow-up run
-  `29284101047` reduced the residual failures to Windows path/newline contracts;
-  `1a59e2f` normalizes those boundaries. Hosted run `29285497867` now passes all
-  six matrix jobs for the 0.5.0 cutover, final rerun `29285802846` passes, and
-  post-review fix run `29287154661` passes for `1fd10f4`; docs-only rerun
-  `29287368329` also passes.
-  Fresh review closed malformed MCP transport input/notification defects and
-  packaged the compatibility note. Formatting and typecheck now pass across all
-  148 tracked Python files and the `scripts`, `tmcp_runtime`, and `tests`
-  scopes; hosted tag run `29289138645` passes the pinned quality job and all
-  six platform jobs for merge commit `1fcda48`. The GitHub release and MCP
-  Registry publication are complete.
+**Status:** `dad2db2` adds the executable package-root `tmcp` launcher, shared
+help/version handling, canonical CLI documentation, install/release allowlisting,
+extracted-package smoke coverage, and runtime-manager preference for the new root
+launcher with compatibility fallback for older packages. Full tests, contract,
+format/type checks, install checks, and reproducible release-package verification
+pass. No publish, tag, force-push, or marketplace action was taken.
 **Started:** 2026-07-10
 
 ## Active Phase
 
-- **Phase:** Compose and recompile vertical slice
-- **Slug:** `tmcp-modernization`
-- **Status:** Receipt/artifact construction and cache policy are pure-owned;
-  storage owns bounded redacted cache reads, while adapter-owned roots, writes,
-  identity, clock, output selection, redaction, and transport remain intact;
-  generic artifact-bundle persistence is runtime-owned through explicit storage
-  and redaction callbacks, and receipt recording is runtime-owned through
-  explicit identity, path, redaction, and write callbacks; global-promotion
-  manifest assembly is runtime-owned while roots and persistence gating remain
-  adapter-owned; explain assembly and review-evidence parsing are runtime-owned
-  while AIOS choice and final redaction remain adapter-owned.
+- **Phase:** Canonical launcher and release-package cleanup
+- **Slug:** `tmcp-clean-launcher`
+- **Status:** Complete. The root launcher, compatibility behavior, docs, release
+  allowlist, install check, package smoke, and runtime fallback are verified.
 - **Plan:** `docs/modernization/EXEC_PLAN.md`
 
 ## Completed Scope
+
+- `dad2db2` adds the canonical package-root launcher and release/install parity;
+  reproducible package check passes with archive digest
+  `a61bd712d7b3dc14ff71b4b6fdc2c45374aba775add9c5d4c55f242d639d18a0`.
 
 - Modernization baseline, parallel audit, target architecture, and executable
   milestone plan recorded under `docs/modernization/`.
@@ -361,5 +326,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Monitor the published v0.5.0 release surfaces; no additional publication action is pending.
+# Review the committed branch; no publication, tagging, or external marketplace action is pending.
 ```
