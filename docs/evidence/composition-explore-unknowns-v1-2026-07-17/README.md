@@ -55,6 +55,23 @@ and scored sidecar carry the resulting policy binding; scoring rejects a sidecar
 without that exact binding. This prevents a self-consistent but drifted rejudge
 from clearing the promotion gate.
 
+After the sidecar completes, verify its persisted cells, source traces, policy
+binding, prompt-input audit, and schema preflight before scoring:
+
+```bash
+python3 scripts/verify_cost_rejudge.py \
+  --source-plan docs/evidence/composition-explore-unknowns-v1-2026-07-17/generated/tmcp-composition-study-plan.json \
+  --source-runs <primary-runs> \
+  --cost-bar-file docs/evidence/composition-explore-unknowns-v1-2026-07-17/inputs/cost-evaluation-bar.md \
+  --rejudge-runs <independent-cost-rejudge-runs> \
+  --expected-trace-count 72 \
+  --require-promotion-ready
+```
+
+This command is read-only and must exit successfully; a valid but legacy bundle
+is reported as not promotion-ready rather than inheriting the current study's
+claim strength.
+
 The sidecar is a later external run and therefore needs separate fresh approval
 after the primary 72 cells have completed. It may adjudicate only C1 cost labels;
 it never rewrites raw labels or revisits correctness, safety, selection, or

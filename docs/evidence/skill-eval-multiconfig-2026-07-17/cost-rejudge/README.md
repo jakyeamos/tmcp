@@ -2,11 +2,14 @@
 
 ## Status
 
-The approved condition-blind rejudge is complete. It evaluated the fixed 72
-runner artifacts in 72 fresh isolated judge threads; all 72 sidecars are
-digest-valid and report `cost_regression=false`. The score report applies that
-complete sidecar while preserving the original raw labels separately:
-`raw_cost_regression=true`, adjudicated `cost_regression=false`.
+The approved condition-blind rejudge completed 72 fresh isolated judge threads
+and its retained cell artifacts report `cost_regression=false`. It is now
+classified as **diagnostic history, not reproducible promotion evidence**: the
+bundle records cost-bar digest `sha256:3412…e053c`, but the checked-in
+[`cost-evaluation-bar.md`](cost-evaluation-bar.md) is
+`sha256:bf4d…f2c6`. Because the exact bar used by the rejudge is no longer
+available, a read-only verifier cannot reconstruct or promote the bundle. Do
+not use its adjudicated cost result to support a current claim.
 
 The first sandbox-only attempt produced zero completed judgments because the
 sandbox could not resolve the Codex service. Its invalidated stage artifacts

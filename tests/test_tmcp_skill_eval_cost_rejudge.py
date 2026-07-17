@@ -14,11 +14,16 @@ from unittest.mock import patch
 
 import scripts.tmcp_skill_eval_cost_rejudge as cost_rejudge
 import scripts.tmcp_skill_eval_cost_rejudge_runtime as cost_rejudge_runtime
+import scripts.verify_cost_rejudge as verify_cost_rejudge
 from scripts.tmcp_skill_eval_campaign_protocol import (
     CAMPAIGN_PROTOCOL,
+    COST_REJUDGE_PROTOCOL,
     COST_REJUDGE_CRITERION,
+    COST_REJUDGE_SCHEMA_VERSION,
+    DISABLED_CODEX_FEATURES,
     _audit_event_stream,
     _sha256_file,
+    _sha256_text,
     cost_rejudge_output_schema,
     cost_rejudge_prompt,
     judge_prompt,
@@ -268,6 +273,233 @@ class CostRejudgeSourceTests(unittest.TestCase):
         )
         return plan_path, runs, trace
 
+    def _write_complete_rejudge_bundle(
+        self, root: Path
+    ) -> tuple[Path, Path, Path, Path]:
+        plan_path, runs, _ = self._write_one_source_campaign(root)
+        cost_bar = root / "cost-evaluation-bar.md"
+        cost_bar.write_text("faithful bar\n", encoding="utf-8")
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["experiment"] = {
+            "cost_rejudge_policy": {
+                "schema": "tmcp-composition-cost-rejudge-policy-v0.1",
+                "expected_trace_count": 1,
+                "model": "gpt-5.6-sol",
+                "judge_effort": "high",
+                "seed": 7,
+                "cost_bar_file": cost_bar.name,
+                "cost_bar_sha256": _sha256_file(cost_bar),
+                "raw_labels_preserved": True,
+                "complete_before_promotion": True,
+                "process_independence": {
+                    "fresh_judge": True,
+                    "fresh_session": True,
+                    "judge_blinded": True,
+                    "condition_hidden": True,
+                    "source_artifact_only": True,
+                    "isolated_session": True,
+                    "model_identity_independence_claimed": False,
+                },
+                "claim_boundary": "cost-only blind adjudication",
+            }
+        }
+        plan_path.write_text(json.dumps(plan), encoding="utf-8")
+        source_manifest_path = runs / "campaign-manifest.json"
+        source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8"))
+        source_manifest["plan_sha256"] = _sha256_file(plan_path)
+        source_manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
+        _, source_manifest, sources, _ = cost_rejudge._load_source_traces(
+            source_plan=plan_path,
+            source_runs=runs,
+            expected_trace_count=1,
+        )
+        cell = cost_rejudge.build_cost_rejudge_cells(sources, seed=7)[0]
+        source = sources[0]
+        output_dir = root / "independent-rejudge"
+        cell_dir = output_dir / "cells" / cell.cell_id
+        cell_dir.mkdir(parents=True)
+        schema = cost_rejudge_output_schema()
+        root_schema_path = output_dir / "cost-rejudge-output.schema.json"
+        root_schema_path.write_text(
+            json.dumps(schema, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        cell_schema_path = cell_dir / "cost-rejudge-output.schema.json"
+        cell_schema_path.write_text(
+            json.dumps(schema, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        verdict = {
+            "cost_regression": False,
+            "evidence": [
+                {
+                    "criterion": COST_REJUDGE_CRITERION,
+                    "status": "necessary",
+                    "citation": "The bar requires the one verification step.",
+                }
+            ],
+            "rationale": "The verification is necessary under the supplied bar.",
+        }
+        marker = self._write_stage(
+            cell_dir,
+            stage="cost-rejudge",
+            output_name="cost-rejudge.json",
+            output=json.dumps(verdict),
+            thread_id="independent-cost-judge",
+        )
+        marker["prompt_sha256"] = _sha256_text(
+            cost_rejudge_prompt(
+                source.row["prompt"],
+                source.runner_path.read_text(encoding="utf-8").strip(),
+                cost_bar=cost_bar.read_text(encoding="utf-8").strip(),
+            )
+        )
+        marker["output_schema_sha256"] = _sha256_file(cell_schema_path)
+        (cell_dir / "cost-rejudge-complete.json").write_text(
+            json.dumps(marker), encoding="utf-8"
+        )
+        launch_args = Namespace(
+            expected_trace_count=1,
+            model="gpt-5.6-sol",
+            judge_effort="high",
+            seed=7,
+            cost_bar_file=cost_bar,
+        )
+        binding = cost_rejudge.preregistered_cost_rejudge_binding_for_args(
+            plan, launch_args
+        )
+        prompt_context_sha256 = "sha256:prompt-input-preflight"
+        preflight_audit = {
+            "passed": True,
+            "message_count": 2,
+            "roles": ["developer", "user"],
+            "forbidden_markers": ["<skills_instructions>"],
+            "prompt_context_sha256": prompt_context_sha256,
+        }
+        source_summary = cost_rejudge._source_summary(
+            source_plan=plan_path,
+            source_runs=runs,
+            source_manifest=runs / "campaign-manifest.json",
+            source_traces=runs / "traces.json",
+            expected_trace_count=1,
+            cost_bar_file=cost_bar,
+            cost_bar=cost_bar.read_text(encoding="utf-8").strip(),
+        )
+        manifest = {
+            "schema": COST_REJUDGE_PROTOCOL,
+            "cost_rejudgments_schema": cost_rejudge.COST_REJUDGMENTS_SCHEMA,
+            "experiment_id": source_manifest["experiment_id"],
+            "source": source_summary,
+            "preregistered_cost_rejudge": binding,
+            "cost_rejudge_schema_version": COST_REJUDGE_SCHEMA_VERSION,
+            "cost_rejudge_schema_sha256": _sha256_text(
+                json.dumps(schema, sort_keys=True, separators=(",", ":"))
+            ),
+            "cost_rejudge_protocol_sha256": _sha256_text(
+                cost_rejudge_prompt("<TASK>", "<ARTIFACT>", cost_bar="<COST_BAR>")
+            ),
+            "model": "gpt-5.6-sol",
+            "judge_effort": "high",
+            "seed": 7,
+            "cell_count": 1,
+            "cells": [
+                {
+                    "order": cell.order,
+                    "cell_id": cell.cell_id,
+                    "trace_id": cell.trace_id,
+                    "source_trace_digest": cell.source_trace_digest,
+                    "matrix_row_id": cell.matrix_row_id,
+                    "runner_artifact": cell.runner_artifact,
+                    "runner_artifact_sha256": cell.runner_artifact_sha256,
+                    "raw_judge_artifact": cell.raw_judge_artifact,
+                    "raw_judge_artifact_sha256": cell.raw_judge_artifact_sha256,
+                }
+            ],
+            "isolation": {
+                "ephemeral_process_per_role": True,
+                "temporary_codex_home_per_role": True,
+                "skills_include_instructions": False,
+                "disabled_features": list(DISABLED_CODEX_FEATURES),
+                "event_stream_audited": True,
+                "sandbox": "read-only",
+                "prompt_input_preflight": preflight_audit,
+                "remote_schema_preflight_required": True,
+            },
+        }
+        (output_dir / "cost-rejudge-manifest.json").write_text(
+            json.dumps(manifest), encoding="utf-8"
+        )
+        (output_dir / "prompt-input-preflight.json").write_text(
+            json.dumps({"audit": preflight_audit, "prompt_input": []}),
+            encoding="utf-8",
+        )
+        remote_prompt = cost_rejudge_prompt(
+            "State whether the sentence requires unnecessary work.",
+            "The sentence states one necessary verification step.",
+            cost_bar=(
+                "Necessary verification work is not a cost regression; mark a "
+                "regression only for material unnecessary execution work."
+            ),
+        )
+        (output_dir / "remote-schema-preflight.json").write_text(
+            json.dumps(
+                {
+                    "schema": "tmcp-remote-schema-preflight-v0.1",
+                    "passed": True,
+                    "model": "gpt-5.6-sol",
+                    "effort": "high",
+                    "output_schema_sha256": _sha256_file(root_schema_path),
+                    "prompt_sha256": _sha256_text(remote_prompt),
+                }
+            ),
+            encoding="utf-8",
+        )
+        entry = {
+            "trace_id": cell.trace_id,
+            "source_trace_digest": cell.source_trace_digest,
+            "cost_regression": verdict["cost_regression"],
+            "evidence": verdict["evidence"],
+            "rationale": verdict["rationale"],
+            "provenance": {
+                "fresh_judge": True,
+                "fresh_session": True,
+                "judge_blinded": True,
+                "condition_hidden": True,
+                "source_artifact_only": True,
+                "isolated_session": True,
+                "prompt_context_sha256": prompt_context_sha256,
+                "disabled_features": list(DISABLED_CODEX_FEATURES),
+                "judge_event_audit": marker["event_audit"],
+                "rejudge_artifact_sha256": marker["output_sha256"],
+                "usage": marker["usage"],
+            },
+        }
+        (output_dir / "cost-rejudgments.json").write_text(
+            json.dumps(
+                {
+                    "schema": cost_rejudge.COST_REJUDGMENTS_SCHEMA,
+                    "source": source_summary,
+                    "preregistered_cost_rejudge": binding,
+                    "rejudgments": [entry],
+                }
+            ),
+            encoding="utf-8",
+        )
+        (output_dir / "cost-rejudge-summary.json").write_text(
+            json.dumps(
+                {
+                    "planned_cells": 1,
+                    "selected_cells": 1,
+                    "completed_cells": 1,
+                    "errors": 0,
+                    "cost_regressions": 0,
+                    "unique_judge_threads": 1,
+                    "expected_judge_threads_at_completion": 1,
+                    "usage": {"traces": 1, "input_tokens": 1, "output_tokens": 1},
+                }
+            ),
+            encoding="utf-8",
+        )
+        return plan_path, runs, cost_bar, output_dir
+
     def test_source_loader_is_read_only_and_binds_runner_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -423,6 +655,55 @@ class CostRejudgeSourceTests(unittest.TestCase):
                 "tmcp_skill_eval_cost_rejudge_source.py",
             }.issubset(cost_rejudge._harness_digests())
         )
+
+    def test_standalone_verifier_accepts_a_complete_policy_bound_bundle(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan_path, runs, cost_bar, output_dir = self._write_complete_rejudge_bundle(
+                root
+            )
+            before = {
+                path.relative_to(root): _sha256_file(path)
+                for path in root.rglob("*")
+                if path.is_file()
+            }
+
+            report = verify_cost_rejudge.verify_cost_rejudge(
+                source_plan=plan_path,
+                source_runs=runs,
+                cost_bar_file=cost_bar,
+                rejudge_runs=output_dir,
+                expected_trace_count=1,
+            )
+
+            self.assertTrue(report["static"]["promotion_ready"])
+            self.assertEqual(report["static"]["policy_binding"], "bound")
+            after = {
+                path.relative_to(root): _sha256_file(path)
+                for path in root.rglob("*")
+                if path.is_file()
+            }
+            self.assertEqual(after, before)
+
+    def test_standalone_verifier_rejects_a_sidecar_changed_after_execution(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan_path, runs, cost_bar, output_dir = self._write_complete_rejudge_bundle(
+                root
+            )
+            sidecar_path = output_dir / "cost-rejudgments.json"
+            sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+            sidecar["rejudgments"][0]["rationale"] = "Rewritten after review."
+            sidecar_path.write_text(json.dumps(sidecar), encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "does not match cell artifacts"):
+                verify_cost_rejudge.verify_cost_rejudge(
+                    source_plan=plan_path,
+                    source_runs=runs,
+                    cost_bar_file=cost_bar,
+                    rejudge_runs=output_dir,
+                    expected_trace_count=1,
+                )
 
     def test_rejudge_execution_writes_only_independent_output_and_keeps_prompt_blind(
         self,

@@ -100,6 +100,11 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   bind back to the exact policy: trace count, model, effort, seed, cost-bar file
   digest, and blinded-process declaration. Do not accept a self-consistent
   rejudge that silently changed any of those inputs.
+- Before scoring, independently reverify the persisted sidecar bundle against
+  the immutable source plan, traces, cost bar, event streams, output schemas,
+  and policy binding. A historical bundle whose retained cost bar no longer
+  matches its recorded digest is diagnostic history, not reproducible promotion
+  evidence.
 - Reject a composition trace from controlled analysis when its materialized
   source-bundle provenance differs from the preregistered matrix row. A valid
   runner manifest alone is not enough once a result is exported or reanalyzed.
@@ -141,5 +146,5 @@ The 2026-07-17 campaign is a source of these operational defaults. Its section
 effect remains a held candidate because the historical plan did not preregister the
 cluster/reliability contract. The later preregistered intact baseline likewise
 holds: it cleared the aggregate floor but missed `claim_calibration` and
-`regression_retest` at 2/6 each, and its independent cost sidecar found one
-materially unnecessary iterative loop.
+`regression_retest` at 2/6 each. Its legacy cost-sidecar result is diagnostic
+only because the retained cost bar does not match the bundle's recorded digest.
