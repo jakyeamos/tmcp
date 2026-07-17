@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `d35c62c` adds the complete 72-cell, six-family, three-configuration skill-evaluation evidence bundle with raw runner/judge artifacts and canonical score.
-- Verification: all published SHA-256 values match, JSON artifacts parse, and a fresh score replay reproduces the exact canonical `pattern_claims`.
+- Last completed change: `a158472` publishes evidence-bounded skill-pattern catalog and guidebook updates from the completed 72-cell campaign.
+- Verification: catalog exactly matches the generated scored catalog; JSON validation, score replay, and Pre-CR's 513-test run pass.
 
 ## Current Position
 
@@ -16,12 +16,12 @@
 - The checked-in catalog and guidebook preserve the candidate status, evidence scope, promotion gaps, suspected-only static finding, and reproducible evidence bundle.
 - Route inference now uses lexical-start matching for objectives and source evidence, so promotion-oriented evaluation prompts no longer activate motion guidance.
 - Revised experiment `skill-eval-95cfdd0ee52ff673` contains six semantically distinct workflow-stage fixtures across original and exact one-section-ablation conditions, three pinned reasoning configurations, and two repetitions.
-- The 72-cell matrix completed with 144 unique runner/judge threads and no invalidated stages; raw evidence is committed and corpus guidance remains an isolated pending change.
+- The 72-cell matrix completed with 144 unique runner/judge threads and no invalidated stages; raw evidence, catalog, and guidebook are committed on the isolated branch.
 - Statistical contrast prose now composes as `general_task`; genuine color/browser contrast still activates accessibility behavior.
 
 ## Next Step
 
-- Commit the completed 72-cell evidence bundle, then update the catalog and guidebook only to the level the controlled result earns.
+- Run final repository verification, record the TMCP receipt, and push the isolated branch.
 
 ## Blockers
 
