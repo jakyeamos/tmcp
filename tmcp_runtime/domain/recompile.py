@@ -265,6 +265,10 @@ def packet_diff(
 ) -> Packet:
     prev_atoms = set(_string_list(previous.get("active_atoms")))
     curr_atoms = set(_string_list(current.get("active_atoms")))
+    previous_required_reads = _string_list(previous.get("required_reads"))
+    current_required_reads = _string_list(current.get("required_reads"))
+    previous_required_read_set = set(previous_required_reads)
+    current_required_read_set = set(current_required_reads)
     prev_routes = set(
         _string_list((previous.get("task_identity") or {}).get("active_routes"))
     )
@@ -372,6 +376,24 @@ def packet_diff(
         "added": added,
         "unchanged": sorted(prev_atoms & curr_atoms),
         "phase_change": phase_change,
+        "required_reads": {
+            "added": [
+                path
+                for path in current_required_reads
+                if path not in previous_required_read_set
+            ],
+            "dropped": [
+                path
+                for path in previous_required_reads
+                if path not in current_required_read_set
+            ],
+            "unchanged": [
+                path
+                for path in current_required_reads
+                if path in previous_required_read_set
+            ],
+            "all": current_required_reads,
+        },
     }
     if resolved_graph_diff is not None:
         graph_phase_change = resolved_graph_diff.get("phase_change")

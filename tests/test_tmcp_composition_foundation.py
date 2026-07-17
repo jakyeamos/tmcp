@@ -8,7 +8,9 @@ from typing import Any
 from tmcp_runtime.domain import composition, packets
 from tmcp_runtime.domain.harvest_nodes import (
     content_digest_for,
+    node_source_role,
     source_node_from_text,
+    source_type_for,
 )
 from tmcp_runtime.services.harvest import harvest_skills
 
@@ -29,7 +31,9 @@ class CompositionFoundationTests(unittest.TestCase):
             skill.write_text("# Review\nVerify the result.\n")
             reference = root / "docs" / "references" / "review.md"
             reference.parent.mkdir(parents=True)
-            reference.write_text("# Reference\nSupporting review notes.\n")
+            reference.write_text(
+                "# Reference\nSupporting review workflow notes.\n"
+            )
             fixture = root / "tests" / "fixtures" / "review" / "SKILL.md"
             fixture.parent.mkdir(parents=True)
             fixture.write_text("# Fixture Skill\nNever activate implicitly.\n")
@@ -44,6 +48,10 @@ class CompositionFoundationTests(unittest.TestCase):
             self.assertEqual(
                 nodes["docs/references/review.md"]["source_role"],
                 "supporting_reference",
+            )
+            self.assertEqual(
+                nodes["docs/references/review.md"]["source_type"],
+                "project_documentation",
             )
             fixture_node = nodes["tests/fixtures/review/SKILL.md"]
             self.assertEqual(fixture_node["source_role"], "evidence_only")
@@ -66,6 +74,46 @@ class CompositionFoundationTests(unittest.TestCase):
             self.assertEqual(result["source_count"], 1)
             self.assertEqual(result["source_nodes"][0]["source_role"], "active_skill")
             self.assertTrue(result["source_nodes"][0]["activation_eligible"])
+
+    def test_reference_paths_remain_supporting_even_when_explicitly_scoped(
+        self,
+    ) -> None:
+        node = {
+            "relative_path": "docs/references/review.md",
+            "source_type": "skill_definition",
+            "source_role": "active_skill",
+        }
+
+        self.assertEqual(
+            node_source_role(node, explicitly_scoped=True),
+            "supporting_reference",
+        )
+        self.assertEqual(
+            source_type_for(
+                Path("docs/references/review.md"),
+                "docs/references/review.md",
+                "# Reference\nThis workflow must stay advisory.\n",
+            ),
+            "project_documentation",
+        )
+
+    def test_workflow_path_is_active_without_content_keyword_inference(self) -> None:
+        self.assertEqual(
+            source_type_for(
+                Path("workflows/release.md"),
+                "workflows/release.md",
+                "# Release\nBound the deployment.\n",
+            ),
+            "workflow_prompt",
+        )
+        self.assertEqual(
+            source_type_for(
+                Path("notes/release.md"),
+                "notes/release.md",
+                "# Notes\nThis describes a workflow but is not one.\n",
+            ),
+            "markdown_process_doc",
+        )
 
     def test_content_digest_normalizes_line_endings_and_changes_with_content(
         self,
@@ -237,6 +285,22 @@ class CompositionFoundationTests(unittest.TestCase):
         self.assertEqual(
             first["evidence_citations"][0]["content_digest"],
             content_digest_for("# Review\nVerify the output.\n"),
+        )
+
+    def test_multi_root_nodes_with_the_same_relative_path_keep_distinct_ids(
+        self,
+    ) -> None:
+        first = {"id": "node-first", "relative_path": "SKILL.md"}
+        second = {"id": "node-second", "relative_path": "SKILL.md"}
+
+        merged = composition.merge_composition_nodes(
+            [first],
+            [second, dict(first)],
+        )
+
+        self.assertEqual(
+            [node["id"] for node in merged],
+            ["node-first", "node-second"],
         )
 
     def test_zero_confidence_general_task_is_not_shortcut_eligible(self) -> None:

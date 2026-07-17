@@ -34,7 +34,7 @@ def _node(
         "signal_excerpt": text,
         "behavior_atoms": [atom],
         "content_digest": f"digest-{node_id}",
-        "routing_metadata": {},
+        "routing_metadata": {"required_reads": [f"reads/{node_id}.md"]},
         "trust": "untrusted_harvested_text",
     }
 
@@ -216,6 +216,17 @@ class CompositionIntegrationTests(unittest.TestCase):
         self.assertEqual(
             set(packet["deferred_atoms"]), {"research-atom", "verification-atom"}
         )
+        self.assertEqual(
+            packet["required_reads"],
+            [
+                "AGENTS.md",
+                "reads/governing.md",
+                "skills/implement/SKILL.md",
+                "reads/implement.md",
+            ],
+        )
+        self.assertNotIn("reads/research.md", packet["required_reads"])
+        self.assertNotIn("reads/verify.md", packet["required_reads"])
         instructions = " ".join(packet["active_instructions"])
         self.assertIn("implement specialist", instructions)
         self.assertIn("evidence brief", instructions)
@@ -248,6 +259,7 @@ class CompositionIntegrationTests(unittest.TestCase):
         self.assertFalse(packet["semantic_proposal_validation"]["accepted"])
         self.assertEqual(packet["active_instructions"], [])
         self.assertEqual(packet["active_atoms"], [])
+        self.assertEqual(packet["required_reads"], [])
         self.assertEqual(packet["tool_script_prompts"], [])
         self.assertEqual(packet["verification_gates"], [])
         self.assertIn(

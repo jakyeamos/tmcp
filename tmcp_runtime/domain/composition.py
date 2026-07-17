@@ -427,10 +427,12 @@ def merge_composition_nodes(
     merged: list[Node] = []
     seen: set[str] = set()
     for node in [*primary_nodes, *additional_nodes]:
+        node_id = str(node.get("id") or "")
         rel_path = str(node.get("relative_path") or "")
-        if not rel_path or rel_path in seen:
+        identity = f"id:{node_id}" if node_id else f"path:{rel_path}"
+        if not rel_path or identity in seen:
             continue
-        seen.add(rel_path)
+        seen.add(identity)
         merged.append(node)
         if len(merged) >= max_nodes:
             break

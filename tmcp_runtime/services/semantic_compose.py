@@ -20,6 +20,18 @@ def _routing_metadata(node: Mapping[str, Any]) -> dict[str, Any]:
     return metadata if isinstance(metadata, dict) else {}
 
 
+def _stage_required_reads(active_nodes: list[dict[str, Any]]) -> list[str]:
+    """Hydrate only governing and current-stage sources plus their declared reads."""
+
+    reads: list[str] = []
+    for node in active_nodes:
+        source_path = str(node.get("relative_path") or node.get("path") or "")
+        if source_path:
+            reads.append(source_path)
+        reads.extend(string_list(_routing_metadata(node).get("required_reads")))
+    return ordered_unique(reads)[:12]
+
+
 def _semantic_source_nodes(
     plan: Mapping[str, Any],
     preflight: Mapping[str, Any],
@@ -82,6 +94,7 @@ def _apply_rejected_semantic_proposal(
     packet["ok"] = False
     packet["active_instructions"] = []
     packet["active_atoms"] = []
+    packet["required_reads"] = []
     packet["tool_script_prompts"] = []
     packet["verification_gates"] = []
     packet["stop_conditions"] = []
@@ -174,6 +187,7 @@ def apply_semantic_composition(
         ]
     )
     packet["active_instructions"] = ordered_unique(active_instructions)[:10]
+    packet["required_reads"] = _stage_required_reads(active_nodes)
     packet["tool_script_prompts"] = ordered_unique(
         [
             prompt

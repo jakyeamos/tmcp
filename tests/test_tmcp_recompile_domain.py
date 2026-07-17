@@ -88,6 +88,7 @@ class RecompileDomainTests(unittest.TestCase):
             "active_atoms": ["keep", "new"],
             "task_identity": {"active_routes": ["keep-route", "new-route"]},
             "phase": "implementation",
+            "required_reads": ["AGENTS.md", "skills/implement/SKILL.md"],
         }
         result = recompile.packet_diff(
             previous,
@@ -142,6 +143,15 @@ class RecompileDomainTests(unittest.TestCase):
         self.assertEqual(result["unchanged"], ["keep"])
         self.assertEqual(
             result["phase_change"], {"from": "research", "to": "implementation"}
+        )
+        self.assertEqual(
+            result["required_reads"],
+            {
+                "added": ["AGENTS.md", "skills/implement/SKILL.md"],
+                "dropped": [],
+                "unchanged": [],
+                "all": ["AGENTS.md", "skills/implement/SKILL.md"],
+            },
         )
 
     def test_packet_diff_includes_all_graph_runtime_surfaces(self) -> None:

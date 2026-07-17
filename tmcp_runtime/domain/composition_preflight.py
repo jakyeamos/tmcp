@@ -9,6 +9,7 @@ import unicodedata
 from typing import Any
 
 from .composition import composition_terms
+from .harvest_nodes import node_source_role
 from .scoped_seeds import normalize_scoped_seed, scoped_seed_graph_metadata
 
 
@@ -108,42 +109,10 @@ def _source_digest(node: dict[str, Any], excerpt: str) -> str:
     return stable_digest(excerpt)
 
 
-def _is_implicitly_evidence_only(relative_path: str) -> bool:
-    parts = {part for part in relative_path.lower().split("/") if part}
-    return bool(
-        parts.intersection(
-            {"test", "tests", "fixture", "fixtures", "example", "examples"}
-        )
-    )
-
-
 def source_role_for(node: dict[str, Any], *, explicitly_scoped: bool = False) -> str:
-    """Classify a harvested source without allowing supporting text to activate."""
+    """Delegate composition authority to the canonical harvest role policy."""
 
-    explicit_role = str(node.get("source_role") or node.get("composition_role") or "")
-    if explicit_role in SOURCE_ROLES and not (
-        explicitly_scoped and explicit_role == "evidence_only"
-    ):
-        return explicit_role
-    relative_path = str(node.get("relative_path") or node.get("path") or "")
-    if _is_implicitly_evidence_only(relative_path) and not explicitly_scoped:
-        return "evidence_only"
-    source_type = str(node.get("source_type") or "")
-    if source_type in {"agent_operating_contract", "cursor_rule"}:
-        return "governing_instruction"
-    if source_type in {
-        "skill_definition",
-        "scoped_packet_seed",
-        "workflow_prompt",
-    }:
-        return "active_skill"
-    if source_type in {
-        "project_documentation",
-        "markdown_process_doc",
-        "github_process",
-    }:
-        return "supporting_reference"
-    return "evidence_only"
+    return node_source_role(node, explicitly_scoped=explicitly_scoped)
 
 
 def _chunk_text(text: str, max_chars: int) -> list[tuple[int, int, str]]:
