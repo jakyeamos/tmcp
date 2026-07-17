@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `80cfbdc` hardens skill-evaluation campaigns with live remote-schema preflight, bounded audited transient retries, an intact-only baseline mode, policy-bound cross-model confirmation, and corpus guidebook corrections.
-- Verification: 532 tests (3 skipped), Ruff, basedpyright, compile checks, TMCP doctor, a synthetic artifact-free live schema preflight, and Pre-CR changed-line readiness pass. The approved 72-artifact live rejudge remains immutable with 72 unique fresh judge threads and a digest-valid complete sidecar.
+- Last completed change: `716e47d` preregisters a reviewed 36-cell `eval-skills` baseline, exposes its cost sidecar through the public CLI contract, and requires per-model schema preflight plus inspectable first-principles provenance.
+- Verification: 537 tests (3 skipped), Ruff, basedpyright, compile checks, contract check, dry-run readiness, and Pre-CR changed-line readiness pass. The approved 72-artifact live rejudge remains immutable with 72 unique fresh judge threads and a digest-valid complete sidecar.
 
 ## Current Position
 
@@ -26,15 +26,17 @@
 - Fresh plan generation can bind `tmcp-skill-eval-campaign-policy-v0.1` into experiment identity; launch readiness enforces the pinned matrix, cluster/control contract, baseline shape, and independent judge model before any campaign artifact is sent.
 - The campaign harness accepts three explicit model/effort configurations, runs original-only baseline reliability studies as 36 cells, and treats cross-model confirmation as an explicit policy and scoring gate rather than a same-model reasoning sweep.
 - A passed remote-schema preflight receipt is persisted alongside every non-dry campaign; capacity/rate-limit/network retries are bounded, classified, archived, and auditable.
+- The fresh baseline pins independently reviewed directness repairs, three distinct available Codex runner identifiers (`gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`), a distinct `gpt-5.5` judge, an inspectable first-principles file, and an all-36-trace cost bar.
+- The generated plan and dry-run select exactly 36 original-only cells. No live target-skill prompt, model schema probe, runner, judge, or cost-sidecar call was sent after the external-execution gate rejected it.
 
 ## Next Step
 
-- Repair and independently review directness for the `regression_retest` and `failure_diagnosis` fixtures, then pin a fresh multi-model baseline policy and run its 36-cell intact-only campaign. Do not run `Workflow` micro-ablations against this held baseline.
+- Obtain explicit approval to send the pinned target skill and fixtures to the external Codex service, then run the prepared 36-cell intact-only campaign and its 36-trace independent cost rejudge. Do not run `Workflow` micro-ablations against this held baseline.
 
 ## Blockers
 
 - Corpus promotion is held: the historical plan lacks a predeclared clustered-analysis policy and its regression-retest intact-control rate is 0/6.
-- The fresh baseline is intentionally not launched: its two known fixture directness defects must be corrected and reviewed before new runner/judge prompts are sent.
+- The fresh baseline is unlaunched pending explicit approval for the new external Codex model calls; its fixture repairs, model matrix, policy, generated plan, and local dry-run are complete.
 
 ## Risks
 
