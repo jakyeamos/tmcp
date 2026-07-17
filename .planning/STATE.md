@@ -30,6 +30,9 @@ are present. Release proof remains pending real host-run observations.
 
 ## Completed Scope
 
+- `ee915b6` keeps new benchmark, cache, redaction, and recipe fixtures compatible
+  with strict release secret scanning; the full allowlisted working-tree content
+  scan and 80 focused tests pass without changing scanner policy.
 - `5fd181f` breaks one long adapter wiring token at the call site so strict
   archive secret scanning does not misclassify code; behavior and scanner policy
   are unchanged and 24 focused tests pass.
