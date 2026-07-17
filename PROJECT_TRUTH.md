@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed change: `58dc6ef` adds the preregistered deterministic composition contract: generic research wording no longer activates frontend behavior, and test fixtures are evidence-only rather than packet instructions or declared reads.
-- Verification: 544 tests pass (3 skipped); the focused composition/source-role suite passes 72 tests, compiler checks and TMCP doctor pass, and a real project-root replay records `general_task` with no fixture citation, instruction, or required read. The commit hook could not run `pre-cr` because its CLI is unavailable on PATH.
+- Last completed change: `2058bcc` preregisters the Explore Unknowns Stage-1 source-bundle composition study and makes the campaign validator/scorer bind both arms and every trace to one exact packet, advisory receipt, task evidence, and materialized attachment.
+- Verification: 552 tests pass (3 skipped); source-bundle plan regeneration, API validation, 72-cell dry-run, compiler checks, TMCP doctor, and a project-root `reaction` replay pass. The commit hook could not run `pre-cr` because its CLI is unavailable on PATH.
 
 ## Current Position
 
@@ -34,16 +34,17 @@
 - Local TMCP + `explore-unknowns` and TMCP + `repo-behavior-spec-loop` packet probes retain their specialized evidence and stop conditions without activating `frontend_implementation` from pre-action wording. The `refactor-clean` probe is selection-only pending behavioral fixtures.
 - Composition contract v1 is a deterministic regression baseline, not a behavioral claim: it preserves a valid React/motion control while keeping `tests/fixtures/**` harvest-visible but activation-ineligible, including through declared loads.
 - The local project-root composition replay is recorded with advisory receipt `packet-f62c9fd667c8`; its deterministic pass does not promote a skill-pair or wording rule.
+- The reviewed v1 composition plan has six Stage-1 fixtures across campaign sequencing, evidence-boundary, and promotion-gate families; `packet_only` versus exact `packet_plus_explore` yields 72 blinded cells. It can test only the delivery effect of the pinned source bundle, not live selection, adherence, or corpus quality.
 
 ## Next Step
 
-- Independently review and preregister a behavioral composition fixture family using the v1 source-role contract: no-specialized-skill control versus one compatible, source-role-validated pair, with blind runners, separate judges, repetitions, and cost/safety sidecars. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
+- Obtain fresh approval to run the preregistered `composition-study-0a0b0787cf4c31e0` 72-cell blind runner/judge campaign, then independently rejudge and score it. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
 
 ## Blockers
 
 - Corpus promotion is held: the historical plan lacks a predeclared clustered-analysis policy and its regression-retest intact-control rate is 0/6.
 - The fresh baseline is held: `claim_calibration` and `regression_retest` are below the preregistered 0.5 per-fixture floor, and the independent cost sidecar has one unresolved regression. The minimal target revision is diagnosed but intentionally not yet applied.
-- Composition guidebook promotion is held: v1 proves only deterministic routing and source-role behavior; no blind behavioral pair/control contrast has been run.
+- Composition guidebook promotion is held: the new behavioral pair/control study is preregistered and dry-run only; no external runner or judge evidence exists yet.
 
 ## Risks
 
@@ -54,4 +55,5 @@
 - Anti-pattern claims still require a future isolated removal or presence intervention; static matches remain suspected only.
 - The attachment-only campaign protocol has no selection/adherence telemetry, so its diagnostic scorecard cannot be repurposed as behavioral activation evidence.
 - The next external model run needs fresh approval after the target revision and v3 fixture review; the corrected local report is not new remote evidence.
+- A positive source-bundle result would still be a delivery effect with length/framing confounded inside the pinned bundle, not proof of TMCP live selection or independent source adherence.
 - `pre-cr` is unavailable on PATH, so the project hook warns instead of supplying its changed-line readiness signal; direct tests, compiler checks, and the release-package gate remain required until that tool is restored.
