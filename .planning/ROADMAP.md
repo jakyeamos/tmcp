@@ -107,7 +107,8 @@ outcomes while preserving deterministic compatibility.
   and `d316542` complete runtime-capsule rehydration, canonical source
   activation, semantic phase-order guards, session-only continuation replay,
   recipe reopening, release-evidence admissibility, extracted-package session
-  smoke, and full-suite fixture compatibility.
+  smoke, and full-suite fixture compatibility. `543c7ff` keeps the benchmark
+  fixture archive-safe without relaxing release secret scanning.
   `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
