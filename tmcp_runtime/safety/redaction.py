@@ -37,6 +37,13 @@ def looks_high_entropy(value: str) -> bool:
         return False
     if not re.search(r"[0-9+/=_-]", value):
         return False
+    path_parts = value.split("/")
+    if (
+        len(path_parts) == 2
+        and all(re.fullmatch(r"[A-Za-z0-9._-]+", part) for part in path_parts)
+        and not looks_high_entropy(path_parts[-1])
+    ):
+        return False
     if (
         re.fullmatch(r"_?[A-Z]+(?:_[A-Z]+)+", value)
         or re.fullmatch(r"_?[a-z]+(?:[_/-][a-z]+)+(?:=_?[a-z]+(?:[_-][a-z]+)+)?", value)
