@@ -113,6 +113,8 @@ outcomes while preserving deterministic compatibility.
   source spellings while preserving the strict archive policy. `8aef995`
   separates session phase-binding persistence and continuation-guard coverage,
   restoring the source-size budgets and explicit shipped-module compilation.
+  `9d32d1d` identifies the shared test harness and clears the final quality-gate
+  advisory without adding synthetic assertions.
   `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.

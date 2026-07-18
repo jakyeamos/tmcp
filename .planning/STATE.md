@@ -19,18 +19,19 @@ admissibility. `d316542` aligns legacy fixtures with the signed capsule contract
 `543c7ff` keeps the strict archive scanner intact while making its benchmark
 fixture archive-safe. `4b69d5b` removes all remaining release-scanner false
 positives without relaxing scanner policy or packet behavior. `8aef995`
-restores source-size budgets with storage and test responsibility splits; one
-test-helper classification warning remains to clear. The 825-test suite passes;
-0.6.0 remains blocked on real host-run outcomes.
+restores source-size budgets with storage and test responsibility splits.
+`9d32d1d` explicitly identifies the shared test harness; the normal quality
+gate now passes cleanly. The 825-test suite passes; 0.6.0 remains blocked on
+real host-run outcomes.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Runtime hardening, archive-scanner hygiene, and source-size budgets
-  are complete; test-helper quality-gate cleanup, clean-package verification,
-  real benchmark evidence, and publication remain pending.
+- **Status:** Runtime hardening, archive-scanner hygiene, source-size budgets,
+  and quality-gate hygiene are complete; clean-package verification, real
+  benchmark evidence, and publication remain pending.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -44,8 +45,9 @@ test-helper classification warning remains to clear. The 825-test suite passes;
   test identifier. `4b69d5b` removes the remaining identifier-shaped false
   positives without an allowlist or heuristic exemption. `8aef995` isolates
   session phase bindings and continuation tests, restoring the 600/900-line
-  budgets while retaining package compilation. Full discovery passes 825 tests
-  (3 expected skips); no dogfood receipt was written.
+  budgets while retaining package compilation. `9d32d1d` marks the shared test
+  harness honestly, clearing the final quality-gate advisory. Full discovery
+  passes 825 tests (3 expected skips); no dogfood receipt was written.
 - `a6591e1` restores the enforced source-size budgets without exceptions:
   benchmark bundle scanning, composition scoring, project-recipe promotion
   validation, and the two broad benchmark test owners now have focused siblings.
