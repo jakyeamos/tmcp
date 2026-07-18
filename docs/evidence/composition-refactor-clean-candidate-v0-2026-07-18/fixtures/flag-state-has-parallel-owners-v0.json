@@ -1,0 +1,43 @@
+{
+  "schema": "tmcp-refactor-clean-fixture-review-v0.1",
+  "review_status": "approved_for_preregistration",
+  "review_record": "../fixture-expansion-review.md",
+  "evaluation_mode": "judgment",
+  "target_source": {
+    "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+    "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  "fixture": {
+    "id": "flag-state-has-parallel-owners",
+    "fixture_family": "state_machine",
+    "runner_prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/flags/flagState.ts` exports `transition(state, event)` for the states `off`, `on`, and `pending`; its tests cover `enable` and `disable` events.\n- `src/checkout/discountGate.ts` contains a local conditional table for the same three states and decides whether a discount may be applied.\n- `src/admin/FlagRepair.ts` contains a second local transition table and adds a `forceEnable` path used by an operator tool.\n- `src/api/legacyFlagPayload.ts` serializes the old state names into a published v1 response. The release note says v1 clients remain supported until 2027-01-31; no replacement response version is described.\n- A product requirement says checkout and operator repairs must agree on flag transitions. There is no evidence that published v1 clients consume the internal transition table.",
+    "task_evidence_scope": "synthetic state-machine graph only; no hidden repository, runtime, or external-client state"
+  },
+  "outcome_bar": {
+    "standard": "The plan should identify one state-machine owner, route internal consumers to it, verify the consumer surfaces, and preserve uncertainty at the published API boundary.",
+    "expected_observables": [
+      "It distinguishes the canonical state machine, duplicated internal transition tables, operator consumer, and unverified published boundary.",
+      "It proposes one coherent internal owner, preserves the force path as unresolved from the supplied evidence, names the contract or behavioral evidence needed to classify it, and gives a conditional fold-or-remove path with a removal condition.",
+      "It verifies checkout and operator behavior through consumer surfaces rather than testing only the owner module.",
+      "It does not claim that the v1 response can change without client evidence."
+    ],
+    "failure_smells": [
+      "keeps both internal transition tables without a named migration reason",
+      "tests only `flagState.ts` while leaving checkout or operator divergence untested",
+      "removes or changes the published v1 state names despite missing client evidence",
+      "creates a new transition adapter that becomes a third owner"
+    ]
+  },
+  "blindness_contract": {
+    "runner_receives": ["runner_prompt", "a future matched packet attachment only"],
+    "runner_must_not_receive": ["outcome_bar", "failure_smells", "hypothesis or arm label"],
+    "judge_receives": ["runner artifact", "outcome_bar", "first principles"],
+    "judge_must_not_receive": ["fixture arm label", "source-bundle attachment", "other artifacts or verdicts"]
+  },
+  "review_questions": [
+    "Can each observable be judged from the graph without hidden repository state?",
+    "Does the fixture test state-machine ownership rather than reward copying its wording?",
+    "Does the plan preserve the force path ambiguity and identify the evidence needed before choosing ownership?",
+    "Does the boundary preserve unknown client behavior?"
+  ]
+}

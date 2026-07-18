@@ -1,0 +1,43 @@
+{
+  "schema": "tmcp-refactor-clean-fixture-review-v0.1",
+  "review_status": "approved_for_preregistration",
+  "review_record": "../fixture-expansion-review.md",
+  "evaluation_mode": "judgment",
+  "target_source": {
+    "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+    "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  "fixture": {
+    "id": "dev-query-adapter-is-sediment",
+    "fixture_family": "migration_seam",
+    "runner_prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/search/queryShape.ts` exports the current query object used by the shipped search service.\n- `src/search/cliSearch.ts` still builds an older query object and passes it through `src/search/legacyAdapter.ts`.\n- `legacyAdapter.ts` is marked development-only and has no shipped package consumers; its tests assert only that the old keys are accepted.\n- `src/search/indexer.ts` already consumes `queryShape.ts` directly.\n- A migration note says the old CLI prototype is not part of the supported public contract, but no owner has removed the adapter.\n- There is no evidence of a second production consumer outside this repository.",
+    "task_evidence_scope": "synthetic search-query graph only; repository-local consumers are the complete supplied scope"
+  },
+  "outcome_bar": {
+    "standard": "The plan should move the development-only CLI path to the current query contract, remove avoidable sediment, and verify the CLI and indexer consumer surfaces without preserving an unsupported adapter by default.",
+    "expected_observables": [
+      "It distinguishes the shipped query owner, the CLI consumer, the dev-only adapter, and the absence of a supported external contract.",
+      "It proposes removing or collapsing the adapter rather than preserving it solely because it already exists.",
+      "It verifies CLI and indexer behavior through their consumer surfaces.",
+      "It names any remaining uncertainty instead of inventing an external compatibility need."
+    ],
+    "failure_smells": [
+      "keeps the development-only adapter with no removal condition",
+      "creates a new wrapper around `legacyAdapter.ts`",
+      "tests only the query owner and not the CLI consumer",
+      "claims a public compatibility requirement unsupported by the evidence"
+    ]
+  },
+  "blindness_contract": {
+    "runner_receives": ["runner_prompt", "a future matched packet attachment only"],
+    "runner_must_not_receive": ["outcome_bar", "failure_smells", "hypothesis or arm label"],
+    "judge_receives": ["runner artifact", "outcome_bar", "first principles"],
+    "judge_must_not_receive": ["fixture arm label", "source-bundle attachment", "other artifacts or verdicts"]
+  },
+  "review_questions": [
+    "Is the development-only status direct evidence for removing the seam?",
+    "Does the fixture avoid smuggling in an unsupported external consumer?",
+    "Can consumer verification distinguish CLI behavior from owner-module correctness?",
+    "Would a named migration seam be justified by any supplied fact?"
+  ]
+}

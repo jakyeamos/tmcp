@@ -110,12 +110,23 @@ def verify_refactor_clean_candidate(
     fixture_families: list[str] = []
     fixture_digests: list[str] = []
     fixture_reports: list[dict[str, Any]] = []
+    review_record_paths: set[Path] = set()
     for path in fixture_paths:
         if not path.is_file():
             gaps.append("fixture_file_missing")
             continue
         fixture = _load_object(path)
         fixture_gaps = _fixture_gaps(fixture, expected_source_digest=expected_source_digest)
+        review_record_ref = fixture.get("review_record")
+        review_record_path = (
+            (path.parent / str(review_record_ref)).resolve()
+            if isinstance(review_record_ref, str) and review_record_ref
+            else None
+        )
+        if review_record_path is None or not review_record_path.is_file():
+            fixture_gaps.append("fixture_review_record_missing")
+        else:
+            review_record_paths.add(review_record_path)
         gaps.extend(fixture_gaps)
         task = fixture.get("fixture")
         if isinstance(task, dict):
@@ -123,7 +134,17 @@ def verify_refactor_clean_candidate(
             fixture_families.append(str(task.get("fixture_family") or ""))
         fixture_digest = _fixture_digest(fixture)
         fixture_digests.append(fixture_digest)
-        fixture_reports.append({"path": str(path), "digest": fixture_digest, "gaps": fixture_gaps})
+        fixture_reports.append(
+            {
+                "path": str(path),
+                "digest": fixture_digest,
+                "review_record": str(review_record_path) if review_record_path else None,
+                "review_record_sha256": _sha256_file(review_record_path)
+                if review_record_path is not None and review_record_path.is_file()
+                else None,
+                "gaps": fixture_gaps,
+            }
+        )
 
     if len(set(fixture_ids)) != len(fixture_ids) or "" in fixture_ids:
         gaps.append("fixture_ids_not_unique")
@@ -132,24 +153,37 @@ def verify_refactor_clean_candidate(
     if len(set(fixture_families)) < MIN_FIXTURE_FAMILIES:
         gaps.append("fixture_family_count_below_minimum")
 
-    review_record = candidate_dir / "fixture-review.md"
-    if not review_record.is_file():
+    if not review_record_paths:
         gaps.append("fixture_review_record_missing")
+    review_records = [
+        {
+            "path": str(path),
+            "sha256": _sha256_file(path),
+        }
+        for path in sorted(review_record_paths)
+    ]
+    unique_gaps = sorted(set(gaps))
+    if any(gap.startswith("fixture_review") for gap in unique_gaps):
+        next_gate = "complete_independent_fixture_review"
+    elif len(fixture_paths) < MIN_FIXTURES:
+        next_gate = "extend_reviewed_fixture_set"
+    else:
+        next_gate = "archive_source_bundle_and_packet_receipt"
     return {
         "schema": VERIFICATION_SCHEMA,
-        "ready": not gaps,
+        "ready": not unique_gaps,
         "candidate_state": "approved_for_preregistration",
-        "preregistration_ready": not gaps,
+        "preregistration_ready": not unique_gaps,
         "model_calls_authorized": False,
-        "next_gate": "extend_reviewed_fixture_set" if len(fixture_paths) < MIN_FIXTURES else "archive_source_bundle_and_packet_receipt",
-        "gaps": sorted(set(gaps)),
+        "next_gate": next_gate,
+        "gaps": unique_gaps,
         "candidate_dir": str(candidate_dir),
         "fixture_count": len(fixture_paths),
         "fixture_family_count": len(set(fixture_families)),
         "fixture_digests": fixture_digests,
         "source_sha256": expected_source_digest,
         "first_principles_sha256": _sha256_file(first_principles) if first_principles.is_file() else None,
-        "review_record_sha256": _sha256_file(review_record) if review_record.is_file() else None,
+        "review_records": review_records,
         "packet_probe_receipt_sha256": _sha256_file(packet_probe_receipt) if packet_probe_receipt.is_file() else None,
         "synthetic_no_tool_boundary": True,
         "fixtures": fixture_reports,

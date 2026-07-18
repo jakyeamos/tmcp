@@ -1,0 +1,43 @@
+{
+  "schema": "tmcp-refactor-clean-fixture-review-v0.1",
+  "review_status": "approved_for_preregistration",
+  "review_record": "../fixture-expansion-review.md",
+  "evaluation_mode": "judgment",
+  "target_source": {
+    "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+    "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  "fixture": {
+    "id": "marker-geometry-has-placeholder-drift",
+    "fixture_family": "asset_orientation",
+    "runner_prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/map/markerGeometry.ts` exports the anchor and orientation for an asymmetric production marker asset. Its tests currently use only a symmetric placeholder.\n- `src/map/markerRenderer.ts` imports the geometry owner and renders the marker on the live map.\n- `src/export/staticMap.ts` centers the marker independently before exporting a static image.\n- `tests/fixtures/markerPlaceholder.svg` is symmetric across its vertical axis, while the production asset has a visible left notch and a documented anchor point.\n- A design note says map and static exports must frame the same marker. The production asset file is not included in this evidence and its current consumers outside these modules are unknown.",
+    "task_evidence_scope": "synthetic rendering graph only; no hidden asset, repository, or runtime state"
+  },
+  "outcome_bar": {
+    "standard": "The plan should keep one geometry owner, port both rendering consumers to it, and explicitly re-verify asymmetric orientation when the real asset replaces the placeholder.",
+    "expected_observables": [
+      "It identifies the geometry owner, both consumers, the symmetric placeholder limitation, and the unknown external consumer scope.",
+      "It avoids a second coordinate or anchor computation in the static exporter.",
+      "It proposes consumer-level checks that expose framing and orientation divergence with the real asymmetric asset.",
+      "It preserves uncertainty about consumers not present in the supplied graph."
+    ],
+    "failure_smells": [
+      "keeps an independent centering calculation in the static exporter",
+      "proves only that the owner module returns a value",
+      "uses the symmetric placeholder as proof that orientation is correct",
+      "claims that unknown external consumers can be safely changed"
+    ]
+  },
+  "blindness_contract": {
+    "runner_receives": ["runner_prompt", "a future matched packet attachment only"],
+    "runner_must_not_receive": ["outcome_bar", "failure_smells", "hypothesis or arm label"],
+    "judge_receives": ["runner artifact", "outcome_bar", "first principles"],
+    "judge_must_not_receive": ["fixture arm label", "source-bundle attachment", "other artifacts or verdicts"]
+  },
+  "review_questions": [
+    "Does the graph make the orientation risk observable without giving away the answer?",
+    "Does the bar require consumer verification and real-asset rechecking?",
+    "Is the placeholder asymmetry distinction a first-principles requirement rather than a style preference?",
+    "Are absent consumers kept explicitly unknown?"
+  ]
+}

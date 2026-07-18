@@ -1,0 +1,43 @@
+{
+  "schema": "tmcp-refactor-clean-fixture-review-v0.1",
+  "review_status": "approved_for_preregistration",
+  "review_record": "../fixture-expansion-review.md",
+  "evaluation_mode": "judgment",
+  "target_source": {
+    "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+    "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  "fixture": {
+    "id": "render-phase-has-duplicate-labels",
+    "fixture_family": "renderer_phase",
+    "runner_prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/render/pipeline.ts` exports the ordered render phases `measure`, `layout`, `paint`, and `commit`, with a debug event emitted for each phase.\n- `src/preview/phaseLabel.ts` contains a local label map and omits the `commit` phase from the preview timeline.\n- `src/debug/traceSummary.ts` re-derives phase ordering before printing a trace summary; its only test covers `measure` and `layout`.\n- `src/plugins/legacyPhaseBridge.ts` maps the old phase names for an external plugin API that remains supported through 2027-03-01.\n- The product requirement says preview timelines and debug summaries must reflect the pipeline's actual order. No evidence describes a replacement plugin API.",
+    "task_evidence_scope": "synthetic render-pipeline graph only; external plugin consumers are intentionally unobserved"
+  },
+  "outcome_bar": {
+    "standard": "The plan should keep pipeline ordering in one owner, make preview and debug consume it, and isolate the external plugin bridge as a time-bounded compatibility boundary.",
+    "expected_observables": [
+      "It identifies the phase owner, both internal duplicate consumers, the omitted commit phase, and the external bridge.",
+      "It removes or collapses internal re-derivation and explains a removal condition for the external bridge.",
+      "It verifies preview and debug outputs against the owner's actual phase sequence.",
+      "It does not claim that the plugin API can change without replacement evidence."
+    ],
+    "failure_smells": [
+      "leaves preview or debug with a second phase-order source",
+      "tests only the pipeline owner while missing the omitted commit phase",
+      "removes or rewrites the external plugin bridge without a compatibility plan",
+      "adds a new label map instead of consuming the existing phase owner"
+    ]
+  },
+  "blindness_contract": {
+    "runner_receives": ["runner_prompt", "a future matched packet attachment only"],
+    "runner_must_not_receive": ["outcome_bar", "failure_smells", "hypothesis or arm label"],
+    "judge_receives": ["runner artifact", "outcome_bar", "first principles"],
+    "judge_must_not_receive": ["fixture arm label", "source-bundle attachment", "other artifacts or verdicts"]
+  },
+  "review_questions": [
+    "Is the missing commit phase directly judgeable from the graph?",
+    "Does the bar separate internal consolidation from external compatibility?",
+    "Would consumer checks expose a second ordering implementation?",
+    "Are the plugin boundary and its uncertainty preserved?"
+  ]
+}

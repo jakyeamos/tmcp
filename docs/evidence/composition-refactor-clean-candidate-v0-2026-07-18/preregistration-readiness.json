@@ -2,30 +2,79 @@
   "candidate_dir": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18",
   "candidate_state": "approved_for_preregistration",
   "first_principles_sha256": "sha256:e87ef8958eadf3fba9a671a8ec8f6f678c22f377ff1961f2cd8ce542e9fb961b",
-  "fixture_count": 1,
+  "fixture_count": 6,
   "fixture_digests": [
-    "sha256:f3c5296fa676e02b5ebfd8d55e5ec038c12438a20021fb5c0f57e5aaf5e7a1e9"
+    "sha256:67aa4b547f6f524d9c536989ab3ab135ed9cd81425dfa595ec21f20bedfad605",
+    "sha256:c8e12e42147e6701218ba1a823e01162cb2432b321b12cbb5d5734232400e0c2",
+    "sha256:a090768683efa6f5d2cd11a2d1cc4875bda023da68261c538ba9d0215f500cda",
+    "sha256:039d76146c1d4f8fcadf867b54dfa83b612111e9acbce083208806638b873894",
+    "sha256:f3c5296fa676e02b5ebfd8d55e5ec038c12438a20021fb5c0f57e5aaf5e7a1e9",
+    "sha256:a939f30bf9be6ee693e652dc4cf10145fb13c8eb3db09273d40746dbbb7230cd"
   ],
-  "fixture_family_count": 1,
+  "fixture_family_count": 6,
   "fixtures": [
+    {
+      "digest": "sha256:67aa4b547f6f524d9c536989ab3ab135ed9cd81425dfa595ec21f20bedfad605",
+      "gaps": [],
+      "path": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/dev-query-adapter-is-sediment-v0.json",
+      "review_record": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixture-expansion-review.md",
+      "review_record_sha256": "sha256:b42866949449cf08555f846755142346a1bb9c1273472226fed7afd1866b371c"
+    },
+    {
+      "digest": "sha256:c8e12e42147e6701218ba1a823e01162cb2432b321b12cbb5d5734232400e0c2",
+      "gaps": [],
+      "path": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/flag-state-has-parallel-owners-v0.json",
+      "review_record": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixture-expansion-review.md",
+      "review_record_sha256": "sha256:b42866949449cf08555f846755142346a1bb9c1273472226fed7afd1866b371c"
+    },
+    {
+      "digest": "sha256:a090768683efa6f5d2cd11a2d1cc4875bda023da68261c538ba9d0215f500cda",
+      "gaps": [],
+      "path": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/legacy-money-export-has-boundary-seam-v0.json",
+      "review_record": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixture-expansion-review.md",
+      "review_record_sha256": "sha256:b42866949449cf08555f846755142346a1bb9c1273472226fed7afd1866b371c"
+    },
+    {
+      "digest": "sha256:039d76146c1d4f8fcadf867b54dfa83b612111e9acbce083208806638b873894",
+      "gaps": [],
+      "path": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/marker-geometry-has-placeholder-drift-v0.json",
+      "review_record": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixture-expansion-review.md",
+      "review_record_sha256": "sha256:b42866949449cf08555f846755142346a1bb9c1273472226fed7afd1866b371c"
+    },
     {
       "digest": "sha256:f3c5296fa676e02b5ebfd8d55e5ec038c12438a20021fb5c0f57e5aaf5e7a1e9",
       "gaps": [],
-      "path": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/refactor-clean-dependency-graph-v0.json"
+      "path": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/refactor-clean-dependency-graph-v0.json",
+      "review_record": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixture-review.md",
+      "review_record_sha256": "sha256:f51c376ad2310501cf30b493aa12d3bb14759f0a33e588310a88daf5eb0228b2"
+    },
+    {
+      "digest": "sha256:a939f30bf9be6ee693e652dc4cf10145fb13c8eb3db09273d40746dbbb7230cd",
+      "gaps": [],
+      "path": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/render-phase-has-duplicate-labels-v0.json",
+      "review_record": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixture-expansion-review.md",
+      "review_record_sha256": "sha256:b42866949449cf08555f846755142346a1bb9c1273472226fed7afd1866b371c"
     }
   ],
   "gaps": [
-    "fixture_count_below_minimum",
-    "fixture_family_count_below_minimum",
     "packet_probe_receipt_missing",
     "source_bundle_not_archived"
   ],
   "model_calls_authorized": false,
-  "next_gate": "extend_reviewed_fixture_set",
+  "next_gate": "archive_source_bundle_and_packet_receipt",
   "packet_probe_receipt_sha256": null,
   "preregistration_ready": false,
   "ready": false,
-  "review_record_sha256": "sha256:f51c376ad2310501cf30b493aa12d3bb14759f0a33e588310a88daf5eb0228b2",
+  "review_records": [
+    {
+      "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixture-expansion-review.md",
+      "sha256": "sha256:b42866949449cf08555f846755142346a1bb9c1273472226fed7afd1866b371c"
+    },
+    {
+      "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixture-review.md",
+      "sha256": "sha256:f51c376ad2310501cf30b493aa12d3bb14759f0a33e588310a88daf5eb0228b2"
+    }
+  ],
   "schema": "tmcp-refactor-clean-candidate-readiness-v0.1",
   "source_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0",
   "synthetic_no_tool_boundary": true

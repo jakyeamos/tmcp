@@ -5,8 +5,8 @@ evaluated.** The candidate was author-drafted and then independently reviewed;
 No runner, judge, or external model call has been made for it.
 
 This is the next admissible step for the packet-probed TMCP compiler plus
-`refactor-clean` pair. It preserves one small, synthetic dependency-graph case
-for a future behavioral study.
+`refactor-clean` pair. It preserves six small, synthetic dependency-graph cases
+across six fixture families for a future behavioral study.
 
 ## Target and bounded question
 
@@ -27,9 +27,10 @@ code-change quality, or corpus-wide skill quality.
 
 - [First principles](first-principles.md) is a faithful, compact account of the
   target skill's relevant judgment standard.
-- [Synthetic fixture and bar](fixtures/refactor-clean-dependency-graph-v0.json)
-  contains the only task evidence a future blind runner would receive and the
-  separate bar a judge would receive.
+- The six JSON fixtures under `fixtures/` contain the only task evidence a
+  future blind runner would receive; each carries a separate outcome bar for a
+  judge. They cover state-machine, asset-orientation, external-boundary,
+  migration-seam, renderer-phase, and dependency-graph families.
 
 The fixture must remain synthetic and read-only. A future runner should return a
 plan inline, not inspect a repository, write files, or execute a refactor.
@@ -39,16 +40,18 @@ plan inline, not inspect a repository, write files, or execute a refactor.
 [`preregistration-readiness.json`](preregistration-readiness.json) is the
 no-call readiness record for this candidate. It binds the live source digest,
 first-principles digest, independent review record, fixture digest, and
-synthetic/no-tool boundary. It intentionally reports `ready: false`: the
-candidate has one fixture in one family, no archived source bundle, and no
-dedicated packet-probe receipt. `model_calls_authorized` remains `false`; the
-next admissible gate is to extend the independently reviewed fixture set.
+synthetic/no-tool boundary. It intentionally reports `ready: false`: all six
+fixtures have independent preregistration approval, but the candidate still
+has no archived source bundle or dedicated packet-probe receipt.
+`model_calls_authorized` remains `false`; the next admissible gate is to archive
+those two evidence artifacts and bind their digests.
 
 ## Independent-review decision
 
-An independent reviewer recorded a decision in `fixture-review.md`. Before a
-study directory, source bundle, model matrix, or launch command is created, a
-future preregistration must also answer all of these questions:
+Independent reviewers recorded the initial and follow-up decisions in
+`fixture-review.md` and `fixture-expansion-review.md`. Before a study
+directory, source bundle, model matrix, or launch command is created, a future
+preregistration must also answer all of these questions:
 
 1. Is the prompt direct enough that each bar outcome can be evaluated from the
    supplied graph alone?

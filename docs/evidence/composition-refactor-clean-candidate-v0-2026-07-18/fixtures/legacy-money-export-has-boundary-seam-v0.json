@@ -1,0 +1,43 @@
+{
+  "schema": "tmcp-refactor-clean-fixture-review-v0.1",
+  "review_status": "approved_for_preregistration",
+  "review_record": "../fixture-expansion-review.md",
+  "evaluation_mode": "judgment",
+  "target_source": {
+    "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+    "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  "fixture": {
+    "id": "legacy-money-export-has-boundary-seam",
+    "fixture_family": "external_boundary",
+    "runner_prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/money/minorUnits.ts` is the maintained owner of currency-to-minor-unit conversion and has tests for USD and KWD.\n- `src/orders/totalForDisplay.ts` imports `minorUnits.ts` and formats order totals.\n- `src/analytics/revenueBucket.ts` contains a copied USD/EUR/KWD conversion map and is tested only for USD.\n- `src/exports/legacyMoneyCsv.ts` exposes the copied map's rounded values in a published CSV format consumed by external finance tools.\n- A requirement says order display and analytics buckets must agree. The external CSV contract remains supported until 2026-11-30; no evidence identifies all consumers or a replacement format.",
+    "task_evidence_scope": "synthetic money-conversion graph only; external CSV consumers are intentionally unobserved"
+  },
+  "outcome_bar": {
+    "standard": "The plan should consolidate internal conversion ownership, verify order and analytics consumers, and keep the external CSV as a bounded compatibility seam until its consumers and removal path are known.",
+    "expected_observables": [
+      "It separates the internal owner, the copied analytics owner, and the published CSV boundary.",
+      "It routes internal consumers to one source and gives the external seam a concrete removal or migration condition.",
+      "It verifies analytics and order outputs rather than trusting owner-module tests alone.",
+      "It states what must be learned before changing the CSV contract."
+    ],
+    "failure_smells": [
+      "deletes or silently changes the published CSV shape",
+      "keeps the analytics conversion map without a time-bounded compatibility rationale",
+      "adds a third conversion adapter for internal callers",
+      "tests only USD or only the owner module while missing KWD divergence"
+    ]
+  },
+  "blindness_contract": {
+    "runner_receives": ["runner_prompt", "a future matched packet attachment only"],
+    "runner_must_not_receive": ["outcome_bar", "failure_smells", "hypothesis or arm label"],
+    "judge_receives": ["runner artifact", "outcome_bar", "first principles"],
+    "judge_must_not_receive": ["fixture arm label", "source-bundle attachment", "other artifacts or verdicts"]
+  },
+  "review_questions": [
+    "Can the internal versus external boundary be judged from the prompt alone?",
+    "Does the bar allow a small compatibility seam without rewarding indefinite duplication?",
+    "Are the consumer tests direct enough to expose a KWD discrepancy?",
+    "Does the fixture avoid inventing external client evidence?"
+  ]
+}

@@ -52,6 +52,24 @@ class RefactorCleanReadinessTests(unittest.TestCase):
 
         self.assertIn("judge_blindness_incomplete", report["gaps"])
 
+    def test_expanded_fixture_set_binds_each_review_record(self) -> None:
+        fixture_paths = sorted((CANDIDATE_DIR / "fixtures").glob("*.json"))
+        report = verify_refactor_clean_candidate(
+            CANDIDATE_DIR,
+            fixture_paths,
+            source_path=SOURCE_PATH,
+        )
+
+        self.assertEqual(report["fixture_count"], 6)
+        self.assertEqual(report["fixture_family_count"], 6)
+        self.assertNotIn("fixture_review_record_missing", report["gaps"])
+        self.assertNotIn("fixture_review_not_approved", report["gaps"])
+        self.assertEqual(report["next_gate"], "archive_source_bundle_and_packet_receipt")
+        self.assertEqual(
+            {Path(item["path"]).name for item in report["review_records"]},
+            {"fixture-review.md", "fixture-expansion-review.md"},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
