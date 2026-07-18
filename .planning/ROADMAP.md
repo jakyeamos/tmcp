@@ -103,22 +103,24 @@ outcomes while preserving deterministic compatibility.
   correction in `195b24f` removes generic planning/UI overlap and defers
   unproven skill activation. `1fb0274` adds exact cited-slice phase capsules,
   compiler-bound replay receipts, protected project/session persistence, and
-  promotion evidence gating. `a6591e1` restores the hard size budgets by
-  splitting bundle scanning, promotion scoring, recipe validation, and broad
-  benchmark tests; runtime-capsule rehydration is next.
+  promotion evidence gating. `a6591e1` restores hard size budgets. `b2e85d8`
+  and `d316542` complete runtime-capsule rehydration, canonical source
+  activation, semantic phase-order guards, session-only continuation replay,
+  recipe reopening, release-evidence admissibility, extracted-package session
+  smoke, and full-suite fixture compatibility.
   `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
 - Runtime integration: complete — evidence-driven gates, graph-bound typed
   handoffs, same-graph continuity, phase trace, obligations, and graph-aware
   diffs.
-- Proof and learning: hardening required — executable workspaces, exact host
-  intake manifests, compiler replay, root-independent graph identity, and
-  bounded replay-assembled observations now exist; a canonical release bundle
-  and tamper-resistant phase-capsule context accounting remain.
+- Proof and learning: hardening complete in code — executable workspaces, exact
+  host intake manifests, compiler replay, root-independent graph identity,
+  tamper-resistant phase/runtime capsules, and bounded replay-assembled
+  observations now exist. Real host/evaluator outcomes remain required.
 - Release proof: pending — version 0.6.0 remains blocked until the executable
   harness and real host-run observations meet every routing, safety, lift,
   ordering, provenance, and context threshold.
 
 ---
-*Last updated: 2026-07-17 for phase-capsule evidence and size-budget hardening*
+*Last updated: 2026-07-18 for compositional runtime hardening*

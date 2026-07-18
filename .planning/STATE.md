@@ -6,33 +6,35 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Bind compiler-issued capsules into runtime recompilation with
-one fresh harvest, fail-closed redirects, and safe session restoration. Keep 0.5.7 active.
+**Current focus:** Rehydrate compiler-issued capsules from one fresh harvest,
+preserve phase progress only through protected sessions, and keep 0.5.7 active
+until externally observed 0.6 evidence is admissible.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** Dogfood hardening continues on
-`codex/tmcp-compositional-intelligence`. The 0.6 compiler, typed handoffs,
-content-bound benchmark replay, canonical release bundle, and conservative
-fallback routing are present. `1fb0274` adds compiler-issued phase-capsule
-bindings, cited-slice closures, protected recipe/session persistence, exact
-benchmark receipt provenance, and conditional schema enforcement. Release
-evidence remains advisory. `a6591e1` restores all hard source-size budgets by
-splitting benchmark scanning, promotion scoring, recipe validation, and focused
-test owners. 0.6.0 remains blocked on real host outcomes and runtime capsules.
+**Status:** `b2e85d8` adds runtime capsules, source-bound replay, semantic and
+activation hardening, project-recipe/session continuity, and release evidence
+admissibility. `d316542` aligns legacy fixtures with the signed capsule contract.
+The 825-test suite passes; 0.6.0 remains blocked on real host-run outcomes.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Priority hardening in progress; release evidence and publication
-  remain pending.
+- **Status:** Runtime hardening complete; clean-package verification, real
+  benchmark evidence, and publication remain pending.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
+- `b2e85d8` and `d316542` close the compositional-runtime hardening slice:
+  canonical source roles and safe activation, source-backed semantic graphs,
+  phase/runtime capsules, session-only continuation replay, recipe rehydration,
+  release-evidence admissibility, and extracted-package session smoke. Direct
+  packets cannot forge a continuation or preload future gate/handoff evidence.
+  Full discovery passes 825 tests (3 expected skips); no dogfood receipt was written.
 - `a6591e1` restores the enforced source-size budgets without exceptions:
   benchmark bundle scanning, composition scoring, project-recipe promotion
   validation, and the two broad benchmark test owners now have focused siblings.
@@ -48,15 +50,6 @@ test owners. 0.6.0 remains blocked on real host outcomes and runtime capsules.
   activated the UI rubric and browser gates. Bare `design` and neutral planning
   terms no longer qualify source activation; exact launcher dogfood now defers
   every active skill until source-backed semantic evidence exists.
-- `338f55e` moves canonical benchmark bundle resolution/replay into a bounded
-  package helper and moves its focused tests out of the broad package suite.
-  Package behavior is unchanged; the checker and test owners are below the hard
-  source-size limits, with focused package, contract, install, and compile
-  checks passing.
-- `f688c1e` adds a Git-clean six-artifact benchmark bundle, archive exclusion,
-  secret scanning, source-before-extraction package replay, exact summary/review
-  binding, and adversarial release tests. The feature tests pass; the commit
-  gate flags oversized package-check/test owners for the next cleanup slice.
 - `6fdf9de` separates oversized benchmark assembly/replay and behavior-manifest
   owners behind compatibility facades, explicitly compiles the new shipped
   modules, and restores the <600 nonblank-line hard domain-size check. Focused
