@@ -114,7 +114,9 @@ outcomes while preserving deterministic compatibility.
   separates session phase-binding persistence and continuation-guard coverage,
   restoring the source-size budgets and explicit shipped-module compilation.
   `9d32d1d` identifies the shared test harness and clears the final quality-gate
-  advisory without adding synthetic assertions.
+  advisory without adding synthetic assertions. `e00a42f` bounds extracted
+  full-suite release verification at ten minutes and reports timeout failures as
+  structured package results.
   `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
