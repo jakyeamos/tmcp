@@ -30,6 +30,17 @@ class HarvestDomainTests(unittest.TestCase):
         self.assertNotIn("Verify contrast.", statistical["verification_gates"])
         self.assertIn("Verify contrast.", visual["verification_gates"])
 
+    def test_irreversible_confirmation_gate_survives_markdown_formatting(self) -> None:
+        routing = routing_metadata_for(
+            "SKILL.md",
+            "Use `confirm` before any irreversible action.",
+        )
+
+        self.assertIn(
+            "Wait for explicit user confirmation before irreversible or external actions.",
+            routing["stop_conditions"],
+        )
+
     def test_source_node_uses_an_explicit_advisory_callback(self) -> None:
         source_path = "/tmp/example/SKILL.md"
         source_text = "# Skill\nUse browser evidence before release."

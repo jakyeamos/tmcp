@@ -50,6 +50,10 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - Treat test fixtures as evidence-only sources during project-root composition.
   They may support a test or a review, but must not enter active instructions,
   citations, or declared reads unless a future protocol explicitly scopes them.
+- Exercise safety-rule projection with the source's actual Markdown form. Inline
+  code and emphasis are presentation, not policy boundaries: normalize that
+  nonsemantic formatting before matching a confirmation or static-trace rule,
+  then assert the resulting packet gate directly.
 - Do not activate a specialized route from a generic verb such as “build” alone.
   Preserve a matched specialized control case so a routing fix cannot quietly
   weaken intended frontend or workflow behavior.
@@ -145,6 +149,11 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   result measures delivery of that exact pinned material, including any length or
   framing effect; without separate selection telemetry it cannot establish that
   TMCP selected or the runner followed a source independently.
+- **Literal matching of formatted safety rules.** The inline-code phrase
+  `confirm` before any irreversible action can evade a plain-string extractor
+  and silently remove the packet's confirmation gate. Normalize
+  presentation markup and keep a packet-level regression test for the exact
+  source form.
 
 The 2026-07-17 campaign is a source of these operational defaults. Its section
 effect remains a held candidate because the historical plan did not preregister the

@@ -140,3 +140,39 @@ class CompositionContractFixtureTests(unittest.TestCase):
             packet["verification_gates"],
         )
         self.assertEqual(packet["evidence_citations"][0]["source"], "SKILL.md")
+
+    def test_wizard_source_projects_confirmation_and_static_trace_gates(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "SKILL.md"
+            source.write_text(
+                "---\nname: wizard\n---\n"
+                "# Wizard\n"
+                "Use `confirm` before any irreversible action.\n"
+                "Don't run it end-to-end yourself; trace it statically.\n",
+                encoding="utf-8",
+            )
+            packet = self.server._compose_packet(
+                {
+                    "source_path": str(root),
+                    "project_path": str(root),
+                    "objective": (
+                        "Design a dry-run wizard handoff using synthetic values, "
+                        "a static trace, and confirmation."
+                    ),
+                    "phase": "start",
+                    "cache_policy": "none",
+                    "limit": 20,
+                }
+            )
+
+        self.assertEqual(packet["task_identity"]["primary"], "general_task")
+        self.assertIn(
+            "Wait for explicit user confirmation before irreversible or external actions.",
+            packet["stop_conditions"],
+        )
+        self.assertIn(
+            "Do not run a human-interactive wizard end-to-end; trace it statically.",
+            packet["verification_gates"],
+        )
+        self.assertEqual(packet["evidence_citations"][0]["source"], "SKILL.md")

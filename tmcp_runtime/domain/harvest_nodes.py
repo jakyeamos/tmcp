@@ -117,6 +117,7 @@ def ordered_unique(values: list[str]) -> list[str]:
 
 def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
     lower = text.lower()
+    normalized_lower = re.sub(r"[^a-z0-9]+", " ", lower)
     commands = sorted(
         {
             match.strip().split()[0]
@@ -179,6 +180,11 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
             )
         )
     ][:8]
+    if "confirm before any irreversible action" in normalized_lower:
+        stop_conditions.insert(
+            0,
+            "Wait for explicit user confirmation before irreversible or external actions.",
+        )
     verification_gates: list[str] = []
     gate_terms = {
         "reduced motion": "Verify reduced motion behavior.",
@@ -195,6 +201,10 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
     if all(term in lower for term in ("owner", "consumer", "verify")):
         verification_gates.append(
             "Verify behavior through identified consumers, not only the owner."
+        )
+    if "don't run it end-to-end yourself" in lower:
+        verification_gates.append(
+            "Do not run a human-interactive wizard end-to-end; trace it statically."
         )
     for term, gate in gate_terms.items():
         if term in lower:

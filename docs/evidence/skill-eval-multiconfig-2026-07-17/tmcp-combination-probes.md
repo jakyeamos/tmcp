@@ -15,6 +15,7 @@ pair's behavioral effectiveness.
 | TMCP compiler + `refactor-clean` | Remove an obsolete owner and verify consumers | Pass after gate projection | The packet is `general_task`, cites the refactor source, and preserves a consumer-surface verification gate rather than reducing the source to generic tests. |
 | TMCP compiler + `repo-behavior-spec-loop` | Audit a canonical evidence ledger; stop before fixes | Pass after route fix | The packet is `general_task`, requires `references/loop.md`, retains the canonical-ledger instruction, output contract, audit checkpoints, and test gates. |
 | TMCP compiler + `write-docs` | Draft source-grounded documentation that cites implementation evidence | Pass after route fix | The packet is `general_task`, cites the documentation source, and does not activate frontend behavior from the generic implementation stem. |
+| TMCP compiler + `wizard` | Plan a synthetic, no-write credential handoff | Pass after safety-gate projection | The packet is `general_task`, requires confirmation before irreversible or external actions, and forbids an end-to-end run of a human-interactive wizard. |
 
 ## Regression found and corrected
 
@@ -36,6 +37,14 @@ through consumers” was reduced to generic test guidance. When a selected sourc
 contains owner, consumer, and verification language, its packet now carries a
 consumer-surface verification gate. This preserves a source invariant locally;
 it does not establish that a refactor outcome is better.
+
+The `wizard` source then exposed a safety projection gap: its irreversible-action
+confirmation and static-only verification rules did not reach the composed
+packet. The confirmation rule used inline Markdown around `confirm`, so a
+literal extractor missed it. TMCP now normalizes presentation formatting before
+matching that rule and retains both safeguards. This proves only that TMCP
+projects the source safeguards; it does not authorize secret handling, external
+setup, or a behavioral safety claim.
 
 ## Interpretation
 
