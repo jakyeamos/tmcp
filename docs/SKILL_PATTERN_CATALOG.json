@@ -194,10 +194,11 @@
       "promotion": {
         "decision": "hold",
         "eligible": false,
-        "gaps": [
-          "clustered analysis policy was not predeclared",
-          "minimum fixture control pass rate 0.000 is below required 0.500"
-        ]
+      "gaps": [
+        "clustered analysis policy was not predeclared",
+        "minimum fixture control pass rate 0.000 is below required 0.500",
+        "historical cost sidecar is not reproducible against the retained cost bar"
+      ]
       },
       "status": "supported",
       "weak_example": "Test the skill a few times and improve it."

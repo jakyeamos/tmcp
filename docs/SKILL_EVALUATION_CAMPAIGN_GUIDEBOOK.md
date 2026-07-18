@@ -19,7 +19,11 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   Local JSON-schema validity did not catch the earlier remote `const`/`enum`
   compatibility failure.
 - Test baseline reliability before a smaller causal ablation. A positive relative
-  lift cannot repair a control that is unreliable on a fixture family.
+  lift cannot repair a control that is unreliable on a fixture family. The
+  causal launcher must require a completed `tmcp-skill-eval-baseline-receipt-v0.1`
+  whose source, packet, fixture, policy, runner/judge, safety, and cost fields
+  match the planned control and whose predeclared floors are true; a missing,
+  held, or digest-drifted receipt must fail before remote preflight.
 - Require a directness review for every observable: the event an O/S item grades
   must occur in the fixture prompt, not in an implied later turn. Record an
   independent review that also confirms every bar is expressible by the target
@@ -107,6 +111,10 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   data independence.
 - A baseline study measures intact-skill reliability only. It is a prerequisite for
   a later causal contrast, never promotion evidence by itself.
+- A baseline receipt is an eligibility dependency, not a causal result. Preserve
+  its plan, manifest, trace, and report digests; record per-fixture and per-runner
+  coverage; keep `causal_applicable: false`; and reject a receipt with unresolved
+  safety or cost adjudication even when its aggregate pass rate clears a floor.
 - Causal promotion requires the predeclared clustered analysis policy, reliability
   floors, complete provenance, complete cost sidecar where used, and no unresolved
   safety/cost regression. When a plan preregisters `complete_before_promotion`,

@@ -109,21 +109,25 @@ lift as general reliability.
 
 ## Corpus evaluation protocol
 
-1. Pin the skill digest, fixture digests, intervention contract, agent
+1. Complete and verify an original-only baseline receipt for the exact future
+   control: it must be digest-bound, clear its per-fixture reliability floors,
+   and have resolved safety/cost status. A missing or held receipt blocks causal
+   launch; the receipt itself is not a causal claim.
+2. Pin the skill digest, fixture digests, intervention contract, agent
    configuration, and expected effect direction.
-2. Generate an exact matched control and a one-factor intervention. Reject an
+3. Generate an exact matched control and a one-factor intervention. Reject an
    inexact or fallback split before running agents.
-3. Use a fresh context-free runner for every cell. Keep the fixture bar and
+4. Use a fresh context-free runner for every cell. Keep the fixture bar and
    hypothesis hidden from the runner.
-4. Use a separate fresh judge with only the artifact, fixture bar, and a faithful
+5. Use a separate fresh judge with only the artifact, fixture bar, and a faithful
    account of the skill's first principles. Require evidence for every criterion.
    Give safety and cost verdicts their own defensible bars; do not ask the judge to
    invent them from an incomplete principles summary.
-5. Repeat every fixture-condition cell. Record pass rates and the paired
+6. Repeat every fixture-condition cell. Record pass rates and the paired
    intervention-control effect with an uncertainty interval.
-6. Preserve the plan, observations, verdicts, report, counterexamples, and
+7. Preserve the plan, observations, verdicts, report, counterexamples, and
    promotion decision as an append-only evidence bundle.
-7. Promote manually only when the configured evidence gate is met. A successful
+8. Promote manually only when the configured evidence gate is met. A successful
    pilot remains a candidate; it does not rewrite the corpus automatically.
 
 ## Dogfooded evaluator practices

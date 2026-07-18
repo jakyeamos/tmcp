@@ -133,8 +133,11 @@ python3 scripts/generate_composition_study_plan.py \
   --output docs/evidence/composition-explore-unknowns-v1-2026-07-17/generated/tmcp-composition-study-plan.json
 ```
 
-The campaign launcher has already accepted the generated plan in `--dry-run` mode.
-Launching runners or a judge requires fresh approval because it spends external
-model capacity and creates new behavioral evidence. Source-bundle launches also
-require `--composition-study-dir` so the launcher records a successful immutable
-input and live-source verification in its campaign manifest.
+The generated plan passes immutable-input verification, but the causal campaign
+launcher now fails closed until a separately completed, digest-bound original-only
+baseline receipt is preregistered and supplied. That receipt must clear the
+control floors and compatibility checks before any remote schema preflight.
+Launching runners or a judge still requires fresh approval because it spends
+external model capacity and creates new behavioral evidence. Source-bundle
+launches also require `--composition-study-dir` so the launcher records a
+successful immutable-input and live-source verification in its campaign manifest.

@@ -787,7 +787,7 @@ class CostRejudgeSourceTests(unittest.TestCase):
         ledger = ledger_path.read_text(encoding="utf-8")
 
         self.assertIn("evidence-aware intake ledger, not a launch order", ledger)
-        self.assertIn("`composition-study-1261f8d90d1434c3`", ledger)
+        self.assertIn("`composition-study-7922312418f1d995`", ledger)
         self.assertIn(
             "does not test TMCP live selection, source adherence, or corpus quality",
             ledger,
@@ -795,7 +795,10 @@ class CostRejudgeSourceTests(unittest.TestCase):
         self.assertIn("Packet-probed", ledger)
         self.assertIn("**selection-only**", ledger)
         self.assertIn("Candidate", ledger)
-        self.assertIn("TMCP compiler + `refactor-clean` | Packet-probed", ledger)
+        self.assertIn(
+            "TMCP compiler + `refactor-clean` | Fixture approved for preregistration; packet-probed",
+            ledger,
+        )
         self.assertIn("TMCP compiler + `write-docs` | Packet-probed", ledger)
         self.assertIn("TMCP compiler + `wizard` | Packet-probed", ledger)
         self.assertIn("TMCP compiler + `fold-feature-branches` | Packet-probed", ledger)

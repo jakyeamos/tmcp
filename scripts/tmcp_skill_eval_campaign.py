@@ -306,6 +306,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--readiness-report", type=Path)
     parser.add_argument("--require-preregistered", action="store_true")
     parser.add_argument("--composition-study-dir", type=Path)
+    parser.add_argument(
+        "--baseline-receipt",
+        type=Path,
+        help="Completed, digest-bound original-only baseline receipt required for causal campaigns.",
+    )
     parser.add_argument("--codex-bin", default="codex")
     parser.add_argument("--dry-run", action="store_true")
     return parser
@@ -470,6 +475,12 @@ async def _main(args: argparse.Namespace) -> int:
         design=args.design,
         judge_model=args.judge_model,
         judge_effort=args.judge_effort,
+        baseline_receipt=(
+            _load_json(args.baseline_receipt) if args.baseline_receipt else None
+        ),
+        baseline_receipt_digest=(
+            _sha256_file(args.baseline_receipt) if args.baseline_receipt else None
+        ),
     )
     if args.readiness_report is not None:
         _atomic_json(args.readiness_report, readiness)

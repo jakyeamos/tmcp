@@ -3,9 +3,15 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import random
 from dataclasses import asdict, dataclass
 from typing import Any
+
+from tmcp_runtime.services.evaluation_plan import displayed_content_digest
+
+
+BASELINE_RECEIPT_SCHEMA = "tmcp-skill-eval-baseline-receipt-v0.1"
 
 
 @dataclass(frozen=True)
@@ -199,6 +205,8 @@ def campaign_readiness_report(
     design: str,
     judge_model: str,
     judge_effort: str,
+    baseline_receipt: dict[str, Any] | None = None,
+    baseline_receipt_digest: str | None = None,
 ) -> dict[str, Any]:
     """Return launch readiness without starting a runner or judge session."""
 
@@ -324,6 +332,14 @@ def campaign_readiness_report(
         )
     ):
         gaps.append("fixture_review_not_preregistered")
+    if design == "causal_contrast":
+        gaps.extend(
+            validate_baseline_receipt(
+                plan,
+                baseline_receipt=baseline_receipt,
+                baseline_receipt_digest=baseline_receipt_digest,
+            )
+        )
     return {
         "schema": "tmcp-skill-eval-campaign-readiness-v0.1",
         "ready": not gaps,
@@ -333,3 +349,178 @@ def campaign_readiness_report(
         "cell_count": len(cells),
         "gaps": gaps,
     }
+
+
+def _json_sha256(value: Any) -> str:
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode(
+        "utf-8"
+    )
+    return "sha256:" + hashlib.sha256(encoded).hexdigest()
+
+
+def _baseline_control_rows(plan: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
+    matrix = plan.get("task_matrix")
+    if not isinstance(matrix, list):
+        return [], ["baseline_control_rows_missing"]
+    control_variants = {
+        str(row.get("control_variant") or "original")
+        for row in matrix
+        if isinstance(row, dict)
+    }
+    if len(control_variants) != 1:
+        return [], ["baseline_control_variant_ambiguous"]
+    control_variant = next(iter(control_variants))
+    rows = [
+        row
+        for row in matrix
+        if isinstance(row, dict) and str(row.get("variant_id") or "") == control_variant
+    ]
+    task_ids = {str(row.get("task_id") or "") for row in rows}
+    if len(rows) != len(task_ids):
+        return [], ["baseline_control_rows_not_one_per_fixture"]
+    return rows, []
+
+
+def validate_baseline_receipt(
+    plan: dict[str, Any],
+    *,
+    baseline_receipt: dict[str, Any] | None,
+    baseline_receipt_digest: str | None,
+) -> list[str]:
+    """Fail closed unless a compatible completed baseline clears its floors."""
+
+    experiment = plan.get("experiment")
+    if not isinstance(experiment, dict):
+        return ["baseline_dependency_not_preregistered"]
+    dependency = experiment.get("baseline_dependency")
+    if not isinstance(dependency, dict) or dependency.get("required") is not True:
+        return ["baseline_dependency_not_preregistered"]
+    if dependency.get("schema") != BASELINE_RECEIPT_SCHEMA:
+        return ["baseline_dependency_schema_not_preregistered"]
+    if baseline_receipt is None:
+        return ["baseline_receipt_required"]
+    gaps: list[str] = []
+    if baseline_receipt_digest != dependency.get("receipt_sha256"):
+        gaps.append("baseline_receipt_digest_mismatch")
+    if baseline_receipt.get("schema") != BASELINE_RECEIPT_SCHEMA:
+        gaps.append("baseline_receipt_schema_invalid")
+    if baseline_receipt.get("evidence_state") != "completed":
+        gaps.append("baseline_receipt_not_completed")
+    if baseline_receipt.get("causal_applicable") is not False:
+        gaps.append("baseline_receipt_must_be_original_only")
+    if baseline_receipt.get("meets_predeclared_floors") is not True:
+        gaps.append("baseline_receipt_floors_not_met")
+    control_rows, row_gaps = _baseline_control_rows(plan)
+    gaps.extend(row_gaps)
+    compatibility = baseline_receipt.get("compatibility")
+    if not isinstance(compatibility, dict):
+        gaps.append("baseline_receipt_compatibility_missing")
+        compatibility = {}
+    if control_rows:
+        expected = {
+            "control_variant": str(control_rows[0].get("variant_id") or ""),
+            "fixture_digests": sorted(
+                {str(row.get("fixture_digest") or "") for row in control_rows}
+            ),
+            "task_evidence_digests": sorted(
+                {
+                    displayed_content_digest(str(row.get("prompt") or ""))
+                    for row in control_rows
+                }
+            ),
+            "control_attachment_digests": sorted(
+                {
+                    displayed_content_digest(str(row.get("skill_attachment") or ""))
+                    for row in control_rows
+                }
+            ),
+            "source_digests": sorted(
+                {
+                    str(row.get("skill_digest") or "")
+                    for row in control_rows
+                    if str(row.get("skill_digest") or "")
+                }
+            ),
+            "packet_digests": sorted(
+                {
+                    str(
+                        (row.get("composition_provenance") or {}).get(
+                            "packet_sha256", ""
+                        )
+                    )
+                    for row in control_rows
+                    if isinstance(row.get("composition_provenance"), dict)
+                    and str(
+                        (row.get("composition_provenance") or {}).get(
+                            "packet_sha256", ""
+                        )
+                    )
+                }
+            ),
+            "analysis_policy_sha256": _json_sha256(
+                experiment.get("analysis_policy") or {}
+            ),
+            "control_thresholds": (
+                experiment.get("promotion_thresholds") or {}
+            ).get("controlled_multi_agent_eval", {}),
+        }
+        if baseline_receipt.get("control_variant") != expected["control_variant"]:
+            gaps.append("baseline_control_variant_mismatch")
+        for field, expected_value in expected.items():
+            actual_value = compatibility.get(field)
+            if isinstance(expected_value, list):
+                if sorted(actual_value or []) != expected_value:
+                    gaps.append(f"baseline_{field}_mismatch")
+            elif actual_value != expected_value:
+                gaps.append(f"baseline_{field}_mismatch")
+    configured = experiment.get("campaign_policy")
+    if isinstance(configured, dict):
+        expected_configs = sorted(
+            {
+                (str(item.get("model") or ""), str(item.get("reasoning_effort") or ""))
+                for item in configured.get("runner_configurations", [])
+                if isinstance(item, dict)
+            }
+        )
+        actual_configs = sorted(
+            (
+                str(item.get("model") or ""),
+                str(item.get("reasoning_effort") or ""),
+            )
+            for item in compatibility.get("runner_configurations", [])
+            if isinstance(item, dict)
+        )
+        if actual_configs != expected_configs:
+            gaps.append("baseline_runner_configurations_mismatch")
+        expected_judge = configured.get("judge_configuration")
+        if compatibility.get("judge_configuration") != expected_judge:
+            gaps.append("baseline_judge_configuration_mismatch")
+    safety = baseline_receipt.get("safety")
+    if not isinstance(safety, dict) or any(
+        safety.get(field) != "clear" for field in ("raw_status", "adjudicated_status")
+    ):
+        gaps.append("baseline_safety_not_clear")
+    cost = baseline_receipt.get("cost")
+    if not isinstance(cost, dict) or any(
+        cost.get(field) not in {"clear", "not_applicable"}
+        for field in ("raw_status", "adjudicated_status")
+    ):
+        gaps.append("baseline_cost_not_clear")
+    evidence = baseline_receipt.get("evidence")
+    if not isinstance(evidence, dict) or any(
+        not isinstance(evidence.get(field), str)
+        or not evidence[field].startswith("sha256:")
+        for field in ("plan_sha256", "manifest_sha256", "traces_sha256", "report_sha256")
+    ):
+        gaps.append("baseline_evidence_digests_missing")
+    counts = baseline_receipt.get("counts")
+    if not isinstance(counts, dict) or not isinstance(counts.get("per_fixture"), list) or not isinstance(
+        counts.get("per_runner_model"), list
+    ):
+        gaps.append("baseline_counts_missing")
+    elif control_rows:
+        if counts.get("fixture_count") != len(control_rows):
+            gaps.append("baseline_fixture_count_mismatch")
+        if counts.get("fixture_family_count", 0) < 3:
+            gaps.append("baseline_fixture_family_count_too_low")
+    return gaps

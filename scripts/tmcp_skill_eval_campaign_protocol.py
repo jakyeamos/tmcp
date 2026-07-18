@@ -13,11 +13,13 @@ from collections.abc import Callable
 from typing import Any
 
 from scripts.tmcp_skill_eval_campaign_planning import (
+    BASELINE_RECEIPT_SCHEMA as BASELINE_RECEIPT_SCHEMA,
     CampaignCell as CampaignCell,
     _stable_id as _stable_id,
     build_cells as build_cells,
     campaign_readiness_report as campaign_readiness_report,
     selected_rows as selected_rows,
+    validate_baseline_receipt as validate_baseline_receipt,
 )
 
 CAMPAIGN_PROTOCOL = "tmcp-skill-eval-campaign-v0.2"
