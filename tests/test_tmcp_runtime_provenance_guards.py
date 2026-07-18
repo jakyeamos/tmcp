@@ -57,18 +57,21 @@ class RuntimeProvenanceGuardTests(unittest.TestCase):
                 prepared_composition=prepared_composition,
             )
 
+        composition_callbacks = {
+            "compose_packet_from_source_nodes": compose,
+            "prepare_composition_from_source_nodes": (
+                lambda arguments, source_nodes: prepare_composition_from_source_nodes(
+                    arguments,
+                    source_nodes=source_nodes,
+                )
+            ),
+        }
         return RuntimeService(
             RuntimeServiceContext(
                 source_exists=lambda path: True,
                 load_source_nodes=lambda arguments: copy.deepcopy(nodes),
                 load_cache_warnings=lambda cache_policy: [],
-                compose_packet_from_source_nodes=compose,
-                prepare_composition_from_source_nodes=(
-                    lambda arguments, source_nodes: prepare_composition_from_source_nodes(
-                        arguments,
-                        source_nodes=source_nodes,
-                    )
-                ),
+                **composition_callbacks,
             )
         )
 

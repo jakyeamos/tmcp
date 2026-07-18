@@ -407,7 +407,7 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
         artifact_persistence_available(),
         "Secure artifact persistence is unavailable on this platform.",
     )
-    def test_legacy_v01_records_load_but_are_unbound_and_inert(self) -> None:
+    def test_legacy_records_stay_inert(self) -> None:
         schema_path = (
             Path(__file__).resolve().parents[1]
             / "schemas"

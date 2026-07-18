@@ -65,13 +65,16 @@ class RuntimeCapsuleControlTests(unittest.TestCase):
                 prepared_composition=prepared_composition,
             )
 
+        composition_callbacks = {
+            "compose_packet_from_source_nodes": compose,
+            "prepare_composition_from_source_nodes": prepare,
+        }
         return RuntimeService(
             RuntimeServiceContext(
                 source_exists=lambda path: True,
                 load_source_nodes=lambda arguments: copy.deepcopy(self.nodes),
                 load_cache_warnings=lambda cache_policy: [],
-                compose_packet_from_source_nodes=compose,
-                prepare_composition_from_source_nodes=prepare,
+                **composition_callbacks,
             )
         )
 

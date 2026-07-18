@@ -53,7 +53,7 @@ _SHA256_LITERAL_RE = re.compile(r"[a-f0-9]{64}")
 _MAX_PRESERVED_SHA256_PATHS = 64
 _MAX_PRESERVED_SHA256_PATH_DEPTH = 16
 _MAX_PRESERVED_SHA256_LITERALS = 512
-_MAX_PRESERVED_SHA256_PATH_COMPONENT_LENGTH = 128
+_MAX_HASH_PATH_PART_LENGTH = 128
 
 
 def _failure(messages: list[str], fallback: str) -> ValueError:
@@ -156,7 +156,7 @@ def _preserved_sha256_paths(
                 or (isinstance(part, int) and part < 0)
                 or (
                     isinstance(part, str)
-                    and len(part) > _MAX_PRESERVED_SHA256_PATH_COMPONENT_LENGTH
+                    and len(part) > _MAX_HASH_PATH_PART_LENGTH
                 )
                 for part in path
             )
@@ -318,7 +318,7 @@ def read_json_input(
         raise ValueError(f"Input JSON is invalid: {source.display_path}") from exc
     if not isinstance(parsed, dict):
         raise ValueError("Input JSON must contain an object.")
-    preserved_sha256_literals = _preserve_sha256_literals(
+    literals = _preserve_sha256_literals(
         parsed,
         _preserved_sha256_paths(preserve_sha256_paths),
     )
@@ -331,5 +331,5 @@ def read_json_input(
         display_path=source.display_path,
         payload=payload,
         redactions=redactions,
-        preserved_sha256_literals=preserved_sha256_literals,
+        preserved_sha256_literals=literals,
     )

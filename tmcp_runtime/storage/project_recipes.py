@@ -52,7 +52,7 @@ _GRAPH_DIGEST_PATTERN = re.compile(r"[a-f0-9]{32}")
 _PLAN_ID_PATTERN = re.compile(r"composition-[a-f0-9]{20}")
 _DIGEST_64_RE = re.compile(r"[a-f0-9]{64}")
 
-_PROJECT_RECIPE_SHA256_PATHS: tuple[tuple[str | int, ...], ...] = (
+_RECIPE_HASH_PATHS: tuple[tuple[str | int, ...], ...] = (
     (
         "composition_recipe",
         "phase_capsule_binding",
@@ -595,12 +595,13 @@ class ProjectCompositionRecipeStore:
     ) -> ProjectRecipeSnapshot:
         if not _GRAPH_DIGEST_PATTERN.fullmatch(expected_graph_digest):
             raise ProjectRecipeError("A valid current graph digest is required.")
+        hash_paths = _RECIPE_HASH_PATHS
         try:
             source = read_json_input(
                 self.path,
                 project_path=self.project_root,
                 max_file_bytes=MAX_PROJECT_RECIPE_BYTES,
-                preserve_sha256_paths=_PROJECT_RECIPE_SHA256_PATHS,
+                preserve_sha256_paths=hash_paths,
             )
         except (MemoryError, RecursionError, ValueError) as exc:
             raise ProjectRecipeError(
@@ -624,12 +625,13 @@ class ProjectCompositionRecipeStore:
     def load_record(self) -> ProjectRecipeSnapshot:
         """Load one exact-ID record for service-level preflight revalidation."""
 
+        hash_paths = _RECIPE_HASH_PATHS
         try:
             source = read_json_input(
                 self.path,
                 project_path=self.project_root,
                 max_file_bytes=MAX_PROJECT_RECIPE_BYTES,
-                preserve_sha256_paths=_PROJECT_RECIPE_SHA256_PATHS,
+                preserve_sha256_paths=hash_paths,
             )
         except (MemoryError, RecursionError, ValueError) as exc:
             raise ProjectRecipeError(

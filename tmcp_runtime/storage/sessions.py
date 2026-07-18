@@ -81,17 +81,17 @@ _PHASE_BINDING_HASH_FIELDS = (
     "preflight_capsule_digest",
     "binding_digest",
 )
-_RECEIPT_PHASE_BINDING_HASH_FIELDS = (
+_RECEIPT_BINDING_HASHES = (
     "composition_plan_digest",
     "phase_capsule_binding_digest",
     "context_accounting_digest",
     "preflight_capsule_digest",
 )
 _RECEIPT_PHASE_BINDING_FIELDS = (
-    *_RECEIPT_PHASE_BINDING_HASH_FIELDS,
+    *_RECEIPT_BINDING_HASHES,
     "phase_capsule_trace",
 )
-_SESSION_PRESERVED_SHA256_PATHS = (
+_SESSION_HASH_PATHS = (
     (
         "packet",
         "composition_plan",
@@ -151,7 +151,7 @@ def _preserved_sha256(
     value: object,
     *,
     path: tuple[str | int, ...],
-    preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None,
+    literals: Mapping[tuple[str | int, ...], str] | None,
 ) -> object:
     """Use an allowlisted literal captured in the protected JSON read.
 
@@ -160,9 +160,9 @@ def _preserved_sha256(
     restore from becoming a generic high-entropy-value bypass.
     """
 
-    if preserved_sha256_literals is None:
+    if literals is None:
         return value
-    restored = preserved_sha256_literals.get(path)
+    restored = literals.get(path)
     if restored is None or _SHA256_DIGEST_PATTERN.fullmatch(restored) is None:
         return value
     return restored
@@ -173,7 +173,7 @@ def _with_preserved_phase_hashes(
     *,
     base_path: tuple[str | int, ...],
     hash_fields: tuple[str, ...],
-    preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None,
+    literals: Mapping[tuple[str | int, ...], str] | None,
 ) -> dict[str, Any]:
     """Return a closed phase projection with only approved hashes restored."""
 
@@ -182,7 +182,7 @@ def _with_preserved_phase_hashes(
         candidate[field] = _preserved_sha256(
             candidate.get(field),
             path=(*base_path, field),
-            preserved_sha256_literals=preserved_sha256_literals,
+            literals=literals,
         )
     trace = candidate.get("phase_capsule_trace")
     if not isinstance(trace, list):
@@ -194,7 +194,7 @@ def _with_preserved_phase_hashes(
         stage["capsule_digest"] = _preserved_sha256(
             stage.get("capsule_digest"),
             path=(*stage_path, "capsule_digest"),
-            preserved_sha256_literals=preserved_sha256_literals,
+            literals=literals,
         )
         handoffs = stage.get("incoming_handoff_digests")
         if not isinstance(handoffs, list):
@@ -203,7 +203,7 @@ def _with_preserved_phase_hashes(
             _preserved_sha256(
                 value,
                 path=(*stage_path, "incoming_handoff_digests", handoff_index),
-                preserved_sha256_literals=preserved_sha256_literals,
+                literals=literals,
             )
             for handoff_index, value in enumerate(handoffs)
         ]
@@ -214,7 +214,7 @@ def _restore_plan_content_digests(
     source_packet: Mapping[str, Any],
     safe_plan: dict[str, Any],
     *,
-    preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None,
+    literals: Mapping[tuple[str | int, ...], str] | None,
 ) -> None:
     """Restore the closed provenance digest list needed by the graph binding.
 
@@ -252,7 +252,7 @@ def _restore_plan_content_digests(
                 "content_digests",
                 index,
             ),
-            preserved_sha256_literals=preserved_sha256_literals,
+            literals=literals,
         )
         if not isinstance(value, str) or _SHA256_DIGEST_PATTERN.fullmatch(value) is None:
             return
@@ -263,7 +263,7 @@ def _restore_plan_content_digests(
 def _phase_binding_projections(
     packet: Mapping[str, Any],
     *,
-    preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None,
+    literals: Mapping[tuple[str | int, ...], str] | None,
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None, dict[str, Any] | None]:
     """Validate the only compiler-bound fields a session may restore."""
 
@@ -277,7 +277,7 @@ def _phase_binding_projections(
         raw_binding,
         base_path=("packet", "composition_plan", "phase_capsule_binding"),
         hash_fields=_PHASE_BINDING_HASH_FIELDS,
-        preserved_sha256_literals=preserved_sha256_literals,
+        literals=literals,
     )
     try:
         binding = validate_phase_capsule_binding(
@@ -308,7 +308,7 @@ def _phase_binding_projections(
         plan_with_binding,
         binding,
         prefix=("packet", "composition_plan", "runtime_capsule"),
-        literals=preserved_sha256_literals,
+        literals=literals,
         composition_plan=plan_with_binding,
     )
     receipt = packet.get("receipt_template")
@@ -317,8 +317,8 @@ def _phase_binding_projections(
     receipt_candidate = _with_preserved_phase_hashes(
         receipt,
         base_path=("packet", "receipt_template"),
-        hash_fields=_RECEIPT_PHASE_BINDING_HASH_FIELDS,
-        preserved_sha256_literals=preserved_sha256_literals,
+        hash_fields=_RECEIPT_BINDING_HASHES,
+        literals=literals,
     )
     expected_receipt = {
         "composition_plan_digest": binding["composition_plan_digest"],
@@ -339,7 +339,7 @@ def _restore_session_phase_binding_fields(
     source_packet: Mapping[str, Any],
     safe_record: dict[str, Any],
     *,
-    preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None = None,
+    literals: Mapping[tuple[str | int, ...], str] | None = None,
 ) -> None:
     """Restore verified phase identities after generic sensitive-text redaction.
 
@@ -361,11 +361,11 @@ def _restore_session_phase_binding_fields(
         _restore_plan_content_digests(
             source_packet,
             safe_plan,
-            preserved_sha256_literals=preserved_sha256_literals,
+            literals=literals,
         )
     binding, capsule, receipt_fields = _phase_binding_projections(
         source_packet,
-        preserved_sha256_literals=preserved_sha256_literals,
+        literals=literals,
     )
     continuation = None
     source_plan = source_packet.get("composition_plan")
@@ -381,7 +381,7 @@ def _restore_session_phase_binding_fields(
             source_plan,
             composition_plan=source_plan_with_capsules,
             prefix=("packet", "composition_plan", "runtime_continuation"),
-            literals=preserved_sha256_literals,
+            literals=literals,
         )
     safe_packet.pop("execution_context", None)
     safe_packet.pop("benchmark_host_receipt", None)
@@ -609,12 +609,13 @@ class PacketSessionStore:
         )
 
     def load(self) -> PacketSessionSnapshot:
+        hash_paths = _SESSION_HASH_PATHS
         try:
             source = read_json_input(
                 self.path,
                 project_path=self.project_root,
                 max_file_bytes=MAX_PACKET_SESSION_BYTES,
-                preserve_sha256_paths=_SESSION_PRESERVED_SHA256_PATHS,
+                preserve_sha256_paths=hash_paths,
             )
         except (MemoryError, RecursionError, ValueError) as exc:
             raise PacketSessionError(
@@ -629,7 +630,7 @@ class PacketSessionStore:
             _restore_session_phase_binding_fields(
                 packet,
                 source.payload,
-                preserved_sha256_literals=source.preserved_sha256_literals,
+                literals=source.preserved_sha256_literals,
             )
         return _record_snapshot(self.path, source.payload)
 
