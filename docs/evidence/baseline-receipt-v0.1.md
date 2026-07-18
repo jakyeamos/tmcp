@@ -22,6 +22,17 @@ adjudicated safety/cost status, `causal_applicable: false`, and
 digest-drifted, incomplete, or unresolved receipt before remote schema
 preflight or any runner/judge cell.
 
+Build one from a completed original-only campaign with:
+
+```bash
+python3 scripts/build_baseline_receipt.py \
+  --plan <baseline-plan.json> \
+  --manifest <campaign-manifest.json> \
+  --traces <traces.json> \
+  --report <baseline-report.json> \
+  --output <baseline-receipt.json>
+```
+
 ## Evidence boundary
 
 Passing the receipt gate means only that the planned control is sufficiently

@@ -1,0 +1,155 @@
+{
+  "causal_applicable": false,
+  "compatibility": {
+    "analysis_policy_sha256": "sha256:4795d30a1535c3547a132bdbaeafac5cd6648067ac4d2f31be8949a7742bc210",
+    "control_attachment_digests": [
+      "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074"
+    ],
+    "control_thresholds": {
+      "minimum_absolute_lift": 0.1,
+      "minimum_agent_configurations": 3,
+      "minimum_control_pass_rate": 0.5,
+      "minimum_fixture_families": 3,
+      "minimum_fixtures": 6,
+      "minimum_per_fixture_control_pass_rate": 0.5,
+      "minimum_repetitions_per_cell": 2
+    },
+    "control_variant": "original",
+    "fixture_digests": [
+      "sha256:14396a5d.df0c5e03.41b00ee7.5e718ccf.f9266ce9.11eabf7b.f2543e05.ab7df427",
+      "sha256:19255b25.20486905.dfa01d8f.574e1229.188f6df1.7bd39bde.d7817b49.b4a519a4",
+      "sha256:42a2cc8c.35674794.a0e9ba2d.3a28f4c9.ef2c8cee.00f5a914.25035d65.accd7167",
+      "sha256:8b1ccf34.914d8c86.4f062586.867b02cd.3548df2f.930677c2.eb3ffb1d.6abdd224",
+      "sha256:96a9c52a.4c748880.ce866384.a23f99cb.d575fac5.f1f5f385.dfa00dd8.23602845",
+      "sha256:ec4867d2.e7c8aee1.39cf5835.4ff03e26.1d95b326.053c7cb9.5f659b42.5f04081c"
+    ],
+    "judge_configuration": {
+      "model": "gpt-5.5",
+      "reasoning_effort": "high"
+    },
+    "packet_digests": [],
+    "runner_configurations": [
+      {
+        "model": "gpt-5.6-luna",
+        "reasoning_effort": "high"
+      },
+      {
+        "model": "gpt-5.6-sol",
+        "reasoning_effort": "high"
+      },
+      {
+        "model": "gpt-5.6-terra",
+        "reasoning_effort": "high"
+      }
+    ],
+    "source_digests": [
+      "sha256:2e9bf333.71fce396.b434f9f3.4d4b87cd.4761626c.30cc1f4f.64df55c7.26696074"
+    ],
+    "task_evidence_digests": [
+      "sha256:27d4ac96.5276a7f1.5b52dcfd.e22ff162.a7f954ea.afeec2ad.fd7d8b69.10d432aa",
+      "sha256:2c878fdd.5bf1da80.3b87b96f.5ded15b5.72130f72.f76b12c7.b1ea1213.fa0b8e34",
+      "sha256:4b0fb255.195cb2bd.2a25260c.b6ef841d.a65d27bd.8475e6c7.d31faa02.3022e88f",
+      "sha256:601f79d9.d37e18b6.1088422e.bc3181d6.3ad7dfce.0b65616b.c8d119ac.dda648c7",
+      "sha256:889b4343.fbecc634.10a0da5d.cc61845e.0bf5126d.d15c2f42.cdb3121c.f67c8e14",
+      "sha256:de2187b2.e6952dcd.38af6745.0732beeb.a2825523.8544f68d.961a61f7.d6f5204b"
+    ]
+  },
+  "control_variant": "original",
+  "cost": {
+    "adjudicated_status": "regression",
+    "raw_status": "clear"
+  },
+  "counts": {
+    "fixture_count": 6,
+    "fixture_family_count": 6,
+    "per_fixture": [
+      {
+        "fixture_digest": "sha256:14396a5d.df0c5e03.41b00ee7.5e718ccf.f9266ce9.11eabf7b.f2543e05.ab7df427",
+        "fixture_family": "claim_calibration",
+        "pass_rate": 0.333,
+        "passed": 2,
+        "task_id": "single-green-claim-calibration",
+        "total": 6
+      },
+      {
+        "fixture_digest": "sha256:19255b25.20486905.dfa01d8f.574e1229.188f6df1.7bd39bde.d7817b49.b4a519a4",
+        "fixture_family": "contamination_handling",
+        "pass_rate": 0.5,
+        "passed": 3,
+        "task_id": "contaminated-run-and-live-checkout-leak",
+        "total": 6
+      },
+      {
+        "fixture_digest": "sha256:42a2cc8c.35674794.a0e9ba2d.3a28f4c9.ef2c8cee.00f5a914.25035d65.accd7167",
+        "fixture_family": "revision_discipline",
+        "pass_rate": 0.667,
+        "passed": 4,
+        "task_id": "named-defect-minimal-revision",
+        "total": 6
+      },
+      {
+        "fixture_digest": "sha256:8b1ccf34.914d8c86.4f062586.867b02cd.3548df2f.930677c2.eb3ffb1d.6abdd224",
+        "fixture_family": "regression_retest",
+        "pass_rate": 0.333,
+        "passed": 2,
+        "task_id": "post-edit-new-miss-regression-retest",
+        "total": 6
+      },
+      {
+        "fixture_digest": "sha256:96a9c52a.4c748880.ce866384.a23f99cb.d575fac5.f1f5f385.dfa00dd8.23602845",
+        "fixture_family": "failure_diagnosis",
+        "pass_rate": 1.0,
+        "passed": 6,
+        "task_id": "judgment-skill-corrected-bar-followup",
+        "total": 6
+      },
+      {
+        "fixture_digest": "sha256:ec4867d2.e7c8aee1.39cf5835.4ff03e26.1d95b326.053c7cb9.5f659b42.5f04081c",
+        "fixture_family": "evaluation_mode",
+        "pass_rate": 0.5,
+        "passed": 3,
+        "task_id": "ambiguous-judgment-versus-conformance-mode",
+        "total": 6
+      }
+    ],
+    "per_runner_model": [
+      {
+        "fixture_count": 6,
+        "minimum_repetitions_per_fixture": 2,
+        "model": "gpt-5.6-luna",
+        "pass_rate": 0.5,
+        "passed": 6,
+        "total": 12
+      },
+      {
+        "fixture_count": 6,
+        "minimum_repetitions_per_fixture": 2,
+        "model": "gpt-5.6-sol",
+        "pass_rate": 0.667,
+        "passed": 8,
+        "total": 12
+      },
+      {
+        "fixture_count": 6,
+        "minimum_repetitions_per_fixture": 2,
+        "model": "gpt-5.6-terra",
+        "pass_rate": 0.5,
+        "passed": 6,
+        "total": 12
+      }
+    ]
+  },
+  "evidence": {
+    "manifest_sha256": "sha256:c501937e3c10d5e532c5843ccc52cfc28876897ecd81ef8740032c80cf2312be",
+    "plan_sha256": "sha256:ef736fea1ea51d4f2a42d9c41ac40442c125ef6e58a0095148347c45fa045063",
+    "report_sha256": "sha256:bcfa938507f64f4588827760fe309ac161e4de321245d7e88fecb9fd9638c32a",
+    "traces_sha256": "sha256:7b9e62ad0619506807feab86a68d88764b6550fdeeaeed846385cff4a253dca3"
+  },
+  "evidence_state": "completed",
+  "meets_predeclared_floors": false,
+  "safety": {
+    "adjudicated_status": "clear",
+    "raw_status": "clear"
+  },
+  "schema": "tmcp-skill-eval-baseline-receipt-v0.1"
+}

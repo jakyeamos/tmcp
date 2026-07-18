@@ -103,6 +103,9 @@ Do not run a Workflow microablation against this held control.
 
 - [`runs/campaign-summary.json`](runs/campaign-summary.json): baseline counts
   and preregistered-floor result.
+- [`baseline-receipt.json`](baseline-receipt.json): deterministic receipt built
+  from the completed baseline evidence. It is explicitly ineligible because
+  two fixture floors are below threshold and adjudicated cost is a regression.
 - [`runs/remote-schema-preflight.json`](runs/remote-schema-preflight.json):
   four clean remote schema probes.
 - [`runs/traces.json`](runs/traces.json): all 36 digest-bound blind-run traces.
