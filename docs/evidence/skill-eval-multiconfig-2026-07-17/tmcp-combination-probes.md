@@ -16,6 +16,7 @@ pair's behavioral effectiveness.
 | TMCP compiler + `repo-behavior-spec-loop` | Audit a canonical evidence ledger; stop before fixes | Pass after route fix | The packet is `general_task`, requires `references/loop.md`, retains the canonical-ledger instruction, output contract, audit checkpoints, and test gates. |
 | TMCP compiler + `write-docs` | Draft source-grounded documentation that cites implementation evidence | Pass after route fix | The packet is `general_task`, cites the documentation source, and does not activate frontend behavior from the generic implementation stem. |
 | TMCP compiler + `wizard` | Plan a synthetic, no-write credential handoff | Pass after safety-gate projection | The packet is `general_task`, requires confirmation before irreversible or external actions, and forbids an end-to-end run of a human-interactive wizard. |
+| TMCP compiler + `fold-feature-branches` | Classify a synthetic branch without mutation | Pass after safety-gate projection | The packet is `general_task`, cites the fold source, preserves dirty/ambiguous branch protection, and requires live-remote plus ancestry/`git cherry` supersession checks. |
 
 ## Regression found and corrected
 
@@ -45,6 +46,13 @@ literal extractor missed it. TMCP now normalizes presentation formatting before
 matching that rule and retains both safeguards. This proves only that TMCP
 projects the source safeguards; it does not authorize secret handling, external
 setup, or a behavioral safety claim.
+
+The `fold-feature-branches` source exposed a destructive-workflow projection gap:
+TMCP cited the skill but reduced its remote-truth, patch-equivalence, and
+dirty-worktree rules to generic tests. The packet now projects those concrete
+preservation and proof gates. This was a read-only, synthetic source probe; it
+did not fetch, merge, delete, or modify a branch and says nothing about an
+integration outcome.
 
 ## Interpretation
 

@@ -185,6 +185,25 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
             0,
             "Wait for explicit user confirmation before irreversible or external actions.",
         )
+    if (
+        "preserve every dirty worktree and every branch with unique or ambiguous work"
+        in normalized_lower
+    ):
+        stop_conditions.insert(
+            0,
+            (
+                "Preserve dirty worktrees and branches with unique or ambiguous work; "
+                "do not prune on uncertain evidence."
+            ),
+        )
+    if "never force push" in normalized_lower and "git branch d" in normalized_lower:
+        stop_conditions.insert(
+            0,
+            (
+                "Do not force-push, force-delete branches, or bypass hooks while "
+                "branch evidence is uncertain."
+            ),
+        )
     verification_gates: list[str] = []
     gate_terms = {
         "reduced motion": "Verify reduced motion behavior.",
@@ -205,6 +224,23 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
     if "don't run it end-to-end yourself" in lower:
         verification_gates.append(
             "Do not run a human-interactive wizard end-to-end; trace it statically."
+        )
+    if (
+        "verify the live remote head again before promotion and pruning"
+        in normalized_lower
+    ):
+        verification_gates.append(
+            "Verify the live remote target head before any promotion or pruning."
+        )
+    if (
+        "use ancestry and git cherry patch equivalence before claiming that work is redundant"
+        in normalized_lower
+    ):
+        verification_gates.append(
+            (
+                "Verify ancestry and git cherry patch equivalence before declaring a "
+                "branch superseded."
+            )
         )
     for term, gate in gate_terms.items():
         if term in lower:

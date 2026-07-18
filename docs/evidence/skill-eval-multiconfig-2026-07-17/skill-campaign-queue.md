@@ -26,6 +26,7 @@ The labels below are deliberately narrow:
 | `/Users/jakyeamos/skills/engineering/write-docs/SKILL.md` | Packet-probed | Source-grounded documentation without code transcription | Independently review a real source-tree fixture and observable audience bar before deciding whether a behavioral plan is warranted. |
 | `/Users/jakyeamos/.agents/skills/repo-behavior-spec-loop/SKILL.md` | Packet-probed | Canonical evidence state, source citations, audit checkpoints | Independently review audit-only and remediation-permitted fixtures before any behavioral plan. |
 | `/Users/jakyeamos/.agents/skills/wizard/SKILL.md` | Packet-probed | Deterministic human handoff with secret/irreversibility safety | Independently review synthetic, no-write fixtures and a safety bar before deciding whether a behavioral study is warranted; never use a live secret or external account. |
+| `/Users/jakyeamos/.codex/skills/fold-feature-branches/SKILL.md` | Packet-probed | Lossless branch integration, remote truth, and safe supersession | Independently review a synthetic repository fixture and a safety bar before deciding whether a behavioral study is warranted; never mutate a user branch during the probe. |
 
 ## Composition evidence and next gates
 
@@ -41,6 +42,7 @@ agent artifact. The currently bounded composition work is:
 | TMCP compiler + `repo-behavior-spec-loop` | Packet-probed | The packet retained the canonical-ledger and audit-stop contract; no artifact outcome was measured. | Separate reviewed fixture set and preregistered behavioral plan. |
 | TMCP compiler + `write-docs` | Packet-probed | The documentation source is cited for a source-grounded objective while generic implementation evidence does not activate frontend behavior. No documentation artifact outcome was measured. | Independently review a source-tree fixture and observable audience bar before any behavioral plan. |
 | TMCP compiler + `wizard` | Packet-probed | The packet preserves irreversible-action confirmation and static-only wizard verification. No secret, external account, or wizard artifact was used. | Independently reviewed synthetic no-write fixtures, a safety bar, and a preregistered behavioral plan. |
+| TMCP compiler + `fold-feature-branches` | Packet-probed | The packet preserves dirty/ambiguous branch protection plus remote-head and ancestry/patch-equivalence proof gates. No branch was fetched, merged, deleted, or changed. | Independently reviewed synthetic repository fixtures, a safety bar, and a preregistered behavioral plan. |
 
 Do not compare or rank these rows as if they shared an outcome measure. A pair
 first needs a scoped packet contract, independently reviewed fixtures, runner and

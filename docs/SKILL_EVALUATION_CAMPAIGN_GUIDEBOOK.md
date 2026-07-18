@@ -54,6 +54,11 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   code and emphasis are presentation, not policy boundaries: normalize that
   nonsemantic formatting before matching a confirmation or static-trace rule,
   then assert the resulting packet gate directly.
+- For destructive branch-management skills, require concrete preservation and
+  proof gates in the packet: preserve dirty or ambiguous branches, verify the
+  live remote target before promotion or pruning, and establish ancestry plus
+  patch equivalence before calling work superseded. A source citation alone is
+  insufficient.
 - Do not activate a specialized route from a generic verb such as “build” alone.
   Preserve a matched specialized control case so a routing fix cannot quietly
   weaken intended frontend or workflow behavior.
@@ -154,6 +159,11 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   and silently remove the packet's confirmation gate. Normalize
   presentation markup and keep a packet-level regression test for the exact
   source form.
+- **Citation-only destructive-workflow routing.** Citing a branch-fold source
+  while dropping its dirty-worktree, remote-truth, and patch-equivalence rules
+  turns a safety contract into generic test advice. Test each preservation and
+  proof invariant in the composed packet before treating the pair as a
+  behavioral candidate.
 
 The 2026-07-17 campaign is a source of these operational defaults. Its section
 effect remains a held candidate because the historical plan did not preregister the

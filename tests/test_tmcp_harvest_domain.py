@@ -41,6 +41,48 @@ class HarvestDomainTests(unittest.TestCase):
             routing["stop_conditions"],
         )
 
+    def test_branch_safety_rules_survive_markdown_formatting(self) -> None:
+        routing = routing_metadata_for(
+            "SKILL.md",
+            "\n".join(
+                [
+                    (
+                        "Verify the live remote head again before promotion and "
+                        "pruning."
+                    ),
+                    (
+                        "Preserve every dirty worktree and every branch with unique "
+                        "or ambiguous work."
+                    ),
+                    "Never force-push or use `git branch -D` on uncertain evidence.",
+                    (
+                        "Use ancestry and `git cherry` patch equivalence before "
+                        "claiming that work is redundant."
+                    ),
+                ]
+            ),
+        )
+
+        self.assertIn(
+            "Preserve dirty worktrees and branches with unique or ambiguous work; "
+            "do not prune on uncertain evidence.",
+            routing["stop_conditions"],
+        )
+        self.assertIn(
+            "Do not force-push, force-delete branches, or bypass hooks while "
+            "branch evidence is uncertain.",
+            routing["stop_conditions"],
+        )
+        self.assertIn(
+            "Verify the live remote target head before any promotion or pruning.",
+            routing["verification_gates"],
+        )
+        self.assertIn(
+            "Verify ancestry and git cherry patch equivalence before declaring a "
+            "branch superseded.",
+            routing["verification_gates"],
+        )
+
     def test_source_node_uses_an_explicit_advisory_callback(self) -> None:
         source_path = "/tmp/example/SKILL.md"
         source_text = "# Skill\nUse browser evidence before release."

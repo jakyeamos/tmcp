@@ -176,3 +176,56 @@ class CompositionContractFixtureTests(unittest.TestCase):
             packet["verification_gates"],
         )
         self.assertEqual(packet["evidence_citations"][0]["source"], "SKILL.md")
+
+    def test_branch_fold_source_projects_preservation_and_proof_gates(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "SKILL.md"
+            source.write_text(
+                "---\nname: fold-feature-branches\n---\n"
+                "# Fold Feature Branches\n"
+                "Treat the fetched remote target as canonical truth; verify the live "
+                "remote head again before promotion and pruning.\n"
+                "Preserve every dirty worktree and every branch with unique or "
+                "ambiguous work.\n"
+                "Never force-push, rebase a source branch, use `git branch -D`, or "
+                "bypass hooks on uncertain evidence.\n"
+                "Use ancestry and `git cherry` patch equivalence before claiming "
+                "that work is redundant.\n",
+                encoding="utf-8",
+            )
+            packet = self.server._compose_packet(
+                {
+                    "source_path": str(root),
+                    "project_path": str(root),
+                    "objective": (
+                        "Run a read-only synthetic branch fold audit with remote "
+                        "truth and patch equivalence checks."
+                    ),
+                    "phase": "start",
+                    "cache_policy": "none",
+                    "limit": 20,
+                }
+            )
+
+        self.assertEqual(packet["task_identity"]["primary"], "general_task")
+        self.assertIn(
+            "Preserve dirty worktrees and branches with unique or ambiguous work; "
+            "do not prune on uncertain evidence.",
+            packet["stop_conditions"],
+        )
+        self.assertIn(
+            "Do not force-push, force-delete branches, or bypass hooks while "
+            "branch evidence is uncertain.",
+            packet["stop_conditions"],
+        )
+        self.assertIn(
+            "Verify the live remote target head before any promotion or pruning.",
+            packet["verification_gates"],
+        )
+        self.assertIn(
+            "Verify ancestry and git cherry patch equivalence before declaring a "
+            "branch superseded.",
+            packet["verification_gates"],
+        )
+        self.assertEqual(packet["evidence_citations"][0]["source"], "SKILL.md")
