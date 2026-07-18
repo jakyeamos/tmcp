@@ -80,7 +80,9 @@ prompt-isolation audit, all four remote-schema preflights and their synthetic
 prompt/output-schema digests, immutable/live-source verification bound to the
 same pinned plan inputs and selected sources, policy-bound runner/judge
 model-and-effort settings, clean completion, and unique runner/judge thread
-coverage:
+coverage. The primary evidence must also retain the exact local campaign-harness
+module bytes named by the manifest's harness digest; hashes alone are not a
+replayable measurement-instrument record:
 
 ```bash
 python3 scripts/score_composition_study.py \

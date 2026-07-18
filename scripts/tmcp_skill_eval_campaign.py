@@ -49,6 +49,9 @@ from scripts.tmcp_skill_eval_campaign_runtime import (  # noqa: E402
     execute_cell,
 )
 
+HARNESS_SNAPSHOT_SCHEMA = "tmcp-skill-eval-campaign-harness-snapshot-v0.1"
+_HARNESS_SNAPSHOT_DIRECTORY = "campaign-harness"
+
 
 def _add_usage(
     buckets: dict[str, dict[str, int]], key: str, usage: dict[str, Any]
@@ -306,14 +309,65 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _harness_digests() -> dict[str, str]:
-    paths = (
+def _harness_paths() -> tuple[Path, ...]:
+    return (
         Path(__file__),
         Path(campaign_protocol.__file__),
         Path(__file__).with_name("tmcp_skill_eval_campaign_planning.py"),
         Path(campaign_runtime.__file__),
     )
-    return {path.name: _sha256_file(path) for path in paths}
+
+
+def _harness_digests() -> dict[str, str]:
+    return {path.name: _sha256_file(path) for path in _harness_paths()}
+
+
+def _harness_snapshot(harness_files: dict[str, str]) -> dict[str, Any]:
+    return {
+        "schema": HARNESS_SNAPSHOT_SCHEMA,
+        "directory": _HARNESS_SNAPSHOT_DIRECTORY,
+        "files": sorted(harness_files),
+    }
+
+
+def _persist_harness_snapshot(
+    output_dir: Path,
+    *,
+    harness_files: dict[str, str],
+    snapshot: dict[str, Any],
+) -> None:
+    """Persist the exact local campaign harness for later independent verification."""
+
+    if (
+        snapshot.get("schema") != HARNESS_SNAPSHOT_SCHEMA
+        or snapshot.get("directory") != _HARNESS_SNAPSHOT_DIRECTORY
+        or snapshot.get("files") != sorted(harness_files)
+    ):
+        raise ValueError("Campaign harness snapshot declaration is invalid.")
+    source_by_name = {path.name: path for path in _harness_paths()}
+    if set(source_by_name) != set(harness_files):
+        raise ValueError("Campaign harness digest set does not match local files.")
+    snapshot_dir = output_dir / _HARNESS_SNAPSHOT_DIRECTORY
+    if snapshot_dir.exists():
+        if not snapshot_dir.is_dir():
+            raise ValueError("Campaign harness snapshot path is not a directory.")
+        if {path.name for path in snapshot_dir.iterdir()} != set(harness_files):
+            raise ValueError("Campaign harness snapshot file set does not match.")
+    else:
+        snapshot_dir.mkdir(parents=True)
+    for name, source in source_by_name.items():
+        destination = snapshot_dir / name
+        if destination.is_file():
+            if _sha256_file(destination) != harness_files[name]:
+                raise ValueError("Campaign harness snapshot digest does not match.")
+            continue
+        if destination.exists():
+            raise ValueError("Campaign harness snapshot entry is not a file.")
+        temporary = destination.with_suffix(f"{destination.suffix}.tmp")
+        temporary.write_bytes(source.read_bytes())
+        os.replace(temporary, destination)
+        if _sha256_file(destination) != harness_files[name]:
+            raise ValueError("Campaign harness snapshot digest does not match.")
 
 
 def _verify_source_bundle_study(
@@ -512,6 +566,7 @@ async def _main(args: argparse.Namespace) -> int:
             json.dumps(harness_files, sort_keys=True, separators=(",", ":"))
         ),
         "harness_files": harness_files,
+        "harness_snapshot": _harness_snapshot(harness_files),
         "first_principles_sha256": _sha256_text(args.first_principles),
         "first_principles_source": args.first_principles_source,
         "judge_schema_version": JUDGE_SCHEMA_VERSION,
@@ -564,6 +619,11 @@ async def _main(args: argparse.Namespace) -> int:
             raise ValueError("Existing campaign manifest does not match this run.")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     _atomic_json(manifest_path, manifest)
+    _persist_harness_snapshot(
+        args.output_dir,
+        harness_files=harness_files,
+        snapshot=manifest["harness_snapshot"],
+    )
     _atomic_json(args.output_dir / "judge-output.schema.example.json", example_schema)
     _atomic_json(args.output_dir / "prompt-input-preflight.json", preflight)
     _atomic_json(args.output_dir / "remote-schema-preflight.json", remote_schema)

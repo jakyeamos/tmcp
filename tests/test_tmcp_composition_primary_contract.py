@@ -38,6 +38,16 @@ class CompositionPrimaryContractTests(unittest.TestCase):
             audit = {"passed": True, "prompt_context_sha256": "sha256:context"}
             input_digests = {"study.json": "sha256:study"}
             selected_sources = [{"path": "/skill/SKILL.md", "sha256": "sha256:skill"}]
+            harness_contents = {
+                "tmcp_skill_eval_campaign.py": "campaign harness",
+                "tmcp_skill_eval_campaign_protocol.py": "protocol harness",
+                "tmcp_skill_eval_campaign_planning.py": "planning harness",
+                "tmcp_skill_eval_campaign_runtime.py": "runtime harness",
+            }
+            harness_files = {
+                name: _sha256_text(contents)
+                for name, contents in harness_contents.items()
+            }
             manifest = {
                 "experiment_id": "composition-study-test",
                 "cell_count": 2,
@@ -48,6 +58,15 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                 ],
                 "judge_model": "judge-a",
                 "judge_effort": "high",
+                "harness_files": harness_files,
+                "harness_sha256": _sha256_text(
+                    json.dumps(harness_files, sort_keys=True, separators=(",", ":"))
+                ),
+                "harness_snapshot": {
+                    "schema": "tmcp-skill-eval-campaign-harness-snapshot-v0.1",
+                    "directory": "campaign-harness",
+                    "files": sorted(harness_files),
+                },
                 "isolation": {
                     "ephemeral_process_per_role": True,
                     "temporary_codex_home_per_role": True,
@@ -173,6 +192,10 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
+            harness_dir = runs / "campaign-harness"
+            harness_dir.mkdir()
+            for name, contents in harness_contents.items():
+                (harness_dir / name).write_text(contents, encoding="utf-8")
 
             self.assertTrue(
                 cost_rejudge_source._verify_source_bundle_campaign_contract(
@@ -181,6 +204,33 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                     source_runs=runs,
                     expected_trace_count=2,
                 )
+            )
+            (harness_dir / "tmcp_skill_eval_campaign_planning.py").write_text(
+                "tampered", encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "harness snapshot"):
+                cost_rejudge_source._verify_source_bundle_campaign_contract(
+                    plan=plan,
+                    manifest=manifest,
+                    source_runs=runs,
+                    expected_trace_count=2,
+                )
+            (
+                harness_dir / "tmcp_skill_eval_campaign_planning.py"
+            ).write_text(
+                harness_contents["tmcp_skill_eval_campaign_planning.py"],
+                encoding="utf-8",
+            )
+            manifest["harness_sha256"] = "sha256:wrong"
+            with self.assertRaisesRegex(ValueError, "harness declaration"):
+                cost_rejudge_source._verify_source_bundle_campaign_contract(
+                    plan=plan,
+                    manifest=manifest,
+                    source_runs=runs,
+                    expected_trace_count=2,
+                )
+            manifest["harness_sha256"] = _sha256_text(
+                json.dumps(harness_files, sort_keys=True, separators=(",", ":"))
             )
             manifest["judge_effort"] = "low"
             roles[-1]["effort"] = "low"

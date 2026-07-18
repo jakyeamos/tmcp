@@ -9,8 +9,9 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 
 - Pin the source skill, fixtures, observable bars, cost bar, harness files, and
   runner/judge matrix in the plan. Keep the actual first-principles text in an
-  immutable input file and bind its path and digest in the run manifest. A hash
-  without inspectable source text is not a replayable judge contract.
+  immutable input file and bind its path and digest in the run manifest. Archive
+  the exact local harness modules beside their manifest digests; a hash without
+  inspectable source text is not a replayable judge contract.
 - Run a remote schema preflight with a synthetic task for every configured runner
   model and the separate judge before any campaign artifact leaves the machine.
   Local JSON-schema validity did not catch the earlier remote `const`/`enum`
@@ -139,7 +140,9 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   model/effort settings must also equal the preregistered policy; zero remaining
   failed cells and complete unique-thread coverage must match the persisted
   manifest. Per-cell traces alone cannot prove that the campaign was launched
-  under its declared study contract.
+  under its declared study contract. The persisted primary evidence must also
+  retain the exact byte-pinned local campaign-harness modules named by that
+  manifest; a module hash without its inspectable snapshot is not enough.
 
 ## Anti-patterns observed in the dogfood
 

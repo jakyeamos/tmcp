@@ -39,6 +39,16 @@ _REMOTE_SCHEMA_PREFLIGHTS_SCHEMA = "tmcp-remote-schema-preflights-v0.1"
 _REMOTE_SCHEMA_PREFLIGHT_SCHEMA = "tmcp-remote-schema-preflight-v0.1"
 _COMPOSITION_STUDY_VERIFICATION_SCHEMA = "tmcp-composition-study-verification-v0.1"
 _COMPOSITION_STUDY_BINDING_SCHEMA = "tmcp-composition-study-binding-v0.1"
+_PRIMARY_HARNESS_SNAPSHOT_SCHEMA = "tmcp-skill-eval-campaign-harness-snapshot-v0.1"
+_PRIMARY_HARNESS_SNAPSHOT_DIRECTORY = "campaign-harness"
+_PRIMARY_HARNESS_FILES = frozenset(
+    {
+        "tmcp_skill_eval_campaign.py",
+        "tmcp_skill_eval_campaign_protocol.py",
+        "tmcp_skill_eval_campaign_planning.py",
+        "tmcp_skill_eval_campaign_runtime.py",
+    }
+)
 
 
 def _is_sha256_digest(value: object) -> bool:
@@ -156,6 +166,35 @@ def _verified_object(value: Any, *, context: str) -> dict[str, Any]:
     return value
 
 
+def _verify_primary_harness_snapshot(
+    manifest: dict[str, Any], source_runs: Path
+) -> None:
+    """Require inspectable, byte-pinned local harness modules for the primary run."""
+
+    harness_files = manifest.get("harness_files")
+    snapshot = manifest.get("harness_snapshot")
+    if (
+        not isinstance(harness_files, dict)
+        or set(harness_files) != _PRIMARY_HARNESS_FILES
+        or not all(_is_sha256_digest(digest) for digest in harness_files.values())
+        or manifest.get("harness_sha256") != _canonical_json_digest(harness_files)
+        or not isinstance(snapshot, dict)
+        or snapshot.get("schema") != _PRIMARY_HARNESS_SNAPSHOT_SCHEMA
+        or snapshot.get("directory") != _PRIMARY_HARNESS_SNAPSHOT_DIRECTORY
+        or snapshot.get("files") != sorted(_PRIMARY_HARNESS_FILES)
+    ):
+        raise ValueError("Source-bundle campaign harness declaration is invalid.")
+    snapshot_dir = source_runs / _PRIMARY_HARNESS_SNAPSHOT_DIRECTORY
+    if not snapshot_dir.is_dir() or {
+        path.name for path in snapshot_dir.iterdir()
+    } != _PRIMARY_HARNESS_FILES:
+        raise ValueError("Source-bundle campaign harness snapshot is incomplete.")
+    for name, digest in harness_files.items():
+        snapshot_path = snapshot_dir / name
+        if not snapshot_path.is_file() or _sha256_file(snapshot_path) != digest:
+            raise ValueError("Source-bundle campaign harness snapshot does not match.")
+
+
 def _verify_source_bundle_campaign_contract(
     *,
     plan: dict[str, Any],
@@ -169,6 +208,7 @@ def _verify_source_bundle_campaign_contract(
         return False
     if manifest.get("cell_count") != expected_trace_count:
         raise ValueError("Source-bundle campaign manifest cell count does not match.")
+    _verify_primary_harness_snapshot(manifest, source_runs)
     isolation = _verified_object(
         manifest.get("isolation"), context="Source-bundle campaign isolation"
     )

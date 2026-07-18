@@ -88,6 +88,36 @@ class SkillEvalCampaignTests(unittest.TestCase):
             "tmcp_skill_eval_campaign_planning.py", campaign._harness_digests()
         )
 
+    def test_campaign_harness_snapshot_persists_exact_modules(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output_dir = Path(temporary)
+            harness_files = campaign._harness_digests()
+            snapshot = campaign._harness_snapshot(harness_files)
+
+            campaign._persist_harness_snapshot(
+                output_dir,
+                harness_files=harness_files,
+                snapshot=snapshot,
+            )
+
+            snapshot_dir = output_dir / "campaign-harness"
+            self.assertEqual(
+                {path.name for path in snapshot_dir.iterdir()}, set(harness_files)
+            )
+            self.assertEqual(
+                _sha256_file(snapshot_dir / "tmcp_skill_eval_campaign_planning.py"),
+                harness_files["tmcp_skill_eval_campaign_planning.py"],
+            )
+            (snapshot_dir / "tmcp_skill_eval_campaign_planning.py").write_text(
+                "tampered", encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "snapshot digest"):
+                campaign._persist_harness_snapshot(
+                    output_dir,
+                    harness_files=harness_files,
+                    snapshot=snapshot,
+                )
+
     def test_source_bundle_campaign_requires_study_directory(self) -> None:
         args = Namespace(
             intervention_target="source_bundle", composition_study_dir=None
