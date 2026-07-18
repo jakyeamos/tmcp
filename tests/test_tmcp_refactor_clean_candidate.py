@@ -38,10 +38,14 @@ class RefactorCleanCandidateTests(unittest.TestCase):
         self.assertIn("runner artifact", blindness["judge_receives"])
         self.assertIn("fixture arm label", blindness["judge_must_not_receive"])
 
-    def test_candidate_remains_pending_independent_review(self) -> None:
+    def test_candidate_review_record_is_scope_limited(self) -> None:
         review = (CANDIDATE_DIR / "fixture-review.md").read_text(encoding="utf-8")
         readme = (CANDIDATE_DIR / "README.md").read_text(encoding="utf-8")
 
-        self.assertIn("Status: **pending**", review)
+        self.assertIn("Status: **approved for preregistration only.**", review)
+        self.assertIn("/root/refactor_fixture_review", review)
+        self.assertIn("Non-blocking hardening before preregistration", review)
+        self.assertIn("No behavioral effect or guidebook pattern", review)
+        self.assertIn("campaign ledger remains `Packet-probed`", review)
         self.assertIn("not independently reviewed", readme)
         self.assertIn("No runner, judge, or external model call", readme)
