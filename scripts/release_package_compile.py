@@ -115,6 +115,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/storage/project_recipe_runtime_capsules.py",
     "tmcp_runtime/storage/project_recipes.py",
     "tmcp_runtime/storage/runtime_capsule_persistence.py",
+    "tmcp_runtime/storage/session_phase_bindings.py",
     "tmcp_runtime/storage/sessions.py",
     "tmcp_runtime/services/__init__.py",
     "tmcp_runtime/services/artifact_persistence.py",

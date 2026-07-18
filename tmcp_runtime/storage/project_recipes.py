@@ -29,6 +29,7 @@ from tmcp_runtime.storage.project_recipe_promotion_validation import (
     promotion_is_valid as _promotion_is_valid,
 )
 from tmcp_runtime.storage.artifacts import AtomicArtifactStore
+from tmcp_runtime.storage.cache_policy import cache_json_is_bounded
 from tmcp_runtime.storage.project_recipe_runtime_capsules import (
     RUNTIME_CAPSULE_BOUND as _RUNTIME_CAPSULE_BOUND,
     RUNTIME_CAPSULE_LEGACY_UNBOUND as _RUNTIME_CAPSULE_LEGACY_UNBOUND,
@@ -332,19 +333,12 @@ def _project_root(project_path: str | Path) -> Path:
 
 
 def _json_is_bounded(value: object) -> bool:
-    pending: list[tuple[object, int]] = [(value, 1)]
-    nodes = 0
-    while pending:
-        current, depth = pending.pop()
-        nodes += 1
-        if nodes > MAX_PROJECT_RECIPE_NODES or depth > MAX_PROJECT_RECIPE_DEPTH:
-            return False
-        if isinstance(current, dict):
-            for key, item in current.items():
-                pending.append((key, depth + 1))
-                pending.append((item, depth + 1))
-        elif isinstance(current, list):
-            pending.extend((item, depth + 1) for item in current)
+    if not cache_json_is_bounded(
+        value,
+        maximum_nodes=MAX_PROJECT_RECIPE_NODES,
+        maximum_depth=MAX_PROJECT_RECIPE_DEPTH,
+    ):
+        return False
     try:
         encoded = json.dumps(value, sort_keys=True, separators=(",", ":"))
     except (MemoryError, RecursionError, TypeError, ValueError):
