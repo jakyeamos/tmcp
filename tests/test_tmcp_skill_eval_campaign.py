@@ -83,6 +83,11 @@ class SkillEvalCampaignTests(unittest.TestCase):
         self.assertEqual({cell.order for cell in cells}, set(range(1, 73)))
         self.assertEqual({cell.runner_effort for cell in cells}, {"low", "high", "max"})
 
+    def test_campaign_harness_covers_planning_contract(self) -> None:
+        self.assertIn(
+            "tmcp_skill_eval_campaign_planning.py", campaign._harness_digests()
+        )
+
     def test_source_bundle_campaign_requires_study_directory(self) -> None:
         args = Namespace(
             intervention_target="source_bundle", composition_study_dir=None

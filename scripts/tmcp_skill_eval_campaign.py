@@ -310,6 +310,7 @@ def _harness_digests() -> dict[str, str]:
     paths = (
         Path(__file__),
         Path(campaign_protocol.__file__),
+        Path(__file__).with_name("tmcp_skill_eval_campaign_planning.py"),
         Path(campaign_runtime.__file__),
     )
     return {path.name: _sha256_file(path) for path in paths}
