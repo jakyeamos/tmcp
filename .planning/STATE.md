@@ -17,17 +17,18 @@ until externally observed 0.6 evidence is admissible.
 activation hardening, project-recipe/session continuity, and release evidence
 admissibility. `d316542` aligns legacy fixtures with the signed capsule contract;
 `543c7ff` keeps the strict archive scanner intact while making its benchmark
-fixture archive-safe. The 825-test suite passes; 0.6.0 remains blocked on real
-host-run outcomes.
+fixture archive-safe. `4b69d5b` removes all remaining release-scanner false
+positives without relaxing scanner policy or packet behavior. The 825-test suite
+passes; 0.6.0 remains blocked on real host-run outcomes.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Runtime hardening and archive-safe fixture compatibility complete;
-  clean-package verification, real benchmark evidence, and publication remain
-  pending.
+- **Status:** Runtime hardening and archive-scanner hygiene complete; source-size
+  gate cleanup, clean-package verification, real benchmark evidence, and
+  publication remain pending.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -38,8 +39,9 @@ host-run outcomes.
   release-evidence admissibility, and extracted-package session smoke. Direct
   packets cannot forge a continuation or preload future gate/handoff evidence.
   `543c7ff` preserves strict release secret scanning by shortening one benchmark
-  test identifier. Full discovery passes 825 tests (3 expected skips); no dogfood
-  receipt was written.
+  test identifier. `4b69d5b` removes the remaining identifier-shaped false
+  positives without an allowlist or heuristic exemption. Full discovery passes
+  825 tests (3 expected skips); no dogfood receipt was written.
 - `a6591e1` restores the enforced source-size budgets without exceptions:
   benchmark bundle scanning, composition scoring, project-recipe promotion
   validation, and the two broad benchmark test owners now have focused siblings.

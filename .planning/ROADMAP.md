@@ -108,7 +108,9 @@ outcomes while preserving deterministic compatibility.
   activation, semantic phase-order guards, session-only continuation replay,
   recipe reopening, release-evidence admissibility, extracted-package session
   smoke, and full-suite fixture compatibility. `543c7ff` keeps the benchmark
-  fixture archive-safe without relaxing release secret scanning.
+  fixture archive-safe without relaxing release secret scanning. `4b69d5b`
+  removes all remaining scanner false positives by shortening private/local
+  source spellings while preserving the strict archive policy.
   `9f26520` keeps preflight coverage below the test-size gate.
 - Semantic compiler: complete — validated task model, typed graph, dependency
   closure, phase ordering, bridges, diagnostics, and content-derived provenance.
