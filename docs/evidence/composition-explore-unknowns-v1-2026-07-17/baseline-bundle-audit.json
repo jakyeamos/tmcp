@@ -1,18 +1,20 @@
 {
   "artifact_digests": {
-    "plan_sha256": "sha256:7f28ed74da8b442c463919fc70667de5f81459c0549e8283d7767a6c6a0aed14"
+    "plan_sha256": "sha256:66ef78ac324e01ea456eb4cfe4881a63d299f7f4df720bfaf3da7f2c1303a294"
   },
-  "baseline_experiment_id": "composition-baseline-98736f1789b78f67",
+  "baseline_experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
   "baseline_receipt_digest": null,
-  "causal_experiment_id": "composition-study-8fd63d3df50f41b0",
+  "causal_experiment_id": "composition-study-efc0a2e36fb15c92",
   "gaps": [
     "baseline_evidence_digests_missing",
     "baseline_manifest_missing",
     "baseline_receipt_digest_not_preregistered",
     "baseline_receipt_required",
     "baseline_report_missing",
-    "baseline_traces_missing"
+    "baseline_traces_missing",
+    "baseline_verification_digest_not_preregistered"
   ],
   "ready": false,
-  "schema": "tmcp-skill-eval-baseline-bundle-verification-v0.1"
+  "schema": "tmcp-skill-eval-baseline-bundle-verification-v0.1",
+  "trace_integrity": {}
 }

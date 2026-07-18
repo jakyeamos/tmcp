@@ -52,6 +52,16 @@ def _stable_id(value: Any) -> str:
     return "composition-study-" + hashlib.sha256(payload).hexdigest()[:16]
 
 
+def _identity_definition(definition: Mapping[str, Any]) -> dict[str, Any]:
+    """Exclude mutable evidence attachment digests from study identity."""
+
+    identity = json.loads(json.dumps(definition))
+    baseline_dependency = identity.get("baseline_dependency")
+    if isinstance(baseline_dependency, dict):
+        baseline_dependency.pop("verification_sha256", None)
+    return identity
+
+
 def _load_object(path: Path) -> dict[str, Any]:
     value = _read_json(path)
     if not isinstance(value, dict):
@@ -203,7 +213,7 @@ def build_plan(study_dir: Path) -> dict[str, Any]:
     }
     experiment_id = _stable_id(
         {
-            "definition": definition,
+            "definition": _identity_definition(definition),
             "fixture_sha256": _sha256_file(inputs / "fixtures-reviewed-v1.json"),
             "policy_sha256": _sha256_file(inputs / "campaign-policy.json"),
             "packet_base_sha256": _sha256_file(inputs / "packet-base.md"),

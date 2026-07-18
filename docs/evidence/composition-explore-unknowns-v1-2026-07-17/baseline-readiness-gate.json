@@ -3,7 +3,9 @@
   "design": "causal_contrast",
   "gaps": [
     "baseline_receipt_digest_not_preregistered",
-    "baseline_receipt_required"
+    "baseline_verification_digest_not_preregistered",
+    "baseline_receipt_required",
+    "baseline_bundle_verification_required"
   ],
   "judge_model": "gpt-5.5",
   "ready": false,

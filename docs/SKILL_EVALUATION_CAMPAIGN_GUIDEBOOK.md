@@ -33,7 +33,9 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - Before attaching a baseline receipt, run the standalone bundle verifier against
   the causal plan, derived baseline plan, receipt, manifest, traces, and report.
   It must reject a detached or digest-incomplete bundle even when the receipt's
-  compatibility fields look plausible.
+  compatibility fields look plausible. The causal plan must pin both the receipt
+  digest and the verifier-record digest; readiness must reject a missing,
+  non-ready, or mismatched verifier record.
 - Treat an independently reviewed candidate as admissible evidence design, not as
   a campaign. Run a candidate-readiness gate before generating a behavioral plan:
   it must bind the target source, first-principles summary, review record, packet
@@ -132,6 +134,14 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   its plan, manifest, trace, and report digests; record per-fixture and per-runner
   coverage; keep `causal_applicable: false`; and reject a receipt with unresolved
   safety or cost adjudication even when its aggregate pass rate clears a floor.
+- Receipt coverage is part of the evidence contract, not a descriptive appendix:
+  require exact fixture/task/family identity, every configured runner model,
+  repetitions, totals, pass-rate consistency, and aggregate-to-breakdown
+  reconciliation. An empty `per_fixture` or `per_runner_model` list is incomplete
+  even when `meets_predeclared_floors` is true.
+- Before accepting a baseline bundle, verify trace integrity as well as file
+  digests: reject orphan or duplicate trace/cell IDs, incomplete controlled-cell
+  coverage, missing case verdicts/provenance, and reused runner/judge threads.
 - Causal promotion requires the predeclared clustered analysis policy, reliability
   floors, complete provenance, complete cost sidecar where used, and no unresolved
   safety/cost regression. When a plan preregisters `complete_before_promotion`,

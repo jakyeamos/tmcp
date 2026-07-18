@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
 from scripts.generate_composition_baseline_plan import build_baseline_plan  # noqa: E402
 from scripts.tmcp_skill_eval_campaign_planning import validate_baseline_receipt  # noqa: E402
 from tmcp_runtime.api.evaluation import validate_evaluation_plan  # noqa: E402
+from tmcp_runtime.services.evaluation_trace_evidence import records_for_plan  # noqa: E402
 
 
 VERIFICATION_SCHEMA = "tmcp-skill-eval-baseline-bundle-verification-v0.1"
@@ -36,6 +37,69 @@ def _load_list(path: Path) -> list[dict[str, Any]]:
 
 def _sha256_file(path: Path) -> str:
     return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _trace_integrity_gaps(
+    plan: dict[str, Any], traces: list[dict[str, Any]]
+) -> tuple[list[str], dict[str, Any]]:
+    """Reject orphaned, duplicated, incomplete, or thread-reused baseline traces."""
+
+    gaps: list[str] = []
+    try:
+        records = records_for_plan(plan, traces)
+    except ValueError:
+        return ["baseline_trace_duplicate_cell"], {"trace_count": len(traces)}
+    if len(records) != len(traces):
+        gaps.append("baseline_trace_orphaned")
+    trace_ids = [str(trace.get("trace_id") or "") for trace in traces]
+    if not trace_ids or any(not trace_id for trace_id in trace_ids):
+        gaps.append("baseline_trace_id_missing")
+    if len(trace_ids) != len(set(trace_ids)):
+        gaps.append("baseline_trace_id_duplicate")
+    controlled_records = [record for record in records if record.get("controlled") is True]
+    experiment = plan.get("experiment")
+    policy = experiment.get("campaign_policy") if isinstance(experiment, dict) else None
+    configurations = policy.get("runner_configurations", []) if isinstance(policy, dict) else []
+    repetitions = (
+        policy.get("cross_model_confirmation", {}).get("minimum_repetitions_per_cell", 1)
+        if isinstance(policy, dict) and isinstance(policy.get("cross_model_confirmation"), dict)
+        else 1
+    )
+    rows = [
+        row for row in plan.get("task_matrix", [])
+        if isinstance(row, dict)
+        and row.get("variant_id") == (policy.get("baseline_reliability", {}).get("control_variant") if isinstance(policy, dict) and isinstance(policy.get("baseline_reliability"), dict) else "original")
+    ]
+    expected_cells = len(rows) * len(configurations) * int(repetitions or 1)
+    if len(controlled_records) != expected_cells:
+        gaps.append("baseline_trace_control_cell_count_mismatch")
+    thread_ids: list[str] = []
+    for trace in traces:
+        provenance = trace.get("provenance")
+        if not isinstance(provenance, dict):
+            gaps.append("baseline_trace_provenance_missing")
+            continue
+        for role in ("runner_event_audit", "judge_event_audit"):
+            audit = provenance.get(role)
+            thread_id = audit.get("thread_id") if isinstance(audit, dict) else None
+            if not isinstance(thread_id, str) or not thread_id:
+                gaps.append(f"baseline_trace_{role}_thread_missing")
+            else:
+                thread_ids.append(thread_id)
+        runner_audit = provenance.get("runner_event_audit")
+        judge_audit = provenance.get("judge_event_audit")
+        if isinstance(runner_audit, dict) and isinstance(judge_audit, dict):
+            if runner_audit.get("thread_id") == judge_audit.get("thread_id"):
+                gaps.append("baseline_trace_runner_judge_thread_reused")
+    if len(thread_ids) != len(set(thread_ids)):
+        gaps.append("baseline_trace_thread_reused")
+    return gaps, {
+        "trace_count": len(traces),
+        "controlled_trace_count": len(controlled_records),
+        "expected_control_cell_count": expected_cells,
+        "unique_trace_ids": len(set(trace_ids)),
+        "unique_thread_ids": len(set(thread_ids)),
+    }
 
 
 def verify_baseline_bundle(
@@ -72,8 +136,13 @@ def verify_baseline_bundle(
             causal_plan,
             baseline_receipt=baseline_receipt,
             baseline_receipt_digest=receipt_digest,
+            require_bundle_verification=False,
         )
     )
+    causal_experiment = causal_plan.get("experiment")
+    dependency = causal_experiment.get("baseline_dependency") if isinstance(causal_experiment, dict) else None
+    if not isinstance(dependency, dict) or not str(dependency.get("verification_sha256") or "").startswith("sha256:"):
+        gaps.append("baseline_verification_digest_not_preregistered")
 
     artifact_paths = {
         "plan_sha256": baseline_plan_path,
@@ -106,10 +175,12 @@ def verify_baseline_bundle(
             gaps.append("baseline_manifest_cell_count_mismatch")
 
     traces = _load_list(traces_path) if traces_path is not None and traces_path.is_file() else None
+    trace_integrity: dict[str, Any] = {}
     if traces is None:
         gaps.append("baseline_traces_missing")
-    elif len(traces) != 36:
-        gaps.append("baseline_traces_cell_count_mismatch")
+    else:
+        trace_gaps, trace_integrity = _trace_integrity_gaps(baseline_plan, traces)
+        gaps.extend(trace_gaps)
     if report_path is None or not report_path.is_file():
         gaps.append("baseline_report_missing")
 
@@ -125,6 +196,7 @@ def verify_baseline_bundle(
             for field, path in artifact_paths.items()
             if path is not None and path.is_file()
         },
+        "trace_integrity": trace_integrity,
     }
 
 

@@ -313,6 +313,11 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="Completed, digest-bound original-only baseline receipt required for causal campaigns.",
     )
+    parser.add_argument(
+        "--baseline-bundle-verification",
+        type=Path,
+        help="Ready standalone verification record for the attached baseline evidence bundle.",
+    )
     parser.add_argument("--codex-bin", default="codex")
     parser.add_argument("--dry-run", action="store_true")
     return parser
@@ -440,6 +445,16 @@ async def _main(args: argparse.Namespace) -> int:
         ),
         baseline_receipt_digest=(
             _sha256_file(args.baseline_receipt) if args.baseline_receipt else None
+        ),
+        baseline_bundle_verification=(
+            _load_json(args.baseline_bundle_verification)
+            if args.baseline_bundle_verification
+            else None
+        ),
+        baseline_bundle_verification_digest=(
+            _sha256_file(args.baseline_bundle_verification)
+            if args.baseline_bundle_verification
+            else None
         ),
     )
     if args.readiness_report is not None:

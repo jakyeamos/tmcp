@@ -158,13 +158,16 @@ python3 scripts/generate_composition_study_plan.py \
 ```
 
 The generated plan passes immutable-input verification and now explicitly
-preregisters a required baseline-receipt dependency. Its receipt digest remains
-null while the compatible control run is absent, so the causal campaign launcher
-fails closed with `baseline_receipt_digest_not_preregistered` and
+preregisters both a required baseline-receipt dependency and a required digest
+for the standalone bundle-verification record. Both digests remain null while
+the compatible control run is absent, so the causal campaign launcher fails
+closed with `baseline_receipt_digest_not_preregistered`,
+`baseline_verification_digest_not_preregistered`, and
 `baseline_receipt_required`; the persisted readiness report is
-[baseline-readiness-gate.json](baseline-readiness-gate.json). A separately completed, digest-bound original-only
-baseline receipt must clear the control floors and compatibility checks before
-any remote schema preflight.
+[baseline-readiness-gate.json](baseline-readiness-gate.json). A separately
+completed, digest-bound original-only baseline receipt and a `ready: true`
+bundle-verification record must clear the control floors and compatibility
+checks before any remote schema preflight.
 Launching runners or a judge still requires fresh approval because it spends
 external model capacity and creates new behavioral evidence. Source-bundle
 launches also require `--composition-study-dir` so the launcher records a

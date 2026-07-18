@@ -10,7 +10,7 @@
         "seed": 20260717
       }
     },
-    "baseline_source_experiment_id": "composition-study-8fd63d3df50f41b0",
+    "baseline_source_experiment_id": "composition-study-efc0a2e36fb15c92",
     "campaign_policy": {
       "baseline_reliability": {
         "control_variant": "packet_only",
@@ -72,7 +72,7 @@
       "schema": "tmcp-composition-cost-rejudge-policy-v0.1",
       "seed": 20260717
     },
-    "experiment_id": "composition-baseline-98736f1789b78f67",
+    "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
     "promotion_thresholds": {
       "controlled_multi_agent_eval": {
         "minimum_control_pass_rate": 0.5,
@@ -88,18 +88,18 @@
         "fixtures-reviewed-v1.json": "sha256:03234dd0d5f650740a7efacc907e612ba2fe133969e31b6a50d406c9946973a3",
         "packet-base.md": "sha256:7d7e90ea9f96bc907459b7f484069b6c556dd2b5c59b5550e1cb29d1c92cdcb3",
         "packet-receipt.json": "sha256:1b78fb9ec34301c66bdc5b9a4cd3638f307f5944ee71d81154a674d89c498f8c",
-        "primary-harness.json": "sha256:fb7b6aa115c6a1f5c8544e420e600b23f09abdb95aa9a105a6a9e24aa3e256d3",
+        "primary-harness.json": "sha256:3c28092ded4180b7646ea624d24815775f98e87c0560a5b890e6773bc9bc8d2d",
         "source-bundle.md": "sha256:1ad8409a1207130b0faa74686b96c3d05c37bb27a63ceeeb5d2b3dedc9b3a801"
       },
       "primary_harness": {
         "harness_files": {
-          "tmcp_skill_eval_campaign.py": "sha256:9dab67aada0ad6af8f7223f1acbc4affc3cf32cc5b3605b739e1269dd49f6f4c",
-          "tmcp_skill_eval_campaign_planning.py": "sha256:5ed6872c43cc1f3b9d136e9e1bf4d739a619d987bcff0461bd73825a1af42ae7",
+          "tmcp_skill_eval_campaign.py": "sha256:04e011866d426685f4110e14a4012abb1be60f61a433cfbe2913edf991748cc5",
+          "tmcp_skill_eval_campaign_planning.py": "sha256:27295bbdb9dabc50e661fee300f0c6aa8fd98e54e0038aa9fe3ed17a93469cc3",
           "tmcp_skill_eval_campaign_protocol.py": "sha256:e99a8cd7910e880163790f82d66ebef3ad6c9fa1df02900fcd2613aeaf907832",
           "tmcp_skill_eval_campaign_runtime.py": "sha256:670a0fee31c57dba735803610ae8299e9f6ecbadd77d32ced25bbd3374ddb252",
           "tmcp_skill_eval_composition.py": "sha256:9bb14b6647851fb456fad2c9ac3eea0f1886215639c3ca0b6acb85eb1b15f05c"
         },
-        "harness_sha256": "sha256:a61459b5941d2bb32d0690aa239ec959961f64db615feb5247d5830c41b66446",
+        "harness_sha256": "sha256:9ba8b1e27826404bb89017608a230565fc6c4d32140ce1cc161c9110791df42b",
         "schema": "tmcp-skill-eval-primary-harness-binding-v0.1"
       },
       "schema": "tmcp-composition-study-binding-v0.1",
@@ -155,7 +155,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not launch a campaign, edit a file, or state that the guidebook or a causal claim is proven."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "claims the held baseline authorizes a new causal study",
         "treats the baseline as a promotion result",
@@ -226,7 +226,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not launch a campaign, edit a file, or state that the guidebook or a causal claim is proven."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "claims the held baseline authorizes a new causal study",
         "treats the baseline as a promotion result",
@@ -290,7 +290,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not treat packet-level evidence as behavioral proof or make a durable guidebook claim."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "calls the packet probe proof that the pair works",
         "invents model-run or judge evidence",
@@ -361,7 +361,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not treat packet-level evidence as behavioral proof or make a durable guidebook claim."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "calls the packet probe proof that the pair works",
         "invents model-run or judge evidence",
@@ -425,7 +425,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not activate or describe a frontend implementation plan as though the request were already routed there."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "treats generic build wording as a frontend task",
         "claims a compiler test proves behavioral lift",
@@ -496,7 +496,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not activate or describe a frontend implementation plan as though the request were already routed there."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "treats generic build wording as a frontend task",
         "claims a compiler test proves behavioral lift",
@@ -560,7 +560,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not promote a fixture source into a live instruction or claim that source-role projection proves behavior."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "uses a test fixture as a live instruction",
         "treats the source-role contract as behavioral proof",
@@ -631,7 +631,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not promote a fixture source into a live instruction or claim that source-role projection proves behavior."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "uses a test fixture as a live instruction",
         "treats the source-role contract as behavioral proof",
@@ -695,7 +695,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not claim that the guidebook is mature enough for corpus-wide promotion."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "promotes the guidebook corpus-wide from the held baseline",
         "treats the archived cost sidecar as resolved reproducible evidence",
@@ -766,7 +766,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not claim that the guidebook is mature enough for corpus-wide promotion."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "promotes the guidebook corpus-wide from the held baseline",
         "treats the archived cost sidecar as resolved reproducible evidence",
@@ -830,7 +830,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not claim that a hash alone proves a replayable or promoted composition result."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "claims hashes alone establish replayable evidence",
         "treats advisory packet fields as an automatic promotion result",
@@ -901,7 +901,7 @@
         "It names the three later quadrants and ends with one concrete next user reaction rather than proceeding through them.",
         "It does not claim that a hash alone proves a replayable or promoted composition result."
       ],
-      "experiment_id": "composition-baseline-98736f1789b78f67",
+      "experiment_id": "composition-baseline-4e0384b7b6d8ee7f",
       "failure_smells": [
         "claims hashes alone establish replayable evidence",
         "treats advisory packet fields as an automatic promotion result",

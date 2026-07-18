@@ -75,9 +75,23 @@ Independently inspect that receipt before attaching it to the causal plan. It
 must be completed, `causal_applicable: false`, clear on raw and adjudicated
 safety/cost status, and meet the predeclared aggregate and per-fixture floors.
 A held receipt remains useful evidence but cannot authorize the 72-cell causal
-study. The receipt is an eligibility dependency, not a composition effect.
+study. The standalone verifier also checks exact fixture/model coverage,
+controlled-cell counts, trace IDs, provenance, and thread isolation. The receipt
+is an eligibility dependency, not a composition effect.
 
 After the receipt passes those checks, update the causal study's pinned
-`baseline_dependency.receipt_sha256`, regenerate its plan, and obtain a new
-fresh approval for the separate 72-cell runner/judge campaign. Request the
-72-trace cost rejudge separately after the primary campaign completes.
+`baseline_dependency.receipt_sha256` and
+`baseline_dependency.verification_sha256`, regenerate its plan, and obtain a
+new fresh approval for the separate 72-cell runner/judge campaign. The causal
+launcher must receive the verified record as well as the receipt:
+
+```sh
+python3 scripts/tmcp_skill_eval_campaign.py \
+  ... \
+  --baseline-receipt <baseline-runs>/baseline-receipt.json \
+  --baseline-bundle-verification <baseline-runs>/baseline-bundle-verification.json \
+  --require-preregistered
+```
+
+Request the 72-trace cost rejudge separately after the primary campaign
+completes.

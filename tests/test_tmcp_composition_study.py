@@ -539,7 +539,7 @@ class CompositionStudyTests(unittest.TestCase):
         validated = validate_evaluation_plan(generated)
         self.assertEqual(
             validated["experiment"]["experiment_id"],
-            "composition-study-8fd63d3df50f41b0",
+            "composition-study-efc0a2e36fb15c92",
         )
         self.assertEqual(
             validated["experiment"]["baseline_dependency"],
@@ -547,6 +547,7 @@ class CompositionStudyTests(unittest.TestCase):
                 "schema": "tmcp-skill-eval-baseline-receipt-v0.1",
                 "required": True,
                 "receipt_sha256": None,
+                "verification_sha256": None,
                 "status": "awaiting_completed_compatible_receipt",
             },
         )
@@ -663,7 +664,7 @@ class CompositionStudyTests(unittest.TestCase):
         assert report is not None
         self.assertTrue(report["static"]["plan_matches_generated"])
         self.assertEqual(
-            report["experiment_id"], "composition-study-8fd63d3df50f41b0"
+            report["experiment_id"], "composition-study-efc0a2e36fb15c92"
         )
 
 

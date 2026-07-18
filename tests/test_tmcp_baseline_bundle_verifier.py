@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -36,6 +37,7 @@ class BaselineBundleVerifierTests(unittest.TestCase):
         self.assertFalse(report["ready"])
         self.assertIn("baseline_receipt_required", report["gaps"])
         self.assertIn("baseline_receipt_digest_not_preregistered", report["gaps"])
+        self.assertIn("baseline_verification_digest_not_preregistered", report["gaps"])
         self.assertNotIn("baseline_plan_not_derived_from_causal_plan", report["gaps"])
 
     def test_detached_manifest_and_trace_paths_are_rejected(self) -> None:
@@ -56,6 +58,26 @@ class BaselineBundleVerifierTests(unittest.TestCase):
         self.assertIn("baseline_manifest_missing", report["gaps"])
         self.assertIn("baseline_traces_missing", report["gaps"])
         self.assertIn("baseline_report_missing", report["gaps"])
+
+    def test_orphan_trace_is_rejected_even_when_the_file_exists(self) -> None:
+        causal = json.loads(CAUSAL_PLAN.read_text(encoding="utf-8"))
+        baseline = json.loads(BASELINE_PLAN.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as temporary:
+            traces_path = Path(temporary) / "traces.json"
+            traces_path.write_text(json.dumps([{"trace_id": "orphan"}]), encoding="utf-8")
+            report = verify_baseline_bundle(
+                causal,
+                baseline,
+                None,
+                baseline_plan_path=BASELINE_PLAN,
+                manifest_path=None,
+                traces_path=traces_path,
+                report_path=None,
+                receipt_path=None,
+            )
+
+        self.assertIn("baseline_trace_orphaned", report["gaps"])
+        self.assertIn("baseline_trace_control_cell_count_mismatch", report["gaps"])
 
 
 if __name__ == "__main__":

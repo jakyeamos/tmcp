@@ -97,6 +97,7 @@ class BaselineReadinessTests(unittest.TestCase):
             "schema": BASELINE_RECEIPT_SCHEMA,
             "required": True,
             "receipt_sha256": "sha256:" + "b" * 64,
+            "verification_sha256": "sha256:" + "c" * 64,
         }
         cells = build_cells(
             plan,
@@ -150,13 +151,46 @@ class BaselineReadinessTests(unittest.TestCase):
             "counts": {
                 "fixture_count": 6,
                 "fixture_family_count": 6,
-                "per_fixture": [],
-                "per_runner_model": [],
+                "total": 36,
+                "passed": 36,
+                "pass_rate": 1.0,
+                "valid_case_verdicts": 36,
+                "provenance_complete": True,
+                "per_fixture": [
+                    {
+                        "fixture_digest": f"fixture-{index}",
+                        "task_id": f"task-{index}",
+                        "fixture_family": f"family-{index}",
+                        "passed": 6,
+                        "total": 6,
+                        "pass_rate": 1.0,
+                    }
+                    for index in range(6)
+                ],
+                "per_runner_model": [
+                    {
+                        "model": model,
+                        "passed": 12,
+                        "total": 12,
+                        "pass_rate": 1.0,
+                        "fixture_count": 6,
+                        "minimum_repetitions_per_fixture": 2,
+                    }
+                    for model in ("model-a", "model-b", "model-c")
+                ],
             },
             "safety": {"raw_status": "clear", "adjudicated_status": "clear"},
             "cost": {"raw_status": "clear", "adjudicated_status": "clear"},
         }
         return plan, cells, receipt
+
+    def _verified_bundle(self, plan: dict, receipt: dict) -> dict:
+        return {
+            "schema": "tmcp-skill-eval-baseline-bundle-verification-v0.1",
+            "ready": True,
+            "baseline_receipt_digest": "sha256:" + "b" * 64,
+            "causal_experiment_id": plan["experiment"]["experiment_id"],
+        }
 
     def test_causal_readiness_requires_a_completed_baseline_receipt(self) -> None:
         plan, cells, receipt = self._causal_plan_with_baseline()
@@ -188,8 +222,40 @@ class BaselineReadinessTests(unittest.TestCase):
             judge_effort="high",
             baseline_receipt=receipt,
             baseline_receipt_digest="sha256:" + "b" * 64,
+            baseline_bundle_verification=self._verified_bundle(plan, receipt),
+            baseline_bundle_verification_digest="sha256:" + "c" * 64,
         )
         self.assertTrue(ready["ready"])
+
+    def test_causal_readiness_requires_a_verified_bundle_record(self) -> None:
+        plan, cells, receipt = self._causal_plan_with_baseline()
+        readiness = campaign_readiness_report(
+            plan,
+            cells=cells,
+            design="causal_contrast",
+            judge_model="judge-model",
+            judge_effort="high",
+            baseline_receipt=receipt,
+            baseline_receipt_digest="sha256:" + "b" * 64,
+        )
+        self.assertFalse(readiness["ready"])
+        self.assertIn("baseline_bundle_verification_required", readiness["gaps"])
+
+        mismatched = self._verified_bundle(plan, receipt)
+        mismatched["ready"] = False
+        readiness = campaign_readiness_report(
+            plan,
+            cells=cells,
+            design="causal_contrast",
+            judge_model="judge-model",
+            judge_effort="high",
+            baseline_receipt=receipt,
+            baseline_receipt_digest="sha256:" + "b" * 64,
+            baseline_bundle_verification=mismatched,
+            baseline_bundle_verification_digest="sha256:" + "c" * 64,
+        )
+        self.assertFalse(readiness["ready"])
+        self.assertIn("baseline_bundle_verification_not_ready", readiness["gaps"])
 
     def test_causal_readiness_rejects_baseline_compatibility_drift(self) -> None:
         plan, cells, receipt = self._causal_plan_with_baseline()
@@ -202,6 +268,8 @@ class BaselineReadinessTests(unittest.TestCase):
             judge_effort="high",
             baseline_receipt=receipt,
             baseline_receipt_digest="sha256:" + "b" * 64,
+            baseline_bundle_verification=self._verified_bundle(plan, receipt),
+            baseline_bundle_verification_digest="sha256:" + "c" * 64,
         )
         self.assertFalse(readiness["ready"])
         self.assertIn("baseline_fixture_digests_mismatch", readiness["gaps"])

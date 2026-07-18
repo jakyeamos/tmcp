@@ -170,6 +170,11 @@ def build_baseline_receipt(
             "fixture_family_count": len(
                 {str(row.get("fixture_family") or "") for row in rows}
             ),
+            "total": summary.get("total"),
+            "passed": summary.get("passed"),
+            "pass_rate": summary.get("pass_rate"),
+            "valid_case_verdicts": summary.get("valid_case_verdicts"),
+            "provenance_complete": summary.get("provenance_complete"),
             "per_fixture": summary.get("per_fixture", []),
             "per_runner_model": summary.get("per_runner_model", []),
         },

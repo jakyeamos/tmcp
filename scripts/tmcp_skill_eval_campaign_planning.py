@@ -207,6 +207,8 @@ def campaign_readiness_report(
     judge_effort: str,
     baseline_receipt: dict[str, Any] | None = None,
     baseline_receipt_digest: str | None = None,
+    baseline_bundle_verification: dict[str, Any] | None = None,
+    baseline_bundle_verification_digest: str | None = None,
 ) -> dict[str, Any]:
     """Return launch readiness without starting a runner or judge session."""
 
@@ -343,6 +345,8 @@ def campaign_readiness_report(
                 plan,
                 baseline_receipt=baseline_receipt,
                 baseline_receipt_digest=baseline_receipt_digest,
+                baseline_bundle_verification=baseline_bundle_verification,
+                baseline_bundle_verification_digest=baseline_bundle_verification_digest,
             )
         )
     return {
@@ -386,11 +390,88 @@ def _baseline_control_rows(plan: dict[str, Any]) -> tuple[list[dict[str, Any]], 
     return rows, []
 
 
+def _validate_baseline_counts(
+    plan: dict[str, Any],
+    control_rows: list[dict[str, Any]],
+    counts: dict[str, Any],
+) -> list[str]:
+    """Require exact fixture/model coverage and internally consistent totals."""
+
+    gaps: list[str] = []
+    per_fixture = counts.get("per_fixture")
+    per_runner_model = counts.get("per_runner_model")
+    if not isinstance(per_fixture, list) or not isinstance(per_runner_model, list):
+        return ["baseline_counts_missing"]
+    expected_fixture_map = {
+        str(row.get("fixture_digest")): row for row in control_rows
+    }
+    fixture_records = [
+        item for item in per_fixture if isinstance(item, dict)
+    ]
+    if len(fixture_records) != len(per_fixture):
+        gaps.append("baseline_per_fixture_record_invalid")
+    fixture_digests = [str(item.get("fixture_digest") or "") for item in fixture_records]
+    if len(fixture_digests) != len(set(fixture_digests)):
+        gaps.append("baseline_per_fixture_duplicate")
+    if set(fixture_digests) != set(expected_fixture_map):
+        gaps.append("baseline_per_fixture_coverage_mismatch")
+    policy = (plan.get("experiment") or {}).get("campaign_policy")
+    configurations = policy.get("runner_configurations", []) if isinstance(policy, dict) else []
+    expected_models = sorted(
+        str(item.get("model") or "")
+        for item in configurations
+        if isinstance(item, dict) and str(item.get("model") or "")
+    )
+    confirmation = policy.get("cross_model_confirmation") if isinstance(policy, dict) else None
+    repetitions = int(confirmation.get("minimum_repetitions_per_cell") or 1) if isinstance(confirmation, dict) else 1
+    model_records = [item for item in per_runner_model if isinstance(item, dict)]
+    model_names = [str(item.get("model") or "") for item in model_records]
+    if len(model_records) != len(per_runner_model):
+        gaps.append("baseline_per_runner_model_record_invalid")
+    if len(model_names) != len(set(model_names)):
+        gaps.append("baseline_per_runner_model_duplicate")
+    if sorted(model_names) != expected_models:
+        gaps.append("baseline_per_runner_model_coverage_mismatch")
+    expected_fixture_count = len(control_rows)
+    expected_total = expected_fixture_count * len(expected_models) * repetitions
+    if counts.get("fixture_count") != expected_fixture_count:
+        gaps.append("baseline_fixture_count_mismatch")
+    if counts.get("fixture_family_count", 0) < 3:
+        gaps.append("baseline_fixture_family_count_too_low")
+    if counts.get("total") != expected_total:
+        gaps.append("baseline_total_count_mismatch")
+    if counts.get("passed") is not None and not isinstance(counts.get("passed"), int):
+        gaps.append("baseline_passed_count_invalid")
+    if isinstance(counts.get("total"), int) and isinstance(counts.get("passed"), int):
+        expected_rate = round(counts["passed"] / counts["total"], 3) if counts["total"] else None
+        if counts.get("pass_rate") != expected_rate:
+            gaps.append("baseline_pass_rate_inconsistent")
+    expected_per_fixture_total = len(expected_models) * repetitions
+    for item in fixture_records:
+        if item.get("task_id") != expected_fixture_map.get(item.get("fixture_digest"), {}).get("task_id"):
+            gaps.append("baseline_per_fixture_task_mismatch")
+        if item.get("fixture_family") != expected_fixture_map.get(item.get("fixture_digest"), {}).get("fixture_family"):
+            gaps.append("baseline_per_fixture_family_mismatch")
+        if item.get("total") != expected_per_fixture_total:
+            gaps.append("baseline_per_fixture_total_mismatch")
+    for item in model_records:
+        if item.get("fixture_count") != expected_fixture_count:
+            gaps.append("baseline_per_runner_model_fixture_count_mismatch")
+        if item.get("total") != expected_fixture_count * repetitions:
+            gaps.append("baseline_per_runner_model_total_mismatch")
+        if item.get("minimum_repetitions_per_fixture") != repetitions:
+            gaps.append("baseline_per_runner_model_repetition_mismatch")
+    return gaps
+
+
 def validate_baseline_receipt(
     plan: dict[str, Any],
     *,
     baseline_receipt: dict[str, Any] | None,
     baseline_receipt_digest: str | None,
+    baseline_bundle_verification: dict[str, Any] | None = None,
+    baseline_bundle_verification_digest: str | None = None,
+    require_bundle_verification: bool = True,
 ) -> list[str]:
     """Fail closed unless a compatible completed baseline clears its floors."""
 
@@ -408,11 +489,35 @@ def validate_baseline_receipt(
         gaps = ["baseline_receipt_digest_not_preregistered"]
     else:
         gaps = []
+    verification_digest = dependency.get("verification_sha256")
+    if require_bundle_verification and (
+        not isinstance(verification_digest, str)
+        or not verification_digest.startswith("sha256:")
+    ):
+        gaps.append("baseline_verification_digest_not_preregistered")
     if baseline_receipt is None:
         gaps.append("baseline_receipt_required")
+        if require_bundle_verification and baseline_bundle_verification is None:
+            gaps.append("baseline_bundle_verification_required")
         return gaps
     if baseline_receipt_digest != dependency.get("receipt_sha256"):
         gaps.append("baseline_receipt_digest_mismatch")
+    if require_bundle_verification:
+        if baseline_bundle_verification is None:
+            gaps.append("baseline_bundle_verification_required")
+        else:
+            if baseline_bundle_verification_digest != verification_digest:
+                gaps.append("baseline_bundle_verification_digest_mismatch")
+            if baseline_bundle_verification.get(
+                "schema"
+            ) != "tmcp-skill-eval-baseline-bundle-verification-v0.1":
+                gaps.append("baseline_bundle_verification_schema_invalid")
+            if baseline_bundle_verification.get("ready") is not True:
+                gaps.append("baseline_bundle_verification_not_ready")
+            if baseline_bundle_verification.get("baseline_receipt_digest") != baseline_receipt_digest:
+                gaps.append("baseline_bundle_verification_receipt_mismatch")
+            if baseline_bundle_verification.get("causal_experiment_id") != experiment.get("experiment_id"):
+                gaps.append("baseline_bundle_verification_causal_experiment_mismatch")
     if baseline_receipt.get("schema") != BASELINE_RECEIPT_SCHEMA:
         gaps.append("baseline_receipt_schema_invalid")
     if baseline_receipt.get("evidence_state") != "completed":
@@ -525,13 +630,8 @@ def validate_baseline_receipt(
     ):
         gaps.append("baseline_evidence_digests_missing")
     counts = baseline_receipt.get("counts")
-    if not isinstance(counts, dict) or not isinstance(counts.get("per_fixture"), list) or not isinstance(
-        counts.get("per_runner_model"), list
-    ):
+    if not isinstance(counts, dict):
         gaps.append("baseline_counts_missing")
     elif control_rows:
-        if counts.get("fixture_count") != len(control_rows):
-            gaps.append("baseline_fixture_count_mismatch")
-        if counts.get("fixture_family_count", 0) < 3:
-            gaps.append("baseline_fixture_family_count_too_low")
+        gaps.extend(_validate_baseline_counts(plan, control_rows, counts))
     return gaps
