@@ -32,6 +32,9 @@ from tmcp_runtime.services.evaluation_cost_rejudge import (
 
 
 COST_REJUDGMENTS_SCHEMA = "tmcp-skill-eval-cost-rejudgment-v0.1"
+_COMPOSITION_SOURCE_BUNDLE_PATTERN = "composition.source-bundle-inclusion"
+_REMOTE_SCHEMA_PREFLIGHTS_SCHEMA = "tmcp-remote-schema-preflights-v0.1"
+_COMPOSITION_STUDY_VERIFICATION_SCHEMA = "tmcp-composition-study-verification-v0.1"
 
 
 @dataclass(frozen=True)
@@ -127,6 +130,201 @@ def _source_rows(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return rows
 
 
+def _is_source_bundle_study(plan: dict[str, Any]) -> bool:
+    return any(
+        isinstance(row, dict)
+        and row.get("pattern_id") == _COMPOSITION_SOURCE_BUNDLE_PATTERN
+        for row in plan.get("task_matrix", [])
+    )
+
+
+def _verified_object(value: Any, *, context: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ValueError(f"{context} must be a JSON object.")
+    return value
+
+
+def _verify_source_bundle_campaign_contract(
+    *,
+    plan: dict[str, Any],
+    manifest: dict[str, Any],
+    source_runs: Path,
+    expected_trace_count: int,
+) -> bool:
+    """Require the primary campaign gates before a source-bundle score can promote."""
+
+    if not _is_source_bundle_study(plan):
+        return False
+    if manifest.get("cell_count") != expected_trace_count:
+        raise ValueError("Source-bundle campaign manifest cell count does not match.")
+    isolation = _verified_object(
+        manifest.get("isolation"), context="Source-bundle campaign isolation"
+    )
+    expected_flags = {
+        "ephemeral_process_per_role": True,
+        "temporary_codex_home_per_role": True,
+        "skills_include_instructions": False,
+        "event_stream_audited": True,
+        "sandbox": "read-only",
+        "remote_schema_preflight_required": True,
+    }
+    for field, value in expected_flags.items():
+        if isolation.get(field) != value:
+            raise ValueError(
+                f"Source-bundle campaign isolation {field} does not match."
+            )
+
+    prompt_preflight_path = source_runs / "prompt-input-preflight.json"
+    if not prompt_preflight_path.is_file():
+        raise ValueError("Source-bundle prompt-input preflight is missing.")
+    preflight = _verified_object(
+        _load_json(prompt_preflight_path),
+        context="Source-bundle prompt-input preflight",
+    )
+    prompt_audit = _verified_object(
+        preflight.get("audit"), context="Source-bundle prompt-input audit"
+    )
+    if prompt_audit.get("passed") is not True or isolation.get(
+        "prompt_input_preflight"
+    ) != prompt_audit:
+        raise ValueError("Source-bundle prompt-input preflight does not match manifest.")
+
+    configured_roles = isolation.get("remote_schema_preflight_roles")
+    if not isinstance(configured_roles, list) or not configured_roles or not all(
+        isinstance(role, dict) for role in configured_roles
+    ):
+        raise ValueError("Source-bundle remote-schema roles are missing.")
+    runner_configurations = manifest.get("runner_configurations")
+    if not isinstance(runner_configurations, list) or not runner_configurations:
+        raise ValueError("Source-bundle runner configurations are missing.")
+    expected_roles: list[dict[str, str]] = []
+    for configuration in runner_configurations:
+        if not isinstance(configuration, dict):
+            raise ValueError("Source-bundle runner configuration is invalid.")
+        model = configuration.get("model")
+        effort = configuration.get("reasoning_effort")
+        if not isinstance(model, str) or not model or not isinstance(effort, str) or not effort:
+            raise ValueError("Source-bundle runner configuration is incomplete.")
+        expected_roles.append(
+            {
+                "role": "runner",
+                "configuration_id": f"{model}-reasoning-{effort}",
+                "model": model,
+                "effort": effort,
+            }
+        )
+    judge_model = manifest.get("judge_model")
+    judge_effort = manifest.get("judge_effort")
+    if (
+        not isinstance(judge_model, str)
+        or not judge_model
+        or not isinstance(judge_effort, str)
+        or not judge_effort
+    ):
+        raise ValueError("Source-bundle judge configuration is incomplete.")
+    expected_roles.append(
+        {
+            "role": "judge",
+            "configuration_id": "independent-judge",
+            "model": judge_model,
+            "effort": judge_effort,
+        }
+    )
+    if configured_roles != expected_roles:
+        raise ValueError("Source-bundle remote-schema roles do not match execution.")
+    remote_preflight_path = source_runs / "remote-schema-preflight.json"
+    if not remote_preflight_path.is_file():
+        raise ValueError("Source-bundle remote-schema preflight is missing.")
+    remote = _verified_object(
+        _load_json(remote_preflight_path),
+        context="Source-bundle remote-schema preflight",
+    )
+    preflights = remote.get("preflights")
+    if (
+        remote.get("schema") != _REMOTE_SCHEMA_PREFLIGHTS_SCHEMA
+        or remote.get("passed") is not True
+        or not isinstance(preflights, list)
+        or len(preflights) != len(configured_roles)
+    ):
+        raise ValueError("Source-bundle remote-schema preflight is incomplete.")
+    for expected_role, observed in zip(configured_roles, preflights, strict=True):
+        if not isinstance(observed, dict) or observed.get("passed") is not True:
+            raise ValueError("Source-bundle remote-schema preflight did not pass.")
+        if any(observed.get(field) != expected_role.get(field) for field in expected_role):
+            raise ValueError("Source-bundle remote-schema preflight roles do not match.")
+
+    study = _verified_object(
+        manifest.get("composition_study_verification"),
+        context="Source-bundle study verification",
+    )
+    static = _verified_object(study.get("static"), context="Source-bundle study static")
+    live_sources = _verified_object(
+        study.get("live_sources"), context="Source-bundle live-source verification"
+    )
+    expected_fixture_count = len(
+        {
+            str(row.get("task_id") or "")
+            for row in plan["task_matrix"]
+            if isinstance(row, dict)
+        }
+        - {""}
+    )
+    experiment = plan.get("experiment")
+    study_scope = experiment.get("study_scope") if isinstance(experiment, dict) else None
+    expected_claim_boundary = (
+        study_scope.get("claim_boundary") if isinstance(study_scope, dict) else None
+    )
+    input_digests = static.get("input_digests")
+    source_entries = live_sources.get("sources")
+    if (
+        study.get("schema") != _COMPOSITION_STUDY_VERIFICATION_SCHEMA
+        or study.get("experiment_id") != manifest.get("experiment_id")
+        or static.get("plan_matches_generated") is not True
+        or static.get("plan_valid") is not True
+        or static.get("fixture_count") != expected_fixture_count
+        or static.get("matrix_row_count") != len(plan["task_matrix"])
+        or static.get("claim_boundary") != expected_claim_boundary
+        or not isinstance(input_digests, dict)
+        or not input_digests
+        or live_sources.get("status") != "matched"
+        or not isinstance(source_entries, list)
+        or not source_entries
+        or any(
+            not isinstance(source, dict)
+            or source.get("status") != "matched"
+            or not isinstance(source.get("path"), str)
+            or not source["path"]
+            or not isinstance(source.get("expected_sha256"), str)
+            or not source["expected_sha256"]
+            or source.get("actual_sha256") != source["expected_sha256"]
+            for source in source_entries
+        )
+    ):
+        raise ValueError("Source-bundle immutable-input verification does not match.")
+
+    if (source_runs / "campaign-errors.json").exists():
+        raise ValueError("Source-bundle campaign retains failed cells.")
+    summary_path = source_runs / "campaign-summary.json"
+    if not summary_path.is_file():
+        raise ValueError("Source-bundle campaign summary is missing.")
+    summary = _verified_object(
+        _load_json(summary_path),
+        context="Source-bundle campaign summary",
+    )
+    expected_summary = {
+        "planned_cells": expected_trace_count,
+        "selected_cells": expected_trace_count,
+        "completed_cells": expected_trace_count,
+        "errors": 0,
+        "unique_thread_ids": expected_trace_count * 2,
+        "expected_thread_ids_at_completion": expected_trace_count * 2,
+    }
+    for field, value in expected_summary.items():
+        if summary.get(field) != value:
+            raise ValueError(f"Source-bundle campaign summary {field} does not match.")
+    return True
+
+
 def _load_source_traces(
     *,
     source_plan: Path,
@@ -150,6 +348,12 @@ def _load_source_traces(
         raise ValueError("Source campaign manifest schema does not match.")
     if manifest.get("plan_sha256") != _sha256_file(source_plan):
         raise ValueError("Source campaign manifest is not bound to source plan.")
+    _verify_source_bundle_campaign_contract(
+        plan=plan,
+        manifest=manifest,
+        source_runs=source_runs,
+        expected_trace_count=expected_trace_count,
+    )
     if not isinstance(traces, list) or len(traces) != expected_trace_count:
         raise ValueError(
             f"Expected {expected_trace_count} source traces, found "

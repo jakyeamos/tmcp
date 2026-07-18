@@ -131,6 +131,12 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   source paths still match their pinned digests. TMCP's source-bundle campaign
   launcher requires the study directory and records this preflight. It proves
   input integrity, not user approval or behavioral lift.
+- Before promoting a source-bundle result, reverify the **primary campaign** as
+  well as the sidecar: the prompt-isolation audit, every runner and judge
+  remote-schema preflight, the launch-time immutable/live-source report, zero
+  remaining failed cells, and complete unique-thread coverage must all match
+  the persisted manifest. Per-cell traces alone cannot prove that the campaign
+  was launched under its declared study contract.
 
 ## Anti-patterns observed in the dogfood
 

@@ -31,6 +31,7 @@ from scripts.tmcp_skill_eval_cost_rejudge_source import (  # noqa: E402
     COST_REJUDGMENTS_SCHEMA,
     CostRejudgeCell,
     _aggregate_usage,
+    _is_source_bundle_study,
     _load_source_traces,
     build_cost_rejudge_cells,
 )
@@ -304,6 +305,7 @@ def verify_cost_rejudge(
         source_runs=source_runs,
         expected_trace_count=expected_trace_count,
     )
+    source_bundle_contract_verified = _is_source_bundle_study(plan)
     manifest = _object(
         _load_json(rejudge_runs / "cost-rejudge-manifest.json"),
         context="Cost rejudge manifest",
@@ -442,6 +444,9 @@ def verify_cost_rejudge(
                 "verified"
                 if isolation["remote_schema_preflight"]
                 else "legacy_not_required"
+            ),
+            "source_bundle_campaign_contract": (
+                "verified" if source_bundle_contract_verified else "not_applicable"
             ),
             "promotion_ready": promotion_ready,
         },
