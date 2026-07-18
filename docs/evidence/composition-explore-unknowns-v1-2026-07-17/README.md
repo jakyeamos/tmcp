@@ -60,6 +60,9 @@ This plan is preparation, not a completed receipt or behavioral result.
 The no-call launcher readiness proof is preserved in
 [baseline-campaign-readiness.json](baseline-campaign-readiness.json): 36 cells,
 three pinned runner configurations, and a distinct judge with no readiness gaps.
+The approval-gated next action is documented in
+[baseline-launch.md](baseline-launch.md); no external call is implied by that
+handoff.
 
 ## Independent cost sidecar
 
