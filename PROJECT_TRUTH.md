@@ -4,7 +4,7 @@
 
 - Branch: `codex/skill-eval-dogfood`
 - Last completed changes: `b058b6d` lets release packaging distinguish a versioned schema identifier from an opaque secret while retaining opaque-token detection; `af98ad8` isolates primary-harness verification from cost-sidecar source loading; `367914e` archives the exact local primary campaign-harness modules and makes source-bundle promotion verification reject a missing, altered, or inconsistent snapshot; and `a0edfb3` separates deterministic campaign planning/readiness from execution while binding it into the primary campaign harness. The deterministic packet contract and evidence ledger keep the result local-only.
-- Verification: 579 repository tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, no-write Wizard, branch-fold, and OpenCLI packet replays pass. The reproducible release-package check last passed with 578 packaged tests (9 source-only skips) and will be refreshed. Changed-line Pre-CR passes cleanly.
+- Verification: 579 repository tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, no-write Wizard, branch-fold, and OpenCLI packet replays pass. The refreshed reproducible release-package check passes with 579 packaged tests (9 source-only skips). Changed-line Pre-CR passes cleanly.
 
 ## Current Position
 
