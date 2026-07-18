@@ -44,6 +44,7 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                 "tmcp_skill_eval_campaign_protocol.py": "protocol harness",
                 "tmcp_skill_eval_campaign_planning.py": "planning harness",
                 "tmcp_skill_eval_campaign_runtime.py": "runtime harness",
+                "tmcp_skill_eval_composition.py": "composition harness",
             }
             harness_files = {
                 name: _sha256_text(contents)
