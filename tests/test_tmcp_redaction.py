@@ -14,6 +14,9 @@ class TmcpRedactionTests(unittest.TestCase):
         self.assertFalse(
             looks_high_entropy("test_builds_full_randomized_72_cell_matrix")
         )
+        self.assertFalse(
+            looks_high_entropy("tmcp-skill-eval-campaign-harness-snapshot-v0")
+        )
 
     def test_opaque_token_remains_secret_like(self) -> None:
         opaque_token = "A9b8C7d6E5f4G3h2I1j0" + "K9l8M7n6O5p4Q3r2S1t0"
