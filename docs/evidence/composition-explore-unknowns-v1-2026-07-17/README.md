@@ -37,6 +37,12 @@ fixture review, and cost/safety handling are pinned in
 [inputs/campaign-policy.json](inputs/campaign-policy.json) and
 [inputs/study.json](inputs/study.json).
 
+The primary measurement instrument is also preregistered in
+[inputs/primary-harness.json](inputs/primary-harness.json). The launcher compares
+the current four campaign-module digests to this byte-pinned input before any
+campaign run and retains those same module bytes with the raw evidence. A code
+change therefore requires a reviewed regenerated plan, not an in-place resume.
+
 ## Independent cost sidecar
 
 The primary judge's raw cost labels remain preserved. Before this study may be
@@ -106,9 +112,9 @@ adherence.
 
 `scripts/generate_composition_study_plan.py` regenerates
 [generated/tmcp-composition-study-plan.json](generated/tmcp-composition-study-plan.json)
-only from the files in `inputs/`. The test suite rebuilds the plan and asserts it
-is byte-for-byte equivalent after JSON decoding, then validates it through TMCP's
-evaluation API.
+only from the files in `inputs/`, including the primary-harness binding. The test
+suite rebuilds the plan and asserts it is byte-for-byte equivalent after JSON
+decoding, then validates it through TMCP's evaluation API.
 
 Before a live campaign, verify both the immutable evidence bundle and (only when
 you explicitly opt in) whether the live source paths still match their pinned

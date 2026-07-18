@@ -16,6 +16,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tmcp_runtime.services.evaluation_plan import displayed_content_digest  # noqa: E402
+from scripts.tmcp_skill_eval_primary_harness import (  # noqa: E402
+    validate_primary_harness_binding,
+)
 
 
 REQUIRED_INPUT_DIGESTS = frozenset(
@@ -26,6 +29,7 @@ REQUIRED_INPUT_DIGESTS = frozenset(
         "first-principles.txt",
         "fixtures-reviewed-v1.json",
         "packet-base.md",
+        "primary-harness.json",
         "source-bundle.md",
     }
 )
@@ -169,6 +173,9 @@ def build_plan(study_dir: Path) -> dict[str, Any]:
     fixtures = _load_list(inputs / "fixtures-reviewed-v1.json")
     policy = _load_object(inputs / "campaign-policy.json")
     cost_rejudge_policy = _load_object(inputs / "cost-rejudge-policy.json")
+    primary_harness = validate_primary_harness_binding(
+        _load_object(inputs / "primary-harness.json")
+    )
     base_attachment = (inputs / "packet-base.md").read_text(encoding="utf-8").strip()
     source_bundle = (inputs / "source-bundle.md").read_text(encoding="utf-8").strip()
     if not base_attachment or not source_bundle:
@@ -181,6 +188,7 @@ def build_plan(study_dir: Path) -> dict[str, Any]:
     source_study_binding = {
         "schema": SOURCE_STUDY_BINDING_SCHEMA,
         "input_digests": study_input_digests,
+        "primary_harness": primary_harness,
         "selected_sources": [dict(item) for item in source_entries],
     }
     treatment_attachment = f"{base_attachment}\n\n{source_bundle}"

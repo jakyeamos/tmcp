@@ -11,6 +11,10 @@ from unittest.mock import patch
 import scripts.tmcp_skill_eval_campaign_runtime as campaign_runtime
 import scripts.tmcp_skill_eval_campaign_protocol as campaign_protocol
 import scripts.tmcp_skill_eval_campaign as campaign
+from scripts.tmcp_skill_eval_primary_harness import (
+    primary_harness_binding,
+    verify_preregistered_primary_harness,
+)
 from scripts.tmcp_skill_eval_campaign_protocol import (
     CampaignCell,
     CodexRunError,
@@ -117,6 +121,26 @@ class SkillEvalCampaignTests(unittest.TestCase):
                     harness_files=harness_files,
                     snapshot=snapshot,
                 )
+
+    def test_source_bundle_harness_must_match_preregistration(self) -> None:
+        harness_files = campaign._harness_digests()
+        plan = {
+            "experiment": {
+                "source_study_binding": {
+                    "primary_harness": primary_harness_binding(harness_files)
+                }
+            }
+        }
+
+        verify_preregistered_primary_harness(plan, harness_files)
+
+        drifted = dict(harness_files)
+        drifted["tmcp_skill_eval_campaign_planning.py"] = "sha256:" + "a" * 64
+        plan["experiment"]["source_study_binding"]["primary_harness"] = (
+            primary_harness_binding(drifted)
+        )
+        with self.assertRaisesRegex(ValueError, "does not match preregistration"):
+            verify_preregistered_primary_harness(plan, harness_files)
 
     def test_source_bundle_campaign_requires_study_directory(self) -> None:
         args = Namespace(

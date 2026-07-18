@@ -48,9 +48,11 @@ from scripts.tmcp_skill_eval_campaign_runtime import (  # noqa: E402
     _validate_trace,
     execute_cell,
 )
-
-HARNESS_SNAPSHOT_SCHEMA = "tmcp-skill-eval-campaign-harness-snapshot-v0.1"
-_HARNESS_SNAPSHOT_DIRECTORY = "campaign-harness"
+from scripts.tmcp_skill_eval_primary_harness import (  # noqa: E402
+    PRIMARY_HARNESS_SNAPSHOT_DIRECTORY,
+    PRIMARY_HARNESS_SNAPSHOT_SCHEMA,
+    verify_preregistered_primary_harness,
+)
 
 
 def _add_usage(
@@ -324,8 +326,8 @@ def _harness_digests() -> dict[str, str]:
 
 def _harness_snapshot(harness_files: dict[str, str]) -> dict[str, Any]:
     return {
-        "schema": HARNESS_SNAPSHOT_SCHEMA,
-        "directory": _HARNESS_SNAPSHOT_DIRECTORY,
+        "schema": PRIMARY_HARNESS_SNAPSHOT_SCHEMA,
+        "directory": PRIMARY_HARNESS_SNAPSHOT_DIRECTORY,
         "files": sorted(harness_files),
     }
 
@@ -339,15 +341,15 @@ def _persist_harness_snapshot(
     """Persist the exact local campaign harness for later independent verification."""
 
     if (
-        snapshot.get("schema") != HARNESS_SNAPSHOT_SCHEMA
-        or snapshot.get("directory") != _HARNESS_SNAPSHOT_DIRECTORY
+        snapshot.get("schema") != PRIMARY_HARNESS_SNAPSHOT_SCHEMA
+        or snapshot.get("directory") != PRIMARY_HARNESS_SNAPSHOT_DIRECTORY
         or snapshot.get("files") != sorted(harness_files)
     ):
         raise ValueError("Campaign harness snapshot declaration is invalid.")
     source_by_name = {path.name: path for path in _harness_paths()}
     if set(source_by_name) != set(harness_files):
         raise ValueError("Campaign harness digest set does not match local files.")
-    snapshot_dir = output_dir / _HARNESS_SNAPSHOT_DIRECTORY
+    snapshot_dir = output_dir / PRIMARY_HARNESS_SNAPSHOT_DIRECTORY
     if snapshot_dir.exists():
         if not snapshot_dir.is_dir():
             raise ValueError("Campaign harness snapshot path is not a directory.")
@@ -419,6 +421,9 @@ async def _main(args: argparse.Namespace) -> int:
     args.judge_model = args.judge_model or args.model
     plan = validate_evaluation_plan(_load_json(args.plan))
     composition_study_verification = _verify_source_bundle_study(args, plan)
+    harness_files = _harness_digests()
+    if composition_study_verification is not None:
+        verify_preregistered_primary_harness(plan, harness_files)
     codex_version = subprocess.run(
         [args.codex_bin, "--version"],
         check=True,
@@ -551,7 +556,6 @@ async def _main(args: argparse.Namespace) -> int:
             first_principles="<FIRST_PRINCIPLES>",
         )
     )
-    harness_files = _harness_digests()
     manifest = {
         "schema": CAMPAIGN_PROTOCOL,
         "experiment_id": plan["experiment"]["experiment_id"],

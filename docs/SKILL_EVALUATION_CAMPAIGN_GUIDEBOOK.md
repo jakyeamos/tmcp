@@ -11,7 +11,9 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   runner/judge matrix in the plan. Keep the actual first-principles text in an
   immutable input file and bind its path and digest in the run manifest. Archive
   the exact local harness modules beside their manifest digests; a hash without
-  inspectable source text is not a replayable judge contract.
+  inspectable source text is not a replayable judge contract. For a source-bundle
+  study, make that digest map a byte-pinned study input and reject a harness
+  mismatch before any remote preflight or runner call.
 - Run a remote schema preflight with a synthetic task for every configured runner
   model and the separate judge before any campaign artifact leaves the machine.
   Local JSON-schema validity did not catch the earlier remote `const`/`enum`

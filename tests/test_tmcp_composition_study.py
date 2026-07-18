@@ -539,7 +539,7 @@ class CompositionStudyTests(unittest.TestCase):
         validated = validate_evaluation_plan(generated)
         self.assertEqual(
             validated["experiment"]["experiment_id"],
-            "composition-study-f6de333293fee3f7",
+            "composition-study-1261f8d90d1434c3",
         )
         self.assertEqual(len(validated["task_matrix"]), 12)
         self.assertEqual(
@@ -554,6 +554,19 @@ class CompositionStudyTests(unittest.TestCase):
             source_study_binding["input_digests"]["packet-receipt.json"],
             "sha256:1b78fb9ec34301c66bdc5b9a4cd3638f307f5944ee71d81154a674d89c498f8c",
         )
+        self.assertEqual(
+            source_study_binding["primary_harness"]["schema"],
+            "tmcp-skill-eval-primary-harness-binding-v0.1",
+        )
+        self.assertEqual(
+            set(source_study_binding["primary_harness"]["harness_files"]),
+            {
+                "tmcp_skill_eval_campaign.py",
+                "tmcp_skill_eval_campaign_protocol.py",
+                "tmcp_skill_eval_campaign_planning.py",
+                "tmcp_skill_eval_campaign_runtime.py",
+            },
+        )
         self.assertEqual(len(source_study_binding["selected_sources"]), 2)
 
     def test_study_verifier_binds_inputs_and_live_sources(self) -> None:
@@ -563,6 +576,10 @@ class CompositionStudyTests(unittest.TestCase):
         report = verify_study(STUDY_DIR, check_live_sources=True)
 
         self.assertTrue(report["static"]["plan_matches_generated"])
+        self.assertEqual(
+            report["static"]["primary_harness"]["schema"],
+            "tmcp-skill-eval-primary-harness-binding-v0.1",
+        )
         self.assertEqual(report["live_sources"]["status"], "matched")
         self.assertEqual(report["static"]["cost_rejudge"]["expected_trace_count"], 72)
         self.assertEqual(report["static"]["cost_rejudge"]["model"], "gpt-5.6-sol")
@@ -578,6 +595,19 @@ class CompositionStudyTests(unittest.TestCase):
             )
 
             with self.assertRaisesRegex(ValueError, "first-principles.txt"):
+                build_plan(copied_study)
+
+    def test_primary_harness_input_drift_rejects_regeneration(self) -> None:
+        if not STUDY_DIR.is_dir():
+            self.skipTest("source-only composition study evidence is not packaged")
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_study = Path(temporary) / "study"
+            shutil.copytree(STUDY_DIR, copied_study)
+            (copied_study / "inputs" / "primary-harness.json").write_text(
+                "{}\n", encoding="utf-8"
+            )
+
+            with self.assertRaisesRegex(ValueError, "primary-harness.json"):
                 build_plan(copied_study)
 
     def test_source_bundle_campaign_rejects_other_first_principles(self) -> None:

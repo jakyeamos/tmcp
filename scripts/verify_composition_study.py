@@ -116,6 +116,9 @@ def verify_study(
             ),
             "matrix_row_count": len(generated_plan["task_matrix"]),
             "claim_boundary": experiment["study_scope"]["claim_boundary"],
+            "primary_harness": experiment["source_study_binding"][
+                "primary_harness"
+            ],
             "cost_rejudge": cost_rejudge,
         },
         "live_sources": live_sources,

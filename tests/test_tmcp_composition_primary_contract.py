@@ -13,6 +13,7 @@ from scripts.tmcp_skill_eval_campaign_protocol import (
     judge_output_schema,
     judge_prompt,
 )
+from scripts.tmcp_skill_eval_primary_harness import primary_harness_binding
 
 
 class CompositionPrimaryContractTests(unittest.TestCase):
@@ -122,6 +123,7 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                     "source_study_binding": {
                         "schema": "tmcp-composition-study-binding-v0.1",
                         "input_digests": input_digests,
+                        "primary_harness": primary_harness_binding(harness_files),
                         "selected_sources": selected_sources,
                     },
                 },
@@ -231,6 +233,23 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                 )
             manifest["harness_sha256"] = _sha256_text(
                 json.dumps(harness_files, sort_keys=True, separators=(",", ":"))
+            )
+            drifted_harness = dict(harness_files)
+            drifted_harness["tmcp_skill_eval_campaign_planning.py"] = (
+                "sha256:" + "c" * 64
+            )
+            plan["experiment"]["source_study_binding"]["primary_harness"] = (
+                primary_harness_binding(drifted_harness)
+            )
+            with self.assertRaisesRegex(ValueError, "harness does not match preregistration"):
+                cost_rejudge_source._verify_source_bundle_campaign_contract(
+                    plan=plan,
+                    manifest=manifest,
+                    source_runs=runs,
+                    expected_trace_count=2,
+                )
+            plan["experiment"]["source_study_binding"]["primary_harness"] = (
+                primary_harness_binding(harness_files)
             )
             manifest["judge_effort"] = "low"
             roles[-1]["effort"] = "low"

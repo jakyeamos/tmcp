@@ -30,6 +30,7 @@ from scripts.tmcp_skill_eval_campaign_protocol import (
 )  # noqa: E402
 from scripts.tmcp_skill_eval_primary_harness import (  # noqa: E402
     verify_primary_harness_snapshot,
+    verify_preregistered_primary_harness,
 )
 from tmcp_runtime.services.evaluation_cost_rejudge import (
     preregistered_cost_rejudge_binding,
@@ -173,6 +174,7 @@ def _verify_source_bundle_campaign_contract(
     if manifest.get("cell_count") != expected_trace_count:
         raise ValueError("Source-bundle campaign manifest cell count does not match.")
     verify_primary_harness_snapshot(manifest, source_runs)
+    verify_preregistered_primary_harness(plan, manifest["harness_files"])
     isolation = _verified_object(
         manifest.get("isolation"), context="Source-bundle campaign isolation"
     )

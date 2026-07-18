@@ -787,7 +787,7 @@ class CostRejudgeSourceTests(unittest.TestCase):
         ledger = ledger_path.read_text(encoding="utf-8")
 
         self.assertIn("evidence-aware intake ledger, not a launch order", ledger)
-        self.assertIn("`composition-study-f6de333293fee3f7`", ledger)
+        self.assertIn("`composition-study-1261f8d90d1434c3`", ledger)
         self.assertIn(
             "does not test TMCP live selection, source adherence, or corpus quality",
             ledger,
