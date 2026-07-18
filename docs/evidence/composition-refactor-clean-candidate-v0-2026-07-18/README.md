@@ -1,12 +1,12 @@
 # Refactor-clean composition candidate v0
 
-Status: **author-drafted candidate; not independently reviewed, preregistered,
-or behaviorally evaluated.** No runner, judge, or external model call has been
-made for this candidate.
+Status: **approved for preregistration only; not preregistered or behaviorally
+evaluated.** The candidate was author-drafted and then independently reviewed;
+No runner, judge, or external model call has been made for it.
 
 This is the next admissible step for the packet-probed TMCP compiler plus
-`refactor-clean` pair. It prepares one small, synthetic dependency-graph case
-for independent review before a behavioral study is designed.
+`refactor-clean` pair. It preserves one small, synthetic dependency-graph case
+for a future behavioral study.
 
 ## Target and bounded question
 
@@ -16,7 +16,7 @@ for independent review before a behavioral study is designed.
   consumer-surface verification gate in a local packet. That is not an artifact
   outcome.
 
-If independently approved for a later study, the question may be whether adding
+If admitted to a later study, the question may be whether adding
 the exact, byte-pinned `refactor-clean` source bundle to the same shared TMCP
 packet changes the quality of refactor-planning artifacts on reviewed synthetic
 fixtures. The only possible claim would be a **source-bundle delivery effect**.
@@ -36,9 +36,9 @@ plan inline, not inspect a repository, write files, or execute a refactor.
 
 ## Independent-review decision
 
-An independent reviewer must record a decision in `fixture-review.md` before a
-study directory, source bundle, model matrix, or launch command is created.
-They must answer all of these questions:
+An independent reviewer recorded a decision in `fixture-review.md`. Before a
+study directory, source bundle, model matrix, or launch command is created, a
+future preregistration must also answer all of these questions:
 
 1. Is the prompt direct enough that each bar outcome can be evaluated from the
    supplied graph alone?

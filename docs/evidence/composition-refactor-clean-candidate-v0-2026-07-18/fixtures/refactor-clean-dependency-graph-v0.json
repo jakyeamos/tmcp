@@ -1,6 +1,7 @@
 {
   "schema": "tmcp-refactor-clean-fixture-review-v0.1",
-  "review_status": "author_draft",
+  "review_status": "approved_for_preregistration",
+  "review_record": "../fixture-review.md",
   "evaluation_mode": "judgment",
   "target_source": {
     "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",

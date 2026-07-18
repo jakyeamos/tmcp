@@ -21,7 +21,8 @@ class RefactorCleanCandidateTests(unittest.TestCase):
         blindness = fixture["blindness_contract"]
 
         self.assertEqual(fixture["schema"], "tmcp-refactor-clean-fixture-review-v0.1")
-        self.assertEqual(fixture["review_status"], "author_draft")
+        self.assertEqual(fixture["review_status"], "approved_for_preregistration")
+        self.assertEqual(fixture["review_record"], "../fixture-review.md")
         self.assertEqual(fixture["evaluation_mode"], "judgment")
         runner_prompt = fixture["fixture"]["runner_prompt"]
         self.assertTrue(runner_prompt.strip())
@@ -47,5 +48,5 @@ class RefactorCleanCandidateTests(unittest.TestCase):
         self.assertIn("Non-blocking hardening before preregistration", review)
         self.assertIn("No behavioral effect or guidebook pattern", review)
         self.assertIn("campaign ledger remains `Packet-probed`", review)
-        self.assertIn("not independently reviewed", readme)
+        self.assertIn("independently reviewed", readme)
         self.assertIn("No runner, judge, or external model call", readme)
