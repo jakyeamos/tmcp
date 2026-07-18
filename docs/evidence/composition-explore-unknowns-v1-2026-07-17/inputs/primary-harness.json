@@ -1,10 +1,11 @@
 {
   "schema": "tmcp-skill-eval-primary-harness-binding-v0.1",
   "harness_files": {
-    "tmcp_skill_eval_campaign.py": "sha256:f29f4cbed1f5014338b590ea0d745fa5abbbbc3110f4c96feccd4f185199dc8c",
+    "tmcp_skill_eval_campaign.py": "sha256:9dab67aada0ad6af8f7223f1acbc4affc3cf32cc5b3605b739e1269dd49f6f4c",
     "tmcp_skill_eval_campaign_protocol.py": "sha256:e99a8cd7910e880163790f82d66ebef3ad6c9fa1df02900fcd2613aeaf907832",
     "tmcp_skill_eval_campaign_planning.py": "sha256:5ed6872c43cc1f3b9d136e9e1bf4d739a619d987bcff0461bd73825a1af42ae7",
-    "tmcp_skill_eval_campaign_runtime.py": "sha256:670a0fee31c57dba735803610ae8299e9f6ecbadd77d32ced25bbd3374ddb252"
+    "tmcp_skill_eval_campaign_runtime.py": "sha256:670a0fee31c57dba735803610ae8299e9f6ecbadd77d32ced25bbd3374ddb252",
+    "tmcp_skill_eval_composition.py": "sha256:9bb14b6647851fb456fad2c9ac3eea0f1886215639c3ca0b6acb85eb1b15f05c"
   },
-  "harness_sha256": "sha256:4b2fe3c9346434b7e8da1dafcd7f13c5179f263f09c2565814fb1649c9806616"
+  "harness_sha256": "sha256:a61459b5941d2bb32d0690aa239ec959961f64db615feb5247d5830c41b66446"
 }

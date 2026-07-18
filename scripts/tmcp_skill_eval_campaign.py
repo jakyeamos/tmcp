@@ -21,7 +21,6 @@ if str(ROOT) not in sys.path:
 
 import scripts.tmcp_skill_eval_campaign_protocol as campaign_protocol  # noqa: E402
 import scripts.tmcp_skill_eval_campaign_runtime as campaign_runtime  # noqa: E402
-from scripts.verify_composition_study import verify_study  # noqa: E402
 from tmcp_runtime.services.evaluation_evidence import (  # noqa: E402
     baseline_reliability_summary,
 )
@@ -52,6 +51,9 @@ from scripts.tmcp_skill_eval_primary_harness import (  # noqa: E402
     PRIMARY_HARNESS_SNAPSHOT_DIRECTORY,
     PRIMARY_HARNESS_SNAPSHOT_SCHEMA,
     verify_preregistered_primary_harness,
+)
+from scripts.tmcp_skill_eval_composition import (  # noqa: E402
+    verify_source_bundle_study as _verify_source_bundle_study,
 )
 
 
@@ -322,6 +324,7 @@ def _harness_paths() -> tuple[Path, ...]:
         Path(campaign_protocol.__file__),
         Path(__file__).with_name("tmcp_skill_eval_campaign_planning.py"),
         Path(campaign_runtime.__file__),
+        Path(__file__).with_name("tmcp_skill_eval_composition.py"),
     )
 
 
@@ -375,76 +378,6 @@ def _persist_harness_snapshot(
         os.replace(temporary, destination)
         if _sha256_file(destination) != harness_files[name]:
             raise ValueError("Campaign harness snapshot digest does not match.")
-
-
-def _verify_source_bundle_study(
-    args: argparse.Namespace, plan: dict[str, Any]
-) -> dict[str, Any] | None:
-    requires_study = any(
-        row.get("pattern_id") == "composition.source-bundle-inclusion"
-        and row.get("intervention_target") == args.intervention_target
-        for row in plan.get("task_matrix", [])
-        if isinstance(row, dict)
-    )
-    if not requires_study:
-        return None
-    if args.composition_study_dir is None:
-        raise ValueError(
-            "source-bundle campaigns require --composition-study-dir for "
-            "immutable-input and live-source verification."
-        )
-    study_plan_path = (
-        args.composition_study_dir / "generated" / "tmcp-composition-study-plan.json"
-    ).resolve()
-    plan_path = args.plan.resolve()
-    verification_plan_path = plan_path
-    if plan_path != study_plan_path:
-        experiment = plan.get("experiment")
-        source_experiment_id = (
-            experiment.get("baseline_source_experiment_id")
-            if isinstance(experiment, dict)
-            else None
-        )
-        if not isinstance(source_experiment_id, str) or not study_plan_path.is_file():
-            raise ValueError(
-                "derived source-bundle plans must identify the checked-in source study plan."
-            )
-        source_plan = _load_json(study_plan_path)
-        source_experiment = source_plan.get("experiment")
-        if not isinstance(source_experiment, dict) or source_experiment.get(
-            "experiment_id"
-        ) != source_experiment_id:
-            raise ValueError("derived source-bundle plan does not match its source study.")
-        if not isinstance(experiment, dict) or experiment.get(
-            "source_study_binding"
-        ) != source_experiment.get("source_study_binding"):
-            raise ValueError("derived source-bundle plan has a mismatched study binding.")
-        verification_plan_path = study_plan_path
-    report = verify_study(
-        args.composition_study_dir,
-        plan_path=verification_plan_path,
-        check_live_sources=True,
-    )
-    if report["live_sources"]["status"] != "matched":
-        raise ValueError("source-bundle campaign live sources do not match pinned digests.")
-    first_principles_source = args.first_principles_source
-    if (
-        not isinstance(first_principles_source, dict)
-        or first_principles_source.get("kind") != "file"
-        or not isinstance(first_principles_source.get("path"), str)
-    ):
-        raise ValueError(
-            "source-bundle campaigns require --first-principles-file from the "
-            "pinned study evidence."
-        )
-    supplied_digest = _sha256_file(Path(first_principles_source["path"]))
-    expected_digest = report["static"]["input_digests"]["first-principles.txt"]
-    if supplied_digest != expected_digest:
-        raise ValueError(
-            "source-bundle campaign first-principles file does not match the "
-            "pinned study input."
-        )
-    return report
 
 
 async def _main(args: argparse.Namespace) -> int:

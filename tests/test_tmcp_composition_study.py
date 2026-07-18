@@ -539,7 +539,7 @@ class CompositionStudyTests(unittest.TestCase):
         validated = validate_evaluation_plan(generated)
         self.assertEqual(
             validated["experiment"]["experiment_id"],
-            "composition-study-9480ae1cba1f02d8",
+            "composition-study-8fd63d3df50f41b0",
         )
         self.assertEqual(
             validated["experiment"]["baseline_dependency"],
@@ -574,6 +574,7 @@ class CompositionStudyTests(unittest.TestCase):
                 "tmcp_skill_eval_campaign_protocol.py",
                 "tmcp_skill_eval_campaign_planning.py",
                 "tmcp_skill_eval_campaign_runtime.py",
+                "tmcp_skill_eval_composition.py",
             },
         )
         self.assertEqual(len(source_study_binding["selected_sources"]), 2)
@@ -662,7 +663,7 @@ class CompositionStudyTests(unittest.TestCase):
         assert report is not None
         self.assertTrue(report["static"]["plan_matches_generated"])
         self.assertEqual(
-            report["experiment_id"], "composition-study-9480ae1cba1f02d8"
+            report["experiment_id"], "composition-study-8fd63d3df50f41b0"
         )
 
 

@@ -19,6 +19,7 @@ PRIMARY_HARNESS_FILES = frozenset(
         "tmcp_skill_eval_campaign_protocol.py",
         "tmcp_skill_eval_campaign_planning.py",
         "tmcp_skill_eval_campaign_runtime.py",
+        "tmcp_skill_eval_composition.py",
     }
 )
 
