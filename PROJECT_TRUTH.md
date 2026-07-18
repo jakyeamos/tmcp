@@ -3,8 +3,8 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed changes: `4b9c654` renders selected safety stops in the agent-facing packet and preserves OpenCLI repair boundaries without false UI routing; `215061a` separates the pure routing extractor from source-node construction without changing the public harvest contract. The deterministic packet contract and evidence ledger keep the result local-only.
-- Verification: 576 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, no-write Wizard, branch-fold, and OpenCLI packet replays, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
+- Last completed changes: `b4a9b77` requires source-bundle scoring to reverify the primary campaign's isolation, schema-preflight, immutable/live-source, completion, and thread-coverage contract before a sidecar can support promotion. The deterministic packet contract and evidence ledger keep the result local-only.
+- Verification: 577 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, no-write Wizard, branch-fold, and OpenCLI packet replays, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
 
@@ -43,6 +43,7 @@
 - `verify_composition_study.py` now rejects input/receipt/first-principles drift, reports opted-in live-source drift without exposing source text, and is mandatory for source-bundle campaign manifests; the campaign rejects a different runner first-principles file.
 - The corrected byte-pinned study is `composition-study-f6de333293fee3f7`. Its cost sidecar requires a fresh, condition-blind, artifact-only 72-trace review using `gpt-5.6-sol` at high effort. This is process-independent but not a distinct-model claim; launcher and scored sidecar must match the policy's model, effort, seed, bar filename/digest, and trace count before scoring can clear the coverage gate. A read-only verifier must also reconstruct the completed bundle and report promotion-ready.
 - `score_composition_study.py` now runs that verifier in the same local process before scoring, refuses a non-promotion-ready sidecar, emits a new report outside raw-evidence directories, and records the exact source-plan, trace, and sidecar digests. Generic sidecar-only scores remain diagnostic. The scorer preserves opaque trace IDs until normalization, while returned reports remain redacted.
+- Source-bundle scoring now also rechecks the primary launch contract: exact runner/judge schema-preflight roles, prompt-isolation audit, immutable input/live-source report, zero retained errors, and complete unique-thread coverage must agree with the persisted source manifest before the sidecar may clear promotion gates.
 
 ## Next Step
 
