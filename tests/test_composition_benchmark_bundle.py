@@ -261,7 +261,7 @@ class CompositionBenchmarkBundleTests(unittest.TestCase):
             ):
                 bundle.resolve_composition_benchmark_bundle(root)
 
-    def test_allows_only_schema_scoped_structural_sha256_digests(self) -> None:
+    def test_allows_structural_sha256_digests(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             directory = _write_bundle(root)
