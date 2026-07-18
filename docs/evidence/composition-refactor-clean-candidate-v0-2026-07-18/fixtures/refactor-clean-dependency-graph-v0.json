@@ -1,0 +1,59 @@
+{
+  "schema": "tmcp-refactor-clean-fixture-review-v0.1",
+  "review_status": "author_draft",
+  "evaluation_mode": "judgment",
+  "target_source": {
+    "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+    "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  "fixture": {
+    "id": "currency-scale-has-parallel-owners",
+    "fixture_family": "owner_consumer_graph",
+    "runner_prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. State the proposed ownership change, the consumer migration, the stale-path decision, the verification approach, and any fact that remains unknown.\n\nSynthetic repository evidence:\n- `src/money/currencyScale.ts` exports `scaleFor(currency)` from a maintained currency metadata table. Its tests cover USD and JPY scale values.\n- `src/checkout/PriceLine.tsx` contains a local `CURRENCY_DECIMALS` map for USD, EUR, and JPY, then uses it to round line-item totals. The map was copied before `currencyScale.ts` existed.\n- `src/invoices/renderTotal.ts` imports `scaleFor(currency)` and formats invoice totals with it.\n- `src/reporting/monthlyRevenue.ts` re-derives JPY versus non-JPY precision inline before aggregating totals. Its only direct test covers USD.\n- `src/api/legacyPricePayload.ts` exposes the old local map to a published v1 HTTP response. The release note says v1 clients remain supported until 2026-12-31; no replacement response version is described.\n- A product requirement says checkout, invoice, and reporting totals must use the same currency precision. There is no evidence that the published v1 payload's map is consumed inside this repository.",
+    "task_evidence_scope": "synthetic dependency graph only; no hidden repository, runtime, or external-client state"
+  },
+  "outcome_bar": {
+    "standard": "The plan should make a defensible ownership decision from the supplied graph, replace avoidable parallel precision logic with a single shared source of truth, and demonstrate how the affected consumer surfaces would prove that they now use that source without inventing facts about the external API boundary.",
+    "expected_observables": [
+      "It distinguishes the precision concept, the existing shared owner, direct consumers, parallel local owners, and the one unverified external boundary from the supplied evidence.",
+      "It proposes a coherent consumer migration toward one owner and makes a justified stale-path decision instead of preserving every duplicate by default.",
+      "It uses consumer-surface verification that would catch divergence in checkout, invoices, and reporting, without treating owner-module tests alone as sufficient proof.",
+      "It prevents a second precision re-derivation in verification and states what must be learned before changing the published v1 boundary."
+    ],
+    "failure_smells": [
+      "keeps the checkout and reporting precision maps without an external-boundary or short-lived migration rationale",
+      "proves only that `currencyScale.ts` works while leaving consumer divergence untested",
+      "creates a fresh compatibility layer or new duplicate owner without explaining why the existing owner cannot serve the consumers",
+      "claims that the published v1 payload can be removed or changed despite the fixture's missing client evidence",
+      "adds a verifier that independently recomputes currency precision rather than consuming the chosen owner"
+    ]
+  },
+  "blindness_contract": {
+    "runner_receives": [
+      "runner_prompt",
+      "a future matched packet attachment only"
+    ],
+    "runner_must_not_receive": [
+      "outcome_bar",
+      "failure_smells",
+      "review_status",
+      "hypothesis or arm label"
+    ],
+    "judge_receives": [
+      "runner artifact",
+      "outcome_bar",
+      "first principles"
+    ],
+    "judge_must_not_receive": [
+      "fixture arm label",
+      "source-bundle attachment",
+      "other artifacts or verdicts"
+    ]
+  },
+  "review_questions": [
+    "Can a reviewer evaluate each observable from the prompt alone?",
+    "Does the bar test ownership judgment without forcing a single file-level answer?",
+    "Are any failure smells merely a design preference rather than a violation of the source's first principles?",
+    "Does the fixture give a future blind runner enough context without leaking the judge bar or implying execution?"
+  ]
+}
