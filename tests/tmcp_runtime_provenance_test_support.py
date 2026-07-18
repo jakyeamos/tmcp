@@ -1,3 +1,5 @@
+"""Shared unittest harness for provenance-guard tests, with no test cases."""
+
 from __future__ import annotations
 
 import copy
