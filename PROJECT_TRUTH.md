@@ -24,7 +24,7 @@
 - The historical 72-cell and fresh-baseline 36-cell cost sidecars are now diagnostic archives, not reproducible evidence: each records a cost-bar digest that does not match the retained input file. The 72-cell claim remains `hold` because its cluster policy was not predeclared and fixture-level control reliability is below the 0.5 floor.
 - The shipped writing guidebook and catalog preserve that same boundary: the staged-workflow candidate records its raw cost signal but marks cost adjudication unresolved, removes the historical sidecar from current scoring, and lists non-reproducibility as a promotion gap.
 - The guidebook now ties corpus use to catalog state: held entries support review and preregistered study design only; a future eligible entry still requires scope-matched manual review and a bounded rollout, never automatic global edits.
-- The campaign ledger extends that boundary to source intake: it records the evidence state and next admissible gate for each candidate, prevents packet probes from appearing as a live campaign ranking, and names `composition-study-7922312418f1d995` as a source-bundle delivery test rather than a TMCP selection claim.
+- The campaign ledger extends that boundary to source intake: it records the evidence state and next admissible gate for each candidate, prevents packet probes from appearing as a live campaign ranking, and names `composition-study-acaca2f2eef3c864` as a source-bundle delivery test rather than a TMCP selection claim.
 - Incidental bare `SKILL.md` mentions no longer load every harvested skill, and detailed objectives require meaningful source overlap unless explicit routing metadata applies.
 - Fresh plan generation can bind `tmcp-skill-eval-campaign-policy-v0.1` into experiment identity; launch readiness enforces the pinned matrix, cluster/control contract, baseline shape, independent judge model/effort, and a compatible completed baseline receipt before any causal campaign artifact or remote preflight is sent.
 - Campaign planning/readiness is a separately bounded module. The source-bundle study byte-pins all four local primary-harness module digests in immutable inputs, and launch rejects any code drift before remote preflight; the execution protocol remains a compatible re-export surface and is below the source-size quality gate.
@@ -46,7 +46,7 @@ _(truncated for length)_
 
 ## Next Step
 
-- Produce and independently verify a compatible original-only baseline receipt for the exact `composition-study-7922312418f1d995` control fixtures and policy. Only if it clears its predeclared floors and safety/cost gates should we request fresh approval for the 72 runner and 72 primary-judge calls; afterward, request separate approval for its 72 cost-rejudge calls, run `score_composition_study.py` against the independently verified persisted bundle, then inspect the score. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
+- Produce and independently verify a compatible original-only baseline receipt for the exact `composition-study-acaca2f2eef3c864` control fixtures and policy. Only if it clears its predeclared floors and safety/cost gates should we request fresh approval for the 72 runner and 72 primary-judge calls; afterward, request separate approval for its 72 cost-rejudge calls, run `score_composition_study.py` against the independently verified persisted bundle, then inspect the score. Keep the external `eval-skills` v3 revision as a separate reviewed campaign.
 
 ## Blockers
 

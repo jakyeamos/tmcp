@@ -133,10 +133,14 @@ python3 scripts/generate_composition_study_plan.py \
   --output docs/evidence/composition-explore-unknowns-v1-2026-07-17/generated/tmcp-composition-study-plan.json
 ```
 
-The generated plan passes immutable-input verification, but the causal campaign
-launcher now fails closed until a separately completed, digest-bound original-only
-baseline receipt is preregistered and supplied. That receipt must clear the
-control floors and compatibility checks before any remote schema preflight.
+The generated plan passes immutable-input verification and now explicitly
+preregisters a required baseline-receipt dependency. Its receipt digest remains
+null while the compatible control run is absent, so the causal campaign launcher
+fails closed with `baseline_receipt_digest_not_preregistered` and
+`baseline_receipt_required`; the persisted readiness report is
+[baseline-readiness-gate.json](baseline-readiness-gate.json). A separately completed, digest-bound original-only
+baseline receipt must clear the control floors and compatibility checks before
+any remote schema preflight.
 Launching runners or a judge still requires fresh approval because it spends
 external model capacity and creates new behavioral evidence. Source-bundle
 launches also require `--composition-study-dir` so the launcher records a

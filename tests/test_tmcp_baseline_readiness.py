@@ -206,6 +206,20 @@ class BaselineReadinessTests(unittest.TestCase):
         self.assertFalse(readiness["ready"])
         self.assertIn("baseline_fixture_digests_mismatch", readiness["gaps"])
 
+    def test_causal_readiness_requires_a_preregistered_receipt_digest(self) -> None:
+        plan, cells, _ = self._causal_plan_with_baseline()
+        plan["experiment"]["baseline_dependency"]["receipt_sha256"] = None
+        readiness = campaign_readiness_report(
+            plan,
+            cells=cells,
+            design="causal_contrast",
+            judge_model="judge-model",
+            judge_effort="high",
+        )
+        self.assertFalse(readiness["ready"])
+        self.assertIn("baseline_receipt_digest_not_preregistered", readiness["gaps"])
+        self.assertIn("baseline_receipt_required", readiness["gaps"])
+
 
 if __name__ == "__main__":
     unittest.main()

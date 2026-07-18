@@ -301,6 +301,7 @@ def build_plan(study_dir: Path) -> dict[str, Any]:
             "analysis_policy": definition["analysis_policy"],
             "promotion_thresholds": definition["promotion_thresholds"],
             "study_scope": definition["study_scope"],
+            "baseline_dependency": dict(definition["baseline_dependency"]),
             "source_study_binding": source_study_binding,
         },
         "evaluated_skills": [],

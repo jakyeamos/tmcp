@@ -539,7 +539,16 @@ class CompositionStudyTests(unittest.TestCase):
         validated = validate_evaluation_plan(generated)
         self.assertEqual(
             validated["experiment"]["experiment_id"],
-            "composition-study-7922312418f1d995",
+            "composition-study-acaca2f2eef3c864",
+        )
+        self.assertEqual(
+            validated["experiment"]["baseline_dependency"],
+            {
+                "schema": "tmcp-skill-eval-baseline-receipt-v0.1",
+                "required": True,
+                "receipt_sha256": None,
+                "status": "awaiting_completed_compatible_receipt",
+            },
         )
         self.assertEqual(len(validated["task_matrix"]), 12)
         self.assertEqual(

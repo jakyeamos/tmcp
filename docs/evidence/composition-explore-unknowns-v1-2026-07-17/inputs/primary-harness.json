@@ -3,8 +3,8 @@
   "harness_files": {
     "tmcp_skill_eval_campaign.py": "sha256:e21001d9b89dc1dd55cd28bd8298decfc1e31621d1e4aeb9a05d695097fa95b1",
     "tmcp_skill_eval_campaign_protocol.py": "sha256:e99a8cd7910e880163790f82d66ebef3ad6c9fa1df02900fcd2613aeaf907832",
-    "tmcp_skill_eval_campaign_planning.py": "sha256:ba280d1415652f2cb6d840b06d87a20582905442a175d9cdb44967071279cb6e",
+    "tmcp_skill_eval_campaign_planning.py": "sha256:cbd3317a7ba5e745c83552ec6ece5d5fbc435e9ac0fea7c9c5541cd9a26ed8f6",
     "tmcp_skill_eval_campaign_runtime.py": "sha256:670a0fee31c57dba735803610ae8299e9f6ecbadd77d32ced25bbd3374ddb252"
   },
-  "harness_sha256": "sha256:752f8f6faf6725031d19ba25154607f667560b091ae6750681d569f58a188522"
+  "harness_sha256": "sha256:00617897f90a677470b0fccabcec8076320638bb23de28d6152474f7026bd8f0"
 }

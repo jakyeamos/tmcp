@@ -1,0 +1,16 @@
+{
+  "cell_count": 72,
+  "design": "causal_contrast",
+  "gaps": [
+    "baseline_receipt_digest_not_preregistered",
+    "baseline_receipt_required"
+  ],
+  "judge_model": "gpt-5.5",
+  "ready": false,
+  "runner_models": [
+    "gpt-5.6-luna",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra"
+  ],
+  "schema": "tmcp-skill-eval-campaign-readiness-v0.1"
+}

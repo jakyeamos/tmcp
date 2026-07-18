@@ -397,9 +397,15 @@ def validate_baseline_receipt(
         return ["baseline_dependency_not_preregistered"]
     if dependency.get("schema") != BASELINE_RECEIPT_SCHEMA:
         return ["baseline_dependency_schema_not_preregistered"]
+    if not isinstance(dependency.get("receipt_sha256"), str) or not dependency[
+        "receipt_sha256"
+    ].startswith("sha256:"):
+        gaps = ["baseline_receipt_digest_not_preregistered"]
+    else:
+        gaps = []
     if baseline_receipt is None:
-        return ["baseline_receipt_required"]
-    gaps: list[str] = []
+        gaps.append("baseline_receipt_required")
+        return gaps
     if baseline_receipt_digest != dependency.get("receipt_sha256"):
         gaps.append("baseline_receipt_digest_mismatch")
     if baseline_receipt.get("schema") != BASELINE_RECEIPT_SCHEMA:
