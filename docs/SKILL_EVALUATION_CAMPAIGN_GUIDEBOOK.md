@@ -30,6 +30,10 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   judge matrix, 36-cell readiness, and source-study binding before requesting
   any model call. The derived plan is preparation; only its completed receipt
   can authorize the causal study.
+- Before attaching a baseline receipt, run the standalone bundle verifier against
+  the causal plan, derived baseline plan, receipt, manifest, traces, and report.
+  It must reject a detached or digest-incomplete bundle even when the receipt's
+  compatibility fields look plausible.
 - Require a directness review for every observable: the event an O/S item grades
   must occur in the fixture prompt, not in an implied later turn. Record an
   independent review that also confirms every bar is expressible by the target

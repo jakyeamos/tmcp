@@ -63,6 +63,9 @@ three pinned runner configurations, and a distinct judge with no readiness gaps.
 The approval-gated next action is documented in
 [baseline-launch.md](baseline-launch.md); no external call is implied by that
 handoff.
+The current no-call bundle audit is preserved in
+[baseline-bundle-audit.json](baseline-bundle-audit.json); it explicitly records
+the absent receipt, manifest, traces, report, and preregistered receipt digest.
 
 ## Independent cost sidecar
 

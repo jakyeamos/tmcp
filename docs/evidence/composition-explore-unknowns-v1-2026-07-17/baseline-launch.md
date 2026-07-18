@@ -58,6 +58,19 @@ python3 scripts/build_baseline_receipt.py \
   --output <baseline-runs>/baseline-receipt.json
 ```
 
+Then verify the receipt is attached to the exact causal control bundle:
+
+```sh
+python3 scripts/verify_baseline_bundle.py \
+  --causal-plan docs/evidence/composition-explore-unknowns-v1-2026-07-17/generated/tmcp-composition-study-plan.json \
+  --baseline-plan docs/evidence/composition-explore-unknowns-v1-2026-07-17/generated/tmcp-composition-baseline-plan.json \
+  --baseline-receipt <baseline-runs>/baseline-receipt.json \
+  --manifest <baseline-runs>/campaign-manifest.json \
+  --traces <baseline-runs>/traces.json \
+  --report <baseline-report.json> \
+  --output <baseline-runs>/baseline-bundle-verification.json
+```
+
 Independently inspect that receipt before attaching it to the causal plan. It
 must be completed, `causal_applicable: false`, clear on raw and adjudicated
 safety/cost status, and meet the predeclared aggregate and per-fixture floors.
