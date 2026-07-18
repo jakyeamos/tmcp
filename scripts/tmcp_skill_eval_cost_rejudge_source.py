@@ -25,6 +25,8 @@ from scripts.tmcp_skill_eval_campaign_protocol import (
     _sha256_file,
     _sha256_text,
     _stable_id,
+    judge_output_schema,
+    judge_prompt,
 )  # noqa: E402
 from tmcp_runtime.services.evaluation_cost_rejudge import (
     preregistered_cost_rejudge_binding,
@@ -34,7 +36,16 @@ from tmcp_runtime.services.evaluation_cost_rejudge import (
 COST_REJUDGMENTS_SCHEMA = "tmcp-skill-eval-cost-rejudgment-v0.1"
 _COMPOSITION_SOURCE_BUNDLE_PATTERN = "composition.source-bundle-inclusion"
 _REMOTE_SCHEMA_PREFLIGHTS_SCHEMA = "tmcp-remote-schema-preflights-v0.1"
+_REMOTE_SCHEMA_PREFLIGHT_SCHEMA = "tmcp-remote-schema-preflight-v0.1"
 _COMPOSITION_STUDY_VERIFICATION_SCHEMA = "tmcp-composition-study-verification-v0.1"
+
+
+def _is_sha256_digest(value: object) -> bool:
+    """Return whether *value* has the canonical sha256:<hex> representation."""
+    if not isinstance(value, str) or not value.startswith("sha256:"):
+        return False
+    digest = value.removeprefix("sha256:")
+    return len(digest) == 64 and all(character in "0123456789abcdef" for character in digest)
 
 
 @dataclass(frozen=True)
@@ -247,11 +258,50 @@ def _verify_source_bundle_campaign_contract(
         or len(preflights) != len(configured_roles)
     ):
         raise ValueError("Source-bundle remote-schema preflight is incomplete.")
+    synthetic_criteria = ["O1: The sentence is present."]
+    synthetic_schema = judge_output_schema(synthetic_criteria)
+    expected_schema_sha256 = _sha256_text(
+        json.dumps(synthetic_schema, indent=2, sort_keys=True) + "\n"
+    )
+    expected_prompt_sha256 = _sha256_text(
+        judge_prompt(
+            {
+                "prompt": "State whether the supplied sentence is present.",
+                "expected_observables": ["The sentence is present."],
+                "failure_smells": [],
+            },
+            "The sentence is present.",
+            first_principles="Use only the supplied sentence.",
+        )
+    )
     for expected_role, observed in zip(configured_roles, preflights, strict=True):
         if not isinstance(observed, dict) or observed.get("passed") is not True:
             raise ValueError("Source-bundle remote-schema preflight did not pass.")
         if any(observed.get(field) != expected_role.get(field) for field in expected_role):
             raise ValueError("Source-bundle remote-schema preflight roles do not match.")
+        event_audit = observed.get("event_audit")
+        usage = observed.get("usage")
+        retry_audit = observed.get("retry_audit")
+        if (
+            observed.get("schema") != _REMOTE_SCHEMA_PREFLIGHT_SCHEMA
+            or observed.get("output_schema_sha256") != expected_schema_sha256
+            or observed.get("prompt_sha256") != expected_prompt_sha256
+            or not _is_sha256_digest(observed.get("output_sha256"))
+            or not _is_sha256_digest(observed.get("event_stream_sha256"))
+            or not isinstance(event_audit, dict)
+            or event_audit.get("passed") is not True
+            or not isinstance(event_audit.get("thread_id"), str)
+            or not event_audit["thread_id"]
+            or not isinstance(usage, dict)
+            or not usage
+            or not isinstance(retry_audit, dict)
+            or not isinstance(retry_audit.get("attempts"), list)
+            or not isinstance(retry_audit.get("successful_attempt"), int)
+            or retry_audit["successful_attempt"] < 1
+        ):
+            raise ValueError(
+                "Source-bundle remote-schema preflight contract does not match."
+            )
 
     study = _verified_object(
         manifest.get("composition_study_verification"),
