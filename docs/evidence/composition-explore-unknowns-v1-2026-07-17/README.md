@@ -78,8 +78,9 @@ then records the exact source-plan, trace, and sidecar digests with the score.
 It also rechecks that the **primary** campaign retained its matching
 prompt-isolation audit, all four remote-schema preflights and their synthetic
 prompt/output-schema digests, immutable/live-source verification bound to the
-same pinned plan inputs and selected sources, clean completion, and unique
-runner/judge thread coverage:
+same pinned plan inputs and selected sources, policy-bound runner/judge
+model-and-effort settings, clean completion, and unique runner/judge thread
+coverage:
 
 ```bash
 python3 scripts/score_composition_study.py \

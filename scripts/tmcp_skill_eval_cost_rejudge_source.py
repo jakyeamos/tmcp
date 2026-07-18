@@ -321,6 +321,9 @@ def _verify_source_bundle_campaign_contract(
         - {""}
     )
     experiment = plan.get("experiment")
+    campaign_policy = (
+        experiment.get("campaign_policy") if isinstance(experiment, dict) else None
+    )
     study_scope = experiment.get("study_scope") if isinstance(experiment, dict) else None
     study_binding = (
         experiment.get("source_study_binding") if isinstance(experiment, dict) else None
@@ -338,6 +341,26 @@ def _verify_source_bundle_campaign_contract(
         if isinstance(study_binding, dict)
         else None
     )
+    expected_runner_configurations = (
+        campaign_policy.get("runner_configurations")
+        if isinstance(campaign_policy, dict)
+        else None
+    )
+    expected_judge_configuration = (
+        campaign_policy.get("judge_configuration")
+        if isinstance(campaign_policy, dict)
+        else None
+    )
+    cross_model_confirmation = (
+        campaign_policy.get("cross_model_confirmation")
+        if isinstance(campaign_policy, dict)
+        else None
+    )
+    expected_repetitions = (
+        cross_model_confirmation.get("minimum_repetitions_per_cell")
+        if isinstance(cross_model_confirmation, dict)
+        else None
+    )
     input_digests = static.get("input_digests")
     source_entries = live_sources.get("sources")
     observed_selected_sources = (
@@ -352,6 +375,19 @@ def _verify_source_bundle_campaign_contract(
         and all(isinstance(source, dict) for source in source_entries)
         else None
     )
+    if (
+        not isinstance(campaign_policy, dict)
+        or campaign_policy.get("design") != manifest.get("design")
+        or expected_runner_configurations != manifest.get("runner_configurations")
+        or not isinstance(expected_judge_configuration, dict)
+        or expected_judge_configuration.get("model") != manifest.get("judge_model")
+        or expected_judge_configuration.get("reasoning_effort")
+        != manifest.get("judge_effort")
+        or not isinstance(expected_repetitions, int)
+        or isinstance(expected_repetitions, bool)
+        or expected_repetitions != manifest.get("repetitions")
+    ):
+        raise ValueError("Source-bundle campaign execution does not match policy.")
     if (
         study.get("schema") != _COMPOSITION_STUDY_VERIFICATION_SCHEMA
         or study.get("experiment_id") != manifest.get("experiment_id")

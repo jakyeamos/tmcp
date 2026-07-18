@@ -582,10 +582,23 @@ class SkillEvalCampaignTests(unittest.TestCase):
         )
 
         readiness = campaign_readiness_report(
-            plan, cells=cells, design="baseline_reliability", judge_model="judge-model"
+            plan,
+            cells=cells,
+            design="baseline_reliability",
+            judge_model="judge-model",
+            judge_effort="high",
         )
 
         self.assertTrue(readiness["ready"])
+        wrong_effort = campaign_readiness_report(
+            plan,
+            cells=cells,
+            design="baseline_reliability",
+            judge_model="judge-model",
+            judge_effort="low",
+        )
+        self.assertFalse(wrong_effort["ready"])
+        self.assertIn("judge_configuration_not_preregistered", wrong_effort["gaps"])
 
     def test_resumed_trace_is_bound_to_stage_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

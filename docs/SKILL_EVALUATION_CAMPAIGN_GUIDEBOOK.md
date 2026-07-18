@@ -135,8 +135,9 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   well as the sidecar: the prompt-isolation audit, every runner and judge
   remote-schema preflight **including its synthetic prompt and output-schema
   digest**, and a launch-time immutable/live-source report whose pinned inputs
-  and selected sources match the exact evaluated plan; zero remaining failed
-  cells and complete unique-thread coverage must also match the persisted
+  and selected sources match the exact evaluated plan. The runner and judge
+  model/effort settings must also equal the preregistered policy; zero remaining
+  failed cells and complete unique-thread coverage must match the persisted
   manifest. Per-cell traces alone cannot prove that the campaign was launched
   under its declared study contract.
 

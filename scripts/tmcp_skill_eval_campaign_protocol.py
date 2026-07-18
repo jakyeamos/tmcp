@@ -274,6 +274,7 @@ def campaign_readiness_report(
     cells: list[CampaignCell],
     design: str,
     judge_model: str,
+    judge_effort: str,
 ) -> dict[str, Any]:
     """Return launch readiness without starting a runner or judge session."""
 
@@ -350,7 +351,7 @@ def campaign_readiness_report(
     if (
         not isinstance(configured_judge, dict)
         or configured_judge.get("model") != judge_model
-        or not isinstance(configured_judge.get("reasoning_effort"), str)
+        or configured_judge.get("reasoning_effort") != judge_effort
     ):
         gaps.append("judge_configuration_not_preregistered")
     runner_models = sorted({cell.runner_model for cell in cells})

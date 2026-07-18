@@ -41,6 +41,8 @@ class CompositionPrimaryContractTests(unittest.TestCase):
             manifest = {
                 "experiment_id": "composition-study-test",
                 "cell_count": 2,
+                "design": "causal_contrast",
+                "repetitions": 2,
                 "runner_configurations": [
                     {"model": "runner-a", "reasoning_effort": "high"}
                 ],
@@ -82,6 +84,19 @@ class CompositionPrimaryContractTests(unittest.TestCase):
             }
             plan = {
                 "experiment": {
+                    "campaign_policy": {
+                        "design": "causal_contrast",
+                        "runner_configurations": [
+                            {"model": "runner-a", "reasoning_effort": "high"}
+                        ],
+                        "judge_configuration": {
+                            "model": "judge-a",
+                            "reasoning_effort": "high",
+                        },
+                        "cross_model_confirmation": {
+                            "minimum_repetitions_per_cell": 2
+                        },
+                    },
                     "study_scope": {
                         "claim_boundary": "source-bundle delivery only"
                     },
@@ -166,6 +181,25 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                     source_runs=runs,
                     expected_trace_count=2,
                 )
+            )
+            manifest["judge_effort"] = "low"
+            roles[-1]["effort"] = "low"
+            preflights[-1]["effort"] = "low"
+            (runs / "remote-schema-preflight.json").write_text(
+                json.dumps(remote_preflight), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "execution does not match"):
+                cost_rejudge_source._verify_source_bundle_campaign_contract(
+                    plan=plan,
+                    manifest=manifest,
+                    source_runs=runs,
+                    expected_trace_count=2,
+                )
+            manifest["judge_effort"] = "high"
+            roles[-1]["effort"] = "high"
+            preflights[-1]["effort"] = "high"
+            (runs / "remote-schema-preflight.json").write_text(
+                json.dumps(remote_preflight), encoding="utf-8"
             )
             remote_preflight["preflights"][0]["prompt_sha256"] = "sha256:wrong"
             (runs / "remote-schema-preflight.json").write_text(

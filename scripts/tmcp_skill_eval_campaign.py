@@ -409,6 +409,7 @@ async def _main(args: argparse.Namespace) -> int:
         cells=cells,
         design=args.design,
         judge_model=args.judge_model,
+        judge_effort=args.judge_effort,
     )
     if args.readiness_report is not None:
         _atomic_json(args.readiness_report, readiness)
