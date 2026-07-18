@@ -19,6 +19,10 @@ BASELINE_DIR = (
 )
 
 
+@unittest.skipUnless(
+    (BASELINE_DIR / "generated" / "tmcp-skill-evaluation-plan.json").is_file(),
+    "source-only baseline evidence bundle",
+)
 class BaselineReceiptTests(unittest.TestCase):
     def test_held_baseline_builds_completed_but_ineligible_receipt(self) -> None:
         plan_path = BASELINE_DIR / "generated" / "tmcp-skill-evaluation-plan.json"
