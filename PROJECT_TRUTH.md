@@ -4,7 +4,7 @@
 
 - Branch: `codex/skill-eval-dogfood`
 - Last completed changes: `a0edfb3` separates deterministic campaign planning/readiness from execution while binding it into the primary campaign harness; `439bc07` binds the primary launch and scoring verifier to the campaign policy's runner configurations, judge model/effort, design, and repetitions; `368896b` embeds the study's immutable input and selected-source binding in the generated plan; and `b833054` rederives every primary preflight's synthetic judge prompt/output-schema contract and valid digest shape. The deterministic packet contract and evidence ledger keep the result local-only.
-- Verification: 578 repository tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, no-write Wizard, branch-fold, and OpenCLI packet replays pass. The reproducible release-package check last passed with 577 packaged tests (9 source-only skips); it will be refreshed for the planning-contract split. Changed-line Pre-CR passes cleanly.
+- Verification: 578 repository tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, no-write Wizard, branch-fold, and OpenCLI packet replays pass. The refreshed reproducible release-package check passes with 578 packaged tests (9 source-only skips). Changed-line Pre-CR passes cleanly.
 
 ## Current Position
 
