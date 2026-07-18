@@ -36,6 +36,11 @@ class CompositionBaselinePlanTests(unittest.TestCase):
             source["experiment"]["experiment_id"],
         )
         self.assertNotIn("baseline_dependency", checked_in["experiment"])
+        self.assertEqual(
+            checked_in["experiment"]["cost_rejudge_policy"]["expected_trace_count"],
+            36,
+        )
+        self.assertIn("36 runner artifacts", checked_in["experiment"]["cost_rejudge_policy"]["claim_boundary"])
 
     def test_baseline_cells_bind_exactly_to_the_causal_control(self) -> None:
         source = json.loads(SOURCE_PLAN.read_text(encoding="utf-8"))

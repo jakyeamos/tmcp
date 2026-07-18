@@ -34,6 +34,13 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   the causal plan, derived baseline plan, receipt, manifest, traces, and report.
   It must reject a detached or digest-incomplete bundle even when the receipt's
   compatibility fields look plausible.
+- Treat an independently reviewed candidate as admissible evidence design, not as
+  a campaign. Run a candidate-readiness gate before generating a behavioral plan:
+  it must bind the target source, first-principles summary, review record, packet
+  probe receipt, synthetic/no-tool boundary, and fixture manifest. Require at
+  least six reviewed fixtures across three families; one approved fixture remains
+  `approved_for_preregistration`, with model calls unauthorized and the next gate
+  explicitly recorded.
 - Require a directness review for every observable: the event an O/S item grades
   must occur in the fixture prompt, not in an implied later turn. Record an
   independent review that also confirms every bar is expressible by the target
@@ -187,6 +194,10 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - **Hand-rebuilding the composition baseline.** A separately typed control plan
   can drift in fixture or packet provenance while still looking structurally
   valid. Derive it from the causal plan and verify the binding before launch.
+- **Promoting a reviewed fixture into a campaign.** `approved_for_preregistration`
+  means the bar is admissible for future study design. It does not establish a
+  six-fixture matrix, source-bundle receipt, packet selection, or behavioral lift.
+  Preserve a fail-closed candidate-readiness report until those artifacts exist.
 - **Calling model identifiers independent models.** Identifier replication is
   operationally useful, but it cannot establish provider or training independence.
 - **Treating a larger attachment as a pure selection effect.** A packet-plus-bundle

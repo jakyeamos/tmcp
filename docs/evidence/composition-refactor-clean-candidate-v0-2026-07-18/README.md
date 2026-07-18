@@ -34,6 +34,16 @@ code-change quality, or corpus-wide skill quality.
 The fixture must remain synthetic and read-only. A future runner should return a
 plan inline, not inspect a repository, write files, or execute a refactor.
 
+## Candidate-readiness gate
+
+[`preregistration-readiness.json`](preregistration-readiness.json) is the
+no-call readiness record for this candidate. It binds the live source digest,
+first-principles digest, independent review record, fixture digest, and
+synthetic/no-tool boundary. It intentionally reports `ready: false`: the
+candidate has one fixture in one family, no archived source bundle, and no
+dedicated packet-probe receipt. `model_calls_authorized` remains `false`; the
+next admissible gate is to extend the independently reviewed fixture set.
+
 ## Independent-review decision
 
 An independent reviewer recorded a decision in `fixture-review.md`. Before a

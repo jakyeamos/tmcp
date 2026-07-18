@@ -52,11 +52,11 @@
       "schema": "tmcp-skill-eval-campaign-policy-v0.1"
     },
     "cost_rejudge_policy": {
-      "claim_boundary": "condition-blind adjudication of raw cost labels for the exact 72 runner artifacts; not a second correctness judgment or a distinct-model replication claim",
+      "claim_boundary": "condition-blind adjudication of raw cost labels for the exact 36 runner artifacts; not a second correctness judgment or a distinct-model replication claim",
       "complete_before_promotion": true,
       "cost_bar_file": "cost-evaluation-bar.md",
       "cost_bar_sha256": "sha256:13df20c7bb0641b61e50415b3e961e9017e5527e9df8dc38c51037312ab6a063",
-      "expected_trace_count": 72,
+      "expected_trace_count": 36,
       "judge_effort": "high",
       "model": "gpt-5.6-sol",
       "process_independence": {

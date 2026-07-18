@@ -77,6 +77,16 @@ def build_baseline_plan(source_plan: dict[str, Any]) -> dict[str, Any]:
     baseline_experiment.pop("baseline_dependency", None)
     baseline_experiment["baseline_source_experiment_id"] = experiment["experiment_id"]
     baseline_experiment["study_phase"] = "baseline_reliability"
+    cost_policy = baseline_experiment.get("cost_rejudge_policy")
+    if isinstance(cost_policy, dict):
+        campaign_policy = baseline_experiment.get("campaign_policy")
+        cross_model = campaign_policy.get("cross_model_confirmation", {}) if isinstance(campaign_policy, dict) else {}
+        runner_count = len(campaign_policy.get("runner_configurations", [])) if isinstance(campaign_policy, dict) else 0
+        repetitions = int(cross_model.get("minimum_repetitions_per_cell") or 1) if isinstance(cross_model, dict) else 1
+        expected_trace_count = len(control_rows) * runner_count * repetitions
+        cost_policy["expected_trace_count"] = expected_trace_count
+        claim_boundary = str(cost_policy.get("claim_boundary") or "")
+        cost_policy["claim_boundary"] = claim_boundary.replace("72 runner artifacts", f"{expected_trace_count} runner artifacts")
     for row in baseline_plan["task_matrix"]:
         row["experiment_id"] = baseline_id
     validate_evaluation_plan(baseline_plan)

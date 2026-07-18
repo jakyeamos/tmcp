@@ -1,0 +1,32 @@
+{
+  "candidate_dir": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18",
+  "candidate_state": "approved_for_preregistration",
+  "first_principles_sha256": "sha256:e87ef8958eadf3fba9a671a8ec8f6f678c22f377ff1961f2cd8ce542e9fb961b",
+  "fixture_count": 1,
+  "fixture_digests": [
+    "sha256:f3c5296fa676e02b5ebfd8d55e5ec038c12438a20021fb5c0f57e5aaf5e7a1e9"
+  ],
+  "fixture_family_count": 1,
+  "fixtures": [
+    {
+      "digest": "sha256:f3c5296fa676e02b5ebfd8d55e5ec038c12438a20021fb5c0f57e5aaf5e7a1e9",
+      "gaps": [],
+      "path": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/refactor-clean-dependency-graph-v0.json"
+    }
+  ],
+  "gaps": [
+    "fixture_count_below_minimum",
+    "fixture_family_count_below_minimum",
+    "packet_probe_receipt_missing",
+    "source_bundle_not_archived"
+  ],
+  "model_calls_authorized": false,
+  "next_gate": "extend_reviewed_fixture_set",
+  "packet_probe_receipt_sha256": null,
+  "preregistration_ready": false,
+  "ready": false,
+  "review_record_sha256": "sha256:f51c376ad2310501cf30b493aa12d3bb14759f0a33e588310a88daf5eb0228b2",
+  "schema": "tmcp-refactor-clean-candidate-readiness-v0.1",
+  "source_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0",
+  "synthetic_no_tool_boundary": true
+}
