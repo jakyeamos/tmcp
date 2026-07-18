@@ -229,3 +229,67 @@ class CompositionContractFixtureTests(unittest.TestCase):
             packet["verification_gates"],
         )
         self.assertEqual(packet["evidence_citations"][0]["source"], "SKILL.md")
+
+    def test_opencli_autofix_source_projects_hard_stops_and_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "SKILL.md"
+            source.write_text(
+                "---\nname: opencli-autofix\n---\n"
+                "# OpenCLI AutoFix\n"
+                "AUTH_REQUIRED and BROWSER_CONNECT are hard stops: do not modify "
+                "code.\n"
+                "Only modify the file at `RepairContext.adapter.sourcePath`.\n"
+                "Never modify `src/`, `extension/`, `tests/`, `package.json`, or "
+                "`tsconfig.json`.\n"
+                "Max 3 repair rounds per failure.\n"
+                "Ask the user before filing an upstream issue.\n",
+                encoding="utf-8",
+            )
+            packet = self.server._compose_packet(
+                {
+                    "source_path": str(root),
+                    "project_path": str(root),
+                    "objective": (
+                        "Plan a synthetic OpenCLI repair for BROWSER_CONNECT with "
+                        "an adapter scope and a retry boundary."
+                    ),
+                    "phase": "start",
+                    "cache_policy": "none",
+                    "limit": 20,
+                }
+            )
+
+        self.assertEqual(packet["task_identity"]["primary"], "general_task")
+        self.assertIn(
+            "On AUTH_REQUIRED or BROWSER_CONNECT, do not modify code; ask the user "
+            "to restore the local environment.",
+            packet["stop_conditions"],
+        )
+        self.assertIn(
+            "Modify only RepairContext.adapter.sourcePath.",
+            packet["stop_conditions"],
+        )
+        self.assertIn(
+            "Do not modify OpenCLI core, extension, test, or package configuration "
+            "files during adapter repair.",
+            packet["stop_conditions"],
+        )
+        self.assertIn(
+            "Stop after three failed repair rounds and report what was tried.",
+            packet["stop_conditions"],
+        )
+        self.assertIn(
+            "Obtain explicit user confirmation before filing an upstream issue.",
+            packet["stop_conditions"],
+        )
+        self.assertNotIn("ui-browser-verification", packet["active_atoms"])
+        self.assertNotIn(
+            "Verify contrast on visible UI states.", packet["verification_gates"]
+        )
+        self.assertIn("## Stop Conditions", packet["packet_markdown"])
+        self.assertIn(
+            "Modify only RepairContext.adapter.sourcePath.",
+            packet["packet_markdown"],
+        )
+        self.assertEqual(packet["evidence_citations"][0]["source"], "SKILL.md")

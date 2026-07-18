@@ -34,6 +34,11 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertTrue(
             composition.is_uiish_text("Verify color contrast on the rendered page.")
         )
+        self.assertFalse(
+            composition.is_uiish_text(
+                "AUTH_REQUIRED and BROWSER_CONNECT are OpenCLI environment errors."
+            )
+        )
         self.assertTrue(composition.is_ui_file("app/page.astro"))
         self.assertTrue(composition.is_ui_file("src/styles/site.CSS"))
         self.assertFalse(composition.is_ui_file("src/service.py"))
@@ -576,6 +581,7 @@ class CompositionDomainTests(unittest.TestCase):
             "deferred_atoms": ["research"],
             "active_instructions": ["Read the existing component."],
             "verification_gates": ["Run the focused browser check."],
+            "stop_conditions": ["Wait for explicit user confirmation."],
         }
 
         markdown = packets.render_composed_packet_markdown(packet)
@@ -592,6 +598,8 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertIn("- deferred atoms: research", markdown)
         self.assertIn("1. Read the existing component.", markdown)
         self.assertIn("## Verification Gates", markdown)
+        self.assertIn("## Stop Conditions", markdown)
+        self.assertIn("Wait for explicit user confirmation.", markdown)
         self.assertIn("## Recompile Triggers", markdown)
         self.assertIn("## Required Receipts", markdown)
 

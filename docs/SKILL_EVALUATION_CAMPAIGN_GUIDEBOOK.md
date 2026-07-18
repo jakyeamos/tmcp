@@ -59,6 +59,10 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   live remote target before promotion or pruning, and establish ancestry plus
   patch equivalence before calling work superseded. A source citation alone is
   insufficient.
+- For scoped repair skills, require the rendered packet to carry hard-stop
+  error states, the permitted write surface, retry ceiling, and approval gate
+  for external side effects. Treat all of those as delivery constraints, not
+  as generic test guidance.
 - Do not activate a specialized route from a generic verb such as “build” alone.
   Preserve a matched specialized control case so a routing fix cannot quietly
   weaken intended frontend or workflow behavior.
@@ -164,6 +168,13 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   turns a safety contract into generic test advice. Test each preservation and
   proof invariant in the composed packet before treating the pair as a
   behavioral candidate.
+- **JSON-only safety constraints.** A stop condition that is absent from
+  `packet_markdown` is absent from the agent's working contract even if it is
+  present in the JSON envelope. Render and test stop conditions alongside
+  verification gates.
+- **Incidental return-language extraction.** Treating any occurrence of
+  “return” as an output contract pulls API semantics and code commentary into
+  the handoff. Extract only structural labels or imperative output statements.
 
 The 2026-07-17 campaign is a source of these operational defaults. Its section
 effect remains a held candidate because the historical plan did not preregister the

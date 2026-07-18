@@ -17,6 +17,7 @@ pair's behavioral effectiveness.
 | TMCP compiler + `write-docs` | Draft source-grounded documentation that cites implementation evidence | Pass after route fix | The packet is `general_task`, cites the documentation source, and does not activate frontend behavior from the generic implementation stem. |
 | TMCP compiler + `wizard` | Plan a synthetic, no-write credential handoff | Pass after safety-gate projection | The packet is `general_task`, requires confirmation before irreversible or external actions, and forbids an end-to-end run of a human-interactive wizard. |
 | TMCP compiler + `fold-feature-branches` | Classify a synthetic branch without mutation | Pass after safety-gate projection | The packet is `general_task`, cites the fold source, preserves dirty/ambiguous branch protection, and requires live-remote plus ancestry/`git cherry` supersession checks. |
+| TMCP compiler + `opencli-autofix` | Plan a synthetic adapter repair without execution | Pass after safety-gate projection | The rendered packet is `general_task`, keeps AUTH/BROWSER hard stops, adapter-only scope, retry and issue-approval boundaries, and does not interpret `BROWSER_CONNECT` as UI work. |
 
 ## Regression found and corrected
 
@@ -53,6 +54,15 @@ dirty-worktree rules to generic tests. The packet now projects those concrete
 preservation and proof gates. This was a read-only, synthetic source probe; it
 did not fetch, merge, delete, or modify a branch and says nothing about an
 integration outcome.
+
+The `opencli-autofix` source exposed a broader delivery defect. Its hard stops
+were present only in the JSON field, not in the rendered packet, while
+`BROWSER_CONNECT` also activated irrelevant UI checks and incidental `return`
+mentions filled the output contract. TMCP now renders stop conditions, treats
+that diagnostic code as non-UI, extracts only imperative output contracts, and
+projects the repair scope, retry, and filing-approval rules. This was a
+synthetic, no-execution probe: no OpenCLI command, adapter edit, browser action,
+or GitHub issue occurred.
 
 ## Interpretation
 

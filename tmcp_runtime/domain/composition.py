@@ -213,9 +213,18 @@ def objective_has_phrase(objective: str, phrases: tuple[str, ...]) -> bool:
 
 
 def is_uiish_text(value: str) -> bool:
-    return has_accessibility_contrast_context(value) or any(
-        _contains_signal_term(value, term) for term in UI_SIGNAL_TERMS
-    )
+    if has_accessibility_contrast_context(value):
+        return True
+    if any(
+        _contains_signal_term(value, term)
+        for term in UI_SIGNAL_TERMS
+        if term != "browser"
+    ):
+        return True
+    return re.search(
+        r"(?<![a-z0-9])browser(?![\s_-]*connect\b)(?![a-z0-9])",
+        value.lower(),
+    ) is not None
 
 
 def is_ui_file(path: str) -> bool:

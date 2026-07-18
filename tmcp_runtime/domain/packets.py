@@ -199,6 +199,11 @@ def render_composed_packet_markdown(packet: dict[str, Any]) -> str:
         lines.extend(["", "## Verification Gates"])
         for gate in gates:
             lines.append(f"- {gate}")
+    stop_conditions = _string_list(packet.get("stop_conditions"))
+    if stop_conditions:
+        lines.extend(["", "## Stop Conditions"])
+        for condition in stop_conditions:
+            lines.append(f"- {condition}")
     output_contract = _string_list(packet.get("output_contract"))
     if output_contract:
         lines.extend(["", "## Output Contract"])

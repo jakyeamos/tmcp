@@ -83,6 +83,22 @@ class HarvestDomainTests(unittest.TestCase):
             routing["verification_gates"],
         )
 
+    def test_output_contract_ignores_incidental_return_language(self) -> None:
+        routing = routing_metadata_for(
+            "SKILL.md",
+            "\n".join(
+                [
+                    "The API response returns a status code.",
+                    "Return a compact repair handoff.",
+                    "Keep the same return format for callers.",
+                ]
+            ),
+        )
+
+        self.assertEqual(
+            routing["output_contract"], ["Return a compact repair handoff."]
+        )
+
     def test_source_node_uses_an_explicit_advisory_callback(self) -> None:
         source_path = "/tmp/example/SKILL.md"
         source_text = "# Skill\nUse browser evidence before release."

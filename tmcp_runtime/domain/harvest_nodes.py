@@ -204,6 +204,41 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
                 "branch evidence is uncertain."
             ),
         )
+    autofix_stops: list[str] = []
+    if all(
+        phrase in normalized_lower
+        for phrase in ("auth required", "browser connect", "do not modify code")
+    ):
+        autofix_stops.append(
+            (
+                "On AUTH_REQUIRED or BROWSER_CONNECT, do not modify code; ask the "
+                "user to restore the local environment."
+            )
+        )
+    if (
+        "only modify the file at repaircontext adapter sourcepath"
+        in normalized_lower
+    ):
+        autofix_stops.append("Modify only RepairContext.adapter.sourcePath.")
+    if all(
+        phrase in normalized_lower
+        for phrase in ("never modify", "package json", "tsconfig json")
+    ):
+        autofix_stops.append(
+            (
+                "Do not modify OpenCLI core, extension, test, or package "
+                "configuration files during adapter repair."
+            )
+        )
+    if "max 3 repair rounds per failure" in normalized_lower:
+        autofix_stops.append(
+            "Stop after three failed repair rounds and report what was tried."
+        )
+    if "ask the user before filing" in normalized_lower:
+        autofix_stops.append(
+            "Obtain explicit user confirmation before filing an upstream issue."
+        )
+    stop_conditions = autofix_stops + stop_conditions
     verification_gates: list[str] = []
     gate_terms = {
         "reduced motion": "Verify reduced motion behavior.",
@@ -260,17 +295,21 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
         for line in text.splitlines()
         if "do not use" in line.lower() or "not for" in line.lower()
     ][:6]
-    output_contract = ordered_unique(
-        [
-            line.strip(" -*#")
-            for line in text.splitlines()
-            if any(
-                marker in line.lower()
-                for marker in ("output contract", "must include", "return", "handoff")
+    output_contract_candidates: list[str] = []
+    for line in text.splitlines():
+        item = line.strip(" -*#")
+        normalized_item = re.sub(r"[^a-z0-9]+", " ", item.lower()).strip()
+        if not item:
+            continue
+        if (
+            "output contract" in normalized_item
+            or "must include" in normalized_item
+            or normalized_item.startswith(
+                ("return ", "report ", "provide ", "produce ", "handoff ")
             )
-            and line.strip(" -*#")
-        ]
-    )[:8]
+        ):
+            output_contract_candidates.append(item)
+    output_contract = ordered_unique(output_contract_candidates)[:8]
     trigger_phrases = commands + [
         term
         for term in (
