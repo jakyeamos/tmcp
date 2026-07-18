@@ -161,11 +161,21 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             project = Path(tmp)
             (project / "AGENTS.md").write_text(
-                "# Rules\n\nRead before modifying and verify results.\n",
+                "# Rules\n\n"
+                "Read before modifying and verify results.\n\n"
+                "Inputs: task objective\n"
+                "Outputs: governing constraints\n"
+                "Exit gate: Governing constraints are applied.\n"
+                "Governing constraints enable implementation.\n",
                 encoding="utf-8",
             )
             (project / "SKILL.md").write_text(
-                "# Verification Skill\n\nImplement the task and run focused verification.\n",
+                "# Verification Skill\n\n"
+                "Implement the task and run focused verification.\n\n"
+                "Inputs: governing constraints\n"
+                "Outputs: focused verification\n"
+                "Exit gate: Focused verification passes.\n"
+                "Governing constraints enable implementation.\n",
                 encoding="utf-8",
             )
             common = [
@@ -199,19 +209,20 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
                 item: dict[str, object],
                 name: str,
                 *,
+                inputs: list[str],
+                outputs: list[str],
+                exit_gate: str,
                 covers: list[str] | None = None,
             ) -> dict[str, object]:
                 covered = covers or []
                 return {
                     "node_id": item["source_node_id"],
                     "role": name,
-                    "inputs": ["task objective"],
-                    "outputs": ["validated handoff"],
+                    "inputs": inputs,
+                    "outputs": outputs,
                     "phase_affinity": ["start"],
                     "entry_gates": [],
-                    "exit_gates": [
-                        criterion if covered else "Governing constraints are applied"
-                    ],
+                    "exit_gates": [exit_gate],
                     "context_cost": 100,
                     "covers": covered,
                     "citations": [item["slice_id"]],
@@ -229,8 +240,21 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
                     "evidence_needs": ["Focused verification"],
                 },
                 "skill_roles": [
-                    role(governing, "governing constraints"),
-                    role(skill, "implementation verifier", covers=[criterion]),
+                    role(
+                        governing,
+                        "governing constraints",
+                        inputs=["task objective"],
+                        outputs=["governing constraints"],
+                        exit_gate="Governing constraints are applied",
+                    ),
+                    role(
+                        skill,
+                        "implementation verifier",
+                        inputs=["governing constraints"],
+                        outputs=["focused verification"],
+                        exit_gate=criterion,
+                        covers=[criterion],
+                    ),
                 ],
                 "relationships": [
                     {
@@ -241,9 +265,7 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
                             governing["slice_id"],
                             skill["slice_id"],
                         ],
-                        "rationale": (
-                            "Governing constraints enable safe implementation."
-                        ),
+                        "rationale": "Governing constraints enable implementation.",
                     }
                 ],
                 "coverage": {

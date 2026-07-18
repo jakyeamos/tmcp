@@ -202,6 +202,7 @@ class ProjectRecipePromotionTests(unittest.TestCase):
             "composition_plan_id": self._PLAN_ID,
             "composition_plan_digest": self._PLAN_DIGEST,
             "preflight_id": self._PREFLIGHT_ID,
+            "compiler_phase": "implementation",
             "graph_digest": self._GRAPH_DIGEST,
             "recipe_digest": self._RECIPE_DIGEST,
             "context_accounting_digest": "a" * 64,
