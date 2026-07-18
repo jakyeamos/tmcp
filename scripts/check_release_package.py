@@ -91,45 +91,49 @@ COMPOSITION_BENCHMARK_SUMMARY_SCHEMA = (
     _release_package_benchmark.COMPOSITION_BENCHMARK_SUMMARY_SCHEMA
 )
 _release_version_tuple = _release_package_benchmark.release_version_tuple
+DEFAULT_COMMAND_TIMEOUT_SECONDS = 60
+EXTRACTED_TEST_SUITE_TIMEOUT_SECONDS = 600
 
 
 def run(
-    command: list[str], cwd: Path, extra_env: dict[str, str] | None = None
+    command: list[str], cwd: Path, extra_env: dict[str, str] | None = None,
+    *, timeout_seconds: int = DEFAULT_COMMAND_TIMEOUT_SECONDS,
 ) -> tuple[bool, str]:
     env = os.environ.copy()
     env.pop("AIOS_ROOT", None)
     if extra_env:
         env.update(extra_env)
-    completed = subprocess.run(
-        command,
-        cwd=cwd,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-        timeout=60,
-    )
+    try:
+        completed = subprocess.run(
+            command, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, check=False, timeout=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired:
+        return False, json.dumps({
+            "command": command, "error": "command_timeout",
+            "timeout_seconds": timeout_seconds,
+        }, sort_keys=True)
     return completed.returncode == 0, completed.stdout + completed.stderr
 
 
 def run_json(
-    command: list[str], cwd: Path, extra_env: dict[str, str] | None = None
+    command: list[str], cwd: Path, extra_env: dict[str, str] | None = None,
+    *, timeout_seconds: int = DEFAULT_COMMAND_TIMEOUT_SECONDS,
 ) -> tuple[bool, str, dict[str, Any] | None]:
     env = os.environ.copy()
     env.pop("AIOS_ROOT", None)
     if extra_env:
         env.update(extra_env)
-    completed = subprocess.run(
-        command,
-        cwd=cwd,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-        timeout=60,
-    )
+    try:
+        completed = subprocess.run(
+            command, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, check=False, timeout=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired:
+        return False, json.dumps({
+            "command": command, "error": "command_timeout",
+            "timeout_seconds": timeout_seconds,
+        }, sort_keys=True), None
     output = completed.stdout + completed.stderr
     if completed.returncode != 0:
         return False, output, None
@@ -539,6 +543,7 @@ def check_package(
             [sys.executable, "-m", "unittest", "discover", "-s", "tests"],
             plugin_root,
             package_env,
+            timeout_seconds=EXTRACTED_TEST_SUITE_TIMEOUT_SECONDS,
         )
         compile_ok, compile_output = run(
             compile_command(sys.executable),

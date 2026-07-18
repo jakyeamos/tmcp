@@ -608,6 +608,115 @@ class ReleasePackageTests(unittest.TestCase):
         self.assertEqual(result["tests"], "fail")
         self.assertNotIn("tests", result["output"])
 
+    def test_extracted_suite_uses_extended_timeout_and_reports_timeout_json(
+        self,
+    ) -> None:
+        suite_command = [
+            sys.executable,
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+        ]
+        observed_timeouts: dict[tuple[str, ...], int] = {}
+
+        def fake_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+            timeout = kwargs["timeout"]
+            assert isinstance(timeout, int)
+            observed_timeouts[tuple(command)] = timeout
+            if command == suite_command:
+                raise subprocess.TimeoutExpired(command, timeout)
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            package_path = Path(tmp) / "package.tar.gz"
+            with tarfile.open(package_path, "w:gz"):
+                pass
+            with (
+                patch.object(
+                    self.checker, "check_archive_manifest", return_value=(True, "")
+                ),
+                patch.object(
+                    self.checker,
+                    "safe_extractall",
+                    side_effect=lambda _archive, destination: (
+                        destination / "tmcp"
+                    ).mkdir(),
+                ),
+                patch.object(
+                    self.checker,
+                    "resolve_composition_benchmark_inputs",
+                    return_value=(None, None),
+                ),
+                patch.object(
+                    self.checker,
+                    "check_frontmatter_and_workflow_status",
+                    return_value=(True, ""),
+                ),
+                patch.object(
+                    self.checker,
+                    "check_no_hardcoded_user_paths",
+                    return_value=(True, ""),
+                ),
+                patch.object(
+                    self.checker,
+                    "check_no_private_names",
+                    return_value=(True, ""),
+                ),
+                patch.object(
+                    self.checker,
+                    "check_markdown_links",
+                    return_value=(True, ""),
+                ),
+                patch.object(
+                    self.checker, "check_doctor_surface", return_value=(True, "")
+                ),
+                patch.object(
+                    self.checker, "check_sample_harvest", return_value=(True, "")
+                ),
+                patch.object(
+                    self.checker,
+                    "check_sample_expert_rubric",
+                    return_value=(True, ""),
+                ),
+                patch.object(
+                    self.checker,
+                    "check_adaptive_workflow_surface",
+                    return_value=(True, ""),
+                ),
+                patch.object(
+                    self.checker,
+                    "check_composition_surface",
+                    return_value=(True, ""),
+                ),
+                patch.object(
+                    self.checker,
+                    "check_composition_benchmark",
+                    return_value=(True, ""),
+                ),
+                patch.object(self.checker.subprocess, "run", side_effect=fake_run),
+            ):
+                result = self.checker.check_package(package_path)
+
+        self.assertEqual(result["tests"], "fail")
+        self.assertEqual(
+            json.loads(result["output"]["tests"]),
+            {
+                "command": suite_command,
+                "error": "command_timeout",
+                "timeout_seconds": self.checker.EXTRACTED_TEST_SUITE_TIMEOUT_SECONDS,
+            },
+        )
+        self.assertEqual(
+            observed_timeouts[tuple(suite_command)],
+            self.checker.EXTRACTED_TEST_SUITE_TIMEOUT_SECONDS,
+        )
+        self.assertEqual(
+            observed_timeouts[(sys.executable, "scripts/check_install.py", ".")],
+            self.checker.DEFAULT_COMMAND_TIMEOUT_SECONDS,
+        )
+
     def test_archive_manifest_rejects_payload_tampering(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             archive_path = Path(tmp) / "tampered.tar.gz"
