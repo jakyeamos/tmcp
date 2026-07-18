@@ -13,6 +13,7 @@ from tmcp_runtime.domain.harvest_nodes import routing_metadata_for, source_node_
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 HARVEST_NODES_PATH = PLUGIN_ROOT / "tmcp_runtime" / "domain" / "harvest_nodes.py"
+HARVEST_ROUTING_PATH = PLUGIN_ROOT / "tmcp_runtime" / "domain" / "harvest_routing.py"
 HARVEST_SERVICE_PATH = PLUGIN_ROOT / "tmcp_runtime" / "services" / "harvest.py"
 
 
@@ -181,6 +182,29 @@ class HarvestDomainTests(unittest.TestCase):
 
         self.assertFalse(
             any(module_name.startswith("scripts") for module_name in imported_modules)
+        )
+
+    def test_harvest_routing_policy_has_no_adapter_or_storage_import(self) -> None:
+        module = ast.parse(HARVEST_ROUTING_PATH.read_text(encoding="utf-8"))
+        imported_modules = {
+            node.module
+            for node in ast.walk(module)
+            if isinstance(node, ast.ImportFrom) and node.module is not None
+        }
+        imported_modules.update(
+            alias.name
+            for node in ast.walk(module)
+            if isinstance(node, ast.Import)
+            for alias in node.names
+        )
+
+        self.assertFalse(
+            any(
+                module_name.startswith(
+                    ("scripts", "tmcp_runtime.adapters", "tmcp_runtime.storage")
+                )
+                for module_name in imported_modules
+            )
         )
 
     def test_harvest_service_is_read_only_and_has_no_storage_import(self) -> None:
