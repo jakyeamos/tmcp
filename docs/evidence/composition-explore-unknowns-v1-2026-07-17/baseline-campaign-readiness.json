@@ -1,0 +1,13 @@
+{
+  "cell_count": 36,
+  "design": "baseline_reliability",
+  "gaps": [],
+  "judge_model": "gpt-5.5",
+  "ready": true,
+  "runner_models": [
+    "gpt-5.6-luna",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra"
+  ],
+  "schema": "tmcp-skill-eval-campaign-readiness-v0.1"
+}

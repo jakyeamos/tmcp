@@ -43,6 +43,24 @@ the current four campaign-module digests to this byte-pinned input before any
 campaign run and retains those same module bytes with the raw evidence. A code
 change therefore requires a reviewed regenerated plan, not an in-place resume.
 
+The exact original-only control is separately derived in
+[tmcp-composition-baseline-plan.json](generated/tmcp-composition-baseline-plan.json).
+It preserves the causal plan's six fixtures, packet/source provenance, thresholds,
+runner configurations, and independent judge while changing only the campaign
+design to `baseline_reliability`; the launcher therefore produces 36 control cells
+before any causal study can be considered. Regenerate it without remote calls:
+
+```sh
+python3 scripts/generate_composition_baseline_plan.py \
+  --source-plan docs/evidence/composition-explore-unknowns-v1-2026-07-17/generated/tmcp-composition-study-plan.json \
+  --output docs/evidence/composition-explore-unknowns-v1-2026-07-17/generated/tmcp-composition-baseline-plan.json
+```
+
+This plan is preparation, not a completed receipt or behavioral result.
+The no-call launcher readiness proof is preserved in
+[baseline-campaign-readiness.json](baseline-campaign-readiness.json): 36 cells,
+three pinned runner configurations, and a distinct judge with no readiness gaps.
+
 ## Independent cost sidecar
 
 The primary judge's raw cost labels remain preserved. Before this study may be

@@ -539,7 +539,7 @@ class CompositionStudyTests(unittest.TestCase):
         validated = validate_evaluation_plan(generated)
         self.assertEqual(
             validated["experiment"]["experiment_id"],
-            "composition-study-acaca2f2eef3c864",
+            "composition-study-9480ae1cba1f02d8",
         )
         self.assertEqual(
             validated["experiment"]["baseline_dependency"],
@@ -639,6 +639,31 @@ class CompositionStudyTests(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, "first-principles file"):
                 _verify_source_bundle_study(args, plan)
+
+    def test_source_bundle_baseline_plan_verifies_against_checked_in_source_plan(self) -> None:
+        if not STUDY_DIR.is_dir():
+            self.skipTest("source-only composition study evidence is not packaged")
+        baseline_path = (
+            STUDY_DIR / "generated" / "tmcp-composition-baseline-plan.json"
+        )
+        plan = json.loads(baseline_path.read_text(encoding="utf-8"))
+        args = Namespace(
+            composition_study_dir=STUDY_DIR,
+            plan=baseline_path,
+            intervention_target="source_bundle",
+            first_principles_source={
+                "kind": "file",
+                "path": str(STUDY_DIR / "inputs" / "first-principles.txt"),
+            },
+        )
+
+        report = _verify_source_bundle_study(args, plan)
+        self.assertIsNotNone(report)
+        assert report is not None
+        self.assertTrue(report["static"]["plan_matches_generated"])
+        self.assertEqual(
+            report["experiment_id"], "composition-study-9480ae1cba1f02d8"
+        )
 
 
 if __name__ == "__main__":

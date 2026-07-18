@@ -113,6 +113,9 @@ lift as general reliability.
    control: it must be digest-bound, clear its per-fixture reliability floors,
    and have resolved safety/cost status. A missing or held receipt blocks causal
    launch; the receipt itself is not a causal claim.
+   For source-bundle composition, derive that control plan from the pinned
+   causal plan and verify its 36-cell readiness; never hand-rebuild the fixture
+   rows or provenance.
 2. Pin the skill digest, fixture digests, intervention contract, agent
    configuration, and expected effect direction.
 3. Generate an exact matched control and a one-factor intervention. Reject an

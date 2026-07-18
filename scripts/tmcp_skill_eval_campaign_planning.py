@@ -308,20 +308,25 @@ def campaign_readiness_report(
                 gaps.append(f"insufficient_repetitions_for_{model}")
         if judge_model in runner_models:
             gaps.append("judge_model_not_independent")
-    if design == "baseline_reliability" and {cell.variant_id for cell in cells} != {
-        "original"
-    }:
-        gaps.append("baseline_contains_non_original_variant")
     baseline = policy.get("baseline_reliability")
-    if design == "baseline_reliability" and (
-        not isinstance(baseline, dict)
-        or baseline.get("control_variant") != "original"
-        or not isinstance(baseline.get("minimum_control_pass_rate"), (int, float))
-        or not isinstance(
-            baseline.get("minimum_per_fixture_control_pass_rate"), (int, float)
+    if design == "baseline_reliability":
+        expected_control_variant = (
+            str(baseline.get("control_variant") or "")
+            if isinstance(baseline, dict)
+            else ""
         )
-    ):
-        gaps.append("baseline_reliability_not_preregistered")
+        if not expected_control_variant or {
+            cell.variant_id for cell in cells
+        } != {expected_control_variant}:
+            gaps.append("baseline_contains_non_control_variant")
+        if (
+            not isinstance(baseline, dict)
+            or not isinstance(baseline.get("minimum_control_pass_rate"), (int, float))
+            or not isinstance(
+                baseline.get("minimum_per_fixture_control_pass_rate"), (int, float)
+            )
+        ):
+            gaps.append("baseline_reliability_not_preregistered")
     fixture_review = policy.get("fixture_review")
     if not isinstance(fixture_review, dict) or any(
         fixture_review.get(field) is not True

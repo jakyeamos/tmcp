@@ -393,9 +393,36 @@ def _verify_source_bundle_study(
             "source-bundle campaigns require --composition-study-dir for "
             "immutable-input and live-source verification."
         )
+    study_plan_path = (
+        args.composition_study_dir / "generated" / "tmcp-composition-study-plan.json"
+    ).resolve()
+    plan_path = args.plan.resolve()
+    verification_plan_path = plan_path
+    if plan_path != study_plan_path:
+        experiment = plan.get("experiment")
+        source_experiment_id = (
+            experiment.get("baseline_source_experiment_id")
+            if isinstance(experiment, dict)
+            else None
+        )
+        if not isinstance(source_experiment_id, str) or not study_plan_path.is_file():
+            raise ValueError(
+                "derived source-bundle plans must identify the checked-in source study plan."
+            )
+        source_plan = _load_json(study_plan_path)
+        source_experiment = source_plan.get("experiment")
+        if not isinstance(source_experiment, dict) or source_experiment.get(
+            "experiment_id"
+        ) != source_experiment_id:
+            raise ValueError("derived source-bundle plan does not match its source study.")
+        if not isinstance(experiment, dict) or experiment.get(
+            "source_study_binding"
+        ) != source_experiment.get("source_study_binding"):
+            raise ValueError("derived source-bundle plan has a mismatched study binding.")
+        verification_plan_path = study_plan_path
     report = verify_study(
         args.composition_study_dir,
-        plan_path=args.plan,
+        plan_path=verification_plan_path,
         check_live_sources=True,
     )
     if report["live_sources"]["status"] != "matched":

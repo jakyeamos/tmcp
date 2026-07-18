@@ -24,6 +24,12 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   whose source, packet, fixture, policy, runner/judge, safety, and cost fields
   match the planned control and whose predeclared floors are true; a missing,
   held, or digest-drifted receipt must fail before remote preflight.
+- For a source-bundle composition study, derive the original-only baseline plan
+  from the checked-in causal plan rather than hand-copying its rows. Verify the
+  derived plan's exact fixture, packet/source provenance, thresholds, runner and
+  judge matrix, 36-cell readiness, and source-study binding before requesting
+  any model call. The derived plan is preparation; only its completed receipt
+  can authorize the causal study.
 - Require a directness review for every observable: the event an O/S item grades
   must occur in the fixture prompt, not in an implied later turn. Record an
   independent review that also confirms every bar is expressible by the target
@@ -174,6 +180,9 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   then distinguish the valid replacement cell from a clean first-pass run.
 - **Microablating an unreliable baseline.** It gives a sharper causal answer to a
   question whose control behavior is still not dependable.
+- **Hand-rebuilding the composition baseline.** A separately typed control plan
+  can drift in fixture or packet provenance while still looking structurally
+  valid. Derive it from the causal plan and verify the binding before launch.
 - **Calling model identifiers independent models.** Identifier replication is
   operationally useful, but it cannot establish provider or training independence.
 - **Treating a larger attachment as a pure selection effect.** A packet-plus-bundle
