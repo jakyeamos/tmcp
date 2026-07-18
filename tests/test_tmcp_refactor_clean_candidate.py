@@ -23,10 +23,15 @@ class RefactorCleanCandidateTests(unittest.TestCase):
         self.assertEqual(fixture["schema"], "tmcp-refactor-clean-fixture-review-v0.1")
         self.assertEqual(fixture["review_status"], "author_draft")
         self.assertEqual(fixture["evaluation_mode"], "judgment")
-        self.assertTrue(fixture["fixture"]["runner_prompt"].strip())
+        runner_prompt = fixture["fixture"]["runner_prompt"]
+        self.assertTrue(runner_prompt.strip())
         self.assertTrue(fixture["outcome_bar"]["standard"].strip())
         self.assertGreaterEqual(len(fixture["outcome_bar"]["expected_observables"]), 3)
         self.assertGreaterEqual(len(fixture["outcome_bar"]["failure_smells"]), 3)
+        for criterion in fixture["outcome_bar"]["expected_observables"]:
+            self.assertNotIn(criterion, runner_prompt)
+        for smell in fixture["outcome_bar"]["failure_smells"]:
+            self.assertNotIn(smell, runner_prompt)
         self.assertIn("outcome_bar", blindness["runner_must_not_receive"])
         self.assertIn("failure_smells", blindness["runner_must_not_receive"])
         self.assertIn("hypothesis or arm label", blindness["runner_must_not_receive"])
