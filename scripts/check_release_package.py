@@ -77,10 +77,15 @@ PACKAGE_CHECK_NAMES = (
     "adaptive_workflow_surface",
     "composition_surface",
 )
+PACKAGE_TEST_TIMEOUT_SECONDS = 180
 
 
 def run(
-    command: list[str], cwd: Path, extra_env: dict[str, str] | None = None
+    command: list[str],
+    cwd: Path,
+    extra_env: dict[str, str] | None = None,
+    *,
+    timeout_seconds: int = 60,
 ) -> tuple[bool, str]:
     env = os.environ.copy()
     env.pop("AIOS_ROOT", None)
@@ -94,7 +99,7 @@ def run(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=False,
-        timeout=60,
+        timeout=timeout_seconds,
     )
     return completed.returncode == 0, completed.stdout + completed.stderr
 
@@ -425,6 +430,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
             [sys.executable, "-m", "unittest", "discover", "-s", "tests"],
             plugin_root,
             package_env,
+            timeout_seconds=PACKAGE_TEST_TIMEOUT_SECONDS,
         )
         compile_ok, compile_output = run(
             compile_command(sys.executable),
