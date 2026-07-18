@@ -78,6 +78,29 @@
         "minimum_per_fixture_control_pass_rate": 0.5
       }
     },
+    "source_study_binding": {
+      "input_digests": {
+        "campaign-policy.json": "sha256:339da01e320d0998c7e2cf6141cd493e52483cb39afe807fdc563c2089ffee36",
+        "cost-evaluation-bar.md": "sha256:13df20c7bb0641b61e50415b3e961e9017e5527e9df8dc38c51037312ab6a063",
+        "cost-rejudge-policy.json": "sha256:d2f1f9c6766ab9eb5a85ca545cfec4e7154d0e5341bb2e8923113f714670f17a",
+        "first-principles.txt": "sha256:8afd84272d1d26aabbb2dce55357b9472d3c6aba05b3eced05214bca33132a01",
+        "fixtures-reviewed-v1.json": "sha256:03234dd0d5f650740a7efacc907e612ba2fe133969e31b6a50d406c9946973a3",
+        "packet-base.md": "sha256:7d7e90ea9f96bc907459b7f484069b6c556dd2b5c59b5550e1cb29d1c92cdcb3",
+        "packet-receipt.json": "sha256:1b78fb9ec34301c66bdc5b9a4cd3638f307f5944ee71d81154a674d89c498f8c",
+        "source-bundle.md": "sha256:1ad8409a1207130b0faa74686b96c3d05c37bb27a63ceeeb5d2b3dedc9b3a801"
+      },
+      "schema": "tmcp-composition-study-binding-v0.1",
+      "selected_sources": [
+        {
+          "path": "/Users/jakyeamos/skills/engineering/explore-unknowns/SKILL.md",
+          "sha256": "sha256:d2b29abcaee937ede07bf908ee0ab6a7ce03d429f51082d65cae7fdb0beac3fa"
+        },
+        {
+          "path": "/Users/jakyeamos/skills/engineering/explore-unknowns/references/stage-1-known-knowns.md",
+          "sha256": "sha256:bf64d44b5a879757fd9f53a59c145af57087560c7ccc5b9949d938625e4c187e"
+        }
+      ]
+    },
     "study_scope": {
       "claim_boundary": "delivery effect of a materialized Stage-1 source bundle in a shared TMCP packet",
       "not_measured": [

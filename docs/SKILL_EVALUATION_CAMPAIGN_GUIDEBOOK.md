@@ -134,8 +134,9 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - Before promoting a source-bundle result, reverify the **primary campaign** as
   well as the sidecar: the prompt-isolation audit, every runner and judge
   remote-schema preflight **including its synthetic prompt and output-schema
-  digest**, the launch-time immutable/live-source report, zero remaining failed
-  cells, and complete unique-thread coverage must all match the persisted
+  digest**, and a launch-time immutable/live-source report whose pinned inputs
+  and selected sources match the exact evaluated plan; zero remaining failed
+  cells and complete unique-thread coverage must also match the persisted
   manifest. Per-cell traces alone cannot prove that the campaign was launched
   under its declared study contract.
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import hashlib
 import json
 import shutil
@@ -547,6 +546,15 @@ class CompositionStudyTests(unittest.TestCase):
             validated["experiment"]["cost_rejudge_policy"]["expected_trace_count"],
             72,
         )
+        source_study_binding = validated["experiment"]["source_study_binding"]
+        self.assertEqual(
+            source_study_binding["schema"], "tmcp-composition-study-binding-v0.1"
+        )
+        self.assertEqual(
+            source_study_binding["input_digests"]["packet-receipt.json"],
+            "sha256:1b78fb9ec34301c66bdc5b9a4cd3638f307f5944ee71d81154a674d89c498f8c",
+        )
+        self.assertEqual(len(source_study_binding["selected_sources"]), 2)
 
     def test_study_verifier_binds_inputs_and_live_sources(self) -> None:
         if not STUDY_DIR.is_dir():

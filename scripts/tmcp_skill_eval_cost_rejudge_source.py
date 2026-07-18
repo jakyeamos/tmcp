@@ -38,6 +38,7 @@ _COMPOSITION_SOURCE_BUNDLE_PATTERN = "composition.source-bundle-inclusion"
 _REMOTE_SCHEMA_PREFLIGHTS_SCHEMA = "tmcp-remote-schema-preflights-v0.1"
 _REMOTE_SCHEMA_PREFLIGHT_SCHEMA = "tmcp-remote-schema-preflight-v0.1"
 _COMPOSITION_STUDY_VERIFICATION_SCHEMA = "tmcp-composition-study-verification-v0.1"
+_COMPOSITION_STUDY_BINDING_SCHEMA = "tmcp-composition-study-binding-v0.1"
 
 
 def _is_sha256_digest(value: object) -> bool:
@@ -321,11 +322,36 @@ def _verify_source_bundle_campaign_contract(
     )
     experiment = plan.get("experiment")
     study_scope = experiment.get("study_scope") if isinstance(experiment, dict) else None
+    study_binding = (
+        experiment.get("source_study_binding") if isinstance(experiment, dict) else None
+    )
     expected_claim_boundary = (
         study_scope.get("claim_boundary") if isinstance(study_scope, dict) else None
     )
+    expected_input_digests = (
+        study_binding.get("input_digests")
+        if isinstance(study_binding, dict)
+        else None
+    )
+    expected_selected_sources = (
+        study_binding.get("selected_sources")
+        if isinstance(study_binding, dict)
+        else None
+    )
     input_digests = static.get("input_digests")
     source_entries = live_sources.get("sources")
+    observed_selected_sources = (
+        [
+            {
+                "path": source.get("path"),
+                "sha256": source.get("expected_sha256"),
+            }
+            for source in source_entries
+        ]
+        if isinstance(source_entries, list)
+        and all(isinstance(source, dict) for source in source_entries)
+        else None
+    )
     if (
         study.get("schema") != _COMPOSITION_STUDY_VERIFICATION_SCHEMA
         or study.get("experiment_id") != manifest.get("experiment_id")
@@ -334,8 +360,14 @@ def _verify_source_bundle_campaign_contract(
         or static.get("fixture_count") != expected_fixture_count
         or static.get("matrix_row_count") != len(plan["task_matrix"])
         or static.get("claim_boundary") != expected_claim_boundary
-        or not isinstance(input_digests, dict)
-        or not input_digests
+        or not isinstance(study_binding, dict)
+        or study_binding.get("schema") != _COMPOSITION_STUDY_BINDING_SCHEMA
+        or not isinstance(expected_input_digests, dict)
+        or not expected_input_digests
+        or input_digests != expected_input_digests
+        or not isinstance(expected_selected_sources, list)
+        or not expected_selected_sources
+        or observed_selected_sources != expected_selected_sources
         or live_sources.get("status") != "matched"
         or not isinstance(source_entries, list)
         or not source_entries

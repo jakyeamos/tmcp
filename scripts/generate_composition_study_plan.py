@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from tmcp_runtime.services.evaluation_plan import displayed_content_digest
+from tmcp_runtime.services.evaluation_plan import displayed_content_digest  # noqa: E402
 
 
 REQUIRED_INPUT_DIGESTS = frozenset(
@@ -29,6 +29,7 @@ REQUIRED_INPUT_DIGESTS = frozenset(
         "source-bundle.md",
     }
 )
+SOURCE_STUDY_BINDING_SCHEMA = "tmcp-composition-study-binding-v0.1"
 
 
 def _read_json(path: Path) -> dict[str, Any] | list[dict[str, Any]]:
@@ -164,7 +165,7 @@ def validate_cost_rejudge_policy(
 def build_plan(study_dir: Path) -> dict[str, Any]:
     inputs = study_dir / "inputs"
     definition = _load_object(inputs / "study.json")
-    verify_study_input_digests(study_dir, definition)
+    study_input_digests = verify_study_input_digests(study_dir, definition)
     fixtures = _load_list(inputs / "fixtures-reviewed-v1.json")
     policy = _load_object(inputs / "campaign-policy.json")
     cost_rejudge_policy = _load_object(inputs / "cost-rejudge-policy.json")
@@ -177,6 +178,11 @@ def build_plan(study_dir: Path) -> dict[str, Any]:
         isinstance(item, dict) for item in source_entries
     ):
         raise ValueError("study.json selected_sources must be an object list.")
+    source_study_binding = {
+        "schema": SOURCE_STUDY_BINDING_SCHEMA,
+        "input_digests": study_input_digests,
+        "selected_sources": [dict(item) for item in source_entries],
+    }
     treatment_attachment = f"{base_attachment}\n\n{source_bundle}"
     base_digest = displayed_content_digest(base_attachment)
     source_bundle_digest = displayed_content_digest(source_bundle)
@@ -287,6 +293,7 @@ def build_plan(study_dir: Path) -> dict[str, Any]:
             "analysis_policy": definition["analysis_policy"],
             "promotion_thresholds": definition["promotion_thresholds"],
             "study_scope": definition["study_scope"],
+            "source_study_binding": source_study_binding,
         },
         "evaluated_skills": [],
         "task_matrix": task_matrix,

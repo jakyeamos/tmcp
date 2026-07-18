@@ -76,8 +76,10 @@ Score a completed source-bundle study only through the verified scoring path. It
 runs the artifact verifier in-process, refuses any non-promotion-ready sidecar,
 then records the exact source-plan, trace, and sidecar digests with the score.
 It also rechecks that the **primary** campaign retained its matching
-prompt-isolation audit, all four remote-schema preflights, immutable/live-source
-verification, clean completion, and unique runner/judge thread coverage:
+prompt-isolation audit, all four remote-schema preflights and their synthetic
+prompt/output-schema digests, immutable/live-source verification bound to the
+same pinned plan inputs and selected sources, clean completion, and unique
+runner/judge thread coverage:
 
 ```bash
 python3 scripts/score_composition_study.py \

@@ -36,6 +36,8 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                 },
             ]
             audit = {"passed": True, "prompt_context_sha256": "sha256:context"}
+            input_digests = {"study.json": "sha256:study"}
+            selected_sources = [{"path": "/skill/SKILL.md", "sha256": "sha256:skill"}]
             manifest = {
                 "experiment_id": "composition-study-test",
                 "cell_count": 2,
@@ -63,7 +65,7 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                         "fixture_count": 1,
                         "matrix_row_count": 2,
                         "claim_boundary": "source-bundle delivery only",
-                        "input_digests": {"study.json": "sha256:study"},
+                        "input_digests": input_digests,
                     },
                     "live_sources": {
                         "status": "matched",
@@ -82,7 +84,12 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                 "experiment": {
                     "study_scope": {
                         "claim_boundary": "source-bundle delivery only"
-                    }
+                    },
+                    "source_study_binding": {
+                        "schema": "tmcp-composition-study-binding-v0.1",
+                        "input_digests": input_digests,
+                        "selected_sources": selected_sources,
+                    },
                 },
                 "task_matrix": [
                     {
@@ -177,6 +184,36 @@ class CompositionPrimaryContractTests(unittest.TestCase):
                 json.dumps(remote_preflight), encoding="utf-8"
             )
             with self.assertRaisesRegex(ValueError, "preflight contract"):
+                cost_rejudge_source._verify_source_bundle_campaign_contract(
+                    plan=plan,
+                    manifest=manifest,
+                    source_runs=runs,
+                    expected_trace_count=2,
+                )
+            remote_preflight["preflights"][0]["output_sha256"] = "sha256:" + "a" * 64
+            manifest["composition_study_verification"]["static"][
+                "input_digests"
+            ] = {"study.json": "sha256:other-study"}
+            (runs / "remote-schema-preflight.json").write_text(
+                json.dumps(remote_preflight), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "immutable-input"):
+                cost_rejudge_source._verify_source_bundle_campaign_contract(
+                    plan=plan,
+                    manifest=manifest,
+                    source_runs=runs,
+                    expected_trace_count=2,
+                )
+            manifest["composition_study_verification"]["static"][
+                "input_digests"
+            ] = input_digests
+            manifest["composition_study_verification"]["live_sources"]["sources"][0][
+                "expected_sha256"
+            ] = "sha256:other-skill"
+            manifest["composition_study_verification"]["live_sources"]["sources"][0][
+                "actual_sha256"
+            ] = "sha256:other-skill"
+            with self.assertRaisesRegex(ValueError, "immutable-input"):
                 cost_rejudge_source._verify_source_bundle_campaign_contract(
                     plan=plan,
                     manifest=manifest,
