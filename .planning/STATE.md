@@ -22,8 +22,9 @@ positives without relaxing scanner policy or packet behavior. `8aef995`
 restores source-size budgets with storage and test responsibility splits.
 `9d32d1d` explicitly identifies the shared test harness; the normal quality
 gate now passes cleanly. `e00a42f` gives the extracted release suite a bounded
-ten-minute budget and reports timeouts structurally. The 825-test suite passes;
-0.6.0 remains blocked on real host-run outcomes.
+ten-minute budget and reports timeouts structurally. The clean reproducible
+package passes 826 tests (4 expected skips), install, compile, launcher, and
+composition smoke; 0.6.0 remains blocked on real host-run outcomes.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -32,8 +33,8 @@ ten-minute budget and reports timeouts structurally. The 825-test suite passes;
 - **Slug:** `compositional-intelligence-0.6`
 - **Status:** Runtime hardening, archive-scanner hygiene, source-size budgets,
   quality-gate hygiene, and release-test timeout handling are complete;
-  clean-package verification, real benchmark evidence, and publication remain
-  pending.
+  clean-package verification is complete; real benchmark evidence and
+  publication remain pending.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -50,7 +51,8 @@ ten-minute budget and reports timeouts structurally. The 825-test suite passes;
   budgets while retaining package compilation. `9d32d1d` marks the shared test
   harness honestly, clearing the final quality-gate advisory. `e00a42f` gives
   extracted-package discovery an explicit ten-minute ceiling and structured
-  timeout result. Full discovery passes 825 tests (3 expected skips); no dogfood
+  timeout result. The clean reproducible archive passes 826 tests (4 expected
+  skips), contract/install/compile, launcher, and composition smoke; no dogfood
   receipt was written.
 - `a6591e1` restores the enforced source-size budgets without exceptions:
   benchmark bundle scanning, composition scoring, project-recipe promotion
