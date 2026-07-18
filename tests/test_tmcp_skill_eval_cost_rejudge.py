@@ -796,7 +796,7 @@ class CostRejudgeSourceTests(unittest.TestCase):
         self.assertIn("**selection-only**", ledger)
         self.assertIn("Candidate", ledger)
         self.assertIn(
-            "TMCP compiler + `refactor-clean` | Fixture approved for preregistration; packet-probed",
+            "TMCP compiler + `refactor-clean` | Preregistration-ready; no behavioral calls",
             ledger,
         )
         self.assertIn("TMCP compiler + `write-docs` | Packet-probed", ledger)

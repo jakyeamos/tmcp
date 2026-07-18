@@ -105,6 +105,50 @@ def verify_study_input_digests(
     return actual
 
 
+def _verify_candidate_readiness_binding(
+    study_dir: Path,
+    definition: Mapping[str, Any],
+    selected_sources: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Bind a study to a completed no-call candidate-readiness record when declared."""
+
+    binding = definition.get("candidate_readiness")
+    if binding is None:
+        return {}
+    if not isinstance(binding, Mapping):
+        raise ValueError("candidate_readiness must be an object when declared.")
+    path_value = binding.get("path")
+    expected_digest = binding.get("sha256")
+    if not isinstance(path_value, str) or not path_value:
+        raise ValueError("candidate_readiness.path must be non-empty.")
+    if not isinstance(expected_digest, str) or not expected_digest.startswith("sha256:"):
+        raise ValueError("candidate_readiness.sha256 must be a digest.")
+    path = (study_dir / path_value).resolve()
+    if not path.is_file():
+        raise ValueError("candidate readiness record is missing.")
+    actual_digest = _sha256_file(path)
+    if actual_digest != expected_digest:
+        raise ValueError("candidate readiness digest does not match.")
+    readiness = _load_object(path)
+    if readiness.get("ready") is not True or readiness.get("preregistration_ready") is not True:
+        raise ValueError("candidate readiness record is not ready.")
+    if readiness.get("model_calls_authorized") is not False:
+        raise ValueError("candidate readiness must not authorize model calls.")
+    if readiness.get("gaps") != []:
+        raise ValueError("candidate readiness has unresolved gaps.")
+    source_digest = selected_sources[0].get("sha256") if selected_sources else None
+    if source_digest is not None and readiness.get("source_sha256") != source_digest:
+        raise ValueError("candidate readiness source digest does not match study source.")
+    return {
+        "path": str(path),
+        "sha256": actual_digest,
+        "ready": True,
+        "model_calls_authorized": False,
+        "fixture_count": readiness.get("fixture_count"),
+        "fixture_family_count": readiness.get("fixture_family_count"),
+    }
+
+
 def validate_cost_rejudge_policy(
     study_dir: Path, policy: Mapping[str, Any], plan: Mapping[str, Any]
 ) -> dict[str, Any]:
@@ -195,12 +239,18 @@ def build_plan(study_dir: Path) -> dict[str, Any]:
         isinstance(item, dict) for item in source_entries
     ):
         raise ValueError("study.json selected_sources must be an object list.")
+    skill_path = str(definition.get("skill_path") or "tmcp://composition/explore-unknowns-stage-1")
+    candidate_readiness = _verify_candidate_readiness_binding(
+        study_dir, definition, [dict(item) for item in source_entries]
+    )
     source_study_binding = {
         "schema": SOURCE_STUDY_BINDING_SCHEMA,
         "input_digests": study_input_digests,
         "primary_harness": primary_harness,
         "selected_sources": [dict(item) for item in source_entries],
     }
+    if candidate_readiness:
+        source_study_binding["candidate_readiness"] = candidate_readiness
     treatment_attachment = f"{base_attachment}\n\n{source_bundle}"
     base_digest = displayed_content_digest(base_attachment)
     source_bundle_digest = displayed_content_digest(source_bundle)
@@ -244,7 +294,7 @@ def build_plan(study_dir: Path) -> dict[str, Any]:
             "claim_granularity": "source_bundle_delivery",
             "expected_effect_direction": "positive",
             "pattern_intervention_contract": pattern_contract,
-            "skill_path": "tmcp://composition/explore-unknowns-stage-1",
+            "skill_path": skill_path,
             "skill_digest": base_digest,
             "prompt": prompt,
             "expected_observables": list(fixture["expected_observables"]),

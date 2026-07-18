@@ -1,7 +1,8 @@
 # Refactor-clean composition candidate v0
 
-Status: **approved for preregistration only; not preregistered or behaviorally
-evaluated.** The candidate was author-drafted and then independently reviewed;
+Status: **preregistration-ready; not preregistered or behaviorally evaluated.**
+The candidate was author-drafted, independently reviewed, and bound to a
+byte-exact source bundle plus a local no-call packet probe.
 No runner, judge, or external model call has been made for it.
 
 This is the next admissible step for the packet-probed TMCP compiler plus
@@ -15,6 +16,11 @@ across six fixture families for a future behavioral study.
 - Packet evidence already established: TMCP preserves the source's
   consumer-surface verification gate in a local packet. That is not an artifact
   outcome.
+- [Source bundle](source-bundle/manifest.json) is byte-exact against the pinned
+  live source. [Packet probe receipt](packet-probe-receipt.json) binds the
+  composed packet, packet output digest, source digest, and no-tool safety
+  boundary. Secure global receipt persistence failed closed, so the candidate
+  keeps its local captured output and records that limitation explicitly.
 
 If admitted to a later study, the question may be whether adding
 the exact, byte-pinned `refactor-clean` source bundle to the same shared TMCP
@@ -40,11 +46,11 @@ plan inline, not inspect a repository, write files, or execute a refactor.
 [`preregistration-readiness.json`](preregistration-readiness.json) is the
 no-call readiness record for this candidate. It binds the live source digest,
 first-principles digest, independent review record, fixture digest, and
-synthetic/no-tool boundary. It intentionally reports `ready: false`: all six
-fixtures have independent preregistration approval, but the candidate still
-has no archived source bundle or dedicated packet-probe receipt.
-`model_calls_authorized` remains `false`; the next admissible gate is to archive
-those two evidence artifacts and bind their digests.
+synthetic/no-tool boundary. It now reports `ready: true`: all six fixtures have
+independent preregistration approval, and the exact source bundle plus local
+packet probe are digest-bound. `model_calls_authorized` remains `false`; the
+next admissible gate is a separately preregistered behavioral plan and fresh
+approval for any remote calls.
 
 ## Independent-review decision
 

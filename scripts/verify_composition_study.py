@@ -131,6 +131,7 @@ def main() -> int:
     parser.add_argument("--plan", type=Path)
     parser.add_argument("--check-live-sources", action="store_true")
     parser.add_argument("--require-live-sources", action="store_true")
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     if args.require_live_sources:
         args.check_live_sources = True
@@ -141,16 +142,26 @@ def main() -> int:
             check_live_sources=args.check_live_sources,
         )
     except (OSError, ValueError, json.JSONDecodeError) as error:
-        print(
-            json.dumps(
-                {"schema": VERIFICATION_SCHEMA, "ok": False, "error": str(error)}
-            )
+        rendered_error = json.dumps(
+            {"schema": VERIFICATION_SCHEMA, "ok": False, "error": str(error)}
         )
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(rendered_error + "\n", encoding="utf-8")
+        print(rendered_error)
         return 1
     if args.require_live_sources and report["live_sources"]["status"] != "matched":
-        print(json.dumps({**report, "ok": False}, indent=2, sort_keys=True))
+        rendered = json.dumps({**report, "ok": False}, indent=2, sort_keys=True)
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(rendered + "\n", encoding="utf-8")
+        print(rendered)
         return 1
-    print(json.dumps({**report, "ok": True}, indent=2, sort_keys=True))
+    rendered = json.dumps({**report, "ok": True}, indent=2, sort_keys=True)
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(rendered + "\n", encoding="utf-8")
+    print(rendered)
     return 0
 
 

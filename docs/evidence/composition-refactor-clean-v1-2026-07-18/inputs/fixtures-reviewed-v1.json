@@ -1,0 +1,123 @@
+[
+  {
+    "expected_observables": [
+      "It distinguishes the shipped query owner, the CLI consumer, the dev-only adapter, and the absence of a supported external contract.",
+      "It proposes removing or collapsing the adapter rather than preserving it solely because it already exists.",
+      "It verifies CLI and indexer behavior through their consumer surfaces.",
+      "It names any remaining uncertainty instead of inventing an external compatibility need."
+    ],
+    "failure_smells": [
+      "keeps the development-only adapter with no removal condition",
+      "creates a new wrapper around `legacyAdapter.ts`",
+      "tests only the query owner and not the CLI consumer",
+      "claims a public compatibility requirement unsupported by the evidence"
+    ],
+    "fixture_family": "migration_seam",
+    "id": "dev-query-adapter-is-sediment",
+    "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/search/queryShape.ts` exports the current query object used by the shipped search service.\n- `src/search/cliSearch.ts` still builds an older query object and passes it through `src/search/legacyAdapter.ts`.\n- `legacyAdapter.ts` is marked development-only and has no shipped package consumers; its tests assert only that the old keys are accepted.\n- `src/search/indexer.ts` already consumes `queryShape.ts` directly.\n- A migration note says the old CLI prototype is not part of the supported public contract, but no owner has removed the adapter.\n- There is no evidence of a second production consumer outside this repository.",
+    "review_record": "../fixture-expansion-review.md",
+    "source_fixture": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/dev-query-adapter-is-sediment-v0.json",
+    "source_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  {
+    "expected_observables": [
+      "It distinguishes the canonical state machine, duplicated internal transition tables, operator consumer, and unverified published boundary.",
+      "It proposes one coherent internal owner, preserves the force path as unresolved from the supplied evidence, names the contract or behavioral evidence needed to classify it, and gives a conditional fold-or-remove path with a removal condition.",
+      "It verifies checkout and operator behavior through consumer surfaces rather than testing only the owner module.",
+      "It does not claim that the v1 response can change without client evidence."
+    ],
+    "failure_smells": [
+      "keeps both internal transition tables without a named migration reason",
+      "tests only `flagState.ts` while leaving checkout or operator divergence untested",
+      "removes or changes the published v1 state names despite missing client evidence",
+      "creates a new transition adapter that becomes a third owner"
+    ],
+    "fixture_family": "state_machine",
+    "id": "flag-state-has-parallel-owners",
+    "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/flags/flagState.ts` exports `transition(state, event)` for the states `off`, `on`, and `pending`; its tests cover `enable` and `disable` events.\n- `src/checkout/discountGate.ts` contains a local conditional table for the same three states and decides whether a discount may be applied.\n- `src/admin/FlagRepair.ts` contains a second local transition table and adds a `forceEnable` path used by an operator tool.\n- `src/api/legacyFlagPayload.ts` serializes the old state names into a published v1 response. The release note says v1 clients remain supported until 2027-01-31; no replacement response version is described.\n- A product requirement says checkout and operator repairs must agree on flag transitions. There is no evidence that published v1 clients consume the internal transition table.",
+    "review_record": "../fixture-expansion-review.md",
+    "source_fixture": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/flag-state-has-parallel-owners-v0.json",
+    "source_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  {
+    "expected_observables": [
+      "It separates the internal owner, the copied analytics owner, and the published CSV boundary.",
+      "It routes internal consumers to one source and gives the external seam a concrete removal or migration condition.",
+      "It verifies analytics and order outputs rather than trusting owner-module tests alone.",
+      "It states what must be learned before changing the CSV contract."
+    ],
+    "failure_smells": [
+      "deletes or silently changes the published CSV shape",
+      "keeps the analytics conversion map without a time-bounded compatibility rationale",
+      "adds a third conversion adapter for internal callers",
+      "tests only USD or only the owner module while missing KWD divergence"
+    ],
+    "fixture_family": "external_boundary",
+    "id": "legacy-money-export-has-boundary-seam",
+    "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/money/minorUnits.ts` is the maintained owner of currency-to-minor-unit conversion and has tests for USD and KWD.\n- `src/orders/totalForDisplay.ts` imports `minorUnits.ts` and formats order totals.\n- `src/analytics/revenueBucket.ts` contains a copied USD/EUR/KWD conversion map and is tested only for USD.\n- `src/exports/legacyMoneyCsv.ts` exposes the copied map's rounded values in a published CSV format consumed by external finance tools.\n- A requirement says order display and analytics buckets must agree. The external CSV contract remains supported until 2026-11-30; no evidence identifies all consumers or a replacement format.",
+    "review_record": "../fixture-expansion-review.md",
+    "source_fixture": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/legacy-money-export-has-boundary-seam-v0.json",
+    "source_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  {
+    "expected_observables": [
+      "It identifies the geometry owner, both consumers, the symmetric placeholder limitation, and the unknown external consumer scope.",
+      "It avoids a second coordinate or anchor computation in the static exporter.",
+      "It proposes consumer-level checks that expose framing and orientation divergence with the real asymmetric asset.",
+      "It preserves uncertainty about consumers not present in the supplied graph."
+    ],
+    "failure_smells": [
+      "keeps an independent centering calculation in the static exporter",
+      "proves only that the owner module returns a value",
+      "uses the symmetric placeholder as proof that orientation is correct",
+      "claims that unknown external consumers can be safely changed"
+    ],
+    "fixture_family": "asset_orientation",
+    "id": "marker-geometry-has-placeholder-drift",
+    "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/map/markerGeometry.ts` exports the anchor and orientation for an asymmetric production marker asset. Its tests currently use only a symmetric placeholder.\n- `src/map/markerRenderer.ts` imports the geometry owner and renders the marker on the live map.\n- `src/export/staticMap.ts` centers the marker independently before exporting a static image.\n- `tests/fixtures/markerPlaceholder.svg` is symmetric across its vertical axis, while the production asset has a visible left notch and a documented anchor point.\n- A design note says map and static exports must frame the same marker. The production asset file is not included in this evidence and its current consumers outside these modules are unknown.",
+    "review_record": "../fixture-expansion-review.md",
+    "source_fixture": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/marker-geometry-has-placeholder-drift-v0.json",
+    "source_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  {
+    "expected_observables": [
+      "It distinguishes the precision concept, the existing shared owner, direct consumers, parallel local owners, and the one unverified external boundary from the supplied evidence.",
+      "It proposes a coherent consumer migration toward one owner and makes a justified stale-path decision instead of preserving every duplicate by default.",
+      "It uses consumer-surface verification that would catch divergence in checkout, invoices, and reporting, without treating owner-module tests alone as sufficient proof.",
+      "It prevents a second precision re-derivation in verification and states what must be learned before changing the published v1 boundary."
+    ],
+    "failure_smells": [
+      "keeps the checkout and reporting precision maps without an external-boundary or short-lived migration rationale",
+      "proves only that `currencyScale.ts` works while leaving consumer divergence untested",
+      "creates a fresh compatibility layer or new duplicate owner without explaining why the existing owner cannot serve the consumers",
+      "claims that the published v1 payload can be removed or changed despite the fixture's missing client evidence",
+      "adds a verifier that independently recomputes currency precision rather than consuming the chosen owner"
+    ],
+    "fixture_family": "owner_consumer_graph",
+    "id": "currency-scale-has-parallel-owners",
+    "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/money/currencyScale.ts` exports `scaleFor(currency)` from a maintained currency metadata table. Its tests cover USD and JPY scale values.\n- `src/checkout/PriceLine.tsx` contains a local `CURRENCY_DECIMALS` map for USD, EUR, and JPY, then uses it to round line-item totals. The map was copied before `currencyScale.ts` existed.\n- `src/invoices/renderTotal.ts` imports `scaleFor(currency)` and formats invoice totals with it.\n- `src/reporting/monthlyRevenue.ts` re-derives JPY versus non-JPY precision inline before aggregating totals. Its only direct test covers USD.\n- `src/api/legacyPricePayload.ts` exposes the old local map to a published v1 HTTP response. The release note says v1 clients remain supported until 2026-12-31; no replacement response version is described.\n- A product requirement says checkout, invoice, and reporting totals must use the same currency precision. There is no evidence that the published v1 payload's map is consumed inside this repository.",
+    "review_record": "../fixture-review.md",
+    "source_fixture": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/refactor-clean-dependency-graph-v0.json",
+    "source_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  {
+    "expected_observables": [
+      "It identifies the phase owner, both internal duplicate consumers, the omitted commit phase, and the external bridge.",
+      "It removes or collapses internal re-derivation and explains a removal condition for the external bridge.",
+      "It verifies preview and debug outputs against the owner's actual phase sequence.",
+      "It does not claim that the plugin API can change without replacement evidence."
+    ],
+    "failure_smells": [
+      "leaves preview or debug with a second phase-order source",
+      "tests only the pipeline owner while missing the omitted commit phase",
+      "removes or rewrites the external plugin bridge without a compatibility plan",
+      "adds a new label map instead of consuming the existing phase owner"
+    ],
+    "fixture_family": "renderer_phase",
+    "id": "render-phase-has-duplicate-labels",
+    "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/render/pipeline.ts` exports the ordered render phases `measure`, `layout`, `paint`, and `commit`, with a debug event emitted for each phase.\n- `src/preview/phaseLabel.ts` contains a local label map and omits the `commit` phase from the preview timeline.\n- `src/debug/traceSummary.ts` re-derives phase ordering before printing a trace summary; its only test covers `measure` and `layout`.\n- `src/plugins/legacyPhaseBridge.ts` maps the old phase names for an external plugin API that remains supported through 2027-03-01.\n- The product requirement says preview timelines and debug summaries must reflect the pipeline's actual order. No evidence describes a replacement plugin API.",
+    "review_record": "../fixture-expansion-review.md",
+    "source_fixture": "docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/fixtures/render-phase-has-duplicate-labels-v0.json",
+    "source_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  }
+]

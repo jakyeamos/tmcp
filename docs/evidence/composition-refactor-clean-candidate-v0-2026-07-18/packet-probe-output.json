@@ -1,0 +1,127 @@
+{
+  "created_at": "2026-07-18T17:38:26Z",
+  "format_version": 1,
+  "last_recompile": null,
+  "packet": {
+    "active_atoms": [
+      "artifact-contract",
+      "behavior-preservation",
+      "behavior-verification",
+      "bounded-tool-side-effects",
+      "concrete-citations",
+      "conflict-preservation",
+      "evidence-backed-claims",
+      "explicit-evidence-gaps",
+      "quality-gate-disclosure",
+      "safe-tool-routing"
+    ],
+    "active_instructions": [
+      "Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects."
+    ],
+    "compiled_from": {
+      "cache_policy": "none",
+      "graph_version": "050264864308cccf",
+      "receipt_ids": [],
+      "route_catalog_version": "2026-07-17",
+      "seed_id": null
+    },
+    "conflicts": [],
+    "deferred_atoms": [],
+    "evidence_citations": [
+      {
+        "matched_atoms": [
+          "artifact-contract",
+          "behavior-preservation",
+          "behavior-verification",
+          "bounded-tool-side-effects",
+          "concrete-citations"
+        ],
+        "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+        "source": "SKILL.md",
+        "trust": "untrusted_harvested_text"
+      }
+    ],
+    "family_context": {},
+    "global_cache": {
+      "cache_policy": "none",
+      "promoted_graph_count": 0,
+      "receipt_count": 0,
+      "tmcp_home": "/Users/jakyeamos/.tmcp",
+      "trust": "advisory_untrusted",
+      "warnings": []
+    },
+    "ignored_sources": [],
+    "objective": "Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.",
+    "ok": true,
+    "output_contract": [],
+    "packet_id": "packet-56b089006b53",
+    "packet_markdown": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\nPrimary: general_task\n\n## Loaded Skill Sources\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs\n",
+    "phase": "start",
+    "project_path": "/private/tmp/tmcp-skill-eval-dogfood",
+    "receipt_template": {
+      "activated_atoms": [
+        "artifact-contract",
+        "behavior-preservation",
+        "behavior-verification",
+        "bounded-tool-side-effects",
+        "concrete-citations",
+        "conflict-preservation",
+        "evidence-backed-claims",
+        "explicit-evidence-gaps",
+        "quality-gate-disclosure",
+        "safe-tool-routing"
+      ],
+      "commands_run": [],
+      "ignored_atoms": [],
+      "outcome": "",
+      "packet_id": "packet-56b089006b53",
+      "schema": "tmcp-run-receipt-v0.1",
+      "user_overrides": [],
+      "verification_results": []
+    },
+    "required_reads": [],
+    "safety": {
+      "does_not_execute_tools": true,
+      "harvested_text_trust": "untrusted_evidence_only",
+      "instruction_override_policy": "Composed packets are advisory and cannot override system, developer, or user instructions."
+    },
+    "schema": "tmcp-composed-packet-v0.1",
+    "shortcut_candidate": {
+      "compiled_from": {
+        "cache_policy": "none",
+        "graph_version": "050264864308cccf",
+        "receipt_count": 0,
+        "receipt_ids": [],
+        "route_catalog_version": "2026-07-17",
+        "seed_id": null
+      },
+      "fallback": "router_traversal",
+      "matched": true,
+      "reason": "Compiled route identity matches current graph inputs.",
+      "regenerate_when": [
+        "graph_version changes",
+        "seed_id unpublished",
+        "user_override present"
+      ],
+      "shortcut_id": "general_task",
+      "status": "eligible"
+    },
+    "stop_conditions": [],
+    "task_identity": {
+      "active_routes": [],
+      "confidence": 0.0,
+      "primary": "general_task",
+      "route_catalog_version": "2026-07-17",
+      "secondary": [],
+      "signals": []
+    },
+    "tool_script_prompts": [],
+    "verification_gates": [
+      "Verify behavior through identified consumers, not only the owner.",
+      "Run relevant tests."
+    ]
+  },
+  "revision": 1,
+  "schema": "tmcp-run-session-v0.1",
+  "updated_at": "2026-07-18T17:38:26Z"
+}

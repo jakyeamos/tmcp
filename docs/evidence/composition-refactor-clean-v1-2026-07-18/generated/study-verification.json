@@ -1,0 +1,55 @@
+{
+  "experiment_id": "composition-study-8ce548cdb7b9141e",
+  "live_sources": {
+    "checked": true,
+    "sources": [
+      {
+        "actual_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0",
+        "expected_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0",
+        "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+        "status": "matched"
+      }
+    ],
+    "status": "matched"
+  },
+  "ok": true,
+  "plan_path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/tmcp-composition-study-plan.json",
+  "schema": "tmcp-composition-study-verification-v0.1",
+  "static": {
+    "claim_boundary": "delivery effect of a byte-pinned refactor-clean source bundle in a shared TMCP packet",
+    "cost_rejudge": {
+      "claim_boundary": "condition-blind adjudication of raw cost labels for the exact 72 runner artifacts; not a second correctness judgment or a distinct-model replication claim",
+      "cost_bar_sha256": "sha256:13df20c7bb0641b61e50415b3e961e9017e5527e9df8dc38c51037312ab6a063",
+      "expected_trace_count": 72,
+      "judge_effort": "high",
+      "model": "gpt-5.6-sol"
+    },
+    "fixture_count": 6,
+    "input_digests": {
+      "campaign-policy.json": "sha256:339da01e320d0998c7e2cf6141cd493e52483cb39afe807fdc563c2089ffee36",
+      "cost-evaluation-bar.md": "sha256:13df20c7bb0641b61e50415b3e961e9017e5527e9df8dc38c51037312ab6a063",
+      "cost-rejudge-policy.json": "sha256:d2f1f9c6766ab9eb5a85ca545cfec4e7154d0e5341bb2e8923113f714670f17a",
+      "first-principles.txt": "sha256:e87ef8958eadf3fba9a671a8ec8f6f678c22f377ff1961f2cd8ce542e9fb961b",
+      "fixtures-reviewed-v1.json": "sha256:7a4decc2efece89300b2ce9dc269deb3dc9721ee5b07e8eecf6b681aa97ae673",
+      "packet-base.md": "sha256:4b052a53823762ba978b790b3245996c81f51e95decae0789dc13961d85c61fc",
+      "packet-receipt.json": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+      "primary-harness.json": "sha256:3c28092ded4180b7646ea624d24815775f98e87c0560a5b890e6773bc9bc8d2d",
+      "source-bundle.md": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+    },
+    "matrix_row_count": 12,
+    "plan_matches_generated": true,
+    "plan_valid": true,
+    "primary_harness": {
+      "harness_files": {
+        "tmcp_skill_eval_campaign.py": "sha256:04e011866d426685f4110e14a4012abb1be60f61a433cfbe2913edf991748cc5",
+        "tmcp_skill_eval_campaign_planning.py": "sha256:27295bbdb9dabc50e661fee300f0c6aa8fd98e54e0038aa9fe3ed17a93469cc3",
+        "tmcp_skill_eval_campaign_protocol.py": "sha256:e99a8cd7910e880163790f82d66ebef3ad6c9fa1df02900fcd2613aeaf907832",
+        "tmcp_skill_eval_campaign_runtime.py": "sha256:670a0fee31c57dba735803610ae8299e9f6ecbadd77d32ced25bbd3374ddb252",
+        "tmcp_skill_eval_composition.py": "sha256:9bb14b6647851fb456fad2c9ac3eea0f1886215639c3ca0b6acb85eb1b15f05c"
+      },
+      "harness_sha256": "sha256:9ba8b1e27826404bb89017608a230565fc6c4d32140ce1cc161c9110791df42b",
+      "schema": "tmcp-skill-eval-primary-harness-binding-v0.1"
+    }
+  },
+  "study_dir": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18"
+}

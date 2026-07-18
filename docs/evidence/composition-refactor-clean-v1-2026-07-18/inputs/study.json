@@ -1,0 +1,59 @@
+{
+  "schema": "tmcp-composition-study-input-v0.1",
+  "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+  "packet_id": "packet-56b089006b53",
+  "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+  "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+  "candidate_readiness": {
+    "path": "../composition-refactor-clean-candidate-v0-2026-07-18/preregistration-readiness.json",
+    "sha256": "sha256:a1b1b4419c73671d66c7d45e5b8655583c5844f439bec0b466b37dd013a6c1f8"
+  },
+  "input_digests": {
+    "campaign-policy.json": "sha256:339da01e320d0998c7e2cf6141cd493e52483cb39afe807fdc563c2089ffee36",
+    "cost-evaluation-bar.md": "sha256:13df20c7bb0641b61e50415b3e961e9017e5527e9df8dc38c51037312ab6a063",
+    "cost-rejudge-policy.json": "sha256:d2f1f9c6766ab9eb5a85ca545cfec4e7154d0e5341bb2e8923113f714670f17a",
+    "first-principles.txt": "sha256:e87ef8958eadf3fba9a671a8ec8f6f678c22f377ff1961f2cd8ce542e9fb961b",
+    "fixtures-reviewed-v1.json": "sha256:7a4decc2efece89300b2ce9dc269deb3dc9721ee5b07e8eecf6b681aa97ae673",
+    "packet-base.md": "sha256:4b052a53823762ba978b790b3245996c81f51e95decae0789dc13961d85c61fc",
+    "primary-harness.json": "sha256:3c28092ded4180b7646ea624d24815775f98e87c0560a5b890e6773bc9bc8d2d",
+    "source-bundle.md": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+  },
+  "selected_sources": [
+    {
+      "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+    }
+  ],
+  "analysis_policy": {
+    "clustered_interval": {
+      "method": "fixture_block_bootstrap_by_configuration",
+      "confidence": 0.95,
+      "cluster_unit": "fixture_digest",
+      "resamples": 10000,
+      "seed": 20260718
+    }
+  },
+  "promotion_thresholds": {
+    "controlled_multi_agent_eval": {
+      "minimum_control_pass_rate": 0.5,
+      "minimum_per_fixture_control_pass_rate": 0.5
+    }
+  },
+  "study_scope": {
+    "claim_boundary": "delivery effect of a byte-pinned refactor-clean source bundle in a shared TMCP packet",
+    "not_measured": [
+      "live skill selection",
+      "instruction adherence telemetry",
+      "whole-corpus skill quality",
+      "corpus-wide guidebook promotion",
+      "code-change quality"
+    ]
+  },
+  "baseline_dependency": {
+    "schema": "tmcp-skill-eval-baseline-receipt-v0.1",
+    "required": true,
+    "receipt_sha256": null,
+    "verification_sha256": null,
+    "status": "awaiting_completed_compatible_receipt"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "tmcp-refactor-clean-source-bundle-v0.1",
+  "bundle_file": "refactor-clean-SKILL.md",
+  "bundle_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0",
+  "source_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+  "source_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0",
+  "byte_exact": true,
+  "content_format": "raw_skill_markdown",
+  "synthetic_no_tool_boundary": true,
+  "captured_at": "2026-07-18T17:38:26Z"
+}

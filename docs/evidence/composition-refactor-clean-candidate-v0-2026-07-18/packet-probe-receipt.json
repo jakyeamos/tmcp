@@ -1,0 +1,27 @@
+{
+  "schema": "tmcp-refactor-clean-packet-probe-receipt-v0.1",
+  "receipt_kind": "local_packet_probe",
+  "packet_id": "packet-56b089006b53",
+  "packet_output": "packet-probe-output.json",
+  "packet_output_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+  "packet_schema": "tmcp-composed-packet-v0.1",
+  "project_path": "/private/tmp/tmcp-skill-eval-dogfood",
+  "source_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+  "source_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0",
+  "source_bundle": "source-bundle",
+  "source_bundle_sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0",
+  "outcome": "preregistered_local_packet",
+  "model_calls": false,
+  "tool_calls": false,
+  "packet_safety": {
+    "does_not_execute_tools": true,
+    "harvested_text_trust": "untrusted_evidence_only",
+    "instruction_override_policy": "Composed packets are advisory and cannot override system, developer, or user instructions."
+  },
+  "commands_run": [
+    "node scripts/tmcp_launcher.mjs compose-packet <objective> --project-path /private/tmp/tmcp-skill-eval-dogfood --source-path /Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md --session-id refactor-clean-candidate-v1 --compact"
+  ],
+  "record_receipt_cli": "failed_closed_secure_artifact_persistence_unavailable",
+  "captured_at": "2026-07-18T17:38:26Z",
+  "synthetic_no_tool_boundary": true
+}

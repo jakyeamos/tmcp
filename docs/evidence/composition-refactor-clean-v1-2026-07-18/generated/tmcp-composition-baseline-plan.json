@@ -1,0 +1,902 @@
+{
+  "evaluated_skills": [],
+  "experiment": {
+    "analysis_policy": {
+      "clustered_interval": {
+        "cluster_unit": "fixture_digest",
+        "confidence": 0.95,
+        "method": "fixture_block_bootstrap_by_configuration",
+        "resamples": 10000,
+        "seed": 20260718
+      }
+    },
+    "baseline_source_experiment_id": "composition-study-8ce548cdb7b9141e",
+    "campaign_policy": {
+      "baseline_reliability": {
+        "control_variant": "packet_only",
+        "minimum_control_pass_rate": 0.5,
+        "minimum_per_fixture_control_pass_rate": 0.5,
+        "require_predeclared_clustered_interval": true
+      },
+      "cross_model_confirmation": {
+        "minimum_distinct_runner_models": 3,
+        "minimum_fixture_count_per_model": 6,
+        "minimum_repetitions_per_cell": 2,
+        "require_directional_replication": true,
+        "required": true
+      },
+      "design": "baseline_reliability",
+      "fixture_review": {
+        "bar_skill_expressibility": true,
+        "independent_reviewer": true,
+        "prompt_event_directness": true
+      },
+      "judge_configuration": {
+        "model": "gpt-5.5",
+        "reasoning_effort": "high"
+      },
+      "runner_configurations": [
+        {
+          "model": "gpt-5.6-sol",
+          "reasoning_effort": "high"
+        },
+        {
+          "model": "gpt-5.6-terra",
+          "reasoning_effort": "high"
+        },
+        {
+          "model": "gpt-5.6-luna",
+          "reasoning_effort": "high"
+        }
+      ],
+      "schema": "tmcp-skill-eval-campaign-policy-v0.1"
+    },
+    "cost_rejudge_policy": {
+      "claim_boundary": "condition-blind adjudication of raw cost labels for the exact 36 runner artifacts; not a second correctness judgment or a distinct-model replication claim",
+      "complete_before_promotion": true,
+      "cost_bar_file": "cost-evaluation-bar.md",
+      "cost_bar_sha256": "sha256:13df20c7bb0641b61e50415b3e961e9017e5527e9df8dc38c51037312ab6a063",
+      "expected_trace_count": 36,
+      "judge_effort": "high",
+      "model": "gpt-5.6-sol",
+      "process_independence": {
+        "condition_hidden": true,
+        "fresh_judge": true,
+        "fresh_session": true,
+        "isolated_session": true,
+        "judge_blinded": true,
+        "model_identity_independence_claimed": false,
+        "source_artifact_only": true
+      },
+      "raw_labels_preserved": true,
+      "schema": "tmcp-composition-cost-rejudge-policy-v0.1",
+      "seed": 20260717
+    },
+    "experiment_id": "composition-baseline-f61e366337297bb4",
+    "promotion_thresholds": {
+      "controlled_multi_agent_eval": {
+        "minimum_control_pass_rate": 0.5,
+        "minimum_per_fixture_control_pass_rate": 0.5
+      }
+    },
+    "source_study_binding": {
+      "candidate_readiness": {
+        "fixture_count": 6,
+        "fixture_family_count": 6,
+        "model_calls_authorized": false,
+        "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-candidate-v0-2026-07-18/preregistration-readiness.json",
+        "ready": true,
+        "sha256": "sha256:a1b1b4419c73671d66c7d45e5b8655583c5844f439bec0b466b37dd013a6c1f8"
+      },
+      "input_digests": {
+        "campaign-policy.json": "sha256:339da01e320d0998c7e2cf6141cd493e52483cb39afe807fdc563c2089ffee36",
+        "cost-evaluation-bar.md": "sha256:13df20c7bb0641b61e50415b3e961e9017e5527e9df8dc38c51037312ab6a063",
+        "cost-rejudge-policy.json": "sha256:d2f1f9c6766ab9eb5a85ca545cfec4e7154d0e5341bb2e8923113f714670f17a",
+        "first-principles.txt": "sha256:e87ef8958eadf3fba9a671a8ec8f6f678c22f377ff1961f2cd8ce542e9fb961b",
+        "fixtures-reviewed-v1.json": "sha256:7a4decc2efece89300b2ce9dc269deb3dc9721ee5b07e8eecf6b681aa97ae673",
+        "packet-base.md": "sha256:4b052a53823762ba978b790b3245996c81f51e95decae0789dc13961d85c61fc",
+        "packet-receipt.json": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "primary-harness.json": "sha256:3c28092ded4180b7646ea624d24815775f98e87c0560a5b890e6773bc9bc8d2d",
+        "source-bundle.md": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+      },
+      "primary_harness": {
+        "harness_files": {
+          "tmcp_skill_eval_campaign.py": "sha256:04e011866d426685f4110e14a4012abb1be60f61a433cfbe2913edf991748cc5",
+          "tmcp_skill_eval_campaign_planning.py": "sha256:27295bbdb9dabc50e661fee300f0c6aa8fd98e54e0038aa9fe3ed17a93469cc3",
+          "tmcp_skill_eval_campaign_protocol.py": "sha256:e99a8cd7910e880163790f82d66ebef3ad6c9fa1df02900fcd2613aeaf907832",
+          "tmcp_skill_eval_campaign_runtime.py": "sha256:670a0fee31c57dba735803610ae8299e9f6ecbadd77d32ced25bbd3374ddb252",
+          "tmcp_skill_eval_composition.py": "sha256:9bb14b6647851fb456fad2c9ac3eea0f1886215639c3ca0b6acb85eb1b15f05c"
+        },
+        "harness_sha256": "sha256:9ba8b1e27826404bb89017608a230565fc6c4d32140ce1cc161c9110791df42b",
+        "schema": "tmcp-skill-eval-primary-harness-binding-v0.1"
+      },
+      "schema": "tmcp-composition-study-binding-v0.1",
+      "selected_sources": [
+        {
+          "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+          "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+        }
+      ]
+    },
+    "study_phase": "baseline_reliability",
+    "study_scope": {
+      "claim_boundary": "delivery effect of a byte-pinned refactor-clean source bundle in a shared TMCP packet",
+      "not_measured": [
+        "live skill selection",
+        "instruction adherence telemetry",
+        "whole-corpus skill quality",
+        "corpus-wide guidebook promotion",
+        "code-change quality"
+      ]
+    }
+  },
+  "observable_behavior_contract": [],
+  "packet_inclusion_contracts": [],
+  "schema": "tmcp-skill-evaluation-plan-v0.2",
+  "task_matrix": [
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [],
+        "source_bundle_sha256": "sha256:e3b0c442.98fc1c14.9afbf4c8.996fb924.27ae41e4.649b934c.a495991b.7852b855",
+        "source_bundle_text": "",
+        "task_evidence_bundle_sha256": "sha256:16c85a52.5a1d48fb.d5be86da.88082946.91c75f27.4e116233.4f700f42.5f9c966d"
+      },
+      "contrast_id": "dev-query-adapter-is-sediment-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It distinguishes the shipped query owner, the CLI consumer, the dev-only adapter, and the absence of a supported external contract.",
+        "It proposes removing or collapsing the adapter rather than preserving it solely because it already exists.",
+        "It verifies CLI and indexer behavior through their consumer surfaces.",
+        "It names any remaining uncertainty instead of inventing an external compatibility need."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "keeps the development-only adapter with no removal condition",
+        "creates a new wrapper around `legacyAdapter.ts`",
+        "tests only the query owner and not the CLI consumer",
+        "claims a public compatibility requirement unsupported by the evidence"
+      ],
+      "fixture_digest": "sha256:251ed9a7.ac6e9347.d43322e0.8aefd8e5.26de38a1.94736289.e563f96c.5e5276fa",
+      "fixture_family": "migration_seam",
+      "intervention": {
+        "kind": "control"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "dev-query-adapter-is-sediment-packet-only",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/search/queryShape.ts` exports the current query object used by the shipped search service.\n- `src/search/cliSearch.ts` still builds an older query object and passes it through `src/search/legacyAdapter.ts`.\n- `legacyAdapter.ts` is marked development-only and has no shipped package consumers; its tests assert only that the old keys are accepted.\n- `src/search/indexer.ts` already consumes `queryShape.ts` directly.\n- A migration note says the old CLI prototype is not part of the supported public contract, but no owner has removed the adapter.\n- There is no evidence of a second production consumer outside this repository.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "dev-query-adapter-is-sediment",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_only"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:69cca7f6.979b36bc.8eacf9cb.c0e7dff6.e295d7bf.fd70799d.ee932ce9.3870356b",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [
+          {
+            "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+            "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+          }
+        ],
+        "source_bundle_sha256": "sha256:cce9d4f5.54851833.e6f7dc59.7914d652.5a69cec6.2fedfbc9.17af92b6.0e39366e",
+        "source_bundle_text": "---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+        "task_evidence_bundle_sha256": "sha256:16c85a52.5a1d48fb.d5be86da.88082946.91c75f27.4e116233.4f700f42.5f9c966d"
+      },
+      "contrast_id": "dev-query-adapter-is-sediment-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It distinguishes the shipped query owner, the CLI consumer, the dev-only adapter, and the absence of a supported external contract.",
+        "It proposes removing or collapsing the adapter rather than preserving it solely because it already exists.",
+        "It verifies CLI and indexer behavior through their consumer surfaces.",
+        "It names any remaining uncertainty instead of inventing an external compatibility need."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "keeps the development-only adapter with no removal condition",
+        "creates a new wrapper around `legacyAdapter.ts`",
+        "tests only the query owner and not the CLI consumer",
+        "claims a public compatibility requirement unsupported by the evidence"
+      ],
+      "fixture_digest": "sha256:251ed9a7.ac6e9347.d43322e0.8aefd8e5.26de38a1.94736289.e563f96c.5e5276fa",
+      "fixture_family": "migration_seam",
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "source_bundle_inclusion",
+        "target": "source_bundle"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "dev-query-adapter-is-sediment-packet-plus-explore",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/search/queryShape.ts` exports the current query object used by the shipped search service.\n- `src/search/cliSearch.ts` still builds an older query object and passes it through `src/search/legacyAdapter.ts`.\n- `legacyAdapter.ts` is marked development-only and has no shipped package consumers; its tests assert only that the old keys are accepted.\n- `src/search/indexer.ts` already consumes `queryShape.ts` directly.\n- A migration note says the old CLI prototype is not part of the supported public contract, but no owner has removed the adapter.\n- There is no evidence of a second production consumer outside this repository.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs\n\n---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "dev-query-adapter-is-sediment",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_plus_explore"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [],
+        "source_bundle_sha256": "sha256:e3b0c442.98fc1c14.9afbf4c8.996fb924.27ae41e4.649b934c.a495991b.7852b855",
+        "source_bundle_text": "",
+        "task_evidence_bundle_sha256": "sha256:5a0cc8a1.66ef989f.66826d2c.6f71445f.6a9c5c4b.35e8dad9.d2cc3371.2be5c57f"
+      },
+      "contrast_id": "flag-state-has-parallel-owners-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It distinguishes the canonical state machine, duplicated internal transition tables, operator consumer, and unverified published boundary.",
+        "It proposes one coherent internal owner, preserves the force path as unresolved from the supplied evidence, names the contract or behavioral evidence needed to classify it, and gives a conditional fold-or-remove path with a removal condition.",
+        "It verifies checkout and operator behavior through consumer surfaces rather than testing only the owner module.",
+        "It does not claim that the v1 response can change without client evidence."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "keeps both internal transition tables without a named migration reason",
+        "tests only `flagState.ts` while leaving checkout or operator divergence untested",
+        "removes or changes the published v1 state names despite missing client evidence",
+        "creates a new transition adapter that becomes a third owner"
+      ],
+      "fixture_digest": "sha256:10347412.692ba9dd.30d614f1.7ccadeb8.558439da.30690808.9d8a9467.f3eadd9f",
+      "fixture_family": "state_machine",
+      "intervention": {
+        "kind": "control"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "flag-state-has-parallel-owners-packet-only",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/flags/flagState.ts` exports `transition(state, event)` for the states `off`, `on`, and `pending`; its tests cover `enable` and `disable` events.\n- `src/checkout/discountGate.ts` contains a local conditional table for the same three states and decides whether a discount may be applied.\n- `src/admin/FlagRepair.ts` contains a second local transition table and adds a `forceEnable` path used by an operator tool.\n- `src/api/legacyFlagPayload.ts` serializes the old state names into a published v1 response. The release note says v1 clients remain supported until 2027-01-31; no replacement response version is described.\n- A product requirement says checkout and operator repairs must agree on flag transitions. There is no evidence that published v1 clients consume the internal transition table.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "flag-state-has-parallel-owners",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_only"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:69cca7f6.979b36bc.8eacf9cb.c0e7dff6.e295d7bf.fd70799d.ee932ce9.3870356b",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [
+          {
+            "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+            "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+          }
+        ],
+        "source_bundle_sha256": "sha256:cce9d4f5.54851833.e6f7dc59.7914d652.5a69cec6.2fedfbc9.17af92b6.0e39366e",
+        "source_bundle_text": "---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+        "task_evidence_bundle_sha256": "sha256:5a0cc8a1.66ef989f.66826d2c.6f71445f.6a9c5c4b.35e8dad9.d2cc3371.2be5c57f"
+      },
+      "contrast_id": "flag-state-has-parallel-owners-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It distinguishes the canonical state machine, duplicated internal transition tables, operator consumer, and unverified published boundary.",
+        "It proposes one coherent internal owner, preserves the force path as unresolved from the supplied evidence, names the contract or behavioral evidence needed to classify it, and gives a conditional fold-or-remove path with a removal condition.",
+        "It verifies checkout and operator behavior through consumer surfaces rather than testing only the owner module.",
+        "It does not claim that the v1 response can change without client evidence."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "keeps both internal transition tables without a named migration reason",
+        "tests only `flagState.ts` while leaving checkout or operator divergence untested",
+        "removes or changes the published v1 state names despite missing client evidence",
+        "creates a new transition adapter that becomes a third owner"
+      ],
+      "fixture_digest": "sha256:10347412.692ba9dd.30d614f1.7ccadeb8.558439da.30690808.9d8a9467.f3eadd9f",
+      "fixture_family": "state_machine",
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "source_bundle_inclusion",
+        "target": "source_bundle"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "flag-state-has-parallel-owners-packet-plus-explore",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/flags/flagState.ts` exports `transition(state, event)` for the states `off`, `on`, and `pending`; its tests cover `enable` and `disable` events.\n- `src/checkout/discountGate.ts` contains a local conditional table for the same three states and decides whether a discount may be applied.\n- `src/admin/FlagRepair.ts` contains a second local transition table and adds a `forceEnable` path used by an operator tool.\n- `src/api/legacyFlagPayload.ts` serializes the old state names into a published v1 response. The release note says v1 clients remain supported until 2027-01-31; no replacement response version is described.\n- A product requirement says checkout and operator repairs must agree on flag transitions. There is no evidence that published v1 clients consume the internal transition table.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs\n\n---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "flag-state-has-parallel-owners",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_plus_explore"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [],
+        "source_bundle_sha256": "sha256:e3b0c442.98fc1c14.9afbf4c8.996fb924.27ae41e4.649b934c.a495991b.7852b855",
+        "source_bundle_text": "",
+        "task_evidence_bundle_sha256": "sha256:7bb73c76.b2c028b7.f9e63d50.27c7e185.4f22beca.bfcb80f7.3dadb1e4.b34427d2"
+      },
+      "contrast_id": "legacy-money-export-has-boundary-seam-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It separates the internal owner, the copied analytics owner, and the published CSV boundary.",
+        "It routes internal consumers to one source and gives the external seam a concrete removal or migration condition.",
+        "It verifies analytics and order outputs rather than trusting owner-module tests alone.",
+        "It states what must be learned before changing the CSV contract."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "deletes or silently changes the published CSV shape",
+        "keeps the analytics conversion map without a time-bounded compatibility rationale",
+        "adds a third conversion adapter for internal callers",
+        "tests only USD or only the owner module while missing KWD divergence"
+      ],
+      "fixture_digest": "sha256:7d29657d.059be9bb.731cb0ad.fb79f505.50dbbee9.b0f3ac18.d8d1bc73.8157ebc6",
+      "fixture_family": "external_boundary",
+      "intervention": {
+        "kind": "control"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "legacy-money-export-has-boundary-seam-packet-only",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/money/minorUnits.ts` is the maintained owner of currency-to-minor-unit conversion and has tests for USD and KWD.\n- `src/orders/totalForDisplay.ts` imports `minorUnits.ts` and formats order totals.\n- `src/analytics/revenueBucket.ts` contains a copied USD/EUR/KWD conversion map and is tested only for USD.\n- `src/exports/legacyMoneyCsv.ts` exposes the copied map's rounded values in a published CSV format consumed by external finance tools.\n- A requirement says order display and analytics buckets must agree. The external CSV contract remains supported until 2026-11-30; no evidence identifies all consumers or a replacement format.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "legacy-money-export-has-boundary-seam",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_only"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:69cca7f6.979b36bc.8eacf9cb.c0e7dff6.e295d7bf.fd70799d.ee932ce9.3870356b",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [
+          {
+            "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+            "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+          }
+        ],
+        "source_bundle_sha256": "sha256:cce9d4f5.54851833.e6f7dc59.7914d652.5a69cec6.2fedfbc9.17af92b6.0e39366e",
+        "source_bundle_text": "---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+        "task_evidence_bundle_sha256": "sha256:7bb73c76.b2c028b7.f9e63d50.27c7e185.4f22beca.bfcb80f7.3dadb1e4.b34427d2"
+      },
+      "contrast_id": "legacy-money-export-has-boundary-seam-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It separates the internal owner, the copied analytics owner, and the published CSV boundary.",
+        "It routes internal consumers to one source and gives the external seam a concrete removal or migration condition.",
+        "It verifies analytics and order outputs rather than trusting owner-module tests alone.",
+        "It states what must be learned before changing the CSV contract."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "deletes or silently changes the published CSV shape",
+        "keeps the analytics conversion map without a time-bounded compatibility rationale",
+        "adds a third conversion adapter for internal callers",
+        "tests only USD or only the owner module while missing KWD divergence"
+      ],
+      "fixture_digest": "sha256:7d29657d.059be9bb.731cb0ad.fb79f505.50dbbee9.b0f3ac18.d8d1bc73.8157ebc6",
+      "fixture_family": "external_boundary",
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "source_bundle_inclusion",
+        "target": "source_bundle"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "legacy-money-export-has-boundary-seam-packet-plus-explore",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/money/minorUnits.ts` is the maintained owner of currency-to-minor-unit conversion and has tests for USD and KWD.\n- `src/orders/totalForDisplay.ts` imports `minorUnits.ts` and formats order totals.\n- `src/analytics/revenueBucket.ts` contains a copied USD/EUR/KWD conversion map and is tested only for USD.\n- `src/exports/legacyMoneyCsv.ts` exposes the copied map's rounded values in a published CSV format consumed by external finance tools.\n- A requirement says order display and analytics buckets must agree. The external CSV contract remains supported until 2026-11-30; no evidence identifies all consumers or a replacement format.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs\n\n---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "legacy-money-export-has-boundary-seam",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_plus_explore"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [],
+        "source_bundle_sha256": "sha256:e3b0c442.98fc1c14.9afbf4c8.996fb924.27ae41e4.649b934c.a495991b.7852b855",
+        "source_bundle_text": "",
+        "task_evidence_bundle_sha256": "sha256:0cfa13b1.5db69d09.717eaa2e.395a7d37.19afebb7.99b755a0.12835bfc.cc6c3b22"
+      },
+      "contrast_id": "marker-geometry-has-placeholder-drift-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It identifies the geometry owner, both consumers, the symmetric placeholder limitation, and the unknown external consumer scope.",
+        "It avoids a second coordinate or anchor computation in the static exporter.",
+        "It proposes consumer-level checks that expose framing and orientation divergence with the real asymmetric asset.",
+        "It preserves uncertainty about consumers not present in the supplied graph."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "keeps an independent centering calculation in the static exporter",
+        "proves only that the owner module returns a value",
+        "uses the symmetric placeholder as proof that orientation is correct",
+        "claims that unknown external consumers can be safely changed"
+      ],
+      "fixture_digest": "sha256:c477aae7.5dcd736c.8baa1c2a.1028e53d.c2ec27bf.4c4ac0b3.79689fbb.ec6e1edf",
+      "fixture_family": "asset_orientation",
+      "intervention": {
+        "kind": "control"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "marker-geometry-has-placeholder-drift-packet-only",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/map/markerGeometry.ts` exports the anchor and orientation for an asymmetric production marker asset. Its tests currently use only a symmetric placeholder.\n- `src/map/markerRenderer.ts` imports the geometry owner and renders the marker on the live map.\n- `src/export/staticMap.ts` centers the marker independently before exporting a static image.\n- `tests/fixtures/markerPlaceholder.svg` is symmetric across its vertical axis, while the production asset has a visible left notch and a documented anchor point.\n- A design note says map and static exports must frame the same marker. The production asset file is not included in this evidence and its current consumers outside these modules are unknown.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "marker-geometry-has-placeholder-drift",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_only"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:69cca7f6.979b36bc.8eacf9cb.c0e7dff6.e295d7bf.fd70799d.ee932ce9.3870356b",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [
+          {
+            "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+            "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+          }
+        ],
+        "source_bundle_sha256": "sha256:cce9d4f5.54851833.e6f7dc59.7914d652.5a69cec6.2fedfbc9.17af92b6.0e39366e",
+        "source_bundle_text": "---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+        "task_evidence_bundle_sha256": "sha256:0cfa13b1.5db69d09.717eaa2e.395a7d37.19afebb7.99b755a0.12835bfc.cc6c3b22"
+      },
+      "contrast_id": "marker-geometry-has-placeholder-drift-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It identifies the geometry owner, both consumers, the symmetric placeholder limitation, and the unknown external consumer scope.",
+        "It avoids a second coordinate or anchor computation in the static exporter.",
+        "It proposes consumer-level checks that expose framing and orientation divergence with the real asymmetric asset.",
+        "It preserves uncertainty about consumers not present in the supplied graph."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "keeps an independent centering calculation in the static exporter",
+        "proves only that the owner module returns a value",
+        "uses the symmetric placeholder as proof that orientation is correct",
+        "claims that unknown external consumers can be safely changed"
+      ],
+      "fixture_digest": "sha256:c477aae7.5dcd736c.8baa1c2a.1028e53d.c2ec27bf.4c4ac0b3.79689fbb.ec6e1edf",
+      "fixture_family": "asset_orientation",
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "source_bundle_inclusion",
+        "target": "source_bundle"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "marker-geometry-has-placeholder-drift-packet-plus-explore",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/map/markerGeometry.ts` exports the anchor and orientation for an asymmetric production marker asset. Its tests currently use only a symmetric placeholder.\n- `src/map/markerRenderer.ts` imports the geometry owner and renders the marker on the live map.\n- `src/export/staticMap.ts` centers the marker independently before exporting a static image.\n- `tests/fixtures/markerPlaceholder.svg` is symmetric across its vertical axis, while the production asset has a visible left notch and a documented anchor point.\n- A design note says map and static exports must frame the same marker. The production asset file is not included in this evidence and its current consumers outside these modules are unknown.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs\n\n---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "marker-geometry-has-placeholder-drift",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_plus_explore"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [],
+        "source_bundle_sha256": "sha256:e3b0c442.98fc1c14.9afbf4c8.996fb924.27ae41e4.649b934c.a495991b.7852b855",
+        "source_bundle_text": "",
+        "task_evidence_bundle_sha256": "sha256:e8836e16.f66dbc02.ff8c55c7.652165df.ccd64011.5cca1de6.4f319d03.9bc53bb1"
+      },
+      "contrast_id": "currency-scale-has-parallel-owners-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It distinguishes the precision concept, the existing shared owner, direct consumers, parallel local owners, and the one unverified external boundary from the supplied evidence.",
+        "It proposes a coherent consumer migration toward one owner and makes a justified stale-path decision instead of preserving every duplicate by default.",
+        "It uses consumer-surface verification that would catch divergence in checkout, invoices, and reporting, without treating owner-module tests alone as sufficient proof.",
+        "It prevents a second precision re-derivation in verification and states what must be learned before changing the published v1 boundary."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "keeps the checkout and reporting precision maps without an external-boundary or short-lived migration rationale",
+        "proves only that `currencyScale.ts` works while leaving consumer divergence untested",
+        "creates a fresh compatibility layer or new duplicate owner without explaining why the existing owner cannot serve the consumers",
+        "claims that the published v1 payload can be removed or changed despite the fixture's missing client evidence",
+        "adds a verifier that independently recomputes currency precision rather than consuming the chosen owner"
+      ],
+      "fixture_digest": "sha256:a968675e.a0ff49f5.8334cb55.096cff7b.25e00946.df4651ce.69c8e4df.f5273adc",
+      "fixture_family": "owner_consumer_graph",
+      "intervention": {
+        "kind": "control"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "currency-scale-has-parallel-owners-packet-only",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/money/currencyScale.ts` exports `scaleFor(currency)` from a maintained currency metadata table. Its tests cover USD and JPY scale values.\n- `src/checkout/PriceLine.tsx` contains a local `CURRENCY_DECIMALS` map for USD, EUR, and JPY, then uses it to round line-item totals. The map was copied before `currencyScale.ts` existed.\n- `src/invoices/renderTotal.ts` imports `scaleFor(currency)` and formats invoice totals with it.\n- `src/reporting/monthlyRevenue.ts` re-derives JPY versus non-JPY precision inline before aggregating totals. Its only direct test covers USD.\n- `src/api/legacyPricePayload.ts` exposes the old local map to a published v1 HTTP response. The release note says v1 clients remain supported until 2026-12-31; no replacement response version is described.\n- A product requirement says checkout, invoice, and reporting totals must use the same currency precision. There is no evidence that the published v1 payload's map is consumed inside this repository.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "currency-scale-has-parallel-owners",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_only"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:69cca7f6.979b36bc.8eacf9cb.c0e7dff6.e295d7bf.fd70799d.ee932ce9.3870356b",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [
+          {
+            "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+            "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+          }
+        ],
+        "source_bundle_sha256": "sha256:cce9d4f5.54851833.e6f7dc59.7914d652.5a69cec6.2fedfbc9.17af92b6.0e39366e",
+        "source_bundle_text": "---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+        "task_evidence_bundle_sha256": "sha256:e8836e16.f66dbc02.ff8c55c7.652165df.ccd64011.5cca1de6.4f319d03.9bc53bb1"
+      },
+      "contrast_id": "currency-scale-has-parallel-owners-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It distinguishes the precision concept, the existing shared owner, direct consumers, parallel local owners, and the one unverified external boundary from the supplied evidence.",
+        "It proposes a coherent consumer migration toward one owner and makes a justified stale-path decision instead of preserving every duplicate by default.",
+        "It uses consumer-surface verification that would catch divergence in checkout, invoices, and reporting, without treating owner-module tests alone as sufficient proof.",
+        "It prevents a second precision re-derivation in verification and states what must be learned before changing the published v1 boundary."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "keeps the checkout and reporting precision maps without an external-boundary or short-lived migration rationale",
+        "proves only that `currencyScale.ts` works while leaving consumer divergence untested",
+        "creates a fresh compatibility layer or new duplicate owner without explaining why the existing owner cannot serve the consumers",
+        "claims that the published v1 payload can be removed or changed despite the fixture's missing client evidence",
+        "adds a verifier that independently recomputes currency precision rather than consuming the chosen owner"
+      ],
+      "fixture_digest": "sha256:a968675e.a0ff49f5.8334cb55.096cff7b.25e00946.df4651ce.69c8e4df.f5273adc",
+      "fixture_family": "owner_consumer_graph",
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "source_bundle_inclusion",
+        "target": "source_bundle"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "currency-scale-has-parallel-owners-packet-plus-explore",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/money/currencyScale.ts` exports `scaleFor(currency)` from a maintained currency metadata table. Its tests cover USD and JPY scale values.\n- `src/checkout/PriceLine.tsx` contains a local `CURRENCY_DECIMALS` map for USD, EUR, and JPY, then uses it to round line-item totals. The map was copied before `currencyScale.ts` existed.\n- `src/invoices/renderTotal.ts` imports `scaleFor(currency)` and formats invoice totals with it.\n- `src/reporting/monthlyRevenue.ts` re-derives JPY versus non-JPY precision inline before aggregating totals. Its only direct test covers USD.\n- `src/api/legacyPricePayload.ts` exposes the old local map to a published v1 HTTP response. The release note says v1 clients remain supported until 2026-12-31; no replacement response version is described.\n- A product requirement says checkout, invoice, and reporting totals must use the same currency precision. There is no evidence that the published v1 payload's map is consumed inside this repository.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs\n\n---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "currency-scale-has-parallel-owners",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_plus_explore"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [],
+        "source_bundle_sha256": "sha256:e3b0c442.98fc1c14.9afbf4c8.996fb924.27ae41e4.649b934c.a495991b.7852b855",
+        "source_bundle_text": "",
+        "task_evidence_bundle_sha256": "sha256:5cc04bce.53615346.b0a541c7.4388f17f.0e598bc9.26f7874e.1e9cbf37.2ebf5134"
+      },
+      "contrast_id": "render-phase-has-duplicate-labels-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It identifies the phase owner, both internal duplicate consumers, the omitted commit phase, and the external bridge.",
+        "It removes or collapses internal re-derivation and explains a removal condition for the external bridge.",
+        "It verifies preview and debug outputs against the owner's actual phase sequence.",
+        "It does not claim that the plugin API can change without replacement evidence."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "leaves preview or debug with a second phase-order source",
+        "tests only the pipeline owner while missing the omitted commit phase",
+        "removes or rewrites the external plugin bridge without a compatibility plan",
+        "adds a new label map instead of consuming the existing phase owner"
+      ],
+      "fixture_digest": "sha256:c5efd495.93d7e276.08ad039c.6455c4bf.01d339f2.88d3aea1.a9f22464.ccb230d7",
+      "fixture_family": "renderer_phase",
+      "intervention": {
+        "kind": "control"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "render-phase-has-duplicate-labels-packet-only",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/render/pipeline.ts` exports the ordered render phases `measure`, `layout`, `paint`, and `commit`, with a debug event emitted for each phase.\n- `src/preview/phaseLabel.ts` contains a local label map and omits the `commit` phase from the preview timeline.\n- `src/debug/traceSummary.ts` re-derives phase ordering before printing a trace summary; its only test covers `measure` and `layout`.\n- `src/plugins/legacyPhaseBridge.ts` maps the old phase names for an external plugin API that remains supported through 2027-03-01.\n- The product requirement says preview timelines and debug summaries must reflect the pipeline's actual order. No evidence describes a replacement plugin API.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "render-phase-has-duplicate-labels",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_only"
+    },
+    {
+      "ablation_section": null,
+      "claim_granularity": "source_bundle_delivery",
+      "composition_provenance": {
+        "attachment_sha256": "sha256:69cca7f6.979b36bc.8eacf9cb.c0e7dff6.e295d7bf.fd70799d.ee932ce9.3870356b",
+        "base_attachment_sha256": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+        "delivery_mode": "materialized_packet_attachment",
+        "packet_id": "packet-56b089006b53",
+        "packet_sha256": "sha256:0995136e4f1a7db979798d68e49b08f5b208ae61e2746e6eee7f80e9a39205cb",
+        "receipt_sha256": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
+        "schema": "tmcp-composition-source-bundle-v0.1",
+        "selected_sources": [
+          {
+            "path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+            "sha256": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
+          }
+        ],
+        "source_bundle_sha256": "sha256:cce9d4f5.54851833.e6f7dc59.7914d652.5a69cec6.2fedfbc9.17af92b6.0e39366e",
+        "source_bundle_text": "---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+        "task_evidence_bundle_sha256": "sha256:5cc04bce.53615346.b0a541c7.4388f17f.0e598bc9.26f7874e.1e9cbf37.2ebf5134"
+      },
+      "contrast_id": "render-phase-has-duplicate-labels-source-bundle",
+      "control_variant": "packet_only",
+      "expected_effect_direction": "positive",
+      "expected_observables": [
+        "It identifies the phase owner, both internal duplicate consumers, the omitted commit phase, and the external bridge.",
+        "It removes or collapses internal re-derivation and explains a removal condition for the external bridge.",
+        "It verifies preview and debug outputs against the owner's actual phase sequence.",
+        "It does not claim that the plugin API can change without replacement evidence."
+      ],
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "failure_smells": [
+        "leaves preview or debug with a second phase-order source",
+        "tests only the pipeline owner while missing the omitted commit phase",
+        "removes or rewrites the external plugin bridge without a compatibility plan",
+        "adds a new label map instead of consuming the existing phase owner"
+      ],
+      "fixture_digest": "sha256:c5efd495.93d7e276.08ad039c.6455c4bf.01d339f2.88d3aea1.a9f22464.ccb230d7",
+      "fixture_family": "renderer_phase",
+      "intervention": {
+        "causal_attribution": true,
+        "kind": "source_bundle_inclusion",
+        "target": "source_bundle"
+      },
+      "intervention_target": "source_bundle",
+      "intervention_variant": "packet_plus_explore",
+      "matrix_row_id": "render-phase-has-duplicate-labels-packet-plus-explore",
+      "pattern_id": "composition.source-bundle-inclusion",
+      "pattern_intervention_contract": {
+        "allowed_kinds": [
+          "source_bundle_inclusion"
+        ],
+        "allowed_targets": [
+          "source_bundle"
+        ],
+        "claim_granularity": "source_bundle_delivery",
+        "expected_support_direction": "positive",
+        "tested_atom": "materialized_source_bundle"
+      },
+      "prompt": "Draft a refactor plan only. Do not use tools, inspect a repository, edit files, or claim that the plan has been executed. Work only from the synthetic evidence below. Explain what you would change, why, how you would verify it, and what remains unknown.\n\nSynthetic repository evidence:\n- `src/render/pipeline.ts` exports the ordered render phases `measure`, `layout`, `paint`, and `commit`, with a debug event emitted for each phase.\n- `src/preview/phaseLabel.ts` contains a local label map and omits the `commit` phase from the preview timeline.\n- `src/debug/traceSummary.ts` re-derives phase ordering before printing a trace summary; its only test covers `measure` and `layout`.\n- `src/plugins/legacyPhaseBridge.ts` maps the old phase names for an external plugin API that remains supported through 2027-03-01.\n- The product requirement says preview timelines and debug summaries must reflect the pipeline's actual order. No evidence describes a replacement plugin API.",
+      "skill_attachment": "# TMCP Packet\n\nObjective: Compose a no-write refactor-clean packet for a future synthetic source-bundle study. Preserve one-owner, stale-path removal, consumer-surface verification, and uncertainty at external boundaries.\nPhase: `start`\nPacket ID: `packet-56b089006b53`\n\n## Task Identity\n\nPrimary: general_task\n\n## Loaded Skill Sources\n\n- SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects\n\n## Selection Rationale\n\nTMCP inferred primary task identity `general_task` from the objective and runtime context.\n\n## Operating Instructions\n\n1. Apply relevant harvested behavior atoms from SKILL.md: artifact-contract, behavior-preservation, behavior-verification, bounded-tool-side-effects.\n\n## Verification Gates\n\n- Verify behavior through identified consumers, not only the owner.\n- Run relevant tests.\n\n## Required Receipts\n\n- Pages or files changed\n- Skills and routes used\n- Validation performed\n- Known tradeoffs\n\n---\nname: refactor-clean\ndescription: Refactor cleanly instead of layering sediment. Use when a change reveals duplicated concepts, local adapters, obsolete owners, compatibility wrappers, parallel abstractions, or \"just tack this on\" pressure in any code area.\n---\n\n# Clean Refactoring\n\nReplace the old shape with the simpler shape the codebase would want if it were\ndesigned today. Refactoring is not adding a compatibility layer beside the problem;\nit is moving ownership until there is one concept with clear consumers.\n\n## Workflow\n\n1. Name the duplicated concept. Identify the thing that should have one owner:\n   environment, pricing rule, geometry source, state machine, data contract,\n   renderer phase, API shape, UI state, or test oracle.\n2. Find every current owner and consumer. Treat wrappers, aliases, pass-local\n   constants, copied structs, and \"temporary\" branches as sediment until proven\n   otherwise.\n3. Promote the concept to its natural home. Pick the module that would own it from\n   scratch, then make old call sites consume that owner directly.\n4. Delete or collapse the stale path in the same pass when feasible. If a bridge must\n   remain, make it tiny, named as compatibility, and give it a removal condition.\n5. Verify behavior through consumers, not just the new module. A clean refactor is\n   only proven when the surfaces that used to diverge now report or exercise the\n   same source of truth.\n\n## Rules\n\n- **Do not over-weigh the sunk cost of the existing architecture.** \"It already\n  exists and works\" is not an argument for keeping a shape \u2014 coding agents make\n  large architecture switches cheap, so size a refactor by the quality of the end\n  state, not by the volume of code it replaces. When behavior must survive, pin it\n  with tests at the consumer surface and swap the architecture underneath \u2014 though\n  most of the time even the old seams shouldn't survive verbatim: a big refactor is\n  the chance to redraw them into the shape the codebase would want today, not to\n  faithfully rebuild the old interfaces on a new foundation.\n- Prefer one shared primitive over N adapters. An adapter is acceptable only at an\n  external boundary or as a short-lived migration seam.\n- **Know what already exists before you build something new.** Before writing a\n  new mechanism \u2014 a shape, computation, asset, state machine, data contract \u2014\n  search the codebase for one that already does this, or something close enough\n  to share. Only once you know what's there can you make the real decision:\n  reuse it, consolidate two near-duplicates, or extract the shared core into an\n  independent module both call \u2014 and that decision belongs *before* you start,\n  not bolted on after. Reuse is not automatically the answer; the existing thing\n  may be wrong, or genuinely different, and then you build new deliberately. The\n  failure this prevents is building in ignorance of what's already there: two\n  implementations that must agree then silently drift, each re-deriving details\n  the other already settled (orientation, units, edge cases, ordering).\n- Do not preserve dev-only compatibility by default. Unshipped scaffolding should\n  move to the clean contract immediately.\n- Make ownership visible in stats, tests, or debug output when divergence was the\n  bug class.\n- **A check that RE-DERIVES a value the code already computes will drift from\n  it.** A test or second consumer that recomputes geometry, state, or a derived\n  quantity independently can disagree with the code over a difference invisible\n  on paper \u2014 an operation-order or rounding subtlety \u2014 and fire false verdicts.\n  Export the owner's computed value and have the check consume that, so it\n  enforces exactly what the code produced: one owner for the computation, not two\n  that happen to mostly agree.\n- **A symmetric or featureless placeholder can hide an orientation or coordinate\n  bug in the thing it stands in for.** A symmetric stand-in renders the same\n  whether or not the coordinate frame is flipped, so the defect stays invisible\n  until a real asymmetric asset exposes it. When you swap a placeholder for the\n  real asset, re-verify orientation and framing, not just that it renders.\n- Update the spec or handoff with the new invariant, not the mechanical file list.\n- If the refactor starts widening into unrelated behavior, slice it: land the shared\n  contract first, then port consumers in reviewable passes.",
+      "skill_digest": "sha256:60cca63c.e9e3e452.c664e464.7ca3b733.dd47ddf2.ad347013.c91d76a3.a0ceb10e",
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "task_id": "render-phase-has-duplicate-labels",
+      "tested_atom": "materialized_source_bundle",
+      "variant_id": "packet_plus_explore"
+    }
+  ]
+}

@@ -49,6 +49,12 @@ STUDY_DIR = (
     / "evidence"
     / STUDY_DIR_NAME
 )
+REFACTOR_STUDY_DIR = (
+    Path(__file__).resolve().parents[1]
+    / "docs"
+    / "evidence"
+    / "composition-refactor-clean-v1-2026-07-18"
+)
 
 
 def _policy() -> dict:
@@ -579,6 +585,29 @@ class CompositionStudyTests(unittest.TestCase):
             },
         )
         self.assertEqual(len(source_study_binding["selected_sources"]), 2)
+
+    def test_refactor_clean_study_binds_ready_candidate_without_authorizing_calls(self) -> None:
+        if not REFACTOR_STUDY_DIR.is_dir():
+            self.skipTest("source-only refactor-clean study evidence is not packaged")
+
+        generated = build_plan(REFACTOR_STUDY_DIR)
+        checked_in = json.loads(
+            (REFACTOR_STUDY_DIR / "generated" / "tmcp-composition-study-plan.json").read_text(
+                encoding="utf-8"
+            )
+        )
+
+        self.assertEqual(generated, checked_in)
+        validated = validate_evaluation_plan(generated)
+        self.assertEqual(len(validated["task_matrix"]), 12)
+        self.assertEqual(
+            {row["skill_path"] for row in validated["task_matrix"]},
+            {"/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md"},
+        )
+        binding = validated["experiment"]["source_study_binding"]
+        self.assertTrue(binding["candidate_readiness"]["ready"])
+        self.assertFalse(binding["candidate_readiness"]["model_calls_authorized"])
+        self.assertEqual(binding["candidate_readiness"]["fixture_count"], 6)
 
     def test_study_verifier_binds_inputs_and_live_sources(self) -> None:
         if not STUDY_DIR.is_dir():

@@ -15,6 +15,9 @@ CANDIDATE_DIR = (
 )
 FIXTURE_PATH = CANDIDATE_DIR / "fixtures" / "refactor-clean-dependency-graph-v0.json"
 SOURCE_PATH = Path("/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md")
+MISSING_PACKET_RECEIPT = CANDIDATE_DIR / "packet-probe-receipt.missing.json"
+SOURCE_BUNDLE_PATH = CANDIDATE_DIR / "source-bundle"
+PACKET_RECEIPT_PATH = CANDIDATE_DIR / "packet-probe-receipt.json"
 
 
 @unittest.skipUnless(FIXTURE_PATH.is_file(), "source-only refactor-clean candidate")
@@ -24,6 +27,7 @@ class RefactorCleanReadinessTests(unittest.TestCase):
             CANDIDATE_DIR,
             [FIXTURE_PATH],
             source_path=SOURCE_PATH,
+            packet_probe_receipt_path=MISSING_PACKET_RECEIPT,
         )
 
         self.assertFalse(report["ready"])
@@ -46,6 +50,7 @@ class RefactorCleanReadinessTests(unittest.TestCase):
                 CANDIDATE_DIR,
                 [temp_fixture],
                 source_path=SOURCE_PATH,
+                packet_probe_receipt_path=MISSING_PACKET_RECEIPT,
             )
         finally:
             temp_fixture.unlink(missing_ok=True)
@@ -69,6 +74,24 @@ class RefactorCleanReadinessTests(unittest.TestCase):
             {Path(item["path"]).name for item in report["review_records"]},
             {"fixture-review.md", "fixture-expansion-review.md"},
         )
+
+    def test_bound_source_bundle_and_packet_probe_clear_design_gates(self) -> None:
+        fixture_paths = sorted((CANDIDATE_DIR / "fixtures").glob("*.json"))
+        report = verify_refactor_clean_candidate(
+            CANDIDATE_DIR,
+            fixture_paths,
+            source_path=SOURCE_PATH,
+            source_bundle_path=SOURCE_BUNDLE_PATH,
+            packet_probe_receipt_path=PACKET_RECEIPT_PATH,
+        )
+
+        self.assertTrue(report["ready"])
+        self.assertEqual(report["gaps"], [])
+        self.assertEqual(report["next_gate"], "create_preregistered_behavioral_plan")
+        self.assertEqual(report["source_bundle"]["bundle_sha256"], report["source_sha256"])
+        self.assertEqual(report["packet_probe"]["packet_id"], "packet-56b089006b53")
+        self.assertFalse(report["packet_probe"]["model_calls"])
+        self.assertFalse(report["packet_probe"]["tool_calls"])
 
 
 if __name__ == "__main__":

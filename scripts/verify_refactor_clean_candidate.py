@@ -16,6 +16,8 @@ if str(ROOT) not in sys.path:
 
 
 VERIFICATION_SCHEMA = "tmcp-refactor-clean-candidate-readiness-v0.1"
+SOURCE_BUNDLE_SCHEMA = "tmcp-refactor-clean-source-bundle-v0.1"
+PACKET_PROBE_RECEIPT_SCHEMA = "tmcp-refactor-clean-packet-probe-receipt-v0.1"
 MIN_FIXTURES = 6
 MIN_FIXTURE_FAMILIES = 3
 
@@ -34,6 +36,135 @@ def _sha256_file(path: Path) -> str:
 def _fixture_digest(fixture: dict[str, Any]) -> str:
     payload = json.dumps(fixture, sort_keys=True, separators=(",", ":"))
     return "sha256:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _verify_source_bundle(
+    source_bundle_path: Path | None,
+    *,
+    source_path: Path | None,
+    expected_source_digest: str | None,
+) -> tuple[list[str], dict[str, Any]]:
+    """Verify a byte-pinned raw source bundle and its manifest."""
+
+    if source_bundle_path is None or not source_bundle_path.exists():
+        return ["source_bundle_not_archived"], {}
+    if not source_bundle_path.is_dir():
+        return ["source_bundle_manifest_missing"], {"path": str(source_bundle_path)}
+
+    gaps: list[str] = []
+    manifest_path = source_bundle_path / "manifest.json"
+    if not manifest_path.is_file():
+        return ["source_bundle_manifest_missing"], {"path": str(source_bundle_path)}
+    try:
+        manifest = _load_object(manifest_path)
+    except (OSError, ValueError, json.JSONDecodeError):
+        return ["source_bundle_manifest_invalid"], {"path": str(source_bundle_path)}
+
+    if manifest.get("schema") != SOURCE_BUNDLE_SCHEMA:
+        gaps.append("source_bundle_schema_invalid")
+    bundle_file = manifest.get("bundle_file")
+    bundle_path = source_bundle_path / str(bundle_file) if isinstance(bundle_file, str) and bundle_file else None
+    if bundle_path is None or not bundle_path.is_file():
+        gaps.append("source_bundle_file_missing")
+        bundle_digest = None
+    else:
+        bundle_digest = _sha256_file(bundle_path)
+        if manifest.get("bundle_sha256") != bundle_digest:
+            gaps.append("source_bundle_digest_mismatch")
+    if expected_source_digest is not None:
+        if manifest.get("source_sha256") != expected_source_digest:
+            gaps.append("source_bundle_source_digest_mismatch")
+        if bundle_digest is not None and bundle_digest != expected_source_digest:
+            gaps.append("source_bundle_content_digest_mismatch")
+    if source_path is not None and manifest.get("source_path") != str(source_path):
+        gaps.append("source_bundle_source_path_mismatch")
+    if manifest.get("byte_exact") is not True:
+        gaps.append("source_bundle_not_byte_exact")
+    if manifest.get("content_format") != "raw_skill_markdown":
+        gaps.append("source_bundle_content_format_invalid")
+    if manifest.get("synthetic_no_tool_boundary") is not True:
+        gaps.append("source_bundle_no_tool_boundary_missing")
+    return gaps, {
+        "path": str(source_bundle_path),
+        "manifest": str(manifest_path),
+        "manifest_sha256": _sha256_file(manifest_path),
+        "bundle_file": str(bundle_path) if bundle_path is not None else None,
+        "bundle_sha256": bundle_digest,
+        "source_sha256": manifest.get("source_sha256"),
+    }
+
+
+def _verify_packet_probe_receipt(
+    receipt_path: Path,
+    *,
+    candidate_dir: Path,
+    source_path: Path | None,
+    expected_source_digest: str | None,
+    source_bundle: dict[str, Any],
+) -> tuple[list[str], dict[str, Any]]:
+    """Verify a locally captured, no-call composed packet probe."""
+
+    if not receipt_path.is_file():
+        return ["packet_probe_receipt_missing"], {}
+    gaps: list[str] = []
+    try:
+        receipt = _load_object(receipt_path)
+    except (OSError, ValueError, json.JSONDecodeError):
+        return ["packet_probe_receipt_invalid"], {"path": str(receipt_path)}
+    if receipt.get("schema") != PACKET_PROBE_RECEIPT_SCHEMA:
+        gaps.append("packet_probe_receipt_schema_invalid")
+    packet_ref = receipt.get("packet_output")
+    packet_path = receipt_path.parent / str(packet_ref) if isinstance(packet_ref, str) and packet_ref else None
+    if packet_path is None or not packet_path.is_file():
+        gaps.append("packet_probe_output_missing")
+        packet_digest = None
+        packet: dict[str, Any] = {}
+    else:
+        packet_digest = _sha256_file(packet_path)
+        if receipt.get("packet_output_sha256") != packet_digest:
+            gaps.append("packet_probe_output_digest_mismatch")
+        try:
+            packet = _load_object(packet_path)
+        except (OSError, ValueError, json.JSONDecodeError):
+            packet = {}
+            gaps.append("packet_probe_output_invalid")
+    packet_body = packet.get("packet") if isinstance(packet.get("packet"), dict) else {}
+    if packet.get("schema") != "tmcp-run-session-v0.1" or packet_body.get("schema") != receipt.get("packet_schema") or packet_body.get("schema") != "tmcp-composed-packet-v0.1":
+        gaps.append("packet_probe_schema_invalid")
+    if receipt.get("packet_id") != packet_body.get("packet_id") or not receipt.get("packet_id"):
+        gaps.append("packet_probe_packet_id_mismatch")
+    project_path = receipt.get("project_path")
+    if not isinstance(project_path, str) or not project_path:
+        gaps.append("packet_probe_project_path_missing")
+    elif packet_body.get("project_path") != project_path:
+        gaps.append("packet_probe_project_path_mismatch")
+    elif candidate_dir.resolve() != Path(project_path).resolve() and Path(project_path).resolve() not in candidate_dir.resolve().parents:
+        gaps.append("packet_probe_project_scope_mismatch")
+    if expected_source_digest is not None and receipt.get("source_sha256") != expected_source_digest:
+        gaps.append("packet_probe_source_digest_mismatch")
+    if source_path is not None and receipt.get("source_path") != str(source_path):
+        gaps.append("packet_probe_source_path_mismatch")
+    bundle_digest = source_bundle.get("bundle_sha256")
+    if bundle_digest is not None and receipt.get("source_bundle_sha256") != bundle_digest:
+        gaps.append("packet_probe_bundle_digest_mismatch")
+    safety = packet_body.get("safety")
+    if not isinstance(safety, dict) or safety.get("does_not_execute_tools") is not True:
+        gaps.append("packet_probe_safety_missing")
+    if receipt.get("model_calls") is not False:
+        gaps.append("packet_probe_model_calls_not_false")
+    if receipt.get("tool_calls") is not False:
+        gaps.append("packet_probe_tool_calls_not_false")
+    if receipt.get("synthetic_no_tool_boundary") is not True:
+        gaps.append("packet_probe_no_tool_boundary_missing")
+    return gaps, {
+        "path": str(receipt_path),
+        "receipt_sha256": _sha256_file(receipt_path),
+        "packet_output": str(packet_path) if packet_path is not None else None,
+        "packet_output_sha256": packet_digest,
+        "packet_id": receipt.get("packet_id"),
+        "model_calls": receipt.get("model_calls"),
+        "tool_calls": receipt.get("tool_calls"),
+    }
 
 
 def _fixture_gaps(fixture: dict[str, Any], *, expected_source_digest: str | None) -> list[str]:
@@ -100,11 +231,21 @@ def verify_refactor_clean_candidate(
     expected_source_digest = _sha256_file(source) if source is not None and source.is_file() else None
     if source is not None and not source.is_file():
         gaps.append("target_source_missing")
-    if source_bundle_path is None or not source_bundle_path.is_file():
-        gaps.append("source_bundle_not_archived")
+    source_bundle_gaps, source_bundle = _verify_source_bundle(
+        source_bundle_path,
+        source_path=source_path,
+        expected_source_digest=expected_source_digest,
+    )
+    gaps.extend(source_bundle_gaps)
     packet_probe_receipt = packet_probe_receipt_path or candidate_dir / "packet-probe-receipt.json"
-    if not packet_probe_receipt.is_file():
-        gaps.append("packet_probe_receipt_missing")
+    packet_probe_gaps, packet_probe = _verify_packet_probe_receipt(
+        packet_probe_receipt,
+        candidate_dir=candidate_dir,
+        source_path=source_path,
+        expected_source_digest=expected_source_digest,
+        source_bundle=source_bundle,
+    )
+    gaps.extend(packet_probe_gaps)
 
     fixture_ids: list[str] = []
     fixture_families: list[str] = []
@@ -167,8 +308,13 @@ def verify_refactor_clean_candidate(
         next_gate = "complete_independent_fixture_review"
     elif len(fixture_paths) < MIN_FIXTURES:
         next_gate = "extend_reviewed_fixture_set"
-    else:
+    elif any(
+        gap.startswith("source_bundle_") or gap.startswith("packet_probe_")
+        for gap in unique_gaps
+    ):
         next_gate = "archive_source_bundle_and_packet_receipt"
+    else:
+        next_gate = "create_preregistered_behavioral_plan"
     return {
         "schema": VERIFICATION_SCHEMA,
         "ready": not unique_gaps,
@@ -182,9 +328,11 @@ def verify_refactor_clean_candidate(
         "fixture_family_count": len(set(fixture_families)),
         "fixture_digests": fixture_digests,
         "source_sha256": expected_source_digest,
+        "source_bundle": source_bundle,
         "first_principles_sha256": _sha256_file(first_principles) if first_principles.is_file() else None,
         "review_records": review_records,
         "packet_probe_receipt_sha256": _sha256_file(packet_probe_receipt) if packet_probe_receipt.is_file() else None,
+        "packet_probe": packet_probe,
         "synthetic_no_tool_boundary": True,
         "fixtures": fixture_reports,
     }

@@ -40,9 +40,15 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   a campaign. Run a candidate-readiness gate before generating a behavioral plan:
   it must bind the target source, first-principles summary, review record, packet
   probe receipt, synthetic/no-tool boundary, and fixture manifest. Require at
-  least six reviewed fixtures across three families; one approved fixture remains
-  `approved_for_preregistration`, with model calls unauthorized and the next gate
-  explicitly recorded.
+  least six reviewed fixtures across three families. The source-bundle gate must
+  verify a manifest schema, raw byte digest, source-path pin, and no-tool
+  boundary; the packet-probe receipt must bind the packet output digest, packet
+  ID/schema, project scope, source/bundle digests, and `model_calls: false` plus
+  `tool_calls: false`. A local captured receipt may stand in for unavailable
+  secure global persistence only when it records that failure and preserves the
+  raw packet output; it must not be described as a durable global TMCP receipt.
+  Readiness permits a future behavioral plan but never authorizes model calls;
+  record the next gate explicitly.
 - Require a directness review for every observable: the event an O/S item grades
   must occur in the fixture prompt, not in an implied later turn. Record an
   independent review that also confirms every bar is expressible by the target
