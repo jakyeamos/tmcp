@@ -346,6 +346,16 @@ def scoped_seed_signal_text(seed: dict[str, Any]) -> str:
         "constraints",
     ):
         value = seed.get(key)
+        if key == "loads" and isinstance(value, list):
+            # Preserve scoped-seed dependency closure in the virtual source
+            # text.  The activation boundary re-derives declared loads from
+            # this text instead of trusting adapter-supplied metadata.
+            pieces.extend(
+                f"Load `{item}`."
+                for item in value
+                if isinstance(item, str) and item.strip()
+            )
+            continue
         if isinstance(value, list):
             pieces.extend(str(item) for item in value if str(item))
         elif isinstance(value, dict):
@@ -421,6 +431,7 @@ def scoped_packet_seed_nodes(
                 "source_tier": "scoped_packet_seed",
                 "source_role": source_role,
                 "activation_eligible": source_role_is_activation_eligible(source_role),
+                "explicitly_scoped": explicitly_scoped,
                 "content_digest": content_digest_for(payload_content),
                 "frontmatter": {
                     "schema": SCOPED_PACKET_SEEDS_SCHEMA,
@@ -532,6 +543,7 @@ def source_node_from_text(
         "source_tier": source_type,
         "source_role": source_role,
         "activation_eligible": source_role_is_activation_eligible(source_role),
+        "explicitly_scoped": explicitly_scoped,
         "content_digest": content_digest,
         "frontmatter": frontmatter,
         "skill_id": skill_id_for(relative_path, source_type, frontmatter),

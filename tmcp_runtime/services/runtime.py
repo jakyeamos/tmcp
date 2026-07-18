@@ -1,4 +1,4 @@
-"""Runtime-state and recompile orchestration over explicit adapter callbacks."""
+"""Runtime-state and one-snapshot recompile orchestration callbacks."""
 
 from __future__ import annotations
 
@@ -6,17 +6,26 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from tmcp_runtime.domain.composition import normalize_cache_policy
+from tmcp_runtime.domain.composition import validate_project_recipe_cache_policy
+from tmcp_runtime.domain.composition_runtime_capsules import (
+    RuntimeCapsuleError,
+    runtime_capsule_preparation_arguments,
+)
 from tmcp_runtime.domain.harvest_nodes import string_list
 from tmcp_runtime.domain.recompile import parse_previous_packet
 from tmcp_runtime.domain.runtime_state import derive_runtime_state
 from tmcp_runtime.services.recompile import finalize_recompiled_packet
+from tmcp_runtime.services.sessions import SESSION_RUNTIME_CONTINUATION_TRUST_FIELD
 
 
 SourceExists = Callable[[str], bool]
 SourceNodeLoader = Callable[[dict[str, Any]], list[dict[str, Any]]]
 CacheWarningLoader = Callable[[str], list[str]]
-PacketComposer = Callable[[dict[str, Any]], dict[str, Any]]
+SourceNodePacketComposer = Callable[
+    [dict[str, Any], list[dict[str, Any]], Mapping[str, Any] | None], dict[str, Any]
+]
+SourceNodePreparer = Callable[[dict[str, Any], list[dict[str, Any]]], dict[str, Any]]
+ProjectRecipeRuntimeCapsuleLoader = Callable[[dict[str, Any]], Mapping[str, Any]]
 
 
 @dataclass(frozen=True)
@@ -26,7 +35,9 @@ class RuntimeServiceContext:
     source_exists: SourceExists
     load_source_nodes: SourceNodeLoader
     load_cache_warnings: CacheWarningLoader
-    compose_packet: PacketComposer
+    compose_packet_from_source_nodes: SourceNodePacketComposer
+    prepare_composition_from_source_nodes: SourceNodePreparer
+    load_project_recipe_runtime_capsule: ProjectRecipeRuntimeCapsuleLoader | None = None
 
 
 class RuntimeService:
@@ -66,7 +77,10 @@ class RuntimeService:
                 for item in self._context.load_source_nodes(runtime_arguments)
                 if isinstance(item, dict)
             ]
-        cache_policy = normalize_cache_policy(runtime_arguments.get("cache_policy"))
+        cache_policy = validate_project_recipe_cache_policy(
+            cache_policy=runtime_arguments.get("cache_policy"),
+            project_recipe_id=runtime_arguments.get("project_recipe_id"),
+        )
         runtime_arguments["cache_policy"] = cache_policy
         cache_warnings = (
             self._context.load_cache_warnings(cache_policy)
@@ -85,6 +99,13 @@ class RuntimeService:
         state: Mapping[str, Any],
     ) -> dict[str, Any]:
         argument_map = dict(arguments)
+        runtime_continuation_trust = argument_map.pop(
+            SESSION_RUNTIME_CONTINUATION_TRUST_FIELD, None
+        )
+        validate_project_recipe_cache_policy(
+            cache_policy=argument_map.get("cache_policy", state.get("cache_policy")),
+            project_recipe_id=argument_map.get("project_recipe_id"),
+        )
         previous_packet = parse_previous_packet(argument_map)
         if not isinstance(previous_packet, dict):
             raise ValueError(
@@ -130,7 +151,7 @@ class RuntimeService:
                     "when previous_packet has a redacted project path."
                 )
         compose_arguments = {
-            "objective": state.get("combined_objective") or state.get("objective"),
+            "objective": state.get("objective"),
             "project_path": session_project_path,
             "source_path": source_path,
             "phase": target_phase,
@@ -150,6 +171,7 @@ class RuntimeService:
             "max_total_chars",
             "max_total_tokens",
             "candidate_limit",
+            "include_all_active_source_slices",
             "explicitly_scoped_paths",
             "project_recipe_id",
             "follow_symlinks",
@@ -158,7 +180,67 @@ class RuntimeService:
         ):
             if key in argument_map:
                 compose_arguments[key] = argument_map[key]
-        composed_packet = self._context.compose_packet(compose_arguments)
+        source_nodes = [
+            item for item in state.get("source_nodes", []) if isinstance(item, dict)
+        ]
+        previous_plan = previous_packet.get("composition_plan")
+        has_runtime_capsule = isinstance(previous_plan, Mapping) and isinstance(
+            previous_plan.get("runtime_capsule"), Mapping
+        )
+        fresh_composition = proposal is not None or bool(
+            str(argument_map.get("project_recipe_id") or "").strip()
+        )
+        composition_preflight: dict[str, Any] | None = None
+        project_recipe_id = str(argument_map.get("project_recipe_id") or "").strip()
+        if (
+            project_recipe_id
+            and self._context.load_project_recipe_runtime_capsule is not None
+        ):
+            recipe_capsule = self._context.load_project_recipe_runtime_capsule(
+                compose_arguments
+            )
+            capsule_arguments = runtime_capsule_preparation_arguments(
+                compose_arguments,
+                recipe_capsule,
+            )
+            composition_preflight = (
+                self._context.prepare_composition_from_source_nodes(
+                    capsule_arguments,
+                    source_nodes,
+                )
+            )
+        elif fresh_composition:
+            composition_preflight = (
+                self._context.prepare_composition_from_source_nodes(
+                    compose_arguments,
+                    source_nodes,
+                )
+            )
+        elif has_runtime_capsule:
+            capsule_arguments = dict(compose_arguments)
+            capsule_arguments["runtime_context"] = {}
+            capsule_arguments.pop("latest_user_message", None)
+            try:
+                capsule_arguments = runtime_capsule_preparation_arguments(
+                    capsule_arguments,
+                    previous_plan.get("runtime_capsule"),
+                    composition_plan=previous_plan,
+                )
+            except RuntimeCapsuleError:
+                # The finalizer emits the established inert-plan diagnostic for
+                # malformed capsules rather than hiding it behind a new service error.
+                pass
+            composition_preflight = (
+                self._context.prepare_composition_from_source_nodes(
+                    capsule_arguments,
+                    source_nodes,
+                )
+            )
+        composed_packet = self._context.compose_packet_from_source_nodes(
+            compose_arguments,
+            source_nodes,
+            composition_preflight if fresh_composition else None,
+        )
         if argument_map.get("session_id") is not None:
             previous_packet_id = str(previous_packet.get("packet_id") or "")
         else:
@@ -173,4 +255,6 @@ class RuntimeService:
             previous_packet=previous_packet,
             composed_packet=composed_packet,
             previous_packet_id=previous_packet_id or None,
+            composition_preflight=composition_preflight,
+            runtime_continuation_trust=runtime_continuation_trust,
         )

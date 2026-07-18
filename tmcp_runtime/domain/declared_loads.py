@@ -16,8 +16,9 @@ DECLARED_LOAD_VERB_PATTERN = re.compile(
     re.IGNORECASE,
 )
 DECLARED_LOAD_PATH_PATTERN = re.compile(
-    r"`((?:[a-zA-Z0-9][a-zA-Z0-9_.-]*/)+|"
-    r"[a-zA-Z0-9][a-zA-Z0-9_.-]*\.(?:md|json|yaml|yml))`"
+    r"`((?:[a-zA-Z0-9][a-zA-Z0-9_.-]*/)*"
+    r"[a-zA-Z0-9][a-zA-Z0-9_.-]*\.(?:md|json|yaml|yml)|"
+    r"(?:[a-zA-Z0-9][a-zA-Z0-9_.-]*/)+)`"
 )
 DECLARED_LOAD_GLOBAL_BASENAMES = frozenset(
     {

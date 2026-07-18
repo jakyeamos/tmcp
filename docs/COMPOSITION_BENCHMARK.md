@@ -89,10 +89,16 @@ The observations object uses schema `tmcp-composition-benchmark-observations-v0.
 
 The compiler serializes and token-estimates three canonical context forms: a
 bounded discovery capsule, one active capsule for each ordered stage, and a
-fair naive-union capsule containing the same runtime envelope plus all selected
-skill sources—but no composition-only stages, graph edges, handoffs, or plan
-identity. The release ratio is the peak active runtime capsule divided by the
-naive-union capsule. Discovery cost is reported
+fair naive-union capsule containing the standard runtime envelope plus all
+selected skill sources—but no composition-only stages, graph edges, handoffs,
+or plan identity. An active agent capsule carries only the objective, task
+model, current phase's entry conditions and bridge instructions, active source
+skill identity/role/text, and actionable incoming handoff facts. Equivalent
+handoffs share their executable facts but retain every handoff identity; full
+source provenance, controller identifiers, handoff contracts, and graph
+identity remain in the outer compiler accounting and phase binding rather than
+being charged as agent-loaded prompt context. The release ratio is the peak active runtime
+capsule divided by the naive-union capsule. Discovery cost is reported
 separately and is never counted as concurrent runtime residency; the same-host
 transcript total remains visible for diagnosis.
 
@@ -145,9 +151,15 @@ commands, verification logs, and overrides.
 This is content-bound, replayable evidence with
 `evidence_trust: advisory_untrusted`, not cryptographic proof that an independent
 host or evaluator performed the claimed work. A reviewed release therefore still
-requires human scrutiny of the bound artifacts. Synthetic records and scores in
-unit tests prove contract math only and normal CLI/release paths do not accept
-them.
+requires human scrutiny of the bound artifacts. The release runner also requires
+`host-results.evidence_class: "host_executed"` and an
+`evaluator-artifacts.evaluator_execution` record with
+`execution_class: "trusted_evaluator_execution"`, executor ID, execution ID,
+and UTC execution time. `synthetic_test` is a bounded contract-test class only;
+it and test-only evaluator methods are rejected by the benchmark runner CLI,
+package, and release-evidence replay. The programmatic `allow_synthetic=True`
+mode remains unit-test-only. These declarations are a release admissibility
+gate, not a cryptographic attestation of the host or evaluator.
 
 The runner exits `0` only when all gates pass:
 

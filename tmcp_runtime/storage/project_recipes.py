@@ -29,14 +29,22 @@ from tmcp_runtime.storage.project_recipe_promotion_validation import (
     promotion_is_valid as _promotion_is_valid,
 )
 from tmcp_runtime.storage.artifacts import AtomicArtifactStore
+from tmcp_runtime.storage.project_recipe_runtime_capsules import (
+    RUNTIME_CAPSULE_BOUND as _RUNTIME_CAPSULE_BOUND,
+    RUNTIME_CAPSULE_LEGACY_UNBOUND as _RUNTIME_CAPSULE_LEGACY_UNBOUND,
+    RecipeRuntimeCapsuleError,
+    recipe_runtime_capsule_hash_paths,
+    recipe_runtime_capsule_sha256_literals,
+    recipe_runtime_capsule_status,
+    restore_recipe_runtime_capsule_digests,
+)
 
 
 PROJECT_COMPOSITION_RECIPE_SCHEMA = "tmcp-project-composition-recipe-v0.1"
 PROJECT_COMPOSITION_RECIPE_FORMAT_VERSION = 1
 COMPOSITION_PLAN_SCHEMA = "tmcp-composition-plan-v0.1"
 MAX_PROJECT_RECIPE_BYTES = 524_288
-MAX_PROJECT_RECIPE_DEPTH = 48
-MAX_PROJECT_RECIPE_NODES = 4_096
+MAX_PROJECT_RECIPE_DEPTH, MAX_PROJECT_RECIPE_NODES = 48, 4_096
 
 _RECIPE_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}")
 _RECIPE_KEY_PATTERN = re.compile(r"recipe-[a-f0-9]{32}")
@@ -76,6 +84,7 @@ _PROJECT_RECIPE_SHA256_PATHS: tuple[tuple[str | int, ...], ...] = (
         "incoming_handoff_digests",
         "*",
     ),
+    *recipe_runtime_capsule_hash_paths(),
     ("promotion_eligibility", "phase_capsule_binding_digest"),
 )
 
@@ -93,6 +102,7 @@ class ProjectRecipeSnapshot:
     key: str
     record: dict[str, Any]
     phase_capsule_binding_status: str
+    runtime_capsule_status: str
 
     def metadata(self) -> dict[str, Any]:
         return {
@@ -104,10 +114,16 @@ class ProjectRecipeSnapshot:
             "state_effect": "project_local_write",
             "activation_policy": "explicit_load_only",
             "phase_capsule_binding_status": self.phase_capsule_binding_status,
+            "runtime_capsule_status": self.runtime_capsule_status,
             "activation_eligibility": (
-                "verified_phase_capsule_binding"
+                "verified_runtime_capsule_binding"
                 if self.phase_capsule_binding_status == _PHASE_CAPSULE_BOUND
-                else "blocked_legacy_unbound"
+                and self.runtime_capsule_status == _RUNTIME_CAPSULE_BOUND
+                else (
+                    "blocked_runtime_capsule_unbound"
+                    if self.phase_capsule_binding_status == _PHASE_CAPSULE_BOUND
+                    else "blocked_legacy_unbound"
+                )
             ),
         }
 
@@ -185,6 +201,9 @@ def _recipe_sha256_literals(
                             (*stage_prefix, "incoming_handoff_digests", handoff_index),
                             digest,
                         )
+
+    if isinstance(source_recipe, Mapping):
+        literals.update(recipe_runtime_capsule_sha256_literals(source_recipe))
 
     source_promotion = source.get("promotion_eligibility")
     if isinstance(source_promotion, Mapping):
@@ -290,6 +309,7 @@ def _restore_fixed_schema_literals(
             restored += 1
     if sha256_literals is not None:
         restored += _restore_phase_capsule_binding_digests(sha256_literals, payload)
+        restored += restore_recipe_runtime_capsule_digests(sha256_literals, payload)
         restored += _restore_promotion_binding_digest(sha256_literals, payload)
     return restored
 
@@ -350,6 +370,10 @@ def _recipe_projection_structure_is_valid(
         and isinstance(value.get("typed_edges"), list)
         and isinstance(value.get("ordered_stages"), list)
         and isinstance(value.get("coverage"), Mapping)
+        and (
+            value.get("runtime_capsule") is None
+            or isinstance(value.get("runtime_capsule"), Mapping)
+        )
         and value.get("trust") == "advisory_untrusted"
         and isinstance(value.get("instruction_override_policy"), str)
         and bool(str(value.get("instruction_override_policy")).strip())
@@ -365,6 +389,7 @@ def _record_snapshot(
     expected_graph_digest: str,
     expected_composition_plan_id: str | None = None,
     allow_legacy_unbound: bool = False,
+    allow_legacy_runtime_capsule: bool = False,
 ) -> ProjectRecipeSnapshot:
     if not _json_is_bounded(payload):
         raise ProjectRecipeError("Project recipe exceeds supported JSON boundaries.")
@@ -423,6 +448,7 @@ def _record_snapshot(
     assert isinstance(projection, Mapping)
     promotion = payload.get("promotion_eligibility")
     phase_capsule_status = _phase_capsule_binding_status(projection, promotion)
+    runtime_capsule_status = _RUNTIME_CAPSULE_LEGACY_UNBOUND
     if phase_capsule_status == _PHASE_CAPSULE_BOUND:
         try:
             phase_capsule_binding = validate_phase_capsule_binding(
@@ -444,6 +470,14 @@ def _record_snapshot(
             phase_capsule_binding=phase_capsule_binding,
         ):
             raise ProjectRecipeError("Project recipe promotion evidence is invalid.")
+        try:
+            runtime_capsule_status = recipe_runtime_capsule_status(
+                projection,
+                phase_capsule_binding,
+                allow_legacy=allow_legacy_runtime_capsule,
+            )
+        except RecipeRuntimeCapsuleError as exc:
+            raise ProjectRecipeError(f"Project recipe {exc}") from exc
     elif phase_capsule_status == _PHASE_CAPSULE_LEGACY_UNBOUND:
         if not allow_legacy_unbound:
             raise ProjectRecipeError(
@@ -455,6 +489,10 @@ def _record_snapshot(
             graph_digest=graph_digest,
         ):
             raise ProjectRecipeError("Project recipe legacy promotion metadata is invalid.")
+        if "runtime_capsule" in projection:
+            raise ProjectRecipeError(
+                "Project recipe runtime capsule cannot outlive phase provenance."
+            )
     else:
         raise ProjectRecipeError(
             "Project recipe phase-capsule binding is incomplete or downgraded."
@@ -474,6 +512,7 @@ def _record_snapshot(
         key=expected_key,
         record=dict(payload),
         phase_capsule_binding_status=phase_capsule_status,
+        runtime_capsule_status=runtime_capsule_status,
     )
 
 
@@ -579,6 +618,7 @@ class ProjectCompositionRecipeStore:
             expected_graph_digest=expected_graph_digest,
             expected_composition_plan_id=expected_composition_plan_id,
             allow_legacy_unbound=True,
+            allow_legacy_runtime_capsule=True,
         )
 
     def load_record(self) -> ProjectRecipeSnapshot:
@@ -609,4 +649,5 @@ class ProjectCompositionRecipeStore:
             expected_key=self.key,
             expected_graph_digest=graph_digest,
             allow_legacy_unbound=True,
+            allow_legacy_runtime_capsule=True,
         )

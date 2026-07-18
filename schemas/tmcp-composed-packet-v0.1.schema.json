@@ -141,6 +141,13 @@
       "type": "object",
       "additionalProperties": true
     },
+    "composition_provenance_status": {
+      "type": "string",
+      "enum": [
+        "runtime_capsule_invalid"
+      ],
+      "description": "A persisted capsule-bound plan became invalid and remains inert until a fresh composition is supplied."
+    },
     "project_recipe": {
       "type": "object",
       "additionalProperties": true

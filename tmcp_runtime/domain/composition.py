@@ -16,6 +16,17 @@ def normalize_cache_policy(value: object) -> str:
     return str(value) if value in {"global", "project"} else "none"
 
 
+def validate_project_recipe_cache_policy(
+    *, cache_policy: object, project_recipe_id: object
+) -> str:
+    """Reject recipe activation requests outside explicit project-cache mode."""
+
+    normalized = normalize_cache_policy(cache_policy)
+    if str(project_recipe_id or "").strip() and normalized != "project":
+        raise ValueError("project_recipe_id requires cache_policy=project.")
+    return normalized
+
+
 UI_SIGNAL_TERMS = (
     "ui",
     "ux",

@@ -12,6 +12,7 @@ from tmcp_runtime.domain.composition_benchmark_boundaries import (
     MAX_EVIDENCE_CHARS,
     MAX_EVIDENCE_ITEMS,
     MAX_METADATA_CHARS,
+    UTC_TIMESTAMP_RE,
     _assert_keys,
     _bounded_text,
     _control_indexes,
@@ -28,6 +29,121 @@ from tmcp_runtime.domain.composition_benchmark_receipts import (
     _validate_full_receipt_shape,
 )
 from tmcp_runtime.domain.composition_preflight import stable_digest
+
+
+HOST_EXECUTED_EVIDENCE_CLASS = "host_executed"
+SYNTHETIC_TEST_EVIDENCE_CLASS = "synthetic_test"
+TRUSTED_EVALUATOR_EXECUTION_CLASS = "trusted_evaluator_execution"
+_HOST_EVIDENCE_CLASSES = frozenset(
+    {HOST_EXECUTED_EVIDENCE_CLASS, SYNTHETIC_TEST_EVIDENCE_CLASS}
+)
+_EVALUATOR_EXECUTION_CLASSES = frozenset(
+    {TRUSTED_EVALUATOR_EXECUTION_CLASS, SYNTHETIC_TEST_EVIDENCE_CLASS}
+)
+_TEST_ONLY_EVALUATOR_METHODS = frozenset(
+    {"deterministic-test-rubric", "synthetic_unit_test"}
+)
+
+
+def _host_evidence_class(value: object, *, field: str) -> str:
+    evidence_class = _bounded_text(value, field=field, maximum=MAX_METADATA_CHARS)
+    if evidence_class not in _HOST_EVIDENCE_CLASSES:
+        raise ValueError(f"{field} must be one of {sorted(_HOST_EVIDENCE_CLASSES)}.")
+    return evidence_class
+
+
+def _evaluator_execution_metadata(
+    value: object,
+    *,
+    field: str,
+) -> dict[str, str]:
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{field} must be an object.")
+    _assert_keys(
+        value,
+        field=field,
+        required={"execution_class", "executor_id", "execution_id", "executed_at"},
+    )
+    execution_class = _bounded_text(
+        value.get("execution_class"),
+        field=f"{field}.execution_class",
+        maximum=MAX_METADATA_CHARS,
+    )
+    if execution_class not in _EVALUATOR_EXECUTION_CLASSES:
+        raise ValueError(
+            f"{field}.execution_class must be one of "
+            f"{sorted(_EVALUATOR_EXECUTION_CLASSES)}."
+        )
+    executed_at = _bounded_text(
+        value.get("executed_at"),
+        field=f"{field}.executed_at",
+        maximum=MAX_METADATA_CHARS,
+    )
+    if UTC_TIMESTAMP_RE.fullmatch(executed_at) is None:
+        raise ValueError(f"{field}.executed_at must be a UTC timestamp.")
+    return {
+        "execution_class": execution_class,
+        "executor_id": _untrusted_text(
+            value.get("executor_id"),
+            field=f"{field}.executor_id",
+            maximum=MAX_METADATA_CHARS,
+        ),
+        "execution_id": _untrusted_text(
+            value.get("execution_id"),
+            field=f"{field}.execution_id",
+            maximum=MAX_METADATA_CHARS,
+        ),
+        "executed_at": executed_at,
+    }
+
+
+def validate_release_benchmark_evidence_admissibility(
+    *,
+    host_results: Mapping[str, Any],
+    evaluator_artifacts: Mapping[str, Any],
+) -> None:
+    """Reject contract-test evidence from the CLI and release proof boundary.
+
+    Raw benchmark records remain advisory, so this is not an attestation system.
+    It does make evidence origin an explicit, bounded declaration and prevents
+    the known synthetic contract fixtures from being replayed as release proof.
+    """
+
+    evidence_class = _host_evidence_class(
+        host_results.get("evidence_class"),
+        field="host_results.evidence_class",
+    )
+    if evidence_class != HOST_EXECUTED_EVIDENCE_CLASS:
+        raise ValueError(
+            "release benchmark host_results.evidence_class must be "
+            f"{HOST_EXECUTED_EVIDENCE_CLASS}; {SYNTHETIC_TEST_EVIDENCE_CLASS} "
+            "is unit-test-only."
+        )
+    execution = _evaluator_execution_metadata(
+        evaluator_artifacts.get("evaluator_execution"),
+        field="evaluator_artifacts.evaluator_execution",
+    )
+    if execution["execution_class"] != TRUSTED_EVALUATOR_EXECUTION_CLASS:
+        raise ValueError(
+            "release benchmark evaluator_artifacts.evaluator_execution."
+            "execution_class must be "
+            f"{TRUSTED_EVALUATOR_EXECUTION_CLASS}; "
+            f"{SYNTHETIC_TEST_EVIDENCE_CLASS} is unit-test-only."
+        )
+    evaluations = _mapping_list(
+        evaluator_artifacts.get("fixture_evaluations"),
+        field="evaluator_artifacts.fixture_evaluations",
+    )
+    for index, evaluation in enumerate(evaluations, start=1):
+        method = _bounded_text(
+            evaluation.get("method"),
+            field=(f"evaluator_artifacts.fixture_evaluations[{index}].method"),
+            maximum=MAX_METADATA_CHARS,
+        )
+        if method in _TEST_ONLY_EVALUATOR_METHODS:
+            raise ValueError(
+                f"release benchmark evaluator method is test-only: {method}."
+            )
 
 
 def _raw_evidence(
@@ -102,7 +218,9 @@ def _dimension_evidence_bindings(
         )
     result: dict[str, list[dict[str, Any]]] = {}
     for dimension_id, required in expected_requirements.items():
-        entries = _mapping_list(value.get(dimension_id), field=f"{field}.{dimension_id}")
+        entries = _mapping_list(
+            value.get(dimension_id), field=f"{field}.{dimension_id}"
+        )
         if not entries:
             raise ValueError(f"{field}.{dimension_id} must not be empty.")
         normalized: list[dict[str, Any]] = []
@@ -156,6 +274,11 @@ def _validate_host_results(
         schema=HOST_RESULTS_SCHEMA,
         control_plan=control_plan,
         collections={"routing_runs", "behavioral_runs"},
+        required_fields={"evidence_class"},
+    )
+    _host_evidence_class(
+        host_results.get("evidence_class"),
+        field="host_results.evidence_class",
     )
     routing_controls, behavioral_controls = _control_indexes(control_plan)
     routing_runs = _indexed(
@@ -318,6 +441,11 @@ def _validate_evaluator_artifacts(
         schema=EVALUATOR_ARTIFACTS_SCHEMA,
         control_plan=control_plan,
         collections={"fixture_evaluations"},
+        required_fields={"evaluator_execution"},
+    )
+    _evaluator_execution_metadata(
+        evaluator_artifacts.get("evaluator_execution"),
+        field="evaluator_artifacts.evaluator_execution",
     )
     fixtures = _indexed(
         _mapping_list(behavioral_fixtures.get("fixtures"), field="fixtures"),

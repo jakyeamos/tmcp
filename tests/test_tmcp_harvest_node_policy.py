@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from tmcp_runtime.domain.harvest_node_policy import (
+    is_evidence_only_path,
     node_source_role,
     source_role_for,
     source_role_is_activation_eligible,
@@ -80,6 +81,27 @@ class HarvestNodePolicyTests(unittest.TestCase):
             node_source_role(node, explicitly_scoped=True), "supporting_reference"
         )
 
+    def test_documentation_role_metadata_cannot_promote_source_authority(self) -> None:
+        node = {
+            "relative_path": "docs/README.md",
+            "source_type": "project_documentation",
+            "source_role": "active_skill",
+            "activation_eligible": True,
+        }
+
+        self.assertEqual(node_source_role(node), "supporting_reference")
+        self.assertFalse(source_role_is_activation_eligible(node_source_role(node)))
+
+    def test_known_governing_source_cannot_be_demoted_by_node_metadata(self) -> None:
+        node = {
+            "relative_path": "AGENTS.md",
+            "source_type": "agent_operating_contract",
+            "source_role": "active_skill",
+            "activation_eligible": True,
+        }
+
+        self.assertEqual(node_source_role(node), "governing_instruction")
+
     def test_explicitly_scoped_governing_and_skill_sources_remain_active(self) -> None:
         self.assertEqual(
             source_role_for(
@@ -96,6 +118,33 @@ class HarvestNodePolicyTests(unittest.TestCase):
                 "skills/review/SKILL.md",
                 "skill_definition",
                 explicitly_scoped=True,
+            ),
+            "active_skill",
+        )
+
+    def test_conventional_fixture_tree_names_remain_evidence_only(self) -> None:
+        for relative_path in (
+            "testdata/skills/review/SKILL.md",
+            "test-fixtures/skills/review/SKILL.md",
+            "fixtures_v2/skills/review/SKILL.md",
+            ".fixtures/skills/review/SKILL.md",
+            "examples-v2/skills/review/SKILL.md",
+        ):
+            with self.subTest(relative_path=relative_path):
+                self.assertTrue(is_evidence_only_path(relative_path))
+                self.assertEqual(
+                    source_role_for(
+                        Path(relative_path), relative_path, "skill_definition"
+                    ),
+                    "evidence_only",
+                )
+
+        self.assertFalse(is_evidence_only_path("skills/test-strategy/SKILL.md"))
+        self.assertEqual(
+            source_role_for(
+                Path("skills/test-strategy/SKILL.md"),
+                "skills/test-strategy/SKILL.md",
+                "skill_definition",
             ),
             "active_skill",
         )

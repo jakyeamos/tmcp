@@ -74,6 +74,7 @@ class CompositionFoundationTests(unittest.TestCase):
             self.assertEqual(result["source_count"], 1)
             self.assertEqual(result["source_nodes"][0]["source_role"], "active_skill")
             self.assertTrue(result["source_nodes"][0]["activation_eligible"])
+            self.assertTrue(result["source_nodes"][0]["explicitly_scoped"])
 
     def test_reference_paths_remain_supporting_even_when_explicitly_scoped(
         self,

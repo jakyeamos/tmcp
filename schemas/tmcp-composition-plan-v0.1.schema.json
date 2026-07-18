@@ -136,6 +136,9 @@
     "phase_capsule_binding": {
       "$ref": "#/$defs/phase_capsule_binding"
     },
+    "runtime_capsule": {
+      "$ref": "#/$defs/runtime_capsule"
+    },
     "composition_diagnostics": {
       "type": "object",
       "additionalProperties": true,
@@ -164,6 +167,7 @@
         "composition_plan_id",
         "composition_plan_digest",
         "preflight_id",
+        "compiler_phase",
         "graph_digest",
         "recipe_digest",
         "context_accounting_digest",
@@ -184,6 +188,9 @@
         "preflight_id": {
           "type": "string",
           "pattern": "^preflight-[a-f0-9]{20}$"
+        },
+        "compiler_phase": {
+          "enum": ["start", "discovery", "implementation", "verification", "final"]
         },
         "graph_digest": {
           "type": "string",
@@ -230,6 +237,116 @@
           }
         },
         "binding_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "runtime_capsule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "composition_plan_id",
+        "composition_plan_digest",
+        "preflight_id",
+        "compiler_phase",
+        "graph_digest",
+        "phase_capsule_binding_digest",
+        "objective_digest",
+        "task_identity_digest",
+        "preparation_controls",
+        "preparation_controls_digest",
+        "cited_source_slices",
+        "capsule_digest"
+      ],
+      "properties": {
+        "schema": { "const": "tmcp-composition-runtime-capsule-v0.1" },
+        "composition_plan_id": {
+          "type": "string",
+          "pattern": "^composition-[a-f0-9]{20}$"
+        },
+        "composition_plan_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "preflight_id": {
+          "type": "string",
+          "pattern": "^preflight-[a-f0-9]{20}$"
+        },
+        "compiler_phase": {
+          "enum": ["start", "discovery", "implementation", "verification", "final"]
+        },
+        "graph_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "phase_capsule_binding_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "objective_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "task_identity_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "preparation_controls": {
+          "$ref": "tmcp-composition-preflight-v0.1.schema.json#/$defs/preparation_controls"
+        },
+        "preparation_controls_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "cited_source_slices": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 48,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "original_node_id",
+              "source_role",
+              "source_digest",
+              "slice_digest",
+              "char_start",
+              "char_end",
+              "relative_path",
+              "behavior_atoms"
+            ],
+            "properties": {
+              "original_node_id": { "type": "string", "minLength": 1 },
+              "source_role": {
+                "enum": ["governing_instruction", "active_skill"]
+              },
+              "source_digest": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "slice_digest": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "char_start": { "type": "integer", "minimum": 0 },
+              "char_end": { "type": "integer", "minimum": 1 },
+              "relative_path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024
+              },
+              "behavior_atoms": {
+                "type": "array",
+                "maxItems": 24,
+                "items": { "type": "string", "minLength": 1, "maxLength": 240 },
+                "uniqueItems": true
+              }
+            }
+          }
+        },
+        "capsule_digest": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
         }

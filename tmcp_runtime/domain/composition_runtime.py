@@ -18,6 +18,7 @@ from .composition_runtime_evidence import (
     COMPOSITION_RUNTIME_EVIDENCE_SCHEMA,
     composition_gate_catalog,
     composition_handoff_catalog,
+    explicit_phase_override,
     evaluate_composition_gates,
     evaluate_composition_handoffs,
     evidence_summary as _summary,
@@ -26,14 +27,6 @@ from .composition_runtime_evidence import (
 
 
 COMPOSITION_RUNTIME_SCHEMA = "tmcp-composition-runtime-v0.1"
-PHASE_OVERRIDE_TERMS = (
-    "advance phase",
-    "advance to",
-    "bypass gate",
-    "override gate",
-    "proceed despite",
-    "skip the gate",
-)
 
 __all__ = [
     "COMPOSITION_RUNTIME_EVIDENCE_SCHEMA",
@@ -50,8 +43,28 @@ __all__ = [
 def _require_plan(plan: Mapping[str, Any]) -> None:
     if plan.get("schema") != COMPOSITION_PLAN_SCHEMA:
         raise ValueError(f"Expected {COMPOSITION_PLAN_SCHEMA}.")
-    if not json_list(plan.get("ordered_stages")):
+    stages = [
+        item
+        for item in json_list(plan.get("ordered_stages"))
+        if isinstance(item, Mapping)
+    ]
+    if not stages:
         raise ValueError("Composition plan requires at least one ordered stage.")
+    seen_stage_ids: set[str] = set()
+    for index, stage in enumerate(stages):
+        stage_id = str(stage.get("stage_id") or "").strip()
+        phase = str(stage.get("phase") or "").strip()
+        if not stage_id or not phase:
+            raise ValueError(
+                f"Composition stage {index + 1} requires a stage_id and phase."
+            )
+        if stage_id in seen_stage_ids:
+            raise ValueError(f"Composition plan has duplicate stage_id {stage_id!r}.")
+        seen_stage_ids.add(stage_id)
+        if not isinstance(stage.get("node_ids"), list):
+            raise ValueError(
+                f"Composition stage {stage_id!r} requires a node_ids list."
+            )
 
 
 def _stage_index(
@@ -80,18 +93,6 @@ def _requested_stage_index(
     if stages[current_index].get("phase") == requested_phase:
         return later[0] if later else current_index
     return later[0] if later else matches[0]
-
-
-def _explicit_phase_override(values: list[Any]) -> dict[str, Any] | None:
-    for value in values:
-        if isinstance(value, Mapping):
-            action = str(value.get("action") or value.get("type") or "").lower()
-            if action in {"advance_phase", "bypass_phase_gate", "phase_gate"}:
-                return dict(value)
-        text = str(value).strip()
-        if text and any(term in text.lower() for term in PHASE_OVERRIDE_TERMS):
-            return {"action": "advance_phase", "reason": text}
-    return None
 
 
 def _transition_gate_ids(
@@ -326,7 +327,10 @@ def advance_composition_runtime(
         warnings.append(
             "Composition phase advancement is blocked because a handoff contract is malformed."
         )
-    override = _explicit_phase_override(list(normalized["user_overrides"]))
+    override = explicit_phase_override(
+        list(normalized["user_overrides"]),
+        str(normalized.get("latest_user_message") or ""),
+    )
     override_applied = bool(
         blocked_reason
         in {

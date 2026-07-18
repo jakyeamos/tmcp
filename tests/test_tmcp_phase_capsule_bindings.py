@@ -9,6 +9,7 @@ from tmcp_runtime.domain.composition_phase_bindings import (
     receipt_matches_phase_capsule_binding,
     validate_phase_capsule_binding,
 )
+from tmcp_runtime.domain.composition_runtime import advance_composition_runtime
 
 
 class PhaseCapsuleBindingTests(unittest.TestCase):
@@ -28,6 +29,16 @@ class PhaseCapsuleBindingTests(unittest.TestCase):
                     "content": "Produce cited research.",
                     "char_start": 0,
                     "char_end": 23,
+                },
+                {
+                    "slice_id": "slice-" + "c" * 20,
+                    "source_node_id": "implement",
+                    "source_digest": "d" * 64,
+                    "slice_digest": "e" * 64,
+                    "source_role": "active_skill",
+                    "content": "Implement the approved plan.",
+                    "char_start": 0,
+                    "char_end": 28,
                 }
             ],
         }
@@ -45,7 +56,13 @@ class PhaseCapsuleBindingTests(unittest.TestCase):
                     "role": "researcher",
                     "source_role": "active_skill",
                     "citations": ["slice-" + "b" * 20],
-                }
+                },
+                {
+                    "node_id": "implement",
+                    "role": "implementer",
+                    "source_role": "active_skill",
+                    "citations": ["slice-" + "c" * 20],
+                },
             ],
             "typed_edges": [],
             "handoff_contracts": [],
@@ -59,7 +76,17 @@ class PhaseCapsuleBindingTests(unittest.TestCase):
                     "node_ids": ["research"],
                     "bridge_instructions": [],
                     "handoff_contracts": [],
-                }
+                },
+                {
+                    "stage_id": "stage-2",
+                    "order": 2,
+                    "phase": "implementation",
+                    "status": "deferred",
+                    "entry_conditions": [],
+                    "node_ids": ["implement"],
+                    "bridge_instructions": [],
+                    "handoff_contracts": [],
+                },
             ],
             "provenance": {
                 "graph_digest": "f" * 32,
@@ -81,6 +108,7 @@ class PhaseCapsuleBindingTests(unittest.TestCase):
                 "composition_plan_id",
                 "composition_plan_digest",
                 "preflight_id",
+                "compiler_phase",
                 "graph_digest",
                 "recipe_digest",
                 "context_accounting_digest",
@@ -93,11 +121,35 @@ class PhaseCapsuleBindingTests(unittest.TestCase):
         self.assertEqual(
             validate_phase_capsule_binding(binding, composition_plan=plan), binding
         )
-
         plan["composition_diagnostics"] = {"host_estimate": 999_999}
         self.assertEqual(
             validate_phase_capsule_binding(binding, composition_plan=plan), binding
         )
+
+    def test_binding_identity_survives_runtime_phase_progression(self) -> None:
+        plan = self._plan()
+        binding = build_phase_capsule_binding(plan, self._preflight())
+
+        advanced = advance_composition_runtime(
+            plan, {"requested_phase": "implementation"}
+        )["composition_plan"]
+
+        self.assertEqual(advanced["current_phase"], "implementation")
+        self.assertEqual(advanced["skill_roles"][0]["activation"], "deferred")
+        self.assertEqual(advanced["skill_roles"][1]["activation"], "active")
+        self.assertEqual(advanced["ordered_stages"][0]["status"], "deferred")
+        self.assertEqual(advanced["ordered_stages"][1]["status"], "active")
+        self.assertEqual(
+            validate_phase_capsule_binding(binding, composition_plan=advanced), binding
+        )
+
+    def test_binding_identity_rejects_immutable_graph_changes(self) -> None:
+        plan = self._plan()
+        binding = build_phase_capsule_binding(plan, self._preflight())
+        plan["ordered_stages"][1]["node_ids"] = ["research"]
+
+        with self.assertRaises(PhaseCapsuleBindingError):
+            validate_phase_capsule_binding(binding, composition_plan=plan)
 
     def test_receipt_must_match_the_compiler_issued_trace_exactly(self) -> None:
         plan = self._plan()

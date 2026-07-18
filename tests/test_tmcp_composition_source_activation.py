@@ -12,7 +12,11 @@ class CompositionSourceActivationTests(unittest.TestCase):
             "release-seed",
             "scoped_packet_seed",
             "scoped-packet-seeds.json#release-seed",
-            "Release readiness verification receipt.",
+            (
+                "Release coordinator consumes release readiness evidence, "
+                "produces a release readiness verification receipt, and exits "
+                "when release readiness verification passes."
+            ),
             route_affinity=["release_readiness"],
             chains_before=["release-review"],
             chains_after=["research"],
@@ -35,14 +39,17 @@ class CompositionSourceActivationTests(unittest.TestCase):
             "release-seed",
             "release coordinator",
             "verification",
-            covers=["Release is verified"],
+            inputs=["release readiness evidence"],
+            outputs=["release readiness verification receipt"],
+            exit_gates=["Release readiness verification passes"],
+            covers=["Release readiness verification passes"],
         )
         proposal = _proposal(
             preflight,
             [role],
             [],
             current_phase="verification",
-            success_criteria=["Release is verified"],
+            success_criteria=["Release readiness verification passes"],
         )
         plan = ci.build_composition_plan(proposal, preflight)
 

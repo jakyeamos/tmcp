@@ -13,6 +13,12 @@ SOURCE_ROLES = frozenset(
 ACTIVATION_ELIGIBLE_SOURCE_ROLES = frozenset(
     {"governing_instruction", "active_skill"}
 )
+SOURCE_ROLE_AUTHORITY = {
+    "evidence_only": 0,
+    "supporting_reference": 1,
+    "active_skill": 2,
+    "governing_instruction": 3,
+}
 EVIDENCE_ONLY_PATH_COMPONENTS = frozenset(
     {
         "__fixtures__",
@@ -23,6 +29,33 @@ EVIDENCE_ONLY_PATH_COMPONENTS = frozenset(
         "fixtures",
         "test",
         "tests",
+    }
+)
+_EVIDENCE_ONLY_COMPONENT_PREFIXES = frozenset(
+    {"example", "examples", "fixture", "fixtures", "test", "tests"}
+)
+_EVIDENCE_ONLY_COMPONENT_SUFFIXES = frozenset(
+    {
+        "artifact",
+        "artifacts",
+        "case",
+        "cases",
+        "corpus",
+        "corpora",
+        "data",
+        "fixture",
+        "fixtures",
+        "generated",
+        "output",
+        "outputs",
+        "result",
+        "results",
+        "sample",
+        "samples",
+        "snapshot",
+        "snapshots",
+        "util",
+        "utils",
     }
 )
 SUPPORTING_REFERENCE_PATH_COMPONENTS = frozenset({"reference", "references"})
@@ -67,10 +100,36 @@ def _path_components(value: str) -> set[str]:
     }
 
 
+def _is_evidence_only_component(component: str) -> bool:
+    """Recognize conventional test-data trees without catching skill names.
+
+    A real skill can be named ``test-strategy``.  In contrast, paths such as
+    ``testdata``, ``test-fixtures``, and ``fixtures_v2`` conventionally hold
+    examples rather than active instructions.  Keep the boundary conservative
+    and structural so a filename merely mentioning a test does not demote a
+    normal skill.
+    """
+
+    normalized = component.lower().lstrip(".")
+    if normalized in EVIDENCE_ONLY_PATH_COMPONENTS:
+        return True
+    compact = re.sub(r"[-_.]", "", normalized)
+    if compact in {"testdata", "testfixture", "testfixtures"}:
+        return True
+    parts = [part for part in re.split(r"[-_.]+", normalized) if part]
+    if len(parts) < 2 or parts[0] not in _EVIDENCE_ONLY_COMPONENT_PREFIXES:
+        return False
+    return all(
+        part in _EVIDENCE_ONLY_COMPONENT_SUFFIXES
+        or re.fullmatch(r"v?\d+", part) is not None
+        for part in parts[1:]
+    )
+
+
 def is_evidence_only_path(value: str) -> bool:
     """Identify non-governing test, fixture, and example source locations."""
 
-    return bool(_path_components(value).intersection(EVIDENCE_ONLY_PATH_COMPONENTS))
+    return any(_is_evidence_only_component(component) for component in _path_components(value))
 
 
 def is_supporting_reference_path(value: str) -> bool:
@@ -129,31 +188,34 @@ def source_role_for(
 def node_source_role(
     node: dict[str, Any], *, explicitly_scoped: bool = False
 ) -> str:
-    """Resolve additive source roles while keeping legacy nodes composable."""
+    """Resolve a source role without allowing node metadata to elevate authority."""
 
     rel_path = str(node.get("relative_path") or node.get("path") or "")
-    if is_supporting_reference_path(rel_path):
-        return "supporting_reference"
-    if is_evidence_only_path(rel_path) and not explicitly_scoped:
-        return "evidence_only"
     source_type = str(node.get("source_type") or "")
-    if source_type == "workflow_prompt" and not _is_dedicated_workflow_prompt(
-        rel_path, node.get("path")
-    ):
-        return "supporting_reference"
-    explicit_role = str(node.get("source_role") or "")
-    if explicit_role in SOURCE_ROLES and not (
-        explicitly_scoped and explicit_role == "evidence_only"
-    ):
-        return explicit_role
-    if source_type not in HARVEST_SOURCE_TYPE_ATOMS:
-        return "supporting_reference"
-    return source_role_for(
+    # A direct harvested file root and an exact composition-path scope are both
+    # explicit user selections. Preserve that normalized scope so direct
+    # composition does not demote a fixture that preflight accepts. The
+    # canonical role policy still keeps documentation/reference paths inert.
+    effective_explicit_scope = (
+        explicitly_scoped or node.get("explicitly_scoped") is True
+    )
+    canonical_role = source_role_for(
         Path(str(node.get("path") or rel_path)),
         rel_path,
         source_type,
-        explicitly_scoped=explicitly_scoped,
+        explicitly_scoped=effective_explicit_scope,
     )
+    if canonical_role == "governing_instruction":
+        return canonical_role
+    explicit_role = str(node.get("source_role") or "")
+    if (
+        explicit_role in SOURCE_ROLES
+        and not (effective_explicit_scope and explicit_role == "evidence_only")
+        and SOURCE_ROLE_AUTHORITY[explicit_role]
+        <= SOURCE_ROLE_AUTHORITY[canonical_role]
+    ):
+        return explicit_role
+    return canonical_role
 
 
 def source_role_is_activation_eligible(source_role: str) -> bool:

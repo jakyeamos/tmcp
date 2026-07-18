@@ -22,6 +22,19 @@ from tmcp_runtime.safety import (
     read_json_input,
 )
 from tmcp_runtime.storage.artifacts import AtomicArtifactStore
+from tmcp_runtime.storage.runtime_capsule_persistence import (
+    restore_runtime_capsule,
+    runtime_capsule_hash_paths,
+)
+from tmcp_runtime.domain.composition_runtime_continuations import (
+    restore_runtime_continuation,
+    runtime_continuation_hash_paths,
+)
+from tmcp_runtime.domain.composition_runtime_capsules import (
+    RUNTIME_CAPSULE_INVALID_PROVENANCE_STATUS,
+    RUNTIME_CAPSULE_PROVENANCE_STATUS_FIELD,
+    packet_has_runtime_capsule_provenance,
+)
 
 
 PACKET_SESSION_SCHEMA = "tmcp-run-session-v0.1"
@@ -55,6 +68,11 @@ _COMPOSED_PACKET_OBJECT_FIELDS = (
     "receipt_template",
     "safety",
 )
+_SESSION_TRANSIENT_PACKET_FIELDS = (
+    "composition_diagnostics",
+    "composition_runtime",
+)
+_SESSION_TRANSIENT_PLAN_FIELDS = ("composition_diagnostics",)
 _SHA256_DIGEST_PATTERN = re.compile(r"[a-f0-9]{64}")
 _PHASE_STAGE_ID_PATTERN = re.compile(r"stage-[0-9]+")
 _PHASE_BINDING_HASH_FIELDS = (
@@ -74,6 +92,13 @@ _RECEIPT_PHASE_BINDING_FIELDS = (
     "phase_capsule_trace",
 )
 _SESSION_PRESERVED_SHA256_PATHS = (
+    (
+        "packet",
+        "composition_plan",
+        "provenance",
+        "content_digests",
+        "*",
+    ),
     *(
         ("packet", "composition_plan", "phase_capsule_binding", field)
         for field in _PHASE_BINDING_HASH_FIELDS
@@ -94,6 +119,10 @@ _SESSION_PRESERVED_SHA256_PATHS = (
         "*",
         "incoming_handoff_digests",
         "*",
+    ),
+    *runtime_capsule_hash_paths(("packet", "composition_plan", "runtime_capsule")),
+    *runtime_continuation_hash_paths(
+        ("packet", "composition_plan", "runtime_continuation")
     ),
     *(
         ("packet", "receipt_template", field)
@@ -181,19 +210,69 @@ def _with_preserved_phase_hashes(
     return candidate
 
 
+def _restore_plan_content_digests(
+    source_packet: Mapping[str, Any],
+    safe_plan: dict[str, Any],
+    *,
+    preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None,
+) -> None:
+    """Restore the closed provenance digest list needed by the graph binding.
+
+    These values are the plan's declared SHA-256 source-content identities, not
+    source text.  They are restored only at their fixed schema path and are
+    subsequently checked by ``validate_phase_capsule_binding`` against the
+    compiler-issued plan identity.  No arbitrary redacted value is reinstated.
+    """
+
+    source_plan = source_packet.get("composition_plan")
+    if not isinstance(source_plan, Mapping):
+        return
+    source_provenance = source_plan.get("provenance")
+    safe_provenance = safe_plan.get("provenance")
+    if not isinstance(source_provenance, Mapping) or not isinstance(
+        safe_provenance, dict
+    ):
+        return
+    source_digests = source_provenance.get("content_digests")
+    safe_digests = safe_provenance.get("content_digests")
+    if (
+        not isinstance(source_digests, list)
+        or not isinstance(safe_digests, list)
+        or len(source_digests) != len(safe_digests)
+    ):
+        return
+    restored: list[object] = []
+    for index, digest in enumerate(source_digests):
+        value = _preserved_sha256(
+            digest,
+            path=(
+                "packet",
+                "composition_plan",
+                "provenance",
+                "content_digests",
+                index,
+            ),
+            preserved_sha256_literals=preserved_sha256_literals,
+        )
+        if not isinstance(value, str) or _SHA256_DIGEST_PATTERN.fullmatch(value) is None:
+            return
+        restored.append(value)
+    safe_provenance["content_digests"] = restored
+
+
 def _phase_binding_projections(
     packet: Mapping[str, Any],
     *,
     preserved_sha256_literals: Mapping[tuple[str | int, ...], str] | None,
-) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None, dict[str, Any] | None]:
     """Validate the only compiler-bound fields a session may restore."""
 
     plan = packet.get("composition_plan")
     if not isinstance(plan, Mapping):
-        return None, None
+        return None, None, None
     raw_binding = plan.get("phase_capsule_binding")
     if not isinstance(raw_binding, Mapping):
-        return None, None
+        return None, None, None
     binding_candidate = _with_preserved_phase_hashes(
         raw_binding,
         base_path=("packet", "composition_plan", "phase_capsule_binding"),
@@ -203,29 +282,38 @@ def _phase_binding_projections(
     try:
         binding = validate_phase_capsule_binding(
             binding_candidate,
-            composition_plan=plan if preserved_sha256_literals is None else None,
+            composition_plan=plan,
         )
     except PhaseCapsuleBindingError:
-        return None, None
+        return None, None, None
     raw_stages = plan.get("ordered_stages")
     if not isinstance(raw_stages, list):
-        return None, None
+        return None, None, None
     expected_stage_ids: list[str] = []
     for stage in raw_stages:
         if not isinstance(stage, Mapping):
-            return None, None
+            return None, None, None
         stage_id = stage.get("stage_id")
         if (
             not isinstance(stage_id, str)
             or _PHASE_STAGE_ID_PATTERN.fullmatch(stage_id) is None
         ):
-            return None, None
+            return None, None, None
         expected_stage_ids.append(stage_id)
     if [item["stage_id"] for item in binding["phase_capsule_trace"]] != expected_stage_ids:
-        return None, None
+        return None, None, None
+    plan_with_binding = dict(plan)
+    plan_with_binding["phase_capsule_binding"] = binding
+    capsule = restore_runtime_capsule(
+        plan_with_binding,
+        binding,
+        prefix=("packet", "composition_plan", "runtime_capsule"),
+        literals=preserved_sha256_literals,
+        composition_plan=plan_with_binding,
+    )
     receipt = packet.get("receipt_template")
     if not isinstance(receipt, Mapping):
-        return binding, None
+        return binding, capsule, None
     receipt_candidate = _with_preserved_phase_hashes(
         receipt,
         base_path=("packet", "receipt_template"),
@@ -243,8 +331,8 @@ def _phase_binding_projections(
         receipt_candidate.get(field) == value
         for field, value in expected_receipt.items()
     ):
-        return binding, expected_receipt
-    return binding, None
+        return binding, capsule, expected_receipt
+    return binding, capsule, None
 
 
 def _restore_session_phase_binding_fields(
@@ -262,19 +350,53 @@ def _restore_session_phase_binding_fields(
     and benchmark host context are never copied back.
     """
 
-    binding, receipt_fields = _phase_binding_projections(
-        source_packet,
-        preserved_sha256_literals=preserved_sha256_literals,
+    source_has_capsule_provenance = packet_has_runtime_capsule_provenance(
+        source_packet
     )
     safe_packet = safe_record.get("packet")
     if not isinstance(safe_packet, dict):
         return
-    safe_packet.pop("execution_context", None)
-    safe_packet.pop("benchmark_host_receipt", None)
     safe_plan = safe_packet.get("composition_plan")
     if isinstance(safe_plan, dict):
+        _restore_plan_content_digests(
+            source_packet,
+            safe_plan,
+            preserved_sha256_literals=preserved_sha256_literals,
+        )
+    binding, capsule, receipt_fields = _phase_binding_projections(
+        source_packet,
+        preserved_sha256_literals=preserved_sha256_literals,
+    )
+    continuation = None
+    source_plan = source_packet.get("composition_plan")
+    if (
+        binding is not None
+        and capsule is not None
+        and isinstance(source_plan, Mapping)
+    ):
+        source_plan_with_capsules = dict(source_plan)
+        source_plan_with_capsules["phase_capsule_binding"] = binding
+        source_plan_with_capsules["runtime_capsule"] = capsule
+        continuation = restore_runtime_continuation(
+            source_plan,
+            composition_plan=source_plan_with_capsules,
+            prefix=("packet", "composition_plan", "runtime_continuation"),
+            literals=preserved_sha256_literals,
+        )
+    safe_packet.pop("execution_context", None)
+    safe_packet.pop("benchmark_host_receipt", None)
+    safe_packet.pop("composition_preflight", None)
+    safe_packet.pop("runtime_preflight", None)
+    safe_packet.pop("source_nodes", None)
+    safe_packet.pop(RUNTIME_CAPSULE_PROVENANCE_STATUS_FIELD, None)
+    if isinstance(safe_plan, dict):
         safe_plan.pop("phase_capsule_binding", None)
+        safe_plan.pop("runtime_capsule", None)
+        safe_plan.pop("composition_preflight", None)
+        safe_plan.pop("runtime_preflight", None)
+        safe_plan.pop("source_nodes", None)
         safe_plan.pop("execution_context", None)
+        safe_plan.pop("runtime_continuation", None)
     safe_receipt = safe_packet.get("receipt_template")
     if isinstance(safe_receipt, dict):
         safe_receipt.pop("execution_context", None)
@@ -283,8 +405,16 @@ def _restore_session_phase_binding_fields(
             safe_receipt.pop(field, None)
     if binding is not None and isinstance(safe_plan, dict):
         safe_plan["phase_capsule_binding"] = binding
+    if capsule is not None and isinstance(safe_plan, dict):
+        safe_plan["runtime_capsule"] = capsule
+    if continuation is not None and isinstance(safe_plan, dict):
+        safe_plan["runtime_continuation"] = continuation
     if receipt_fields is not None and isinstance(safe_receipt, dict):
         safe_receipt.update(receipt_fields)
+    if source_has_capsule_provenance and (binding is None or capsule is None):
+        safe_packet[RUNTIME_CAPSULE_PROVENANCE_STATUS_FIELD] = (
+            RUNTIME_CAPSULE_INVALID_PROVENANCE_STATUS
+        )
 
 
 class PacketSessionError(ValueError):
@@ -388,6 +518,21 @@ def _composed_packet_is_valid(packet: object) -> bool:
     return all(
         isinstance(packet.get(field), dict) for field in _COMPOSED_PACKET_OBJECT_FIELDS
     )
+
+
+def _session_packet_projection(packet: Mapping[str, Any]) -> dict[str, Any]:
+    """Drop regenerated diagnostics before applying the durable session limits."""
+
+    projected = dict(packet)
+    for field in _SESSION_TRANSIENT_PACKET_FIELDS:
+        projected.pop(field, None)
+    plan = projected.get("composition_plan")
+    if isinstance(plan, Mapping):
+        projected_plan = dict(plan)
+        for field in _SESSION_TRANSIENT_PLAN_FIELDS:
+            projected_plan.pop(field, None)
+        projected["composition_plan"] = projected_plan
+    return projected
 
 
 def _recompile_record_is_valid(value: object) -> bool:
@@ -542,13 +687,14 @@ class PacketSessionStore:
             raise PacketSessionError("Packet sessions require a composed packet.")
         if not _recompile_record_is_valid(last_recompile):
             raise PacketSessionError("Packet session has an invalid recompile record.")
+        session_packet = _session_packet_projection(packet)
         record: dict[str, Any] = {
             "schema": PACKET_SESSION_SCHEMA,
             "format_version": PACKET_SESSION_FORMAT_VERSION,
             "revision": revision,
             "created_at": created_at,
             "updated_at": updated_at,
-            "packet": packet,
+            "packet": session_packet,
             "last_recompile": last_recompile,
         }
         if not _bounded_json(record):
@@ -561,7 +707,7 @@ class PacketSessionStore:
             raise PacketSessionError("Could not redact packet session safely.") from exc
         if not isinstance(safe_record, dict):
             raise PacketSessionError("Packet session must be a JSON object.")
-        _restore_session_phase_binding_fields(packet, safe_record)
+        _restore_session_phase_binding_fields(session_packet, safe_record)
         snapshot = _record_snapshot(self.path, safe_record)
         runs_store = AtomicArtifactStore.explicit(self.path.parent.parent)
         with runs_store.locked(f"{self.key}.lock"):

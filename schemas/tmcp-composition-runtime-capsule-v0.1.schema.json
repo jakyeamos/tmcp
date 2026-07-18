@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-runtime-capsule-v0.1.schema.json",
+  "title": "TMCP Composition Runtime Capsule v0.1",
+  "$ref": "tmcp-composition-plan-v0.1.schema.json#/$defs/runtime_capsule"
+}

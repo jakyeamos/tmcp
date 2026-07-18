@@ -54,6 +54,38 @@ def _payload(path: Path) -> dict[str, object]:
     return payload
 
 
+def _fixture_source_contracts(
+    fixture: dict[str, object], selected_skill_ids: list[str]
+) -> dict[str, dict[str, str]]:
+    """Read the explicit typed handoff contract carried by each fixture skill."""
+
+    source_contracts: dict[str, dict[str, str]] = {}
+    selected = set(selected_skill_ids)
+    for source in fixture["skill_sources"]:
+        skill_id = str(source["skill_id"])
+        if skill_id not in selected:
+            continue
+        lines = str(source["content"]).splitlines()
+        contract: dict[str, str] = {}
+        for label, key in (
+            ("Inputs", "inputs"),
+            ("Outputs", "outputs"),
+            ("Exit gate", "exit_gate"),
+        ):
+            prefix = f"{label}: "
+            value = next(
+                (line.removeprefix(prefix).rstrip(".") for line in lines if line.startswith(prefix)),
+                "",
+            )
+            if not value:
+                raise AssertionError(
+                    f"{fixture['fixture_id']}.{skill_id} is missing {label}."
+                )
+            contract[key] = value
+        source_contracts[skill_id] = contract
+    return source_contracts
+
+
 def _proposal_for_fixture(
     fixture: dict[str, object],
     *,
@@ -73,25 +105,23 @@ def _proposal_for_fixture(
         )
     for slice_ids in slice_ids_by_node.values():
         slice_ids.sort()
+    contracts_by_skill = _fixture_source_contracts(fixture, selected_skill_ids)
     phases = ("discovery", "implementation", "verification", "final")
     roles = []
     for index, skill_id in enumerate(selected_skill_ids):
         node_id = node_by_skill[skill_id]
+        contract = contracts_by_skill[skill_id]
         roles.append(
             {
                 "node_id": node_id,
-                "role": f"{skill_id} benchmark role",
-                "inputs": [
-                    "bounded objective"
-                    if index == 0
-                    else f"{selected_skill_ids[index - 1]} handoff"
-                ],
-                "outputs": [f"{skill_id} handoff"],
+                "role": f"{skill_id} specialist",
+                "inputs": [contract["inputs"]],
+                "outputs": [contract["outputs"]],
                 "phase_affinity": [phases[index]],
                 "entry_gates": [],
-                "exit_gates": [f"{skill_id} evidence is available"],
+                "exit_gates": [contract["exit_gate"]],
                 "context_cost": 0,
-                "covers": ["benchmark outcome"],
+                "covers": [],
                 "citations": slice_ids_by_node[node_id],
             }
         )
@@ -114,7 +144,7 @@ def _proposal_for_fixture(
                     set(slice_ids_by_node[source_node_id])
                     | set(slice_ids_by_node[target_node_id])
                 ),
-                "rationale": "Fixture host proposal uses prepared source evidence.",
+                "rationale": contracts_by_skill[source_id]["outputs"],
             }
         )
     return {
@@ -122,15 +152,15 @@ def _proposal_for_fixture(
         "preflight_id": preflight["preflight_id"],
         "current_phase": "start",
         "task_model": {
-            "deliverables": ["Benchmark outcome"],
-            "success_criteria": ["benchmark outcome"],
-            "constraints": ["Preserve prepared source authority"],
-            "subgoals": ["Produce each compiled handoff"],
-            "evidence_needs": ["Source-backed verification evidence"],
+            "deliverables": ["handoff"],
+            "success_criteria": ["evidence"],
+            "constraints": ["evidence"],
+            "subgoals": ["handoff"],
+            "evidence_needs": ["evidence"],
         },
         "skill_roles": roles,
         "relationships": relationships,
-        "coverage": {"facets": ["benchmark outcome"], "unresolved_gaps": []},
+        "coverage": {"facets": [], "unresolved_gaps": []},
         "trust": "advisory_untrusted",
     }
 
@@ -740,9 +770,9 @@ class CompositionBenchmarkProtocolTests(unittest.TestCase):
             packet=replay["packet"],
         )
         uncited_runtime_sources = [
-            source["source_slice_id"]
+            source_slice_id
             for capsule in uncited["phase_capsules"]
-            for source in capsule["capsule"]["sources"]
+            for source_slice_id in capsule["source_slice_ids"]
         ]
         self.assertNotIn(selected["slice_id"], uncited_runtime_sources)
 

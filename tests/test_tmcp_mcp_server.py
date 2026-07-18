@@ -275,6 +275,7 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertTrue(
             {
                 "schemas/tmcp-composed-packet-v0.1.schema.json",
+                "schemas/tmcp-composition-runtime-capsule-v0.1.schema.json",
                 "schemas/tmcp-runtime-next-v0.1.schema.json",
                 "schemas/tmcp-run-receipt-v0.1.schema.json",
                 "schemas/tmcp-run-session-v0.1.schema.json",
@@ -283,6 +284,13 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "scripts/release_package_sessions.py",
                 "tmcp_runtime/domain/declared_loads.py",
                 "tmcp_runtime/domain/composition.py",
+                "tmcp_runtime/domain/composition_phase_capsule_support.py",
+                "tmcp_runtime/domain/composition_preflight_slices.py",
+                "tmcp_runtime/domain/composition_runtime_capsule_rehydration.py",
+                "tmcp_runtime/domain/composition_runtime_capsules.py",
+                "tmcp_runtime/domain/composition_runtime_continuations.py",
+                "tmcp_runtime/domain/composition_validation_graph.py",
+                "tmcp_runtime/domain/composition_validation_text.py",
                 "tmcp_runtime/domain/families.py",
                 "tmcp_runtime/domain/harvest_labels.py",
                 "tmcp_runtime/domain/harvest_nodes.py",

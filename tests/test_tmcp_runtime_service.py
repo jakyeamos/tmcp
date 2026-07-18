@@ -30,7 +30,14 @@ class RuntimeServiceTests(unittest.TestCase):
                 source_exists=source_exists,
                 load_source_nodes=load_source_nodes,
                 load_cache_warnings=load_cache_warnings,
-                compose_packet=lambda arguments: dict(arguments),
+                compose_packet_from_source_nodes=(
+                    lambda arguments, source_nodes, prepared_composition: dict(
+                        arguments
+                    )
+                ),
+                prepare_composition_from_source_nodes=(
+                    lambda arguments, source_nodes: {}
+                ),
             )
         )
 
@@ -61,7 +68,14 @@ class RuntimeServiceTests(unittest.TestCase):
                 source_exists=lambda path: path == "/previous-project",
                 load_source_nodes=load_source_nodes,
                 load_cache_warnings=lambda cache_policy: [],
-                compose_packet=lambda arguments: dict(arguments),
+                compose_packet_from_source_nodes=(
+                    lambda arguments, source_nodes, prepared_composition: dict(
+                        arguments
+                    )
+                ),
+                prepare_composition_from_source_nodes=(
+                    lambda arguments, source_nodes: {}
+                ),
             )
         )
 
@@ -94,7 +108,14 @@ class RuntimeServiceTests(unittest.TestCase):
                 source_exists=source_exists,
                 load_source_nodes=load_source_nodes,
                 load_cache_warnings=lambda cache_policy: [],
-                compose_packet=lambda arguments: dict(arguments),
+                compose_packet_from_source_nodes=(
+                    lambda arguments, source_nodes, prepared_composition: dict(
+                        arguments
+                    )
+                ),
+                prepare_composition_from_source_nodes=(
+                    lambda arguments, source_nodes: {}
+                ),
             )
         )
 
@@ -112,7 +133,11 @@ class RuntimeServiceTests(unittest.TestCase):
     def test_recompile_composition_is_supplied_by_context(self) -> None:
         composed_arguments: dict[str, object] = {}
 
-        def compose_packet(arguments: dict[str, object]) -> dict[str, object]:
+        def compose_packet_from_source_nodes(
+            arguments: dict[str, object],
+            source_nodes: list[dict[str, object]],
+            prepared_composition: dict[str, object] | None,
+        ) -> dict[str, object]:
             composed_arguments.update(arguments)
             return {
                 "packet_id": "new-packet",
@@ -134,7 +159,10 @@ class RuntimeServiceTests(unittest.TestCase):
                 source_exists=lambda path: True,
                 load_source_nodes=lambda arguments: [],
                 load_cache_warnings=lambda cache_policy: [],
-                compose_packet=compose_packet,
+                compose_packet_from_source_nodes=compose_packet_from_source_nodes,
+                prepare_composition_from_source_nodes=(
+                    lambda arguments, source_nodes: {}
+                ),
             )
         )
         state = {
@@ -178,10 +206,113 @@ class RuntimeServiceTests(unittest.TestCase):
         )
         self.assertEqual(result["previous_packet_id"], "old-packet")
 
+    def test_recompile_reuses_one_harvested_snapshot_for_prepare_and_compose(
+        self,
+    ) -> None:
+        harvested_node = {
+            "id": "snapshot-skill",
+            "relative_path": "skills/snapshot/SKILL.md",
+            "path": "/project/skills/snapshot/SKILL.md",
+            "source_role": "active_skill",
+            "source_type": "skill_definition",
+            "content_digest": "snapshot-digest",
+            "signal_excerpt": "Use the snapshot skill for onboarding.",
+            "behavior_atoms": [],
+            "routing_metadata": {},
+        }
+        harvest_calls: list[dict[str, object]] = []
+        prepared_nodes: list[dict[str, object]] = []
+        composed_nodes: list[dict[str, object]] = []
+        prepared_compositions: list[dict[str, object]] = []
+        composed_preflights: list[dict[str, object] | None] = []
+
+        def load_source_nodes(arguments: dict[str, object]) -> list[dict[str, object]]:
+            harvest_calls.append(dict(arguments))
+            return [harvested_node]
+
+        def prepare_composition_from_source_nodes(
+            arguments: dict[str, object],
+            source_nodes: list[dict[str, object]],
+        ) -> dict[str, object]:
+            prepared_nodes.extend(source_nodes)
+            preflight = {
+                "preflight_id": "preflight-snapshot",
+                "source_node_ids": [node["id"] for node in source_nodes],
+            }
+            prepared_compositions.append(preflight)
+            return preflight
+
+        def compose_packet_from_source_nodes(
+            arguments: dict[str, object],
+            source_nodes: list[dict[str, object]],
+            prepared_composition: dict[str, object] | None,
+        ) -> dict[str, object]:
+            composed_nodes.extend(source_nodes)
+            composed_preflights.append(prepared_composition)
+            return {
+                "ok": False,
+                "packet_id": "rejected-packet",
+                "objective": arguments["objective"],
+                "project_path": arguments["project_path"],
+                "phase": arguments["phase"],
+                "active_atoms": [],
+                "deferred_atoms": [],
+                "required_reads": [],
+                "verification_gates": [],
+                "family_context": {},
+                "task_identity": {},
+                "composition_plan": None,
+                "semantic_proposal_validation": {"accepted": False},
+            }
+
+        service = RuntimeService(
+            RuntimeServiceContext(
+                source_exists=lambda path: path == "/project",
+                load_source_nodes=load_source_nodes,
+                load_cache_warnings=lambda cache_policy: [],
+                compose_packet_from_source_nodes=compose_packet_from_source_nodes,
+                prepare_composition_from_source_nodes=(
+                    prepare_composition_from_source_nodes
+                ),
+            )
+        )
+        proposal = {"schema": "tmcp-semantic-proposal-v0.1"}
+        previous_packet = {
+            "packet_id": "old-packet",
+            "project_path": "/project",
+            "phase": "start",
+            "active_atoms": [],
+            "task_identity": {},
+        }
+        runtime_arguments = {
+            "objective": "Implement onboarding",
+            "project_path": "/project",
+            "source_path": "/project",
+            "semantic_proposal": proposal,
+            "previous_packet": previous_packet,
+        }
+
+        state = service.build_state(runtime_arguments)
+        result = service.recompile(runtime_arguments, state)
+
+        self.assertEqual(len(harvest_calls), 1)
+        self.assertEqual(harvest_calls[0]["objective"], "Implement onboarding")
+        self.assertEqual(prepared_nodes, [harvested_node])
+        self.assertEqual(composed_nodes, [harvested_node])
+        self.assertIs(prepared_nodes[0], harvested_node)
+        self.assertIs(composed_nodes[0], harvested_node)
+        self.assertEqual(len(prepared_compositions), 1)
+        self.assertIs(composed_preflights[0], prepared_compositions[0])
+        self.assertEqual(result["previous_packet_id"], "old-packet")
+
     def test_recompile_uses_gate_resolved_graph_phase(self) -> None:
         composed_arguments: dict[str, object] = {}
 
-        def compose_packet(arguments: dict[str, object]) -> dict[str, object]:
+        def compose_packet_from_source_nodes(
+            arguments: dict[str, object],
+            source_nodes: list[dict[str, object]],
+            prepared_composition: dict[str, object] | None,
+        ) -> dict[str, object]:
             composed_arguments.update(arguments)
             return {
                 "packet_id": "new-packet",
@@ -199,7 +330,10 @@ class RuntimeServiceTests(unittest.TestCase):
                 source_exists=lambda path: True,
                 load_source_nodes=lambda arguments: [],
                 load_cache_warnings=lambda cache_policy: [],
-                compose_packet=compose_packet,
+                compose_packet_from_source_nodes=compose_packet_from_source_nodes,
+                prepare_composition_from_source_nodes=(
+                    lambda arguments, source_nodes: {}
+                ),
             )
         )
         state = {
@@ -242,7 +376,11 @@ class RuntimeServiceTests(unittest.TestCase):
     ) -> None:
         composed_arguments: dict[str, object] = {}
 
-        def compose_packet(arguments: dict[str, object]) -> dict[str, object]:
+        def compose_packet_from_source_nodes(
+            arguments: dict[str, object],
+            source_nodes: list[dict[str, object]],
+            prepared_composition: dict[str, object] | None,
+        ) -> dict[str, object]:
             composed_arguments.update(arguments)
             return {
                 "ok": False,
@@ -263,7 +401,10 @@ class RuntimeServiceTests(unittest.TestCase):
                 source_exists=lambda path: True,
                 load_source_nodes=lambda arguments: [],
                 load_cache_warnings=lambda cache_policy: [],
-                compose_packet=compose_packet,
+                compose_packet_from_source_nodes=compose_packet_from_source_nodes,
+                prepare_composition_from_source_nodes=(
+                    lambda arguments, source_nodes: {}
+                ),
             )
         )
         proposal = {
@@ -303,9 +444,16 @@ class RuntimeServiceTests(unittest.TestCase):
 
     def test_explicit_project_recipe_id_is_forwarded_for_recomposition(self) -> None:
         composed_arguments: dict[str, object] = {}
+        prepared_compositions: list[dict[str, object]] = []
+        composed_preflights: list[dict[str, object] | None] = []
 
-        def compose_packet(arguments: dict[str, object]) -> dict[str, object]:
+        def compose_packet_from_source_nodes(
+            arguments: dict[str, object],
+            source_nodes: list[dict[str, object]],
+            prepared_composition: dict[str, object] | None,
+        ) -> dict[str, object]:
             composed_arguments.update(arguments)
+            composed_preflights.append(prepared_composition)
             return {
                 "packet_id": "recipe-packet",
                 "phase": arguments["phase"],
@@ -318,12 +466,22 @@ class RuntimeServiceTests(unittest.TestCase):
                 "composition_plan": None,
             }
 
+        def prepare_composition_from_source_nodes(
+            arguments: dict[str, object], source_nodes: list[dict[str, object]]
+        ) -> dict[str, object]:
+            preflight = {"preflight_id": "preflight-reviewed-recipe"}
+            prepared_compositions.append(preflight)
+            return preflight
+
         service = RuntimeService(
             RuntimeServiceContext(
                 source_exists=lambda path: True,
                 load_source_nodes=lambda arguments: [],
                 load_cache_warnings=lambda cache_policy: [],
-                compose_packet=compose_packet,
+                compose_packet_from_source_nodes=compose_packet_from_source_nodes,
+                prepare_composition_from_source_nodes=(
+                    prepare_composition_from_source_nodes
+                ),
             )
         )
         state = {
@@ -352,13 +510,70 @@ class RuntimeServiceTests(unittest.TestCase):
         )
 
         self.assertEqual(composed_arguments["project_recipe_id"], "reviewed-onboarding")
+        self.assertEqual(len(prepared_compositions), 1)
+        self.assertIs(composed_preflights[0], prepared_compositions[0])
+
+    def test_project_recipe_id_requires_project_cache_policy(self) -> None:
+        compose_called = False
+
+        def compose_packet_from_source_nodes(
+            arguments: dict[str, object],
+            source_nodes: list[dict[str, object]],
+            prepared_composition: dict[str, object] | None,
+        ) -> dict[str, object]:
+            nonlocal compose_called
+            compose_called = True
+            return {}
+
+        service = RuntimeService(
+            RuntimeServiceContext(
+                source_exists=lambda path: True,
+                load_source_nodes=lambda arguments: [],
+                load_cache_warnings=lambda cache_policy: [],
+                compose_packet_from_source_nodes=compose_packet_from_source_nodes,
+                prepare_composition_from_source_nodes=(
+                    lambda arguments, source_nodes: {}
+                ),
+            )
+        )
+        state = {
+            "objective": "Implement onboarding",
+            "project_path": "/project",
+            "phase": "runtime",
+            "cache_policy": "none",
+            "context": {},
+            "source_nodes": [],
+            "packet_delta": {},
+        }
+
+        with self.assertRaisesRegex(
+            ValueError, "project_recipe_id requires cache_policy=project"
+        ):
+            service.recompile(
+                {
+                    "project_path": "/project",
+                    "previous_packet": {
+                        "packet_id": "old-packet",
+                        "project_path": "/project",
+                        "phase": "runtime",
+                    },
+                    "project_recipe_id": "reviewed-onboarding",
+                },
+                state,
+            )
+
+        self.assertFalse(compose_called)
 
     def test_recompile_accepts_multi_root_paths_with_redacted_previous_path(
         self,
     ) -> None:
         composed_arguments: dict[str, object] = {}
 
-        def compose_packet(arguments: dict[str, object]) -> dict[str, object]:
+        def compose_packet_from_source_nodes(
+            arguments: dict[str, object],
+            source_nodes: list[dict[str, object]],
+            prepared_composition: dict[str, object] | None,
+        ) -> dict[str, object]:
             composed_arguments.update(arguments)
             return {
                 "packet_id": "multi-root-packet",
@@ -377,7 +592,10 @@ class RuntimeServiceTests(unittest.TestCase):
                 source_exists=lambda path: True,
                 load_source_nodes=lambda arguments: [],
                 load_cache_warnings=lambda cache_policy: [],
-                compose_packet=compose_packet,
+                compose_packet_from_source_nodes=compose_packet_from_source_nodes,
+                prepare_composition_from_source_nodes=(
+                    lambda arguments, source_nodes: {}
+                ),
             )
         )
         state = {

@@ -309,6 +309,9 @@ class TmcpMcpCliTests(unittest.TestCase):
                 "/tmp/project",
                 "--current-phase",
                 "final",
+                "--max-excerpt-chars",
+                "800",
+                "--include-all-active-source-slices",
                 "--files-changed",
                 "app/page.tsx",
                 "--failures",
@@ -319,6 +322,8 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(tool_name, "tmcp_runtime_next")
         self.assertEqual(arguments["objective"], "Fix the dashboard bug")
         self.assertEqual(arguments["current_phase"], "final")
+        self.assertEqual(arguments["max_excerpt_chars"], 800)
+        self.assertTrue(arguments["include_all_active_source_slices"])
         self.assertNotIn("cache_policy", arguments)
         self.assertEqual(arguments["files_changed"], ["app/page.tsx"])
         self.assertEqual(arguments["failures"], ["vitest failed"])

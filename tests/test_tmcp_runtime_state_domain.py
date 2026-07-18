@@ -149,6 +149,71 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
         )
         self.assertEqual(state["task_identity_delta"]["reason"], "user_redirect")
 
+    def test_capsule_bound_explicit_redirect_requires_fresh_composition(
+        self,
+    ) -> None:
+        plan = self._runtime_plan()
+        plan["phase_capsule_binding"] = {
+            "schema": "tmcp-phase-capsule-binding-v0.1"
+        }
+        plan["runtime_capsule"] = {
+            "schema": "tmcp-composition-runtime-capsule-v0.1"
+        }
+
+        state = derive_runtime_state(
+            {
+                "objective": "Debug the failing login test",
+                "previous_packet": {
+                    "composition_plan": plan,
+                    "task_identity": derive_task_identity(
+                        "Debug the failing login test"
+                    ),
+                },
+                "user_redirect": {"reason": "Switch to the billing migration."},
+                "cache_policy": "none",
+            },
+            source_nodes=[],
+            cache_warnings=[],
+        )
+
+        policy = state["composition_recompile_policy"]
+        self.assertTrue(policy["protected_plan"])
+        self.assertTrue(policy["runtime_capsule_present"])
+        self.assertTrue(policy["requires_fresh_composition"])
+        self.assertEqual(policy["reason"], "user_redirect")
+
+    def test_bare_different_message_does_not_force_fresh_composition(self) -> None:
+        plan = self._runtime_plan()
+        plan["phase_capsule_binding"] = {
+            "schema": "tmcp-phase-capsule-binding-v0.1"
+        }
+        plan["runtime_capsule"] = {
+            "schema": "tmcp-composition-runtime-capsule-v0.1"
+        }
+
+        state = derive_runtime_state(
+            {
+                "objective": "Debug the failing login test",
+                "latest_user_message": (
+                    "Please run different tests for the login failure."
+                ),
+                "previous_packet": {
+                    "composition_plan": plan,
+                    "task_identity": derive_task_identity(
+                        "Debug the failing login test"
+                    ),
+                },
+                "cache_policy": "none",
+            },
+            source_nodes=[],
+            cache_warnings=[],
+        )
+
+        policy = state["composition_recompile_policy"]
+        self.assertTrue(policy["protected_plan"])
+        self.assertFalse(policy["requires_fresh_composition"])
+        self.assertEqual(policy["reason"], "")
+
     def test_unknown_cache_policy_discards_cache_warnings(self) -> None:
         state = derive_runtime_state(
             {
@@ -182,9 +247,7 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
         self.assertEqual(delta["previous"], previous_identity)
         self.assertEqual(delta["reason"], "runtime_context_changed")
 
-    def test_composition_runtime_blocks_family_phase_until_named_gates_pass(
-        self,
-    ) -> None:
+    def test_legacy_unbound_plan_stays_inert_despite_runtime_evidence(self) -> None:
         state = derive_runtime_state(
             {
                 "objective": "Use runtime to implement onboarding",
@@ -204,32 +267,26 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
             cache_warnings=[],
         )
 
-        runtime = state["composition_runtime"]
-        self.assertIsInstance(runtime, dict)
-        assert isinstance(runtime, dict)
-        self.assertEqual(runtime["current_phase"], "runtime")
-        self.assertEqual(
-            runtime["phase_advance"]["blocked_reason"],
-            "runtime_failures_present",
-        )
-        self.assertEqual(state["suggested_phase"], "")
-        self.assertEqual(state["packet_delta"]["suggested_skills"], [])
-        observation_kinds = {
-            item["kind"] for item in runtime["runtime_observations"] if "kind" in item
-        }
+        self.assertIsNone(state["composition_runtime"])
         self.assertTrue(
-            {
-                "files_read",
-                "files_changed",
-                "commands_run",
-                "failures",
-                "browser_evidence",
-                "user_overrides",
-                "latest_user_message",
-            }.issubset(observation_kinds)
+            state["composition_recompile_policy"]
+            ["legacy_unbound_graph_requires_fresh_composition"]
+        )
+        self.assertIn(
+            "An unbound legacy composition graph requires a fresh semantic proposal.",
+            state["warnings"],
+        )
+        # Family routing can still recommend a bounded next skill, but it must
+        # not replay the unbound semantic graph or accept its runtime evidence.
+        self.assertEqual(state["suggested_phase"], "implementation")
+        self.assertEqual(state["packet_delta"]["suggested_skills"], ["implementation"])
+        self.assertEqual(
+            state["runtime_evidence"]["files_read"], ["docs/research.md"]
         )
 
-    def test_composition_runtime_advances_after_structured_gate_results(self) -> None:
+    def test_legacy_unbound_plan_cannot_advance_from_structured_gate_results(
+        self,
+    ) -> None:
         state = derive_runtime_state(
             {
                 "objective": "Use runtime to implement onboarding",
@@ -247,17 +304,16 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
             cache_warnings=[],
         )
 
-        runtime = state["composition_runtime"]
-        self.assertIsInstance(runtime, dict)
-        assert isinstance(runtime, dict)
-        self.assertTrue(runtime["phase_advance"]["allowed"])
-        self.assertEqual(runtime["current_phase"], "implementation")
+        self.assertIsNone(state["composition_runtime"])
+        self.assertEqual(state["phase"], "runtime")
+        self.assertTrue(
+            state["composition_recompile_policy"]
+            ["legacy_unbound_graph_requires_fresh_composition"]
+        )
         self.assertEqual(state["suggested_phase"], "implementation")
-        self.assertEqual(state["packet_delta"]["suggested_skills"], ["implement"])
+        self.assertEqual(state["packet_delta"]["suggested_skills"], ["implementation"])
 
-    def test_reported_current_phase_is_a_gated_request_when_plan_is_behind(
-        self,
-    ) -> None:
+    def test_legacy_unbound_plan_does_not_rewrite_reported_phase(self) -> None:
         state = derive_runtime_state(
             {
                 "objective": "Implement onboarding",
@@ -273,13 +329,15 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
             cache_warnings=[],
         )
 
-        self.assertEqual(state["phase"], "runtime")
-        self.assertEqual(state["runtime_evidence"]["requested_phase"], "implementation")
-        self.assertEqual(
-            state["composition_runtime"]["current_phase"], "implementation"
+        self.assertEqual(state["phase"], "implementation")
+        self.assertEqual(state["runtime_evidence"]["requested_phase"], "")
+        self.assertIsNone(state["composition_runtime"])
+        self.assertTrue(
+            state["composition_recompile_policy"]
+            ["legacy_unbound_graph_requires_fresh_composition"]
         )
 
-    def test_fresh_composition_cannot_bypass_the_previous_plan_gates(self) -> None:
+    def test_fresh_composition_does_not_inherit_legacy_plan_gates(self) -> None:
         state = derive_runtime_state(
             {
                 "objective": "Verify onboarding",
@@ -295,16 +353,15 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
             cache_warnings=[],
         )
 
-        runtime = state["composition_runtime"]
         self.assertTrue(state["semantic_proposal_supplied"])
-        self.assertEqual(runtime["current_phase"], "runtime")
-        self.assertFalse(runtime["phase_advance"]["allowed"])
-        self.assertEqual(
-            runtime["phase_advance"]["blocked_reason"],
-            "required_gates_not_passed",
+        self.assertIsNone(state["composition_runtime"])
+        self.assertFalse(
+            state["composition_recompile_policy"]
+            ["legacy_unbound_graph_requires_fresh_composition"]
         )
+        self.assertEqual(state["runtime_evidence"]["requested_phase"], "verification")
 
-    def test_explicit_project_recipe_is_treated_as_fresh_composition(self) -> None:
+    def test_explicit_project_recipe_does_not_replay_legacy_plan(self) -> None:
         state = derive_runtime_state(
             {
                 "objective": "Implement onboarding",
@@ -317,7 +374,11 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
         )
 
         self.assertTrue(state["semantic_proposal_supplied"])
-        self.assertIsInstance(state["composition_runtime"], dict)
+        self.assertIsNone(state["composition_runtime"])
+        self.assertFalse(
+            state["composition_recompile_policy"]
+            ["legacy_unbound_graph_requires_fresh_composition"]
+        )
 
     def test_runtime_state_domain_has_no_adapter_or_io_imports(self) -> None:
         source_path = Path(inspect.getfile(runtime_state))

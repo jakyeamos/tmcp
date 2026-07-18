@@ -22,6 +22,7 @@ from .composition_handoffs import (
     handoff_identity_projection,
 )
 from .composition_phase_bindings import build_phase_capsule_binding
+from .composition_runtime_capsules import build_runtime_capsule
 from .composition_validation import (
     SemanticProposalValidationError,
     ordering_pair,
@@ -428,6 +429,8 @@ def build_composition_plan(
         "instruction_override_policy": INSTRUCTION_OVERRIDE_POLICY,
     }
     plan["phase_capsule_binding"] = build_phase_capsule_binding(plan, preflight)
+    if isinstance(preflight.get("preparation_controls"), dict):
+        plan["runtime_capsule"] = build_runtime_capsule(plan, preflight)
     return plan
 
 

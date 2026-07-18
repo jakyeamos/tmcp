@@ -397,7 +397,7 @@ class CompositionRuntimeTransitionTests(unittest.TestCase):
         )
         self.assertFalse(generic["phase_advance"]["allowed"])
 
-        explicit = advance_composition_runtime(
+        unlinked = advance_composition_runtime(
             _plan(),
             {
                 "requested_phase": "implementation",
@@ -405,6 +405,22 @@ class CompositionRuntimeTransitionTests(unittest.TestCase):
                     {
                         "action": "advance_phase",
                         "reason": "Accept the known verification risk",
+                    }
+                ],
+            },
+        )
+        self.assertFalse(unlinked["phase_advance"]["allowed"])
+
+        explicit = advance_composition_runtime(
+            _plan(),
+            {
+                "requested_phase": "implementation",
+                "latest_user_message": "I accept the known verification risk.",
+                "user_overrides": [
+                    {
+                        "action": "advance_phase",
+                        "source": "user",
+                        "message": "Accept the known verification risk",
                     }
                 ],
             },
@@ -470,9 +486,11 @@ class CompositionRuntimeTransitionTests(unittest.TestCase):
                 "user_overrides": [
                     {
                         "action": "advance_phase",
-                        "reason": "Accept the known verification risk",
+                        "source": "user",
+                        "message": "Accept the known verification risk",
                     }
                 ],
+                "latest_user_message": "I accept the known verification risk.",
             },
         )
         self.assertTrue(overridden["phase_advance"]["override_applied"])

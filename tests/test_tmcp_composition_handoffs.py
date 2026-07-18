@@ -264,7 +264,10 @@ class CompositionHandoffContractTests(unittest.TestCase):
                 "source_type": "agent_operating_contract",
                 "relative_path": "AGENTS.md",
                 "title": "Governing instructions",
-                "excerpt": "Read evidence before modifying the project.",
+                "excerpt": (
+                    "Read evidence before modifying the project. Governing role "
+                    "exits when scope is approved and produces reviewed task scope."
+                ),
                 "behavior_atoms": [],
                 "routing_metadata": {},
             },
@@ -273,7 +276,10 @@ class CompositionHandoffContractTests(unittest.TestCase):
                 "source_type": "skill_definition",
                 "relative_path": "skills/research/SKILL.md",
                 "title": "Research skill",
-                "excerpt": "Produce a source-backed evidence brief.",
+                "excerpt": (
+                    "Produce a source-backed evidence brief. Research role exits "
+                    "when the evidence brief is approved."
+                ),
                 "behavior_atoms": [],
                 "routing_metadata": {},
             },

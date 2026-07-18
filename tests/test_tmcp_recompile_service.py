@@ -10,7 +10,6 @@ import tmcp_runtime.services.recompile as recompile_service
 from tmcp_runtime.domain.composition_runtime import advance_composition_runtime
 from tmcp_runtime.services.recompile import finalize_recompiled_packet
 from tests.test_tmcp_composition_runtime_handoff_enforcement import (
-    HANDOFF_ID,
     _handoff_result,
     _passing_gates,
     _plan as handoff_runtime_plan,
@@ -175,7 +174,7 @@ class TmcpRecompileServiceTests(unittest.TestCase):
             [item["source"] for item in packet["evidence_citations"]],
             ["guides/onboarding.md"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "Use pnpm for JavaScript dependency management, installs, and scripts.",
             packet["active_instructions"],
         )
@@ -243,6 +242,7 @@ class TmcpRecompileServiceTests(unittest.TestCase):
                     "warnings": [],
                 },
                 "composition_diagnostics": {"preflight": {}},
+                "receipt_template": {"composition_plan_digest": "a" * 64},
             }
         )
         source_nodes = self._composition_source_nodes()
@@ -292,7 +292,7 @@ class TmcpRecompileServiceTests(unittest.TestCase):
 
         packet = result["packet"]
         self.assertEqual(packet["phase"], "implementation")
-        self.assertEqual(packet["active_atoms"], ["implement-atom"])
+        self.assertEqual(packet["active_atoms"], [])
         self.assertEqual(
             packet["composition_plan"]["composition_plan_id"],
             plan["composition_plan_id"],
@@ -324,6 +324,187 @@ class TmcpRecompileServiceTests(unittest.TestCase):
             "fulfilled_obligations",
         ):
             self.assertIn(field, result["packet_diff"])
+
+    def test_explicit_redirect_inerts_prior_capsule_bound_plan_without_proposal(
+        self,
+    ) -> None:
+        plan = composition_runtime_plan()
+        plan["phase_capsule_binding"] = {
+            "schema": "tmcp-phase-capsule-binding-v0.1"
+        }
+        plan["runtime_capsule"] = {
+            "schema": "tmcp-composition-runtime-capsule-v0.1"
+        }
+        previous_packet = self._previous_packet()
+        previous_packet.update(
+            {
+                "phase": "discovery",
+                "active_atoms": ["research-atom"],
+                "active_instructions": ["Keep the old graph active."],
+                "required_reads": ["skills/research/SKILL.md"],
+                "tool_script_prompts": ["Follow the old graph."],
+                "stop_conditions": ["Stop at the old gate."],
+                "receipt_template": {"activated_atoms": ["research-atom"]},
+                "shortcut_candidate": {"status": "eligible", "matched": True},
+                "composition_plan": plan,
+            }
+        )
+        composed_packet = self._composed_packet()
+        composed_packet.update(
+            {
+                "active_atoms": ["research-atom"],
+                "active_instructions": ["Keep the old graph active."],
+                "required_reads": ["skills/research/SKILL.md"],
+                "tool_script_prompts": ["Follow the old graph."],
+                "stop_conditions": ["Stop at the old gate."],
+                "receipt_template": {"activated_atoms": ["research-atom"]},
+                "shortcut_candidate": {"status": "eligible", "matched": True},
+            }
+        )
+        state = self._state()
+        state.update(
+            {
+                "phase": "discovery",
+                "suggested_phase": "",
+                "source_nodes": self._composition_source_nodes(),
+                "composition_runtime": advance_composition_runtime(plan, {}),
+                "runtime_evidence": {},
+                "semantic_proposal_supplied": False,
+                "composition_recompile_policy": {
+                    "requires_fresh_composition": True,
+                    "reason": "user_redirect",
+                    "required_action": (
+                        "Prepare current sources and submit a fresh semantic proposal."
+                    ),
+                },
+                "packet_delta": {},
+                "next_verification_gate": [],
+                "validated_changes": [],
+            }
+        )
+
+        result = finalize_recompiled_packet(
+            {"user_redirect": {"reason": "Switch to the billing migration."}},
+            state,
+            previous_packet=previous_packet,
+            composed_packet=composed_packet,
+            previous_packet_id="packet-previous",
+        )
+
+        packet = result["packet"]
+        self.assertFalse(result["ok"])
+        self.assertIsNone(result["composition_runtime"])
+        self.assertIsNone(packet["composition_plan"])
+        self.assertEqual(
+            packet["inert_composition_plan"]["composition_plan_id"],
+            plan["composition_plan_id"],
+        )
+        self.assertEqual(
+            packet["composition_plan_status"],
+            "redirect_requires_fresh_composition",
+        )
+        for field in (
+            "active_atoms",
+            "active_instructions",
+            "required_reads",
+            "tool_script_prompts",
+            "stop_conditions",
+        ):
+            self.assertEqual(packet[field], [])
+        self.assertEqual(
+            packet["verification_gates"],
+            ["Prepare current sources and submit a fresh semantic proposal."],
+        )
+        self.assertEqual(packet["shortcut_candidate"]["status"], "ineligible")
+
+    def test_redirect_with_fresh_semantic_plan_does_not_inherit_old_phase_gates(
+        self,
+    ) -> None:
+        old_plan = composition_runtime_plan()
+        old_plan["phase_capsule_binding"] = {
+            "schema": "tmcp-phase-capsule-binding-v0.1"
+        }
+        prior_runtime = advance_composition_runtime(
+            old_plan,
+            {"requested_phase": "implementation"},
+        )
+        self.assertEqual(
+            prior_runtime["phase_advance"]["blocked_reason"],
+            "required_gates_not_passed",
+        )
+        previous_packet = self._previous_packet()
+        citations = [
+            {
+                "source": f"skills/{node_id}/SKILL.md",
+                "source_role": "active_skill",
+                "content_digest": f"digest-{node_id}",
+                "relationship_citations": [f"slice-{node_id}"],
+            }
+            for node_id in ("research", "implement", "verify")
+        ]
+        previous_packet.update(
+            {
+                "phase": "discovery",
+                "composition_plan": old_plan,
+                "semantic_proposal_validation": {"accepted": True},
+                "evidence_citations": citations,
+            }
+        )
+        fresh_plan = composition_runtime_plan()
+        composed_packet = self._composed_packet()
+        composed_packet.update(
+            {
+                "composition_plan": fresh_plan,
+                "semantic_proposal_validation": {
+                    "accepted": True,
+                    "errors": [],
+                    "warnings": [],
+                },
+                "composition_diagnostics": {"preflight": {}},
+                "evidence_citations": copy.deepcopy(citations),
+            }
+        )
+        state = self._state()
+        state.update(
+            {
+                "phase": "discovery",
+                "suggested_phase": "",
+                "source_nodes": self._composition_source_nodes(),
+                "composition_runtime": prior_runtime,
+                "runtime_evidence": {},
+                "semantic_proposal_supplied": True,
+                "composition_recompile_policy": {
+                    "requires_fresh_composition": True,
+                    "reason": "user_redirect",
+                },
+                "packet_delta": {},
+            }
+        )
+
+        result = finalize_recompiled_packet(
+            {
+                "semantic_proposal": {"schema": "tmcp-semantic-proposal-v0.1"},
+                "user_redirect": {"reason": "Switch to a new objective."},
+            },
+            state,
+            previous_packet=previous_packet,
+            composed_packet=composed_packet,
+            previous_packet_id="packet-previous",
+        )
+
+        runtime = result["composition_runtime"]
+        self.assertTrue(result["ok"])
+        self.assertIsInstance(runtime, dict)
+        assert isinstance(runtime, dict)
+        self.assertTrue(runtime["phase_advance"]["allowed"])
+        self.assertEqual(runtime["phase_advance"]["blocked_reason"], "")
+        self.assertNotIn("prior_graph_transition", runtime)
+        self.assertNotIn("continuity", runtime)
+        self.assertEqual(len(runtime["phase_trace"]), 1)
+        self.assertEqual(
+            result["packet"]["composition_plan"]["current_phase"],
+            "discovery",
+        )
 
     def test_changed_composition_source_rejects_stale_graph_provenance(self) -> None:
         plan = composition_runtime_plan()
@@ -579,7 +760,7 @@ class TmcpRecompileServiceTests(unittest.TestCase):
             "reviewed-onboarding",
         )
 
-    def test_semantic_recompile_carries_verified_handoff_evidence_on_same_graph(
+    def test_semantic_recompile_starts_a_fresh_runtime_evidence_chain(
         self,
     ) -> None:
         plan = handoff_runtime_plan()
@@ -660,16 +841,18 @@ class TmcpRecompileServiceTests(unittest.TestCase):
             result["packet"]["composition_plan"]["runtime_state"][
                 "available_handoff_ids"
             ],
-            [HANDOFF_ID],
+            [],
         )
-        self.assertEqual(
-            result["packet"]["receipt_template"]["handoff_results"][0]["status"],
-            "available",
+        self.assertTrue(
+            all(
+                item["status"] == "pending"
+                for item in result["packet"]["receipt_template"]["handoff_results"]
+            )
         )
-        self.assertEqual(result["packet_diff"]["handoffs"]["available"], [HANDOFF_ID])
-        self.assertIn(
-            "handoff_results",
-            result["composition_runtime"]["continuity"]["carried_fields"],
+        self.assertEqual(result["packet_diff"]["handoffs"]["available"], [])
+        self.assertNotIn(
+            "continuity",
+            result["composition_runtime"],
         )
 
     def test_recompile_service_has_no_adapter_storage_or_io_imports(self) -> None:

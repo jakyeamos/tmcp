@@ -228,8 +228,13 @@ class CompositionRuntimeHandoffEnforcementTests(unittest.TestCase):
             {
                 "requested_phase": "implementation",
                 "gate_results": _passing_gates(),
+                "latest_user_message": "I accept the known risk.",
                 "user_overrides": [
-                    {"action": "advance_phase", "reason": "Accept known risk"}
+                    {
+                        "action": "advance_phase",
+                        "source": "user",
+                        "message": "Accept the known risk",
+                    }
                 ],
             },
         )

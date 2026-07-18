@@ -222,6 +222,7 @@ def _validate_header(
     schema: str,
     control_plan: Mapping[str, Any],
     collections: set[str],
+    required_fields: set[str] | None = None,
 ) -> None:
     _assert_keys(
         bundle,
@@ -233,6 +234,7 @@ def _validate_header(
             "control_plan_id",
             "control_plan_digest",
             *collections,
+            *(required_fields or set()),
         },
     )
     if bundle.get("schema") != schema:

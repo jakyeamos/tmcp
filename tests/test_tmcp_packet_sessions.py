@@ -154,11 +154,16 @@ class PacketSessionStoreTests(unittest.TestCase):
             cast(dict[str, Any], packet["receipt_template"])
         )
         binding = copy.deepcopy(plan_map["phase_capsule_binding"])
+        runtime_capsule = copy.deepcopy(plan_map["runtime_capsule"])
         source_secret = "sk-" + "S" * 40
         arbitrary_hash = hashlib.sha256(b"unapproved-session-hash").hexdigest()
         plan_map["unapproved_source_prose"] = (
             f"Never persist this unapproved source prose: {source_secret}"
         )
+        plan_map["runtime_preflight"] = {
+            "objective": f"Never persist {source_secret}",
+            "candidate_source_slices": [{"content": source_secret}],
+        }
         receipt_map["opaque_digest"] = arbitrary_hash
         receipt_map["execution_context"] = {
             "preflight_context_instance_id": "host-context-should-not-persist",
@@ -197,6 +202,7 @@ class PacketSessionStoreTests(unittest.TestCase):
                 dict[str, Any], persisted_packet["receipt_template"]
             )
             self.assertEqual(persisted_plan["phase_capsule_binding"], binding)
+            self.assertEqual(persisted_plan["runtime_capsule"], runtime_capsule)
             self.assertEqual(
                 {
                     field: persisted_receipt[field]
@@ -212,6 +218,10 @@ class PacketSessionStoreTests(unittest.TestCase):
             )
             self.assertNotIn("execution_context", persisted_packet)
             self.assertNotIn("execution_context", persisted_receipt)
+            self.assertNotIn("runtime_preflight", persisted_plan)
+            self.assertNotIn("objective", persisted_plan["runtime_capsule"])
+            self.assertNotIn("task_identity", persisted_plan["runtime_capsule"])
+            self.assertNotIn("content", str(persisted_plan["runtime_capsule"]))
             self.assertEqual(
                 persisted_receipt["opaque_digest"],
                 "[REDACTED:long_high_entropy]",
@@ -223,7 +233,36 @@ class PacketSessionStoreTests(unittest.TestCase):
         self.assertNotIn(source_secret, serialized)
         self.assertNotIn(arbitrary_hash, serialized)
         self.assertNotIn("execution_context", serialized)
+        self.assertNotIn("runtime_preflight", serialized)
         self.assertIn("[REDACTED:openai_key]", serialized)
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
+    def test_invalid_runtime_capsule_is_marked_before_session_restore(self) -> None:
+        packet = _semantic_composition_packet()
+        plan = cast(dict[str, Any], packet["composition_plan"])
+        capsule = cast(dict[str, Any], plan["runtime_capsule"])
+        capsule["capsule_digest"] = hashlib.sha256(b"forged-capsule").hexdigest()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "project"
+            project.mkdir()
+            store = PacketSessionStore.open(project, "invalid-runtime-capsule")
+            created = store.create(packet, now="2026-07-17T00:00:00Z")
+            loaded = store.load()
+
+        self.assertNotIn("runtime_capsule", created.packet["composition_plan"])
+        self.assertNotIn("runtime_capsule", loaded.packet["composition_plan"])
+        self.assertEqual(
+            created.packet["composition_provenance_status"],
+            "runtime_capsule_invalid",
+        )
+        self.assertEqual(
+            loaded.packet["composition_provenance_status"],
+            "runtime_capsule_invalid",
+        )
 
     def test_session_id_and_packet_shape_are_strict(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

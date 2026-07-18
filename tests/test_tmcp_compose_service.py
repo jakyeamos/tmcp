@@ -11,6 +11,7 @@ from tmcp_runtime.services.compose import (
     active_instructions_for_source_node,
     compose_packet_from_source_nodes,
     enrich_packet_from_source_nodes,
+    prepare_composition_from_source_nodes,
 )
 
 
@@ -170,13 +171,10 @@ class TmcpComposeServiceTests(unittest.TestCase):
     def test_declared_supporting_read_never_activates_behavior(self) -> None:
         skill = self._source_node(
             "skills/onboarding/SKILL.md",
-            "Implement the onboarding experience.",
-            behavior_atoms=["onboarding-skill"],
+            "Implement the onboarding experience. Read `docs/onboarding.md`.",
+            behavior_atoms=["behavior-preservation"],
             source_type="skill_definition",
         )
-        skill["routing_metadata"] = {
-            "declared_loads": ["docs/onboarding.md"],
-        }
         supporting_read = self._source_node(
             "docs/onboarding.md",
             "Supporting onboarding product context.",
@@ -203,7 +201,7 @@ class TmcpComposeServiceTests(unittest.TestCase):
             "docs/onboarding.md",
             [item["source"] for item in packet["evidence_citations"]],
         )
-        self.assertIn("onboarding-skill", packet["active_atoms"])
+        self.assertIn("behavior-preservation", packet["active_atoms"])
         self.assertNotIn(
             "supporting-behavior-must-not-activate",
             packet["active_atoms"],
@@ -211,6 +209,48 @@ class TmcpComposeServiceTests(unittest.TestCase):
         self.assertNotIn(
             "supporting-behavior-must-not-activate",
             packet["deferred_atoms"],
+        )
+
+    def test_spoofed_documentation_role_never_prepares_or_activates_behavior(
+        self,
+    ) -> None:
+        documentation = self._source_node(
+            "docs/README.md",
+            "Migration rollback database schema evidence.",
+            behavior_atoms=["spoofed-documentation-atom"],
+            source_type="project_documentation",
+        )
+        documentation["source_role"] = "active_skill"
+        documentation["activation_eligible"] = True
+        documentation["routing_metadata"] = {"trigger_phrases": ["migration"]}
+        arguments = {
+            "objective": "Plan database migration rollback",
+            "project_path": "[REDACTED:path]",
+            "phase": "implementation",
+            "cache_policy": "none",
+        }
+
+        preflight = prepare_composition_from_source_nodes(
+            arguments,
+            source_nodes=[documentation],
+        )
+        packet = compose_packet_from_source_nodes(
+            arguments,
+            source_nodes=[documentation],
+            global_graphs=[],
+            receipts=[],
+            cache_warnings=[],
+            cache_home="[REDACTED:path]",
+        )
+
+        self.assertEqual(
+            preflight["candidate_source_slices"][0]["source_role"],
+            "supporting_reference",
+        )
+        self.assertNotIn("spoofed-documentation-atom", packet["active_atoms"])
+        self.assertNotIn("spoofed-documentation-atom", packet["deferred_atoms"])
+        self.assertEqual(
+            packet["ignored_sources"][0]["source_role"], "supporting_reference"
         )
 
     def test_unselected_support_evidence_and_fixture_atoms_never_defer(self) -> None:
@@ -270,6 +310,41 @@ class TmcpComposeServiceTests(unittest.TestCase):
             "evidence_only",
         )
 
+    def test_explicitly_scoped_fixture_skill_stays_active_in_direct_compose(self) -> None:
+        fixture_path = "tests/fixtures/proof/SKILL.md"
+        fixture = self._source_node(
+            fixture_path,
+            "Verify the explicit fixture proof.",
+            behavior_atoms=["behavior-verification"],
+            source_type="skill_definition",
+        )
+
+        packet = compose_packet_from_source_nodes(
+            {
+                "objective": "Run the explicit fixture proof",
+                "project_path": "[REDACTED:path]",
+                "phase": "verification",
+                "cache_policy": "none",
+                "explicitly_scoped_paths": [fixture_path],
+            },
+            source_nodes=[fixture],
+            global_graphs=[],
+            receipts=[],
+            cache_warnings=[],
+            cache_home="[REDACTED:path]",
+        )
+
+        self.assertIn("behavior-verification", packet["active_atoms"])
+        self.assertEqual(
+            packet["composition_diagnostics"]["source_role_counts"]["active_skill"],
+            1,
+        )
+        self.assertEqual(
+            packet["composition_diagnostics"]["compatibility_selection"]
+            ["selected_explicit_sources"],
+            [fixture_path],
+        )
+
     def test_project_policy_never_activates_injected_global_cache_inputs(self) -> None:
         packet = compose_packet_from_source_nodes(
             {
@@ -320,9 +395,10 @@ class TmcpComposeServiceTests(unittest.TestCase):
             (
                 "Use pnpm. Read before modifying. Search existing behavior first. "
                 "Choose the brand register. Maintain a canonical spreadsheet. "
-                "Record the last tested commit. Verify contrast, reduced motion, and responsive behavior."
+                "Record the last tested commit. Verify contrast, reduced motion, and responsive behavior. "
+                "Keep alpha and beta evidence labels."
             ),
-            behavior_atoms=["alpha", "beta"],
+            behavior_atoms=["agent-operating-contract", "source-traceability"],
         )
         fallback_node = self._source_node(
             "rules/fallback.md",
@@ -344,9 +420,7 @@ class TmcpComposeServiceTests(unittest.TestCase):
         )
         self.assertEqual(
             active_instructions_for_source_node(fallback_node),
-            [
-                "Apply relevant harvested behavior atoms from rules/fallback.md: alpha, beta."
-            ],
+            [],
         )
 
         packet = {
@@ -371,7 +445,7 @@ class TmcpComposeServiceTests(unittest.TestCase):
         )
         self.assertEqual(
             enriched["evidence_citations"][1]["matched_atoms"],
-            ["alpha", "beta"],
+            ["agent-operating-contract", "source-traceability"],
         )
         self.assertEqual(enriched["active_instructions"][0], "Existing instruction")
         self.assertEqual(len(enriched["active_instructions"]), 8)

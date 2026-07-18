@@ -382,7 +382,7 @@
         "result_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "run_receipt": {
           "type": "object",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": ["run_id", "variant_id", "outcome", "artifact_digest"],
           "properties": {
             "run_id": {"type": "string", "minLength": 1},
@@ -391,7 +391,8 @@
             "artifact_digest": {
               "type": "string",
               "pattern": "^[a-f0-9]{64}$"
-            }
+            },
+            "tmcp_run_receipt": {"$ref": "#/$defs/run_receipt"}
           }
         },
         "receipt_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},

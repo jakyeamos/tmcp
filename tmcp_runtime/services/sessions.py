@@ -8,6 +8,20 @@ from typing import Any, Generic, Protocol, TypeVar
 
 
 RUNTIME_NEXT_SCHEMA = "tmcp-runtime-next-v0.1"
+SESSION_RUNTIME_CONTINUATION_TRUST_FIELD = "_tmcp_session_continuation_trust"
+_SESSION_RUNTIME_CONTINUATION_TRUST = object()
+
+
+def session_runtime_continuation_trust() -> object:
+    """Return the opaque in-process marker for a store-loaded packet."""
+
+    return _SESSION_RUNTIME_CONTINUATION_TRUST
+
+
+def has_session_runtime_continuation_trust(value: object) -> bool:
+    """Reject caller-provided JSON values; only object identity is trusted."""
+
+    return value is _SESSION_RUNTIME_CONTINUATION_TRUST
 
 
 class SessionSnapshot(Protocol):
@@ -86,6 +100,9 @@ class RuntimeSessionService(Generic[SnapshotT]):
             runtime_arguments.setdefault("source_path", str(session_store.project_root))
             runtime_arguments["previous_packet"] = session_snapshot.packet
             runtime_arguments["previous_packet_id"] = stored_packet_id
+            runtime_arguments[SESSION_RUNTIME_CONTINUATION_TRUST_FIELD] = (
+                session_runtime_continuation_trust()
+            )
         state = self._build_state(runtime_arguments)
         if output_mode == "full":
             recompiled = self._recompile_packet(runtime_arguments, state)
@@ -113,6 +130,9 @@ class RuntimeSessionService(Generic[SnapshotT]):
             "previous_packet_id": argument_map.get("previous_packet_id"),
             "task_identity": state["task_identity"],
             "task_identity_delta": state["task_identity_delta"],
+            "composition_recompile_policy": state.get(
+                "composition_recompile_policy"
+            ),
             "packet_delta": state["packet_delta"],
             "next_verification_gate": state["next_verification_gate"],
             "warnings": state["warnings"],

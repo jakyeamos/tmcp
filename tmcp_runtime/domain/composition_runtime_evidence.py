@@ -24,6 +24,14 @@ PENDING_STATUSES = frozenset({"pending", "running", "skipped", "unknown"})
 AVAILABLE_HANDOFF_STATUSES = frozenset(
     {"available", "produced", "pass", "passed", "success", "verified"}
 )
+PHASE_OVERRIDE_TERMS = (
+    "advance phase",
+    "advance to",
+    "bypass gate",
+    "override gate",
+    "proceed despite",
+    "skip the gate",
+)
 
 
 def evidence_summary(value: object) -> str:
@@ -248,6 +256,35 @@ def normalize_runtime_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
         "user_redirect": _user_redirect(evidence.get("user_redirect"), unstructured),
         "unstructured_evidence": unstructured,
     }
+
+
+def explicit_phase_override(
+    values: list[Any], latest_user_message: str
+) -> dict[str, Any] | None:
+    """Accept a phase bypass only when it is linked to observed user text."""
+
+    observed = latest_user_message.strip()
+    observed_lower = observed.lower()
+    if observed and any(term in observed_lower for term in PHASE_OVERRIDE_TERMS):
+        return {
+            "action": "advance_phase",
+            "source": "latest_user_message",
+            "message": observed,
+        }
+    for value in values:
+        if not isinstance(value, Mapping):
+            continue
+        action = str(value.get("action") or value.get("type") or "").lower()
+        source = str(value.get("source") or "").lower()
+        message = str(value.get("message") or value.get("reason") or "").strip()
+        if (
+            action in {"advance_phase", "bypass_phase_gate", "phase_gate"}
+            and source == "user"
+            and message
+            and message.lower() in observed_lower
+        ):
+            return {**dict(value), "message": message}
+    return None
 
 
 def _require_plan(plan: Mapping[str, Any]) -> None:

@@ -15,7 +15,7 @@ Use this checklist before claiming a Tier One release.
 - [ ] Experimental workflows remain shipped, callable, and labeled experimental.
 - [ ] MCP `tools/list` includes `tmcp_recommend_workflows`, `tmcp_compose_packet`, `tmcp_runtime_next`, and `tmcp_record_receipt`.
 - [ ] Public schemas exist for skill packets, adaptive workflow packs, composed packets, runtime deltas, recompiled packets, explicit run sessions, run receipts, and promoted harvest graphs.
-- [ ] Public compositional-intelligence schemas cover preflight, semantic proposals, composition plans, evaluation plans/summaries, project recipes, and benchmark observations/summaries.
+- [ ] Public compositional-intelligence schemas cover preflight, semantic proposals, composition plans, runtime capsules, evaluation plans/summaries, project recipes, and benchmark observations/summaries.
 - [ ] `python3 scripts/check_contracts.py .` confirms the canonical registry, manifests, installer, live MCP initialize response, and tool list agree.
 - [ ] `python3 scripts/check_install.py .` passes.
 - [ ] Runtime-manager install, sync, doctor, parity, mismatch, and rollback tests pass.

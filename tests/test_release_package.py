@@ -19,6 +19,7 @@ from unittest.mock import patch
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 RELEASE_ARCHIVE_PATH = PLUGIN_ROOT / "scripts" / "tmcp_release_archive.py"
 CHECK_RELEASE_PACKAGE_PATH = PLUGIN_ROOT / "scripts" / "check_release_package.py"
+RELEASE_PACKAGE_COMPILE_PATH = PLUGIN_ROOT / "scripts" / "release_package_compile.py"
 
 
 class _ReleaseArchiveModule(Protocol):
@@ -67,6 +68,17 @@ def load_release_package_check_module():
     )
     if spec is None or spec.loader is None:
         raise RuntimeError("Could not load check_release_package module")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_release_package_compile_module():
+    spec = importlib.util.spec_from_file_location(
+        "release_package_compile", RELEASE_PACKAGE_COMPILE_PATH
+    )
+    if spec is None or spec.loader is None:
+        raise RuntimeError("Could not load release_package_compile module")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -177,6 +189,7 @@ class ReleasePackageTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.package = load_release_archive_module()
         cls.checker = load_release_package_check_module()
+        cls.compiler = load_release_package_compile_module()
 
     def test_fixture_git_environment_scrubs_git_overrides(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -724,6 +737,12 @@ class ReleasePackageTests(unittest.TestCase):
             ok, output = self.checker.check_composition_surface(PLUGIN_ROOT, Path(tmp))
 
         self.assertTrue(ok, output)
+
+    def test_release_compile_includes_runtime_continuation_module(self) -> None:
+        self.assertIn(
+            "tmcp_runtime/domain/composition_runtime_continuations.py",
+            self.compiler.COMPILE_PATHS,
+        )
 
     def test_package_requires_git_worktree(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

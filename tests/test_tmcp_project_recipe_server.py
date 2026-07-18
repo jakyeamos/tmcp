@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import copy
 import importlib.util
 import os
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from scripts.schema_contract_support import assert_matches_schema
@@ -52,6 +54,88 @@ class TmcpProjectRecipeServerTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.server = load_server_module()
 
+    def test_cached_recipe_uses_the_alias_replayed_preflight(self) -> None:
+        fresh_preflight = {
+            "schema": "tmcp-composition-preflight-v0.1",
+            "candidate_source_slices": [
+                {"source_node_id": "research-renamed", "slice_id": "slice-fresh"}
+            ],
+        }
+        replay_preflight = copy.deepcopy(fresh_preflight)
+        replay_preflight["candidate_source_slices"][0] = {
+            "source_node_id": "research",
+            "slice_id": "slice-original",
+        }
+        calls: list[dict[str, object]] = []
+        compiler_calls: list[dict[str, object]] = []
+
+        class RecipeService:
+            def load_for_preflight(self, arguments: dict[str, object]) -> dict[str, object]:
+                calls.append(arguments)
+                return {
+                    "recipe_id": "research-review",
+                    "graph_digest": "a" * 32,
+                    "origin_composition_plan_id": "composition-" + "b" * 20,
+                    "semantic_proposal": {"schema": "tmcp-semantic-proposal-v0.1"},
+                    "composition_preflight": replay_preflight,
+                }
+
+        def compose(
+            arguments: dict[str, object], **kwargs: object
+        ) -> dict[str, object]:
+            compiler_calls.append(
+                {
+                    "arguments": arguments,
+                    "prepared_composition": kwargs["prepared_composition"],
+                }
+            )
+            return {"global_cache": {}, "receipt_template": {}, "safety": {}}
+
+        with patch.object(
+            self.server,
+            "_project_composition_recipe_service",
+            return_value=RecipeService(),
+        ), patch.object(
+            self.server,
+            "_global_cache_snapshot",
+            return_value=SimpleNamespace(promoted_graphs=[], receipts=[], warnings=[]),
+        ), patch.object(
+            self.server,
+            "_runtime_compose_packet_from_source_nodes",
+            side_effect=compose,
+        ):
+            packet = self.server._compose_packet_from_source_nodes(
+                {
+                    "objective": "Review a cited report.",
+                    "project_recipe_id": "research-review",
+                    "project_path": "/project",
+                    "phase": "implementation",
+                    "cache_policy": "project",
+                },
+                source_nodes=[],
+                prepared_composition=fresh_preflight,
+            )
+
+        self.assertEqual(packet["project_recipe"]["recipe_id"], "research-review")
+        self.assertEqual(
+            compiler_calls[0]["prepared_composition"]["candidate_source_slices"][0][
+                "source_node_id"
+            ],
+            "research",
+        )
+        self.assertEqual(
+            compiler_calls[0]["prepared_composition"]["candidate_source_slices"][0][
+                "slice_id"
+            ],
+            "slice-original",
+        )
+        self.assertEqual(
+            compiler_calls[0]["arguments"]["semantic_proposal"],
+            {"schema": "tmcp-semantic-proposal-v0.1"},
+        )
+        self.assertEqual(calls[0]["composition_preflight"], fresh_preflight)
+        self.assertEqual(calls[0]["current_phase"], "implementation")
+
     @unittest.skipUnless(
         artifact_persistence_available(),
         "Secure artifact persistence is unavailable on this platform.",
@@ -63,7 +147,7 @@ class TmcpProjectRecipeServerTests(unittest.TestCase):
             project = Path(directory) / "project"
             project.mkdir()
             (project / "AGENTS.md").write_text(
-                "# Rules\nRead before modifying and preserve evidence.\n",
+                "# Rules\nRead before modifying. Preserve governing instructions and evidence.\n",
                 encoding="utf-8",
             )
             skill = project / "skills" / "research" / "SKILL.md"
@@ -78,6 +162,10 @@ class TmcpProjectRecipeServerTests(unittest.TestCase):
                 "source_path": str(project),
                 "phase": "start",
                 "cache_policy": "none",
+                "candidate_limit": 6,
+                "max_excerpt_chars": 800,
+                "max_total_chars": 6000,
+                "max_total_tokens": 1500,
             }
             preflight = self.server._prepare_composition(arguments)
             slices = preflight["candidate_source_slices"]
@@ -117,7 +205,7 @@ class TmcpProjectRecipeServerTests(unittest.TestCase):
                         "start",
                         ["task objective"],
                         ["bounded constraints"],
-                        "constraints applied",
+                        "governing instructions",
                     ),
                     role(
                         research,
@@ -222,9 +310,24 @@ class TmcpProjectRecipeServerTests(unittest.TestCase):
             )
             cached = self.server._compose_packet(
                 {
-                    **arguments,
+                    "objective": arguments["objective"],
+                    "project_path": str(project),
+                    "source_path": str(project),
+                    "phase": "start",
                     "cache_policy": "project",
                     "project_recipe_id": "research-review",
+                }
+            )
+            recompiled = self.server._runtime_next(
+                {
+                    "objective": arguments["objective"],
+                    "project_path": str(project),
+                    "source_path": str(project),
+                    "current_phase": "start",
+                    "cache_policy": "project",
+                    "project_recipe_id": "research-review",
+                    "output_mode": "full",
+                    "previous_packet": packet,
                 }
             )
             compatibility = self.server._compose_packet(arguments)
@@ -248,8 +351,40 @@ class TmcpProjectRecipeServerTests(unittest.TestCase):
                 cached["composition_plan"]["provenance"]["graph_digest"],
                 graph_digest,
             )
+            self.assertEqual(
+                cached["composition_plan"]["runtime_capsule"]["preparation_controls"],
+                plan["runtime_capsule"]["preparation_controls"],
+            )
+            self.assertEqual(
+                cached["composition_plan"]["runtime_capsule"]["capsule_digest"],
+                plan["runtime_capsule"]["capsule_digest"],
+            )
+            self.assertTrue(recompiled["ok"])
+            self.assertEqual(
+                recompiled["packet"]["project_recipe"]["recipe_id"],
+                "research-review",
+            )
+            self.assertEqual(
+                recompiled["packet"]["composition_plan"]["runtime_capsule"][
+                    "preparation_controls"
+                ],
+                plan["runtime_capsule"]["preparation_controls"],
+            )
             self.assertNotIn("composition_plan", compatibility)
             self.assertEqual(compatibility["global_cache"]["cache_policy"], "none")
+
+            with self.assertRaisesRegex(ValueError, "runtime capsule"):
+                self.server._compose_packet(
+                    {
+                        "objective": arguments["objective"],
+                        "project_path": str(project),
+                        "source_path": str(project),
+                        "phase": "start",
+                        "cache_policy": "project",
+                        "project_recipe_id": "research-review",
+                        "candidate_limit": 7,
+                    }
+                )
 
             skill.write_text(
                 "# Research\nProduce a cited brief, verify sources, and audit claims.\n",

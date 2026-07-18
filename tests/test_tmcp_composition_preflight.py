@@ -136,6 +136,7 @@ class CompositionPreflightBudgetTests(unittest.TestCase):
                 f"Tiny behavior {index}.",
                 token_estimate=4,
             )
+
             for index in range(10)
         ]
 
@@ -163,6 +164,71 @@ class CompositionPreflightBudgetTests(unittest.TestCase):
                 max_total_tokens=1_000,
                 include_all_active_source_slices=True,
             )
+
+    def test_preflight_prefers_skill_behavior_over_frontmatter_metadata(self) -> None:
+        content = """---
+name: runtime-hardening
+description: Verify runtime provenance and regression behavior.
+---
+
+# Workflow
+
+Inspect the current runtime capsule, preserve source provenance, and verify
+the regression suite before producing a bounded handoff.
+"""
+
+        preflight = ci.prepare_composition(
+            [
+                _node(
+                    "runtime-hardening",
+                    "skill_definition",
+                    "skills/runtime-hardening/SKILL.md",
+                    content,
+                )
+            ],
+            "Harden runtime provenance and verify the regression behavior.",
+            max_slices=1,
+            max_total_chars=2_000,
+            max_total_tokens=1_000,
+        )
+
+        selected = preflight["candidate_source_slices"]
+        self.assertEqual(len(selected), 1)
+        self.assertIn("Inspect the current runtime capsule", selected[0]["content"])
+        self.assertNotEqual(selected[0]["char_start"], 0)
+
+    def test_preflight_prefers_an_executable_contract_over_trigger_copy(self) -> None:
+        content = """# Runtime hardening
+
+Use this skill when the user asks to harden runtime provenance.
+
+## Workflow
+
+Inspect current source provenance before changing runtime behavior.
+
+## Output Contract
+
+Produce a runtime provenance handoff with verified regression evidence.
+"""
+
+        preflight = ci.prepare_composition(
+            [
+                _node(
+                    "runtime-hardening",
+                    "skill_definition",
+                    "skills/runtime-hardening/SKILL.md",
+                    content,
+                )
+            ],
+            "Harden runtime provenance and verify regression behavior.",
+            max_slices=1,
+            max_total_chars=2_000,
+            max_total_tokens=1_000,
+        )
+
+        selected = preflight["candidate_source_slices"]
+        self.assertEqual(len(selected), 1)
+        self.assertIn("runtime provenance handoff", selected[0]["content"])
 
 
 if __name__ == "__main__":

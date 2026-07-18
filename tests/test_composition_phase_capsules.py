@@ -246,8 +246,32 @@ class CompositionPhaseCapsuleTests(unittest.TestCase):
         self.assertEqual(second["source_skill_ids"], ["govern", "verify"])
         self.assertFalse(first["incoming_handoff_digests"])
         self.assertEqual(len(second["incoming_handoff_digests"]), 1)
-        self.assertEqual(first["capsule"]["stage"]["status"], "active")
-        self.assertEqual(second["capsule"]["stage"]["status"], "active")
+        self.assertEqual(first["capsule"]["objective"], _preflight(_sources())["objective"])
+        self.assertEqual(first["capsule"]["stage"]["phase"], "discovery")
+        self.assertEqual(second["capsule"]["stage"]["phase"], "verification")
+        self.assertNotIn("status", first["capsule"]["stage"])
+        self.assertNotIn("handoff_contracts", second["capsule"]["stage"])
+        self.assertNotIn("runtime_envelope", first["capsule"])
+        self.assertNotIn("composition_identity", first["capsule"])
+        self.assertTrue(
+            all(
+                set(source) == {"skill_id", "source_role", "content"}
+                for source in first["capsule"]["sources"]
+            )
+        )
+        self.assertEqual(
+            second["capsule"]["incoming_handoffs"],
+            [
+                {
+                    "handoff_id": "handoff-discover-verify",
+                    "producer_skill_id": "discover",
+                    "required_inputs": ["discovery evidence"],
+                    "produced_outputs": ["implementation handoff"],
+                    "producer_exit_gates": ["discovery evidence is available"],
+                    "payload": {"evidence_ref": "artifact:example"},
+                }
+            ],
+        )
         naive_union = result["naive_union_capsule"]["capsule"]
         self.assertNotIn("stages", naive_union)
         self.assertNotIn("typed_edges", naive_union)
@@ -296,28 +320,22 @@ class CompositionPhaseCapsuleTests(unittest.TestCase):
         }
         self.assertTrue(discover_slice_ids.issubset(first_phase["source_slice_ids"]))
         self.assertEqual(
-            discover_slice_ids,
             {
-                source["source_slice_id"]
-                for source in first_phase["capsule"]["sources"]
+                source["content"].strip()
+                for source in sources
                 if source["skill_id"] == "discover"
             },
-        )
-        self.assertEqual(
-            [
-                source["slice_digest"]
+            {
+                source["content"]
                 for source in first_phase["capsule"]["sources"]
-                if source["skill_id"] == "discover"
-            ],
-            [
-                digest
-                for slice_id, digest in zip(
-                    first_phase["source_slice_ids"],
-                    first_phase["source_slice_digests"],
-                    strict=True,
-                )
-                if slice_id in discover_slice_ids
-            ],
+                if source["source_role"] == "active_skill"
+            },
+        )
+        self.assertTrue(
+            all(
+                set(source) == {"skill_id", "source_role", "content"}
+                for source in first_phase["capsule"]["sources"]
+            )
         )
         self.assertTrue(
             all(
@@ -449,6 +467,10 @@ class CompositionPhaseCapsuleTests(unittest.TestCase):
             original["phase_capsules"][1]["incoming_handoff_digests"],
             changed_payload["phase_capsules"][1]["incoming_handoff_digests"],
         )
+        self.assertNotEqual(
+            original["phase_capsules"][1]["capsule_digest"],
+            changed_payload["phase_capsules"][1]["capsule_digest"],
+        )
         self.assertEqual(
             original["naive_union_capsule_digest"],
             changed_contract["naive_union_capsule_digest"],
@@ -460,6 +482,72 @@ class CompositionPhaseCapsuleTests(unittest.TestCase):
         self.assertNotEqual(
             original["context_accounting_digest"],
             changed_payload["context_accounting_digest"],
+        )
+
+    def test_compacts_equivalent_handoffs_without_losing_any_identity(self) -> None:
+        projection = _projection()
+        duplicate = copy.deepcopy(projection["handoff_contracts"][0])
+        duplicate["handoff_id"] = "handoff-discover-verify-secondary"
+        projection["handoff_contracts"].append(duplicate)
+
+        result = _accounting(
+            projection=projection,
+            handoff_payloads={
+                "handoff-discover-verify": {"evidence_ref": "artifact:example"},
+                "handoff-discover-verify-secondary": {
+                    "evidence_ref": "artifact:example"
+                },
+            },
+        )
+
+        self.assertEqual(
+            len(result["phase_capsules"][1]["incoming_handoff_digests"]), 2
+        )
+        self.assertEqual(
+            len(set(result["phase_capsules"][1]["incoming_handoff_digests"])), 2
+        )
+        self.assertEqual(
+            result["phase_capsules"][1]["capsule"]["incoming_handoffs"],
+            [
+                {
+                    "handoff_id": "handoff-discover-verify",
+                    "equivalent_handoff_ids": [
+                        "handoff-discover-verify-secondary"
+                    ],
+                    "producer_skill_id": "discover",
+                    "required_inputs": ["discovery evidence"],
+                    "produced_outputs": ["implementation handoff"],
+                    "producer_exit_gates": ["discovery evidence is available"],
+                    "payload": {"evidence_ref": "artifact:example"},
+                }
+            ],
+        )
+
+        distinct_payloads = _accounting(
+            projection=projection,
+            handoff_payloads={
+                "handoff-discover-verify": {"evidence_ref": "artifact:one"},
+                "handoff-discover-verify-secondary": {
+                    "evidence_ref": "artifact:two"
+                },
+            },
+        )
+        self.assertEqual(
+            [
+                handoff["handoff_id"]
+                for handoff in distinct_payloads["phase_capsules"][1]["capsule"][
+                    "incoming_handoffs"
+                ]
+            ],
+            ["handoff-discover-verify", "handoff-discover-verify-secondary"],
+        )
+        self.assertTrue(
+            all(
+                "equivalent_handoff_ids" not in handoff
+                for handoff in distinct_payloads["phase_capsules"][1]["capsule"][
+                    "incoming_handoffs"
+                ]
+            )
         )
 
     def test_rejects_empty_stage_list_and_forged_candidate_digest(self) -> None:

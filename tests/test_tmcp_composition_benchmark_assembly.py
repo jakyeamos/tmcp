@@ -185,6 +185,7 @@ def _host_and_evaluator(
         "run_manifest_digest": controls["run_manifest_digest"],
         "control_plan_id": controls["control_plan_id"],
         "control_plan_digest": controls["control_plan_digest"],
+        "evidence_class": "synthetic_test",
         "routing_runs": [],
         "behavioral_runs": [],
     }
@@ -219,6 +220,12 @@ def _host_and_evaluator(
         "run_manifest_digest": controls["run_manifest_digest"],
         "control_plan_id": controls["control_plan_id"],
         "control_plan_digest": controls["control_plan_digest"],
+        "evaluator_execution": {
+            "execution_class": "synthetic_test",
+            "executor_id": "benchmark-test-evaluator",
+            "execution_id": "synthetic-benchmark-assembly",
+            "executed_at": "2026-07-17T00:00:00Z",
+        },
         "fixture_evaluations": [],
     }
     for control in controls["behavioral_controls"]:
@@ -328,6 +335,20 @@ def _host_and_evaluator(
     return host, evaluator
 
 
+def _mark_release_evidence_admissible(
+    host: dict[str, object], evaluator: dict[str, object]
+) -> None:
+    host["evidence_class"] = "host_executed"
+    evaluator["evaluator_execution"] = {
+        "execution_class": "trusted_evaluator_execution",
+        "executor_id": "independent-rubric-evaluator",
+        "execution_id": "reviewed-benchmark-run",
+        "executed_at": "2026-07-17T00:00:00Z",
+    }
+    for evaluation in evaluator["fixture_evaluations"]:
+        evaluation["method"] = "independent_rubric_review"
+
+
 class CompositionBenchmarkAssemblyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -351,8 +372,12 @@ class CompositionBenchmarkAssemblyTests(unittest.TestCase):
 
     def _assemble(
         self,
+        *,
+        release_admissible: bool = False,
     ) -> tuple[dict[str, object], dict[str, object], dict[str, object]]:
         host, evaluator = _host_and_evaluator(self.controls, self.behavioral)
+        if release_admissible:
+            _mark_release_evidence_admissible(host, evaluator)
         observations = assemble_benchmark_observations(
             run_plan=self.run_plan,
             semantic_proposals=self.proposals,
@@ -749,7 +774,7 @@ class CompositionBenchmarkAssemblyTests(unittest.TestCase):
             )
 
     def test_runner_requires_bound_artifacts_and_accepts_assembled_output(self) -> None:
-        observations, host, evaluator = self._assemble()
+        observations, host, evaluator = self._assemble(release_admissible=True)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             paths = {
@@ -805,6 +830,131 @@ class CompositionBenchmarkAssemblyTests(unittest.TestCase):
         self.assertFalse(summary["eligible"])
         self.assertEqual(summary["failed_checks"], ["context_execution_mode"])
         self.assertTrue(summary["acceptance_checks"]["context_ratio"])
+
+    def test_release_runner_rejects_the_synthetic_six_artifact_bundle(self) -> None:
+        observations, host, evaluator = self._assemble()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = {
+                "observations": root / "observations.json",
+                "run_plan": root / "run-plan.json",
+                "semantic_proposals": root / "semantic-proposals.json",
+                "control_plan": root / "control-plan.json",
+                "host_results": root / "host-results.json",
+                "evaluator_artifacts": root / "evaluator-artifacts.json",
+            }
+            payloads = {
+                "observations": observations,
+                "run_plan": self.run_plan,
+                "semantic_proposals": self.proposals,
+                "control_plan": self.controls,
+                "host_results": host,
+                "evaluator_artifacts": evaluator,
+            }
+            for key, path in paths.items():
+                path.write_text(json.dumps(payloads[key]), encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                ValueError,
+                "host_results.evidence_class must be host_executed",
+            ):
+                run_benchmark(
+                    routing_golden_path=ROUTING_PATH,
+                    behavioral_fixtures_path=BEHAVIORAL_PATH,
+                    observations_path=paths["observations"],
+                    run_plan_path=paths["run_plan"],
+                    semantic_proposals_path=paths["semantic_proposals"],
+                    control_plan_path=paths["control_plan"],
+                    host_results_path=paths["host_results"],
+                    evaluator_artifacts_path=paths["evaluator_artifacts"],
+                )
+
+    def test_release_runner_requires_trusted_evaluator_metadata_and_method(
+        self,
+    ) -> None:
+        observations, host, evaluator = self._assemble(release_admissible=True)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = {
+                "observations": root / "observations.json",
+                "run_plan": root / "run-plan.json",
+                "semantic_proposals": root / "semantic-proposals.json",
+                "control_plan": root / "control-plan.json",
+                "host_results": root / "host-results.json",
+                "evaluator_artifacts": root / "evaluator-artifacts.json",
+            }
+            payloads = {
+                "observations": observations,
+                "run_plan": self.run_plan,
+                "semantic_proposals": self.proposals,
+                "control_plan": self.controls,
+                "host_results": host,
+                "evaluator_artifacts": evaluator,
+            }
+            for key, path in paths.items():
+                path.write_text(json.dumps(payloads[key]), encoding="utf-8")
+
+            evaluator_execution = evaluator["evaluator_execution"]
+            evaluator_execution["execution_class"] = "synthetic_test"
+            paths["evaluator_artifacts"].write_text(
+                json.dumps(evaluator), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(
+                ValueError,
+                "execution_class must be trusted_evaluator_execution",
+            ):
+                run_benchmark(
+                    routing_golden_path=ROUTING_PATH,
+                    behavioral_fixtures_path=BEHAVIORAL_PATH,
+                    observations_path=paths["observations"],
+                    run_plan_path=paths["run_plan"],
+                    semantic_proposals_path=paths["semantic_proposals"],
+                    control_plan_path=paths["control_plan"],
+                    host_results_path=paths["host_results"],
+                    evaluator_artifacts_path=paths["evaluator_artifacts"],
+                )
+
+            evaluator_execution["execution_class"] = "trusted_evaluator_execution"
+            for evaluation in evaluator["fixture_evaluations"]:
+                evaluation["method"] = "deterministic-test-rubric"
+            paths["evaluator_artifacts"].write_text(
+                json.dumps(evaluator), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(
+                ValueError,
+                "evaluator method is test-only",
+            ):
+                run_benchmark(
+                    routing_golden_path=ROUTING_PATH,
+                    behavioral_fixtures_path=BEHAVIORAL_PATH,
+                    observations_path=paths["observations"],
+                    run_plan_path=paths["run_plan"],
+                    semantic_proposals_path=paths["semantic_proposals"],
+                    control_plan_path=paths["control_plan"],
+                    host_results_path=paths["host_results"],
+                    evaluator_artifacts_path=paths["evaluator_artifacts"],
+                )
+
+            for evaluation in evaluator["fixture_evaluations"]:
+                evaluation["method"] = "independent_rubric_review"
+            evaluator_execution["execution_id"] = "different-reviewed-benchmark-run"
+            paths["evaluator_artifacts"].write_text(
+                json.dumps(evaluator), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(
+                ValueError,
+                "observations do not exactly match compiler-bound host/evaluator assembly",
+            ):
+                run_benchmark(
+                    routing_golden_path=ROUTING_PATH,
+                    behavioral_fixtures_path=BEHAVIORAL_PATH,
+                    observations_path=paths["observations"],
+                    run_plan_path=paths["run_plan"],
+                    semantic_proposals_path=paths["semantic_proposals"],
+                    control_plan_path=paths["control_plan"],
+                    host_results_path=paths["host_results"],
+                    evaluator_artifacts_path=paths["evaluator_artifacts"],
+                )
 
 
 if __name__ == "__main__":

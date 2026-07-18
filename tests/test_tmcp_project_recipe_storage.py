@@ -17,7 +17,9 @@ from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
     build_benchmark_receipt_provenance,
 )
 from tmcp_runtime.domain.composition_phase_bindings import build_phase_capsule_binding
+from tmcp_runtime.domain.composition_runtime_capsules import build_runtime_capsule
 from tmcp_runtime.domain.composition_preflight import stable_digest
+from tmcp_runtime.domain.harvest_nodes import content_digest_for
 from tmcp_runtime.services.project_recipes import (
     build_project_composition_recipe_record,
     rehydrate_project_recipe_for_preflight,
@@ -39,7 +41,7 @@ def _plan() -> dict[str, Any]:
         "schema": "tmcp-composition-plan-v0.1",
         "composition_plan_id": PLAN_ID,
         "preflight_id": "preflight-" + "f" * 20,
-        "current_phase": "research",
+        "current_phase": "discovery",
         "task_model": {"deliverables": ["reviewed report"]},
         "skill_roles": [
             {
@@ -53,7 +55,7 @@ def _plan() -> dict[str, Any]:
             {
                 "stage_id": "stage-1",
                 "order": 1,
-                "phase": "research",
+                "phase": "discovery",
                 "status": "active",
                 "entry_conditions": [],
                 "node_ids": ["research"],
@@ -81,23 +83,38 @@ def _plan() -> dict[str, Any]:
         "instruction_override_policy": "Never override governing instructions.",
     }
     plan["phase_capsule_binding"] = build_phase_capsule_binding(plan, _preflight())
+    plan["runtime_capsule"] = build_runtime_capsule(plan, _preflight())
     return plan
 
 
 def _preflight() -> dict[str, Any]:
+    content = "Research with citations."
     return {
         "schema": "tmcp-composition-preflight-v0.1",
         "preflight_id": "preflight-" + "f" * 20,
         "objective": "Review a cited research report.",
         "task_identity": {"primary": "research"},
+        "preparation_controls": {
+            "schema": "tmcp-composition-preparation-controls-v0.1",
+            "candidate_limit": 12,
+            "max_excerpt_chars": 1200,
+            "max_total_chars": 12000,
+            "max_total_tokens": 3000,
+            "include_all_active_source_slices": False,
+            "explicitly_scoped_paths": [],
+        },
         "candidate_source_slices": [
             {
                 "slice_id": "slice-" + "c" * 20,
                 "source_node_id": "research",
+                "relative_path": "skills/research/SKILL.md",
                 "source_digest": "d" * 64,
-                "slice_digest": "e" * 64,
+                "slice_digest": content_digest_for(content),
+                "behavior_atoms": [],
                 "source_role": "active_skill",
-                "content": "Research with citations.",
+                "content": content,
+                "char_start": 0,
+                "char_end": len(content),
                 "mandatory": False,
             }
         ],
@@ -168,6 +185,7 @@ def _legacy_v01_record(record: dict[str, Any]) -> dict[str, Any]:
 
     legacy = copy.deepcopy(record)
     legacy["composition_recipe"].pop("phase_capsule_binding")
+    legacy["composition_recipe"].pop("runtime_capsule")
     eligibility = legacy["promotion_eligibility"]
     eligibility.pop("phase_capsule_binding_digest")
     evidence = eligibility["evidence"]
@@ -224,6 +242,9 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
             store = ProjectCompositionRecipeStore.open(project, "research-review")
             original = _record()
             untouched = copy.deepcopy(original)
+            original_capsule = copy.deepcopy(
+                original["composition_recipe"]["runtime_capsule"]
+            )
 
             created = store.create(original)
             loaded = store.load(
@@ -241,6 +262,12 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
         self.assertIn("[REDACTED:secret_assignment]", raw)
         self.assertGreater(loaded.record["redaction_summary"]["secret_assignment"], 0)
         self.assertNotIn("content_digests", raw)
+        self.assertNotIn('"objective":', raw)
+        self.assertNotIn('"candidate_source_slices":', raw)
+        self.assertEqual(
+            loaded.record["composition_recipe"]["runtime_capsule"],
+            original_capsule,
+        )
         self.assertEqual(loaded.metadata()["activation_policy"], "explicit_load_only")
         if os.name != "nt":
             self.assertEqual(mode, 0o600)
@@ -310,6 +337,14 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
             with self.assertRaisesRegex(ProjectRecipeError, "promotion evidence"):
                 store.load(expected_graph_digest=GRAPH_DIGEST)
 
+            payload = copy.deepcopy(original_payload)
+            payload["composition_recipe"]["runtime_capsule"]["capsule_digest"] = (
+                "a" * 64
+            )
+            store.path.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(ProjectRecipeError, "runtime capsule"):
+                store.load(expected_graph_digest=GRAPH_DIGEST)
+
             store.path.write_text(
                 json.dumps({"schema": "unexpected"}),
                 encoding="utf-8",
@@ -329,6 +364,9 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
             record = _record()
             original_binding = record["composition_recipe"][
                 "phase_capsule_binding"
+            ]
+            original_runtime_capsule = record["composition_recipe"][
+                "runtime_capsule"
             ]
             store.create(record)
             protected_read = project_recipe_storage.read_json_input
@@ -359,6 +397,10 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
         self.assertEqual(
             loaded_binding["phase_capsule_trace"],
             original_binding["phase_capsule_trace"],
+        )
+        self.assertEqual(
+            loaded.record["composition_recipe"]["runtime_capsule"],
+            original_runtime_capsule,
         )
 
     @unittest.skipUnless(
@@ -407,6 +449,38 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
         artifact_persistence_available(),
         "Secure artifact persistence is unavailable on this platform.",
     )
+    def test_phase_bound_records_without_runtime_capsules_stay_readable_and_inert(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "project"
+            project.mkdir()
+            store = ProjectCompositionRecipeStore.open(project, "research-review")
+            store.create(_record())
+            persisted = json.loads(store.path.read_text(encoding="utf-8"))
+            persisted["composition_recipe"].pop("runtime_capsule")
+            store.path.write_text(json.dumps(persisted), encoding="utf-8")
+
+            loaded = store.load(
+                expected_graph_digest=GRAPH_DIGEST,
+                expected_composition_plan_id=PLAN_ID,
+            )
+
+        self.assertEqual(
+            loaded.metadata()["phase_capsule_binding_status"], "verified"
+        )
+        self.assertEqual(loaded.metadata()["runtime_capsule_status"], "legacy_unbound")
+        self.assertEqual(
+            loaded.metadata()["activation_eligibility"],
+            "blocked_runtime_capsule_unbound",
+        )
+        with self.assertRaisesRegex(ValueError, "runtime capsule"):
+            rehydrate_project_recipe_for_preflight(loaded.record, _preflight())
+
+    @unittest.skipUnless(
+        artifact_persistence_available(),
+        "Secure artifact persistence is unavailable on this platform.",
+    )
     def test_create_and_load_reject_phase_binding_downgrades(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project = Path(tmp) / "project"
@@ -415,6 +489,11 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
             legacy = _legacy_v01_record(_record())
             with self.assertRaisesRegex(ProjectRecipeError, "required for new records"):
                 store.create(legacy)
+
+            missing_runtime_capsule = _record()
+            missing_runtime_capsule["composition_recipe"].pop("runtime_capsule")
+            with self.assertRaisesRegex(ProjectRecipeError, "runtime capsule"):
+                store.create(missing_runtime_capsule)
 
             store.create(_record())
             persisted = json.loads(store.path.read_text(encoding="utf-8"))
@@ -448,6 +527,14 @@ class ProjectCompositionRecipeStoreTests(unittest.TestCase):
         )
         self.assertIn(
             "phase_capsule_binding",
+            schema["$defs"]["composition_recipe"]["properties"],
+        )
+        self.assertNotIn(
+            "runtime_capsule",
+            schema["$defs"]["composition_recipe"]["required"],
+        )
+        self.assertIn(
+            "runtime_capsule",
             schema["$defs"]["composition_recipe"]["properties"],
         )
         self.assertNotIn(

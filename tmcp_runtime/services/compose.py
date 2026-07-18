@@ -10,8 +10,8 @@ from tmcp_runtime.domain.composition import (
     filter_source_verification_gates,
     matching_reference_reads,
     merge_composition_nodes,
-    normalize_cache_policy,
     select_composition_nodes_with_diagnostics,
+    validate_project_recipe_cache_policy,
 )
 from tmcp_runtime.domain.declared_loads import resolve_declared_load_nodes
 from tmcp_runtime.domain.compositional_intelligence import (
@@ -29,6 +29,9 @@ from tmcp_runtime.domain.harvest_nodes import (
 )
 from tmcp_runtime.domain.packets import build_composed_packet
 from tmcp_runtime.domain.routes import derive_task_identity
+from tmcp_runtime.domain.source_activation_projection import (
+    project_source_node_for_composition,
+)
 from tmcp_runtime.domain.workflow_activation import (
     build_global_workflow_activation,
     select_global_workflows,
@@ -112,6 +115,28 @@ def _composition_identity(
     return context, family_context, task_identity, preliminary_routes
 
 
+def _composition_scope_nodes(
+    arguments: Mapping[str, Any], source_nodes: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Bind exact caller-scoped paths before compatibility selection.
+
+    Direct file-root harvests record their own scope. A project harvest needs
+    the caller's exact ``explicitly_scoped_paths`` to make the same
+    user-authorized exception available to direct composition.
+    """
+
+    scoped_paths = set(string_list(arguments.get("explicitly_scoped_paths")))
+    return [
+        {
+            **node,
+            "explicitly_scoped": bool(node.get("explicitly_scoped") is True)
+            or str(node.get("relative_path") or node.get("path") or "")
+            in scoped_paths,
+        }
+        for node in source_nodes
+    ]
+
+
 def prepare_composition_from_source_nodes(
     arguments: Mapping[str, Any],
     *,
@@ -122,12 +147,16 @@ def prepare_composition_from_source_nodes(
     objective = str(arguments.get("objective") or "").strip()
     if not objective:
         raise ValueError("tmcp_prepare_composition requires objective.")
+    composition_nodes = [
+        project_source_node_for_composition(node)
+        for node in _composition_scope_nodes(arguments, source_nodes)
+    ]
     _context, _family_context, task_identity, _routes = _composition_identity(
         arguments,
-        source_nodes,
+        composition_nodes,
     )
     return prepare_composition(
-        source_nodes,
+        composition_nodes,
         objective,
         task_identity=task_identity,
         explicitly_scoped_paths=string_list(arguments.get("explicitly_scoped_paths")),
@@ -172,7 +201,6 @@ def active_instructions_for_source_node(node: Mapping[str, Any]) -> list[str]:
 
     if not source_role_is_activation_eligible(node_source_role(dict(node))):
         return []
-    rel_path = str(node.get("relative_path") or node.get("path") or "source")
     text = node_signal_text(dict(node))
     instructions: list[str] = []
     if "pnpm" in text:
@@ -203,12 +231,6 @@ def active_instructions_for_source_node(node: Mapping[str, Any]) -> list[str]:
         instructions.append(
             "Apply UI verification atoms for contrast, reduced motion, responsive behavior, and browser evidence."
         )
-    if not instructions:
-        atoms = ", ".join(string_list(node.get("behavior_atoms"))[:4])
-        if atoms:
-            instructions.append(
-                f"Apply relevant harvested behavior atoms from {rel_path}: {atoms}."
-            )
     return instructions
 
 
@@ -235,15 +257,18 @@ def enrich_packet_from_source_nodes(
         rel_path = str(node.get("relative_path") or "")
         if rel_path not in wanted_paths or rel_path in cited_paths:
             continue
+        projected_node = project_source_node_for_composition(node)
         citations.append(
             {
                 "source": rel_path,
                 "path": node.get("path"),
                 "trust": node.get("trust", "untrusted_harvested_text"),
-                "matched_atoms": string_list(node.get("behavior_atoms"))[:5],
+                "matched_atoms": string_list(projected_node.get("behavior_atoms"))[
+                    :5
+                ],
             }
         )
-        active_instructions.extend(active_instructions_for_source_node(node))
+        active_instructions.extend(active_instructions_for_source_node(projected_node))
         cited_paths.add(rel_path)
     packet["evidence_citations"] = citations
     packet["active_instructions"] = ordered_unique(active_instructions)[:10]
@@ -258,6 +283,7 @@ def compose_packet_from_source_nodes(
     receipts: list[dict[str, Any]],
     cache_warnings: list[str],
     cache_home: str,
+    prepared_composition: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Compose a packet from harvested nodes and a pre-screened cache snapshot."""
 
@@ -265,16 +291,23 @@ def compose_packet_from_source_nodes(
     if not objective:
         raise ValueError("tmcp_compose_packet requires objective.")
     phase = str(arguments.get("phase") or "start")
-    cache_policy = normalize_cache_policy(arguments.get("cache_policy"))
+    cache_policy = validate_project_recipe_cache_policy(
+        cache_policy=arguments.get("cache_policy"),
+        project_recipe_id=arguments.get("project_recipe_id"),
+    )
+    composition_nodes = [
+        project_source_node_for_composition(node)
+        for node in _composition_scope_nodes(arguments, source_nodes)
+    ]
     context, family_context, task_identity, preliminary_routes = _composition_identity(
         arguments,
-        source_nodes,
+        composition_nodes,
     )
     active_routes = (
         string_list(task_identity.get("active_routes")) or preliminary_routes
     )
     selected_nodes, selection_diagnostics = select_composition_nodes_with_diagnostics(
-        source_nodes,
+        composition_nodes,
         objective,
         phase,
         context,
@@ -284,7 +317,7 @@ def compose_packet_from_source_nodes(
     )
     declared_load_paths, declared_load_nodes = resolve_declared_load_nodes(
         selected_nodes=selected_nodes,
-        source_nodes=source_nodes,
+        source_nodes=composition_nodes,
         objective=objective,
         family_context=family_context,
     )
@@ -314,18 +347,20 @@ def compose_packet_from_source_nodes(
 
     for node in selected_nodes:
         metadata = _routing_metadata(node)
-        active_instructions.extend(active_instructions_for_source_node(node))
-        required_reads.extend(string_list(metadata.get("required_reads")))
-        tool_script_prompts.extend(string_list(metadata.get("tool_script_prompts")))
-        verification_gates.extend(
-            filter_source_verification_gates(
-                string_list(metadata.get("verification_gates")),
-                objective,
-                context,
-            )
-        )
-        stop_conditions.extend(string_list(metadata.get("stop_conditions")))
         if source_role_is_activation_eligible(node_source_role(node)):
+            active_instructions.extend(active_instructions_for_source_node(node))
+            required_reads.extend(string_list(metadata.get("required_reads")))
+            tool_script_prompts.extend(
+                string_list(metadata.get("tool_script_prompts"))
+            )
+            verification_gates.extend(
+                filter_source_verification_gates(
+                    string_list(metadata.get("verification_gates")),
+                    objective,
+                    context,
+                )
+            )
+            stop_conditions.extend(string_list(metadata.get("stop_conditions")))
             active_atoms.extend(string_list(node.get("behavior_atoms")))
         evidence_citations.append(
             {
@@ -336,7 +371,7 @@ def compose_packet_from_source_nodes(
             }
         )
 
-    required_reads.extend(matching_reference_reads(source_nodes, objective))
+    required_reads.extend(matching_reference_reads(composition_nodes, objective))
     required_reads.extend(declared_load_paths)
     global_activation = build_global_workflow_activation(selected_workflows)
     active_instructions.extend(global_activation["active_instructions"])
@@ -375,7 +410,7 @@ def compose_packet_from_source_nodes(
         phase=phase,
         task_identity=task_identity,
         family_context=family_context,
-        source_nodes=source_nodes,
+        source_nodes=composition_nodes,
         selected_nodes=selected_nodes,
         active_instructions=active_instructions,
         required_reads=required_reads,
@@ -398,10 +433,15 @@ def compose_packet_from_source_nodes(
         return packet
     if not isinstance(proposal, Mapping):
         raise ValueError("semantic_proposal must be an object.")
-    preflight = prepare_composition_from_source_nodes(
-        arguments,
-        source_nodes=source_nodes,
-    )
+    if prepared_composition is None:
+        preflight = prepare_composition_from_source_nodes(
+            arguments,
+            source_nodes=composition_nodes,
+        )
+    elif isinstance(prepared_composition, Mapping):
+        preflight = dict(prepared_composition)
+    else:
+        raise ValueError("prepared_composition must be an object.")
     compiled = compile_semantic_composition(
         dict(proposal),
         preflight,
@@ -409,6 +449,9 @@ def compose_packet_from_source_nodes(
     )
     return apply_semantic_composition(
         packet,
+        # Re-apply the cited activation projection to the original harvested
+        # nodes so diagnostics retain rejected adapter metadata.  The semantic
+        # projection is the sole path from those nodes into active fields.
         source_nodes=source_nodes,
         preflight=preflight,
         compiled=compiled,

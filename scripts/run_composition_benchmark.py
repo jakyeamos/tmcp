@@ -22,6 +22,9 @@ from tmcp_runtime.domain.composition_benchmark_assembly import (  # noqa: E402
     MAX_BENCHMARK_ARTIFACT_BYTES,
     assemble_benchmark_observations,
 )
+from tmcp_runtime.domain.composition_benchmark_evidence import (  # noqa: E402
+    validate_release_benchmark_evidence_admissibility,
+)
 from scripts.schema_contract_support import (  # noqa: E402
     SchemaAssertionError,
     assert_matches_schema,
@@ -116,6 +119,10 @@ def run_benchmark(
             ),
         ):
             assert_matches_schema(payload, SCHEMAS / schema_name)
+        validate_release_benchmark_evidence_admissibility(
+            host_results=host_results,
+            evaluator_artifacts=evaluator_artifacts,
+        )
         assembled = assemble_benchmark_observations(
             run_plan=run_plan,
             semantic_proposals=semantic_proposals,

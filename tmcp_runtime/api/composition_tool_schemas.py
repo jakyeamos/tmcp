@@ -51,6 +51,14 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                     "maximum": 12000,
                     "description": "Hard estimated-token boundary for returned source slices.",
                 },
+                "include_all_active_source_slices": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": (
+                        "Include every activation-eligible source slice in the bounded "
+                        "semantic preflight."
+                    ),
+                },
                 "follow_symlinks": {"type": "boolean", "default": False},
                 "redact_sensitive": {"type": "boolean", "default": True},
             },
@@ -167,6 +175,14 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                     "minimum": 250,
                     "maximum": 12000,
                     "description": "Hard estimated-token boundary for semantic source slices.",
+                },
+                "include_all_active_source_slices": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": (
+                        "Include every activation-eligible source slice in the bounded "
+                        "semantic preflight."
+                    ),
                 },
                 "runtime_context": {"type": "object"},
                 "include_globs": {"type": "array", "items": {"type": "string"}},
@@ -298,6 +314,12 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                     "minimum": 1,
                     "maximum": 24,
                 },
+                "max_excerpt_chars": {
+                    "type": "integer",
+                    "default": 1200,
+                    "minimum": 64,
+                    "maximum": 48000,
+                },
                 "max_total_chars": {
                     "type": "integer",
                     "default": 12000,
@@ -309,6 +331,14 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                     "default": 3000,
                     "minimum": 250,
                     "maximum": 12000,
+                },
+                "include_all_active_source_slices": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": (
+                        "Include every activation-eligible source slice in the bounded "
+                        "semantic preflight."
+                    ),
                 },
                 "explicitly_scoped_paths": {
                     "type": "array",

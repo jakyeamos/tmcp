@@ -32,6 +32,9 @@
       "type": "object",
       "additionalProperties": true
     },
+    "preparation_controls": {
+      "$ref": "#/$defs/preparation_controls"
+    },
     "candidate_source_slices": {
       "type": "array",
       "items": {
@@ -136,6 +139,32 @@
     }
   },
   "$defs": {
+    "preparation_controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "candidate_limit",
+        "max_excerpt_chars",
+        "max_total_chars",
+        "max_total_tokens",
+        "include_all_active_source_slices",
+        "explicitly_scoped_paths"
+      ],
+      "properties": {
+        "schema": { "const": "tmcp-composition-preparation-controls-v0.1" },
+        "candidate_limit": { "type": "integer", "minimum": 1, "maximum": 24 },
+        "max_excerpt_chars": { "type": "integer", "minimum": 64 },
+        "max_total_chars": { "type": "integer", "minimum": 64 },
+        "max_total_tokens": { "type": "integer", "minimum": 16 },
+        "include_all_active_source_slices": { "type": "boolean" },
+        "explicitly_scoped_paths": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
     "relationship_semantics": {
       "type": "object",
       "additionalProperties": false,
@@ -219,6 +248,11 @@
         "source_digest": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "visible_content_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Digest of the normalized source content visible to this preflight; emitted alongside the content-bound source identity when a harvest declared a different full-source digest."
         },
         "slice_digest": {
           "type": "string",

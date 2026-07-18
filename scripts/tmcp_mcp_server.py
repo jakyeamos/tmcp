@@ -35,6 +35,10 @@ from tmcp_runtime.adapters.mcp import (  # noqa: E402
 from tmcp_runtime.safety.redaction import merge_redactions  # noqa: E402
 from tmcp_runtime.domain.composition import (  # noqa: E402
     normalize_cache_policy as _runtime_normalize_cache_policy,
+    validate_project_recipe_cache_policy as _runtime_validate_project_recipe_cache_policy,
+)
+from tmcp_runtime.domain.composition_runtime_capsules import (  # noqa: E402
+    runtime_capsule_preparation_arguments as _runtime_capsule_preparation_arguments,
 )
 from tmcp_runtime.domain.receipts import (  # noqa: E402
     RUN_RECEIPT_SCHEMA,
@@ -189,6 +193,8 @@ _COMPOSITION_PLAN_SCHEMA = "tmcp-composition-plan-v0.1"
 _COMPOSITION_PREFLIGHT_SCHEMA = "tmcp-composition-preflight-v0.1"
 _RECOMPILED_PACKET_SCHEMA = "tmcp-recompiled-packet-v0.1"
 _RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
+_PHASE_CAPSULE_BINDING_SCHEMA = "tmcp-composition-phase-capsule-binding-v0.1"
+_RUNTIME_CAPSULE_SCHEMA = "tmcp-composition-runtime-capsule-v0.1"
 _PROJECT_RECIPE_PROMOTION_ELIGIBILITY_SCHEMA = (
     "tmcp-project-recipe-promotion-eligibility-v0.1"
 )
@@ -275,6 +281,79 @@ def _restore_composition_plan_digests(source: object, redacted: object) -> int:
         "content_digests",
         frozenset({64}),
     )
+    restored += _restore_phase_capsule_binding_digests(
+        source.get("phase_capsule_binding"),
+        redacted.get("phase_capsule_binding"),
+    )
+    restored += _restore_runtime_capsule_digests(
+        source.get("runtime_capsule"),
+        redacted.get("runtime_capsule"),
+    )
+    return restored
+
+
+def _restore_phase_capsule_binding_digests(source: object, redacted: object) -> int:
+    if (
+        not isinstance(source, dict)
+        or not isinstance(redacted, dict)
+        or source.get("schema") != _PHASE_CAPSULE_BINDING_SCHEMA
+    ):
+        return 0
+    restored = 0
+    for key in (
+        "composition_plan_digest",
+        "context_accounting_digest",
+        "preflight_capsule_digest",
+        "binding_digest",
+    ):
+        restored += _restore_digest_scalar(source, redacted, key, frozenset({64}))
+    source_trace = source.get("phase_capsule_trace")
+    redacted_trace = redacted.get("phase_capsule_trace")
+    if isinstance(source_trace, list) and isinstance(redacted_trace, list):
+        for source_stage, redacted_stage in zip(source_trace, redacted_trace):
+            restored += _restore_digest_scalar(
+                source_stage,
+                redacted_stage,
+                "capsule_digest",
+                frozenset({64}),
+            )
+            restored += _restore_digest_list(
+                source_stage,
+                redacted_stage,
+                "incoming_handoff_digests",
+                frozenset({64}),
+            )
+    return restored
+
+
+def _restore_runtime_capsule_digests(source: object, redacted: object) -> int:
+    if (
+        not isinstance(source, dict)
+        or not isinstance(redacted, dict)
+        or source.get("schema") != _RUNTIME_CAPSULE_SCHEMA
+    ):
+        return 0
+    restored = 0
+    for key in (
+        "composition_plan_digest",
+        "phase_capsule_binding_digest",
+        "objective_digest",
+        "task_identity_digest",
+        "preparation_controls_digest",
+        "capsule_digest",
+    ):
+        restored += _restore_digest_scalar(source, redacted, key, frozenset({64}))
+    source_slices = source.get("cited_source_slices")
+    redacted_slices = redacted.get("cited_source_slices")
+    if isinstance(source_slices, list) and isinstance(redacted_slices, list):
+        for source_slice, redacted_slice in zip(source_slices, redacted_slices):
+            for key in ("source_digest", "slice_digest"):
+                restored += _restore_digest_scalar(
+                    source_slice,
+                    redacted_slice,
+                    key,
+                    frozenset({64}),
+                )
     return restored
 
 
@@ -512,40 +591,13 @@ def _restore_project_recipe_phase_binding_digests(
         redacted_composition, dict
     ):
         return 0
-    source_binding = source_composition.get("phase_capsule_binding")
-    redacted_binding = redacted_composition.get("phase_capsule_binding")
-    if not isinstance(source_binding, dict) or not isinstance(redacted_binding, dict):
-        return 0
-    restored = 0
-    for key in (
-        "composition_plan_digest",
-        "context_accounting_digest",
-        "preflight_capsule_digest",
-        "binding_digest",
-    ):
-        restored += _restore_digest_scalar(
-            source_binding,
-            redacted_binding,
-            key,
-            frozenset({64}),
-        )
-    source_trace = source_binding.get("phase_capsule_trace")
-    redacted_trace = redacted_binding.get("phase_capsule_trace")
-    if isinstance(source_trace, list) and isinstance(redacted_trace, list):
-        for source_stage, redacted_stage in zip(source_trace, redacted_trace):
-            restored += _restore_digest_scalar(
-                source_stage,
-                redacted_stage,
-                "capsule_digest",
-                frozenset({64}),
-            )
-            restored += _restore_digest_list(
-                source_stage,
-                redacted_stage,
-                "incoming_handoff_digests",
-                frozenset({64}),
-            )
-    return restored
+    return _restore_phase_capsule_binding_digests(
+        source_composition.get("phase_capsule_binding"),
+        redacted_composition.get("phase_capsule_binding"),
+    ) + _restore_runtime_capsule_digests(
+        source_composition.get("runtime_capsule"),
+        redacted_composition.get("runtime_capsule"),
+    )
 
 
 def _restore_project_recipe_promotion_literals(
@@ -968,20 +1020,43 @@ def _project_composition_recipe_service() -> ProjectCompositionRecipeService:
     )
 
 
+def _load_project_recipe_runtime_capsule(
+    arguments: dict[str, Any],
+) -> dict[str, Any]:
+    recipe_id = str(arguments.get("project_recipe_id") or "").strip()
+    if not recipe_id:
+        raise ValueError("cache_policy=project requires an explicit project_recipe_id.")
+    return _project_composition_recipe_service().load_runtime_capsule(
+        {
+            "project_path": arguments.get("project_path"),
+            "recipe_id": recipe_id,
+        }
+    )
+
+
 def _load_project_composition_recipe(
     arguments: dict[str, Any],
     source_nodes: list[dict[str, Any]],
-) -> dict[str, Any]:
+    *,
+    prepared_composition: Mapping[str, Any] | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
     recipe_id = str(arguments.get("project_recipe_id") or "").strip()
     if not recipe_id:
         raise ValueError("cache_policy=project requires an explicit project_recipe_id.")
     if arguments.get("semantic_proposal") is not None:
         raise ValueError("semantic_proposal and project_recipe_id cannot be combined.")
-    preflight = _runtime_prepare_composition_from_source_nodes(
-        arguments,
-        source_nodes=source_nodes,
-    )
-    return _project_composition_recipe_service().load_for_preflight(
+    if isinstance(prepared_composition, Mapping):
+        preflight = dict(prepared_composition)
+    else:
+        capsule_arguments = _runtime_capsule_preparation_arguments(
+            arguments,
+            _load_project_recipe_runtime_capsule(arguments),
+        )
+        preflight = _runtime_prepare_composition_from_source_nodes(
+            capsule_arguments,
+            source_nodes=source_nodes,
+        )
+    loaded = _project_composition_recipe_service().load_for_preflight(
         {
             "project_path": arguments.get("project_path"),
             "recipe_id": recipe_id,
@@ -989,6 +1064,13 @@ def _load_project_composition_recipe(
             "current_phase": arguments.get("phase") or "start",
         }
     )
+    # Rehydrate may restore original node/slice IDs for a content-bound source
+    # rename; that closed replay is the only preflight the reviewed proposal may
+    # compile against.
+    replay_preflight = loaded.get("composition_preflight")
+    if not isinstance(replay_preflight, Mapping):
+        raise ValueError("Project recipe did not return a rehydrated preflight.")
+    return loaded, dict(replay_preflight)
 
 
 def _apply_project_recipe_metadata(
@@ -1023,17 +1105,21 @@ def _compose_packet_from_source_nodes(
     arguments: dict[str, Any],
     *,
     source_nodes: list[dict[str, Any]],
+    prepared_composition: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     compose_arguments = dict(arguments)
-    cache_policy = _runtime_normalize_cache_policy(
-        compose_arguments.get("cache_policy")
+    cache_policy = _runtime_validate_project_recipe_cache_policy(
+        cache_policy=compose_arguments.get("cache_policy"),
+        project_recipe_id=compose_arguments.get("project_recipe_id"),
     )
     compose_arguments["cache_policy"] = cache_policy
     loaded_project_recipe: dict[str, Any] | None = None
+    composition_preflight = prepared_composition
     if cache_policy == "project":
-        loaded_project_recipe = _load_project_composition_recipe(
+        loaded_project_recipe, composition_preflight = _load_project_composition_recipe(
             compose_arguments,
             source_nodes,
+            prepared_composition=prepared_composition,
         )
         compose_arguments["semantic_proposal"] = loaded_project_recipe[
             "semantic_proposal"
@@ -1046,6 +1132,7 @@ def _compose_packet_from_source_nodes(
         receipts=list(snapshot.receipts),
         cache_warnings=list(snapshot.warnings),
         cache_home=redact_path(_tmcp_home()),
+        prepared_composition=composition_preflight,
     )
     if loaded_project_recipe is not None:
         packet = _apply_project_recipe_metadata(packet, loaded_project_recipe)
@@ -1070,7 +1157,7 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _runtime_source_nodes(arguments: dict[str, Any]) -> list[dict[str, Any]]:
-    harvest = _harvest_skills(_runtime_harvest_arguments(arguments))
+    harvest = _harvest_skills(_compose_harvest_arguments(arguments))
     return [
         item
         for item in _json_list(harvest.get("source_nodes"))
@@ -1088,7 +1175,24 @@ def _runtime_service() -> RuntimeService:
             source_exists=lambda path: Path(path).expanduser().exists(),
             load_source_nodes=_runtime_source_nodes,
             load_cache_warnings=_runtime_cache_warnings,
-            compose_packet=_compose_packet,
+            compose_packet_from_source_nodes=(
+                lambda arguments, source_nodes, prepared_composition: (
+                    _compose_packet_from_source_nodes(
+                        arguments,
+                        source_nodes=source_nodes,
+                        prepared_composition=prepared_composition,
+                    )
+                )
+            ),
+            prepare_composition_from_source_nodes=(
+                lambda arguments, source_nodes: _runtime_prepare_composition_from_source_nodes(
+                    arguments,
+                    source_nodes=source_nodes,
+                )
+            ),
+            load_project_recipe_runtime_capsule=(
+                _load_project_recipe_runtime_capsule
+            ),
         )
     )
 

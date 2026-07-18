@@ -83,6 +83,10 @@
           "$ref": "tmcp-composition-plan-v0.1.schema.json#/$defs/phase_capsule_binding",
           "description": "Additive phase-capsule provenance. Records without it remain readable as legacy v0.1 records but are ineligible for activation or promotion."
         },
+        "runtime_capsule": {
+          "$ref": "tmcp-composition-plan-v0.1.schema.json#/$defs/runtime_capsule",
+          "description": "Additive closed runtime provenance. Records without it remain readable but cannot reactivate a semantic composition."
+        },
         "current_phase": { "type": "string", "minLength": 1 },
         "task_model": { "type": "object" },
         "skill_roles": { "type": "array", "items": { "type": "object" } },

@@ -15,7 +15,9 @@ from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
     build_benchmark_receipt_provenance,
 )
 from tmcp_runtime.domain.composition_phase_bindings import build_phase_capsule_binding
+from tmcp_runtime.domain.composition_runtime_capsules import build_runtime_capsule
 from tmcp_runtime.domain.composition_preflight import stable_digest
+from tmcp_runtime.domain.harvest_nodes import content_digest_for
 from tmcp_runtime.services.project_recipes import (
     ProjectCompositionRecipeService,
     build_project_composition_recipe_record,
@@ -32,7 +34,7 @@ def _plan() -> dict[str, Any]:
         "schema": "tmcp-composition-plan-v0.1",
         "composition_plan_id": PLAN_ID,
         "preflight_id": "preflight-" + "f" * 20,
-        "current_phase": "research",
+        "current_phase": "discovery",
         "task_model": {"deliverables": ["reviewed report"]},
         "skill_roles": [
             {
@@ -47,7 +49,7 @@ def _plan() -> dict[str, Any]:
             {
                 "stage_id": "stage-1",
                 "order": 1,
-                "phase": "research",
+                "phase": "discovery",
                 "status": "active",
                 "entry_conditions": [],
                 "node_ids": ["research"],
@@ -65,6 +67,7 @@ def _plan() -> dict[str, Any]:
         "instruction_override_policy": "Never override governing instructions.",
     }
     plan["phase_capsule_binding"] = build_phase_capsule_binding(plan, _preflight())
+    plan["runtime_capsule"] = build_runtime_capsule(plan, _preflight())
     return plan
 
 
@@ -111,19 +114,33 @@ def _receipts() -> list[dict[str, Any]]:
 
 
 def _preflight() -> dict[str, Any]:
+    content = "Research with cited sources."
     return {
         "schema": "tmcp-composition-preflight-v0.1",
         "preflight_id": "preflight-" + "f" * 20,
         "objective": "Review a cited research report.",
         "task_identity": {"primary": "research"},
+        "preparation_controls": {
+            "schema": "tmcp-composition-preparation-controls-v0.1",
+            "candidate_limit": 12,
+            "max_excerpt_chars": 1200,
+            "max_total_chars": 12000,
+            "max_total_tokens": 3000,
+            "include_all_active_source_slices": False,
+            "explicitly_scoped_paths": [],
+        },
         "candidate_source_slices": [
             {
                 "slice_id": "slice-" + "c" * 20,
                 "source_node_id": "research",
+                "relative_path": "skills/research/SKILL.md",
                 "source_digest": "d" * 64,
-                "slice_digest": "e" * 64,
+                "slice_digest": content_digest_for(content),
+                "behavior_atoms": [],
                 "source_role": "active_skill",
-                "content": "Research with citations.",
+                "content": content,
+                "char_start": 0,
+                "char_end": len(content),
                 "mandatory": False,
             }
         ],
@@ -163,29 +180,157 @@ def _proposal() -> dict[str, Any]:
     }
 
 
+def _aliasable_preflight() -> dict[str, Any]:
+    content = "Research with cited sources."
+    source_digest = "d" * 64
+    slice_digest = content_digest_for(content)
+    source_node_id = "research"
+    slice_id = "slice-" + stable_digest(
+        [source_digest, slice_digest, 0, len(content), source_node_id], 20
+    )
+    return {
+        "schema": "tmcp-composition-preflight-v0.1",
+        "preflight_id": "preflight-" + "f" * 20,
+        "objective": "Review a cited research report.",
+        "task_identity": {"primary": "research"},
+        "preparation_controls": {
+            "schema": "tmcp-composition-preparation-controls-v0.1",
+            "candidate_limit": 12,
+            "max_excerpt_chars": 1200,
+            "max_total_chars": 12000,
+            "max_total_tokens": 3000,
+            "include_all_active_source_slices": False,
+            "explicitly_scoped_paths": [],
+        },
+        "candidate_source_slices": [
+            {
+                "slice_id": slice_id,
+                "source_node_id": source_node_id,
+                "relative_path": "skills/research/SKILL.md",
+                "source_digest": source_digest,
+                "slice_digest": slice_digest,
+                "behavior_atoms": [],
+                "source_role": "active_skill",
+                "content": content,
+                "char_start": 0,
+                "char_end": len(content),
+                "mandatory": False,
+            }
+        ],
+        "diagnostics": {},
+    }
+
+
+def _aliasable_proposal(preflight: Mapping[str, Any]) -> dict[str, Any]:
+    source_slice = preflight["candidate_source_slices"][0]
+    return {
+        "schema": "tmcp-semantic-proposal-v0.1",
+        "preflight_id": preflight["preflight_id"],
+        "current_phase": "start",
+        "task_model": {
+            "deliverables": ["report"],
+            "success_criteria": ["cited"],
+            "constraints": [],
+            "subgoals": ["research"],
+            "evidence_needs": ["sources"],
+        },
+        "skill_roles": [
+            {
+                "node_id": source_slice["source_node_id"],
+                "role": "researcher",
+                "inputs": ["task objective"],
+                "outputs": ["sources"],
+                "phase_affinity": ["start"],
+                "entry_gates": [],
+                "exit_gates": ["sources cited"],
+                "context_cost": 100,
+                "covers": ["cited"],
+                "citations": [source_slice["slice_id"]],
+            }
+        ],
+        "relationships": [],
+        "coverage": {"facets": ["cited"], "unresolved_gaps": []},
+        "trust": "advisory_untrusted",
+    }
+
+
+def _aliasable_record() -> dict[str, Any]:
+    preflight = _aliasable_preflight()
+    plan = build_composition_plan(_aliasable_proposal(preflight), preflight)
+    return build_project_composition_recipe_record(
+        recipe_id="research-review",
+        composition_plan=plan,
+        promotion_eligibility={
+            "eligible": True,
+            "recipe_id": "research-review",
+            "graph_digest": plan["provenance"]["graph_digest"],
+            "phase_capsule_binding_digest": plan["phase_capsule_binding"][
+                "binding_digest"
+            ],
+        },
+        created_at="2026-07-17T00:00:00Z",
+    )
+
+
+def _renamed_aliasable_preflight(node_id: str = "research-renamed") -> dict[str, Any]:
+    preflight = _aliasable_preflight()
+    source_slice = preflight["candidate_source_slices"][0]
+    source_slice["source_node_id"] = node_id
+    source_slice["slice_id"] = "slice-" + stable_digest(
+        [
+            source_slice["source_digest"],
+            source_slice["slice_digest"],
+            source_slice["char_start"],
+            source_slice["char_end"],
+            node_id,
+        ],
+        20,
+    )
+    return preflight
+
+
 def _handoff_preflight() -> dict[str, Any]:
+    research_content = "Produce a cited research brief."
+    implementation_content = "Implement from the research brief."
     return {
         "schema": "tmcp-composition-preflight-v0.1",
         "preflight_id": "preflight-" + "1" * 20,
         "objective": "Research, implement, and verify a bounded change.",
         "task_identity": {"primary": "research-implementation"},
+        "preparation_controls": {
+            "schema": "tmcp-composition-preparation-controls-v0.1",
+            "candidate_limit": 12,
+            "max_excerpt_chars": 1200,
+            "max_total_chars": 12000,
+            "max_total_tokens": 3000,
+            "include_all_active_source_slices": False,
+            "explicitly_scoped_paths": [],
+        },
         "candidate_source_slices": [
             {
                 "slice_id": "slice-" + "1" * 20,
                 "source_node_id": "research",
+                "relative_path": "skills/research/SKILL.md",
                 "source_digest": "1" * 64,
-                "slice_digest": "2" * 64,
+                "slice_digest": content_digest_for(research_content),
+                "behavior_atoms": [],
                 "source_role": "active_skill",
-                "content": "Produce a cited research brief.",
+                "content": research_content,
+                "char_start": 0,
+                "char_end": len(research_content),
                 "mandatory": False,
             },
             {
                 "slice_id": "slice-" + "2" * 20,
                 "source_node_id": "implement",
+                "relative_path": "skills/implement/SKILL.md",
                 "source_digest": "2" * 64,
-                "slice_digest": "3" * 64,
+                "slice_digest": content_digest_for(implementation_content),
+                "behavior_atoms": [],
                 "source_role": "active_skill",
-                "content": "Implement from the research brief.",
+                "content": implementation_content,
+                "char_start": 0,
+                "char_end": len(implementation_content),
                 "mandatory": False,
             },
         ],
@@ -213,14 +358,14 @@ def _handoff_proposal() -> dict[str, Any]:
                 "outputs": ["research brief"],
                 "phase_affinity": ["discovery"],
                 "entry_gates": [],
-                "exit_gates": ["research brief approved"],
+                "exit_gates": ["research brief"],
                 "context_cost": 100,
                 "covers": ["research brief"],
                 "citations": ["slice-" + "1" * 20],
             },
             {
                 "node_id": "implement",
-                "role": "implementer",
+                "role": "implementation specialist",
                 "inputs": ["research brief"],
                 "outputs": ["working implementation"],
                 "phase_affinity": ["implementation"],
@@ -337,6 +482,10 @@ class ProjectCompositionRecipeServiceTests(unittest.TestCase):
         assert self.store.created is not None
         projection = self.store.created["composition_recipe"]
         self.assertEqual(projection["graph_digest"], GRAPH_DIGEST)
+        self.assertIn("runtime_capsule", projection)
+        self.assertNotIn("objective", projection["runtime_capsule"])
+        self.assertNotIn("task_identity", projection["runtime_capsule"])
+        self.assertNotIn("content", str(projection["runtime_capsule"]))
         self.assertNotIn("provenance", projection)
         self.assertNotIn("content_digests", str(projection))
         self.assertEqual(self.store.created["activation_policy"], "explicit_load_only")
@@ -370,6 +519,21 @@ class ProjectCompositionRecipeServiceTests(unittest.TestCase):
                     "explicit_promotion": True,
                 }
             )
+
+    def test_promotion_requires_a_valid_runtime_capsule(self) -> None:
+        plan = _plan()
+        plan.pop("runtime_capsule")
+        with self.assertRaisesRegex(ValueError, "runtime capsule"):
+            self.service.promote(
+                {
+                    "project_path": "/project",
+                    "recipe_id": "research-review",
+                    "composition_plan": plan,
+                    "receipts": _receipts(),
+                    "explicit_promotion": True,
+                }
+            )
+        self.assertEqual(self.opened, [])
 
     def test_promotion_rejects_missing_structured_safety_gate_evidence(self) -> None:
         receipts = _receipts()
@@ -448,6 +612,114 @@ class ProjectCompositionRecipeServiceTests(unittest.TestCase):
         missing_citation["candidate_source_slices"][0]["slice_id"] = "slice-" + "8" * 20
         with self.assertRaisesRegex(ValueError, "unknown_citation"):
             rehydrate_project_recipe_for_preflight(record, missing_citation)
+
+    def test_recipe_rehydrates_at_its_stored_compiler_phase(self) -> None:
+        preflight = _handoff_preflight()
+        plan = build_composition_plan(_handoff_proposal(), preflight)
+        record = build_project_composition_recipe_record(
+            recipe_id="research-implementation",
+            composition_plan=plan,
+            promotion_eligibility={
+                "eligible": True,
+                "recipe_id": "research-implementation",
+                "graph_digest": plan["provenance"]["graph_digest"],
+                "phase_capsule_binding_digest": plan["phase_capsule_binding"][
+                    "binding_digest"
+                ],
+            },
+            created_at="2026-07-17T00:00:00Z",
+        )
+
+        hydrated = rehydrate_project_recipe_for_preflight(
+            record,
+            preflight,
+            current_phase="implementation",
+        )
+
+        self.assertEqual(hydrated["compiler_phase"], "discovery")
+        self.assertEqual(hydrated["requested_runtime_phase"], "implementation")
+        self.assertEqual(
+            hydrated["semantic_proposal"]["current_phase"],
+            record["composition_recipe"]["runtime_capsule"]["compiler_phase"],
+        )
+        self.assertEqual(
+            hydrated["composition_plan"]["current_phase"],
+            "discovery",
+        )
+        self.assertEqual(
+            hydrated["composition_plan"]["phase_capsule_binding"]["binding_digest"],
+            record["composition_recipe"]["phase_capsule_binding"]["binding_digest"],
+        )
+        self.assertEqual(
+            hydrated["composition_plan"]["runtime_capsule"]["capsule_digest"],
+            record["composition_recipe"]["runtime_capsule"]["capsule_digest"],
+        )
+
+    def test_recipe_rehydrate_restores_a_content_bound_node_alias(self) -> None:
+        record = _aliasable_record()
+        renamed_preflight = _renamed_aliasable_preflight()
+
+        hydrated = rehydrate_project_recipe_for_preflight(record, renamed_preflight)
+
+        self.assertEqual(
+            renamed_preflight["candidate_source_slices"][0]["source_node_id"],
+            "research-renamed",
+        )
+        self.assertEqual(
+            hydrated["source_aliases"],
+            [{"from_node_id": "research-renamed", "to_node_id": "research"}],
+        )
+        self.assertEqual(hydrated["aliases"], hydrated["source_aliases"])
+        replay_slice = hydrated["composition_preflight"]["candidate_source_slices"][0]
+        original_slice = _aliasable_preflight()["candidate_source_slices"][0]
+        self.assertEqual(replay_slice["source_node_id"], "research")
+        self.assertEqual(replay_slice["slice_id"], original_slice["slice_id"])
+        self.assertEqual(
+            hydrated["composition_plan"]["composition_plan_id"],
+            record["composition_plan_id"],
+        )
+        self.assertEqual(
+            hydrated["graph_digest"],
+            record["graph_digest"],
+        )
+
+    def test_recipe_rehydrate_rejects_changed_or_ambiguous_node_aliases(self) -> None:
+        record = _aliasable_record()
+        changed = _renamed_aliasable_preflight()
+        changed["candidate_source_slices"][0]["content"] = "Changed research guidance."
+        with self.assertRaisesRegex(ValueError, "stale for current cited source"):
+            rehydrate_project_recipe_for_preflight(record, changed)
+
+        ambiguous = _renamed_aliasable_preflight()
+        duplicate = copy.deepcopy(ambiguous["candidate_source_slices"][0])
+        duplicate["source_node_id"] = "research-relocated-again"
+        duplicate["slice_id"] = "slice-" + stable_digest(
+            [
+                duplicate["source_digest"],
+                duplicate["slice_digest"],
+                duplicate["char_start"],
+                duplicate["char_end"],
+                duplicate["source_node_id"],
+            ],
+            20,
+        )
+        ambiguous["candidate_source_slices"].append(duplicate)
+        with self.assertRaisesRegex(ValueError, "aliases are ambiguous"):
+            rehydrate_project_recipe_for_preflight(record, ambiguous)
+
+    def test_recipe_rehydrate_requires_a_valid_runtime_capsule(self) -> None:
+        record = _reusable_record()
+        missing = copy.deepcopy(record)
+        missing["composition_recipe"].pop("runtime_capsule")
+        with self.assertRaisesRegex(ValueError, "runtime capsule"):
+            rehydrate_project_recipe_for_preflight(missing, _preflight())
+
+        tampered = copy.deepcopy(record)
+        tampered["composition_recipe"]["runtime_capsule"]["capsule_digest"] = (
+            "a" * 64
+        )
+        with self.assertRaisesRegex(ValueError, "runtime capsule"):
+            rehydrate_project_recipe_for_preflight(tampered, _preflight())
 
     def test_recipe_rehydrate_preserves_and_validates_typed_handoffs(self) -> None:
         preflight = _handoff_preflight()

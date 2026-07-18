@@ -12,7 +12,7 @@ from .composition_phase_slice_closures import (
     PhaseSliceClosureError,
     plan_stage_source_slice_closure,
 )
-from .composition_preflight import stable_digest
+from .composition_preflight import PHASE_ORDER, stable_digest
 from .harvest_nodes import content_digest_for
 from .receipts import validate_safe_phase_capsule_trace
 
@@ -29,6 +29,7 @@ _BINDING_FIELDS = frozenset(
         "composition_plan_id",
         "composition_plan_digest",
         "preflight_id",
+        "compiler_phase",
         "graph_digest",
         "recipe_digest",
         "context_accounting_digest",
@@ -37,11 +38,10 @@ _BINDING_FIELDS = frozenset(
         "binding_digest",
     }
 )
-_PLAN_BINDING_FIELDS = (
+_PLAN_IDENTITY_FIELDS = (
     "schema",
     "composition_plan_id",
     "preflight_id",
-    "current_phase",
     "governing_node_ids",
     "task_model",
     "skill_roles",
@@ -54,6 +54,8 @@ _PLAN_BINDING_FIELDS = (
     "trust",
     "instruction_override_policy",
 )
+_RUNTIME_ROLE_FIELDS = frozenset({"activation"})
+_RUNTIME_STAGE_FIELDS = frozenset({"status"})
 
 
 class PhaseCapsuleBindingError(ValueError):
@@ -75,13 +77,53 @@ def _digest(value: object, *, field: str, length: int) -> str:
     return result
 
 
+def _compiler_phase(value: object, *, field: str) -> str:
+    phase = _required(value, field=field)
+    if phase not in PHASE_ORDER:
+        raise PhaseCapsuleBindingError(f"{field} is not a supported compiler phase.")
+    return phase
+
+
+def _immutable_plan_projection(plan: Mapping[str, Any]) -> dict[str, Any]:
+    """Return compiler graph content without runtime-owned phase state."""
+
+    projection = {
+        field: deepcopy(plan[field])
+        for field in _PLAN_IDENTITY_FIELDS
+        if field in plan
+    }
+    roles = projection.get("skill_roles")
+    if isinstance(roles, list):
+        projection["skill_roles"] = [
+            {
+                key: value
+                for key, value in role.items()
+                if key not in _RUNTIME_ROLE_FIELDS
+            }
+            if isinstance(role, Mapping)
+            else role
+            for role in roles
+        ]
+    stages = projection.get("ordered_stages")
+    if isinstance(stages, list):
+        projection["ordered_stages"] = [
+            {
+                key: value
+                for key, value in stage.items()
+                if key not in _RUNTIME_STAGE_FIELDS
+            }
+            if isinstance(stage, Mapping)
+            else stage
+            for stage in stages
+        ]
+    return projection
+
+
 def _composition_plan_digest(plan: Mapping[str, Any]) -> str:
-    """Return stable executable-plan identity without mutable diagnostics."""
+    """Return stable graph identity without runtime-owned phase state."""
 
     try:
-        return stable_digest(
-            {field: plan.get(field) for field in _PLAN_BINDING_FIELDS if field in plan}
-        )
+        return stable_digest(_immutable_plan_projection(plan))
     except (TypeError, ValueError) as exc:
         raise PhaseCapsuleBindingError(
             "composition_plan cannot be canonically bound."
@@ -256,6 +298,7 @@ def _runtime_envelope(preflight: Mapping[str, Any]) -> dict[str, Any]:
 def _binding_payload(
     *,
     identity: Mapping[str, str],
+    compiler_phase: str,
     context_accounting_digest: str,
     preflight_capsule_digest: str,
     phase_capsule_trace: list[dict[str, Any]],
@@ -265,6 +308,7 @@ def _binding_payload(
         "composition_plan_id": identity["composition_plan_id"],
         "composition_plan_digest": identity["composition_plan_digest"],
         "preflight_id": identity["preflight_id"],
+        "compiler_phase": compiler_phase,
         "graph_digest": identity["graph_digest"],
         "recipe_digest": identity["recipe_digest"],
         "context_accounting_digest": context_accounting_digest,
@@ -335,6 +379,10 @@ def build_phase_capsule_binding(
         raise PhaseCapsuleBindingError("Compiler phase accounting is malformed.")
     payload = _binding_payload(
         identity=identity,
+        compiler_phase=_compiler_phase(
+            composition_plan.get("current_phase"),
+            field="composition_plan.current_phase",
+        ),
         context_accounting_digest=_digest(
             accounting.get("context_accounting_digest"),
             field="context_accounting.context_accounting_digest",
@@ -373,6 +421,10 @@ def validate_phase_capsule_binding(
         "preflight_id": _required(
             binding.get("preflight_id"), field="phase_capsule_binding.preflight_id"
         ),
+        "compiler_phase": _compiler_phase(
+            binding.get("compiler_phase"),
+            field="phase_capsule_binding.compiler_phase",
+        ),
         "graph_digest": _digest(
             binding.get("graph_digest"),
             field="phase_capsule_binding.graph_digest",
@@ -391,6 +443,7 @@ def validate_phase_capsule_binding(
     trace = validate_safe_phase_capsule_trace(binding.get("phase_capsule_trace"))
     payload = _binding_payload(
         identity=identity,
+        compiler_phase=identity["compiler_phase"],
         context_accounting_digest=_digest(
             binding.get("context_accounting_digest"),
             field="phase_capsule_binding.context_accounting_digest",
@@ -412,10 +465,15 @@ def validate_phase_capsule_binding(
         raise PhaseCapsuleBindingError(
             "phase_capsule_binding.binding_digest does not match its content."
         )
-    if composition_plan is not None and identity != _plan_identity(composition_plan):
-        raise PhaseCapsuleBindingError(
-            "phase_capsule_binding does not match composition_plan identity."
-        )
+    if composition_plan is not None:
+        plan_identity = _plan_identity(composition_plan)
+        if any(
+            identity[field] != plan_identity[field]
+            for field in plan_identity
+        ):
+            raise PhaseCapsuleBindingError(
+                "phase_capsule_binding does not match composition_plan identity."
+            )
     return {**payload, "binding_digest": binding_digest}
 
 

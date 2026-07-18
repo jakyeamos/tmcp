@@ -2,98 +2,33 @@
 
 from __future__ import annotations
 
-import json
-import math
 from collections.abc import Mapping, Sequence
 from typing import Any
 
 from .composition_preflight import stable_digest
+from .composition_phase_capsule_support import (
+    PhaseCapsuleError,
+    _agent_objective,
+    _canonical_json,
+    _capsule_record,
+    _json_value,
+    _mapping_list,
+    _nonempty,
+    _string_list,
+)
 from .composition_phase_slice_closures import (
     PhaseSliceClosureError,
-    composition_identity,
     preflight_candidate_entries,
     source_capsule_entries,
     validate_stage_source_slice_closures,
 )
-from .harvest_nodes import content_digest_for, estimate_tokens, normalized_source_content
+from .harvest_nodes import content_digest_for, normalized_source_content
 
 
 CONTEXT_ACCOUNTING_SCHEMA = "tmcp-composition-context-accounting-v0.1"
 PHASE_CAPSULE_SCHEMA = "tmcp-composition-phase-capsule-v0.1"
 CONTEXT_ACCOUNTING_POLICY = "phase_capsule_runtime_peak_vs_naive_union"
 MAX_HANDOFF_PAYLOAD_CHARS = 16_384
-
-
-class PhaseCapsuleError(ValueError):
-    pass
-
-
-def _canonical_json(value: object) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"))
-
-
-def _json_value(value: object, *, field: str) -> Any:
-    if value is None or isinstance(value, (bool, str, int)):
-        return value
-    if isinstance(value, float):
-        if not math.isfinite(value):
-            raise PhaseCapsuleError(f"{field} must not contain a non-finite number.")
-        return value
-    if isinstance(value, Mapping):
-        result: dict[str, Any] = {}
-        for key, item in value.items():
-            if not isinstance(key, str):
-                raise PhaseCapsuleError(f"{field} must use string object keys.")
-            result[key] = _json_value(item, field=f"{field}.{key}")
-        return result
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
-        return [
-            _json_value(item, field=f"{field}[{index}]")
-            for index, item in enumerate(value)
-        ]
-    raise PhaseCapsuleError(f"{field} must contain only JSON-compatible values.")
-
-
-def _mapping_list(value: object, *, field: str) -> list[Mapping[str, Any]]:
-    if value is None:
-        return []
-    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
-        raise PhaseCapsuleError(f"{field} must be a sequence of objects.")
-    result = [item for item in value if isinstance(item, Mapping)]
-    if len(result) != len(value):
-        raise PhaseCapsuleError(f"{field} must contain only objects.")
-    return result
-
-
-def _string_list(value: object, *, field: str) -> list[str]:
-    if value is None:
-        return []
-    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
-        raise PhaseCapsuleError(f"{field} must be a sequence of strings.")
-    result = [str(item).strip() for item in value if isinstance(item, str) and item.strip()]
-    if len(result) != len(value):
-        raise PhaseCapsuleError(f"{field} must contain only nonempty strings.")
-    if len(result) != len(set(result)):
-        raise PhaseCapsuleError(f"{field} must not contain duplicate strings.")
-    return result
-
-
-def _nonempty(value: object, *, field: str) -> str:
-    result = str(value or "").strip()
-    if not result:
-        raise PhaseCapsuleError(f"{field} is required.")
-    return result
-
-
-def _capsule_record(capsule: Mapping[str, Any]) -> dict[str, Any]:
-    normalized = _json_value(capsule, field="capsule")
-    serialized = _canonical_json(normalized)
-    return {
-        "capsule": normalized,
-        "canonical_json": serialized,
-        "capsule_digest": stable_digest(normalized),
-        "estimated_tokens": estimate_tokens(serialized),
-    }
 
 
 def _source_catalog(
@@ -390,6 +325,7 @@ def _handoff_entries(
         handoff_id = str(contract["handoff_id"])
         entry: dict[str, Any] = {
             "handoff_id": handoff_id,
+            "producer_skill_id": contract["producer_skill_id"],
             "contract": contract["contract"],
             "contract_digest": stable_digest(contract["contract"]),
             "payload_present": handoff_id in payloads,
@@ -400,6 +336,108 @@ def _handoff_entries(
         entry["handoff_digest"] = stable_digest(entry)
         entries.append(entry)
     return entries
+
+
+def _agent_stage_context(stage: Mapping[str, Any]) -> dict[str, Any]:
+    """Project a compiler stage into the instructions an agent must receive.
+
+    The complete stage remains in the bound composition plan.  Repeating its
+    controller ids, trust metadata, and handoff contracts inside every active
+    capsule adds no executable instruction and defeats phase-scoped loading.
+    Each compiler-issued bridge instruction already states the role, required
+    input, produced handoff, and exit gate.
+    """
+
+    bridges: list[dict[str, str]] = []
+    for raw_bridge in _mapping_list(
+        stage.get("bridge_instructions"), field="stage.bridge_instructions"
+    ):
+        instruction = str(raw_bridge.get("instruction") or "").strip()
+        if not instruction:
+            continue
+        bridge: dict[str, str] = {"instruction": instruction}
+        role = str(raw_bridge.get("role") or "").strip()
+        if role:
+            bridge["role"] = role
+        bridges.append(bridge)
+    return {
+        "phase": _nonempty(stage.get("phase"), field="stage.phase"),
+        "entry_conditions": _json_value(
+            stage.get("entry_conditions") or [], field="stage.entry_conditions"
+        ),
+        "bridge_instructions": bridges,
+    }
+
+
+def _agent_source_entries(
+    sources: Sequence[Mapping[str, Any]],
+) -> list[dict[str, str]]:
+    """Keep source behavior and its skill identity in the phase prompt."""
+
+    return [
+        {
+            "skill_id": str(source["skill_id"]),
+            "source_role": str(source["source_role"]),
+            "content": str(source["content"]),
+        }
+        for source in sources
+    ]
+
+
+def _agent_handoff_entries(
+    handoffs: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Load actionable handoff facts without repeating equivalent obligations.
+
+    A graph may yield multiple typed edges that compile to the same handoff
+    obligation for one consumer.  The bound plan and accounting record retain
+    every contract digest, while the active agent capsule carries one complete
+    actionable instruction plus the identities of its equivalent handoffs.
+    This avoids spending phase context on repeated prose without hiding an
+    obligation the host may need to report or fulfill.
+    """
+
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for handoff in handoffs:
+        contract = handoff["contract"]
+        entry: dict[str, Any] = {
+            "handoff_id": _nonempty(
+                handoff.get("handoff_id"), field="incoming_handoff.handoff_id"
+            ),
+            "producer_skill_id": _nonempty(
+                handoff.get("producer_skill_id"),
+                field="incoming_handoff.producer_skill_id",
+            ),
+            "required_inputs": _json_value(
+                contract.get("required_inputs") or [],
+                field="handoff_contract.required_inputs",
+            ),
+            "produced_outputs": _json_value(
+                contract.get("produced_outputs") or [],
+                field="handoff_contract.produced_outputs",
+            ),
+            "producer_exit_gates": _json_value(
+                contract.get("producer_exit_gates") or [],
+                field="handoff_contract.producer_exit_gates",
+            ),
+        }
+        if handoff["payload_present"]:
+            entry["payload"] = handoff["payload"]
+        equivalence_key = _canonical_json(
+            {key: value for key, value in entry.items() if key != "handoff_id"}
+        )
+        grouped.setdefault(equivalence_key, []).append(entry)
+
+    result: list[dict[str, Any]] = []
+    for entries in grouped.values():
+        representative = dict(entries[0])
+        equivalent_handoff_ids = [
+            str(entry["handoff_id"]) for entry in entries[1:]
+        ]
+        if equivalent_handoff_ids:
+            representative["equivalent_handoff_ids"] = equivalent_handoff_ids
+        result.append(representative)
+    return result
 
 
 def build_phase_capsule_accounting(
@@ -424,6 +462,9 @@ def build_phase_capsule_accounting(
     normalized_runtime_envelope = _json_value(
         runtime_envelope or {}, field="runtime_envelope"
     )
+    agent_objective = _agent_objective(
+        normalized_runtime_envelope, preflight=preflight
+    )
     sources_by_skill, skill_by_node = _source_catalog(source_contents)
     stages = _stage_catalog(
         source_projection,
@@ -437,7 +478,6 @@ def build_phase_capsule_accounting(
         skill_by_node=skill_by_node,
     )
     payloads = _payload_catalog(handoff_payloads, contract_ids=set(contracts))
-    plan_identity = composition_identity(source_projection)
     governing_skill_ids = sorted(
         skill_id
         for skill_id, sources in sources_by_skill.items()
@@ -494,7 +534,6 @@ def build_phase_capsule_accounting(
             if contract["consumer_skill_id"] in current_skill_ids
         ]
         incoming_handoffs = _handoff_entries(incoming_contracts, payloads=payloads)
-        runtime_stage = {**stage, "status": "active"}
         source_entries = source_capsule_entries(
             source_skill_ids,
             sources_by_skill=sources_by_skill,
@@ -508,12 +547,11 @@ def build_phase_capsule_accounting(
             {
                 "schema": PHASE_CAPSULE_SCHEMA,
                 "kind": "runtime_phase",
-                "runtime_envelope": normalized_runtime_envelope,
+                "objective": agent_objective,
                 "task_model": normalized_task_model,
-                "composition_identity": plan_identity,
-                "stage": runtime_stage,
-                "sources": source_entries,
-                "incoming_handoffs": incoming_handoffs,
+                "stage": _agent_stage_context(stage),
+                "sources": _agent_source_entries(source_entries),
+                "incoming_handoffs": _agent_handoff_entries(incoming_handoffs),
             }
         )
         phase_capsules.append(

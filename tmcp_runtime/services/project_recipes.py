@@ -12,6 +12,12 @@ from tmcp_runtime.domain.composition_phase_bindings import (
     PhaseCapsuleBindingError,
     validate_phase_capsule_binding,
 )
+from tmcp_runtime.domain.composition_preflight import stable_digest
+from tmcp_runtime.domain.composition_runtime_capsules import (
+    RuntimeCapsuleError,
+    validate_runtime_capsule,
+)
+from tmcp_runtime.domain.harvest_nodes import content_digest_for, normalized_source_content
 from tmcp_runtime.services.composition_evaluation import (
     assess_project_recipe_promotion,
 )
@@ -78,6 +84,12 @@ def _composition_plan(value: object) -> dict[str, Any]:
         )
     except PhaseCapsuleBindingError as exc:
         raise ValueError("Composition plan phase-capsule binding is invalid.") from exc
+    try:
+        validate_runtime_capsule(
+            plan.get("runtime_capsule"), composition_plan=plan
+        )
+    except RuntimeCapsuleError as exc:
+        raise ValueError("Composition plan runtime capsule is invalid.") from exc
     return plan
 
 
@@ -109,6 +121,11 @@ def _recipe_projection(plan: Mapping[str, Any]) -> dict[str, Any]:
             validate_phase_capsule_binding(
                 plan.get("phase_capsule_binding"),
                 composition_plan=plan,
+            )
+        ),
+        "runtime_capsule": deepcopy(
+            validate_runtime_capsule(
+                plan.get("runtime_capsule"), composition_plan=plan
             )
         ),
         "current_phase": str(plan.get("current_phase") or "start"),
@@ -183,20 +200,13 @@ def build_project_composition_recipe_record(
     }
 
 
-def rehydrate_project_recipe_for_preflight(
+def _validated_recipe_runtime_capsule(
     record: Mapping[str, Any],
-    preflight: Mapping[str, Any],
-    *,
-    current_phase: str | None = None,
-) -> dict[str, Any]:
-    """Revalidate a stored recipe against current source slices and graph identity."""
+) -> tuple[Mapping[str, Any], dict[str, Any], dict[str, Any]]:
+    """Return the closed stored recipe capsule only when it matches its binding."""
 
     if record.get("schema") != PROJECT_COMPOSITION_RECIPE_SCHEMA:
         raise ValueError("Project recipe record has an unsupported schema.")
-    if preflight.get("schema") != "tmcp-composition-preflight-v0.1":
-        raise ValueError(
-            "Project recipe load requires a current composition preflight."
-        )
     projection = record.get("composition_recipe")
     if not isinstance(projection, Mapping):
         raise ValueError("Project recipe plan projection is malformed.")
@@ -212,27 +222,255 @@ def rehydrate_project_recipe_for_preflight(
     ):
         raise ValueError("Project recipe handoff_contracts are malformed.")
     try:
-        stored_phase_capsule_binding = validate_phase_capsule_binding(
-            projection.get("phase_capsule_binding")
-        )
+        binding = validate_phase_capsule_binding(projection.get("phase_capsule_binding"))
     except PhaseCapsuleBindingError as exc:
         raise ValueError("Project recipe phase-capsule binding is malformed.") from exc
     if (
-        stored_phase_capsule_binding["composition_plan_id"]
-        != str(record.get("composition_plan_id") or "")
-        or stored_phase_capsule_binding["graph_digest"]
-        != str(record.get("graph_digest") or "")
+        binding["composition_plan_id"] != str(record.get("composition_plan_id") or "")
+        or binding["graph_digest"] != str(record.get("graph_digest") or "")
     ):
         raise ValueError("Project recipe phase-capsule binding is stale or malformed.")
+    try:
+        capsule = validate_runtime_capsule(projection.get("runtime_capsule"))
+    except RuntimeCapsuleError as exc:
+        raise ValueError("Project recipe runtime capsule is malformed.") from exc
+    if any(
+        capsule[capsule_field] != binding[binding_field]
+        for capsule_field, binding_field in (
+            ("composition_plan_id", "composition_plan_id"),
+            ("composition_plan_digest", "composition_plan_digest"),
+            ("preflight_id", "preflight_id"),
+            ("compiler_phase", "compiler_phase"),
+            ("graph_digest", "graph_digest"),
+            ("phase_capsule_binding_digest", "binding_digest"),
+        )
+    ):
+        raise ValueError("Project recipe runtime capsule is stale or malformed.")
+    return projection, binding, capsule
+
+
+def _fresh_slice_matches_descriptor(
+    source_slice: Mapping[str, Any], descriptor: Mapping[str, Any]
+) -> bool:
+    """Match fresh evidence to a closed capsule descriptor, never its locator."""
+
+    content = source_slice.get("content")
+    if not isinstance(content, str) or not normalized_source_content(content):
+        return False
+    if content_digest_for(content) != descriptor["slice_digest"]:
+        return False
+    atoms = source_slice.get("behavior_atoms")
+    if not isinstance(atoms, list) or atoms != descriptor["behavior_atoms"]:
+        return False
+    return all(
+        source_slice.get(field) == descriptor[field]
+        for field in (
+            "source_role",
+            "source_digest",
+            "slice_digest",
+            "char_start",
+            "char_end",
+            "relative_path",
+        )
+    )
+
+
+def _fresh_alias_source_is_consistent(
+    source_slice: Mapping[str, Any], descriptor: Mapping[str, Any]
+) -> bool:
+    """Allow other chunks only when they belong to the same closed source."""
+
+    content = source_slice.get("content")
+    atoms = source_slice.get("behavior_atoms")
+    if (
+        not isinstance(content, str)
+        or not normalized_source_content(content)
+        or content_digest_for(content) != source_slice.get("slice_digest")
+        or not isinstance(atoms, list)
+    ):
+        return False
+    return all(
+        source_slice.get(field) == descriptor[field]
+        for field in ("source_role", "source_digest", "relative_path", "behavior_atoms")
+    )
+
+
+def _replay_preflight_with_recipe_aliases(
+    preflight: Mapping[str, Any], runtime_capsule: Mapping[str, Any]
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    """Restore original node and slice identities for one content-bound rename.
+
+    A reviewed recipe owns graph node identifiers, while a fresh harvest may
+    assign new locators after a checkout or root relocation.  The closed
+    runtime capsule supplies the only permitted alias evidence.  We fail closed
+    for duplicate candidates, changed content, or a fresh source that would
+    collide with a different original graph node.
+    """
+
+    raw_slices = preflight.get("candidate_source_slices")
+    if not isinstance(raw_slices, list) or any(
+        not isinstance(item, Mapping) for item in raw_slices
+    ):
+        raise ValueError("Project recipe current source slices are malformed.")
+    fresh_slices = [dict(item) for item in raw_slices]
+    aliases: list[dict[str, str]] = []
+    alias_by_fresh_id: dict[str, str] = {}
+    descriptor_by_fresh_id: dict[str, Mapping[str, Any]] = {}
+    owners_by_fresh_id: dict[str, str] = {}
+
+    for descriptor in runtime_capsule["cited_source_slices"]:
+        matches = [
+            source_slice
+            for source_slice in fresh_slices
+            if _fresh_slice_matches_descriptor(source_slice, descriptor)
+        ]
+        original_node_id = str(descriptor["original_node_id"])
+        exact = [
+            source_slice
+            for source_slice in matches
+            if str(source_slice.get("source_node_id") or "") == original_node_id
+        ]
+        if len(exact) == 1:
+            match = exact[0]
+        elif len(exact) > 1 or len(matches) > 1:
+            raise ValueError("Project recipe cited source aliases are ambiguous.")
+        elif not matches:
+            raise ValueError("Project recipe is stale for current cited source slices.")
+        else:
+            match = matches[0]
+        fresh_node_id = str(match.get("source_node_id") or "").strip()
+        if not fresh_node_id:
+            raise ValueError("Project recipe current source slices are malformed.")
+        previous_owner = owners_by_fresh_id.get(fresh_node_id)
+        if previous_owner is not None and previous_owner != original_node_id:
+            raise ValueError("Project recipe cited source aliases are ambiguous.")
+        owners_by_fresh_id[fresh_node_id] = original_node_id
+        if fresh_node_id != original_node_id:
+            alias_by_fresh_id[fresh_node_id] = original_node_id
+            descriptor_by_fresh_id.setdefault(fresh_node_id, descriptor)
+
+    for fresh_node_id, original_node_id in alias_by_fresh_id.items():
+        descriptor = descriptor_by_fresh_id[fresh_node_id]
+        for source_slice in fresh_slices:
+            node_id = str(source_slice.get("source_node_id") or "").strip()
+            if node_id == fresh_node_id and not _fresh_alias_source_is_consistent(
+                source_slice, descriptor
+            ):
+                raise ValueError("Project recipe is stale for current cited source slices.")
+            if node_id == original_node_id:
+                raise ValueError("Project recipe cited source aliases are ambiguous.")
+        aliases.append(
+            {"from_node_id": fresh_node_id, "to_node_id": original_node_id}
+        )
+
+    replay = deepcopy(dict(preflight))
+    replay_slices = replay.get("candidate_source_slices")
+    if not isinstance(replay_slices, list):
+        raise ValueError("Project recipe current source slices are malformed.")
+    for source_slice in replay_slices:
+        if not isinstance(source_slice, dict):
+            raise ValueError("Project recipe current source slices are malformed.")
+        original_node_id = alias_by_fresh_id.get(
+            str(source_slice.get("source_node_id") or "").strip()
+        )
+        if not original_node_id:
+            continue
+        source_slice["source_node_id"] = original_node_id
+        source_slice["slice_id"] = "slice-" + stable_digest(
+            [
+                source_slice.get("source_digest"),
+                source_slice.get("slice_digest"),
+                source_slice.get("char_start"),
+                source_slice.get("char_end"),
+                original_node_id,
+            ],
+            20,
+        )
+    return replay, sorted(
+        aliases, key=lambda item: (item["from_node_id"], item["to_node_id"])
+    )
+
+
+def _binding_identity_matches(
+    current: Mapping[str, Any], stored: Mapping[str, Any]
+) -> bool:
+    """Compare compiler-owned identity, excluding location-derived accounting."""
+
+    return all(
+        current.get(field) == stored.get(field)
+        for field in (
+            "composition_plan_id",
+            "composition_plan_digest",
+            "preflight_id",
+            "compiler_phase",
+            "graph_digest",
+            "recipe_digest",
+        )
+    )
+
+
+def _runtime_capsule_identity_matches(
+    current: Mapping[str, Any], stored: Mapping[str, Any]
+) -> bool:
+    """Preserve the source-bound capsule while allowing aliased accounting."""
+
+    return all(
+        current.get(field) == stored.get(field)
+        for field in (
+            "composition_plan_id",
+            "composition_plan_digest",
+            "preflight_id",
+            "compiler_phase",
+            "graph_digest",
+            "objective_digest",
+            "task_identity_digest",
+            "preparation_controls",
+            "preparation_controls_digest",
+            "cited_source_slices",
+        )
+    )
+
+
+def rehydrate_project_recipe_for_preflight(
+    record: Mapping[str, Any],
+    preflight: Mapping[str, Any],
+    *,
+    current_phase: str | None = None,
+) -> dict[str, Any]:
+    """Revalidate a stored recipe against current source slices and graph identity."""
+
+    if preflight.get("schema") != "tmcp-composition-preflight-v0.1":
+        raise ValueError(
+            "Project recipe load requires a current composition preflight."
+        )
+    projection, stored_phase_capsule_binding, stored_runtime_capsule = (
+        _validated_recipe_runtime_capsule(record)
+    )
+    stored_handoff_contracts = projection.get("handoff_contracts")
     preflight_id = str(preflight.get("preflight_id") or "").strip()
     if not preflight_id:
         raise ValueError("Project recipe load requires current preflight identity.")
-    phase = str(current_phase or projection.get("current_phase") or "start")
+    compiler_phase = str(stored_runtime_capsule["compiler_phase"])
+    replay_preflight, source_aliases = _replay_preflight_with_recipe_aliases(
+        preflight,
+        stored_runtime_capsule,
+    )
+    stored_seed_hints = projection.get("scoped_seed_graph_hints")
+    if not isinstance(stored_seed_hints, Mapping):
+        raise ValueError("Project recipe scoped seed graph hints are malformed.")
+    # Scoped seed IDs and their source-backed citation locators are graph
+    # inputs. Reuse the reviewed projection after restoring the original slice
+    # IDs above; fresh harvest metadata is evidence, never an opportunity to
+    # alter seed transitions, receipts, or routing affinity during rehydrate.
+    replay_preflight["scoped_seed_graph_hints"] = deepcopy(dict(stored_seed_hints))
     coverage = dict(projection["coverage"])
     proposal = {
         "schema": "tmcp-semantic-proposal-v0.1",
         "preflight_id": preflight_id,
-        "current_phase": phase,
+        # Revalidate at the capsule's immutable compiler phase. A later runtime
+        # phase is evidence-driven state and must be advanced by the runtime
+        # gate evaluator, not used to manufacture a new reviewed binding.
+        "current_phase": compiler_phase,
         "task_model": deepcopy(dict(projection["task_model"])),
         "skill_roles": deepcopy(list(projection["skill_roles"])),
         "relationships": deepcopy(list(projection["typed_edges"])),
@@ -244,8 +482,8 @@ def rehydrate_project_recipe_for_preflight(
     }
     compiled = compile_semantic_composition(
         proposal,
-        dict(preflight),
-        current_phase=phase,
+        replay_preflight,
+        current_phase=compiler_phase,
     )
     if compiled.get("accepted") is not True:
         validation = compiled.get("validation")
@@ -284,14 +522,28 @@ def rehydrate_project_recipe_for_preflight(
         )
     except PhaseCapsuleBindingError as exc:
         raise ValueError("Project recipe did not compile a valid phase binding.") from exc
-    if (
-        current_phase_capsule_binding["binding_digest"]
-        != stored_phase_capsule_binding["binding_digest"]
+    if not _binding_identity_matches(
+        current_phase_capsule_binding, stored_phase_capsule_binding
     ):
         raise ValueError("Project recipe phase-capsule binding is stale or malformed.")
+    try:
+        current_runtime_capsule = validate_runtime_capsule(
+            plan.get("runtime_capsule"), composition_plan=plan
+        )
+    except RuntimeCapsuleError as exc:
+        raise ValueError("Project recipe did not compile a valid runtime capsule.") from exc
+    if not _runtime_capsule_identity_matches(
+        current_runtime_capsule, stored_runtime_capsule
+    ):
+        raise ValueError("Project recipe runtime capsule is stale or malformed.")
     return {
         "semantic_proposal": proposal,
         "composition_plan": deepcopy(dict(plan)),
+        "composition_preflight": replay_preflight,
+        "compiler_phase": compiler_phase,
+        "requested_runtime_phase": str(current_phase or "").strip(),
+        "aliases": source_aliases,
+        "source_aliases": source_aliases,
         "origin_composition_plan_id": str(record.get("composition_plan_id") or ""),
         "graph_digest": current_graph_digest,
     }
@@ -394,6 +646,19 @@ class ProjectCompositionRecipeService:
             "recipe": snapshot.record,
             "storage": snapshot.metadata(),
         }
+
+    def load_runtime_capsule(self, arguments: Mapping[str, Any]) -> dict[str, Any]:
+        """Read one explicit recipe's validated controls before current preflight."""
+
+        recipe_id = _recipe_id(arguments.get("recipe_id"))
+        store = self._open_store(
+            _project_path(arguments.get("project_path")), recipe_id
+        )
+        snapshot = store.load_record()
+        _projection, _binding, capsule = _validated_recipe_runtime_capsule(
+            snapshot.record
+        )
+        return deepcopy(capsule)
 
     def load_for_preflight(self, arguments: Mapping[str, Any]) -> dict[str, Any]:
         """Load one exact-ID recipe and recompile it against current source slices."""

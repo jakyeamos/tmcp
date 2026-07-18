@@ -52,7 +52,12 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
                 "source_role": "governing_instruction",
                 "activation_eligible": True,
                 "title": "Governing rules",
-                "signal_excerpt": "Read before modifying and preserve evidence.",
+                "signal_excerpt": (
+                    "Read before modifying and preserve evidence. Governing authority "
+                    "accepts the task objective and produces bounded constraints; "
+                    "constraints applied. Preserve governing scope. Governing scope "
+                    "enables bounded research evidence."
+                ),
                 "behavior_atoms": ["governing-scope"],
                 "content_digest": "a" * 64,
                 "token_estimate": 512,
@@ -67,7 +72,12 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
                 "source_role": "active_skill",
                 "activation_eligible": True,
                 "title": "Research",
-                "signal_excerpt": "Produce a cited brief and verify every source.",
+                "signal_excerpt": (
+                    "Research verifier accepts a bounded objective and produces a "
+                    "cited evidence brief and cited report. Verify every source: "
+                    "sources are verified. Research evidence, verify sources, "
+                    "citations, and verification result are required."
+                ),
                 "behavior_atoms": ["source-verification"],
                 "content_digest": "b" * 64,
                 "token_estimate": 512,
@@ -392,6 +402,10 @@ class CompositionSchemaInstanceTests(unittest.TestCase):
         assert_matches_schema(
             accepted["composition_plan"],
             SCHEMAS / "tmcp-composition-plan-v0.1.schema.json",
+        )
+        assert_matches_schema(
+            accepted["composition_plan"]["runtime_capsule"],
+            SCHEMAS / "tmcp-composition-runtime-capsule-v0.1.schema.json",
         )
         for packet in (accepted, rejected):
             assert_matches_schema(

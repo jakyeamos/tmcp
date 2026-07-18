@@ -1,5 +1,5 @@
 {
-  "mcp_tools_sha256": "sha256:0c5d58b452ad53103f4e003717892a14774117aa78906392b586aa57080cbacd",
+  "mcp_tools_sha256": "sha256:987014396aec1b1bd88007f722f7e2c4d1d7cf198c57822d3bb75d7a3540df07",
   "pseudo_commands": {
     "help": [
       "help",
@@ -137,7 +137,7 @@
       ],
       "cli_defaults": {},
       "description_sha256": "sha256:58eed5374e2d294c9a3f831b61ec8d4682f404d7a5b76a957596bd0fe2a75960",
-      "input_schema_sha256": "sha256:4ec07536bfbb504ddd9622fbb0ad56d94f0caef972c7ad35f7cc5a45dcc01e13",
+      "input_schema_sha256": "sha256:ddaa0815fb12272d2ae465e7711036dab36aa59955fc38c92126b2056358233d",
       "name": "tmcp_prepare_composition",
       "output_schema_ids": [
         "tmcp-composition-preflight-v0.1"
@@ -172,7 +172,7 @@
       ],
       "cli_defaults": {},
       "description_sha256": "sha256:beac1193f576cba018f600ee033df19c51c0b06ab2f6cb005f721196b0a496be",
-      "input_schema_sha256": "sha256:bebcdf28033e5d3bffd4f819d4513a0d9efaa15421dc11704290d275f16ac456",
+      "input_schema_sha256": "sha256:264bcc9c2a5faec61a83cbb22f772077f3290509277d33576f6646c650a66b8a",
       "name": "tmcp_compose_packet",
       "output_schema_ids": [
         "tmcp-composed-packet-v0.1"
@@ -198,7 +198,7 @@
         }
       },
       "description_sha256": "sha256:765221fb63a755cb9f338c92b1449943a84d1d4294b2a056687512fe56da8f2f",
-      "input_schema_sha256": "sha256:671430d532df74ddaeae6cfe125413c9bf3de6a361c1036c14fc74545ce05921",
+      "input_schema_sha256": "sha256:804ae296670a7a94a6348fe89a90b3f24ba026135da6dc3e8b8ad818f10aa94c",
       "name": "tmcp_runtime_next",
       "output_schema_ids": [
         "tmcp-runtime-next-v0.1",
@@ -216,7 +216,7 @@
       ],
       "cli_defaults": {},
       "description_sha256": "sha256:a2c76d40a1a61bd063a9b1b407458e8b66aea5919c17a49e16aa7abfc6dc2223",
-      "input_schema_sha256": "sha256:7a6c31552079744916ceb15d35a7200505b70043e0556b5ba6bf69a0c1bea288",
+      "input_schema_sha256": "sha256:8d03f5248c4d0b40374ef0287993d954fea6a7d92a651ea63e52549c1d32c952",
       "name": "tmcp_record_receipt",
       "output_schema_ids": [
         "tmcp-run-receipt-v0.1"

@@ -84,7 +84,7 @@
         "preflight_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "semantic_proposal": {"$ref": "tmcp-semantic-proposal-v0.1.schema.json"},
         "semantic_proposal_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-        "packet": {"type": "object"},
+        "packet": {"$ref": "tmcp-composed-packet-v0.1.schema.json"},
         "packet_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "composition_plan_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
       }

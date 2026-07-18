@@ -11,6 +11,7 @@
     "run_manifest_digest",
     "control_plan_id",
     "control_plan_digest",
+    "evidence_class",
     "routing_runs",
     "behavioral_runs"
   ],
@@ -20,6 +21,9 @@
     "run_manifest_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "control_plan_id": {"type": "string", "pattern": "^benchmark-control-[a-f0-9]{20}$"},
     "control_plan_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "evidence_class": {
+      "enum": ["host_executed", "synthetic_test"]
+    },
     "routing_runs": {
       "type": "array",
       "minItems": 20,
