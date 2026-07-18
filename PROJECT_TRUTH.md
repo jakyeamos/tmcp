@@ -3,7 +3,7 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed changes: `b4a9b77` requires source-bundle scoring to reverify the primary campaign's isolation, schema-preflight, immutable/live-source, completion, and thread-coverage contract before a sidecar can support promotion. The deterministic packet contract and evidence ledger keep the result local-only.
+- Last completed changes: `b4a9b77` requires source-bundle scoring to reverify the primary campaign's isolation, schema-preflight, immutable/live-source, completion, and thread-coverage contract before a sidecar can support promotion; `fe22d47` isolates that primary-contract test coverage so the evidence harness remains within the quality-gate size limit. The deterministic packet contract and evidence ledger keep the result local-only.
 - Verification: 577 tests pass (3 skipped); source-bundle regeneration, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, no-write Wizard, branch-fold, and OpenCLI packet replays, and targeted release-scanner checks pass. The commit hook ran changed-line Pre-CR successfully.
 
 ## Current Position
