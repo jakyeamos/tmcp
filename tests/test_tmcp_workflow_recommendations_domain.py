@@ -6,6 +6,33 @@ from tmcp_runtime.domain import workflow_catalog, workflow_recommendations
 
 
 class WorkflowRecommendationsDomainTests(unittest.TestCase):
+    def test_source_bundle_does_not_score_as_performance_evidence(self) -> None:
+        workflow = workflow_catalog.workflow_catalog_by_id()[
+            "performance_review_workflow"
+        ]
+        source_nodes = [
+            {
+                "path": "/tmp/project/study.md",
+                "relative_path": "docs/study.md",
+                "title": "Source-bundle study",
+                "source_type": "project_documentation",
+                "behavior_atoms": [],
+                "guidance_labels": [],
+                "excerpt": "A preregistered source-bundle study.",
+                "signal_text": "A preregistered source-bundle study.",
+            }
+        ]
+
+        score = workflow_recommendations.score_workflow_signal(
+            workflow,
+            source_nodes,
+            node_signal_text=lambda node: str(node["signal_text"]),
+            signal_guidance_label_ids={},
+        )
+
+        self.assertEqual(score["score"], 0.0)
+        self.assertEqual(score["evidence"], [])
+
     def test_scoring_uses_injected_harvest_text_and_guidance_labels(self) -> None:
         workflow = workflow_catalog.workflow_catalog_by_id()[
             "release_readiness_workflow"

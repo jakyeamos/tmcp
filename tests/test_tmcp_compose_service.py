@@ -155,6 +155,43 @@ class TmcpComposeServiceTests(unittest.TestCase):
         self.assertEqual(packet["output_contract"], ["Return sources inspected."])
         self.assertIn("## Output Contract", packet["packet_markdown"])
 
+    def test_documentary_contracts_do_not_pollute_an_unrelated_packet(self) -> None:
+        source = self._source_node(
+            "PROJECT_TRUTH.md",
+            "The composition study requires fresh approval for remote model calls.",
+            source_type="project_documentation",
+        )
+        source["routing_metadata"] = {
+            "stop_conditions": [
+                "Obtain fresh approval for the composition study remote model calls.",
+                "Do not prune ambiguous branches.",
+            ],
+            "output_contract": ["Return base + route_boost."],
+        }
+
+        packet = compose_packet_from_source_nodes(
+            {
+                "objective": (
+                    "Audit the composition study guidebook for remote model evidence "
+                    "while local hardening continues."
+                ),
+                "project_path": "[REDACTED:path]",
+                "phase": "verification",
+                "cache_policy": "none",
+            },
+            source_nodes=[source],
+            global_graphs=[],
+            receipts=[],
+            cache_warnings=[],
+            cache_home="[REDACTED:path]",
+        )
+
+        self.assertEqual(
+            packet["stop_conditions"],
+            ["Obtain fresh approval for the composition study remote model calls."],
+        )
+        self.assertEqual(packet["output_contract"], [])
+
     def test_none_policy_discards_even_directly_injected_cache_inputs(self) -> None:
         arguments = {
             "objective": "Run a repo behavior sweep",

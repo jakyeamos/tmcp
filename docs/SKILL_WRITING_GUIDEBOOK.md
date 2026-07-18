@@ -146,7 +146,8 @@ has a controlled causal intervention.
 
 Campaign-design failure modes observed while building the matrix include substring
 routing, projecting overloaded terms such as `contrast` without nearby domain
-context, runner priming, bar leakage, unkeyed judge evidence, asserted rather than
+context, treating an unqualified `bundle` as performance evidence, runner priming,
+bar leakage, unkeyed judge evidence, asserted rather than
 bound provenance, partial artifacts treated as complete, mechanically renamed
 fixture families, off-contract bars, and calling same-model settings multiple models.
 Treat these as dogfooded engineering warnings. Do not promote them as causal skill

@@ -33,6 +33,7 @@ class CompositionContractFixtureTests(unittest.TestCase):
             "explicit_frontend_control_remains_routed",
             "user_reaction_is_not_react",
             "implementation_evidence_is_not_frontend",
+            "source_bundle_is_not_performance",
         ):
             with self.subTest(case_id=case_id):
                 case = self.cases[case_id]
@@ -41,7 +42,9 @@ class CompositionContractFixtureTests(unittest.TestCase):
 
                 self.assertEqual(identity["primary"], expected["primary"])
                 if "active_routes" in expected:
-                    self.assertEqual(identity["active_routes"], expected["active_routes"])
+                    self.assertEqual(
+                        identity["active_routes"], expected["active_routes"]
+                    )
                 else:
                     for route in expected["active_routes_include"]:
                         self.assertIn(route, identity["active_routes"])
@@ -104,9 +107,9 @@ class CompositionContractFixtureTests(unittest.TestCase):
                 str(case["fixture_source"]),
                 fixture_node["source_type"],
             )[0],
-            harvest_priority(active_source, str(case["active_source"]), "skill_definition")[
-                0
-            ],
+            harvest_priority(
+                active_source, str(case["active_source"]), "skill_definition"
+            )[0],
         )
 
     def test_owner_consumer_source_projects_consumer_verification_gate(self) -> None:

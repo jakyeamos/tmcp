@@ -8,7 +8,11 @@ from unittest.mock import patch
 
 import tmcp_runtime.services.harvest as harvest_service
 from tests import test_tmcp_mcp_server as helpers
-from tmcp_runtime.domain.harvest_nodes import routing_metadata_for, source_node_from_text
+from tmcp_runtime.domain.harvest_nodes import (
+    routing_metadata_for,
+    source_node_from_text,
+    source_type_for,
+)
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -47,10 +51,7 @@ class HarvestDomainTests(unittest.TestCase):
             "SKILL.md",
             "\n".join(
                 [
-                    (
-                        "Verify the live remote head again before promotion and "
-                        "pruning."
-                    ),
+                    ("Verify the live remote head again before promotion and pruning."),
                     (
                         "Preserve every dirty worktree and every branch with unique "
                         "or ambiguous work."
@@ -98,6 +99,81 @@ class HarvestDomainTests(unittest.TestCase):
 
         self.assertEqual(
             routing["output_contract"], ["Return a compact repair handoff."]
+        )
+
+    def test_output_contract_ignores_headings_and_fenced_code(self) -> None:
+        routing = routing_metadata_for(
+            "docs/runtime.md",
+            "\n".join(
+                [
+                    "## Output Contract",
+                    "```python",
+                    "return base + route_boost",
+                    "```",
+                    "Produce or cite the verification evidence.",
+                ]
+            ),
+        )
+
+        self.assertEqual(
+            routing["output_contract"],
+            ["Produce or cite the verification evidence."],
+        )
+
+    def test_output_contract_keeps_concrete_bullets_under_its_heading(self) -> None:
+        routing = routing_metadata_for(
+            "SKILL.md",
+            "\n".join(
+                [
+                    "## Output Contract",
+                    "Produce or cite:",
+                    "",
+                    "- Sources inspected.",
+                    "- Verification evidence.",
+                    "",
+                    "## Safety",
+                    "Do not write secrets.",
+                ]
+            ),
+        )
+
+        self.assertEqual(
+            routing["output_contract"],
+            ["Sources inspected.", "Verification evidence."],
+        )
+
+    def test_stop_condition_field_name_is_not_a_stop_instruction(self) -> None:
+        routing = routing_metadata_for(
+            "SKILL.md",
+            "The packet returns stop_conditions and output_contract fields.",
+        )
+
+        self.assertEqual(routing["stop_conditions"], [])
+
+    def test_documentation_with_workflow_words_is_not_a_workflow_prompt(self) -> None:
+        self.assertEqual(
+            source_type_for(
+                Path("docs/guidebook.md"),
+                "docs/guidebook.md",
+                "This guidebook explains the workflow evidence boundary.",
+            ),
+            "project_documentation",
+        )
+        self.assertEqual(
+            source_type_for(
+                Path("workflow.md"),
+                "workflow.md",
+                "A concise project process.",
+            ),
+            "workflow_prompt",
+        )
+        self.assertEqual(
+            source_type_for(
+                Path("examples/workflows/review.md"),
+                "examples/workflows/review.md",
+                "A reusable example workflow.",
+            ),
+            "project_documentation",
         )
 
     def test_source_node_uses_an_explicit_advisory_callback(self) -> None:

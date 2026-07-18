@@ -56,7 +56,6 @@ HARVEST_SOURCE_TYPE_ATOMS: dict[str, tuple[str, ...]] = {
 def source_type_for(path: Path, rel_path: str, text: str) -> str:
     name = path.name.lower()
     rel = rel_path.lower()
-    lower = text[:4000].lower()
     if "/tests/fixtures/" in f"/{rel}" or "/test/fixtures/" in f"/{rel}":
         return "test_fixture"
     if name == "skill.md":
@@ -67,9 +66,14 @@ def source_type_for(path: Path, rel_path: str, text: str) -> str:
         return "cursor_rule"
     if ".github/" in rel:
         return "github_process"
-    if "workflow" in rel or "workflow" in lower:
+    if "workflow" in rel and not rel.startswith(("docs/", "examples/")):
         return "workflow_prompt"
-    if name == "readme.md" or "/docs/" in f"/{rel}" or "/doc/" in f"/{rel}":
+    if (
+        name == "readme.md"
+        or rel.startswith("examples/")
+        or "/docs/" in f"/{rel}"
+        or "/doc/" in f"/{rel}"
+    ):
         return "project_documentation"
     return "markdown_process_doc"
 

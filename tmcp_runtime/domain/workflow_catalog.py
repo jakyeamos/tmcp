@@ -271,7 +271,7 @@ WORKFLOW_SIGNAL_CATALOG: tuple[dict[str, Any], ...] = (
             "latency",
             "profiling",
             "profile",
-            "bundle",
+            "bundle size",
             "runtime",
             "load test",
             "speed",

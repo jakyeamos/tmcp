@@ -43,6 +43,15 @@
       }
     },
     {
+      "id": "source_bundle_is_not_performance",
+      "kind": "task_identity",
+      "objective": "Audit a preregistered source-bundle study for skill composition.",
+      "expected": {
+        "primary": "general_task",
+        "active_routes": []
+      }
+    },
+    {
       "id": "test_fixture_is_evidence_only",
       "kind": "source_role",
       "objective": "Build a trusted evidence-backed guidebook for agent skills and skill composition through preregistered fixture-scoped experiments.",

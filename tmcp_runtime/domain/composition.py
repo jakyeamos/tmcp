@@ -16,7 +16,10 @@ from .routes import (
     derive_task_identity,
     has_accessibility_contrast_context,
 )
-from .source_roles import is_activation_eligible_source_type
+from .source_roles import (
+    is_activation_eligible_source_type,
+    is_instruction_bearing_source_type,
+)
 
 
 Node = dict[str, Any]
@@ -86,6 +89,8 @@ COMPOSITION_GENERIC_TERMS = {
     "all",
     "and",
     "any",
+    "audit",
+    "audits",
     "artifacts",
     "before",
     "but",
@@ -94,6 +99,7 @@ COMPOSITION_GENERIC_TERMS = {
     "codex",
     "current",
     "each",
+    "evidence",
     "execute",
     "existing",
     "fixed",
@@ -102,6 +108,7 @@ COMPOSITION_GENERIC_TERMS = {
     "had",
     "has",
     "have",
+    "hardening",
     "improve",
     "into",
     "make",
@@ -113,6 +120,8 @@ COMPOSITION_GENERIC_TERMS = {
     "release",
     "report",
     "reports",
+    "review",
+    "reviews",
     "run",
     "should",
     "skill",
@@ -133,6 +142,8 @@ COMPOSITION_GENERIC_TERMS = {
     "will",
     "with",
     "would",
+    "validation",
+    "verification",
     "workflow",
     "workflows",
 }
@@ -221,10 +232,13 @@ def is_uiish_text(value: str) -> bool:
         if term != "browser"
     ):
         return True
-    return re.search(
-        r"(?<![a-z0-9])browser(?![\s_-]*connect\b)(?![a-z0-9])",
-        value.lower(),
-    ) is not None
+    return (
+        re.search(
+            r"(?<![a-z0-9])browser(?![\s_-]*connect\b)(?![a-z0-9])",
+            value.lower(),
+        )
+        is not None
+    )
 
 
 def is_ui_file(path: str) -> bool:
@@ -536,6 +550,68 @@ def filter_source_verification_gates(
         if "canonical spreadsheet" in lower and not repo_behavior_context:
             continue
         filtered.append(gate)
+    return filtered
+
+
+def filter_source_stop_conditions(
+    stop_conditions: list[str],
+    objective: str,
+    source_type: str,
+) -> list[str]:
+    """Keep documentary stop conditions only when they match the current task."""
+
+    if is_instruction_bearing_source_type(source_type):
+        return stop_conditions
+    objective_groups = (
+        ("adapter", "diagnostic", "opencli", "repair"),
+        ("branch", "fold", "merge", "prune", "worktree"),
+        (
+            "evaluation",
+            "experiment",
+            "judge",
+            "model",
+            "rejudge",
+            "remote",
+            "runner",
+            "sidecar",
+            "study",
+        ),
+        ("interactive", "secret", "wizard"),
+        ("deploy", "external", "irreversible", "publish", "purchase", "release"),
+    )
+    condition_groups = (
+        ("adapter", "auth_required", "browser_connect", "opencli", "repair"),
+        ("ancestry", "branch", "force-push", "git cherry", "prune", "worktree"),
+        (
+            "external model",
+            "judge",
+            "model",
+            "rejudge",
+            "remote model",
+            "runner",
+            "sidecar",
+        ),
+        ("interactive", "secret", "wizard"),
+        ("external action", "irreversible", "publish", "purchase", "release"),
+    )
+    objective_lower = objective.lower()
+    filtered: list[str] = []
+    for condition in stop_conditions:
+        condition_lower = condition.lower()
+        if any(
+            any(
+                _contains_signal_term(condition_lower, marker)
+                for marker in condition_group
+            )
+            and any(
+                _contains_signal_term(objective_lower, marker)
+                for marker in objective_group
+            )
+            for condition_group, objective_group in zip(
+                condition_groups, objective_groups, strict=True
+            )
+        ):
+            filtered.append(condition)
     return filtered
 
 

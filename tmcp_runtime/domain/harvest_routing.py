@@ -21,6 +21,39 @@ def ordered_unique(values: list[str]) -> list[str]:
     return ordered
 
 
+def _directive_lines(text: str) -> list[str]:
+    """Return prose lines that can carry a harvested instruction."""
+
+    lines: list[str] = []
+    fence_marker: str | None = None
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(("```", "~~~")):
+            marker = stripped[:3]
+            if fence_marker is None:
+                fence_marker = marker
+            elif marker == fence_marker:
+                fence_marker = None
+            continue
+        if fence_marker is None and stripped:
+            lines.append(line)
+    return lines
+
+
+def _has_stop_marker(line: str) -> bool:
+    lower = line.lower()
+    return (
+        (
+            re.search(r"(?<![_a-z])stop(?![_a-z])", lower) is not None
+            and "stop condition" not in lower
+        )
+        or "ask the user" in lower
+        or "do not advance" in lower
+        or "checkpoint" in lower
+        or "approval" in lower
+    )
+
+
 def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
     lower = text.lower()
     normalized_lower = re.sub(r"[^a-z0-9]+", " ", lower)
@@ -72,19 +105,9 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
         setup_blockers.append(
             "UPDATE_AVAILABLE should be surfaced once before continuing."
         )
+    directive_lines = _directive_lines(text)
     stop_conditions = [
-        line.strip(" -*")
-        for line in text.splitlines()
-        if any(
-            marker in line.lower()
-            for marker in (
-                "stop",
-                "ask the user",
-                "do not advance",
-                "checkpoint",
-                "approval",
-            )
-        )
+        line.strip(" -*") for line in directive_lines if _has_stop_marker(line)
     ][:8]
     if "confirm before any irreversible action" in normalized_lower:
         stop_conditions.insert(
@@ -121,10 +144,7 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
                 "user to restore the local environment."
             )
         )
-    if (
-        "only modify the file at repaircontext adapter sourcepath"
-        in normalized_lower
-    ):
+    if "only modify the file at repaircontext adapter sourcepath" in normalized_lower:
         autofix_stops.append("Modify only RepairContext.adapter.sourcePath.")
     if all(
         phrase in normalized_lower
@@ -198,21 +218,37 @@ def routing_metadata_for(rel_path: str, text: str) -> dict[str, Any]:
         phase_hints.append("final")
     do_not_use_when = [
         line.strip(" -*")
-        for line in text.splitlines()
+        for line in directive_lines
         if "do not use" in line.lower() or "not for" in line.lower()
     ][:6]
     output_contract_candidates: list[str] = []
-    for line in text.splitlines():
+    in_output_contract = False
+    for line in directive_lines:
+        heading = re.match(r"^#{1,6}\s+(.+?)\s*#*\s*$", line.strip())
+        if heading:
+            in_output_contract = (
+                re.sub(r"[^a-z0-9]+", " ", heading.group(1).lower()).strip()
+                == "output contract"
+            )
+            continue
         item = line.strip(" -*#")
         normalized_item = re.sub(r"[^a-z0-9]+", " ", item.lower()).strip()
         if not item:
             continue
+        if in_output_contract:
+            if normalized_item not in {
+                "output contract",
+                "produce or cite",
+                "every workflow answer should include or cite",
+            }:
+                output_contract_candidates.append(item)
+            continue
         if (
-            "output contract" in normalized_item
-            or "must include" in normalized_item
+            "must include" in normalized_item
             or normalized_item.startswith(
-                ("return ", "report ", "provide ", "produce ", "handoff ")
+                ("report ", "provide ", "produce ", "handoff ")
             )
+            or (item.startswith("Return ") and normalized_item.startswith("return "))
         ):
             output_contract_candidates.append(item)
     output_contract = ordered_unique(output_contract_candidates)[:8]

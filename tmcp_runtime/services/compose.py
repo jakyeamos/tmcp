@@ -8,6 +8,7 @@ from typing import Any
 from tmcp_runtime.domain.composition import (
     contextual_atoms_and_gates,
     filter_source_verification_gates,
+    filter_source_stop_conditions,
     matching_reference_reads,
     merge_composition_nodes,
     normalize_cache_policy,
@@ -30,6 +31,7 @@ from tmcp_runtime.domain.workflow_activation import (
     build_global_workflow_activation,
     select_global_workflows,
 )
+from tmcp_runtime.domain.source_roles import is_instruction_bearing_source_type
 
 
 COMPOSED_PACKET_SCHEMA = "tmcp-composed-packet-v0.1"
@@ -216,8 +218,16 @@ def compose_packet_from_source_nodes(
                 context,
             )
         )
-        stop_conditions.extend(string_list(metadata.get("stop_conditions")))
-        output_contract.extend(string_list(metadata.get("output_contract")))
+        source_type = str(node.get("source_type") or "")
+        stop_conditions.extend(
+            filter_source_stop_conditions(
+                string_list(metadata.get("stop_conditions")),
+                objective,
+                source_type,
+            )
+        )
+        if is_instruction_bearing_source_type(source_type):
+            output_contract.extend(string_list(metadata.get("output_contract")))
         active_atoms.extend(string_list(node.get("behavior_atoms")))
         evidence_citations.append(
             {

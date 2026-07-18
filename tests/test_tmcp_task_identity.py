@@ -110,10 +110,14 @@ class TmcpRouteCatalogTests(unittest.TestCase):
         self.assertNotIn("frontend_implementation", routes)
         self.assertEqual(identity["primary"], "general_task")
 
-    def test_explicit_react_framework_context_still_activates_frontend_route(self) -> None:
+    def test_explicit_react_framework_context_still_activates_frontend_route(
+        self,
+    ) -> None:
         routes = {
             item["route"]
-            for item in score_routes("Build React components with motion-rich interactions.")
+            for item in score_routes(
+                "Build React components with motion-rich interactions."
+            )
         }
 
         self.assertIn("frontend_implementation", routes)
@@ -157,6 +161,26 @@ class TmcpRouteCatalogTests(unittest.TestCase):
             "accessibility_validation", {item["route"] for item in signals}
         )
         self.assertEqual(identity["primary"], "general_task")
+
+    def test_source_bundle_does_not_activate_performance(self) -> None:
+        routes = {
+            item["route"]
+            for item in score_routes(
+                "Audit a preregistered source-bundle study for skill composition."
+            )
+        }
+
+        self.assertNotIn("performance_validation", routes)
+
+    def test_bundle_size_with_latency_still_activates_performance(self) -> None:
+        routes = {
+            item["route"]
+            for item in score_routes(
+                "Audit frontend bundle size and load latency before release."
+            )
+        }
+
+        self.assertIn("performance_validation", routes)
 
     def test_visual_contrast_still_activates_accessibility(self) -> None:
         cases = (

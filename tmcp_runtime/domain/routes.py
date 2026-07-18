@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-ROUTE_CATALOG_VERSION = "2026-07-07"
+ROUTE_CATALOG_VERSION = "2026-07-17"
 ROUTE_SCORE_THRESHOLD = 2.0
 MAX_SECONDARY_ROUTES = 6
 
@@ -75,7 +75,9 @@ def _has_affirmative_term_match(text: str, term: str) -> bool:
         if normalized == "react" and not _has_react_technology_context(text, match):
             continue
         preceding = text[max(0, match.start() - 32) : match.start()]
-        if not re.search(r"\b(?:before(?:\s+any)?|without|not|never|no)\s+$", preceding):
+        if not re.search(
+            r"\b(?:before(?:\s+any)?|without|not|never|no)\s+$", preceding
+        ):
             return True
     return False
 
@@ -94,6 +96,31 @@ def _has_react_technology_context(text: str, match: re.Match[str]) -> bool:
         )
         or re.search(r"\b(?:in|use|using|with)\s+$", preceding)
     )
+
+
+def _has_performance_bundle_context(text: str) -> bool:
+    """Require performance evidence before routing an overloaded bundle term."""
+
+    for match in re.finditer(r"(?<!\w)bundle(?!\w)", text.lower()):
+        start = max(0, match.start() - 64)
+        end = min(len(text), match.end() + 64)
+        context = text[start:end].lower()
+        if any(
+            term in context
+            for term in (
+                "asset",
+                "build",
+                "latency",
+                "lighthouse",
+                "load",
+                "performance",
+                "runtime",
+                "size",
+                "web vitals",
+            )
+        ):
+            return True
+    return False
 
 
 def _ui_file_boost(context: dict[str, Any]) -> tuple[float, list[str]]:
@@ -207,7 +234,7 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
         (
             "performance",
             "underperformance",
-            "bundle",
+            "bundle size",
             "latency",
             "lighthouse",
             "core web vitals",
@@ -288,7 +315,7 @@ ROUTE_SOURCE_SLUG_PATTERNS: dict[str, tuple[str, ...]] = {
     "performance_validation": (
         "performance",
         "lighthouse",
-        "bundle",
+        "bundle-size",
         "latency",
     ),
     "debugging_regression": (
@@ -458,6 +485,12 @@ def score_routes(
             and not has_accessibility_contrast_context(combined, context)
         ):
             matched_terms.remove("contrast")
+        if (
+            route.route_id == "performance_validation"
+            and "bundle size" in matched_terms
+            and not _has_performance_bundle_context(combined)
+        ):
+            matched_terms.remove("bundle size")
         evidence = [f"objective: {term}" for term in matched_terms]
         score = float(len(evidence)) * 1.5
         if route.context_boost is not None:
