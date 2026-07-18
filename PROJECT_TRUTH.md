@@ -3,7 +3,7 @@
 ## Current State
 
 - Branch: `codex/skill-eval-dogfood`
-- Last completed changes: `56eb047` adds an author-drafted, synthetic TMCP plus `refactor-clean` dependency-graph fixture with a judgment-level bar, runner/judge blindness contract, and a pending independent-review record. It is not preregistered or behaviorally evaluated. `9bd19d3` fixes the public-provenance redaction false positive that surfaced while preparing it.
+- Last completed changes: `8443cc9` preserves structured versioned evidence paths through redaction; `9bd19d3` preserves public one-directory document paths while both changes continue to redact opaque tokens. `56eb047` adds an author-drafted, synthetic TMCP plus `refactor-clean` dependency-graph fixture with a judgment-level bar, runner/judge blindness contract, and a pending independent-review record. It is not preregistered or behaviorally evaluated.
 - Verification: 589 repository tests pass (3 skipped); source-bundle regeneration, preregistered primary-harness binding and drift rejection, digest/live-source verification, policy-bound rejudge dry run, verified-score wiring, guidebook/catalog and campaign-ledger boundary checks, API validation, guarded 72-cell dry-run, compiler checks, TMCP doctor, a project-root `reaction` replay, no-write Wizard, branch-fold, OpenCLI packet replays, and the composition routing replay pass. The refreshed reproducible release-package check passes with 589 packaged tests (9 source-only skips). Changed-line Pre-CR passes cleanly.
 
 ## Current Position
