@@ -6,27 +6,26 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Keep shared-term skill selection low-context through
-harvested candidate/result ordering, then prove a real multi-skill task without
-release claims.
+**Current focus:** Preserve declared dependency closure under bounded context,
+then dogfood a real two-skill handoff without release claims.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
 **Status:** `9210ff3` isolates bounded-harvest selection below source-size
-limits while preserving explicit all-active evidence. 0.6.0 still requires
-real host/evaluator outcomes and a stronger real-task fixture corpus.
+limits while preserving explicit all-active evidence; `92718cf` now passes
+reproducible package verification. 0.6.0 still requires real host/evaluator
+outcomes and a stronger real-task fixture corpus.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Bounded harvest now reads governing/active sources first, then
-  keeps scoped or discriminative active skills, one active fallback when needed,
-  and relevant supporting evidence. Explicit all-active mode stays strict. Live
-  dogfood is low-context; next: complete direct package/full-suite verification,
-  then prove a real multi-skill task.
+- **Status:** Bounded harvest reads governing/active sources first, then keeps
+  scoped or discriminative active skills, one fallback when needed, and relevant
+  supporting evidence. Package and full-suite verification pass. Next: preserve
+  declared dependency closure, then prove a real multi-skill task.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -41,12 +40,12 @@ real host/evaluator outcomes and a stronger real-task fixture corpus.
   `9210ff3` moves that policy into a dedicated domain seam, keeps touched files
   below the 600/900-line limits, moves MCP prepare coverage to a focused test,
   and adds it to package inventories. `fc701f7` refreshes the frozen public
-  contract for the earlier additive receipt-provenance schema. The first
-  reproducible package run passed archive, compile, install, and composition
-  smoke but found that stale fixture in its 867-test installed suite; 100
-  focused contract/receipt/host/package tests now pass and a clean rerun is due.
-  Both code-commit pre-CR runs timed out at 90 seconds; the second had no
-  source-size findings. This is not release evidence.
+  contract for the earlier additive receipt-provenance schema. The clean
+  reproducible package check passes archive, compile, install, composition
+  smoke, reproducibility, and 867 installed tests (4 skips); the local full
+  suite passes 867 tests (3 skips). Both code-commit pre-CR runs timed out at
+  90 seconds; the second had no source-size findings. This is hardening, not
+  release evidence.
 - `cb2dd13` completes the native host path begun by `f102756`:
   `run_host_composition` gives a host one bounded frozen snapshot; a private
   unregistered server seam, closed lineage/receipt provenance, graph-bound
@@ -438,5 +437,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 scripts/check_release_package.py . --verify-reproducible
+python3 -m unittest tests.test_tmcp_composition_preflight tests.test_tmcp_composition_source_activation
 ```
