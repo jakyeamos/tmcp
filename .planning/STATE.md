@@ -13,32 +13,34 @@ until externally observed 0.6 evidence is admissible.
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `b2e85d8` adds runtime capsules, source-bound replay, semantic and
-activation hardening, project-recipe/session continuity, and release evidence
-admissibility. `d316542` aligns legacy fixtures with the signed capsule contract;
-`543c7ff` keeps the strict archive scanner intact while making its benchmark
-fixture archive-safe. `4b69d5b` removes all remaining release-scanner false
-positives without relaxing scanner policy or packet behavior. `8aef995`
-restores source-size budgets with storage and test responsibility splits.
-`9d32d1d` explicitly identifies the shared test harness; the normal quality
-gate now passes cleanly. `e00a42f` gives the extracted release suite a bounded
-ten-minute budget and reports timeouts structurally. The clean reproducible
-package passes 826 tests (4 expected skips), install, compile, launcher, and
-composition smoke; 0.6.0 remains blocked on real host-run outcomes.
+**Status:** `f102756` adds a frozen, cache-free host-composition intake and
+rejects crossed prompt/source preflights before semantic compilation. Runtime,
+package, and benchmark-contract hardening remain complete; 0.6.0 still requires
+real host/evaluator outcomes and a stronger real-task fixture corpus.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Runtime hardening, archive-scanner hygiene, source-size budgets,
-  quality-gate hygiene, and release-test timeout handling are complete;
-  clean-package verification is complete; real benchmark evidence and
-  publication remain pending.
+- **Status:** Frozen host intake and public adoption metadata are complete.
+  Real dogfood exposed generic candidate selection on a substantial compiler
+  task, so fixture realism, selection discrimination, and real host/evaluator
+  evidence remain pending before publication.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
+- `f102756` adds `prepare_host_composition` /
+  `compose_host_composition`: an in-memory host gets bounded preflight slices
+  while TMCP freezes the exact request/source/preflight snapshot, forces
+  `cache_policy=none`, and records no tool execution, receipt, session, or
+  recipe side effect. Direct non-project compose now rejects a supplied
+  preflight whose objective, controls, or source snapshot changed. Focused
+  host/compose/runtime/public-contract tests (84), schema contracts, and MCP
+  tests pass. A live intake on this hardening task remained `general_task` and
+  ranked generic skill output-contract slices, so it is diagnostic evidence,
+  not a performance receipt or release claim.
 - `b2e85d8` and `d316542` close the compositional-runtime hardening slice:
   canonical source roles and safe activation, source-backed semantic graphs,
   phase/runtime capsules, session-only continuation replay, recipe rehydration,
@@ -151,23 +153,6 @@ composition smoke; 0.6.0 remains blocked on real host-run outcomes.
 - `318c5fb` implements the compositional intelligence compiler and its public
   contracts while preserving the deterministic compatibility path and version
   0.5.7. The integrated suite passes 613 tests with three expected skips.
-- Modernization baseline, parallel audit, target architecture, and executable
-  milestone plan recorded under `docs/modernization/`.
-- Isolated audit branch created from the 0.4.0 release baseline.
-- Milestone 0 release safety completed on `codex/tmcp-modernization-v2`:
-  Git-tree allowlist packaging, archive manifest verification, reproducibility,
-  hermetic fixtures, and pre-merge release-evidence enforcement.
-- Milestone 1 contract freeze completed in `5981dcd`: canonical version/tool
-  registry, all alias/default fixtures, hermetic transport clients, live MCP
-  metadata validation, and CI enforcement.
-- Release fixture checksums are explicitly labelled in `0299ca4`, preserving
-  the archive secret scanner while allowing deterministic contract fixtures.
-- `b251e8e` preserves the strict scanner while excluding only lower-snake to
-  upper-snake code assignments from high-entropy token detection.
-- `65a1bfe` keeps the opaque-token regression test archive-safe by assembling
-  its test value from short source literals.
-- The committed M1 tree passes archive reproducibility and the extracted
-  package verification suite (153 tests; source-only metadata check skipped).
 - `49a87c9` separates CLI/launcher contract coverage from server-domain tests,
   removing the test-size quality warning without changing behavior.
 - `3abe21c` moves harvest through `tmcp_runtime/safety` and its artifact output
