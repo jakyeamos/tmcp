@@ -63,6 +63,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/domain/composition_runtime_continuations.py",
     "tmcp_runtime/domain/composition_optimizer.py",
     "tmcp_runtime/domain/composition.py",
+    "tmcp_runtime/domain/composition_harvest_selection.py",
     "tmcp_runtime/domain/composition_handoffs.py",
     "tmcp_runtime/domain/composition_selection.py",
     "tmcp_runtime/domain/composition_planning.py",

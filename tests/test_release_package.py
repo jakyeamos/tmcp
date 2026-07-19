@@ -895,6 +895,10 @@ class ReleasePackageTests(unittest.TestCase):
             "tmcp_runtime/domain/host_composition_provenance.py",
             self.compiler.COMPILE_PATHS,
         )
+        self.assertIn(
+            "tmcp_runtime/domain/composition_harvest_selection.py",
+            self.compiler.COMPILE_PATHS,
+        )
 
     def test_package_requires_git_worktree(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

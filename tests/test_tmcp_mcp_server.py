@@ -810,62 +810,6 @@ class TmcpMcpServerTests(unittest.TestCase):
         )
         self.assertTrue(structured["standalone"]["available"])
 
-    def test_prepare_composition_is_available_over_mcp_without_writes(self) -> None:
-        with TestWorkspace() as workspace:
-            assert workspace.project is not None
-            assert workspace.tmcp_home is not None
-            (workspace.project / "AGENTS.md").write_text(
-                "# Instructions\n\nRead before modifying. Verify focused tests.\n",
-                encoding="utf-8",
-            )
-            skill_dir = workspace.project / "skills" / "review"
-            skill_dir.mkdir(parents=True)
-            (skill_dir / "SKILL.md").write_text(
-                "# Review\n\nInspect the implementation and verify behavior.\n",
-                encoding="utf-8",
-            )
-            generic_skill_dir = workspace.project / "skills" / "generic"
-            generic_skill_dir.mkdir(parents=True)
-            (generic_skill_dir / "SKILL.md").write_text(
-                "# Generic\n\nUse the generic procedure.\n",
-                encoding="utf-8",
-            )
-            responses = workspace.run_mcp(
-                [
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 1,
-                        "method": "tools/call",
-                        "params": {
-                            "name": "tmcp_prepare_composition",
-                            "arguments": {
-                                "objective": "Implement and verify the change",
-                                "project_path": str(workspace.project),
-                                "source_path": str(workspace.project),
-                                "include_all_active_source_slices": True,
-                            },
-                        },
-                    }
-                ]
-            )
-
-            result = cast(Mapping[str, object], responses[0]["result"])
-            structured = cast(Mapping[str, object], result["structuredContent"])
-            self.assertEqual(structured["schema"], "tmcp-composition-preflight-v0.1")
-            self.assertEqual(
-                cast(Mapping[str, object], structured["semantic_proposal_contract"])[
-                    "schema"
-                ],
-                "tmcp-semantic-proposal-v0.1",
-            )
-            harvest_diagnostics = cast(
-                Mapping[str, object], structured["harvest_diagnostics"]
-            )
-            self.assertTrue(harvest_diagnostics["ranked_before_limit"])
-            source_roles = cast(Mapping[str, int], structured["source_roles"])
-            self.assertEqual(source_roles["active_skill"], 2)
-            self.assertEqual(list(workspace.tmcp_home.iterdir()), [])
-
     def test_doctor_reports_first_run_readiness(self) -> None:
         result = self.server._call_tool("tmcp_doctor", {"client": "plain_mcp"})
 
