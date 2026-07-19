@@ -27,6 +27,7 @@ def select_hydrated_behavior_blocks(
     governing_source_count: int,
     include_all_active_source_slices: bool = False,
     objective_relevant_source_ids: set[str] | None = None,
+    deferred_active_source_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """Select bounded behavior blocks with explicit context-budget exceptions.
 
@@ -47,6 +48,11 @@ def select_hydrated_behavior_blocks(
     total_chars = 0
     total_tokens = 0
     relevant_source_ids = objective_relevant_source_ids or set()
+    deferred_active_ids = (
+        set()
+        if include_all_active_source_slices
+        else deferred_active_source_ids or set()
+    )
     restrict_to_objective_relevance = bool(relevant_source_ids) and not (
         include_all_active_source_slices
     )
@@ -56,6 +62,12 @@ def select_hydrated_behavior_blocks(
             restrict_to_objective_relevance
             and str(candidate.get("source_role") or "") != "governing_instruction"
             and str(candidate.get("source_node_id") or "") not in relevant_source_ids
+        )
+
+    def is_deferred_active(candidate: Mapping[str, Any]) -> bool:
+        return (
+            str(candidate.get("source_role") or "") == "active_skill"
+            and str(candidate.get("source_node_id") or "") in deferred_active_ids
         )
 
     def fits(candidate: Mapping[str, Any], *, enforce_target: bool) -> bool:
@@ -100,6 +112,7 @@ def select_hydrated_behavior_blocks(
         if (
             str(candidate.get("source_role") or "") != "active_skill"
             or source_node_id in represented_active_sources
+            or is_deferred_active(candidate)
             or is_deferred_irrelevant(candidate)
             or not fits(candidate, enforce_target=True)
         ):
@@ -135,8 +148,10 @@ def select_hydrated_behavior_blocks(
     if not represented_active_sources:
         for candidate in candidates:
             source_node_id = str(candidate.get("source_node_id") or "")
-            if str(candidate.get("source_role") or "") != "active_skill" or not fits(
-                candidate, enforce_target=False
+            if (
+                str(candidate.get("source_role") or "") != "active_skill"
+                or is_deferred_active(candidate)
+                or not fits(candidate, enforce_target=False)
             ):
                 continue
             select(candidate)
@@ -159,9 +174,10 @@ def select_hydrated_behavior_blocks(
         if (
             str(candidate.get("slice_id") or "") in selected_slice_ids
             or is_deferred_irrelevant(candidate)
+            or is_deferred_active(candidate)
             or not fits(
-            candidate,
-            enforce_target=True,
+                candidate,
+                enforce_target=True,
             )
         ):
             continue

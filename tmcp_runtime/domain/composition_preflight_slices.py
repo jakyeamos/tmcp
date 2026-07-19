@@ -81,6 +81,38 @@ def _source_content(node: dict[str, Any]) -> str:
     return normalized_text(node.get("excerpt") or node.get("signal_excerpt") or "")
 
 
+def _shared_only_active_deferment(
+    active_objective_terms: dict[str, set[str]],
+    prunable_active_source_ids: set[str],
+    *,
+    include_all_active_source_slices: bool,
+) -> tuple[list[str], set[str]]:
+    """Defer shared-only active skills when objective evidence is discriminative."""
+
+    source_ids_by_term: dict[str, set[str]] = {}
+    for source_node_id, terms in active_objective_terms.items():
+        for term in terms:
+            source_ids_by_term.setdefault(term, set()).add(source_node_id)
+    discriminative_terms = sorted(
+        term
+        for term, source_ids in source_ids_by_term.items()
+        if len(source_ids) == 1
+    )
+    if include_all_active_source_slices or not discriminative_terms:
+        return discriminative_terms, set()
+    discriminative_term_set = set(discriminative_terms)
+    return (
+        discriminative_terms,
+        {
+            source_node_id
+            for source_node_id, terms in active_objective_terms.items()
+            if source_node_id in prunable_active_source_ids
+            and terms
+            and terms.isdisjoint(discriminative_term_set)
+        },
+    )
+
+
 def _frontmatter_only_chunk(value: str) -> bool:
     """Identify YAML metadata blocks that should not crowd out skill behavior."""
 
@@ -183,8 +215,10 @@ def build_source_slices(
     governing_source_count = sum(
         source_role_for(
             node,
-            explicitly_scoped=str(node.get("relative_path") or node.get("path") or "")
-            in explicit,
+            explicitly_scoped=(
+                str(node.get("relative_path") or node.get("path") or "") in explicit
+                or node.get("explicitly_scoped") is True
+            ),
         )
         == "governing_instruction"
         for node in identity_source_nodes
@@ -222,6 +256,8 @@ def build_source_slices(
         )
     raw_candidates: list[dict[str, Any]] = []
     source_token_baselines: dict[str, int] = {}
+    source_node_ids: set[str] = set()
+    active_source_ids: set[str] = set()
     source_block_truncations: list[dict[str, Any]] = []
     source_token_estimates_complete = True
     role_rank = {
@@ -246,10 +282,18 @@ def build_source_slices(
         source_digest = str(node["content_digest"])
         visible_content_digest = content_digest_for(content)
         source_node_id = str(node.get("id") or f"source-{source_digest[:16]}")
-        role = source_role_for(node, explicitly_scoped=relative_path in explicit)
+        source_node_ids.add(source_node_id)
+        effective_explicit_scope = (
+            relative_path in explicit or node.get("explicitly_scoped") is True
+        )
+        role = source_role_for(node, explicitly_scoped=effective_explicit_scope)
+        if role == "active_skill":
+            active_source_ids.add(source_node_id)
         mandatory = role == "governing_instruction"
         node_candidates: list[dict[str, Any]] = []
         for start, end, chunk in markdown_behavior_chunks(content, chunk_limit):
+            if not normalized_text(chunk):
+                continue
             slice_digest = content_digest_for(chunk)
             slice_id = "slice-" + stable_digest(
                 [source_digest, slice_digest, start, end, source_node_id], 20
@@ -274,7 +318,7 @@ def build_source_slices(
                 ),
                 "incompatibilities": string_list(node.get("do_not_activate_with")),
                 "mandatory": mandatory,
-                "explicitly_scoped": relative_path in explicit,
+                "explicitly_scoped": effective_explicit_scope,
                 "trust": COMPOSITION_TRUST,
             }
             node_candidates.append(candidate)
@@ -322,6 +366,17 @@ def build_source_slices(
             sum(int(candidate["token_estimate"]) for candidate in node_candidates),
         )
 
+    citable_source_ids = {
+        str(candidate["source_node_id"]) for candidate in raw_candidates
+    }
+    uncitable_source_ids = sorted(source_node_ids.difference(citable_source_ids))
+    missing_active_source_ids = sorted(active_source_ids.difference(citable_source_ids))
+    if include_all_active_source_slices and missing_active_source_ids:
+        raise ValueError(
+            "Composition all-active evidence requires a citable nonempty slice for "
+            f"every active source: {', '.join(missing_active_source_ids)}"
+        )
+
     full_manifest_index = build_behavior_manifest_index(
         identity_source_nodes,
         raw_candidates,
@@ -334,6 +389,8 @@ def build_source_slices(
     }
     candidates: list[tuple[tuple[int, int, int, int, str, int], dict[str, Any]]] = []
     objective_relevant_source_ids: set[str] = set()
+    active_objective_terms: dict[str, set[str]] = {}
+    prunable_active_source_ids: set[str] = set()
     for candidate in raw_candidates:
         source_node_id = str(candidate["source_node_id"])
         manifest = manifests_by_source[source_node_id]
@@ -353,9 +410,28 @@ def build_source_slices(
                 " ".join(string_list(block.get("phases"))),
             ]
         )
+        content_signal = " ".join(
+            [
+                str(candidate["content"]),
+                " ".join(string_list(metadata.get("triggers"))),
+                " ".join(string_list(metadata.get("facets"))),
+                " ".join(string_list(block.get("facets"))),
+                " ".join(string_list(block.get("phases"))),
+            ]
+        )
+        matched_terms = objective_tokens.intersection(_tokens(content_signal))
         relevance = len(objective_tokens.intersection(_tokens(signal)))
         if relevance:
             objective_relevant_source_ids.add(source_node_id)
+        if candidate["source_role"] == "active_skill":
+            active_objective_terms.setdefault(source_node_id, set()).update(
+                matched_terms
+            )
+            if (
+                candidate["source_type"] != "scoped_packet_seed"
+                and not candidate["explicitly_scoped"]
+            ):
+                prunable_active_source_ids.add(source_node_id)
         enriched = {
             **candidate,
             "behavior_manifest_id": manifest["manifest_id"],
@@ -376,6 +452,14 @@ def build_source_slices(
             int(candidate["char_start"]),
         )
         candidates.append((key, enriched))
+    (
+        discriminative_active_objective_terms,
+        deferred_shared_only_active_source_ids,
+    ) = _shared_only_active_deferment(
+        active_objective_terms,
+        prunable_active_source_ids,
+        include_all_active_source_slices=include_all_active_source_slices,
+    )
     candidates.sort(key=lambda item: item[0])
     manifest_index = compact_behavior_manifest_index(full_manifest_index)
     manifest_cost = dict(manifest_index["cost_telemetry"])
@@ -404,6 +488,7 @@ def build_source_slices(
         governing_source_count=governing_source_count,
         include_all_active_source_slices=include_all_active_source_slices,
         objective_relevant_source_ids=objective_relevant_source_ids,
+        deferred_active_source_ids=deferred_shared_only_active_source_ids,
     )
     selected = selection["selected"]
     total_chars = int(selection["total_chars"])
@@ -425,6 +510,7 @@ def build_source_slices(
         "total_chars": total_chars,
         "total_tokens": total_tokens,
         "source_block_truncations": source_block_truncations,
+        "uncitable_source_ids": uncitable_source_ids,
         "unindexed_behavior_block_count": sum(
             item["available_block_count"] - item["indexed_block_count"]
             for item in source_block_truncations
@@ -474,6 +560,12 @@ def build_source_slices(
             ),
             "selected_active_source_ids": selection["represented_active_source_ids"],
             "objective_relevant_source_ids": sorted(objective_relevant_source_ids),
+            "discriminative_active_objective_terms": (
+                discriminative_active_objective_terms
+            ),
+            "deferred_shared_only_active_source_ids": sorted(
+                deferred_shared_only_active_source_ids
+            ),
             "deferred_irrelevant_source_count": len(
                 {
                     str(candidate["source_node_id"])

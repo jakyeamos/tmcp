@@ -269,6 +269,227 @@ Produce a runtime provenance handoff with verified regression evidence.
             1,
         )
 
+    def test_preflight_defers_shared_only_active_skills_without_demoting_scope(
+        self,
+    ) -> None:
+        objective = (
+            "Implement a native host-assisted composition adapter with frozen origin "
+            "provenance, runtime recompilation, and harvest evidence."
+        )
+        explicit_path = "tests/fixtures/explicit-runtime/SKILL.md"
+        shared_nodes = [
+            _node(
+                f"harvest-{index}",
+                "skill_definition",
+                f"skills/harvest-{index}/SKILL.md",
+                "Harvest runtime evidence after composition.",
+                token_estimate=None,
+            )
+            for index in range(8)
+        ] + [
+            _node(
+                "shared-path",
+                "skill_definition",
+                "skills/adapter-alias/SKILL.md",
+                "Harvest runtime evidence after composition.",
+                token_estimate=None,
+            )
+        ]
+        preflight = ci.prepare_composition(
+            [
+                _node(
+                    "governing",
+                    "agent_operating_contract",
+                    "AGENTS.md",
+                    "Preserve governing constraints.",
+                    token_estimate=None,
+                ),
+                _node(
+                    "host-core",
+                    "skill_definition",
+                    "skills/host-core/SKILL.md",
+                    "Native host-assisted composition adapter preserves frozen origin provenance during recompilation.",
+                    token_estimate=None,
+                ),
+                _node(
+                    "runtime-seed",
+                    "scoped_packet_seed",
+                    "scoped-packet-seeds.json#runtime-seed",
+                    "Runtime coordinator hands off evidence at verification.",
+                    token_estimate=None,
+                ),
+                _node(
+                    "explicit-runtime",
+                    "skill_definition",
+                    explicit_path,
+                    "Harvest runtime proof.",
+                    token_estimate=None,
+                ),
+                _node(
+                    "node-flag-runtime",
+                    "skill_definition",
+                    "tests/fixtures/node-flag-runtime/SKILL.md",
+                    "Harvest runtime proof.",
+                    token_estimate=None,
+                    explicitly_scoped=True,
+                ),
+                _node(
+                    "reference",
+                    "project_documentation",
+                    "docs/host-reference.md",
+                    "Supporting host composition reference evidence.",
+                    token_estimate=None,
+                ),
+                *shared_nodes,
+            ],
+            objective,
+            explicitly_scoped_paths=[explicit_path],
+            max_slices=20,
+            max_total_chars=12_000,
+            max_total_tokens=5_000,
+        )
+
+        selected_source_ids = {
+            item["source_node_id"] for item in preflight["candidate_source_slices"]
+        }
+        self.assertTrue(
+            {
+                "governing",
+                "host-core",
+                "runtime-seed",
+                "explicit-runtime",
+                "node-flag-runtime",
+                "reference",
+            }.issubset(selected_source_ids)
+        )
+        shared_source_ids = {item["id"] for item in shared_nodes}
+        self.assertTrue(shared_source_ids.isdisjoint(selected_source_ids))
+        evidence = preflight["diagnostics"]["semantic_evidence"]
+        self.assertIn(
+            "native", evidence["discriminative_active_objective_terms"]
+        )
+        self.assertNotIn(
+            "runtime", evidence["discriminative_active_objective_terms"]
+        )
+        self.assertEqual(
+            evidence["deferred_shared_only_active_source_ids"],
+            sorted(shared_source_ids),
+        )
+
+    def test_preflight_all_active_mode_keeps_shared_only_active_skills(self) -> None:
+        objective = (
+            "Implement a native host-assisted composition adapter with frozen origin "
+            "provenance, runtime recompilation, and harvest evidence."
+        )
+        nodes = [
+            _node(
+                "host-core",
+                "skill_definition",
+                "skills/host-core/SKILL.md",
+                "Native host-assisted composition adapter preserves frozen origin provenance during recompilation.",
+                token_estimate=None,
+            ),
+            *[
+                _node(
+                    f"harvest-{index}",
+                    "skill_definition",
+                    f"skills/harvest-{index}/SKILL.md",
+                    "Harvest runtime evidence after composition.",
+                    token_estimate=None,
+                )
+                for index in range(9)
+            ],
+        ]
+        preflight = ci.prepare_composition(
+            nodes,
+            objective,
+            max_slices=12,
+            max_total_chars=12_000,
+            max_total_tokens=5_000,
+            include_all_active_source_slices=True,
+        )
+
+        evidence = preflight["diagnostics"]["semantic_evidence"]
+        self.assertEqual(
+            evidence["selected_active_source_ids"],
+            sorted(item["id"] for item in nodes),
+        )
+        self.assertIn(
+            "native", evidence["discriminative_active_objective_terms"]
+        )
+        self.assertEqual(evidence["deferred_shared_only_active_source_ids"], [])
+
+    def test_preflight_keeps_shared_active_skills_when_no_term_is_discriminative(
+        self,
+    ) -> None:
+        nodes = [
+            _node(
+                "schema-one",
+                "skill_definition",
+                "skills/schema-one/SKILL.md",
+                "Schema compatibility ledger.",
+                token_estimate=None,
+            ),
+            _node(
+                "schema-two",
+                "skill_definition",
+                "skills/schema-two/SKILL.md",
+                "Schema compatibility ledger.",
+                token_estimate=None,
+            ),
+        ]
+        preflight = ci.prepare_composition(
+            nodes,
+            "Implement schema compatibility.",
+            max_total_tokens=1_000,
+        )
+
+        evidence = preflight["diagnostics"]["semantic_evidence"]
+        self.assertEqual(
+            evidence["selected_active_source_ids"], ["schema-one", "schema-two"]
+        )
+        self.assertEqual(evidence["discriminative_active_objective_terms"], [])
+        self.assertEqual(evidence["deferred_shared_only_active_source_ids"], [])
+
+    def test_preflight_handles_empty_active_sources_without_breaking_all_active_mode(
+        self,
+    ) -> None:
+        nodes = [
+            _node(
+                "normal",
+                "skill_definition",
+                "skills/normal/SKILL.md",
+                "Host composition evidence.",
+                token_estimate=None,
+            ),
+            _node(
+                "empty",
+                "skill_definition",
+                "skills/empty/SKILL.md",
+                "",
+                token_estimate=None,
+            ),
+        ]
+
+        preflight = ci.prepare_composition(
+            nodes,
+            "Host composition evidence.",
+            max_total_tokens=1_000,
+        )
+
+        self.assertEqual(
+            [item["source_node_id"] for item in preflight["candidate_source_slices"]],
+            ["normal"],
+        )
+        self.assertEqual(preflight["diagnostics"]["uncitable_source_ids"], ["empty"])
+        with self.assertRaisesRegex(ValueError, "citable nonempty slice"):
+            ci.prepare_composition(
+                nodes,
+                "Host composition evidence.",
+                max_total_tokens=1_000,
+                include_all_active_source_slices=True,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
