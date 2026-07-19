@@ -12,26 +12,34 @@ preregistered composition-lift campaign only with explicit host/evaluator author
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `93f81e0` preregisters a replay-bound, no-call composition-lift
-campaign; graph closure, phase gates, and bounded ownership remain intact.
-0.6.0 still requires real host/evaluator outcomes and the stronger real-task
-corpus; the isolated scoped Pre-CR policy now proves the full gate can finish.
+**Status:** `2d6ec12` binds the replay-bound campaign's 540 factorial cells to
+opaque host/evaluator dispatches, artifact digests, rubric evidence, and
+repeated lift metrics. 0.6.0 still requires real host/evaluator outcomes and
+the stronger real-task corpus; the isolated scoped Pre-CR policy now proves
+the full gate can finish.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** `93f81e0` adds a five-fixture no-call campaign with exact
-  baseline/causal controls, opaque runner/judge dispatches, rubric/recipe/graph
-  provenance, and canonical replay validation. It neither executes nor records
-  outcomes. The full changed-line Pre-CR gate passed in 263 seconds under the
-  isolated 330-second TMCP policy; next: reproducible package verification, then
-  explicitly authorized host and external-evaluator evidence.
+- **Status:** `2d6ec12` adds cell-level host/evaluator contracts, audience-specific
+  opaque dispatch bundles, matched slot/replicate validation, and a no-call lift
+  scorer. It neither executes nor records outcomes. The full changed-line
+  Pre-CR gate passed in 242 seconds under the isolated 330-second TMCP policy;
+  next: reproducible package verification, then explicitly authorized host and
+  external-evaluator evidence.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
+- `2d6ec12` closes the campaign-to-evidence gap: 540 factorial cells now have
+  separate runner and blind-judge result contracts, dispatch/artifact/rubric
+  provenance checks, cross-block and secret-text rejection, matched
+  slot/replicate lift aggregation, and an advisory-only CLI. Runner and judge
+  bundles expose no controller cells or graph/recipe condition data. Synthetic
+  evidence remains ineligible for real-host/trusted-evaluator gates; no model
+  call, receipt, promotion, or release claim was made.
 - `93f81e0` preregisters a replay-bound campaign across five fixtures: six
   baseline arms and twelve causal arms, each across three configuration slots
   and two replicates. It validates canonical skill order, matched comparators,
