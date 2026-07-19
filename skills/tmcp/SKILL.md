@@ -87,6 +87,15 @@ citations only from those slices. `tmcp_compose_packet` accepts that optional
 proposal; omitting it preserves the deterministic compatibility path for hosts
 that cannot run assisted composition.
 
+When a host already has an in-memory harvested source snapshot, the reusable
+`tmcp_runtime.services.host_composition` adapter freezes that snapshot and its
+cache-free preflight before semantic reasoning. Call
+`prepare_host_composition(...).host_input()` for the bounded host input, then
+call `compose_host_composition(intake, proposal)`. It rejects changed prompt,
+source, or preflight snapshots, and never executes tools, persists a receipt,
+or advances a phase. This is the preferred integration seam for a native host;
+it does not add a user-facing TMCP step.
+
 ## Portable CLI
 
 When MCP tools are not exposed, host implementers can use the bundled launcher

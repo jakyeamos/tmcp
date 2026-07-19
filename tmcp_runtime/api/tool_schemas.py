@@ -35,8 +35,9 @@ TOOLS: dict[str, dict[str, object]] = {
     },
     "tmcp_explain": {
         "description": (
-            "Compile and explain a task-specific TMCP skill packet. Uses the standalone compiler "
-            "by default; AIOS runs only when adapter=aios is explicitly requested."
+            "Compile and explain a task-specific TMCP skill packet for inspection or "
+            "compatibility. Substantial host work should use prepare → cited proposal → "
+            "compose; AIOS runs only when adapter=aios is explicitly requested."
         ),
         "inputSchema": {
             "type": "object",
@@ -53,7 +54,10 @@ TOOLS: dict[str, dict[str, object]] = {
                 "compose": {
                     "type": "boolean",
                     "default": False,
-                    "description": "Also return a deterministic composed packet for the objective.",
+                    "description": (
+                        "Also return a deterministic compatibility composed packet; this "
+                        "preview cannot carry a host semantic proposal."
+                    ),
                 },
             },
             "required": ["objective"],

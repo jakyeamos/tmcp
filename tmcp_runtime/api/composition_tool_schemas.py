@@ -115,8 +115,9 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
     },
     "tmcp_compose_packet": {
         "description": (
-            "Compose a small task-specific packet from harvested skills, promoted global "
-            "routing knowledge, and optional runtime context."
+            "For substantial work, validate a host semantic proposal produced by "
+            "tmcp_prepare_composition and compile a staged packet. Omitting the proposal "
+            "uses deterministic compatibility mode."
         ),
         "inputSchema": {
             "type": "object",

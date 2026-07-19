@@ -196,6 +196,26 @@ def prepare_composition_from_source_nodes(
     )
 
 
+def _validated_prepared_composition(
+    arguments: Mapping[str, Any],
+    *,
+    source_nodes: list[dict[str, Any]],
+    prepared_composition: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Accept an internal preflight only when it matches this exact input snapshot."""
+
+    expected = prepare_composition_from_source_nodes(
+        arguments,
+        source_nodes=source_nodes,
+    )
+    if dict(prepared_composition) != expected:
+        raise ValueError(
+            "prepared_composition does not match the current objective, "
+            "composition controls, and source snapshot."
+        )
+    return expected
+
+
 def active_instructions_for_source_node(node: Mapping[str, Any]) -> list[str]:
     """Derive advisory instructions from one already-harvested source node."""
 
@@ -439,7 +459,19 @@ def compose_packet_from_source_nodes(
             source_nodes=composition_nodes,
         )
     elif isinstance(prepared_composition, Mapping):
-        preflight = dict(prepared_composition)
+        if cache_policy == "project":
+            # Project recipes are rehydrated and validated against their closed
+            # runtime capsule by the owning recipe service before this point.
+            # Their replay preflight may intentionally retain original source
+            # node IDs after a same-content rename, so a raw equality check
+            # would reject the safe rehydration path.
+            preflight = dict(prepared_composition)
+        else:
+            preflight = _validated_prepared_composition(
+                arguments,
+                source_nodes=source_nodes,
+                prepared_composition=prepared_composition,
+            )
     else:
         raise ValueError("prepared_composition must be an object.")
     compiled = compile_semantic_composition(

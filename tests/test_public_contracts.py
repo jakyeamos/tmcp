@@ -36,6 +36,16 @@ class PublicContractTests(unittest.TestCase):
         self.assertEqual(TOOL_STATE_EFFECTS["tmcp_compose_packet"], "optional_write")
         self.assertEqual(TOOL_STATE_EFFECTS["tmcp_runtime_next"], "optional_write")
 
+    def test_composition_contract_marks_assisted_and_compatibility_paths(self) -> None:
+        tools_by_name = {str(tool["name"]): tool for tool in mcp_tools()}
+        compose_description = str(tools_by_name["tmcp_compose_packet"]["description"])
+        explain_description = str(tools_by_name["tmcp_explain"]["description"])
+
+        self.assertIn("tmcp_prepare_composition", compose_description)
+        self.assertIn("compatibility", compose_description.lower())
+        self.assertIn("prepare", explain_description.lower())
+        self.assertIn("compatibility", explain_description.lower())
+
     def test_every_cli_alias_and_pseudo_command_resolves_from_registry(self) -> None:
         for alias, expected_tool in CLI_TOOL_ALIASES.items():
             with self.subTest(alias=alias):
