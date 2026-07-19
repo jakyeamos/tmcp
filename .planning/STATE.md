@@ -40,9 +40,13 @@ real host/evaluator outcomes and a stronger real-task fixture corpus.
   skill plus nine supporting reads at 2,872 of 74,113 naïve tokens (3.88%).
   `9210ff3` moves that policy into a dedicated domain seam, keeps touched files
   below the 600/900-line limits, moves MCP prepare coverage to a focused test,
-  and adds it to package inventories. 99 focused tests and contract/install/
-  compile checks pass. Both code-commit pre-CR runs timed out at 90 seconds;
-  the second had no source-size findings. This is not release evidence.
+  and adds it to package inventories. `fc701f7` refreshes the frozen public
+  contract for the earlier additive receipt-provenance schema. The first
+  reproducible package run passed archive, compile, install, and composition
+  smoke but found that stale fixture in its 867-test installed suite; 100
+  focused contract/receipt/host/package tests now pass and a clean rerun is due.
+  Both code-commit pre-CR runs timed out at 90 seconds; the second had no
+  source-size findings. This is not release evidence.
 - `cb2dd13` completes the native host path begun by `f102756`:
   `run_host_composition` gives a host one bounded frozen snapshot; a private
   unregistered server seam, closed lineage/receipt provenance, graph-bound
