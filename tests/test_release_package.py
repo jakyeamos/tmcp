@@ -846,10 +846,53 @@ class ReleasePackageTests(unittest.TestCase):
             ok, output = self.checker.check_composition_surface(PLUGIN_ROOT, Path(tmp))
 
         self.assertTrue(ok, output)
+        self.assertIn("host composition adapter smoke passed", output)
+
+    def test_composition_smoke_prefers_its_package_root_to_pythonpath(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            foreign_root = Path(tmp) / "foreign"
+            foreign_runtime = foreign_root / "tmcp_runtime"
+            foreign_runtime.mkdir(parents=True)
+            (foreign_runtime / "__init__.py").write_text(
+                'raise RuntimeError("foreign runtime imported")\n',
+                encoding="utf-8",
+            )
+            environment = os.environ.copy()
+            environment["PYTHONPATH"] = os.pathsep.join(
+                [str(foreign_root), str(PLUGIN_ROOT)]
+            )
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(PLUGIN_ROOT / "scripts" / "release_package_composition.py"),
+                    "--help",
+                ],
+                cwd=PLUGIN_ROOT,
+                env=environment,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+
+        self.assertEqual(
+            completed.returncode,
+            0,
+            completed.stdout + completed.stderr,
+        )
+        self.assertIn("--host-composition-adapter-smoke", completed.stdout)
 
     def test_release_compile_includes_runtime_continuation_module(self) -> None:
         self.assertIn(
             "tmcp_runtime/domain/composition_runtime_continuations.py",
+            self.compiler.COMPILE_PATHS,
+        )
+        self.assertIn(
+            "tmcp_runtime/services/host_composition.py",
+            self.compiler.COMPILE_PATHS,
+        )
+        self.assertIn(
+            "tmcp_runtime/domain/host_composition_provenance.py",
             self.compiler.COMPILE_PATHS,
         )
 

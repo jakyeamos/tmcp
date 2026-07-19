@@ -7,6 +7,9 @@ import hashlib
 from collections.abc import Callable, Mapping
 from typing import Any
 
+from tmcp_runtime.domain.host_composition_provenance import (
+    host_composition_packet_diff,
+)
 
 Packet = dict[str, Any]
 ComposeMarkdown = Callable[[Packet], str]
@@ -426,6 +429,9 @@ def packet_diff(
             "all": current_required_reads,
         },
     }
+    host_composition = host_composition_packet_diff(previous, current)
+    if host_composition is not None:
+        result["host_composition"] = host_composition
     if resolved_graph_diff is not None:
         graph_phase_change = resolved_graph_diff.get("phase_change")
         if graph_phase_change is not None:

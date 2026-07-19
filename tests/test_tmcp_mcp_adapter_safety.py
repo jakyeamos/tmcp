@@ -142,6 +142,82 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
             "[REDACTED:long_high_entropy]",
         )
 
+    def test_composition_redaction_preserves_only_closed_host_lineage_digests(
+        self,
+    ) -> None:
+        origin_digest = hashlib.sha256(b"host composition origin").hexdigest()
+        preflight_digest = hashlib.sha256(b"host preflight").hexdigest()
+        source_digest = hashlib.sha256(b"host source snapshot").hexdigest()
+        request_digest = hashlib.sha256(b"host request").hexdigest()
+        identity_digest = hashlib.sha256(b"host identity").hexdigest()
+        arbitrary_digest = hashlib.sha256(b"not a host lineage field").hexdigest()
+
+        host_lineage = {
+            "schema": "tmcp-host-composition-lineage-v0.1",
+            "origin": {
+                "schema": "tmcp-host-composition-intake-v0.1",
+                "preflight_id": "preflight-host",
+                "preflight_digest": preflight_digest,
+                "source_snapshot_digest": source_digest,
+                "request_digest": request_digest,
+                "task_identity_digest": identity_digest,
+                "reused_snapshot": True,
+                "automatic_tool_execution": False,
+                "receipt_persistence": "not_performed",
+            },
+            "origin_digest": origin_digest,
+            "runtime_snapshot_status": "runtime_capsule_revalidated",
+            "current_preflight_id": "preflight-runtime",
+            "inherited_origin": True,
+            "trust": "advisory_untrusted",
+        }
+        result = self.server._redact_result(
+            {
+                "schema": "tmcp-composed-packet-v0.1",
+                "host_composition": host_lineage,
+                "receipt_template": {
+                    "schema": "tmcp-run-receipt-v0.1",
+                    "host_composition_provenance": {
+                        "schema": "tmcp-host-composition-receipt-provenance-v0.1",
+                        "origin_digest": origin_digest,
+                        "origin_preflight_id": "preflight-host",
+                        "runtime_snapshot_status": "runtime_capsule_revalidated",
+                        "runtime_preflight_id": "preflight-runtime",
+                        "inherited_origin": True,
+                        "trust": "advisory_untrusted",
+                    },
+                },
+            },
+            preserve_composition_digests=True,
+        )
+
+        lineage = result["host_composition"]
+        self.assertEqual(lineage["origin_digest"], origin_digest)
+        self.assertEqual(lineage["origin"]["preflight_digest"], preflight_digest)
+        self.assertEqual(lineage["origin"]["source_snapshot_digest"], source_digest)
+        self.assertEqual(lineage["origin"]["request_digest"], request_digest)
+        self.assertEqual(lineage["origin"]["task_identity_digest"], identity_digest)
+        self.assertEqual(
+            result["receipt_template"]["host_composition_provenance"][
+                "origin_digest"
+            ],
+            origin_digest,
+        )
+        malformed = self.server._redact_result(
+            {
+                "schema": "tmcp-composed-packet-v0.1",
+                "host_composition": {
+                    **host_lineage,
+                    "arbitrary_digest": arbitrary_digest,
+                },
+            },
+            preserve_composition_digests=True,
+        )
+        self.assertEqual(
+            malformed["host_composition"]["origin_digest"],
+            "[REDACTED:long_high_entropy]",
+        )
+
     def test_cli_composition_packet_round_trips_through_full_recompile(
         self,
     ) -> None:

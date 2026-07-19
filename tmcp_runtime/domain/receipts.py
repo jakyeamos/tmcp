@@ -7,6 +7,10 @@ from collections.abc import Mapping
 from copy import deepcopy
 from typing import Any
 
+from tmcp_runtime.domain.host_composition_provenance import (
+    validate_host_composition_receipt_provenance,
+)
+
 
 RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
 RECEIPT_TRUST = "advisory_untrusted"
@@ -181,6 +185,12 @@ def _composition_receipt_fields(
     if "phase_capsule_trace" in arguments:
         fields["phase_capsule_trace"] = validate_safe_phase_capsule_trace(
             arguments.get("phase_capsule_trace")
+        )
+    if "host_composition_provenance" in arguments:
+        fields["host_composition_provenance"] = (
+            validate_host_composition_receipt_provenance(
+                arguments.get("host_composition_provenance")
+            )
         )
     for key in (
         "task_identity",

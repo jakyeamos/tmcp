@@ -87,14 +87,40 @@ citations only from those slices. `tmcp_compose_packet` accepts that optional
 proposal; omitting it preserves the deterministic compatibility path for hosts
 that cannot run assisted composition.
 
-When a host already has an in-memory harvested source snapshot, the reusable
-`tmcp_runtime.services.host_composition` adapter freezes that snapshot and its
-cache-free preflight before semantic reasoning. Call
-`prepare_host_composition(...).host_input()` for the bounded host input, then
-call `compose_host_composition(intake, proposal)`. It rejects changed prompt,
-source, or preflight snapshots, and never executes tools, persists a receipt,
-or advances a phase. This is the preferred integration seam for a native host;
-it does not add a user-facing TMCP step.
+When a native host already has an in-memory harvested source snapshot, use the
+one-process runner:
+
+```python
+from tmcp_runtime.services.host_composition import run_host_composition
+
+packet = run_host_composition(
+    arguments,
+    source_nodes=harvested_source_nodes,
+    propose_semantics=host_propose_semantics,
+)
+```
+
+The runner prepares exactly once, passes only `intake.host_input()` to
+`host_propose_semantics`, and validates the returned proposal against that same
+frozen cache-free snapshot. It rejects changed prompt, source, or preflight
+snapshots, and never executes tools, persists a receipt, or advances a phase.
+This is the preferred integration seam for a native host; it does not add a
+user-facing TMCP step.
+
+`prepare_host_composition(arguments, source_nodes=...)` and
+`compose_host_composition(intake, proposal)` remain available for native hosts
+that must own the callback boundary themselves. Their first call takes an
+arguments mapping and a keyword-only source snapshot; do not use an obsolete
+positional objective/scope/phase signature.
+
+Public MCP and CLI integrations cannot carry that in-memory intake across two
+independent calls. Use `tmcp_prepare_composition` / `prepare-composition`, let
+the host create a cited proposal from its bounded result, then call
+`tmcp_compose_packet` / `compose-packet` with `semantic_proposal`. This portable
+two-call flow remains supported for compatibility, but it re-harvests and
+revalidates current input during compose rather than claiming native frozen
+snapshot semantics. Keep both passes internal to the host and invisible to
+ordinary users.
 
 ## Portable CLI
 
@@ -106,7 +132,7 @@ internal compiler commands into extra steps for an ordinary user:
 node scripts/tmcp_launcher.mjs doctor
 node scripts/tmcp_launcher.mjs status
 node scripts/tmcp_launcher.mjs prepare-composition "<objective>" --project-path "<project-path>"
-node scripts/tmcp_launcher.mjs compose-packet "<objective>" --project-path "<project-path>" --phase start --session-id "run-name"
+node scripts/tmcp_launcher.mjs compose-packet "<objective>" --project-path "<project-path>" --phase start --semantic-proposal '<host-produced proposal JSON>' --session-id "run-name"
 node scripts/tmcp_launcher.mjs recompile-packet "<objective>" --project-path "<project-path>" --current-phase runtime --session-id "run-name" --files-changed "app/page.tsx"
 node scripts/tmcp_launcher.mjs runtime-next "<objective>" --current-phase verification --files-changed "app/page.tsx"
 node scripts/tmcp_launcher.mjs record-receipt "<packet-id>" --activated-atoms "ui-browser-verification" --outcome passed

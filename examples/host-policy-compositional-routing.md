@@ -9,10 +9,11 @@ manage compiler passes.
 if request is trivial conversation or a simple status reply:
     answer directly
 elif request is multi-step, tool-using, high-stakes, or skill-relevant:
-    intake = prepare_host_composition(objective, scope, phase, runtime_context,
-                                      cache_policy="none")
-    proposal = host_propose_semantics(intake.host_input())
-    packet = compose_host_composition(intake, proposal)
+    packet = run_host_composition(
+        arguments,
+        source_nodes=harvested_source_nodes,
+        propose_semantics=host_propose_semantics,
+    )
     if packet.composition_plan is valid:
         agent executes packet.composition_plan active stage
         agent does not advance past unmet entry, exit, or verification gates
@@ -23,21 +24,33 @@ elif request is multi-step, tool-using, high-stakes, or skill-relevant:
 
 ## Host-only compiler details
 
-`host_compose_task` is host-local orchestration, not another TMCP user-facing
-tool. Internally it obtains bounded candidate evidence with
-`tmcp_prepare_composition`, makes a cited `tmcp-semantic-proposal-v0.1`, and
-passes it to `tmcp_compose_packet`. TMCP validates provenance, precedence,
-cycles, and conflicts before emitting the plan. Keep those protocol hops inside
-the host; they are not a sequence for users to perform.
+`run_host_composition` is native host-local orchestration, not another TMCP
+user-facing tool. For an in-process host that has already harvested source
+nodes, call
+`tmcp_runtime.services.host_composition.run_host_composition(arguments,
+source_nodes=harvested_source_nodes, propose_semantics=host_propose_semantics)`.
+The runner prepares once from that exact cache-free source snapshot, calls
+`host_propose_semantics(intake.host_input())` with only the bounded preflight,
+then validates and composes the proposal against the same frozen intake. TMCP
+validates provenance, precedence, cycles, and conflicts before emitting the
+plan. Keep those protocol hops inside the host; they are not a sequence for
+users to perform.
 
-For an in-process host with already-harvested source nodes, use
-`tmcp_runtime.services.host_composition.prepare_host_composition` followed by
-`compose_host_composition`. The intake freezes the exact cache-free arguments,
-source snapshot, and preflight before the host sees bounded slices. Its
-`host_input()` method exposes only that bounded preflight; composition rejects
-any changed intake snapshot. The host's semantic callback belongs between the
-two calls. The adapter never invokes tools, writes receipts, advances stages,
-or promotes recipes.
+The native runner never invokes tools, writes receipts, advances stages, or
+promotes recipes. `prepare_host_composition(arguments,
+source_nodes=...)` and `compose_host_composition(intake, proposal)` remain
+available only when a native host needs to own the callback boundary itself;
+their exact signatures take the arguments mapping and a keyword-only source
+snapshot, not separate positional objective/scope/phase values.
+
+Public MCP and CLI integrations use the portable compatibility flow instead:
+call `tmcp_prepare_composition`, have the host build a cited
+`tmcp-semantic-proposal-v0.1`, then call `tmcp_compose_packet` with that
+proposal. Those are separate public calls, so they cannot preserve a native
+in-memory frozen source snapshot across the boundary; compose re-harvests and
+validates its current input. Do not describe that portable flow as
+`run_host_composition`, and do not add a public callback field merely to mimic
+the native runner.
 
 Call `tmcp_runtime_next` with new reads, commands, failures, browser evidence,
 verification results, or user redirects. Request a full recompile when the

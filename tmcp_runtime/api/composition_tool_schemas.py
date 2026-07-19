@@ -474,6 +474,49 @@ COMPOSITION_TOOLS: dict[str, dict[str, object]] = {
                     },
                     "description": "Safe phase-capsule digest trace; it intentionally excludes host context-instance ids.",
                 },
+                "host_composition_provenance": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": [
+                        "schema",
+                        "origin_digest",
+                        "origin_preflight_id",
+                        "runtime_snapshot_status",
+                        "runtime_preflight_id",
+                        "inherited_origin",
+                        "trust",
+                    ],
+                    "properties": {
+                        "schema": {
+                            "const": "tmcp-host-composition-receipt-provenance-v0.1"
+                        },
+                        "origin_digest": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$",
+                        },
+                        "origin_preflight_id": {
+                            "type": "string",
+                            "minLength": 1,
+                        },
+                        "runtime_snapshot_status": {
+                            "enum": [
+                                "initial_frozen_snapshot",
+                                "runtime_capsule_revalidated",
+                                "runtime_capsule_rejected",
+                                "fresh_semantic_composition",
+                                "fresh_semantic_composition_rejected",
+                                "fresh_composition_required",
+                                "not_revalidated",
+                            ]
+                        },
+                        "runtime_preflight_id": {
+                            "type": ["string", "null"],
+                            "minLength": 1,
+                        },
+                        "inherited_origin": {"type": "boolean"},
+                        "trust": {"const": "advisory_untrusted"},
+                    },
+                },
                 "outcome": {"type": "string"},
             },
             "required": ["packet_id"],

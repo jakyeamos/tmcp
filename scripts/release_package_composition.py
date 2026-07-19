@@ -2,12 +2,28 @@
 
 from __future__ import annotations
 
+import argparse
 import json
+import os
+import sys
 from pathlib import Path
 from typing import Any
 
+ROOT = Path(__file__).resolve().parents[1]
+ROOT_TEXT = str(ROOT)
+sys.path[:] = [entry for entry in sys.path if entry != ROOT_TEXT]
+sys.path.insert(0, ROOT_TEXT)
+
 from scripts.release_package_sessions import RunJson, check_session_surface
 from tmcp_runtime.domain.composition_runtime import composition_gate_catalog
+from tmcp_runtime.domain.host_composition_provenance import (
+    validate_host_composition_lineage,
+    validate_host_composition_receipt_provenance,
+)
+from tmcp_runtime.services.harvest import harvest_skills
+from tmcp_runtime.services.host_composition import (
+    run_host_composition,
+)
 from tmcp_runtime.storage import artifact_persistence_available
 
 
@@ -196,6 +212,162 @@ def _session_transition_evidence(
     }
 
 
+def _check_host_composition_adapter_in_process(
+    source_root: Path,
+    tmcp_home: Path,
+) -> tuple[bool, str]:
+    """Exercise the in-process frozen host adapter without artifact writes."""
+
+    objective = "Compose and verify the installed package workflow"
+    arguments = {
+        "objective": objective,
+        "project_path": str(source_root),
+        "source_path": str(source_root),
+        "phase": "implementation",
+        "cache_policy": "none",
+        "candidate_limit": 12,
+        "max_excerpt_chars": 1200,
+        "max_total_chars": 12000,
+        "max_total_tokens": 3000,
+        "include_all_active_source_slices": True,
+    }
+    harvest = harvest_skills(
+        {
+            "objective": objective,
+            "source_path": str(source_root),
+            "project_path": str(source_root),
+            "limit": 12,
+            "write_artifacts": False,
+            "rank_for_composition": True,
+        }
+    )
+    source_nodes = [
+        item
+        for item in harvest.get("source_nodes", [])
+        if isinstance(item, dict)
+    ]
+    if not source_nodes:
+        return False, "host composition adapter smoke did not harvest source nodes"
+    host_inputs: list[dict[str, Any]] = []
+
+    def propose_semantics(host_input: dict[str, Any]) -> dict[str, Any]:
+        host_inputs.append(host_input)
+        return _semantic_release_smoke_proposal(host_input["preflight"])
+
+    try:
+        packet = run_host_composition(
+            arguments,
+            source_nodes=source_nodes,
+            propose_semantics=propose_semantics,
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        return False, f"host composition adapter smoke failed: {exc}"
+
+    if len(host_inputs) != 1:
+        return False, "host composition adapter smoke did not call its host exactly once"
+    host_input = host_inputs[0]
+    expected_preflight_id = host_input.get("preflight_id")
+    if (
+        not isinstance(expected_preflight_id, str)
+        or not expected_preflight_id
+        or "_source_nodes" in host_input
+        or any(
+            str(node.get("path") or "")
+            and str(node.get("path")) in json.dumps(host_input, sort_keys=True)
+            for node in source_nodes
+        )
+    ):
+        return False, "host composition adapter smoke exposed an unbounded host input"
+
+    plan = packet.get("composition_plan")
+    validation = packet.get("semantic_proposal_validation")
+    if packet.get("ok") is not True:
+        return False, "host composition adapter smoke did not accept the proposal"
+    if not isinstance(plan, dict) or plan.get("preflight_id") != expected_preflight_id:
+        return False, "host composition adapter smoke did not retain its frozen preflight"
+    if not isinstance(validation, dict) or validation.get("accepted") is not True:
+        return False, "host composition adapter smoke did not accept semantic evidence"
+    if packet.get("global_cache", {}).get("cache_policy") != "none":
+        return False, "host composition adapter smoke did not retain cache_policy=none"
+    metadata = packet.get("host_composition")
+    if not isinstance(metadata, dict):
+        return False, "host composition adapter smoke missing host provenance"
+    if metadata.get("schema") != "tmcp-host-composition-lineage-v0.1":
+        return False, "host composition adapter smoke missing lineage provenance"
+    origin = metadata.get("origin")
+    if (
+        not isinstance(origin, dict)
+        or origin.get("schema") != "tmcp-host-composition-intake-v0.1"
+    ):
+        return False, "host composition adapter smoke missing closed origin"
+    try:
+        lineage = validate_host_composition_lineage(
+            metadata,
+            composition_plan=plan,
+        )
+    except ValueError as exc:
+        return False, f"host composition adapter smoke invalid lineage: {exc}"
+    origin = lineage["origin"]
+    if origin.get("preflight_id") != expected_preflight_id:
+        return False, "host composition adapter smoke did not bind host provenance"
+    if origin.get("reused_snapshot") is not True:
+        return False, "host composition adapter smoke did not reuse its snapshot"
+    if origin.get("automatic_tool_execution") is not False:
+        return False, "host composition adapter smoke enabled automatic tool execution"
+    if origin.get("receipt_persistence") != "not_performed":
+        return False, "host composition adapter smoke persisted a receipt"
+    if metadata.get("runtime_snapshot_status") != "initial_frozen_snapshot":
+        return False, "host composition adapter smoke mislabeled initial provenance"
+    receipt = packet.get("receipt_template")
+    host_receipt = (
+        receipt.get("host_composition_provenance")
+        if isinstance(receipt, dict)
+        else None
+    )
+    try:
+        receipt_provenance = validate_host_composition_receipt_provenance(
+            host_receipt
+        )
+    except ValueError as exc:
+        return False, f"host composition adapter smoke invalid receipt provenance: {exc}"
+    if (
+        receipt_provenance["origin_digest"] != lineage["origin_digest"]
+        or receipt_provenance["runtime_snapshot_status"]
+        != "initial_frozen_snapshot"
+    ):
+        return False, "host composition adapter smoke missing closed receipt provenance"
+    if tmcp_home.exists() or (source_root / ".tmcp").exists():
+        return False, "host composition adapter smoke wrote an artifact"
+    return True, "host composition adapter smoke passed"
+
+
+def _check_host_composition_adapter(
+    plugin_root: Path,
+    source_root: Path,
+    tmcp_home: Path,
+    run_json: RunJson,
+) -> tuple[bool, str]:
+    """Run the native adapter smoke from the extracted package process."""
+
+    ok, output, result = run_json(
+        [
+            sys.executable,
+            "scripts/release_package_composition.py",
+            "--host-composition-adapter-smoke",
+            str(source_root),
+        ],
+        plugin_root,
+        {"TMCP_HOME": str(tmcp_home)},
+    )
+    if not ok or result is None:
+        return False, output
+    if result.get("ok") is not True:
+        return False, str(result.get("message") or "host composition adapter smoke failed")
+    if tmcp_home.exists() or (source_root / ".tmcp").exists():
+        return False, "host composition adapter smoke wrote an artifact"
+    return True, str(result.get("message") or "host composition adapter smoke passed")
+
+
 def check_composition_surface(
     plugin_root: Path,
     scratch_root: Path,
@@ -250,6 +422,15 @@ def check_composition_surface(
         encoding="utf-8",
     )
     env = {"TMCP_HOME": str(tmcp_home)}
+
+    host_adapter_ok, host_adapter_output = _check_host_composition_adapter(
+        plugin_root,
+        source_root,
+        tmcp_home,
+        run_json,
+    )
+    if not host_adapter_ok:
+        return False, host_adapter_output
 
     ok, output, compose = run_json(
         [
@@ -711,8 +892,44 @@ def check_composition_surface(
             output,
             persistence_mode,
             session_mode,
+            host_adapter_output,
             "assisted composition and recompile smoke passed",
             assisted_session_mode,
             "composition surface smoke passed",
         ]
     )
+
+
+def main() -> int:
+    """Run the narrow extracted-package host adapter smoke when requested."""
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--host-composition-adapter-smoke",
+        type=Path,
+        metavar="SOURCE_ROOT",
+    )
+    arguments = parser.parse_args()
+    source_root = arguments.host_composition_adapter_smoke
+    if source_root is None:
+        parser.error("--host-composition-adapter-smoke is required")
+
+    tmcp_home_value = os.environ.get("TMCP_HOME", "").strip()
+    if not tmcp_home_value:
+        payload = {
+            "ok": False,
+            "message": "host composition adapter smoke requires TMCP_HOME",
+        }
+        print(json.dumps(payload, sort_keys=True))
+        return 1
+
+    ok, message = _check_host_composition_adapter_in_process(
+        source_root,
+        Path(tmcp_home_value),
+    )
+    print(json.dumps({"ok": ok, "message": message}, sort_keys=True))
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

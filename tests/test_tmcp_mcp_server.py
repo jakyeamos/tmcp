@@ -85,6 +85,39 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertEqual(set(self.server._TOOL_HANDLERS), PUBLIC_TOOL_NAMES)
         self.assertEqual(self.server._TOOL_DISPATCHER.tool_names, PUBLIC_TOOL_NAMES)
 
+    def test_private_host_assisted_helper_harvests_once_without_public_registration(
+        self,
+    ) -> None:
+        from tests.test_tmcp_composition_integration import CompositionIntegrationTests
+
+        harness = CompositionIntegrationTests()
+        harness.setUp()
+        source_nodes = [dict(node) for node in harness.nodes]
+        harvests = 0
+
+        def load_source_nodes(arguments: dict[str, object]) -> list[dict[str, object]]:
+            nonlocal harvests
+            harvests += 1
+            self.assertEqual(arguments["objective"], harness.arguments["objective"])
+            return [dict(node) for node in source_nodes]
+
+        def propose_semantics(host_input: dict[str, object]) -> dict[str, object]:
+            self.assertNotIn("_source_nodes", host_input)
+            preflight = host_input["preflight"]
+            assert isinstance(preflight, dict)
+            harness.nodes = [dict(node) for node in source_nodes]
+            return harness._proposal(preflight)
+
+        with patch.object(self.server, "_runtime_source_nodes", load_source_nodes):
+            packet = self.server._compose_host_assisted(
+                dict(harness.arguments),
+                propose_semantics=propose_semantics,
+            )
+
+        self.assertEqual(harvests, 1)
+        self.assertTrue(packet["ok"])
+        self.assertNotIn("_compose_host_assisted", self.server._TOOL_HANDLERS)
+
     def test_expert_ui_rubric_routes_to_audit_packet(self) -> None:
         packet = standalone_packets.compile_standalone_packet(
             objective="Use the TMCP expert UI rubric on Hoopscout",
@@ -314,6 +347,8 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "tmcp_runtime/services/artifact_plans.py",
                 "tmcp_runtime/services/compose.py",
                 "tmcp_runtime/services/harvest.py",
+                "tmcp_runtime/services/host_composition.py",
+                "tmcp_runtime/domain/host_composition_provenance.py",
                 "tmcp_runtime/services/promotion.py",
                 "tmcp_runtime/services/recompile.py",
                 "tmcp_runtime/services/recommendations.py",

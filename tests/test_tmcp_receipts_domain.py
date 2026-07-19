@@ -274,6 +274,53 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
         self.assertEqual(template["content_digests"], ["c" * 64])
         self.assertEqual(template["selected_skill_ids"], ["research", "review"])
 
+    def test_receipts_accept_only_closed_host_composition_provenance(self) -> None:
+        provenance = {
+            "schema": "tmcp-host-composition-receipt-provenance-v0.1",
+            "origin_digest": "a" * 64,
+            "origin_preflight_id": "preflight-host",
+            "runtime_snapshot_status": "runtime_capsule_revalidated",
+            "runtime_preflight_id": "preflight-runtime",
+            "inherited_origin": True,
+            "trust": "advisory_untrusted",
+        }
+        receipt = build_run_receipt(
+            {
+                "packet_id": "packet-123",
+                "host_composition_provenance": provenance,
+            },
+            created_at="2026-07-12T16:00:00Z",
+        )
+        provenance["origin_digest"] = "b" * 64
+
+        self.assertEqual(
+            receipt["host_composition_provenance"]["origin_digest"], "a" * 64
+        )
+        with self.assertRaisesRegex(ValueError, "host_composition_provenance"):
+            build_run_receipt(
+                {
+                    "packet_id": "packet-123",
+                    "host_composition_provenance": {
+                        **receipt["host_composition_provenance"],
+                        "unexpected": "not allowed",
+                    },
+                },
+                created_at="2026-07-12T16:00:00Z",
+            )
+        with self.assertRaisesRegex(ValueError, "initial host composition receipt"):
+            build_run_receipt(
+                {
+                    "packet_id": "packet-123",
+                    "host_composition_provenance": {
+                        **receipt["host_composition_provenance"],
+                        "runtime_snapshot_status": "initial_frozen_snapshot",
+                        "runtime_preflight_id": "preflight-host",
+                        "inherited_origin": True,
+                    },
+                },
+                created_at="2026-07-12T16:00:00Z",
+            )
+
     def test_receipt_schema_keeps_composition_fields_optional(self) -> None:
         schema_path = (
             Path(__file__).resolve().parents[1]
@@ -292,6 +339,7 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
             "quality_metrics",
             "cost_metrics",
             "composition_fixture_id",
+            "host_composition_provenance",
         }
 
         self.assertTrue(composition_fields.issubset(schema["properties"]))
@@ -311,6 +359,10 @@ class TmcpReceiptsDomainTests(unittest.TestCase):
         self.assertNotIn("benchmark_control_input_digest", properties)
         self.assertNotIn("benchmark_execution_recipe_digest", properties)
         self.assertNotIn("benchmark_receipt_provenance", properties)
+        self.assertIn("host_composition_provenance", properties)
+        host_provenance = properties["host_composition_provenance"]
+        assert isinstance(host_provenance, dict)
+        self.assertFalse(host_provenance["additionalProperties"])
         trace = properties["phase_capsule_trace"]
         assert isinstance(trace, dict)
         items = trace["items"]

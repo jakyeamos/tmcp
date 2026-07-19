@@ -8,7 +8,7 @@ import re
 import shutil
 import sys
 import uuid
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -39,6 +39,11 @@ from tmcp_runtime.domain.composition import (  # noqa: E402
 )
 from tmcp_runtime.domain.composition_runtime_capsules import (  # noqa: E402
     runtime_capsule_preparation_arguments as _runtime_capsule_preparation_arguments,
+)
+from tmcp_runtime.domain.host_composition_provenance import (  # noqa: E402
+    HOST_COMPOSITION_INTAKE_SCHEMA as _HOST_COMPOSITION_INTAKE_SCHEMA,
+    HOST_COMPOSITION_LINEAGE_SCHEMA as _HOST_COMPOSITION_LINEAGE_SCHEMA,
+    HOST_COMPOSITION_RECEIPT_PROVENANCE_SCHEMA as _HOST_COMPOSITION_RECEIPT_PROVENANCE_SCHEMA,
 )
 from tmcp_runtime.domain.receipts import (  # noqa: E402
     RUN_RECEIPT_SCHEMA,
@@ -84,6 +89,9 @@ from tmcp_runtime.services.harvest import (  # noqa: E402
 from tmcp_runtime.services.compose import (  # noqa: E402
     compose_packet_from_source_nodes as _runtime_compose_packet_from_source_nodes,
     prepare_composition_from_source_nodes as _runtime_prepare_composition_from_source_nodes,
+)
+from tmcp_runtime.services.host_composition import (  # noqa: E402
+    run_host_composition as _runtime_run_host_composition,
 )
 from tmcp_runtime.services.evaluation_rendering import (  # noqa: E402
     build_pattern_catalog as _runtime_build_pattern_catalog,
@@ -197,6 +205,41 @@ _PHASE_CAPSULE_BINDING_SCHEMA = "tmcp-composition-phase-capsule-binding-v0.1"
 _RUNTIME_CAPSULE_SCHEMA = "tmcp-composition-runtime-capsule-v0.1"
 _PROJECT_RECIPE_PROMOTION_ELIGIBILITY_SCHEMA = (
     "tmcp-project-recipe-promotion-eligibility-v0.1"
+)
+_HOST_COMPOSITION_LINEAGE_FIELDS = frozenset(
+    {
+        "schema",
+        "origin",
+        "origin_digest",
+        "runtime_snapshot_status",
+        "current_preflight_id",
+        "inherited_origin",
+        "trust",
+    }
+)
+_HOST_COMPOSITION_ORIGIN_FIELDS = frozenset(
+    {
+        "schema",
+        "preflight_id",
+        "preflight_digest",
+        "source_snapshot_digest",
+        "request_digest",
+        "task_identity_digest",
+        "reused_snapshot",
+        "automatic_tool_execution",
+        "receipt_persistence",
+    }
+)
+_HOST_COMPOSITION_RECEIPT_PROVENANCE_FIELDS = frozenset(
+    {
+        "schema",
+        "origin_digest",
+        "origin_preflight_id",
+        "runtime_snapshot_status",
+        "runtime_preflight_id",
+        "inherited_origin",
+        "trust",
+    }
 )
 
 
@@ -428,6 +471,62 @@ def _restore_run_receipt_digests(source: object, redacted: object) -> int:
                 "incoming_handoff_digests",
                 frozenset({64}),
             )
+    source_host_provenance = source.get("host_composition_provenance")
+    redacted_host_provenance = redacted.get("host_composition_provenance")
+    if (
+        isinstance(source_host_provenance, dict)
+        and isinstance(redacted_host_provenance, dict)
+        and source_host_provenance.get("schema")
+        == _HOST_COMPOSITION_RECEIPT_PROVENANCE_SCHEMA
+        and set(source_host_provenance)
+        == _HOST_COMPOSITION_RECEIPT_PROVENANCE_FIELDS
+    ):
+        restored += _restore_digest_scalar(
+            source_host_provenance,
+            redacted_host_provenance,
+            "origin_digest",
+            frozenset({64}),
+        )
+    return restored
+
+
+def _restore_host_composition_lineage_digests(source: object, redacted: object) -> int:
+    """Restore only closed host-lineage digests from a composed packet field."""
+
+    if (
+        not isinstance(source, dict)
+        or not isinstance(redacted, dict)
+        or source.get("schema") != _HOST_COMPOSITION_LINEAGE_SCHEMA
+        or set(source) != _HOST_COMPOSITION_LINEAGE_FIELDS
+    ):
+        return 0
+    source_origin = source.get("origin")
+    redacted_origin = redacted.get("origin")
+    if (
+        not isinstance(source_origin, dict)
+        or not isinstance(redacted_origin, dict)
+        or source_origin.get("schema") != _HOST_COMPOSITION_INTAKE_SCHEMA
+        or set(source_origin) != _HOST_COMPOSITION_ORIGIN_FIELDS
+    ):
+        return 0
+    restored = _restore_digest_scalar(
+        source,
+        redacted,
+        "origin_digest",
+        frozenset({64}),
+    )
+    for key in (
+        "preflight_digest",
+        "source_snapshot_digest",
+        "request_digest",
+        "task_identity_digest",
+    ):
+        restored += _restore_digest_scalar(
+            source_origin,
+            redacted_origin,
+            key,
+            frozenset({64}),
+        )
     return restored
 
 
@@ -497,6 +596,10 @@ def _restore_composed_packet_digests(source: object, redacted: object) -> int:
         frozenset({32, 64}),
     )
     restored += _restore_runtime_validation_digests(source, redacted)
+    restored += _restore_host_composition_lineage_digests(
+        source.get("host_composition"),
+        redacted.get("host_composition"),
+    )
     return restored
 
 
@@ -1163,6 +1266,24 @@ def _runtime_source_nodes(arguments: dict[str, Any]) -> list[dict[str, Any]]:
         for item in _json_list(harvest.get("source_nodes"))
         if isinstance(item, dict)
     ]
+
+
+def _compose_host_assisted(
+    arguments: dict[str, Any],
+    *,
+    propose_semantics: Callable[[dict[str, Any]], Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Native-only convenience seam that harvests once before host reasoning.
+
+    It is deliberately absent from the public MCP registry: callback functions
+    and frozen in-memory intakes cannot cross the portable transport boundary.
+    """
+
+    return _runtime_run_host_composition(
+        arguments,
+        source_nodes=_runtime_source_nodes(arguments),
+        propose_semantics=propose_semantics,
+    )
 
 
 def _runtime_cache_warnings(cache_policy: str) -> list[str]:

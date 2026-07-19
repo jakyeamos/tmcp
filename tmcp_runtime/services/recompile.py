@@ -23,6 +23,11 @@ from tmcp_runtime.domain.composition_runtime_continuations import (
     runtime_evidence_is_meaningful,
     validate_runtime_continuation,
 )
+from tmcp_runtime.domain.host_composition_provenance import (
+    host_composition_lineage_for_recompile,
+    host_composition_receipt_provenance,
+    validate_host_composition_lineage,
+)
 from tmcp_runtime.domain.harvest_nodes import (
     json_list,
     node_source_role,
@@ -52,6 +57,93 @@ from tmcp_runtime.services.sessions import has_session_runtime_continuation_trus
 
 
 RECOMPILED_PACKET_SCHEMA = "tmcp-recompiled-packet-v0.1"
+
+
+def _host_composition_plan(packet: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    """Locate the graph that can bind a historical host composition origin."""
+
+    for field in ("composition_plan", "inert_composition_plan"):
+        value = packet.get(field)
+        if isinstance(value, Mapping):
+            return value
+    return None
+
+
+def _validated_host_composition_lineage(
+    packet: Mapping[str, Any],
+) -> tuple[dict[str, Any] | None, bool]:
+    """Return only a closed, graph-bound host lineage from caller packet state."""
+
+    raw = packet.get("host_composition")
+    if not isinstance(raw, Mapping):
+        return None, False
+    try:
+        return (
+            validate_host_composition_lineage(
+                raw,
+                composition_plan=_host_composition_plan(packet),
+            ),
+            False,
+        )
+    except ValueError:
+        return None, True
+
+
+def _preflight_id(value: object) -> str | None:
+    if not isinstance(value, Mapping):
+        return None
+    preflight_id = value.get("preflight_id")
+    if not isinstance(preflight_id, str) or not preflight_id.strip():
+        return None
+    return preflight_id.strip()
+
+
+def _attach_host_composition_lineage(
+    packet: dict[str, Any],
+    *,
+    lineage: Mapping[str, Any],
+    runtime_snapshot_status: str,
+    current_preflight_id: str | None,
+) -> None:
+    """Retain the initial host origin as history after a runtime decision."""
+
+    updated = host_composition_lineage_for_recompile(
+        lineage,
+        runtime_snapshot_status=runtime_snapshot_status,
+        current_preflight_id=current_preflight_id,
+        current_composition_plan=(
+            packet.get("composition_plan")
+            if isinstance(packet.get("composition_plan"), Mapping)
+            else None
+        ),
+    )
+    packet["host_composition"] = updated
+    receipt = packet.get("receipt_template")
+    if isinstance(receipt, Mapping):
+        packet["receipt_template"] = {
+            **dict(receipt),
+            "host_composition_provenance": host_composition_receipt_provenance(
+                updated
+            ),
+        }
+
+
+def _omit_untrusted_host_composition_lineage(packet: dict[str, Any]) -> None:
+    """Fail closed when caller-provided origin cannot bind to its prior graph."""
+
+    packet.pop("host_composition", None)
+    receipt = packet.get("receipt_template")
+    if isinstance(receipt, Mapping):
+        receipt_copy = dict(receipt)
+        receipt_copy.pop("host_composition_provenance", None)
+        packet["receipt_template"] = receipt_copy
+    diagnostics = packet.get("composition_diagnostics")
+    diagnostic_map = dict(diagnostics) if isinstance(diagnostics, Mapping) else {}
+    diagnostic_map["host_composition_provenance"] = {
+        "accepted": False,
+        "status": "untrusted_or_unbound_origin_omitted",
+    }
+    packet["composition_diagnostics"] = diagnostic_map
 
 
 def _runtime_preflight(
@@ -471,6 +563,11 @@ def finalize_recompiled_packet(
     trusted_runtime_continuation = has_session_runtime_continuation_trust(
         runtime_continuation_trust
     )
+    host_lineage, rejected_host_lineage = _validated_host_composition_lineage(
+        previous_packet
+    )
+    host_runtime_status = "not_revalidated"
+    host_current_preflight_id = _preflight_id(composition_preflight)
     new_packet = (
         dict(composed_packet)
         if semantic_proposal_supplied
@@ -503,6 +600,9 @@ def finalize_recompiled_packet(
         # An explicit fresh composition is authoritative.  Never let an older
         # capsule graph overwrite the compiler's rejected result.
         runtime_map = None
+        host_runtime_status = "fresh_semantic_composition_rejected"
+    elif semantic_proposal_supplied:
+        host_runtime_status = "fresh_semantic_composition"
     if semantic_proposal_supplied and not fresh_composition_rejected:
         composed_plan = new_packet.get("composition_plan")
         if isinstance(composed_plan, Mapping):
@@ -545,6 +645,7 @@ def finalize_recompiled_packet(
             ),
         )
         runtime_map = None
+        host_runtime_status = "fresh_composition_required"
     elif (
         not semantic_proposal_supplied
         and policy_map.get("legacy_unbound_graph_requires_fresh_composition")
@@ -560,6 +661,7 @@ def finalize_recompiled_packet(
             ),
         )
         runtime_map = None
+        host_runtime_status = "fresh_composition_required"
     elif requires_fresh_composition and not semantic_proposal_supplied:
         prior_plan = previous_packet.get("composition_plan")
         if isinstance(prior_plan, Mapping):
@@ -581,6 +683,7 @@ def finalize_recompiled_packet(
                 ),
             )
         runtime_map = None
+        host_runtime_status = "fresh_composition_required"
     elif runtime_map is not None:
         runtime_plan = runtime_map.get("composition_plan")
         if isinstance(runtime_plan, dict):
@@ -615,6 +718,8 @@ def finalize_recompiled_packet(
                             "Prepare current sources and submit a fresh semantic proposal."
                         ),
                     )
+                    if not semantic_proposal_supplied:
+                        host_runtime_status = "runtime_capsule_rejected"
                 else:
                     capsule_result = _runtime_capsule_result(
                         capsule_plan,
@@ -646,6 +751,8 @@ def finalize_recompiled_packet(
                                 "Prepare current sources and submit a fresh semantic proposal."
                             ),
                         )
+                        if not semantic_proposal_supplied:
+                            host_runtime_status = "runtime_capsule_rejected"
                     else:
                         rehydrated_preflight = capsule_result.get(
                             "composition_preflight"
@@ -775,6 +882,8 @@ def finalize_recompiled_packet(
                                         "Prepare current sources and submit a fresh semantic proposal."
                                     ),
                                 )
+                                if not semantic_proposal_supplied:
+                                    host_runtime_status = "runtime_capsule_rejected"
                             else:
                                 new_packet = _apply_runtime_plan(
                                     new_packet,
@@ -805,6 +914,11 @@ def finalize_recompiled_packet(
                                 }
                                 new_packet["composition_diagnostics"] = diagnostics
                                 applied = True
+                                if not semantic_proposal_supplied:
+                                    host_runtime_status = "runtime_capsule_revalidated"
+                                    host_current_preflight_id = _preflight_id(
+                                        rehydrated_preflight
+                                    )
             else:
                 bound_nodes, source_issues = bind_runtime_plan_sources(
                     runtime_plan,
@@ -818,6 +932,8 @@ def finalize_recompiled_packet(
                         issues=source_issues,
                         metadata_packet=metadata_packet,
                     )
+                    if not semantic_proposal_supplied:
+                        host_runtime_status = "runtime_capsule_rejected"
                 else:
                     new_packet = _apply_runtime_plan(
                         new_packet,
@@ -859,6 +975,15 @@ def finalize_recompiled_packet(
             if isinstance(item, dict)
         ],
     )
+    if host_lineage is not None:
+        _attach_host_composition_lineage(
+            new_packet,
+            lineage=host_lineage,
+            runtime_snapshot_status=host_runtime_status,
+            current_preflight_id=host_current_preflight_id,
+        )
+    elif rejected_host_lineage:
+        _omit_untrusted_host_composition_lineage(new_packet)
     receipt = new_packet.get("receipt_template")
     if isinstance(receipt, dict) and isinstance(new_packet.get("task_identity"), dict):
         receipt["task_identity"] = dict(new_packet["task_identity"])

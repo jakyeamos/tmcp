@@ -2,19 +2,22 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any
 
 from tmcp_runtime.domain.composition_preflight import stable_digest
+from tmcp_runtime.domain.host_composition_provenance import (
+    HOST_COMPOSITION_INTAKE_SCHEMA,
+    build_host_composition_lineage,
+    host_composition_receipt_provenance,
+)
 from tmcp_runtime.services.compose import (
     compose_packet_from_source_nodes,
     prepare_composition_from_source_nodes,
 )
 
-
-HOST_COMPOSITION_INTAKE_SCHEMA = "tmcp-host-composition-intake-v0.1"
 _IN_MEMORY_CACHE_HOME = "[HOST:in-memory]"
 _RECEIPT_WRITE_ARGUMENTS = (
     "record_receipt",
@@ -150,7 +153,7 @@ def compose_host_composition(
         cache_home=_IN_MEMORY_CACHE_HOME,
         prepared_composition=deepcopy(intake._preflight),
     )
-    packet["host_composition"] = {
+    origin = {
         "schema": HOST_COMPOSITION_INTAKE_SCHEMA,
         "preflight_id": intake.preflight_id,
         "preflight_digest": intake.preflight_digest,
@@ -161,4 +164,44 @@ def compose_host_composition(
         "automatic_tool_execution": False,
         "receipt_persistence": "not_performed",
     }
+    lineage = build_host_composition_lineage(
+        origin,
+        runtime_snapshot_status="initial_frozen_snapshot",
+        current_preflight_id=intake.preflight_id,
+        inherited_origin=False,
+    )
+    packet["host_composition"] = lineage
+    receipt = packet.get("receipt_template")
+    if isinstance(receipt, Mapping):
+        packet["receipt_template"] = {
+            **dict(receipt),
+            "host_composition_provenance": host_composition_receipt_provenance(
+                lineage
+            ),
+        }
     return packet
+
+
+HostSemanticProposer = Callable[[dict[str, Any]], Mapping[str, Any]]
+
+
+def run_host_composition(
+    arguments: Mapping[str, Any],
+    *,
+    source_nodes: Sequence[Mapping[str, Any]],
+    propose_semantics: HostSemanticProposer,
+) -> dict[str, Any]:
+    """Run one native host callback against one frozen source snapshot.
+
+    This is intentionally an in-process host seam rather than a public MCP or
+    CLI command: a portable call boundary cannot preserve a callback or the
+    frozen intake object across processes.
+    """
+
+    if not callable(propose_semantics):
+        raise ValueError("run_host_composition requires a callable propose_semantics.")
+    intake = prepare_host_composition(arguments, source_nodes=source_nodes)
+    semantic_proposal = propose_semantics(intake.host_input())
+    if not isinstance(semantic_proposal, Mapping):
+        raise ValueError("propose_semantics must return a semantic proposal object.")
+    return compose_host_composition(intake, semantic_proposal)
