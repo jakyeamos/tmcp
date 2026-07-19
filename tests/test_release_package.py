@@ -899,6 +899,26 @@ class ReleasePackageTests(unittest.TestCase):
             "tmcp_runtime/domain/composition_harvest_selection.py",
             self.compiler.COMPILE_PATHS,
         )
+        self.assertIn(
+            "tmcp_runtime/domain/composition_active_confidence.py",
+            self.compiler.COMPILE_PATHS,
+        )
+        self.assertIn(
+            "tmcp_runtime/domain/composition_declared_dependencies.py",
+            self.compiler.COMPILE_PATHS,
+        )
+        self.assertIn(
+            "tmcp_runtime/domain/composition_seed_roots.py",
+            self.compiler.COMPILE_PATHS,
+        )
+        self.assertIn(
+            "tmcp_runtime/domain/composition_seed_graph.py",
+            self.compiler.COMPILE_PATHS,
+        )
+        self.assertIn(
+            "tmcp_runtime/domain/composition_validation_conflicts.py",
+            self.compiler.COMPILE_PATHS,
+        )
 
     def test_package_requires_git_worktree(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

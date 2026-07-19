@@ -17,6 +17,7 @@ class HarvestArgumentProjectionTests(unittest.TestCase):
             "limit": 12,
             "max_file_bytes": 4096,
             "max_excerpt_chars": 240,
+            "explicitly_scoped_paths": ["tests/fixtures/fixture-checksum/SKILL.md", 0, ""],
             "follow_symlinks": 1,
             "redact_sensitive": 0,
             "write_artifacts": True,
@@ -31,6 +32,10 @@ class HarvestArgumentProjectionTests(unittest.TestCase):
         self.assertEqual(projected["limit"], 12)
         self.assertEqual(projected["max_file_bytes"], 4096)
         self.assertEqual(projected["max_excerpt_chars"], 240)
+        self.assertEqual(
+            projected["explicitly_scoped_paths"],
+            ["tests/fixtures/fixture-checksum/SKILL.md", "0"],
+        )
         self.assertTrue(projected["follow_symlinks"])
         self.assertFalse(projected["redact_sensitive"])
         self.assertFalse(projected["write_artifacts"])
@@ -57,6 +62,7 @@ class HarvestArgumentProjectionTests(unittest.TestCase):
         self.assertEqual(projected["limit"], 40)
         self.assertEqual(projected["max_file_bytes"], 262144)
         self.assertEqual(projected["max_excerpt_chars"], 1200)
+        self.assertEqual(projected["explicitly_scoped_paths"], [])
         self.assertFalse(projected["follow_symlinks"])
         self.assertTrue(projected["redact_sensitive"])
         self.assertFalse(projected["write_artifacts"])

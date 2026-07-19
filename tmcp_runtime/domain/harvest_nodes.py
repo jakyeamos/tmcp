@@ -28,6 +28,7 @@ from .harvest_node_policy import (
     source_role_is_activation_eligible,
     source_type_for,
 )
+from .scoped_seeds import normalize_scoped_seed
 from .standalone_packets import MODULE_BEHAVIOR_ATOMS
 
 
@@ -328,6 +329,7 @@ def scoped_seed_signal_text(seed: dict[str, Any]) -> str:
     for key in (
         "id",
         "name",
+        "source_references",
         "sources",
         "loads",
         "chains_before",
@@ -382,6 +384,7 @@ def scoped_packet_seed_nodes(
     max_excerpt_chars: int,
     redactions: dict[str, int],
     explicitly_scoped: bool = False,
+    explicitly_scoped_seed_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     promotion = payload.get("promotion_recommendation")
     promotion_map = promotion if isinstance(promotion, dict) else {}
@@ -397,25 +400,37 @@ def scoped_packet_seed_nodes(
         separators=(",", ":"),
     )
     nodes: list[dict[str, Any]] = []
+    scoped_seed_ids = explicitly_scoped_seed_ids or set()
     for index, seed in enumerate(json_list(payload.get("seeds"))):
         if not isinstance(seed, dict):
             continue
-        seed_id = str(seed.get("id") or "").strip()
+        raw_seed_id = str(seed.get("id") or "").strip()
+        seed_input = {
+            **seed,
+            "source_references": seed.get("sources"),
+            "required_receipts": required_receipts.get(raw_seed_id),
+            "constraints": payload.get("constraints"),
+            "promotion_status": promotion_status,
+            "promote_as_single_global_graph": promote_as_single_global_graph,
+        }
+        normalized_seed = normalize_scoped_seed(seed_input)
+        seed_id = str(normalized_seed.get("id") or "")
         if not seed_id:
             continue
-        signal_text = scoped_seed_signal_text(seed)
+        signal_text = scoped_seed_signal_text(normalized_seed)
         virtual_rel_path = f"{rel_path}#{seed_id}"
+        seed_explicitly_scoped = explicitly_scoped or seed_id in scoped_seed_ids
         source_role = source_role_for(
             Path(source_path),
             virtual_rel_path,
             "scoped_packet_seed",
-            explicitly_scoped=explicitly_scoped,
+            explicitly_scoped=seed_explicitly_scoped,
         )
         seed_loads = [
             normalize_declared_load_pattern(pattern)
-            for pattern in string_list(seed.get("loads"))
+            for pattern in normalized_seed["loads"]
         ]
-        phase_transitions = seed.get("phase_transitions")
+        phase_transitions = normalized_seed["phase_transitions"]
         routing_metadata = routing_metadata_for(virtual_rel_path, signal_text)
         routing_metadata["declared_loads"] = ordered_unique(
             string_list(routing_metadata.get("declared_loads")) + seed_loads
@@ -426,21 +441,19 @@ def scoped_packet_seed_nodes(
                 "root_path": root_path,
                 "path": source_path,
                 "relative_path": virtual_rel_path,
-                "title": str(seed.get("name") or seed_id),
+                "title": normalized_seed["name"],
                 "source_type": "scoped_packet_seed",
                 "source_tier": "scoped_packet_seed",
                 "source_role": source_role,
                 "activation_eligible": source_role_is_activation_eligible(source_role),
-                "explicitly_scoped": explicitly_scoped,
+                "explicitly_scoped": seed_explicitly_scoped,
                 "content_digest": content_digest_for(payload_content),
                 "frontmatter": {
                     "schema": SCOPED_PACKET_SEEDS_SCHEMA,
                     "status": promotion_status,
                 },
                 "token_estimate": estimate_tokens(signal_text),
-                "behavior_atoms": ordered_unique(
-                    string_list(seed.get("behavior_atoms"))
-                )[:20],
+                "behavior_atoms": list(normalized_seed["behavior_atoms"]),
                 "guidance_labels": guidance_labels_for(virtual_rel_path, signal_text),
                 "keywords": sorted(text_tokens(signal_text))[:20],
                 "routing_metadata": routing_metadata,
@@ -451,29 +464,30 @@ def scoped_packet_seed_nodes(
                 "seed_index": index,
                 "seed_id": seed_id,
                 "canonical_source": rel_path,
-                "source_references": string_list(seed.get("sources")),
+                "source_references": list(normalized_seed["source_references"]),
                 "loads": [pattern for pattern in seed_loads if pattern],
-                "chains_before": string_list(seed.get("chains_before")),
-                "chains_after": string_list(seed.get("chains_after")),
-                "do_not_activate_with": string_list(seed.get("do_not_activate_with")),
-                "phase_transitions": (
-                    dict(phase_transitions)
-                    if isinstance(phase_transitions, dict)
-                    else {}
+                "chains_before": list(normalized_seed["chains_before"]),
+                "chains_after": list(normalized_seed["chains_after"]),
+                "do_not_activate_with": list(normalized_seed["do_not_activate_with"]),
+                "phase_transitions": dict(phase_transitions),
+                "use_when": list(normalized_seed["use_when"]),
+                "route_affinity": list(normalized_seed["route_affinity"]),
+                "objective_patterns": list(normalized_seed["objective_patterns"]),
+                "modes": list(normalized_seed["modes"]),
+                "minimum_spec_fields": list(normalized_seed["minimum_spec_fields"]),
+                "ticket_types": list(normalized_seed["ticket_types"]),
+                "verification_expectations": list(
+                    normalized_seed["verification_expectations"]
                 ),
-                "use_when": string_list(seed.get("use_when")),
-                "route_affinity": string_list(seed.get("route_affinity")),
-                "objective_patterns": string_list(seed.get("objective_patterns")),
-                "modes": string_list(seed.get("modes")),
-                "minimum_spec_fields": string_list(seed.get("minimum_spec_fields")),
-                "ticket_types": string_list(seed.get("ticket_types")),
-                "verification_expectations": string_list(
-                    seed.get("verification_expectations")
+                "promotion_status": normalized_seed["promotion_status"],
+                "promote_as_single_global_graph": normalized_seed[
+                    "promote_as_single_global_graph"
+                ],
+                "required_receipts": list(normalized_seed["required_receipts"]),
+                "constraints": list(normalized_seed["constraints"]),
+                "metadata_truncated_fields": list(
+                    normalized_seed["metadata_truncated_fields"]
                 ),
-                "promotion_status": promotion_status,
-                "promote_as_single_global_graph": promote_as_single_global_graph,
-                "required_receipts": string_list(required_receipts.get(seed_id)),
-                "constraints": string_list(payload.get("constraints")),
             }
         )
     return nodes

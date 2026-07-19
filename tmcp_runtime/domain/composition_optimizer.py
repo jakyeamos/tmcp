@@ -8,6 +8,10 @@ from collections import deque
 import re
 from typing import Any
 
+from .composition_declared_dependencies import (
+    declared_dependency_closure_is_well_formed,
+    required_closure_source_ids,
+)
 from .composition_preflight import json_list, ordered_unique, string_list
 from .composition_validation import ordering_pair
 
@@ -94,7 +98,7 @@ def _only_complements_keeper(
 
 
 def _mandatory_node_ids(preflight: Mapping[str, Any]) -> set[str]:
-    return {
+    mandatory = {
         str(item.get("source_node_id") or "")
         for item in json_list(preflight.get("candidate_source_slices"))
         if isinstance(item, Mapping)
@@ -103,6 +107,14 @@ def _mandatory_node_ids(preflight: Mapping[str, Any]) -> set[str]:
             or item.get("source_role") == "governing_instruction"
         )
     }
+    hints = preflight.get("scoped_seed_graph_hints")
+    raw_closure = (
+        hints.get("declared_dependency_closure")
+        if isinstance(hints, Mapping)
+        else None
+    )
+    closure = raw_closure if declared_dependency_closure_is_well_formed(raw_closure) else {}
+    return mandatory.union(required_closure_source_ids(closure))
 
 
 def _tokens(value: object) -> set[str]:

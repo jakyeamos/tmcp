@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import tmcp_runtime.services.project_recipes as project_recipes
+from tmcp_runtime.domain import compositional_intelligence as ci
 from tmcp_runtime.domain.composition_planning import build_composition_plan
 from tmcp_runtime.domain.composition_benchmark_receipt_projection import (
     build_benchmark_receipt_provenance,
@@ -22,6 +23,11 @@ from tmcp_runtime.services.project_recipes import (
     ProjectCompositionRecipeService,
     build_project_composition_recipe_record,
     rehydrate_project_recipe_for_preflight,
+)
+from tests.test_tmcp_compositional_intelligence import (
+    _node as composition_node,
+    _proposal as composition_proposal,
+    _role as composition_role,
 )
 
 
@@ -612,6 +618,98 @@ class ProjectCompositionRecipeServiceTests(unittest.TestCase):
         missing_citation["candidate_source_slices"][0]["slice_id"] = "slice-" + "8" * 20
         with self.assertRaisesRegex(ValueError, "unknown_citation"):
             rehydrate_project_recipe_for_preflight(record, missing_citation)
+
+    def test_recipe_rehydrates_with_immutable_proposal_coverage(self) -> None:
+        preflight = _preflight()
+        proposal = _proposal()
+        proposal["coverage"] = {"facets": ["research"], "unresolved_gaps": []}
+        plan = build_composition_plan(proposal, preflight)
+        record = build_project_composition_recipe_record(
+            recipe_id="research-review",
+            composition_plan=plan,
+            promotion_eligibility={
+                "eligible": True,
+                "recipe_id": "research-review",
+                "graph_digest": plan["provenance"]["graph_digest"],
+                "phase_capsule_binding_digest": plan["phase_capsule_binding"][
+                    "binding_digest"
+                ],
+            },
+            created_at="2026-07-17T00:00:00Z",
+        )
+
+        self.assertEqual(plan["proposal_coverage"], proposal["coverage"])
+        self.assertEqual(plan["coverage"]["facets"], ["research", "cited"])
+        self.assertEqual(
+            record["composition_recipe"]["proposal_coverage"], proposal["coverage"]
+        )
+        hydrated = rehydrate_project_recipe_for_preflight(record, preflight)
+
+        self.assertEqual(
+            hydrated["composition_plan"]["composition_plan_id"],
+            plan["composition_plan_id"],
+        )
+        legacy = copy.deepcopy(record)
+        legacy["composition_recipe"].pop("proposal_coverage")
+        with self.assertRaisesRegex(ValueError, "immutable proposal coverage"):
+            rehydrate_project_recipe_for_preflight(legacy, preflight)
+
+    def test_legacy_scoped_seed_recipe_without_closure_stays_inert(self) -> None:
+        seed = composition_node(
+            "migration-seed",
+            "scoped_packet_seed",
+            "scoped-packet-seeds.json#migration-seed",
+            "Migration coordinator prepares migration evidence.",
+        )
+        preflight = ci.prepare_composition([seed], "Prepare migration evidence.")
+        role = composition_role(
+            preflight,
+            "migration-seed",
+            "migration coordinator",
+            "implementation",
+            inputs=["migration evidence"],
+            outputs=["migration evidence"],
+            exit_gates=["migration evidence is ready"],
+            covers=["migration evidence"],
+        )
+        proposal = composition_proposal(preflight, [role], [])
+        proposal["task_model"] = {
+            "deliverables": ["migration evidence"],
+            "success_criteria": ["migration evidence"],
+            "constraints": [],
+            "subgoals": ["migration evidence"],
+            "evidence_needs": ["migration evidence"],
+        }
+        proposal["coverage"] = {
+            "facets": ["migration evidence"],
+            "unresolved_gaps": [],
+        }
+        validation = ci.validate_semantic_proposal(proposal, preflight)
+        self.assertTrue(validation["valid"], validation["errors"])
+        plan = ci.build_composition_plan(proposal, preflight)
+        record = build_project_composition_recipe_record(
+            recipe_id="migration-evidence",
+            composition_plan=plan,
+            promotion_eligibility={
+                "eligible": True,
+                "recipe_id": "migration-evidence",
+                "graph_digest": plan["provenance"]["graph_digest"],
+                "phase_capsule_binding_digest": plan["phase_capsule_binding"][
+                    "binding_digest"
+                ],
+            },
+            created_at="2026-07-17T00:00:00Z",
+        )
+        legacy = copy.deepcopy(record)
+        legacy["composition_recipe"]["scoped_seed_graph_hints"].pop(
+            "declared_dependency_closure"
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "legacy scoped-seed metadata.*explicitly re-promote",
+        ):
+            rehydrate_project_recipe_for_preflight(legacy, preflight)
 
     def test_recipe_rehydrates_at_its_stored_compiler_phase(self) -> None:
         preflight = _handoff_preflight()

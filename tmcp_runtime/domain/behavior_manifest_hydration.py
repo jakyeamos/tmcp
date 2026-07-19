@@ -28,6 +28,7 @@ def select_hydrated_behavior_blocks(
     include_all_active_source_slices: bool = False,
     objective_relevant_source_ids: set[str] | None = None,
     deferred_active_source_ids: set[str] | None = None,
+    required_source_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """Select bounded behavior blocks with explicit context-budget exceptions.
 
@@ -45,9 +46,11 @@ def select_hydrated_behavior_blocks(
     mandatory_context_overrides: list[str] = []
     minimum_active_context_override = ""
     required_active_context_overrides: list[str] = []
+    required_dependency_context_overrides: list[str] = []
     total_chars = 0
     total_tokens = 0
     relevant_source_ids = objective_relevant_source_ids or set()
+    required_ids = required_source_ids or set()
     deferred_active_ids = (
         set()
         if include_all_active_source_slices
@@ -62,12 +65,14 @@ def select_hydrated_behavior_blocks(
             restrict_to_objective_relevance
             and str(candidate.get("source_role") or "") != "governing_instruction"
             and str(candidate.get("source_node_id") or "") not in relevant_source_ids
+            and str(candidate.get("source_node_id") or "") not in required_ids
         )
 
     def is_deferred_active(candidate: Mapping[str, Any]) -> bool:
         return (
             str(candidate.get("source_role") or "") == "active_skill"
             and str(candidate.get("source_node_id") or "") in deferred_active_ids
+            and str(candidate.get("source_node_id") or "") not in required_ids
         )
 
     def fits(candidate: Mapping[str, Any], *, enforce_target: bool) -> bool:
@@ -105,6 +110,28 @@ def select_hydrated_behavior_blocks(
     if len(represented_governing_sources) != governing_source_count:
         raise ValueError(
             "Composition token limit cannot include every governing source with the behavior manifest index."
+        )
+
+    represented_required_sources = set(represented_governing_sources)
+    for candidate in candidates:
+        source_node_id = str(candidate.get("source_node_id") or "")
+        if source_node_id not in required_ids or source_node_id in represented_required_sources:
+            continue
+        if not fits(candidate, enforce_target=False):
+            raise ValueError(
+                "Composition limits cannot include declared dependency closure."
+            )
+        if not fits(candidate, enforce_target=True):
+            required_dependency_context_overrides.append(source_node_id)
+        select(candidate)
+        represented_required_sources.add(source_node_id)
+        if str(candidate.get("source_role") or "") == "active_skill":
+            represented_active_sources.add(source_node_id)
+    missing_required_source_ids = sorted(required_ids.difference(represented_required_sources))
+    if missing_required_source_ids:
+        raise ValueError(
+            "Composition limits cannot include declared dependency closure: "
+            + ", ".join(missing_required_source_ids)
         )
 
     for candidate in candidates:
@@ -189,6 +216,7 @@ def select_hydrated_behavior_blocks(
         "mandatory_context_overrides": mandatory_context_overrides,
         "minimum_active_context_override": minimum_active_context_override,
         "required_active_context_overrides": required_active_context_overrides,
+        "required_dependency_context_overrides": required_dependency_context_overrides,
         "represented_active_source_ids": sorted(represented_active_sources),
     }
 

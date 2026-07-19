@@ -18,6 +18,9 @@ from tmcp_runtime.domain.compositional_intelligence import (
     compile_semantic_composition,
     prepare_composition,
 )
+from tmcp_runtime.domain.composition_declared_dependencies import (
+    node_is_explicitly_scoped,
+)
 from tmcp_runtime.domain.families import compose_family_context
 from tmcp_runtime.domain.harvest_nodes import (
     json_list,
@@ -125,13 +128,11 @@ def _composition_scope_nodes(
     user-authorized exception available to direct composition.
     """
 
-    scoped_paths = set(string_list(arguments.get("explicitly_scoped_paths")))
+    scoped_paths = string_list(arguments.get("explicitly_scoped_paths"))
     return [
         {
             **node,
-            "explicitly_scoped": bool(node.get("explicitly_scoped") is True)
-            or str(node.get("relative_path") or node.get("path") or "")
-            in scoped_paths,
+            "explicitly_scoped": node_is_explicitly_scoped(node, scoped_paths),
         }
         for node in source_nodes
     ]

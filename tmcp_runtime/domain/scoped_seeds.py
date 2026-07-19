@@ -21,90 +21,244 @@ SCOPED_SEED_RELATIONS = frozenset(
         "transitions_to",
     }
 )
+MAX_SCOPED_SEED_ID_CHARS = 160
+MAX_SCOPED_SEED_NAME_CHARS = 160
+MAX_SCOPED_SEED_VALUE_CHARS = 240
+MAX_SCOPED_SEED_PATH_CHARS = 512
+MAX_SCOPED_SEED_STATUS_CHARS = 80
+MAX_SCOPED_SEED_TRUNCATION_LABEL_CHARS = 80
+MAX_SCOPED_SEED_LIST_ITEMS = 12
+MAX_SCOPED_SEED_PHASES = 5
+MAX_SCOPED_SEED_PHASE_ITEMS = 8
 
 
 def _json_list(value: object) -> list[Any]:
     return value if isinstance(value, list) else []
 
 
-def _ordered_strings(value: object) -> list[str]:
+def _bounded_text(value: object, maximum: int) -> tuple[str, bool]:
+    normalized = str(value or "").strip()
+    return normalized[:maximum], len(normalized) > maximum
+
+
+def _ordered_strings(
+    value: object,
+    *,
+    maximum_items: int = MAX_SCOPED_SEED_LIST_ITEMS,
+    maximum_chars: int = MAX_SCOPED_SEED_VALUE_CHARS,
+) -> tuple[list[str], bool]:
     seen: set[str] = set()
     result: list[str] = []
+    truncated = False
     for item in _json_list(value):
-        normalized = str(item).strip()
+        normalized, value_truncated = _bounded_text(item, maximum_chars)
+        truncated = truncated or value_truncated
         if not normalized or normalized in seen:
             continue
         seen.add(normalized)
+        if len(result) >= maximum_items:
+            truncated = True
+            continue
         result.append(normalized)
-    return result
+    return result, truncated
 
 
-def normalize_phase_transitions(value: object) -> dict[str, dict[str, list[str]]]:
+def _normalized_strings(
+    value: object,
+    field: str,
+    truncated_fields: list[str],
+    *,
+    maximum_items: int = MAX_SCOPED_SEED_LIST_ITEMS,
+    maximum_chars: int = MAX_SCOPED_SEED_VALUE_CHARS,
+) -> list[str]:
+    normalized, truncated = _ordered_strings(
+        value,
+        maximum_items=maximum_items,
+        maximum_chars=maximum_chars,
+    )
+    if truncated:
+        truncated_fields.append(field)
+    return normalized
+
+
+def _normalize_phase_transitions(
+    value: object,
+) -> tuple[dict[str, dict[str, list[str]]], list[str]]:
     """Normalize the executable subset of scoped-seed phase transitions."""
 
     if not isinstance(value, Mapping):
-        return {}
+        return {}, []
     transitions: dict[str, dict[str, list[str]]] = {}
+    truncated_fields: list[str] = []
     for raw_phase, raw_transition in value.items():
-        phase = str(raw_phase).strip().lower()
+        phase, phase_truncated = _bounded_text(raw_phase, MAX_SCOPED_SEED_VALUE_CHARS)
+        phase = phase.lower()
+        if phase_truncated:
+            truncated_fields.append("phase_transitions")
         if not phase or not isinstance(raw_transition, Mapping):
             continue
-        next_phases = _ordered_strings(raw_transition.get("next_phases"))
+        if len(transitions) >= MAX_SCOPED_SEED_PHASES:
+            truncated_fields.append("phase_transitions")
+            continue
+        next_phases = _normalized_strings(
+            raw_transition.get("next_phases"),
+            "phase_transitions.next_phases",
+            truncated_fields,
+            maximum_items=MAX_SCOPED_SEED_PHASE_ITEMS,
+        )
         if not next_phases:
-            next_phases = _ordered_strings(raw_transition.get("next"))
+            next_phases = _normalized_strings(
+                raw_transition.get("next"),
+                "phase_transitions.next",
+                truncated_fields,
+                maximum_items=MAX_SCOPED_SEED_PHASE_ITEMS,
+            )
         transitions[phase] = {
             "next_phases": next_phases,
-            "activate_skills": _ordered_strings(raw_transition.get("activate_skills")),
-            "verification_gates": _ordered_strings(
-                raw_transition.get("verification_gates")
+            "activate_skills": _normalized_strings(
+                raw_transition.get("activate_skills"),
+                "phase_transitions.activate_skills",
+                truncated_fields,
+                maximum_items=MAX_SCOPED_SEED_PHASE_ITEMS,
+            ),
+            "verification_gates": _normalized_strings(
+                raw_transition.get("verification_gates"),
+                "phase_transitions.verification_gates",
+                truncated_fields,
+                maximum_items=MAX_SCOPED_SEED_PHASE_ITEMS,
             ),
         }
+    return transitions, sorted(set(truncated_fields))
+
+
+def normalize_phase_transitions(value: object) -> dict[str, dict[str, list[str]]]:
+    """Normalize bounded executable scoped-seed phase transitions."""
+
+    transitions, _truncated_fields = _normalize_phase_transitions(value)
     return transitions
 
 
 def normalize_scoped_seed(seed: Mapping[str, Any]) -> dict[str, Any]:
     """Whitelist one scoped seed without discarding routing or lifecycle semantics."""
 
-    seed_id = str(seed.get("id") or seed.get("seed_id") or "").strip()
-    if not seed_id:
+    seed_id, id_truncated = _bounded_text(
+        seed.get("id") or seed.get("seed_id"),
+        MAX_SCOPED_SEED_ID_CHARS,
+    )
+    if not seed_id or id_truncated:
         return {}
-    source_role = str(seed.get("source_role") or "active_skill").strip()
+    source_role, source_role_truncated = _bounded_text(
+        seed.get("source_role") or "active_skill",
+        MAX_SCOPED_SEED_VALUE_CHARS,
+    )
     explicit_activation = seed.get("activation_eligible")
     role_eligible = source_role in {"active_skill", "governing_instruction"}
     activation_eligible = role_eligible and explicit_activation is not False
+    inherited_truncations, inherited_truncations_truncated = _ordered_strings(
+        seed.get("metadata_truncated_fields"),
+        maximum_chars=MAX_SCOPED_SEED_TRUNCATION_LABEL_CHARS,
+    )
+    truncated_fields: list[str] = list(inherited_truncations)
+    if inherited_truncations_truncated:
+        truncated_fields.append("metadata_truncated_fields")
+    if source_role_truncated:
+        truncated_fields.append("source_role")
+    name, name_truncated = _bounded_text(
+        seed.get("name") or seed.get("title") or seed_id,
+        MAX_SCOPED_SEED_NAME_CHARS,
+    )
+    if name_truncated:
+        truncated_fields.append("name")
+    transitions, transition_truncations = _normalize_phase_transitions(
+        seed.get("phase_transitions")
+    )
+    truncated_fields.extend(transition_truncations)
+    promotion_status, promotion_status_truncated = _bounded_text(
+        seed.get("promotion_status") or "proposal_not_promoted",
+        MAX_SCOPED_SEED_STATUS_CHARS,
+    )
+    relative_path, relative_path_truncated = _bounded_text(
+        seed.get("relative_path"),
+        MAX_SCOPED_SEED_PATH_CHARS,
+    )
+    canonical_source, canonical_source_truncated = _bounded_text(
+        seed.get("canonical_source"),
+        MAX_SCOPED_SEED_PATH_CHARS,
+    )
+    routing_trigger, routing_trigger_truncated = _bounded_text(
+        seed.get("routing_trigger"),
+        MAX_SCOPED_SEED_VALUE_CHARS,
+    )
+    if promotion_status_truncated:
+        truncated_fields.append("promotion_status")
+    if relative_path_truncated:
+        truncated_fields.append("relative_path")
+    if canonical_source_truncated:
+        truncated_fields.append("canonical_source")
+    if routing_trigger_truncated:
+        truncated_fields.append("routing_trigger")
     return {
         "id": seed_id,
-        "name": str(seed.get("name") or seed.get("title") or seed_id),
+        "name": name,
         "kind": "scoped_packet_seed",
-        "promotion_status": str(
-            seed.get("promotion_status") or "proposal_not_promoted"
-        ),
+        "promotion_status": promotion_status,
         "promote_as_single_global_graph": bool(
             seed.get("promote_as_single_global_graph", False)
         ),
-        "relative_path": seed.get("relative_path"),
-        "canonical_source": seed.get("canonical_source"),
+        "relative_path": relative_path,
+        "canonical_source": canonical_source,
         "source_role": source_role,
         "activation_eligible": activation_eligible,
-        "source_references": _ordered_strings(seed.get("source_references")),
-        "loads": _ordered_strings(seed.get("loads")),
-        "route_affinity": _ordered_strings(seed.get("route_affinity")),
-        "objective_patterns": _ordered_strings(seed.get("objective_patterns")),
-        "phase_transitions": normalize_phase_transitions(seed.get("phase_transitions")),
-        "chains_before": _ordered_strings(seed.get("chains_before")),
-        "chains_after": _ordered_strings(seed.get("chains_after")),
-        "do_not_activate_with": _ordered_strings(seed.get("do_not_activate_with")),
-        "use_when": _ordered_strings(seed.get("use_when")),
-        "modes": _ordered_strings(seed.get("modes")),
-        "minimum_spec_fields": _ordered_strings(seed.get("minimum_spec_fields")),
-        "ticket_types": _ordered_strings(seed.get("ticket_types")),
-        "behavior_atoms": _ordered_strings(seed.get("behavior_atoms")),
-        "verification_expectations": _ordered_strings(
-            seed.get("verification_expectations")
+        "source_references": _normalized_strings(
+            seed.get("source_references"), "source_references", truncated_fields
         ),
-        "required_receipts": _ordered_strings(seed.get("required_receipts")),
-        "constraints": _ordered_strings(seed.get("constraints")),
-        "routing_trigger": seed.get("routing_trigger"),
+        "loads": _normalized_strings(seed.get("loads"), "loads", truncated_fields),
+        "route_affinity": _normalized_strings(
+            seed.get("route_affinity"), "route_affinity", truncated_fields
+        ),
+        "objective_patterns": _normalized_strings(
+            seed.get("objective_patterns"), "objective_patterns", truncated_fields
+        ),
+        "phase_transitions": transitions,
+        "chains_before": _normalized_strings(
+            seed.get("chains_before"), "chains_before", truncated_fields
+        ),
+        "chains_after": _normalized_strings(
+            seed.get("chains_after"), "chains_after", truncated_fields
+        ),
+        "do_not_activate_with": _normalized_strings(
+            seed.get("do_not_activate_with"),
+            "do_not_activate_with",
+            truncated_fields,
+        ),
+        "use_when": _normalized_strings(
+            seed.get("use_when"), "use_when", truncated_fields
+        ),
+        "modes": _normalized_strings(seed.get("modes"), "modes", truncated_fields),
+        "minimum_spec_fields": _normalized_strings(
+            seed.get("minimum_spec_fields"),
+            "minimum_spec_fields",
+            truncated_fields,
+        ),
+        "ticket_types": _normalized_strings(
+            seed.get("ticket_types"), "ticket_types", truncated_fields
+        ),
+        "behavior_atoms": _normalized_strings(
+            seed.get("behavior_atoms"), "behavior_atoms", truncated_fields
+        ),
+        "verification_expectations": _normalized_strings(
+            seed.get("verification_expectations"),
+            "verification_expectations",
+            truncated_fields,
+        ),
+        "required_receipts": _normalized_strings(
+            seed.get("required_receipts"), "required_receipts", truncated_fields
+        ),
+        "constraints": _normalized_strings(
+            seed.get("constraints"), "constraints", truncated_fields
+        ),
+        "routing_trigger": routing_trigger,
+        "metadata_truncated_fields": sorted(set(truncated_fields)),
         "trust": "advisory_untrusted",
     }
 

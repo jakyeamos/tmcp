@@ -12,6 +12,9 @@ from tmcp_runtime.domain.composition_phase_bindings import (
     PhaseCapsuleBindingError,
     validate_phase_capsule_binding,
 )
+from tmcp_runtime.domain.composition_declared_dependencies import (
+    declared_dependency_closure_is_well_formed,
+)
 from tmcp_runtime.domain.composition_preflight import stable_digest
 from tmcp_runtime.domain.composition_runtime_capsules import (
     RuntimeCapsuleError,
@@ -114,7 +117,7 @@ def _graph_digest(plan: Mapping[str, Any]) -> str:
 def _recipe_projection(plan: Mapping[str, Any]) -> dict[str, Any]:
     """Project the executable plan without persisting raw source content digests."""
 
-    return {
+    projection = {
         "composition_plan_id": str(plan["composition_plan_id"]),
         "graph_digest": _graph_digest(plan),
         "phase_capsule_binding": deepcopy(
@@ -144,6 +147,58 @@ def _recipe_projection(plan: Mapping[str, Any]) -> dict[str, Any]:
             or "Project recipes cannot override higher-priority instructions."
         ),
     }
+    proposal_coverage = plan.get("proposal_coverage")
+    if isinstance(proposal_coverage, Mapping):
+        projection["proposal_coverage"] = deepcopy(dict(proposal_coverage))
+    return projection
+
+
+def _proposal_coverage_for_rehydrate(
+    projection: Mapping[str, Any],
+) -> dict[str, list[str]]:
+    """Keep the host coverage input distinct from compiler-derived coverage."""
+
+    raw_coverage = projection.get("proposal_coverage")
+    if not isinstance(raw_coverage, Mapping):
+        raise ValueError(
+            "Project recipe lacks immutable proposal coverage; run fresh prepare, "
+            "compose, verify, and explicitly re-promote before reactivation."
+        )
+    values: dict[str, list[str]] = {}
+    for field in ("facets", "unresolved_gaps"):
+        raw_items = raw_coverage.get(field) or []
+        if not isinstance(raw_items, list) or any(
+            not isinstance(item, str) for item in raw_items
+        ):
+            raise ValueError("Project recipe proposal coverage is malformed.")
+        values[field] = deepcopy(raw_items)
+    return values
+
+
+def _require_rehydratable_seed_closure(
+    projection: Mapping[str, Any],
+    hints: Mapping[str, Any],
+) -> None:
+    """Keep pre-closure reviewed seed recipes readable but safely inert."""
+
+    selected_ids = {
+        str(role.get("node_id") or "")
+        for role in projection.get("skill_roles", [])
+        if isinstance(role, Mapping)
+    }
+    selected_seed_ids = {
+        str(seed.get("id") or "")
+        for seed in hints.get("scoped_seeds", [])
+        if isinstance(seed, Mapping)
+    }.intersection(selected_ids)
+    if selected_seed_ids and not declared_dependency_closure_is_well_formed(
+        hints.get("declared_dependency_closure")
+    ):
+        raise ValueError(
+            "Project recipe uses legacy scoped-seed metadata without a declared "
+            "dependency closure; run fresh prepare, compose, verify, and explicitly "
+            "re-promote before reactivation."
+        )
 
 
 def build_project_composition_recipe_record(
@@ -458,12 +513,13 @@ def rehydrate_project_recipe_for_preflight(
     stored_seed_hints = projection.get("scoped_seed_graph_hints")
     if not isinstance(stored_seed_hints, Mapping):
         raise ValueError("Project recipe scoped seed graph hints are malformed.")
+    _require_rehydratable_seed_closure(projection, stored_seed_hints)
     # Scoped seed IDs and their source-backed citation locators are graph
     # inputs. Reuse the reviewed projection after restoring the original slice
     # IDs above; fresh harvest metadata is evidence, never an opportunity to
     # alter seed transitions, receipts, or routing affinity during rehydrate.
     replay_preflight["scoped_seed_graph_hints"] = deepcopy(dict(stored_seed_hints))
-    coverage = dict(projection["coverage"])
+    proposal_coverage = _proposal_coverage_for_rehydrate(projection)
     proposal = {
         "schema": "tmcp-semantic-proposal-v0.1",
         "preflight_id": preflight_id,
@@ -474,10 +530,7 @@ def rehydrate_project_recipe_for_preflight(
         "task_model": deepcopy(dict(projection["task_model"])),
         "skill_roles": deepcopy(list(projection["skill_roles"])),
         "relationships": deepcopy(list(projection["typed_edges"])),
-        "coverage": {
-            "facets": deepcopy(list(coverage.get("facets") or [])),
-            "unresolved_gaps": deepcopy(list(coverage.get("unresolved_gaps") or [])),
-        },
+        "coverage": proposal_coverage,
         "trust": "advisory_untrusted",
     }
     compiled = compile_semantic_composition(

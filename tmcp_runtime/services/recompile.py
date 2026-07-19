@@ -326,8 +326,16 @@ def _runtime_replay_proposal(
         for edge in json_list(plan.get("typed_edges"))
         if isinstance(edge, Mapping)
     ]
-    coverage = plan.get("coverage")
-    coverage_map = dict(coverage) if isinstance(coverage, Mapping) else {}
+    coverage = plan.get("proposal_coverage")
+    if not isinstance(coverage, Mapping):
+        raise ValueError("runtime capsule lacks immutable proposal coverage.")
+    coverage_map = dict(coverage)
+    if any(
+        not isinstance(coverage_map.get(field), list)
+        or any(not isinstance(item, str) for item in coverage_map[field])
+        for field in ("facets", "unresolved_gaps")
+    ):
+        raise ValueError("runtime capsule proposal coverage is malformed.")
     task_model = plan.get("task_model")
     return {
         "schema": "tmcp-semantic-proposal-v0.1",

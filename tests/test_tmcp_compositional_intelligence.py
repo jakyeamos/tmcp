@@ -920,7 +920,7 @@ class CompositionPlanTests(unittest.TestCase):
         self.assertEqual(plan["trust"], "advisory_untrusted")
         self.assertEqual(
             plan["provenance"]["identity_policy"],
-            "normalized_source_content_and_typed_relationships",
+            "normalized_source_content_typed_relationships_and_declared_dependencies",
         )
 
     def test_same_phase_successor_stays_deferred_until_its_handoff_gate(self) -> None:

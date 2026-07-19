@@ -82,6 +82,15 @@
         "$ref": "#/$defs/stage"
       }
     },
+    "proposal_coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["facets", "unresolved_gaps"],
+      "properties": {
+        "facets": { "type": "array", "items": { "type": "string" } },
+        "unresolved_gaps": { "type": "array", "items": { "type": "string" } }
+      }
+    },
     "coverage": {
       "type": "object",
       "additionalProperties": true,
@@ -128,8 +137,15 @@
           "type": "integer",
           "minimum": 0
         },
+        "normalized_declared_dependency_count": {
+          "type": "integer",
+          "minimum": 0
+        },
         "identity_policy": {
-          "const": "normalized_source_content_and_typed_relationships"
+          "enum": [
+            "normalized_source_content_and_typed_relationships",
+            "normalized_source_content_typed_relationships_and_declared_dependencies"
+          ]
         }
       }
     },

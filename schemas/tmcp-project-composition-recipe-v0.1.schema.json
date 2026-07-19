@@ -102,6 +102,16 @@
           "additionalProperties": true
         },
         "ordered_stages": { "type": "array", "items": { "type": "object" } },
+        "proposal_coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["facets", "unresolved_gaps"],
+          "description": "Additive immutable semantic input. Records without it remain readable but require fresh explicit re-promotion before reactivation.",
+          "properties": {
+            "facets": { "type": "array", "items": { "type": "string" } },
+            "unresolved_gaps": { "type": "array", "items": { "type": "string" } }
+          }
+        },
         "coverage": { "type": "object" },
         "trust": { "const": "advisory_untrusted" },
         "instruction_override_policy": { "type": "string", "minLength": 1 }

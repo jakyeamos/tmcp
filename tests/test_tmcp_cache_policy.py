@@ -314,6 +314,56 @@ class TmcpCachePolicyTests(unittest.TestCase):
             }.issubset(relations)
         )
 
+    def test_cache_seed_projection_reuses_bounded_canonical_metadata(self) -> None:
+        oversized = "x" * 10_000
+        normalized = normalize_promoted_graph(
+            {
+                "promotion_name": "bounded-seed",
+                "promotion_graph": {
+                    "created_at": "2026-07-17T00:00:00Z",
+                    "source_nodes": [],
+                    "behavior_atoms": [],
+                    "workflow_nodes": [],
+                    "edges": [],
+                    "cross_source_behavior_atoms": [],
+                    "scoped_packet_seed_nodes": [
+                        {
+                            "id": "bounded-seed",
+                            "promotion_status": oversized,
+                            "routing_trigger": oversized,
+                            "relative_path": oversized,
+                            "canonical_source": oversized,
+                            "metadata_truncated_fields": [{"bad": oversized}],
+                        }
+                    ],
+                },
+            },
+            graph_schema=GRAPH_SCHEMA,
+            created_at="2026-07-17T00:00:00Z",
+        )
+        projected, warning = project_cached_promotion_graph(
+            normalized,
+            "promotion-graph.json",
+            graph_schema=GRAPH_SCHEMA,
+            known_workflow_ids=set(),
+            redact_value=_redact,
+        )
+
+        self.assertIsNone(warning)
+        assert projected is not None
+        for seed in (
+            normalized["scoped_packet_seed_nodes"][0],
+            projected["scoped_packet_seed_nodes"][0],
+        ):
+            self.assertLessEqual(len(seed["promotion_status"]), 80)
+            self.assertLessEqual(len(seed["routing_trigger"]), 240)
+            self.assertLessEqual(len(seed["relative_path"]), 512)
+            self.assertLessEqual(len(seed["canonical_source"]), 512)
+            self.assertIn("promotion_status", seed["metadata_truncated_fields"])
+            self.assertIn("routing_trigger", seed["metadata_truncated_fields"])
+            self.assertIn("relative_path", seed["metadata_truncated_fields"])
+            self.assertIn("canonical_source", seed["metadata_truncated_fields"])
+
     def test_cache_bounds_and_warning_cap_are_enforced(self) -> None:
         warnings: list[str] = []
         for value in ("first", "second", "third"):
@@ -353,8 +403,9 @@ class TmcpCachePolicyTests(unittest.TestCase):
             {"collections", "datetime", "typing"}.issubset(imported_modules)
         )
         self.assertTrue(
-            {"os", "pathlib", "scripts", "tmcp_runtime"}.isdisjoint(imported_modules)
+            {"os", "pathlib", "scripts"}.isdisjoint(imported_modules)
         )
+        self.assertIn("tmcp_runtime", imported_modules)
 
 
 if __name__ == "__main__":

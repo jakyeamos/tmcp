@@ -14,7 +14,20 @@ from .behavior_manifests import (
     markdown_behavior_chunks,
     select_hydrated_behavior_blocks,
 )
+from .composition_active_confidence import (
+    declared_skill_phrase_source_ids,
+    negative_constraint_source_ids,
+    shared_only_active_deferment,
+)
 from .composition import composition_evidence_terms
+from .composition_declared_dependencies import (
+    node_is_explicitly_scoped,
+    required_dependency_source_ids,
+)
+from .composition_seed_roots import (
+    seed_root_terms,
+    select_scoped_seed_closure,
+)
 from .harvest_nodes import content_digest_for, node_source_role
 from .source_activation_projection import project_source_node_for_composition
 
@@ -49,45 +62,11 @@ def stable_digest(value: object, length: int = 64) -> str:
 
 
 def _tokens(value: object) -> set[str]:
-    """Return terms that can justify bounded host-visible source evidence."""
-
     return composition_evidence_terms(str(value))
 
 
 def _source_content(node: dict[str, Any]) -> str:
     return normalized_text(node.get("excerpt") or node.get("signal_excerpt") or "")
-
-
-def _shared_only_active_deferment(
-    active_objective_terms: dict[str, set[str]],
-    prunable_active_source_ids: set[str],
-    *,
-    include_all_active_source_slices: bool,
-) -> tuple[list[str], set[str]]:
-    """Defer shared-only active skills when objective evidence is discriminative."""
-
-    source_ids_by_term: dict[str, set[str]] = {}
-    for source_node_id, terms in active_objective_terms.items():
-        for term in terms:
-            source_ids_by_term.setdefault(term, set()).add(source_node_id)
-    discriminative_terms = sorted(
-        term
-        for term, source_ids in source_ids_by_term.items()
-        if len(source_ids) == 1
-    )
-    if include_all_active_source_slices or not discriminative_terms:
-        return discriminative_terms, set()
-    discriminative_term_set = set(discriminative_terms)
-    return (
-        discriminative_terms,
-        {
-            source_node_id
-            for source_node_id, terms in active_objective_terms.items()
-            if source_node_id in prunable_active_source_ids
-            and terms
-            and terms.isdisjoint(discriminative_term_set)
-        },
-    )
 
 
 def _frontmatter_only_chunk(value: str) -> bool:
@@ -173,6 +152,7 @@ def build_source_slices(
     max_total_chars: int = 12000,
     max_total_tokens: int = 3000,
     include_all_active_source_slices: bool = False,
+    reserved_metadata_tokens: int = 0,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Rank and bound immutable content slices for host semantic reasoning."""
 
@@ -183,19 +163,19 @@ def build_source_slices(
         or max_total_tokens < 16
     ):
         raise ValueError("Composition slice limits must be positive and bounded.")
+    if not isinstance(reserved_metadata_tokens, int) or isinstance(reserved_metadata_tokens, bool) or reserved_metadata_tokens < 0:
+        raise ValueError("Composition reserved metadata tokens must be a nonnegative integer.")
     if not isinstance(include_all_active_source_slices, bool):
         raise ValueError("include_all_active_source_slices must be a boolean.")
     source_nodes = [project_source_node_for_composition(node) for node in source_nodes]
     identity_source_nodes = _identity_source_nodes(source_nodes)
-    explicit = set(explicitly_scoped_paths or [])
+    explicit_paths = tuple(explicitly_scoped_paths or [])
     objective_tokens = _tokens(objective)
+    seed_root_objective_terms = seed_root_terms(objective)
     governing_source_count = sum(
         source_role_for(
             node,
-            explicitly_scoped=(
-                str(node.get("relative_path") or node.get("path") or "") in explicit
-                or node.get("explicitly_scoped") is True
-            ),
+            explicitly_scoped=node_is_explicitly_scoped(node, explicit_paths),
         )
         == "governing_instruction"
         for node in identity_source_nodes
@@ -224,9 +204,11 @@ def build_source_slices(
     bootstrap_index_tokens = int(
         bootstrap_manifest_index["cost_telemetry"]["always_on_index_tokens"]
     )
-    if bootstrap_index_tokens > max_total_tokens:
+    if bootstrap_index_tokens + reserved_metadata_tokens > max_total_tokens:
         raise ValueError("Composition token limit cannot accommodate the behavior manifest index.")
-    available_hydration_tokens = max_total_tokens - bootstrap_index_tokens
+    available_hydration_tokens = (
+        max_total_tokens - bootstrap_index_tokens - reserved_metadata_tokens
+    )
     if governing_source_count and available_hydration_tokens < governing_source_count * 16:
         raise ValueError(
             "Composition token limit cannot include every governing source with the behavior manifest index."
@@ -235,6 +217,7 @@ def build_source_slices(
     source_token_baselines: dict[str, int] = {}
     source_node_ids: set[str] = set()
     active_source_ids: set[str] = set()
+    explicitly_scoped_source_ids: set[str] = set()
     source_block_truncations: list[dict[str, Any]] = []
     source_token_estimates_complete = True
     role_rank = {
@@ -260,12 +243,12 @@ def build_source_slices(
         visible_content_digest = content_digest_for(content)
         source_node_id = str(node.get("id") or f"source-{source_digest[:16]}")
         source_node_ids.add(source_node_id)
-        effective_explicit_scope = (
-            relative_path in explicit or node.get("explicitly_scoped") is True
-        )
+        effective_explicit_scope = node_is_explicitly_scoped(node, explicit_paths)
         role = source_role_for(node, explicitly_scoped=effective_explicit_scope)
         if role == "active_skill":
             active_source_ids.add(source_node_id)
+        if effective_explicit_scope:
+            explicitly_scoped_source_ids.add(source_node_id)
         mandatory = role == "governing_instruction"
         node_candidates: list[dict[str, Any]] = []
         for start, end, chunk in markdown_behavior_chunks(content, chunk_limit):
@@ -366,6 +349,8 @@ def build_source_slices(
     }
     candidates: list[tuple[tuple[int, int, int, int, str, int], dict[str, Any]]] = []
     objective_relevant_source_ids: set[str] = set()
+    content_objective_relevant_source_ids: set[str] = set()
+    seed_root_objective_terms_by_source: dict[str, set[str]] = {}
     active_objective_terms: dict[str, set[str]] = {}
     prunable_active_source_ids: set[str] = set()
     for candidate in raw_candidates:
@@ -398,6 +383,15 @@ def build_source_slices(
         )
         matched_terms = objective_tokens.intersection(_tokens(content_signal))
         relevance = len(objective_tokens.intersection(_tokens(signal)))
+        if matched_terms:
+            content_objective_relevant_source_ids.add(source_node_id)
+        if candidate["source_type"] == "scoped_packet_seed":
+            seed_root_objective_terms_by_source.setdefault(
+                source_node_id,
+                set(),
+            ).update(
+                seed_root_objective_terms.intersection(seed_root_terms(content_signal))
+            )
         if relevance:
             objective_relevant_source_ids.add(source_node_id)
         if candidate["source_role"] == "active_skill":
@@ -429,13 +423,52 @@ def build_source_slices(
             int(candidate["char_start"]),
         )
         candidates.append((key, enriched))
+    seed_selection = select_scoped_seed_closure(
+        identity_source_nodes,
+        citable_source_ids=citable_source_ids,
+        explicitly_scoped_source_ids=explicitly_scoped_source_ids,
+        seed_objective_terms_by_source=seed_root_objective_terms_by_source,
+        objective=objective,
+        explicitly_scoped_paths=explicit_paths,
+        include_all_active_source_slices=include_all_active_source_slices,
+    )
+    dependency_closure = seed_selection["dependency_closure"]
+    required_closure_ids = seed_selection["required_closure_source_ids"]
+    deferred_nonroot_scoped_seed_ids = seed_selection[
+        "deferred_nonroot_scoped_seed_ids"
+    ]
+    discriminative_seed_root_terms = seed_selection[
+        "discriminative_seed_root_terms"
+    ]
+    declared_phrase_root_seed_ids = seed_selection["declared_phrase_root_seed_ids"]
+    declared_skill_phrase_active_source_ids = (
+        declared_skill_phrase_source_ids(identity_source_nodes, objective)
+        .intersection(active_source_ids)
+    )
+    negative_constraint_active_source_ids = (
+        negative_constraint_source_ids(identity_source_nodes, objective)
+        .intersection(prunable_active_source_ids)
+        .difference(declared_skill_phrase_active_source_ids)
+    )
     (
         discriminative_active_objective_terms,
         deferred_shared_only_active_source_ids,
-    ) = _shared_only_active_deferment(
+        no_high_confidence_active_skill,
+        low_cardinality_active_fallback,
+    ) = shared_only_active_deferment(
         active_objective_terms,
         prunable_active_source_ids,
         include_all_active_source_slices=include_all_active_source_slices,
+        high_confidence_active_source_ids=declared_skill_phrase_active_source_ids,
+    )
+    deferred_shared_only_active_source_ids.difference_update(required_closure_ids)
+    deferred_active_source_ids = deferred_shared_only_active_source_ids.union(
+        deferred_nonroot_scoped_seed_ids
+    ).union(negative_constraint_active_source_ids)
+    no_high_confidence_active_skill = no_high_confidence_active_skill or (
+        not include_all_active_source_slices
+        and bool(prunable_active_source_ids)
+        and prunable_active_source_ids.issubset(deferred_active_source_ids)
     )
     candidates.sort(key=lambda item: item[0])
     manifest_index = compact_behavior_manifest_index(full_manifest_index)
@@ -445,14 +478,16 @@ def build_source_slices(
     manifest_index_tokens = int(manifest_cost["always_on_index_tokens"])
     if manifest_index_tokens > max_total_tokens:
         raise ValueError("Composition token limit cannot accommodate the behavior manifest index.")
-    max_hydration_tokens = max_total_tokens - manifest_index_tokens
+    max_hydration_tokens = (
+        max_total_tokens - manifest_index_tokens - reserved_metadata_tokens
+    )
     target_context_tokens = (
         min(max_total_tokens, int(naive_candidate_tokens * 0.75))
         if source_token_estimates_complete
         else max_total_tokens
     )
     target_hydration_tokens = (
-        max(0, target_context_tokens - manifest_index_tokens)
+        max(0, target_context_tokens - manifest_index_tokens - reserved_metadata_tokens)
         if source_token_estimates_complete
         else max_hydration_tokens
     )
@@ -465,7 +500,8 @@ def build_source_slices(
         governing_source_count=governing_source_count,
         include_all_active_source_slices=include_all_active_source_slices,
         objective_relevant_source_ids=objective_relevant_source_ids,
-        deferred_active_source_ids=deferred_shared_only_active_source_ids,
+        deferred_active_source_ids=deferred_active_source_ids,
+        required_source_ids=required_closure_ids,
     )
     selected = selection["selected"]
     total_chars = int(selection["total_chars"])
@@ -500,27 +536,39 @@ def build_source_slices(
             "target_context_tokens": target_context_tokens,
             "target_hydration_tokens": target_hydration_tokens,
             "max_hydration_tokens": max_hydration_tokens,
-            "preflight_total_tokens": int(manifest_index_tokens) + total_tokens,
+            "reserved_metadata_tokens": reserved_metadata_tokens,
+            "preflight_total_tokens": (
+                int(manifest_index_tokens) + total_tokens + reserved_metadata_tokens
+            ),
             "deferred_behavior_block_count": int(full_manifest_cost["behavior_block_count"])
             - len(selected_block_ids),
             "selected_behavior_block_count": len(selected_block_ids),
             "context_target_computable": source_token_estimates_complete,
             "context_target_achievable": source_token_estimates_complete
-            and manifest_index_tokens <= target_context_tokens,
+            and manifest_index_tokens + reserved_metadata_tokens
+            <= target_context_tokens,
             "context_target_met": source_token_estimates_complete
-            and manifest_index_tokens + total_tokens <= target_context_tokens,
+            and manifest_index_tokens + total_tokens + reserved_metadata_tokens
+            <= target_context_tokens,
             "mandatory_context_overrides": selection["mandatory_context_overrides"],
             "minimum_active_context_override": selection["minimum_active_context_override"],
             "required_active_context_overrides": selection[
                 "required_active_context_overrides"
             ],
+            "required_dependency_context_overrides": selection[
+                "required_dependency_context_overrides"
+            ],
             "hydration_ratio": round(total_tokens / max(1, naive_candidate_tokens), 4),
             "preflight_context_ratio": round(
-                (int(manifest_cost["always_on_index_tokens"]) + total_tokens)
+                (
+                    int(manifest_cost["always_on_index_tokens"])
+                    + total_tokens
+                    + reserved_metadata_tokens
+                )
                 / max(1, naive_candidate_tokens),
                 4,
             ),
-            "cost_policy": "candidate_slices_and_manifest_index_only",
+            "cost_policy": "candidate_slices_manifest_index_and_reserved_metadata",
         },
         "semantic_evidence": {
             "selection_policy": (
@@ -540,9 +588,33 @@ def build_source_slices(
             "discriminative_active_objective_terms": (
                 discriminative_active_objective_terms
             ),
+            "discriminative_scoped_seed_objective_terms": sorted(
+                discriminative_seed_root_terms
+            ),
+            "declared_skill_phrase_active_source_ids": sorted(
+                declared_skill_phrase_active_source_ids
+            ),
+            "negative_constraint_active_source_ids": sorted(
+                negative_constraint_active_source_ids
+            ),
+            "declared_phrase_scoped_seed_root_ids": sorted(
+                declared_phrase_root_seed_ids
+            ),
             "deferred_shared_only_active_source_ids": sorted(
                 deferred_shared_only_active_source_ids
             ),
+            "no_high_confidence_active_skill": no_high_confidence_active_skill,
+            "low_cardinality_active_fallback": low_cardinality_active_fallback,
+            "deferred_nonroot_scoped_seed_ids": sorted(
+                deferred_nonroot_scoped_seed_ids
+            ),
+            "declared_dependency_root_seed_ids": sorted(
+                dependency_closure["root_seed_ids"]
+            ),
+            "required_declared_dependency_source_ids": sorted(
+                required_dependency_source_ids(dependency_closure)
+            ),
+            "declared_dependency_closure": dependency_closure,
             "deferred_irrelevant_source_count": len(
                 {
                     str(candidate["source_node_id"])

@@ -30,6 +30,27 @@ def _node(
 
 
 class CompositionSelectionGuardTests(unittest.TestCase):
+    def test_process_verb_add_cannot_autoactivate_a_skill(self) -> None:
+        broad_inventory = _node(
+            "skills/behavior-inventory/SKILL.md",
+            "Add a complete repository behavior inventory.",
+        )
+
+        selected, diagnostics = composition.select_composition_nodes_with_diagnostics(
+            [broad_inventory],
+            "Add a narrow cache rehydration fix.",
+            "implementation",
+            {},
+            node_signal_text=_signal,
+        )
+
+        self.assertNotIn("add", composition.composition_terms("Add a cache fix."))
+        self.assertEqual(selected, [])
+        self.assertEqual(
+            diagnostics["rejected_sources"][0]["reason"],
+            "no_non_process_objective_route_or_explicit_scope_match",
+        )
+
     def test_process_overlap_and_phase_hints_cannot_activate_unrelated_skill(
         self,
     ) -> None:

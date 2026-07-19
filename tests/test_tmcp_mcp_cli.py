@@ -114,6 +114,82 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(payload["adapter"], "standalone")
         self.assertEqual(payload["packet"]["task_id"], "audit")
 
+    def test_launcher_prepare_composition_reserves_rich_seed_metadata(self) -> None:
+        with TestWorkspace() as workspace:
+            assert workspace.project is not None
+            (workspace.project / "AGENTS.md").write_text(
+                "# Rules\n\nKeep migration evidence traceable.\n",
+                encoding="utf-8",
+            )
+            (workspace.project / "scoped-packet-seeds.json").write_text(
+                json.dumps(
+                    {
+                        "schema": "tmcp-scoped-packet-seeds-v0.1",
+                        "seeds": [
+                            {
+                                "id": "migration-seed",
+                                "use_when": [
+                                    "Migrate a database schema with rollback evidence."
+                                ],
+                                "chains_after": ["checksum-verifier"],
+                                "phase_transitions": {
+                                    "implementation": {
+                                        "next_phases": ["verification"],
+                                        "activate_skills": ["checksum-verifier"],
+                                        "verification_gates": [
+                                            "Migration artifact is ready for checksum verification."
+                                        ],
+                                    }
+                                },
+                                "verification_expectations": [
+                                    "Checksum verification passes."
+                                ],
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            verifier = workspace.project / "skills" / "checksum-verifier" / "SKILL.md"
+            verifier.parent.mkdir(parents=True)
+            verifier.write_text(
+                "# Checksum verifier\n\nConsume the checksum handoff and verify it.\n",
+                encoding="utf-8",
+            )
+            completed = workspace.run_cli(
+                [
+                    "prepare-composition",
+                    "Migrate a database schema with rollback evidence and checksum verification.",
+                    "--project-path",
+                    str(workspace.project),
+                    "--source-path",
+                    str(workspace.project),
+                    "--candidate-limit",
+                    "4",
+                    "--max-total-chars",
+                    "6000",
+                    "--max-total-tokens",
+                    "1600",
+                    "--compact",
+                ]
+            )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = completed.json()
+        costs = payload["diagnostics"]["context_cost"]
+        self.assertGreater(costs["scoped_seed_hint_tokens"], 0)
+        self.assertEqual(
+            costs["reserved_metadata_tokens"], costs["scoped_seed_hint_tokens"]
+        )
+        self.assertLessEqual(costs["preflight_total_tokens"], 1600)
+        self.assertEqual(
+            costs["cost_policy"],
+            "candidate_slices_manifest_index_and_scoped_seed_lifecycle_hints",
+        )
+        hints = payload["scoped_seed_graph_hints"]
+        self.assertEqual(hints["typed_edges"], [])
+        self.assertNotIn("phase_transition_nodes", hints)
+
     def test_runtime_cli_parser_preserves_session_ids_and_rejects_invalid_json(
         self,
     ) -> None:

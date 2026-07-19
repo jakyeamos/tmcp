@@ -15,6 +15,7 @@ from tmcp_runtime.storage import (
     PacketSessionStore,
     artifact_persistence_available,
 )
+from tests.test_tmcp_composition_integration import CompositionIntegrationTests
 from tests.tmcp_runtime_provenance_test_support import RuntimeProvenanceTestSupport
 
 
@@ -187,6 +188,39 @@ class RuntimeProvenanceGuardTests(RuntimeProvenanceTestSupport, unittest.TestCas
                 "to_node_id": "implement",
             },
             validation["aliases"],
+        )
+
+    def test_runtime_replay_preserves_immutable_proposal_coverage(self) -> None:
+        harness = CompositionIntegrationTests()
+        harness.setUp()
+        preflight = prepare_composition_from_source_nodes(
+            harness.arguments,
+            source_nodes=harness.nodes,
+        )
+        proposal = harness._proposal(preflight)
+        proposal["coverage"] = {"facets": [], "unresolved_gaps": []}
+        packet = harness._compose(
+            {**harness.arguments, "semantic_proposal": proposal}
+        )
+
+        self.assertTrue(packet["ok"])
+        self.assertEqual(packet["composition_plan"]["proposal_coverage"]["facets"], [])
+        self.assertEqual(
+            packet["composition_plan"]["coverage"]["facets"],
+            ["Focused verification passes"],
+        )
+        service = self._runtime_service(harness.nodes)
+        arguments = self._runtime_arguments(harness, packet)
+        result = service.recompile(arguments, service.build_state(arguments))
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(
+            result["packet"]["composition_plan"]["composition_plan_id"],
+            packet["composition_plan"]["composition_plan_id"],
+        )
+        self.assertTrue(
+            result["packet"]["composition_diagnostics"]["runtime_capsule_validation"]
+            ["compiler_replay"]
         )
 
     def test_invalid_semantic_proposal_never_reactivates_prior_plan(

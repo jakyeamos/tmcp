@@ -27,7 +27,7 @@ from tmcp_runtime.domain.composition import (
 )
 from tmcp_runtime.domain.composition_harvest_selection import (
     composition_candidate_sort_key,
-    composition_result_order,
+    composition_result_order_with_requirements,
 )
 from tmcp_runtime.domain.standalone_packets import compile_standalone_packet
 from tmcp_runtime.safety import (
@@ -219,6 +219,73 @@ def source_path_values(arguments: Mapping[str, Any]) -> list[str]:
     return [str(arguments.get("source_path") or arguments.get("project_path") or ".")]
 
 
+def _scope_path_forms(value: object) -> set[str]:
+    raw = str(value or "").strip()
+    if not raw:
+        return set()
+    normalized = raw.split("#", 1)[0].replace("\\", "/")
+    forms = {normalized, normalized.removeprefix("./")}
+    try:
+        forms.add(str(Path(raw).expanduser().resolve(strict=False)).replace("\\", "/"))
+    except OSError:
+        pass
+    return {item for item in forms if item}
+
+
+def _candidate_is_explicitly_scoped(
+    candidate: Any,
+    explicit_path_forms: set[str],
+) -> bool:
+    if not explicit_path_forms:
+        return False
+    candidate_forms: set[str] = set()
+    for value in (
+        candidate.relative_path,
+        candidate.display_relative_path,
+        candidate.display_path,
+        candidate.logical_path,
+        candidate.resolved_path,
+    ):
+        candidate_forms.update(_scope_path_forms(value))
+    return bool(candidate_forms.intersection(explicit_path_forms))
+
+
+def _candidate_explicit_seed_ids(
+    candidate: Any,
+    explicit_paths: list[str],
+) -> set[str]:
+    candidate_forms: set[str] = set()
+    for value in (
+        candidate.relative_path,
+        candidate.display_relative_path,
+        candidate.display_path,
+        candidate.logical_path,
+        candidate.resolved_path,
+    ):
+        candidate_forms.update(_scope_path_forms(value))
+    seed_ids: set[str] = set()
+    for path in explicit_paths:
+        raw = str(path or "").strip()
+        if "#" not in raw:
+            continue
+        backing_path, seed_id = raw.rsplit("#", 1)
+        if seed_id.strip() and candidate_forms.intersection(
+            _scope_path_forms(backing_path)
+        ):
+            seed_ids.add(seed_id.strip())
+    return seed_ids
+
+
+def _candidate_has_whole_path_scope(candidate: Any, explicit_paths: list[str]) -> bool:
+    whole_path_forms = {
+        form
+        for path in explicit_paths
+        if "#" not in str(path)
+        for form in _scope_path_forms(path)
+    }
+    return _candidate_is_explicitly_scoped(candidate, whole_path_forms)
+
+
 def read_only_harvest_arguments(arguments: Mapping[str, Any]) -> dict[str, Any]:
     """Project shared read-only harvest inputs without enabling artifact writes."""
 
@@ -235,6 +302,9 @@ def read_only_harvest_arguments(arguments: Mapping[str, Any]) -> dict[str, Any]:
         "limit": arguments.get("limit", 40),
         "max_file_bytes": arguments.get("max_file_bytes", 262144),
         "max_excerpt_chars": arguments.get("max_excerpt_chars", 1200),
+        "explicitly_scoped_paths": string_list(
+            arguments.get("explicitly_scoped_paths")
+        ),
         "include_all_active_source_slices": bool(
             arguments.get("include_all_active_source_slices", False)
         ),
@@ -318,6 +388,12 @@ def harvest_skills(
     include_all_active_source_slices = bool(
         arguments.get("include_all_active_source_slices", False)
     )
+    explicit_scope_paths = string_list(arguments.get("explicitly_scoped_paths"))
+    explicit_path_forms = {
+        form
+        for path in explicit_scope_paths
+        for form in _scope_path_forms(path)
+    }
     limit = max(1, int(arguments.get("limit") or 40))
     max_file_bytes = max(1024, int(arguments.get("max_file_bytes") or 262144))
     max_excerpt_chars = max(200, int(arguments.get("max_excerpt_chars") or 1200))
@@ -354,6 +430,10 @@ def harvest_skills(
             key=lambda candidate: composition_candidate_sort_key(
                 candidate,
                 objective_terms,
+                explicitly_scoped=_candidate_is_explicitly_scoped(
+                    candidate,
+                    explicit_path_forms,
+                ),
             )
         )
     nodes: list[dict[str, Any]] = []
@@ -371,8 +451,14 @@ def harvest_skills(
         display_path = Path(candidate.display_path)
         raw_rel_path = candidate.relative_path
         rel_path = candidate.display_relative_path
-        explicitly_scoped = candidate.root.kind == "file" or is_evidence_only_path(
-            str(candidate.root.logical_path)
+        explicit_seed_ids = _candidate_explicit_seed_ids(
+            candidate,
+            explicit_scope_paths,
+        )
+        explicitly_scoped = (
+            candidate.root.kind == "file"
+            or is_evidence_only_path(str(candidate.root.logical_path))
+            or _candidate_has_whole_path_scope(candidate, explicit_scope_paths)
         )
         if (
             path.name == "scoped-packet-seeds.md"
@@ -443,6 +529,7 @@ def harvest_skills(
                     max_excerpt_chars=max_excerpt_chars,
                     redactions=redactions,
                     explicitly_scoped=explicitly_scoped,
+                    explicitly_scoped_seed_ids=explicit_seed_ids,
                 )
             )
             continue
@@ -463,17 +550,31 @@ def harvest_skills(
                 warnings.append(str(advisory["warning"]))
         nodes.append(node)
     if rank_for_composition:
-        ranked_nodes = composition_result_order(
+        ranked_nodes, required_source_ids = composition_result_order_with_requirements(
             nodes,
             objective_terms,
             include_all_active_source_slices=include_all_active_source_slices,
+            seed_root_objective=objective,
         )
     else:
         nodes.sort(key=node_harvest_sort_key)
         ranked_nodes = nodes
+        required_source_ids = set()
     nodes = ranked_nodes
     truncated_nodes: list[dict[str, Any]] = []
     if len(nodes) > limit:
+        selected_source_ids = {
+            str(node.get("id") or "") for node in nodes[:limit]
+        }
+        missing_required_source_ids = sorted(
+            required_source_ids.difference(selected_source_ids)
+        )
+        if missing_required_source_ids:
+            raise ValueError(
+                "Composition harvest limit cannot include declared dependency closure "
+                "and required scoped sources: "
+                + ", ".join(missing_required_source_ids)
+            )
         warnings.append(
             f"Harvest limit reached: kept {limit} of {len(nodes)} matched source files."
         )

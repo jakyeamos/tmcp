@@ -6,6 +6,12 @@ import unittest
 from pathlib import Path
 
 from tests import test_tmcp_mcp_server as helpers
+from tmcp_runtime.domain.scoped_seeds import (
+    MAX_SCOPED_SEED_PATH_CHARS,
+    MAX_SCOPED_SEED_STATUS_CHARS,
+    MAX_SCOPED_SEED_VALUE_CHARS,
+    normalize_scoped_seed,
+)
 
 
 def _scoped_seed_payload() -> dict[str, object]:
@@ -152,6 +158,51 @@ class TmcpScopedPacketSeedTests(unittest.TestCase):
         self.assertIn(
             "writing:explore-fragments",
             {label["id"] for label in writing_node["guidance_labels"]},
+        )
+
+    def test_scoped_seed_normalization_bounds_all_host_visible_metadata(self) -> None:
+        oversized = "x" * 10_000
+        seed = normalize_scoped_seed(
+            {
+                "id": "bounded-seed",
+                "promotion_status": oversized,
+                "routing_trigger": oversized,
+                "relative_path": oversized,
+                "canonical_source": oversized,
+                "metadata_truncated_fields": [
+                    {"unexpected": oversized},
+                    42,
+                    oversized,
+                ],
+                "phase_transitions": {
+                    oversized: {
+                        "verification_gates": [oversized],
+                        "activate_skills": [oversized],
+                    }
+                },
+            }
+        )
+
+        self.assertEqual(seed["id"], "bounded-seed")
+        self.assertLessEqual(
+            len(seed["promotion_status"]), MAX_SCOPED_SEED_STATUS_CHARS
+        )
+        self.assertLessEqual(
+            len(seed["routing_trigger"]), MAX_SCOPED_SEED_VALUE_CHARS
+        )
+        self.assertLessEqual(
+            len(seed["relative_path"]), MAX_SCOPED_SEED_PATH_CHARS
+        )
+        self.assertLessEqual(
+            len(seed["canonical_source"]), MAX_SCOPED_SEED_PATH_CHARS
+        )
+        self.assertIn("promotion_status", seed["metadata_truncated_fields"])
+        self.assertIn("routing_trigger", seed["metadata_truncated_fields"])
+        self.assertIn("relative_path", seed["metadata_truncated_fields"])
+        self.assertIn("canonical_source", seed["metadata_truncated_fields"])
+        self.assertIn(
+            "phase_transitions.verification_gates",
+            seed["metadata_truncated_fields"],
         )
 
     def test_recommend_workflows_returns_scoped_packet_seed_ids(self) -> None:

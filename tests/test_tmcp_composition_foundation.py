@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -240,7 +241,364 @@ class CompositionFoundationTests(unittest.TestCase):
                 45,
             )
 
-    def test_composition_harvest_ignores_low_signal_safety_boilerplate(self) -> None:
+    def test_composition_harvest_prioritizes_seed_dependency_before_result_limit(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text("# Rules\nRead before editing.\n")
+            (root / "scoped-packet-seeds.json").write_text(
+                json.dumps(
+                    {
+                        "schema": "tmcp-scoped-packet-seeds-v0.1",
+                        "seeds": [
+                            {
+                                "id": "migration-seed",
+                                "use_when": ["Migrate a database schema safely."],
+                                "chains_after": ["checksum-verifier"],
+                            }
+                        ],
+                    }
+                )
+            )
+            verifier = root / "skills" / "checksum-verifier" / "SKILL.md"
+            verifier.parent.mkdir(parents=True)
+            verifier.write_text("# Checksum\nCalculate a SHA-256 digest.\n")
+            for index in range(12):
+                generic = root / "skills" / f"generic-{index:02d}" / "SKILL.md"
+                generic.parent.mkdir(parents=True)
+                generic.write_text("# Generic\nApply process guidance.\n")
+
+            result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Migrate a database schema safely.",
+                    "limit": 3,
+                    "rank_for_composition": True,
+                }
+            )
+
+        self.assertEqual(
+            [node["relative_path"] for node in result["source_nodes"]],
+            [
+                "AGENTS.md",
+                "scoped-packet-seeds.json#migration-seed",
+                "skills/checksum-verifier/SKILL.md",
+            ],
+        )
+        self.assertEqual(
+            result["source_role_diagnostics"]["truncated_source_count"],
+            12,
+        )
+
+    def test_composition_harvest_reserves_all_declared_phrase_seed_roots(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text("# Rules\nRead before editing.\n")
+            (root / "scoped-packet-seeds.json").write_text(
+                json.dumps(
+                    {
+                        "schema": "tmcp-scoped-packet-seeds-v0.1",
+                        "seeds": [
+                            {
+                                "id": "alpha-compliance",
+                                "use_when": ["Handle compliance request."],
+                            },
+                            {
+                                "id": "beta-compliance",
+                                "objective_patterns": [
+                                    "Handle compliance request."
+                                ],
+                            },
+                        ],
+                    }
+                )
+            )
+
+            result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Handle compliance request.",
+                    "limit": 3,
+                    "rank_for_composition": True,
+                }
+            )
+
+            with self.assertRaisesRegex(ValueError, "required scoped sources"):
+                harvest_skills(
+                    {
+                        "source_path": str(root),
+                        "objective": "Handle compliance request.",
+                        "limit": 2,
+                        "rank_for_composition": True,
+                    }
+                )
+
+        self.assertEqual(
+            [node["relative_path"] for node in result["source_nodes"]],
+            [
+                "AGENTS.md",
+                "scoped-packet-seeds.json#alpha-compliance",
+                "scoped-packet-seeds.json#beta-compliance",
+            ],
+        )
+
+    def test_composition_harvest_rejects_duplicate_declared_phrase_seed_ids(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text("# Rules\nRead before editing.\n")
+            (root / "scoped-packet-seeds.json").write_text(
+                json.dumps(
+                    {
+                        "schema": "tmcp-scoped-packet-seeds-v0.1",
+                        "seeds": [
+                            {
+                                "id": "duplicate-compliance",
+                                "use_when": ["Handle compliance request."],
+                            },
+                            {
+                                "id": "duplicate-compliance",
+                                "objective_patterns": [
+                                    "Handle compliance request."
+                                ],
+                            },
+                        ],
+                    }
+                )
+            )
+
+            with self.assertRaisesRegex(ValueError, "unique scoped seed ids"):
+                harvest_skills(
+                    {
+                        "source_path": str(root),
+                        "objective": "Handle compliance request.",
+                        "limit": 3,
+                        "rank_for_composition": True,
+                    }
+                )
+
+    def test_composition_harvest_does_not_expand_an_unrelated_seed_bundle(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text("# Rules\nRead before editing.\n")
+            (root / "scoped-packet-seeds.json").write_text(
+                json.dumps(
+                    {
+                        "schema": "tmcp-scoped-packet-seeds-v0.1",
+                        "seeds": [
+                            {
+                                "id": "migration-seed",
+                                "use_when": ["Migrate a database schema safely."],
+                                "chains_after": ["checksum-verifier"],
+                            },
+                            {
+                                "id": "release-seed",
+                                "use_when": ["Prepare a release package safely."],
+                                "chains_after": ["release-verifier"],
+                            },
+                        ],
+                    }
+                )
+            )
+            checksum = root / "skills" / "checksum-verifier" / "SKILL.md"
+            checksum.parent.mkdir(parents=True)
+            checksum.write_text("# Checksum\nCalculate a SHA-256 digest.\n")
+            release = root / "skills" / "release-verifier" / "SKILL.md"
+            release.parent.mkdir(parents=True)
+            release.write_text("# Release\nVerify the release package.\n")
+
+            result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Migrate a database schema safely.",
+                    "limit": 3,
+                    "rank_for_composition": True,
+                }
+            )
+
+        self.assertEqual(
+            [node["relative_path"] for node in result["source_nodes"]],
+            [
+                "AGENTS.md",
+                "scoped-packet-seeds.json#migration-seed",
+                "skills/checksum-verifier/SKILL.md",
+            ],
+        )
+
+    def test_composition_harvest_does_not_promote_an_unmatched_seed_bundle(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text("# Rules\nRead before editing.\n")
+            (root / "scoped-packet-seeds.json").write_text(
+                json.dumps(
+                    {
+                        "schema": "tmcp-scoped-packet-seeds-v0.1",
+                        "seeds": [
+                            {
+                                "id": "release-seed",
+                                "use_when": ["Prepare a release package safely."],
+                                "chains_after": ["release-verifier"],
+                            }
+                        ],
+                    }
+                )
+            )
+            fallback = root / "skills" / "a-fallback" / "SKILL.md"
+            fallback.parent.mkdir(parents=True)
+            fallback.write_text("# Fallback\nUse the review procedure.\n")
+            verifier = root / "skills" / "z-release-verifier" / "SKILL.md"
+            verifier.parent.mkdir(parents=True)
+            verifier.write_text("# Release\nVerify the release package.\n")
+
+            result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Fix a visual layout alignment bug.",
+                    "limit": 3,
+                    "rank_for_composition": True,
+                }
+            )
+
+        self.assertEqual(
+            [node["relative_path"] for node in result["source_nodes"]],
+            [
+                "AGENTS.md",
+                "skills/a-fallback/SKILL.md",
+                "scoped-packet-seeds.json#release-seed",
+            ],
+        )
+
+    def test_composition_harvest_reserves_explicit_fixture_dependencies(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text("# Rules\nRead before editing.\n")
+            (root / "scoped-packet-seeds.json").write_text(
+                json.dumps(
+                    {
+                        "schema": "tmcp-scoped-packet-seeds-v0.1",
+                        "seeds": [
+                            {
+                                "id": "migration-seed",
+                                "use_when": ["Prepare migration evidence."],
+                                "chains_after": ["fixture-checksum"],
+                            }
+                        ],
+                    }
+                )
+            )
+            fixture_path = "tests/fixtures/fixture-checksum/SKILL.md"
+            fixture = root / fixture_path
+            fixture.parent.mkdir(parents=True)
+            fixture.write_text("# Checksum\nVerify migration checksum evidence.\n")
+            fallback = root / "skills" / "generic" / "SKILL.md"
+            fallback.parent.mkdir(parents=True)
+            fallback.write_text("# Generic\nUse a generic procedure.\n")
+
+            result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Prepare migration evidence.",
+                    "limit": 3,
+                    "rank_for_composition": True,
+                    "explicitly_scoped_paths": [fixture_path],
+                }
+            )
+
+        nodes = {str(node["id"]): node for node in result["source_nodes"]}
+        fixture_node = next(
+            node for node in nodes.values() if node["relative_path"] == fixture_path
+        )
+        self.assertTrue(fixture_node["explicitly_scoped"])
+        self.assertEqual(fixture_node["source_role"], "active_skill")
+        self.assertIn("migration-seed", nodes)
+
+    def test_composition_harvest_rejects_limit_that_drops_dependency_closure(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text("# Rules\nRead before editing.\n")
+            (root / "scoped-packet-seeds.json").write_text(
+                json.dumps(
+                    {
+                        "schema": "tmcp-scoped-packet-seeds-v0.1",
+                        "seeds": [
+                            {
+                                "id": "migration-seed",
+                                "use_when": ["Prepare migration evidence."],
+                                "chains_after": ["checksum-verifier"],
+                            }
+                        ],
+                    }
+                )
+            )
+            verifier = root / "skills" / "checksum-verifier" / "SKILL.md"
+            verifier.parent.mkdir(parents=True)
+            verifier.write_text("# Checksum\nVerify migration checksum evidence.\n")
+
+            with self.assertRaisesRegex(ValueError, "declared dependency closure"):
+                harvest_skills(
+                    {
+                        "source_path": str(root),
+                        "objective": "Prepare migration evidence.",
+                        "limit": 2,
+                        "rank_for_composition": True,
+                    }
+                )
+
+    def test_composition_harvest_preserves_an_explicit_seed_fragment(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text("# Rules\nRead before editing.\n")
+            seed_file = root / "scoped-packet-seeds.json"
+            seed_file.write_text(
+                json.dumps(
+                    {
+                        "schema": "tmcp-scoped-packet-seeds-v0.1",
+                        "seeds": [
+                            {
+                                "id": "frontend-redesign",
+                                "use_when": ["Redesign the frontend layout."],
+                            },
+                            {
+                                "id": "release-seed",
+                                "use_when": ["Prepare a release package."],
+                            },
+                        ],
+                    }
+                )
+            )
+            generic = root / "skills" / "generic" / "SKILL.md"
+            generic.parent.mkdir(parents=True)
+            generic.write_text("# Generic\nUse a generic procedure.\n")
+            fragment = "scoped-packet-seeds.json#frontend-redesign"
+
+            result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Handle the request.",
+                    "limit": 2,
+                    "rank_for_composition": True,
+                    "explicitly_scoped_paths": [fragment],
+                }
+            )
+
+        nodes = {str(node["id"]): node for node in result["source_nodes"]}
+        self.assertIn("frontend-redesign", nodes)
+        self.assertTrue(nodes["frontend-redesign"]["explicitly_scoped"])
+        self.assertNotIn("release-seed", nodes)
+
+    def test_composition_harvest_keeps_active_candidates_before_supporting_reads(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "AGENTS.md").write_text(
@@ -301,7 +659,7 @@ class CompositionFoundationTests(unittest.TestCase):
             [
                 "AGENTS.md",
                 "skills/z-host/SKILL.md",
-                "docs/runtime-package.md",
+                "skills/a-boilerplate/SKILL.md",
             ],
         )
         self.assertEqual(
@@ -388,7 +746,7 @@ class CompositionFoundationTests(unittest.TestCase):
                 include_all_active_source_slices=True,
             )
 
-        self.assertEqual(len(active_ids), 1)
+        self.assertEqual(len(active_ids), 13)
         self.assertEqual(
             result["source_nodes"][0]["relative_path"],
             "AGENTS.md",
@@ -402,10 +760,10 @@ class CompositionFoundationTests(unittest.TestCase):
             for index, node in enumerate(result["source_nodes"])
             if node["source_role"] == "supporting_reference"
         )
-        self.assertEqual(first_supporting_index, 2)
+        self.assertEqual(first_supporting_index, 14)
         self.assertEqual(
             result["source_role_diagnostics"]["truncated_source_role_counts"],
-            {"active_skill": 12, "supporting_reference": 14},
+            {"supporting_reference": 26},
         )
         selected_active_ids = {
             str(item["source_node_id"])

@@ -49,6 +49,7 @@ _PLAN_IDENTITY_FIELDS = (
     "handoff_contracts",
     "scoped_seed_graph_hints",
     "ordered_stages",
+    "proposal_coverage",
     "coverage",
     "provenance",
     "trust",

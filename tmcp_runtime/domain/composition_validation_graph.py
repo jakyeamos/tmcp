@@ -548,40 +548,6 @@ def _validate_edge(
             )
 
 
-def _validate_harvested_conflicts(
-    nodes_by_id: dict[str, dict[str, Any]],
-    roles_by_id: dict[str, dict[str, Any]],
-    errors: list[dict[str, Any]],
-) -> None:
-    aliases: dict[str, str] = {}
-    for node_id, item in nodes_by_id.items():
-        for alias in (
-            node_id,
-            str(item.get("title") or ""),
-            str(item.get("relative_path") or ""),
-        ):
-            if alias:
-                aliases[alias.lower()] = node_id
-    for node_id, role in roles_by_id.items():
-        for incompatible in string_list(nodes_by_id[node_id].get("incompatibilities")):
-            target = aliases.get(incompatible.lower())
-            if not target or target not in roles_by_id:
-                continue
-            shared = sorted(
-                set(role["phase_affinity"]).intersection(
-                    roles_by_id[target]["phase_affinity"]
-                )
-            )
-            if shared:
-                errors.append(
-                    _error(
-                        "same_phase_conflict",
-                        f"skill_roles[{node_id}]",
-                        f"Harvested incompatibility with {target} shares phases: {', '.join(shared)}.",
-                    )
-                )
-
-
 def _validate_connected(
     edges: list[dict[str, Any]],
     nodes_by_id: dict[str, dict[str, Any]],
@@ -607,7 +573,7 @@ def _validate_connected(
     )
     if not roots:
         roots = sorted(set(roles_by_id).difference(incoming))
-    pending = list(roots[:1] or sorted(roles_by_id)[:1])
+    pending = list(roots or sorted(roles_by_id)[:1])
     reachable: set[str] = set()
     while pending:
         node_id = pending.pop()
