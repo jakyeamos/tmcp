@@ -1,5 +1,5 @@
 {
-  "mcp_tools_sha256": "sha256:f2c26c5d196fdce5cb30faf610e9d9a0460f18546fc2053482ced550a35140bf",
+  "mcp_tools_sha256": "sha256:3d53df9b0e44471dd38033475f5a7868831a62157501ebf6f2c714446fa62db6",
   "pseudo_commands": {
     "help": [
       "help",
@@ -216,7 +216,7 @@
       ],
       "cli_defaults": {},
       "description_sha256": "sha256:a2c76d40a1a61bd063a9b1b407458e8b66aea5919c17a49e16aa7abfc6dc2223",
-      "input_schema_sha256": "sha256:8d03f5248c4d0b40374ef0287993d954fea6a7d92a651ea63e52549c1d32c952",
+      "input_schema_sha256": "sha256:58d52f73fb246c4b8244c8d56321d0aada700df01c67508cdd10ff83993814ff",
       "name": "tmcp_record_receipt",
       "output_schema_ids": [
         "tmcp-run-receipt-v0.1"
