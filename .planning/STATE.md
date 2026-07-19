@@ -13,24 +13,32 @@ until externally observed 0.6 evidence is admissible.
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `f102756` adds a frozen, cache-free host-composition intake and
-rejects crossed prompt/source preflights before semantic compilation. Runtime,
-package, and benchmark-contract hardening remain complete; 0.6.0 still requires
-real host/evaluator outcomes and a stronger real-task fixture corpus.
+**Status:** `f102756` freezes cache-free host composition, and `3ad9a1b`
+dogfood-hardens task routing plus bounded source selection. Runtime, package,
+and benchmark-contract hardening remain complete; 0.6.0 still requires real
+host/evaluator outcomes and a stronger real-task fixture corpus.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Frozen host intake and public adoption metadata are complete.
-  Real dogfood exposed generic candidate selection on a substantial compiler
-  task, so fixture realism, selection discrimination, and real host/evaluator
-  evidence remain pending before publication.
+- **Status:** The substantial compiler hardening prompt now resolves to the
+  `skill_composition` route and exposes one active TMCP skill plus bounded
+  supporting evidence. Next: wire the frozen intake into a host path, retain
+  assisted provenance through recompile, then add a non-release real-task pilot.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
+- `3ad9a1b` fixes live low-context dogfood: compound composition phrases now
+  clear the route threshold, hardening is an implementation facet, and source
+  slices rank objective evidence before generic output contracts. Preflight
+  defers irrelevant active behavior when relevant evidence exists while leaving
+  supporting reads advisory. The real hardening prompt now produces one active
+  `skills/tmcp/SKILL.md` slice with bounded supporting sources (2,952 of 53,206
+  naïve tokens); no receipt, evaluator outcome, promotion, or release claim was
+  written. 164 focused tests and contracts pass.
 - `f102756` adds `prepare_host_composition` /
   `compose_host_composition`: an in-memory host gets bounded preflight slices
   while TMCP freezes the exact request/source/preflight snapshot, forces
@@ -111,12 +119,6 @@ real host/evaluator outcomes and a stronger real-task fixture corpus.
   It rejects forged endpoints, relationships, stage copies, and duplicate-content
   collapse. Full unit, contract, install, release-compile, lint, and live
   prepare → compose dogfood pass (669 tests, 3 expected skips).
-- `271ed29` makes the no-proposal compatibility path fail closed against generic
-  process overlap and phase-only matches, limits automatic activation to one
-  bootstrap skill, preserves scoped/family sources, and records rejection
-  diagnostics. `df3c8e2` preserves exact route phrases such as release readiness.
-  Live dogfood selects only `skills/tmcp/SKILL.md` for the 0.6 hardening objective;
-  focused selection, policy, integration, and size tests pass.
 - `5fcefab` replaces weak single-route fallback with deterministic task facets,
   compound-task fallback, explicit validated-route provenance, safe shortcut
   gating, packet-identity binding, and graph-aware facet recompiles. Full unit,
