@@ -6,39 +6,37 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Preserve host-assisted graph lineage through recompile and
-shipped packages while pruning shared-term active skills before a real-task pilot.
+**Current focus:** Keep shared-term skill selection low-context from harvest
+through hydration, then prove a real multi-skill task without release claims.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `3ad9a1b` hardens routing and bounded source selection; `cb2dd13`
-adds native one-harvest host intake and provenance-preserving recompilation.
-0.6.0 still requires real host/evaluator outcomes, discriminative selection,
-and a stronger real-task fixture corpus.
+**Status:** `cb2dd13` adds native host intake and `12de191` makes active-source
+selection content-discriminative while preserving scoped evidence. 0.6.0 still
+requires pre-harvest ranking hardening, real host/evaluator outcomes, and a
+stronger real-task fixture corpus.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Native host composition now uses one frozen snapshot and keeps
-  advisory origin lineage through recompile and extracted-package smoke. Live
-  dogfood still over-selects skills sharing `harvest`/`runtime`; next: defer
-  shared-only active matches deterministically, then run a non-release real-task
-  pilot.
+- **Status:** Shared-only active skills now defer behind content-backed unique
+  evidence, while scoped seeds and explicit sources stay available. Live dogfood
+  still loses supporting sources under a low harvest limit due `effects`/`side`
+  ranking noise; next: share that low-signal policy before harvest limiting.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
-- `3ad9a1b` fixes live low-context dogfood: compound composition phrases now
-  clear the route threshold, hardening is an implementation facet, and source
-  slices rank objective evidence before generic output contracts. Preflight
-  defers irrelevant active behavior when relevant evidence exists while leaving
-  supporting reads advisory. The real hardening prompt now produces one active
-  `skills/tmcp/SKILL.md` slice with bounded supporting sources (2,952 of 53,206
-  naïve tokens); no receipt, evaluator outcome, promotion, or release claim was
-  written. 164 focused tests and contracts pass.
+- `12de191` extends `3ad9a1b` with content-backed discriminative active-source
+  selection: shared-only skills defer, while governing sources, supporting
+  reads, scoped seeds, explicit scopes, and all-active evidence stay intact.
+  Empty active sources diagnose safely and block all-active evidence. The live
+  host prompt now selects one active TMCP skill and defers nine shared-only ones
+  at 2,964 of 63,217 naïve tokens. 27 focused tests and contracts pass; the
+  90-second pre-CR gate timed out, so full-suite follow-up remains required.
 - `cb2dd13` completes the native host path begun by `f102756`:
   `run_host_composition` gives a host one bounded frozen snapshot; a private
   unregistered server seam, closed lineage/receipt provenance, graph-bound
@@ -430,5 +428,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_tmcp_composition_preflight
+python3 -m unittest tests.test_tmcp_harvest_ranking
 ```
