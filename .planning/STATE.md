@@ -6,46 +6,39 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Verify clean package reproducibility after bounded runtime
-refactors, then build evaluator-backed real-task composition evidence.
+**Current focus:** Verify the clean release package, then execute the
+preregistered composition-lift campaign only with explicit host/evaluator authority.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `b8dac3d` hardens graph closure, phase gates, cache identity, and
-bounded selection; `4ef90b1` restores bounded ownership for its runtime and
-test surfaces. 0.6.0 still requires real host/evaluator outcomes and a stronger
-real-task corpus; the fixed-time pre-CR wrapper remains a non-release signal.
+**Status:** `93f81e0` preregisters a replay-bound, no-call composition-lift
+campaign; graph closure, phase gates, and bounded ownership remain intact.
+0.6.0 still requires real host/evaluator outcomes and the stronger real-task
+corpus; the isolated scoped Pre-CR policy now proves the full gate can finish.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Graph closure and phase gates now survive recipes and recompile;
-  active reads rank before supporting material, preserve explicit named skills,
-  honor negative activation clauses, and defer uncertain large unions. `4ef90b1`
-  extracts project-recipe alias replay and recompile finalization behind bounded
-  helpers, with split focused tests and package inventory coverage. The full
-  suite (921 tests, 3 skips), contracts, install, and compile checks pass. Its
-  pre-CR wrapper still reached a fixed 90-second timeout without test or contract
-  failure; next: clean reproducible package verification, then evaluator-backed
-  multi-skill dogfood.
+- **Status:** `93f81e0` adds a five-fixture no-call campaign with exact
+  baseline/causal controls, opaque runner/judge dispatches, rubric/recipe/graph
+  provenance, and canonical replay validation. It neither executes nor records
+  outcomes. The full changed-line Pre-CR gate passed in 263 seconds under the
+  isolated 330-second TMCP policy; next: reproducible package verification, then
+  explicitly authorized host and external-evaluator evidence.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
-- `b8dac3d` hardens graph-aware composition: declared dependency closure and
-  phase gates survive recompile and project recipes; canonical bounded seed
-  normalization keeps cache-derived metadata aligned; active reads rank before
-  supporting material; explicit multiword skill names outrank generic terms;
-  negative clauses suppress prohibited activation; and uncertain large pools
-  are surfaced rather than silently activated. `4ef90b1` moves project-recipe
-  alias replay and recompile finalization into bounded helpers and splits the
-  affected test owners while preserving package inventory and static boundaries.
-  Full suite (921 tests, 3 skips), contracts, install, and compile passed; its
-  pre-CR wrapper reached a fixed 90-second timeout. This is compiler hardening,
-  not a receipt, promotion, evaluator-lift, or release claim.
+- `93f81e0` preregisters a replay-bound campaign across five fixtures: six
+  baseline arms and twelve causal arms, each across three configuration slots
+  and two replicates. It validates canonical skill order, matched comparators,
+  source-control/rubric/recipe/graph binding, opaque host-facing dispatches,
+  and package inclusion. It makes no model/tool calls, writes no receipt, and
+  makes no lift or release claim. The full changed-line Pre-CR gate passed in
+  263 seconds through the isolated TMCP 330-second policy.
 - `cb2dd13` completes the native host path begun by `f102756`:
   `run_host_composition` gives a host one bounded frozen snapshot; a private
   unregistered server seam, closed lineage/receipt provenance, graph-bound
