@@ -237,6 +237,7 @@ def _check_host_composition_adapter_in_process(
             "source_path": str(source_root),
             "project_path": str(source_root),
             "limit": 12,
+            "include_all_active_source_slices": True,
             "write_artifacts": False,
             "rank_for_composition": True,
         }

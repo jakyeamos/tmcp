@@ -242,6 +242,27 @@ COMPOSITION_PROCESS_TERMS = frozenset(
         "writing",
     }
 )
+COMPOSITION_LOW_SIGNAL_TERMS = frozenset(
+    {
+        "automatic",
+        "effect",
+        "effects",
+        "execution",
+        "executions",
+        "leave",
+        "leaves",
+        "one",
+        "receipt",
+        "receipts",
+        "side",
+        "sides",
+        "source",
+        "sources",
+        "substantial",
+        "use",
+        "uses",
+    }
+)
 RELEASE_READINESS_PHRASES = (
     "release readiness",
     "ship no ship",
@@ -312,6 +333,12 @@ def composition_terms(value: str) -> set[str]:
     return _text_tokens(value).difference(
         COMPOSITION_GENERIC_TERMS | COMPOSITION_PROCESS_TERMS
     )
+
+
+def composition_evidence_terms(value: str) -> set[str]:
+    """Remove low-information safety boilerplate from composition matching."""
+
+    return composition_terms(value).difference(COMPOSITION_LOW_SIGNAL_TERMS)
 
 
 def objective_has_phrase(objective: str, phrases: tuple[str, ...]) -> bool:

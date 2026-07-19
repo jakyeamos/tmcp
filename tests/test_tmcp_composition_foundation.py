@@ -4,8 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
+import tmcp_runtime.services.harvest as harvest_service
 from tmcp_runtime.domain import composition, packets
+from tmcp_runtime.domain.composition_preflight import prepare_composition
 from tmcp_runtime.domain.harvest_nodes import (
     content_digest_for,
     node_source_role,
@@ -236,6 +239,261 @@ class CompositionFoundationTests(unittest.TestCase):
                 result["source_role_diagnostics"]["truncated_source_count"],
                 45,
             )
+
+    def test_composition_harvest_ignores_low_signal_safety_boilerplate(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text(
+                "# Rules\nPreserve governing constraints.\n",
+                encoding="utf-8",
+            )
+            boilerplate = root / "skills" / "a-boilerplate" / "SKILL.md"
+            boilerplate.parent.mkdir(parents=True)
+            boilerplate.write_text(
+                "# Generic\nAvoid automatic execution, receipt side effects, and source use.\n",
+                encoding="utf-8",
+            )
+            host_skill = root / "skills" / "z-host" / "SKILL.md"
+            host_skill.parent.mkdir(parents=True)
+            host_skill.write_text(
+                "# Host\nUse a native host composition adapter and preserve provenance.\n",
+                encoding="utf-8",
+            )
+            runtime_reference = root / "docs" / "runtime-package.md"
+            runtime_reference.parent.mkdir()
+            runtime_reference.write_text(
+                "# Runtime package\nPreserve runtime provenance evidence.\n",
+                encoding="utf-8",
+            )
+            fixture = root / "tests" / "fixtures" / "host" / "SKILL.md"
+            fixture.parent.mkdir(parents=True)
+            fixture.write_text(
+                "# Fixture\nUse a native host composition adapter and preserve provenance.\n",
+                encoding="utf-8",
+            )
+
+            composition_result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": (
+                        "Implement a native host composition adapter and preserve "
+                        "runtime package provenance without automatic execution or "
+                        "side effects."
+                    ),
+                    "limit": 3,
+                    "rank_for_composition": True,
+                }
+            )
+            default_result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": (
+                        "Implement a native host composition adapter and preserve "
+                        "runtime package provenance without automatic execution or "
+                        "side effects."
+                    ),
+                    "limit": 2,
+                }
+            )
+
+        self.assertEqual(
+            [node["relative_path"] for node in composition_result["source_nodes"]],
+            [
+                "AGENTS.md",
+                "skills/z-host/SKILL.md",
+                "docs/runtime-package.md",
+            ],
+        )
+        self.assertEqual(
+            composition_result["source_role_diagnostics"]["truncated_source_count"],
+            2,
+        )
+        self.assertEqual(
+            [node["relative_path"] for node in default_result["source_nodes"]],
+            ["AGENTS.md", "skills/a-boilerplate/SKILL.md"],
+        )
+
+    def test_composition_harvest_keeps_active_sources_ahead_of_supporting_pressure(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            objective = "Implement a native host composition adapter with runtime provenance"
+            (root / "AGENTS.md").write_text(
+                "# Rules\nPreserve governing constraints.\n",
+                encoding="utf-8",
+            )
+            for index in range(12):
+                skill = root / "skills" / f"generic-{index:02d}" / "SKILL.md"
+                skill.parent.mkdir(parents=True)
+                skill.write_text(
+                    "# Generic\nUse the composition workflow.\n",
+                    encoding="utf-8",
+                )
+            adapter = root / "skills" / "z-native-adapter" / "SKILL.md"
+            adapter.parent.mkdir(parents=True)
+            adapter.write_text(
+                "# Adapter\nImplement a native host composition adapter with provenance.\n",
+                encoding="utf-8",
+            )
+            for index in range(32):
+                reference = root / "docs" / f"runtime-{index:02d}.md"
+                reference.parent.mkdir(parents=True, exist_ok=True)
+                reference.write_text(
+                    "# Runtime\nNative host composition adapter runtime provenance evidence.\n",
+                    encoding="utf-8",
+                )
+
+            result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": objective,
+                    "limit": 20,
+                    "rank_for_composition": True,
+                }
+            )
+            all_active_result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": objective,
+                    "limit": 20,
+                    "rank_for_composition": True,
+                    "include_all_active_source_slices": True,
+                }
+            )
+            active_ids = {
+                str(node["id"])
+                for node in result["source_nodes"]
+                if node["source_role"] == "active_skill"
+            }
+            prepared = prepare_composition(
+                result["source_nodes"],
+                objective,
+                max_slices=20,
+                max_total_chars=12000,
+                max_total_tokens=3000,
+                include_all_active_source_slices=True,
+            )
+            all_active_ids = {
+                str(node["id"])
+                for node in all_active_result["source_nodes"]
+                if node["source_role"] == "active_skill"
+            }
+            all_active_prepared = prepare_composition(
+                all_active_result["source_nodes"],
+                objective,
+                max_slices=20,
+                max_total_chars=12000,
+                max_total_tokens=3000,
+                include_all_active_source_slices=True,
+            )
+
+        self.assertEqual(len(active_ids), 1)
+        self.assertEqual(
+            result["source_nodes"][0]["relative_path"],
+            "AGENTS.md",
+        )
+        self.assertEqual(
+            result["source_nodes"][1]["relative_path"],
+            "skills/z-native-adapter/SKILL.md",
+        )
+        first_supporting_index = next(
+            index
+            for index, node in enumerate(result["source_nodes"])
+            if node["source_role"] == "supporting_reference"
+        )
+        self.assertEqual(first_supporting_index, 2)
+        self.assertEqual(
+            result["source_role_diagnostics"]["truncated_source_role_counts"],
+            {"active_skill": 12, "supporting_reference": 14},
+        )
+        selected_active_ids = {
+            str(item["source_node_id"])
+            for item in prepared["candidate_source_slices"]
+            if item["source_role"] == "active_skill"
+        }
+        self.assertSetEqual(selected_active_ids, active_ids)
+        self.assertEqual(len(all_active_ids), 13)
+        all_active_selected_ids = {
+            str(item["source_node_id"])
+            for item in all_active_prepared["candidate_source_slices"]
+            if item["source_role"] == "active_skill"
+        }
+        self.assertSetEqual(all_active_selected_ids, all_active_ids)
+
+    def test_composition_harvest_keeps_one_active_fallback_when_unmatched(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text(
+                "# Rules\nPreserve governing constraints.\n",
+                encoding="utf-8",
+            )
+            fallback = root / "skills" / "a-fallback" / "SKILL.md"
+            fallback.parent.mkdir(parents=True)
+            fallback.write_text(
+                "# Fallback\nUse the review procedure.\n",
+                encoding="utf-8",
+            )
+            reference = root / "docs" / "runtime.md"
+            reference.parent.mkdir()
+            reference.write_text(
+                "# Runtime\nImplement a native adapter for runtime provenance.\n",
+                encoding="utf-8",
+            )
+
+            result = harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Implement a native adapter for runtime provenance",
+                    "limit": 3,
+                    "rank_for_composition": True,
+                }
+            )
+
+        self.assertEqual(
+            [node["relative_path"] for node in result["source_nodes"]],
+            ["AGENTS.md", "skills/a-fallback/SKILL.md", "docs/runtime.md"],
+        )
+
+    def test_composition_harvest_defers_fixture_reads_until_active_sources(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            agents_text = "# Rules\nPreserve governing constraints.\n"
+            native_text = "# Adapter\nImplement a native adapter.\n"
+            fixture_text = "# Fixture\n" + "native adapter " * 80
+            (root / "AGENTS.md").write_text(agents_text, encoding="utf-8")
+            native = root / "z-native-adapter" / "SKILL.md"
+            native.parent.mkdir()
+            native.write_text(native_text, encoding="utf-8")
+            fixture = root / "tests" / "fixtures" / "a-native-adapter" / "SKILL.md"
+            fixture.parent.mkdir(parents=True)
+            fixture.write_text(fixture_text, encoding="utf-8")
+
+            with patch.object(
+                harvest_service,
+                "DEFAULT_HARVEST_MAX_TOTAL_BYTES",
+                len(agents_text.encode("utf-8")) + len(fixture_text.encode("utf-8")),
+            ):
+                result = harvest_skills(
+                    {
+                        "source_path": str(root),
+                        "objective": "Implement a native adapter",
+                        "limit": 2,
+                        "rank_for_composition": True,
+                    }
+                )
+
+        self.assertEqual(
+            [node["relative_path"] for node in result["source_nodes"]],
+            ["AGENTS.md", "z-native-adapter/SKILL.md"],
+        )
+        self.assertTrue(
+            any("total-byte" in warning for warning in result["warnings"])
+        )
 
     def test_graph_identity_tracks_selected_content_digest(self) -> None:
         def build(

@@ -1113,6 +1113,9 @@ def _prepare_composition(arguments: dict[str, Any]) -> dict[str, Any]:
     )
     result["project_path"] = str(arguments.get("project_path") or ".")
     result["harvest_warnings"] = _string_list(harvest.get("warnings"))
+    result["harvest_diagnostics"] = dict(
+        harvest.get("source_role_diagnostics") or {}
+    )
     return _redact_result(result, preserve_composition_digests=True)
 
 

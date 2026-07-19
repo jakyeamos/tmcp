@@ -824,6 +824,12 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "# Review\n\nInspect the implementation and verify behavior.\n",
                 encoding="utf-8",
             )
+            generic_skill_dir = workspace.project / "skills" / "generic"
+            generic_skill_dir.mkdir(parents=True)
+            (generic_skill_dir / "SKILL.md").write_text(
+                "# Generic\n\nUse the generic procedure.\n",
+                encoding="utf-8",
+            )
             responses = workspace.run_mcp(
                 [
                     {
@@ -836,6 +842,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                                 "objective": "Implement and verify the change",
                                 "project_path": str(workspace.project),
                                 "source_path": str(workspace.project),
+                                "include_all_active_source_slices": True,
                             },
                         },
                     }
@@ -851,6 +858,12 @@ class TmcpMcpServerTests(unittest.TestCase):
                 ],
                 "tmcp-semantic-proposal-v0.1",
             )
+            harvest_diagnostics = cast(
+                Mapping[str, object], structured["harvest_diagnostics"]
+            )
+            self.assertTrue(harvest_diagnostics["ranked_before_limit"])
+            source_roles = cast(Mapping[str, int], structured["source_roles"])
+            self.assertEqual(source_roles["active_skill"], 2)
             self.assertEqual(list(workspace.tmcp_home.iterdir()), [])
 
     def test_doctor_reports_first_run_readiness(self) -> None:

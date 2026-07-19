@@ -14,7 +14,7 @@ from .behavior_manifests import (
     markdown_behavior_chunks,
     select_hydrated_behavior_blocks,
 )
-from .composition import composition_terms
+from .composition import composition_evidence_terms
 from .harvest_nodes import content_digest_for, node_source_role
 from .source_activation_projection import project_source_node_for_composition
 
@@ -22,29 +22,6 @@ from .source_activation_projection import project_source_node_for_composition
 COMPOSITION_TRUST = "advisory_untrusted"
 DEFAULT_MAX_BEHAVIOR_BLOCKS_PER_SOURCE = 24
 SOURCE_DIGEST_BINDING_SCHEMA = "tmcp-composition-source-digest-binding-v0.1"
-PREFLIGHT_LOW_SIGNAL_TERMS = frozenset(
-    {
-        "automatic",
-        "effect",
-        "effects",
-        "execution",
-        "executions",
-        "leave",
-        "leaves",
-        "one",
-        "receipt",
-        "receipts",
-        "side",
-        "sides",
-        "source",
-        "sources",
-        "substantial",
-        "use",
-        "uses",
-    }
-)
-
-
 def json_list(value: object) -> list[Any]:
     return value if isinstance(value, list) else []
 
@@ -74,7 +51,7 @@ def stable_digest(value: object, length: int = 64) -> str:
 def _tokens(value: object) -> set[str]:
     """Return terms that can justify bounded host-visible source evidence."""
 
-    return composition_terms(str(value)).difference(PREFLIGHT_LOW_SIGNAL_TERMS)
+    return composition_evidence_terms(str(value))
 
 
 def _source_content(node: dict[str, Any]) -> str:

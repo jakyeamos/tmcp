@@ -22,7 +22,10 @@ from tmcp_runtime.domain.harvest_nodes import (
     source_node_from_text,
     source_type_for,
 )
-from tmcp_runtime.domain.composition import composition_terms
+from tmcp_runtime.domain.composition import (
+    composition_evidence_terms,
+    composition_terms,
+)
 from tmcp_runtime.domain.standalone_packets import compile_standalone_packet
 from tmcp_runtime.safety import (
     collect_harvest_roots,
@@ -48,6 +51,10 @@ def source_role_diagnostics(
     for node in ranked_nodes:
         role = node_source_role(node)
         role_counts[role] = role_counts.get(role, 0) + 1
+    truncated_role_counts: dict[str, int] = {}
+    for node in truncated_nodes:
+        role = node_source_role(node)
+        truncated_role_counts[role] = truncated_role_counts.get(role, 0) + 1
     ineligible_nodes = [
         node
         for node in ranked_nodes
@@ -70,6 +77,12 @@ def source_role_diagnostics(
             for node in ineligible_nodes[:20]
         ],
         "truncated_source_count": len(truncated_nodes),
+        "truncated_source_role_counts": truncated_role_counts,
+        "truncated_activation_eligible_source_count": sum(
+            count
+            for role, count in truncated_role_counts.items()
+            if role in {"governing_instruction", "active_skill"}
+        ),
         "truncated_sources": [
             {
                 "source": node.get("relative_path"),
@@ -190,19 +203,25 @@ def _composition_candidate_sort_key(
     """Prioritize likely governing/relevant files before bounded reads."""
 
     relative_path = str(candidate.relative_path).lower()
-    parts = {part for part in relative_path.split("/") if part}
     name = candidate.logical_path.name.lower()
     if name in {"agents.md", "claude.md", ".cursorrules"}:
         role_rank = 0
+    elif (
+        is_evidence_only_path(relative_path)
+        and candidate.root.kind != "file"
+        and not is_evidence_only_path(str(candidate.root.logical_path))
+    ):
+        # A fixture only becomes active when the caller scoped that fixture tree
+        # itself.  Otherwise it must not consume an active-skill read budget just
+        # because its filename is SKILL.md.
+        role_rank = 3
     elif "skill.md" == name or name == "scoped-packet-seeds.json":
         role_rank = 1
-    elif parts.intersection(
-        {"test", "tests", "fixture", "fixtures", "example", "examples"}
-    ):
-        role_rank = 3
     else:
         role_rank = 2
-    relevance = len(objective_terms.intersection(composition_terms(relative_path)))
+    relevance = len(
+        objective_terms.intersection(composition_evidence_terms(relative_path))
+    )
     return role_rank, -relevance, relative_path
 
 
@@ -217,9 +236,97 @@ def _composition_node_sort_key(
         "evidence_only": 3,
     }.get(node_source_role(node), 3)
     relevance = len(
-        objective_terms.intersection(composition_terms(node_signal_text(node)))
+        objective_terms.intersection(
+            composition_evidence_terms(node_signal_text(node))
+        )
     )
     return role_rank, -relevance, node_harvest_sort_key(node)
+
+
+def _composition_node_objective_terms(
+    node: dict[str, Any],
+    objective_terms: set[str],
+) -> set[str]:
+    """Return content-backed objective terms for one harvested source."""
+
+    return objective_terms.intersection(
+        composition_evidence_terms(node_signal_text(node))
+    )
+
+
+def _composition_result_order(
+    nodes: list[dict[str, Any]],
+    objective_terms: set[str],
+    *,
+    include_all_active_source_slices: bool,
+) -> list[dict[str, Any]]:
+    """Retain distinct active behavior while reserving bounded evidence capacity.
+
+    Candidate reads remain authority-first so supporting prose cannot starve
+    skill discovery under the byte budget.  Once source content is available,
+    default composition keeps governing sources, scoped or discriminative active
+    skills, one active fallback when needed, and then relevant supporting
+    evidence.  The explicit all-active mode deliberately preserves every
+    harvested active source ahead of supporting reads.
+    """
+
+    ordered = sorted(
+        nodes,
+        key=lambda node: _composition_node_sort_key(node, objective_terms),
+    )
+    if include_all_active_source_slices:
+        return ordered
+    governing = [
+        node for node in ordered if node_source_role(node) == "governing_instruction"
+    ]
+    active = [node for node in ordered if node_source_role(node) == "active_skill"]
+    supporting = [
+        node
+        for node in ordered
+        if node_source_role(node) == "supporting_reference"
+    ]
+    evidence = [
+        node for node in ordered if node_source_role(node) == "evidence_only"
+    ]
+    matched_active_terms = {
+        id(node): _composition_node_objective_terms(node, objective_terms)
+        for node in active
+    }
+    active_term_counts: dict[str, int] = {}
+    for terms in matched_active_terms.values():
+        for term in terms:
+            active_term_counts[term] = active_term_counts.get(term, 0) + 1
+    discriminative_terms = {
+        term for term, count in active_term_counts.items() if count == 1
+    }
+    protected_active = [
+        node
+        for node in active
+        if node.get("explicitly_scoped") is True
+        or node.get("source_type") == "scoped_packet_seed"
+        or bool(matched_active_terms[id(node)].intersection(discriminative_terms))
+    ]
+    fallback_active = [] if protected_active or not active else [active[0]]
+    retained_active_ids = {id(node) for node in protected_active + fallback_active}
+    relevant_supporting = [
+        node
+        for node in supporting
+        if _composition_node_objective_terms(node, objective_terms)
+    ]
+    retained_supporting_ids = {id(node) for node in relevant_supporting}
+    remaining_active = [node for node in active if id(node) not in retained_active_ids]
+    remaining_supporting = [
+        node for node in supporting if id(node) not in retained_supporting_ids
+    ]
+    return (
+        governing
+        + protected_active
+        + fallback_active
+        + relevant_supporting
+        + remaining_active
+        + remaining_supporting
+        + evidence
+    )
 
 
 def normalize_string_list(
@@ -258,6 +365,9 @@ def read_only_harvest_arguments(arguments: Mapping[str, Any]) -> dict[str, Any]:
         "limit": arguments.get("limit", 40),
         "max_file_bytes": arguments.get("max_file_bytes", 262144),
         "max_excerpt_chars": arguments.get("max_excerpt_chars", 1200),
+        "include_all_active_source_slices": bool(
+            arguments.get("include_all_active_source_slices", False)
+        ),
         "follow_symlinks": bool(arguments.get("follow_symlinks", False)),
         "redact_sensitive": bool(arguments.get("redact_sensitive", True)),
         "write_artifacts": False,
@@ -330,7 +440,14 @@ def harvest_skills(
 ) -> dict[str, Any]:
     objective = str(arguments.get("objective") or "Harvest reusable skill behavior")
     rank_for_composition = bool(arguments.get("rank_for_composition", False))
-    objective_terms = composition_terms(objective)
+    objective_terms = (
+        composition_evidence_terms(objective)
+        if rank_for_composition
+        else composition_terms(objective)
+    )
+    include_all_active_source_slices = bool(
+        arguments.get("include_all_active_source_slices", False)
+    )
     limit = max(1, int(arguments.get("limit") or 40))
     max_file_bytes = max(1024, int(arguments.get("max_file_bytes") or 262144))
     max_excerpt_chars = max(200, int(arguments.get("max_excerpt_chars") or 1200))
@@ -475,16 +592,16 @@ def harvest_skills(
             if len(warnings) < 50:
                 warnings.append(str(advisory["warning"]))
         nodes.append(node)
-    nodes.sort(
-        key=(
-            lambda node: (
-                _composition_node_sort_key(node, objective_terms)
-                if rank_for_composition
-                else node_harvest_sort_key(node)
-            )
+    if rank_for_composition:
+        ranked_nodes = _composition_result_order(
+            nodes,
+            objective_terms,
+            include_all_active_source_slices=include_all_active_source_slices,
         )
-    )
-    ranked_nodes = nodes
+    else:
+        nodes.sort(key=node_harvest_sort_key)
+        ranked_nodes = nodes
+    nodes = ranked_nodes
     truncated_nodes: list[dict[str, Any]] = []
     if len(nodes) > limit:
         warnings.append(
