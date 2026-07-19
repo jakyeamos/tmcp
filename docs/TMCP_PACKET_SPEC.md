@@ -91,6 +91,8 @@ Harvested source nodes include:
 
 Source types are descriptive, not vendor-specific. Examples include `skill_definition`, `agent_operating_contract`, `cursor_rule`, `github_process`, `workflow_prompt`, `project_documentation`, and `markdown_process_doc`.
 
+Packet source projections preserve source `frontmatter`, `guidance_labels`, and routing metadata used to classify domain evidence. Packet selection may cap the displayed source nodes for a compact traversal, but the substance check evaluates the complete harvested source set independently of that cap.
+
 ## Substance Check
 
 `substance_check` prevents TMCP from overstating what it knows. It reports:
@@ -99,6 +101,8 @@ Source types are descriptive, not vendor-specific. Examples include `skill_defin
 - `has_domain_playbook`: whether harvested sources contain actionable task guidance
 - `issues`: why the packet is thin
 - `fallback_policy`: how the agent should proceed
+
+Repeated UI/design/animation metadata, guidance labels, and actionable source instructions can infer the `ui_design` domain and a source-backed playbook even when the harvest objective is generic. The objective-derived task route remains separate from this source-domain classification; genuinely generic or process-only sources continue to use the existing fallback levels.
 
 When a packet is `process_only` or `thin_domain_signals`, TMCP should keep the routing, evidence, and output-contract behavior, but derive rubric substance from target repo evidence.
 

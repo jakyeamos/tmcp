@@ -113,6 +113,128 @@ class TmcpMcpServerTests(unittest.TestCase):
         )
         self.assertTrue(substance["issues"])
 
+    def test_ui_skill_corpus_is_source_backed_with_generic_harvest_objective(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "skills" / "layout").mkdir(parents=True)
+            (root / "skills" / "motion").mkdir(parents=True)
+            (root / "skills" / "layout" / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: layout-hierarchy",
+                        "domain: ui-design",
+                        "skill-type: generative",
+                        "---",
+                        "# Layout Hierarchy",
+                        "Apply layout and spacing rules to group related components.",
+                        "Use responsive hierarchy and verify the resulting states.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (root / "skills" / "motion" / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: motion-design",
+                        "domain: ui-design",
+                        "skill-type: evaluative",
+                        "---",
+                        "# Motion Design",
+                        "Create animation transitions with intentional easing and interaction feedback.",
+                        "Prefer reduced motion and verify the final behavior.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            harvest = self.server._harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Collect the newly installed skills",
+                    "write_artifacts": False,
+                }
+            )
+            packet = self.server._compile_standalone_packet(
+                objective="Collect the newly installed skills",
+                project_path=str(root),
+                harvested_nodes=harvest["source_nodes"],
+            )
+
+        substance = packet["substance_check"]
+        self.assertEqual(packet["task_id"], "agent_workflow")
+        self.assertEqual(packet["domain"], "ui_design")
+        self.assertEqual(substance["level"], "source_backed_playbook")
+        self.assertTrue(substance["has_domain_playbook"])
+        self.assertGreaterEqual(substance["substantive_source_count"], 2)
+        self.assertIn("ui-design", substance["matched_ui_domain_terms"])
+        self.assertTrue(
+            any(
+                node.get("frontmatter", {}).get("domain") == "ui-design"
+                and node.get("guidance_labels")
+                for node in packet["source_skill_nodes"]
+            )
+        )
+
+    def test_generic_skill_corpus_keeps_process_only_classification(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "AGENTS.md").write_text(
+                "# Agent Notes\n\nKeep work organized and communicate clearly.\n",
+                encoding="utf-8",
+            )
+            harvest = self.server._harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Collect the newly installed skills",
+                    "write_artifacts": False,
+                }
+            )
+            packet = self.server._compile_standalone_packet(
+                objective="Collect the newly installed skills",
+                project_path=str(root),
+                harvested_nodes=harvest["source_nodes"],
+            )
+
+        substance = packet["substance_check"]
+        self.assertEqual(packet["domain"], "general")
+        self.assertEqual(substance["level"], "process_only")
+        self.assertFalse(substance["has_domain_playbook"])
+
+    def test_harvest_collection_and_packet_classification_are_separate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "SKILL.md").write_text(
+                "---\nname: ui-layout\ndomain: ui-design\n---\n"
+                "Apply layout rules and verify responsive states.\n",
+                encoding="utf-8",
+            )
+            (root / "notes.md").write_text(
+                "# Generic Note\n\nKeep the task organized.\n",
+                encoding="utf-8",
+            )
+            harvest = self.server._harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Use a generic objective",
+                    "write_artifacts": False,
+                }
+            )
+            packet = self.server._compile_standalone_packet(
+                objective="Use a generic objective",
+                project_path=str(root),
+                harvested_nodes=harvest["source_nodes"],
+            )
+
+        self.assertEqual(harvest["source_count"], 2)
+        self.assertEqual(packet["substance_check"]["source_node_count"], 2)
+        self.assertEqual(len(packet["source_skill_nodes"]), 2)
+        self.assertEqual(packet["task_id"], "agent_workflow")
+        self.assertEqual(packet["substance_check"]["level"], "thin_domain_signals")
+        self.assertFalse(packet["substance_check"]["has_domain_playbook"])
+
     def test_harvest_is_portable_and_prunes_dependency_dirs(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -612,6 +734,33 @@ class TmcpMcpServerTests(unittest.TestCase):
         )
         self.assertIn("typography", " ".join(gap_slice["scope"]).lower())
         self.assertIn("spacing", " ".join(gap_slice["scope"]).lower())
+
+    def test_profile_coverage_accepts_tuple_terms(self) -> None:
+        requirements = list(self.server.PROFILE_COVERAGE_REQUIREMENTS["visual_polish"])
+        self.assertTrue(all(isinstance(item["terms"], tuple) for item in requirements))
+        coverage_text = " ".join(
+            str(term) for requirement in requirements for term in requirement["terms"]
+        )
+
+        report = self.server._build_audit_report(
+            {
+                "profile": "visual_polish",
+                "coverage_requirements": requirements,
+                "dimensions": [{"id": "visual_product_quality", "name": "Visual product quality"}],
+            },
+            [
+                {
+                    "dimension_id": "visual_product_quality",
+                    "severity": "observation",
+                    "summary": coverage_text,
+                    "evidence": [coverage_text],
+                    "recommended_fix": "No fix required.",
+                }
+            ],
+            "tuple-coverage",
+        )
+
+        self.assertEqual(report["coverage_gaps"], [])
 
     def test_profile_coverage_is_enforced_for_non_visual_reviews(self) -> None:
         result = self.server._standalone_review_plan(
