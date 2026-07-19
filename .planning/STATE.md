@@ -6,15 +6,16 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Preserve graph, phase, and cache identity under bounded
-context, then dogfood real multi-skill handoffs without release claims.
+**Current focus:** Verify clean package reproducibility after bounded runtime
+refactors, then build evaluator-backed real-task composition evidence.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
 **Status:** `b8dac3d` hardens graph closure, phase gates, cache identity, and
-bounded selection. 0.6.0 still requires real host/evaluator outcomes, a
-stronger real-task corpus, and resolution of current pre-CR size advisories.
+bounded selection; `4ef90b1` restores bounded ownership for its runtime and
+test surfaces. 0.6.0 still requires real host/evaluator outcomes and a stronger
+real-task corpus; the fixed-time pre-CR wrapper remains a non-release signal.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -23,24 +24,28 @@ stronger real-task corpus, and resolution of current pre-CR size advisories.
 - **Slug:** `compositional-intelligence-0.6`
 - **Status:** Graph closure and phase gates now survive recipes and recompile;
   active reads rank before supporting material, preserve explicit named skills,
-  honor negative activation clauses, and defer uncertain large unions. The full
-  suite (921 tests, 3 skips), contracts, install, and compile checks pass. The
-  commit pre-CR timed out at 90 seconds with file-size advisories; next: review
-  those boundaries before an evaluator-backed multi-skill dogfood run.
+  honor negative activation clauses, and defer uncertain large unions. `4ef90b1`
+  extracts project-recipe alias replay and recompile finalization behind bounded
+  helpers, with split focused tests and package inventory coverage. The full
+  suite (921 tests, 3 skips), contracts, install, and compile checks pass. Its
+  pre-CR wrapper still reached a fixed 90-second timeout without test or contract
+  failure; next: clean reproducible package verification, then evaluator-backed
+  multi-skill dogfood.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
 - `b8dac3d` hardens graph-aware composition: declared dependency closure and
   phase gates survive recompile and project recipes; canonical bounded seed
-  normalization keeps cache-derived metadata aligned; and active reads rank
-  before supporting material. Explicit multiword skill names outrank generic
-  terms, negative clauses suppress prohibited activation, and uncertain large
-  pools are surfaced rather than silently activated. Full suite (921 tests,
-  3 skips), contracts, install, and compile passed. The commit pre-CR reached
-  its configured 90-second timeout and reported file-size advisories, so this
-  is compiler hardening—not a receipt, promotion, evaluator-lift, or release
-  claim.
+  normalization keeps cache-derived metadata aligned; active reads rank before
+  supporting material; explicit multiword skill names outrank generic terms;
+  negative clauses suppress prohibited activation; and uncertain large pools
+  are surfaced rather than silently activated. `4ef90b1` moves project-recipe
+  alias replay and recompile finalization into bounded helpers and splits the
+  affected test owners while preserving package inventory and static boundaries.
+  Full suite (921 tests, 3 skips), contracts, install, and compile passed; its
+  pre-CR wrapper reached a fixed 90-second timeout. This is compiler hardening,
+  not a receipt, promotion, evaluator-lift, or release claim.
 - `cb2dd13` completes the native host path begun by `f102756`:
   `run_host_composition` gives a host one bounded frozen snapshot; a private
   unregistered server seam, closed lineage/receipt provenance, graph-bound
