@@ -6,46 +6,41 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Preserve declared dependency closure under bounded context,
-then dogfood a real two-skill handoff without release claims.
+**Current focus:** Preserve graph, phase, and cache identity under bounded
+context, then dogfood real multi-skill handoffs without release claims.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `9210ff3` isolates bounded-harvest selection below source-size
-limits while preserving explicit all-active evidence; `92718cf` now passes
-reproducible package verification. 0.6.0 still requires real host/evaluator
-outcomes and a stronger real-task fixture corpus.
+**Status:** `b8dac3d` hardens graph closure, phase gates, cache identity, and
+bounded selection. 0.6.0 still requires real host/evaluator outcomes, a
+stronger real-task corpus, and resolution of current pre-CR size advisories.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Bounded harvest reads governing/active sources first, then keeps
-  scoped or discriminative active skills, one fallback when needed, and relevant
-  supporting evidence. Package and full-suite verification pass. Next: preserve
-  declared dependency closure, then prove a real multi-skill task.
+- **Status:** Graph closure and phase gates now survive recipes and recompile;
+  active reads rank before supporting material, preserve explicit named skills,
+  honor negative activation clauses, and defer uncertain large unions. The full
+  suite (921 tests, 3 skips), contracts, install, and compile checks pass. The
+  commit pre-CR timed out at 90 seconds with file-size advisories; next: review
+  those boundaries before an evaluator-backed multi-skill dogfood run.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
-- `217fb2b` extends `12de191` with shared low-signal evidence terms and
-  content-aware bounded harvest selection. Candidate reads protect governing and
-  active sources; default results retain scoped/discriminative active skills, a
-  fallback skill, and relevant supporting reads; explicit all-active mode keeps
-  every harvested active source. Fixture paths cannot consume active read budget,
-  and prepare exposes harvest diagnostics. Live dogfood selected one active TMCP
-  skill plus nine supporting reads at 2,872 of 74,113 naïve tokens (3.88%).
-  `9210ff3` moves that policy into a dedicated domain seam, keeps touched files
-  below the 600/900-line limits, moves MCP prepare coverage to a focused test,
-  and adds it to package inventories. `fc701f7` refreshes the frozen public
-  contract for the earlier additive receipt-provenance schema. The clean
-  reproducible package check passes archive, compile, install, composition
-  smoke, reproducibility, and 867 installed tests (4 skips); the local full
-  suite passes 867 tests (3 skips). Both code-commit pre-CR runs timed out at
-  90 seconds; the second had no source-size findings. This is hardening, not
-  release evidence.
+- `b8dac3d` hardens graph-aware composition: declared dependency closure and
+  phase gates survive recompile and project recipes; canonical bounded seed
+  normalization keeps cache-derived metadata aligned; and active reads rank
+  before supporting material. Explicit multiword skill names outrank generic
+  terms, negative clauses suppress prohibited activation, and uncertain large
+  pools are surfaced rather than silently activated. Full suite (921 tests,
+  3 skips), contracts, install, and compile passed. The commit pre-CR reached
+  its configured 90-second timeout and reported file-size advisories, so this
+  is compiler hardening—not a receipt, promotion, evaluator-lift, or release
+  claim.
 - `cb2dd13` completes the native host path begun by `f102756`:
   `run_host_composition` gives a host one bounded frozen snapshot; a private
   unregistered server seam, closed lineage/receipt provenance, graph-bound
