@@ -13,9 +13,9 @@ release claims.
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `217fb2b` makes bounded harvest selection content-aware while
-preserving explicit all-active evidence. 0.6.0 still requires a clean source
-split, real host/evaluator outcomes, and a stronger real-task fixture corpus.
+**Status:** `9210ff3` isolates bounded-harvest selection below source-size
+limits while preserving explicit all-active evidence. 0.6.0 still requires
+real host/evaluator outcomes and a stronger real-task fixture corpus.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -25,7 +25,7 @@ split, real host/evaluator outcomes, and a stronger real-task fixture corpus.
 - **Status:** Bounded harvest now reads governing/active sources first, then
   keeps scoped or discriminative active skills, one active fallback when needed,
   and relevant supporting evidence. Explicit all-active mode stays strict. Live
-  dogfood is low-context; next: split the new seam to clear source-size gates,
+  dogfood is low-context; next: complete direct package/full-suite verification,
   then prove a real multi-skill task.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
@@ -37,9 +37,12 @@ split, real host/evaluator outcomes, and a stronger real-task fixture corpus.
   fallback skill, and relevant supporting reads; explicit all-active mode keeps
   every harvested active source. Fixture paths cannot consume active read budget,
   and prepare exposes harvest diagnostics. Live dogfood selected one active TMCP
-  skill plus nine supporting reads at 2,872 of 74,113 naïve tokens (3.88%). 110
-  focused tests and contract/install/compile checks pass. The 90-second pre-CR
-  gate timed out and flagged source-size splits; this is not release evidence.
+  skill plus nine supporting reads at 2,872 of 74,113 naïve tokens (3.88%).
+  `9210ff3` moves that policy into a dedicated domain seam, keeps touched files
+  below the 600/900-line limits, moves MCP prepare coverage to a focused test,
+  and adds it to package inventories. 99 focused tests and contract/install/
+  compile checks pass. Both code-commit pre-CR runs timed out at 90 seconds;
+  the second had no source-size findings. This is not release evidence.
 - `cb2dd13` completes the native host path begun by `f102756`:
   `run_host_composition` gives a host one bounded frozen snapshot; a private
   unregistered server seam, closed lineage/receipt provenance, graph-bound
@@ -431,5 +434,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_tmcp_composition_foundation tests.test_tmcp_mcp_server
+python3 scripts/check_release_package.py . --verify-reproducible
 ```
