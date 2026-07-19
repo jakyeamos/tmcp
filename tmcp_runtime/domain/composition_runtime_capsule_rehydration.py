@@ -15,7 +15,7 @@ from .composition_runtime_capsules import (
     _task_identity_projection,
     validate_runtime_capsule,
 )
-from .harvest_nodes import normalized_source_content
+from .harvest_nodes import content_digest_for, normalized_source_content
 
 
 def _rehydration_issue(code: str, descriptor: Mapping[str, Any]) -> dict[str, Any]:
@@ -47,6 +47,148 @@ def _matches_cited_descriptor(
             "relative_path",
             "behavior_atoms",
         )
+    )
+
+
+def _fresh_slice_matches_descriptor(
+    source_slice: Mapping[str, Any], descriptor: Mapping[str, Any]
+) -> bool:
+    """Match fresh evidence to a closed recipe descriptor, never its locator."""
+
+    content = source_slice.get("content")
+    if not isinstance(content, str) or not normalized_source_content(content):
+        return False
+    if content_digest_for(content) != descriptor["slice_digest"]:
+        return False
+    atoms = source_slice.get("behavior_atoms")
+    if not isinstance(atoms, list) or atoms != descriptor["behavior_atoms"]:
+        return False
+    return all(
+        source_slice.get(field) == descriptor[field]
+        for field in (
+            "source_role",
+            "source_digest",
+            "slice_digest",
+            "char_start",
+            "char_end",
+            "relative_path",
+        )
+    )
+
+
+def _fresh_alias_source_is_consistent(
+    source_slice: Mapping[str, Any], descriptor: Mapping[str, Any]
+) -> bool:
+    """Allow other chunks only when they belong to the same closed source."""
+
+    content = source_slice.get("content")
+    atoms = source_slice.get("behavior_atoms")
+    if (
+        not isinstance(content, str)
+        or not normalized_source_content(content)
+        or content_digest_for(content) != source_slice.get("slice_digest")
+        or not isinstance(atoms, list)
+    ):
+        return False
+    return all(
+        source_slice.get(field) == descriptor[field]
+        for field in ("source_role", "source_digest", "relative_path", "behavior_atoms")
+    )
+
+
+def replay_preflight_with_recipe_aliases(
+    preflight: Mapping[str, Any], runtime_capsule: Mapping[str, Any]
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    """Restore original node and slice identities for one content-bound rename.
+
+    A reviewed recipe owns graph node identifiers, while a fresh harvest may
+    assign new locators after a checkout or root relocation. The closed runtime
+    capsule supplies the only permitted alias evidence. We fail closed for
+    duplicate candidates, changed content, or a fresh source that would collide
+    with a different original graph node.
+    """
+
+    raw_slices = preflight.get("candidate_source_slices")
+    if not isinstance(raw_slices, list) or any(
+        not isinstance(item, Mapping) for item in raw_slices
+    ):
+        raise ValueError("Project recipe current source slices are malformed.")
+    fresh_slices = [dict(item) for item in raw_slices]
+    aliases: list[dict[str, str]] = []
+    alias_by_fresh_id: dict[str, str] = {}
+    descriptor_by_fresh_id: dict[str, Mapping[str, Any]] = {}
+    owners_by_fresh_id: dict[str, str] = {}
+
+    for descriptor in runtime_capsule["cited_source_slices"]:
+        matches = [
+            source_slice
+            for source_slice in fresh_slices
+            if _fresh_slice_matches_descriptor(source_slice, descriptor)
+        ]
+        original_node_id = str(descriptor["original_node_id"])
+        exact = [
+            source_slice
+            for source_slice in matches
+            if str(source_slice.get("source_node_id") or "") == original_node_id
+        ]
+        if len(exact) == 1:
+            match = exact[0]
+        elif len(exact) > 1 or len(matches) > 1:
+            raise ValueError("Project recipe cited source aliases are ambiguous.")
+        elif not matches:
+            raise ValueError("Project recipe is stale for current cited source slices.")
+        else:
+            match = matches[0]
+        fresh_node_id = str(match.get("source_node_id") or "").strip()
+        if not fresh_node_id:
+            raise ValueError("Project recipe current source slices are malformed.")
+        previous_owner = owners_by_fresh_id.get(fresh_node_id)
+        if previous_owner is not None and previous_owner != original_node_id:
+            raise ValueError("Project recipe cited source aliases are ambiguous.")
+        owners_by_fresh_id[fresh_node_id] = original_node_id
+        if fresh_node_id != original_node_id:
+            alias_by_fresh_id[fresh_node_id] = original_node_id
+            descriptor_by_fresh_id.setdefault(fresh_node_id, descriptor)
+
+    for fresh_node_id, original_node_id in alias_by_fresh_id.items():
+        descriptor = descriptor_by_fresh_id[fresh_node_id]
+        for source_slice in fresh_slices:
+            node_id = str(source_slice.get("source_node_id") or "").strip()
+            if node_id == fresh_node_id and not _fresh_alias_source_is_consistent(
+                source_slice, descriptor
+            ):
+                raise ValueError("Project recipe is stale for current cited source slices.")
+            if node_id == original_node_id:
+                raise ValueError("Project recipe cited source aliases are ambiguous.")
+        aliases.append(
+            {"from_node_id": fresh_node_id, "to_node_id": original_node_id}
+        )
+
+    replay = deepcopy(dict(preflight))
+    replay_slices = replay.get("candidate_source_slices")
+    if not isinstance(replay_slices, list):
+        raise ValueError("Project recipe current source slices are malformed.")
+    for source_slice in replay_slices:
+        if not isinstance(source_slice, dict):
+            raise ValueError("Project recipe current source slices are malformed.")
+        original_node_id = alias_by_fresh_id.get(
+            str(source_slice.get("source_node_id") or "").strip()
+        )
+        if not original_node_id:
+            continue
+        source_slice["source_node_id"] = original_node_id
+        source_slice["slice_id"] = "slice-" + stable_digest(
+            [
+                source_slice.get("source_digest"),
+                source_slice.get("slice_digest"),
+                source_slice.get("char_start"),
+                source_slice.get("char_end"),
+                original_node_id,
+            ],
+            20,
+        )
+    return replay, sorted(
+        aliases, key=lambda item: (item["from_node_id"], item["to_node_id"])
     )
 
 

@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 import tmcp_runtime.services.recompile as recompile_service
+import tmcp_runtime.services.recompile_runtime_support as recompile_runtime_support
 from tmcp_runtime.domain.composition_runtime import advance_composition_runtime
 from tmcp_runtime.services.recompile import finalize_recompiled_packet
 from tests.test_tmcp_composition_runtime_handoff_enforcement import (
@@ -856,19 +857,6 @@ class TmcpRecompileServiceTests(unittest.TestCase):
         )
 
     def test_recompile_service_has_no_adapter_storage_or_io_imports(self) -> None:
-        source_path = Path(inspect.getfile(recompile_service))
-        tree = ast.parse(source_path.read_text(encoding="utf-8"))
-        imported_modules = {
-            node.module or ""
-            for node in ast.walk(tree)
-            if isinstance(node, ast.ImportFrom)
-        }
-        imported_modules.update(
-            alias.name
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Import)
-            for alias in node.names
-        )
         forbidden_prefixes = (
             "os",
             "pathlib",
@@ -882,14 +870,28 @@ class TmcpRecompileServiceTests(unittest.TestCase):
             "tmcp_runtime.services.recommendations",
             "tmcp_runtime.services.review",
         )
-
-        self.assertTrue(
-            all(
-                not module.startswith(prefix)
-                for module in imported_modules
-                for prefix in forbidden_prefixes
-            )
-        )
+        for module in (recompile_service, recompile_runtime_support):
+            with self.subTest(module=module.__name__):
+                source_path = Path(inspect.getfile(module))
+                tree = ast.parse(source_path.read_text(encoding="utf-8"))
+                imported_modules = {
+                    node.module or ""
+                    for node in ast.walk(tree)
+                    if isinstance(node, ast.ImportFrom)
+                }
+                imported_modules.update(
+                    alias.name
+                    for node in ast.walk(tree)
+                    if isinstance(node, ast.Import)
+                    for alias in node.names
+                )
+                self.assertTrue(
+                    all(
+                        not imported.startswith(prefix)
+                        for imported in imported_modules
+                        for prefix in forbidden_prefixes
+                    )
+                )
 
 
 if __name__ == "__main__":

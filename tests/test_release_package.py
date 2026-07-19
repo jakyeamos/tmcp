@@ -919,6 +919,10 @@ class ReleasePackageTests(unittest.TestCase):
             "tmcp_runtime/domain/composition_validation_conflicts.py",
             self.compiler.COMPILE_PATHS,
         )
+        self.assertIn(
+            "tmcp_runtime/services/recompile_runtime_support.py",
+            self.compiler.COMPILE_PATHS,
+        )
 
     def test_package_requires_git_worktree(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

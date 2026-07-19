@@ -189,6 +189,7 @@ REQUIRED_FILES = (
     "tmcp_runtime/services/project_recipes.py",
     "tmcp_runtime/services/receipts.py",
     "tmcp_runtime/services/recompile.py",
+    "tmcp_runtime/services/recompile_runtime_support.py",
     "tmcp_runtime/services/recompile_source_validation.py",
     "tmcp_runtime/services/recommendations.py",
     "tmcp_runtime/services/review.py",
