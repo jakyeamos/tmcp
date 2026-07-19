@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-lift-dispatch-bundle-v0.1.schema.json",
+  "title": "TMCP Composition Lift Dispatch Bundle v0.1",
+  "description": "Opaque audience-specific dispatches without campaign controller cells.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "audience",
+    "campaign_id",
+    "campaign_digest",
+    "source_control_plan",
+    "dispatches"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-lift-dispatch-bundle-v0.1"},
+    "audience": {"enum": ["runner", "judge"]},
+    "campaign_id": {"type": "string", "pattern": "^composition-lift-campaign-[a-f0-9]{20}$"},
+    "campaign_digest": {"$ref": "#/$defs/digest"},
+    "source_control_plan": {"$ref": "#/$defs/source_control_plan"},
+    "dispatches": {
+      "type": "array",
+      "minItems": 540,
+      "maxItems": 540,
+      "items": {
+        "oneOf": [
+          {"$ref": "#/$defs/runner_dispatch"},
+          {"$ref": "#/$defs/judge_dispatch"}
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"audience": {"const": "runner"}}, "required": ["audience"]},
+      "then": {"properties": {"dispatches": {"items": {"$ref": "#/$defs/runner_dispatch"}}}}
+    },
+    {
+      "if": {"properties": {"audience": {"const": "judge"}}, "required": ["audience"]},
+      "then": {"properties": {"dispatches": {"items": {"$ref": "#/$defs/judge_dispatch"}}}}
+    }
+  ],
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "source_control_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["control_plan_id", "control_plan_digest", "run_manifest_id", "run_manifest_digest"],
+      "properties": {
+        "control_plan_id": {"type": "string", "pattern": "^benchmark-control-[a-f0-9]{20}$"},
+        "control_plan_digest": {"$ref": "#/$defs/digest"},
+        "run_manifest_id": {"type": "string", "pattern": "^benchmark-run-[a-f0-9]{20}$"},
+        "run_manifest_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "runner_dispatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "runner_cell_id", "execution_input_ref", "instruction", "instruction_digest"],
+      "properties": {
+        "schema": {"const": "tmcp-composition-lift-runner-dispatch-v0.1"},
+        "runner_cell_id": {"type": "string", "pattern": "^composition-lift-runner-[a-f0-9]{20}$"},
+        "execution_input_ref": {"type": "string", "pattern": "^execution-input-[a-f0-9]{20}$"},
+        "instruction": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "instruction_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "judge_dispatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "blind_judge_cell_id", "artifact_slot_id", "quality_rubric", "quality_rubric_digest", "instruction", "instruction_digest"],
+      "properties": {
+        "schema": {"const": "tmcp-composition-lift-blind-judge-dispatch-v0.1"},
+        "blind_judge_cell_id": {"type": "string", "pattern": "^composition-lift-judge-[a-f0-9]{20}$"},
+        "artifact_slot_id": {"type": "string", "pattern": "^artifact-slot-[a-f0-9]{20}$"},
+        "quality_rubric": {"type": "object", "minProperties": 1},
+        "quality_rubric_digest": {"$ref": "#/$defs/digest"},
+        "instruction": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "instruction_digest": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

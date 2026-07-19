@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-lift-host-results-v0.1.schema.json",
+  "title": "TMCP Composition Lift Host Results v0.1",
+  "description": "Cell-level host artifacts bound to a preregistered composition-lift campaign.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "campaign_id",
+    "campaign_digest",
+    "source_control_plan",
+    "evidence_class",
+    "blocks"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-lift-host-results-v0.1"},
+    "campaign_id": {"type": "string", "pattern": "^composition-lift-campaign-[a-f0-9]{20}$"},
+    "campaign_digest": {"$ref": "#/$defs/digest"},
+    "source_control_plan": {"$ref": "#/$defs/source_control_plan"},
+    "evidence_class": {"enum": ["host_executed", "synthetic_test"]},
+    "blocks": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"$ref": "#/$defs/block"}
+    }
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "id20": {"type": "string", "pattern": "^[a-f0-9]{20}$"},
+    "source_control_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control_plan_id",
+        "control_plan_digest",
+        "run_manifest_id",
+        "run_manifest_digest"
+      ],
+      "properties": {
+        "control_plan_id": {"type": "string", "pattern": "^benchmark-control-[a-f0-9]{20}$"},
+        "control_plan_digest": {"$ref": "#/$defs/digest"},
+        "run_manifest_id": {"type": "string", "pattern": "^benchmark-run-[a-f0-9]{20}$"},
+        "run_manifest_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["block_id", "fixture_id", "cells"],
+      "properties": {
+        "block_id": {"type": "string", "pattern": "^composition-lift-block-[a-f0-9]{20}$"},
+        "fixture_id": {"type": "string", "minLength": 1},
+        "cells": {
+          "type": "array",
+          "minItems": 108,
+          "maxItems": 108,
+          "items": {"$ref": "#/$defs/cell"}
+        }
+      }
+    },
+    "cell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cell_id",
+        "runner_cell_id",
+        "blind_judge_cell_id",
+        "execution_input_ref",
+        "runner_dispatch_digest",
+        "configuration_slot",
+        "replicate_index",
+        "run_id",
+        "outcome",
+        "artifact",
+        "evidence"
+      ],
+      "properties": {
+        "cell_id": {"type": "string", "pattern": "^composition-lift-cell-[a-f0-9]{20}$"},
+        "runner_cell_id": {"type": "string", "pattern": "^composition-lift-runner-[a-f0-9]{20}$"},
+        "blind_judge_cell_id": {"type": "string", "pattern": "^composition-lift-judge-[a-f0-9]{20}$"},
+        "execution_input_ref": {"type": "string", "pattern": "^execution-input-[a-f0-9]{20}$"},
+        "runner_dispatch_digest": {"$ref": "#/$defs/digest"},
+        "configuration_slot": {"type": "integer", "minimum": 1, "maximum": 3},
+        "replicate_index": {"type": "integer", "minimum": 1, "maximum": 2},
+        "run_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "outcome": {"const": "passed"},
+        "artifact": {"type": "string", "minLength": 1, "maxLength": 16000},
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {"$ref": "#/$defs/evidence"}
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["media_type", "content"],
+      "properties": {
+        "media_type": {"type": "string", "minLength": 1, "maxLength": 512},
+        "content": {"type": "string", "minLength": 1, "maxLength": 8000}
+      }
+    }
+  }
+}

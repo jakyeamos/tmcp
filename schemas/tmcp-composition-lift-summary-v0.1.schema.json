@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-lift-summary-v0.1.schema.json",
+  "title": "TMCP Composition Lift Summary v0.1",
+  "description": "Advisory repeated-cell quality-lift summary; not a release receipt.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "campaign_id",
+    "campaign_digest",
+    "eligible",
+    "failed_checks",
+    "acceptance_checks",
+    "thresholds",
+    "evidence_class",
+    "evaluator_execution_class",
+    "quality_metrics",
+    "fixture_count",
+    "cell_counts",
+    "fixtures",
+    "proof_scope",
+    "evidence_trust"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-lift-summary-v0.1"},
+    "campaign_id": {"type": "string", "pattern": "^composition-lift-campaign-[a-f0-9]{20}$"},
+    "campaign_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "eligible": {"type": "boolean"},
+    "failed_checks": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "acceptance_checks": {"type": "object", "additionalProperties": {"type": "boolean"}},
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}
+    },
+    "evidence_class": {"enum": ["host_executed", "synthetic_test"]},
+    "evaluator_execution_class": {"enum": ["trusted_evaluator_execution", "synthetic_test"]},
+    "quality_metrics": {
+      "type": "object",
+      "additionalProperties": {"type": "number", "minimum": -1, "maximum": 1}
+    },
+    "fixture_count": {"const": 5},
+    "cell_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseline", "causal", "total"],
+      "properties": {
+        "baseline": {"const": 180},
+        "causal": {"const": 360},
+        "total": {"const": 540}
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "fixture_id",
+          "causal_cell_count",
+          "variant_median_quality",
+          "paired_replicate_count",
+          "lift_metrics",
+          "leave_one_out_lifts"
+        ],
+        "properties": {
+          "fixture_id": {"type": "string", "minLength": 1},
+          "causal_cell_count": {"const": 72},
+          "variant_median_quality": {"type": "object", "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}},
+          "paired_replicate_count": {"const": 6},
+          "lift_metrics": {"type": "object", "additionalProperties": {"type": "number", "minimum": -1, "maximum": 1}},
+          "leave_one_out_lifts": {"type": "object", "additionalProperties": {"type": "number", "minimum": -1, "maximum": 1}}
+        }
+      }
+    },
+    "proof_scope": {"type": "string", "minLength": 1},
+    "evidence_trust": {"const": "advisory_untrusted"}
+  }
+}

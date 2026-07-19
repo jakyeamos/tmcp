@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-lift-evaluator-artifacts-v0.1.schema.json",
+  "title": "TMCP Composition Lift Evaluator Artifacts v0.1",
+  "description": "Cell-level blind-judge evidence bound to a preregistered composition-lift campaign.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "campaign_id",
+    "campaign_digest",
+    "source_control_plan",
+    "evaluator_execution",
+    "blocks"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-lift-evaluator-artifacts-v0.1"},
+    "campaign_id": {"type": "string", "pattern": "^composition-lift-campaign-[a-f0-9]{20}$"},
+    "campaign_digest": {"$ref": "#/$defs/digest"},
+    "source_control_plan": {"$ref": "#/$defs/source_control_plan"},
+    "evaluator_execution": {"$ref": "#/$defs/evaluator_execution"},
+    "blocks": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"$ref": "#/$defs/block"}
+    }
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "source_control_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control_plan_id",
+        "control_plan_digest",
+        "run_manifest_id",
+        "run_manifest_digest"
+      ],
+      "properties": {
+        "control_plan_id": {"type": "string", "pattern": "^benchmark-control-[a-f0-9]{20}$"},
+        "control_plan_digest": {"$ref": "#/$defs/digest"},
+        "run_manifest_id": {"type": "string", "pattern": "^benchmark-run-[a-f0-9]{20}$"},
+        "run_manifest_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "evaluator_execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["execution_class", "executor_id", "execution_id", "executed_at"],
+      "properties": {
+        "execution_class": {"enum": ["trusted_evaluator_execution", "synthetic_test"]},
+        "executor_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "execution_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "executed_at": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["block_id", "fixture_id", "cells"],
+      "properties": {
+        "block_id": {"type": "string", "pattern": "^composition-lift-block-[a-f0-9]{20}$"},
+        "fixture_id": {"type": "string", "minLength": 1},
+        "cells": {
+          "type": "array",
+          "minItems": 108,
+          "maxItems": 108,
+          "items": {"$ref": "#/$defs/cell"}
+        }
+      }
+    },
+    "cell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cell_id",
+        "blind_judge_cell_id",
+        "artifact_slot_id",
+        "blind_judge_dispatch_digest",
+        "configuration_slot",
+        "replicate_index",
+        "execution_artifact_digest",
+        "dimension_scores",
+        "evidence",
+        "dimension_evidence"
+      ],
+      "properties": {
+        "cell_id": {"type": "string", "pattern": "^composition-lift-cell-[a-f0-9]{20}$"},
+        "blind_judge_cell_id": {"type": "string", "pattern": "^composition-lift-judge-[a-f0-9]{20}$"},
+        "artifact_slot_id": {"type": "string", "pattern": "^artifact-slot-[a-f0-9]{20}$"},
+        "blind_judge_dispatch_digest": {"$ref": "#/$defs/digest"},
+        "configuration_slot": {"type": "integer", "minimum": 1, "maximum": 3},
+        "replicate_index": {"type": "integer", "minimum": 1, "maximum": 2},
+        "execution_artifact_digest": {"$ref": "#/$defs/digest"},
+        "dimension_scores": {
+          "type": "object",
+          "minProperties": 3,
+          "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {"$ref": "#/$defs/evidence"}
+        },
+        "dimension_evidence": {
+          "type": "object",
+          "minProperties": 3,
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 16,
+            "items": {"$ref": "#/$defs/dimension_evidence"}
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "media_type", "content"],
+      "properties": {
+        "evidence_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "media_type": {"type": "string", "minLength": 1, "maxLength": 512},
+        "content": {"type": "string", "minLength": 1, "maxLength": 8000}
+      }
+    },
+    "dimension_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirement", "evidence_ids", "claim"],
+      "properties": {
+        "requirement": {"type": "string", "minLength": 1, "maxLength": 8000},
+        "evidence_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 512}
+        },
+        "claim": {"type": "string", "minLength": 1, "maxLength": 8000}
+      }
+    }
+  }
+}

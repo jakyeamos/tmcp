@@ -40,12 +40,61 @@ makes no model or tool calls and writes neither campaign artifacts nor receipts.
 The campaign is not behavioral evidence and remains `pilot_only` with
 `causal_claim_status: not_evaluated` until separately executed and scored.
 
+The campaign's 540 cells are intentionally carried by separate experimental
+cell-result contracts. The ordinary benchmark host/evaluator artifacts collapse
+one result per variant, which is sufficient for the release benchmark but cannot
+prove the campaign's three configuration slots and two replicates. A host
+supervisor therefore returns one cell in
+`tmcp-composition-lift-host-results-v0.1` for every opaque runner dispatch, and a
+blind evaluator returns one cell in
+`tmcp-composition-lift-evaluator-artifacts-v0.1` for every judge dispatch. Each
+cell binds its dispatch digest, slot/replicate coordinate, artifact digest, and
+rubric evidence. TMCP rejects missing cells, duplicate cells, crossed campaign
+digests, dispatch drift, host/evaluator artifact mismatches, rubric omissions,
+and secret-like evidence before scoring.
+
+Score the completed cell bundle with:
+
+```bash
+python3 scripts/score_composition_lift_campaign.py \
+  --campaign path/to/composition-lift-campaign.json \
+  --host-results path/to/composition-lift-host-results.json \
+  --evaluator-artifacts path/to/composition-lift-evaluator-artifacts.json
+```
+
+The scorer computes matched full-versus-singleton, naïve-union, and wrong-order
+differences for all six slot/replicate pairs in each fixture, then reports the
+median lift. Synthetic test classes remain useful for contract tests but always
+fail the real-host and trusted-evaluator eligibility checks. The summary is
+advisory lift evidence only; routing recall, provenance, context residency,
+safety, receipts, promotion, and release admissibility remain separate gates.
+
 Each of the five fixture blocks contains 36 baseline cells—no skill, naïve
 union, and four singletons across three configuration slots and two
 replicates—and 72 causal cells covering all twelve controls across the same
 slots and replicates. Bind a concrete host configuration explicitly and keep it
 matched within each comparator pair; TMCP reserves the slots but does not choose
 or run host configurations.
+
+To make the blind boundary operational, prepare one audience-specific bundle
+for each external process:
+
+```bash
+python3 scripts/prepare_composition_lift_dispatches.py \
+  --campaign path/to/composition-lift-campaign.json \
+  --audience runner \
+  --output-dir path/to/runner-dispatches
+
+python3 scripts/prepare_composition_lift_dispatches.py \
+  --campaign path/to/composition-lift-campaign.json \
+  --audience judge \
+  --output-dir path/to/judge-dispatches
+```
+
+The runner bundle contains only opaque execution references and the bounded
+runner instruction. The judge bundle contains only opaque artifact slots and
+the fixture rubric. Neither bundle contains controller cells, skill order,
+graph identity, or execution recipes.
 
 Controller cells retain condition identity, recipe, graph, and provenance for
 audit. Never send those cells to a runner or evaluator. Instead send only the
