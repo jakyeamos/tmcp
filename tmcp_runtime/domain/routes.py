@@ -7,8 +7,10 @@ from typing import Any, Callable
 
 from .task_facets import derive_intent_facets, lexical_term_matches
 
-ROUTE_CATALOG_VERSION = "2026-07-17.2"
+ROUTE_CATALOG_VERSION = "2026-07-18.1"
 ROUTE_SCORE_THRESHOLD = 2.0
+COMPOUND_ROUTE_TERM_SCORE = 2.0
+SINGLE_ROUTE_TERM_SCORE = 1.5
 MAX_SECONDARY_ROUTES = 6
 
 UI_FILE_SUFFIXES = (
@@ -210,6 +212,7 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
         "skill_composition",
         (
             "compositional intelligence",
+            "host-assisted composition",
             "skill composition",
             "skill graph",
             "skill packet",
@@ -451,7 +454,12 @@ def score_routes(
         ):
             matched_terms.remove("contrast")
         evidence = [f"objective: {term}" for term in matched_terms]
-        score = float(len(evidence)) * 1.5
+        score = sum(
+            COMPOUND_ROUTE_TERM_SCORE
+            if len(re.findall(r"[a-z0-9]+", term.lower())) >= 2
+            else SINGLE_ROUTE_TERM_SCORE
+            for term in matched_terms
+        )
         if route.context_boost is not None:
             boost, boost_evidence = route.context_boost(context)
             score += boost

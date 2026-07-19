@@ -26,6 +26,7 @@ def select_hydrated_behavior_blocks(
     target_hydration_tokens: int,
     governing_source_count: int,
     include_all_active_source_slices: bool = False,
+    objective_relevant_source_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """Select bounded behavior blocks with explicit context-budget exceptions.
 
@@ -45,6 +46,17 @@ def select_hydrated_behavior_blocks(
     required_active_context_overrides: list[str] = []
     total_chars = 0
     total_tokens = 0
+    relevant_source_ids = objective_relevant_source_ids or set()
+    restrict_to_objective_relevance = bool(relevant_source_ids) and not (
+        include_all_active_source_slices
+    )
+
+    def is_deferred_irrelevant(candidate: Mapping[str, Any]) -> bool:
+        return (
+            restrict_to_objective_relevance
+            and str(candidate.get("source_role") or "") != "governing_instruction"
+            and str(candidate.get("source_node_id") or "") not in relevant_source_ids
+        )
 
     def fits(candidate: Mapping[str, Any], *, enforce_target: bool) -> bool:
         content_size = len(str(candidate.get("content") or ""))
@@ -88,6 +100,7 @@ def select_hydrated_behavior_blocks(
         if (
             str(candidate.get("source_role") or "") != "active_skill"
             or source_node_id in represented_active_sources
+            or is_deferred_irrelevant(candidate)
             or not fits(candidate, enforce_target=True)
         ):
             continue
@@ -136,15 +149,20 @@ def select_hydrated_behavior_blocks(
         if (
             str(candidate.get("source_role") or "") != "supporting_reference"
             or source_node_id in represented_supporting_sources
+            or is_deferred_irrelevant(candidate)
             or not fits(candidate, enforce_target=True)
         ):
             continue
         select(candidate)
         represented_supporting_sources.add(source_node_id)
     for candidate in candidates:
-        if str(candidate.get("slice_id") or "") in selected_slice_ids or not fits(
+        if (
+            str(candidate.get("slice_id") or "") in selected_slice_ids
+            or is_deferred_irrelevant(candidate)
+            or not fits(
             candidate,
             enforce_target=True,
+            )
         ):
             continue
         select(candidate)

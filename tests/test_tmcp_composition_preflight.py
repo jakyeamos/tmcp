@@ -230,6 +230,45 @@ Produce a runtime provenance handoff with verified regression evidence.
         self.assertEqual(len(selected), 1)
         self.assertIn("runtime provenance handoff", selected[0]["content"])
 
+    def test_preflight_ranks_objective_relevance_before_generic_contracts(self) -> None:
+        preflight = ci.prepare_composition(
+            [
+                _node(
+                    "generic-contract",
+                    "skill_definition",
+                    "skills/generic/SKILL.md",
+                    "# Output Contract\n\nProduce a generic receipt and handoff.",
+                ),
+                _node(
+                    "host-composition",
+                    "skill_definition",
+                    "skills/host-composition/SKILL.md",
+                    "# Host-assisted composition\n\nFreeze the source snapshot and validate the cited skill graph.",
+                ),
+            ],
+            "Harden TMCP host-assisted composition with a cited skill graph.",
+            max_slices=3,
+            max_total_chars=2_000,
+            max_total_tokens=1_000,
+        )
+
+        selected = preflight["candidate_source_slices"]
+        self.assertEqual(len(selected), 1)
+        self.assertEqual(selected[0]["source_node_id"], "host-composition")
+        self.assertIn("Freeze the source snapshot", selected[0]["content"])
+        self.assertEqual(
+            preflight["diagnostics"]["semantic_evidence"][
+                "objective_relevant_source_ids"
+            ],
+            ["host-composition"],
+        )
+        self.assertEqual(
+            preflight["diagnostics"]["semantic_evidence"][
+                "deferred_irrelevant_source_count"
+            ],
+            1,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

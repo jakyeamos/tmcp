@@ -22,6 +22,27 @@ from .source_activation_projection import project_source_node_for_composition
 COMPOSITION_TRUST = "advisory_untrusted"
 DEFAULT_MAX_BEHAVIOR_BLOCKS_PER_SOURCE = 24
 SOURCE_DIGEST_BINDING_SCHEMA = "tmcp-composition-source-digest-binding-v0.1"
+PREFLIGHT_LOW_SIGNAL_TERMS = frozenset(
+    {
+        "automatic",
+        "effect",
+        "effects",
+        "execution",
+        "executions",
+        "leave",
+        "leaves",
+        "one",
+        "receipt",
+        "receipts",
+        "side",
+        "sides",
+        "source",
+        "sources",
+        "substantial",
+        "use",
+        "uses",
+    }
+)
 
 
 def json_list(value: object) -> list[Any]:
@@ -51,7 +72,9 @@ def stable_digest(value: object, length: int = 64) -> str:
 
 
 def _tokens(value: object) -> set[str]:
-    return composition_terms(str(value))
+    """Return terms that can justify bounded host-visible source evidence."""
+
+    return composition_terms(str(value)).difference(PREFLIGHT_LOW_SIGNAL_TERMS)
 
 
 def _source_content(node: dict[str, Any]) -> str:
@@ -258,7 +281,6 @@ def build_source_slices(
         node_candidates.sort(
             key=lambda candidate: (
                 int(_frontmatter_only_chunk(str(candidate["content"]))),
-                _behavior_chunk_priority(str(candidate["content"])),
                 -len(
                     objective_tokens.intersection(
                         _tokens(
@@ -274,6 +296,7 @@ def build_source_slices(
                         )
                     )
                 ),
+                _behavior_chunk_priority(str(candidate["content"])),
                 int(candidate["char_start"]),
                 str(candidate["slice_digest"]),
             )
@@ -310,6 +333,7 @@ def build_source_slices(
         for manifest in full_manifest_index["manifests"]
     }
     candidates: list[tuple[tuple[int, int, int, int, str, int], dict[str, Any]]] = []
+    objective_relevant_source_ids: set[str] = set()
     for candidate in raw_candidates:
         source_node_id = str(candidate["source_node_id"])
         manifest = manifests_by_source[source_node_id]
@@ -330,6 +354,8 @@ def build_source_slices(
             ]
         )
         relevance = len(objective_tokens.intersection(_tokens(signal)))
+        if relevance:
+            objective_relevant_source_ids.add(source_node_id)
         enriched = {
             **candidate,
             "behavior_manifest_id": manifest["manifest_id"],
@@ -343,8 +369,8 @@ def build_source_slices(
             -int(bool(candidate["mandatory"])),
             int(candidate["char_start"]) if candidate["mandatory"] else 0,
             int(_frontmatter_only_chunk(str(candidate["content"]))),
-            _behavior_chunk_priority(str(candidate["content"])),
             -relevance,
+            _behavior_chunk_priority(str(candidate["content"])),
             role_rank[str(candidate["source_role"])],
             str(candidate["relative_path"]),
             int(candidate["char_start"]),
@@ -377,6 +403,7 @@ def build_source_slices(
         target_hydration_tokens=target_hydration_tokens,
         governing_source_count=governing_source_count,
         include_all_active_source_slices=include_all_active_source_slices,
+        objective_relevant_source_ids=objective_relevant_source_ids,
     )
     selected = selection["selected"]
     total_chars = int(selection["total_chars"])
@@ -446,6 +473,17 @@ def build_source_slices(
                 }
             ),
             "selected_active_source_ids": selection["represented_active_source_ids"],
+            "objective_relevant_source_ids": sorted(objective_relevant_source_ids),
+            "deferred_irrelevant_source_count": len(
+                {
+                    str(candidate["source_node_id"])
+                    for _, candidate in candidates
+                    if str(candidate["source_node_id"]) not in selected_source_ids
+                    and str(candidate["source_node_id"])
+                    not in objective_relevant_source_ids
+                    and candidate["source_role"] != "governing_instruction"
+                }
+            ),
         },
         "limits": {
             "max_slices": max_slices,

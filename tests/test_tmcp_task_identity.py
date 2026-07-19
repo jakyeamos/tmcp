@@ -177,6 +177,18 @@ class TmcpRouteCatalogTests(unittest.TestCase):
             {item["route"] for item in score_routes("Run a skill evaluation.")},
         )
 
+    def test_single_compound_composition_signal_is_confident_but_narrow(self) -> None:
+        identity = derive_task_identity("Harden TMCP host-assisted composition.")
+
+        self.assertEqual(identity["primary"], "skill_composition")
+        self.assertEqual(identity["active_routes"], ["skill_composition"])
+        self.assertIn("implementation", identity["intent_facets"])
+        unrelated = derive_task_identity("Harden a host-assisted review workflow.")
+        self.assertNotIn(
+            "skill_composition",
+            unrelated["active_routes"],
+        )
+
     def test_scoped_seed_remains_a_separate_safe_identity_source(self) -> None:
         identity = derive_task_identity(
             "Review the readiness record.",

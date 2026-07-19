@@ -53,6 +53,8 @@ FACET_DEFINITIONS: tuple[tuple[str, tuple[str, ...]], ...] = (
             "draft",
             "patch",
             "fix",
+            "harden",
+            "hardening",
             "apply",
             "migrate",
             "ship",
