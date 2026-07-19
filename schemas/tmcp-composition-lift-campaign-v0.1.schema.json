@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-lift-campaign-v0.1.schema.json",
+  "title": "TMCP Composition Lift Campaign v0.1",
+  "description": "Pure, no-call pilot campaign derived from compiler-issued benchmark controls.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "campaign_mode",
+    "model_calls_authorized",
+    "automatic_tool_execution",
+    "receipt_persistence",
+    "causal_claim_status",
+    "source_control_plan",
+    "blocks",
+    "counts",
+    "campaign_digest",
+    "campaign_id"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-lift-campaign-v0.1"},
+    "campaign_mode": {"const": "pilot_only"},
+    "model_calls_authorized": {"const": false},
+    "automatic_tool_execution": {"const": false},
+    "receipt_persistence": {"const": "not_performed"},
+    "causal_claim_status": {"const": "not_evaluated"},
+    "source_control_plan": {"$ref": "#/$defs/source_control_plan"},
+    "blocks": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"$ref": "#/$defs/block"}
+    },
+    "counts": {"$ref": "#/$defs/counts"},
+    "campaign_digest": {"$ref": "#/$defs/digest"},
+    "campaign_id": {
+      "type": "string",
+      "pattern": "^composition-lift-campaign-[a-f0-9]{20}$"
+    }
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "source_control_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control_plan_id",
+        "control_plan_digest",
+        "run_manifest_id",
+        "run_manifest_digest"
+      ],
+      "properties": {
+        "control_plan_id": {
+          "type": "string",
+          "pattern": "^benchmark-control-[a-f0-9]{20}$"
+        },
+        "control_plan_digest": {"$ref": "#/$defs/digest"},
+        "run_manifest_id": {
+          "type": "string",
+          "pattern": "^benchmark-run-[a-f0-9]{20}$"
+        },
+        "run_manifest_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "block_count",
+        "baseline_cell_count",
+        "causal_cell_count",
+        "baseline_runner_cell_count",
+        "baseline_blind_judge_cell_count",
+        "causal_runner_cell_count",
+        "causal_blind_judge_cell_count"
+      ],
+      "properties": {
+        "block_count": {"const": 5},
+        "baseline_cell_count": {"const": 180},
+        "causal_cell_count": {"const": 360},
+        "baseline_runner_cell_count": {"const": 180},
+        "baseline_blind_judge_cell_count": {"const": 180},
+        "causal_runner_cell_count": {"const": 360},
+        "causal_blind_judge_cell_count": {"const": 360}
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "block_id",
+        "fixture_id",
+        "request_id",
+        "quality_rubric",
+        "quality_rubric_digest",
+        "baseline_cells",
+        "causal_cells",
+        "runner_dispatches",
+        "blind_judge_dispatches"
+      ],
+      "properties": {
+        "block_id": {"type": "string", "pattern": "^composition-lift-block-[a-f0-9]{20}$"},
+        "fixture_id": {"type": "string", "minLength": 1},
+        "request_id": {"type": "string", "minLength": 1},
+        "quality_rubric": {"$ref": "#/$defs/rubric"},
+        "quality_rubric_digest": {"$ref": "#/$defs/digest"},
+        "baseline_cells": {
+          "type": "array",
+          "minItems": 36,
+          "maxItems": 36,
+          "items": {"$ref": "#/$defs/baseline_cell"}
+        },
+        "causal_cells": {
+          "type": "array",
+          "minItems": 72,
+          "maxItems": 72,
+          "items": {"$ref": "#/$defs/causal_cell"}
+        },
+        "runner_dispatches": {
+          "type": "array",
+          "minItems": 108,
+          "maxItems": 108,
+          "items": {"$ref": "#/$defs/runner_dispatch"}
+        },
+        "blind_judge_dispatches": {
+          "type": "array",
+          "minItems": 108,
+          "maxItems": 108,
+          "items": {"$ref": "#/$defs/blind_judge_dispatch"}
+        }
+      }
+    },
+    "rubric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rubric_id", "version", "aggregation", "score_scale", "dimensions"],
+      "properties": {
+        "rubric_id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "aggregation": {"const": "weighted_mean"},
+        "score_scale": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minimum", "maximum", "higher_is_better"],
+          "properties": {
+            "minimum": {"const": 0},
+            "maximum": {"const": 1},
+            "higher_is_better": {"const": true}
+          }
+        },
+        "dimensions": {
+          "type": "array",
+          "minItems": 3,
+          "items": {"$ref": "#/$defs/rubric_dimension"}
+        }
+      }
+    },
+    "rubric_dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension_id", "weight", "criterion", "evidence_required"],
+      "properties": {
+        "dimension_id": {"type": "string", "minLength": 1},
+        "weight": {"type": "number", "minimum": 0, "maximum": 1},
+        "criterion": {"type": "string", "minLength": 1},
+        "evidence_required": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture_id",
+        "request_id",
+        "variant_id",
+        "input_packet_digest",
+        "execution_recipe_digest",
+        "source_composition_plan_digest",
+        "graph_digest",
+        "selected_skill_ids",
+        "ordered_skill_ids",
+        "quality_rubric_digest",
+        "source_control_plan_id",
+        "source_control_plan_digest",
+        "source_run_manifest_id",
+        "source_run_manifest_digest",
+        "binding_digest"
+      ],
+      "properties": {
+        "fixture_id": {"type": "string", "minLength": 1},
+        "request_id": {"type": "string", "minLength": 1},
+        "variant_id": {"type": "string", "minLength": 1},
+        "input_packet_digest": {"$ref": "#/$defs/digest"},
+        "execution_recipe_digest": {"$ref": "#/$defs/digest"},
+        "source_composition_plan_digest": {"$ref": "#/$defs/digest"},
+        "graph_digest": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+        "selected_skill_ids": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "ordered_skill_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "quality_rubric_digest": {"$ref": "#/$defs/digest"},
+        "source_control_plan_id": {
+          "type": "string",
+          "pattern": "^benchmark-control-[a-f0-9]{20}$"
+        },
+        "source_control_plan_digest": {"$ref": "#/$defs/digest"},
+        "source_run_manifest_id": {
+          "type": "string",
+          "pattern": "^benchmark-run-[a-f0-9]{20}$"
+        },
+        "source_run_manifest_digest": {"$ref": "#/$defs/digest"},
+        "binding_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "runner_dispatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "runner_cell_id", "execution_input_ref", "instruction", "instruction_digest"],
+      "properties": {
+        "schema": {"const": "tmcp-composition-lift-runner-dispatch-v0.1"},
+        "runner_cell_id": {"type": "string", "pattern": "^composition-lift-runner-[a-f0-9]{20}$"},
+        "execution_input_ref": {"type": "string", "pattern": "^execution-input-[a-f0-9]{20}$"},
+        "instruction": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "instruction_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "blind_judge_dispatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "blind_judge_cell_id",
+        "artifact_slot_id",
+        "quality_rubric",
+        "quality_rubric_digest",
+        "instruction",
+        "instruction_digest"
+      ],
+      "properties": {
+        "schema": {"const": "tmcp-composition-lift-blind-judge-dispatch-v0.1"},
+        "blind_judge_cell_id": {"type": "string", "pattern": "^composition-lift-judge-[a-f0-9]{20}$"},
+        "artifact_slot_id": {"type": "string", "pattern": "^artifact-slot-[a-f0-9]{20}$"},
+        "quality_rubric": {"$ref": "#/$defs/rubric"},
+        "quality_rubric_digest": {"$ref": "#/$defs/digest"},
+        "instruction": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "instruction_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "baseline_cell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cell_id",
+        "configuration_slot",
+        "replicate_index",
+        "binding",
+        "runner_cell_id",
+        "blind_judge_cell_id"
+      ],
+      "properties": {
+        "cell_id": {"type": "string", "pattern": "^composition-lift-cell-[a-f0-9]{20}$"},
+        "configuration_slot": {"type": "integer", "minimum": 1, "maximum": 3},
+        "replicate_index": {"type": "integer", "minimum": 1, "maximum": 2},
+        "binding": {"$ref": "#/$defs/binding"},
+        "runner_cell_id": {"type": "string", "pattern": "^composition-lift-runner-[a-f0-9]{20}$"},
+        "blind_judge_cell_id": {"type": "string", "pattern": "^composition-lift-judge-[a-f0-9]{20}$"}
+      }
+    },
+    "causal_cell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cell_id",
+        "configuration_slot",
+        "replicate_index",
+        "binding",
+        "comparator_cell_id",
+        "runner_cell_id",
+        "blind_judge_cell_id"
+      ],
+      "properties": {
+        "cell_id": {"type": "string", "pattern": "^composition-lift-cell-[a-f0-9]{20}$"},
+        "configuration_slot": {"type": "integer", "minimum": 1, "maximum": 3},
+        "replicate_index": {"type": "integer", "minimum": 1, "maximum": 2},
+        "binding": {"$ref": "#/$defs/binding"},
+        "comparator_cell_id": {"type": "string", "pattern": "^composition-lift-cell-[a-f0-9]{20}$"},
+        "runner_cell_id": {"type": "string", "pattern": "^composition-lift-runner-[a-f0-9]{20}$"},
+        "blind_judge_cell_id": {"type": "string", "pattern": "^composition-lift-judge-[a-f0-9]{20}$"}
+      }
+    }
+  }
+}

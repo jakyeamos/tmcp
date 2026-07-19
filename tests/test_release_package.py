@@ -884,6 +884,18 @@ class ReleasePackageTests(unittest.TestCase):
 
     def test_release_compile_includes_runtime_continuation_module(self) -> None:
         self.assertIn(
+            "scripts/plan_composition_lift_campaign.py",
+            self.compiler.COMPILE_PATHS,
+        )
+        self.assertIn(
+            "tmcp_runtime/domain/composition_lift_campaign.py",
+            self.compiler.COMPILE_PATHS,
+        )
+        self.assertIn(
+            "tmcp_runtime/domain/composition_lift_campaign_support.py",
+            self.compiler.COMPILE_PATHS,
+        )
+        self.assertIn(
             "tmcp_runtime/domain/composition_runtime_continuations.py",
             self.compiler.COMPILE_PATHS,
         )

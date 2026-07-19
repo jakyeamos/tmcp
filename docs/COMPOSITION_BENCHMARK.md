@@ -20,6 +20,39 @@ replay, and derives weighted quality from evaluator dimension scores. A host
 does report an advisory execution-context mode and opaque context-instance IDs;
 TMCP validates those only against compiler-issued capsule digests.
 
+## Preregistering a composition-lift campaign
+
+Before any host or evaluator work, derive a no-call campaign only from the five
+bound replay inputs:
+
+```bash
+python3 scripts/plan_composition_lift_campaign.py \
+  --control-plan path/to/benchmark-control-plan.json \
+  --run-plan path/to/benchmark-run-plan.json \
+  --semantic-proposals path/to/semantic-proposals.json \
+  --routing-golden tests/fixtures/composition_routing_golden_v0_6.json \
+  --behavioral-fixtures tests/fixtures/composition_behavioral_fixtures_v0_6.json
+```
+
+The command schema-validates and replay-validates all five inputs before
+printing a `tmcp-composition-lift-campaign-v0.1` object to standard output. It
+makes no model or tool calls and writes neither campaign artifacts nor receipts.
+The campaign is not behavioral evidence and remains `pilot_only` with
+`causal_claim_status: not_evaluated` until separately executed and scored.
+
+Each of the five fixture blocks contains 36 baseline cells—no skill, naïve
+union, and four singletons across three configuration slots and two
+replicates—and 72 causal cells covering all twelve controls across the same
+slots and replicates. Bind a concrete host configuration explicitly and keep it
+matched within each comparator pair; TMCP reserves the slots but does not choose
+or run host configurations.
+
+Controller cells retain condition identity, recipe, graph, and provenance for
+audit. Never send those cells to a runner or evaluator. Instead send only the
+block's opaque `runner_dispatches` to runners and `blind_judge_dispatches` to
+judges; the latter carry the exact quality rubric while neither dispatch surface
+contains a condition label, skill order, graph, or execution recipe.
+
 Run the final two steps with every bound artifact:
 
 ```bash

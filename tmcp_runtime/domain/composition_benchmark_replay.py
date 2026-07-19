@@ -138,6 +138,9 @@ def build_benchmark_control_plan(
         fixture = fixtures.get(fixture_id)
         if fixture is None:
             raise ValueError(f"Unknown behavioral fixture {fixture_id}.")
+        rubric = fixture.get("quality_rubric")
+        if not isinstance(rubric, Mapping):
+            raise ValueError(f"{fixture_id} is missing its quality rubric.")
         preflight, packet = _replay_packet(
             fixture=fixture,
             request=request,
@@ -154,6 +157,8 @@ def build_benchmark_control_plan(
                 "request_id": request["request_id"],
                 "selected_skill_ids": selected_skill_ids,
                 "ordered_skill_ids": list(selected_skill_ids),
+                "quality_rubric": dict(rubric),
+                "quality_rubric_digest": stable_digest(dict(rubric)),
                 "source_bindings": source_bindings,
                 "ordering_edges": [
                     {"source_skill_id": source, "target_skill_id": target}
