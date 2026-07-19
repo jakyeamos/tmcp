@@ -6,37 +6,40 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Keep shared-term skill selection low-context from harvest
-through hydration, then prove a real multi-skill task without release claims.
+**Current focus:** Keep shared-term skill selection low-context through
+harvested candidate/result ordering, then prove a real multi-skill task without
+release claims.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `cb2dd13` adds native host intake and `12de191` makes active-source
-selection content-discriminative while preserving scoped evidence. 0.6.0 still
-requires pre-harvest ranking hardening, real host/evaluator outcomes, and a
-stronger real-task fixture corpus.
+**Status:** `217fb2b` makes bounded harvest selection content-aware while
+preserving explicit all-active evidence. 0.6.0 still requires a clean source
+split, real host/evaluator outcomes, and a stronger real-task fixture corpus.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** Shared-only active skills now defer behind content-backed unique
-  evidence, while scoped seeds and explicit sources stay available. Live dogfood
-  still loses supporting sources under a low harvest limit due `effects`/`side`
-  ranking noise; next: share that low-signal policy before harvest limiting.
+- **Status:** Bounded harvest now reads governing/active sources first, then
+  keeps scoped or discriminative active skills, one active fallback when needed,
+  and relevant supporting evidence. Explicit all-active mode stays strict. Live
+  dogfood is low-context; next: split the new seam to clear source-size gates,
+  then prove a real multi-skill task.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
-- `12de191` extends `3ad9a1b` with content-backed discriminative active-source
-  selection: shared-only skills defer, while governing sources, supporting
-  reads, scoped seeds, explicit scopes, and all-active evidence stay intact.
-  Empty active sources diagnose safely and block all-active evidence. The live
-  host prompt now selects one active TMCP skill and defers nine shared-only ones
-  at 2,964 of 63,217 naïve tokens. 27 focused tests and contracts pass; the
-  90-second pre-CR gate timed out, so full-suite follow-up remains required.
+- `217fb2b` extends `12de191` with shared low-signal evidence terms and
+  content-aware bounded harvest selection. Candidate reads protect governing and
+  active sources; default results retain scoped/discriminative active skills, a
+  fallback skill, and relevant supporting reads; explicit all-active mode keeps
+  every harvested active source. Fixture paths cannot consume active read budget,
+  and prepare exposes harvest diagnostics. Live dogfood selected one active TMCP
+  skill plus nine supporting reads at 2,872 of 74,113 naïve tokens (3.88%). 110
+  focused tests and contract/install/compile checks pass. The 90-second pre-CR
+  gate timed out and flagged source-size splits; this is not release evidence.
 - `cb2dd13` completes the native host path begun by `f102756`:
   `run_host_composition` gives a host one bounded frozen snapshot; a private
   unregistered server seam, closed lineage/receipt provenance, graph-bound
@@ -428,5 +431,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_tmcp_harvest_ranking
+python3 -m unittest tests.test_tmcp_composition_foundation tests.test_tmcp_mcp_server
 ```
