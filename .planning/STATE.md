@@ -6,27 +6,27 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Rehydrate compiler-issued capsules from one fresh harvest,
-preserve phase progress only through protected sessions, and keep 0.5.7 active
-until externally observed 0.6 evidence is admissible.
+**Current focus:** Preserve host-assisted graph lineage through recompile and
+shipped packages while pruning shared-term active skills before a real-task pilot.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `f102756` freezes cache-free host composition, and `3ad9a1b`
-dogfood-hardens task routing plus bounded source selection. Runtime, package,
-and benchmark-contract hardening remain complete; 0.6.0 still requires real
-host/evaluator outcomes and a stronger real-task fixture corpus.
+**Status:** `3ad9a1b` hardens routing and bounded source selection; `cb2dd13`
+adds native one-harvest host intake and provenance-preserving recompilation.
+0.6.0 still requires real host/evaluator outcomes, discriminative selection,
+and a stronger real-task fixture corpus.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** The substantial compiler hardening prompt now resolves to the
-  `skill_composition` route and exposes one active TMCP skill plus bounded
-  supporting evidence. Next: wire the frozen intake into a host path, retain
-  assisted provenance through recompile, then add a non-release real-task pilot.
+- **Status:** Native host composition now uses one frozen snapshot and keeps
+  advisory origin lineage through recompile and extracted-package smoke. Live
+  dogfood still over-selects skills sharing `harvest`/`runtime`; next: defer
+  shared-only active matches deterministically, then run a non-release real-task
+  pilot.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -39,16 +39,14 @@ host/evaluator outcomes and a stronger real-task fixture corpus.
   `skills/tmcp/SKILL.md` slice with bounded supporting sources (2,952 of 53,206
   naïve tokens); no receipt, evaluator outcome, promotion, or release claim was
   written. 164 focused tests and contracts pass.
-- `f102756` adds `prepare_host_composition` /
-  `compose_host_composition`: an in-memory host gets bounded preflight slices
-  while TMCP freezes the exact request/source/preflight snapshot, forces
-  `cache_policy=none`, and records no tool execution, receipt, session, or
-  recipe side effect. Direct non-project compose now rejects a supplied
-  preflight whose objective, controls, or source snapshot changed. Focused
-  host/compose/runtime/public-contract tests (84), schema contracts, and MCP
-  tests pass. A live intake on this hardening task remained `general_task` and
-  ranked generic skill output-contract slices, so it is diagnostic evidence,
-  not a performance receipt or release claim.
+- `cb2dd13` completes the native host path begun by `f102756`:
+  `run_host_composition` gives a host one bounded frozen snapshot; a private
+  unregistered server seam, closed lineage/receipt provenance, graph-bound
+  recompile statuses, strict redaction, and extracted-package smoke preserve it.
+  `cache_policy=none`, no automatic tool execution, and no receipt persistence
+  remain enforced. Focused tests (119), contracts/install/compile, and required
+  pre-CR full tests pass. This proves runtime/package wiring, not host quality,
+  evaluator lift, promotion, or release readiness.
 - `b2e85d8` and `d316542` close the compositional-runtime hardening slice:
   canonical source roles and safe activation, source-backed semantic graphs,
   phase/runtime capsules, session-only continuation replay, recipe rehydration,
@@ -432,5 +430,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_release_evidence tests.test_release_package
+python3 -m unittest tests.test_tmcp_composition_preflight
 ```
