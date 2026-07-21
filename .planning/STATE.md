@@ -12,7 +12,8 @@ preregistered composition-lift campaign only with explicit host/evaluator author
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `4c634e4` records the proposal-activation delta diagnostic and the
+**Status:** `44911f0` pins the current no-call campaign handoff after
+`4c634e4` recorded the proposal-activation delta diagnostic and the
 held dogfooded guidebook pattern. The branch also carries the independent-rejudge
 envelope and non-mutating manual-review promotion candidate command. Focused
 composition/guidebook checks are green.
@@ -44,7 +45,11 @@ real-task corpus; no model call or receipt has been made in this slice.
   is green (26 composition/guidebook tests plus Ruff and audit). The current
   static dogfood packet receipt is recorded at
   `/private/tmp/tmcp-receipt-home-20260721/receipts/2026-07/packet-a7fa53ed6280-7c843241353794bcf2afb6f0dd6db2f9-76d289fcbe-815d7ec4a63a4a2884ab480bcc5ccd27.json`.
-  Next: separately authorize the real host/evaluator and independent-rejudge run.
+  `44911f0` records the reproducibility anchor for the no-call handoff:
+  campaign `composition-lift-campaign-01696e55d67fa8ecb6e5`, digest
+  `01696e55d67fa8ecb6e5b48ce5a919bdc8c68a2c239bdafd8a4389cf7514799a`, with
+  180 baseline and 360 causal cells. Next: separately authorize the real
+  host/evaluator and independent-rejudge run.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -74,6 +79,10 @@ real-task corpus; no model call or receipt has been made in this slice.
   diagnostic comparing compatibility selection with validated semantic roles;
   active and deferred sources remain separate, and no quality or causal claim is
   inferred from routing expansion.
+
+- `44911f0` pins the current fixture-bound no-call campaign identity and source
+  digests in `docs/COMPOSITION_BENCHMARK.md`; the handoff remains unevaluated
+  and cannot support promotion.
 
 _(1 older entries trimmed)_
 
