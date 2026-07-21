@@ -79,11 +79,16 @@ The latest fixture-bound handoff (2026-07-21) is:
 - control plan: `benchmark-control-fa4e2c940b51ef125968`
 - control plan digest: `fa4e2c940b51ef1259680cfe4c1537edd87c958e487fbb777defb828fbdde9ab`
 - dimensions: 5 blocks, 180 baseline cells, 360 causal cells, 540 runner dispatches, and 540 blind-judge dispatches
+- prepared runner bundle digest: `0ab32310f66f8f66c95431681790b4ea4d3f5d8d47b0954651c0caaae1e4663e`
+- prepared blind-judge bundle digest: `9e2fd5cfd4fd18f3ff27a82fe0442ea1f1143cf4ef346a08fb69a5acd276ba21`
 
 This handoff is a reproducibility anchor only. It has no model-call authority,
 does not persist receipts, and cannot support a lift or guidebook-promotion
 claim. A future host/evaluator run must bind its raw artifacts to these exact
-digests before scoring or rejudging.
+digests before scoring or rejudging. The prepared bundles are opaque transport
+surfaces only: the runner bundle exposes execution references and bounded
+instructions; the judge bundle exposes artifact slots and the fixture rubric.
+Neither contains controller condition identity, skill order, graph, or recipe.
 
 Promotion is a separate, non-mutating gate. After a complete eligible summary,
 retain the primary evaluator artifacts and obtain a second blind judgment in

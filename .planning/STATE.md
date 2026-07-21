@@ -48,8 +48,10 @@ real-task corpus; no model call or receipt has been made in this slice.
   `44911f0` records the reproducibility anchor for the no-call handoff:
   campaign `composition-lift-campaign-01696e55d67fa8ecb6e5`, digest
   `01696e55d67fa8ecb6e5b48ce5a919bdc8c68a2c239bdafd8a4389cf7514799a`, with
-  180 baseline and 360 causal cells. Next: separately authorize the real
-  host/evaluator and independent-rejudge run.
+  180 baseline and 360 causal cells. Opaque runner and blind-judge bundles
+  were prepared and inspected without execution or receipt persistence; their
+  digests are recorded in `docs/COMPOSITION_BENCHMARK.md`. Next: separately
+  authorize the real host/evaluator and independent-rejudge run.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -83,6 +85,9 @@ real-task corpus; no model call or receipt has been made in this slice.
 - `44911f0` pins the current fixture-bound no-call campaign identity and source
   digests in `docs/COMPOSITION_BENCHMARK.md`; the handoff remains unevaluated
   and cannot support promotion.
+
+- The prepared runner and blind-judge bundles are transport-only artifacts;
+  their opaque field boundary was inspected and no controller fields leaked.
 
 _(1 older entries trimmed)_
 
