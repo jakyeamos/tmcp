@@ -34,7 +34,10 @@ real-task corpus; no model call or receipt has been made in this slice.
   archive digest
   `a435d205e31563d1730aa9273439d01c968737c06267c2fed80c6062560f47e6`, and
   manifest digest `ca7df7be877d635db24ab724b787b21cb35affc47fbd08e22ecc20cf0dfaf0a9`.
-  Next: separately authorize the real host/evaluator and independent-rejudge run.
+  `1d4591d` also makes the static audit fail closed on eligible entries missing
+  the non-auto-apply policy, evidence references, or primary/independent-rejudge
+  replication markers. Next: separately authorize the real host/evaluator and
+  independent-rejudge run.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -55,6 +58,10 @@ real-task corpus; no model call or receipt has been made in this slice.
   CLI coverage, and package/install manifests. It creates a manual-review
   candidate only after replicated trusted evidence; catalog entries remain held
   until a human decision.
+
+- `1d4591d` adds negative audit coverage for policy weakening and records the
+  durable-entry invariant in the guidebook. The checked-in catalog still has
+  four hypothesis-level held entries and zero controlled claims.
 
 _(1 older entries trimmed)_
 
