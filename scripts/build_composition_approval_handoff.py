@@ -193,13 +193,54 @@ def _verify_readiness(
         for configuration in configurations
         if isinstance(configuration, Mapping)
     )
+    expected_configurations = sorted(
+        (
+            {
+                "model": str(configuration.get("model") or ""),
+                "reasoning_effort": str(configuration.get("reasoning_effort") or ""),
+            }
+            for configuration in configurations
+            if isinstance(configuration, Mapping)
+        ),
+        key=lambda item: (item["model"], item["reasoning_effort"]),
+    )
     actual_models = readiness.get("runner_models")
     if (
         not isinstance(actual_models, list)
         or sorted(str(model) for model in actual_models) != expected_models
     ):
         raise ValueError("baseline readiness runner models do not match policy.")
-    if readiness.get("judge_model") != judge.get("model"):
+    actual_configurations = readiness.get("runner_configurations")
+    if (
+        not isinstance(actual_configurations, list)
+        or sorted(
+            actual_configurations,
+            key=lambda item: (
+                (
+                    str(item.get("model") or ""),
+                    str(item.get("reasoning_effort") or ""),
+                )
+                if isinstance(item, Mapping)
+                else ("", "")
+            ),
+        )
+        != expected_configurations
+    ):
+        raise ValueError(
+            "baseline readiness runner configurations do not match policy."
+        )
+    expected_judge = {
+        "model": str(judge.get("model") or ""),
+        "reasoning_effort": str(judge.get("reasoning_effort") or ""),
+    }
+    actual_judge = readiness.get("judge_configuration")
+    if actual_judge != expected_judge:
+        raise ValueError(
+            "baseline readiness judge configuration does not match policy."
+        )
+    if readiness.get("judge_model") != judge.get("model") or readiness.get(
+        "judge_effort"
+    ) != judge.get("reasoning_effort"):
         raise ValueError("baseline readiness judge model does not match policy.")
 
 

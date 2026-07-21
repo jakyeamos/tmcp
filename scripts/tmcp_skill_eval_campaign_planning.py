@@ -349,12 +349,24 @@ def campaign_readiness_report(
                 baseline_bundle_verification_digest=baseline_bundle_verification_digest,
             )
         )
+    runner_configurations = configured_normalized
+    judge_configuration = (
+        {
+            "model": str(configured_judge.get("model") or ""),
+            "reasoning_effort": str(configured_judge.get("reasoning_effort") or ""),
+        }
+        if isinstance(configured_judge, dict)
+        else {}
+    )
     return {
         "schema": "tmcp-skill-eval-campaign-readiness-v0.1",
         "ready": not gaps,
         "design": design,
+        "runner_configurations": runner_configurations,
         "runner_models": runner_models,
+        "judge_configuration": judge_configuration,
         "judge_model": judge_model,
+        "judge_effort": judge_effort,
         "cell_count": len(cells),
         "gaps": gaps,
     }

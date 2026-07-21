@@ -85,6 +85,30 @@ class CompositionApprovalHandoffTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "runner models"):
                 build_handoff(study)
 
+    def test_handoff_rejects_readiness_effort_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            study = Path(temporary) / "study"
+            shutil.copytree(STUDY_DIR, study)
+            verification_path = study / "generated" / "study-verification.json"
+            verification = json.loads(verification_path.read_text(encoding="utf-8"))
+            verification["plan_path"] = str(
+                study / "generated" / "tmcp-composition-study-plan.json"
+            )
+            verification_path.write_text(
+                json.dumps(verification, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            readiness_path = study / "generated" / "baseline-readiness-gate.json"
+            readiness = json.loads(readiness_path.read_text(encoding="utf-8"))
+            readiness["runner_configurations"][0]["reasoning_effort"] = "low"
+            readiness_path.write_text(
+                json.dumps(readiness, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "runner configurations"):
+                build_handoff(study)
+
 
 if __name__ == "__main__":
     unittest.main()

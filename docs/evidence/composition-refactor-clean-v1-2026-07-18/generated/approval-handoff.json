@@ -7,37 +7,37 @@
   ],
   "artifacts": {
     "baseline_plan": {
-      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "experiment_id": "composition-baseline-b6fb27063cd09e65",
       "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/tmcp-composition-baseline-plan.json",
-      "sha256": "sha256:6802cbc296144f63415e0967a7e92fddb9a4d24a60feadd56ec7da363cd16cf2"
+      "sha256": "sha256:a802413e9015def10aa6b0d678044bce64a74acad87d77fbad943c11570e32e4"
     },
     "baseline_readiness": {
       "experiment_id": null,
       "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/baseline-readiness-gate.json",
-      "sha256": "sha256:a0db9f0e693189c99df6aaf11a7e6d358005b7f04ce52382adedd05db20782b1"
+      "sha256": "sha256:d94a207ca2a96d773793941e9c9b5afa4b0136979e1ce86a261ab975589440a1"
     },
     "causal_plan": {
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/tmcp-composition-study-plan.json",
-      "sha256": "sha256:e3f50d0b0357ae524bb870f453e444613ca126593c82480f49837db4f5aa258f"
+      "sha256": "sha256:26db57973e6840cff2591db25310abc5b7aa8484066d6184e77cb9dfd629e8af"
     },
     "study_verification": {
       "experiment_id": null,
       "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/study-verification.json",
-      "sha256": "sha256:1354433a9abb1734731a7d13203e3b02c87918eef5bc9710ad7f972895dd4333"
+      "sha256": "sha256:299f776158c404bfeac908f415692dca478b1355f7170d6eb652fd83e4e7099b"
     }
   },
   "baseline": {
     "cell_count": 36,
     "cost_rejudge_calls": 36,
     "design": "baseline_reliability",
-    "experiment_id": "composition-baseline-f61e366337297bb4",
+    "experiment_id": "composition-baseline-b6fb27063cd09e65",
     "fixture_count": 6,
     "matrix_row_count": 6,
     "primary_judge_calls": 36,
     "readiness_gate": {
       "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/baseline-readiness-gate.json",
-      "sha256": "sha256:a0db9f0e693189c99df6aaf11a7e6d358005b7f04ce52382adedd05db20782b1"
+      "sha256": "sha256:d94a207ca2a96d773793941e9c9b5afa4b0136979e1ce86a261ab975589440a1"
     },
     "receipt_required_before_causal": true,
     "receipt_sha256": null,
@@ -61,7 +61,7 @@
     "cell_count": 72,
     "cost_rejudge_calls": 72,
     "design": "causal_contrast",
-    "experiment_id": "composition-study-8ce548cdb7b9141e",
+    "experiment_id": "composition-study-2f97a4031c5b5f0a",
     "fixture_count": 6,
     "matrix_row_count": 12,
     "primary_judge_calls": 72,

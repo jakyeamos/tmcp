@@ -122,11 +122,16 @@ class BaselineReadinessTests(unittest.TestCase):
                 {displayed_content_digest(row["prompt"]) for row in control_rows}
             ),
             "control_attachment_digests": sorted(
-                {displayed_content_digest(row["skill_attachment"]) for row in control_rows}
+                {
+                    displayed_content_digest(row["skill_attachment"])
+                    for row in control_rows
+                }
             ),
             "source_digests": [],
             "packet_digests": [],
-            "analysis_policy_sha256": _json_sha256(plan["experiment"]["analysis_policy"]),
+            "analysis_policy_sha256": _json_sha256(
+                plan["experiment"]["analysis_policy"]
+            ),
             "control_thresholds": plan["experiment"]["promotion_thresholds"][
                 "controlled_multi_agent_eval"
             ],
@@ -146,7 +151,12 @@ class BaselineReadinessTests(unittest.TestCase):
             "compatibility": compatibility,
             "evidence": {
                 field: "sha256:" + "a" * 64
-                for field in ("plan_sha256", "manifest_sha256", "traces_sha256", "report_sha256")
+                for field in (
+                    "plan_sha256",
+                    "manifest_sha256",
+                    "traces_sha256",
+                    "report_sha256",
+                )
             },
             "counts": {
                 "fixture_count": 6,
@@ -195,7 +205,11 @@ class BaselineReadinessTests(unittest.TestCase):
     def test_causal_readiness_requires_a_completed_baseline_receipt(self) -> None:
         plan, cells, receipt = self._causal_plan_with_baseline()
         missing = campaign_readiness_report(
-            plan, cells=cells, design="causal_contrast", judge_model="judge-model", judge_effort="high"
+            plan,
+            cells=cells,
+            design="causal_contrast",
+            judge_model="judge-model",
+            judge_effort="high",
         )
         self.assertFalse(missing["ready"])
         self.assertIn("baseline_receipt_required", missing["gaps"])
@@ -226,6 +240,19 @@ class BaselineReadinessTests(unittest.TestCase):
             baseline_bundle_verification_digest="sha256:" + "c" * 64,
         )
         self.assertTrue(ready["ready"])
+        self.assertEqual(
+            ready["runner_configurations"],
+            [
+                {"model": "model-a", "reasoning_effort": "high"},
+                {"model": "model-b", "reasoning_effort": "high"},
+                {"model": "model-c", "reasoning_effort": "high"},
+            ],
+        )
+        self.assertEqual(
+            ready["judge_configuration"],
+            {"model": "judge-model", "reasoning_effort": "high"},
+        )
+        self.assertEqual(ready["judge_effort"], "high")
 
     def test_causal_readiness_requires_a_verified_bundle_record(self) -> None:
         plan, cells, receipt = self._causal_plan_with_baseline()

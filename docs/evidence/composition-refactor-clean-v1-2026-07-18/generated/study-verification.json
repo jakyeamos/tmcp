@@ -1,5 +1,5 @@
 {
-  "experiment_id": "composition-study-8ce548cdb7b9141e",
+  "experiment_id": "composition-study-2f97a4031c5b5f0a",
   "live_sources": {
     "checked": true,
     "sources": [
@@ -33,7 +33,7 @@
       "fixtures-reviewed-v1.json": "sha256:7a4decc2efece89300b2ce9dc269deb3dc9721ee5b07e8eecf6b681aa97ae673",
       "packet-base.md": "sha256:4b052a53823762ba978b790b3245996c81f51e95decae0789dc13961d85c61fc",
       "packet-receipt.json": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
-      "primary-harness.json": "sha256:3c28092ded4180b7646ea624d24815775f98e87c0560a5b890e6773bc9bc8d2d",
+      "primary-harness.json": "sha256:013ddd7f0829c2f9f360f7ec8750b7d9134e527ac2dd03f3ba787c7f5b8a719e",
       "source-bundle.md": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
     },
     "matrix_row_count": 12,
@@ -42,12 +42,12 @@
     "primary_harness": {
       "harness_files": {
         "tmcp_skill_eval_campaign.py": "sha256:04e011866d426685f4110e14a4012abb1be60f61a433cfbe2913edf991748cc5",
-        "tmcp_skill_eval_campaign_planning.py": "sha256:27295bbdb9dabc50e661fee300f0c6aa8fd98e54e0038aa9fe3ed17a93469cc3",
+        "tmcp_skill_eval_campaign_planning.py": "sha256:66ea72f098bd67dc03dabd901d49e1c4190a3c394299288ab5bbf9a491bf71a0",
         "tmcp_skill_eval_campaign_protocol.py": "sha256:e99a8cd7910e880163790f82d66ebef3ad6c9fa1df02900fcd2613aeaf907832",
         "tmcp_skill_eval_campaign_runtime.py": "sha256:670a0fee31c57dba735803610ae8299e9f6ecbadd77d32ced25bbd3374ddb252",
         "tmcp_skill_eval_composition.py": "sha256:9bb14b6647851fb456fad2c9ac3eea0f1886215639c3ca0b6acb85eb1b15f05c"
       },
-      "harness_sha256": "sha256:9ba8b1e27826404bb89017608a230565fc6c4d32140ce1cc161c9110791df42b",
+      "harness_sha256": "sha256:d986199c08b4a2daee66ed56895b1ba00ca645f00da31e93992eca78bb278a50",
       "schema": "tmcp-skill-eval-primary-harness-binding-v0.1"
     }
   },

@@ -78,7 +78,7 @@
       "schema": "tmcp-composition-cost-rejudge-policy-v0.1",
       "seed": 20260717
     },
-    "experiment_id": "composition-study-8ce548cdb7b9141e",
+    "experiment_id": "composition-study-2f97a4031c5b5f0a",
     "promotion_thresholds": {
       "controlled_multi_agent_eval": {
         "minimum_control_pass_rate": 0.5,
@@ -102,18 +102,18 @@
         "fixtures-reviewed-v1.json": "sha256:7a4decc2efece89300b2ce9dc269deb3dc9721ee5b07e8eecf6b681aa97ae673",
         "packet-base.md": "sha256:4b052a53823762ba978b790b3245996c81f51e95decae0789dc13961d85c61fc",
         "packet-receipt.json": "sha256:d773de58317c953ba7cb2b29960b1a66d3f715df43fe1c9cba6515741564cde5",
-        "primary-harness.json": "sha256:3c28092ded4180b7646ea624d24815775f98e87c0560a5b890e6773bc9bc8d2d",
+        "primary-harness.json": "sha256:013ddd7f0829c2f9f360f7ec8750b7d9134e527ac2dd03f3ba787c7f5b8a719e",
         "source-bundle.md": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
       },
       "primary_harness": {
         "harness_files": {
           "tmcp_skill_eval_campaign.py": "sha256:04e011866d426685f4110e14a4012abb1be60f61a433cfbe2913edf991748cc5",
-          "tmcp_skill_eval_campaign_planning.py": "sha256:27295bbdb9dabc50e661fee300f0c6aa8fd98e54e0038aa9fe3ed17a93469cc3",
+          "tmcp_skill_eval_campaign_planning.py": "sha256:66ea72f098bd67dc03dabd901d49e1c4190a3c394299288ab5bbf9a491bf71a0",
           "tmcp_skill_eval_campaign_protocol.py": "sha256:e99a8cd7910e880163790f82d66ebef3ad6c9fa1df02900fcd2613aeaf907832",
           "tmcp_skill_eval_campaign_runtime.py": "sha256:670a0fee31c57dba735803610ae8299e9f6ecbadd77d32ced25bbd3374ddb252",
           "tmcp_skill_eval_composition.py": "sha256:9bb14b6647851fb456fad2c9ac3eea0f1886215639c3ca0b6acb85eb1b15f05c"
         },
-        "harness_sha256": "sha256:9ba8b1e27826404bb89017608a230565fc6c4d32140ce1cc161c9110791df42b",
+        "harness_sha256": "sha256:d986199c08b4a2daee66ed56895b1ba00ca645f00da31e93992eca78bb278a50",
         "schema": "tmcp-skill-eval-primary-harness-binding-v0.1"
       },
       "schema": "tmcp-composition-study-binding-v0.1",
@@ -164,7 +164,7 @@
         "It verifies CLI and indexer behavior through their consumer surfaces.",
         "It names any remaining uncertainty instead of inventing an external compatibility need."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "keeps the development-only adapter with no removal condition",
         "creates a new wrapper around `legacyAdapter.ts`",
@@ -229,7 +229,7 @@
         "It verifies CLI and indexer behavior through their consumer surfaces.",
         "It names any remaining uncertainty instead of inventing an external compatibility need."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "keeps the development-only adapter with no removal condition",
         "creates a new wrapper around `legacyAdapter.ts`",
@@ -291,7 +291,7 @@
         "It verifies checkout and operator behavior through consumer surfaces rather than testing only the owner module.",
         "It does not claim that the v1 response can change without client evidence."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "keeps both internal transition tables without a named migration reason",
         "tests only `flagState.ts` while leaving checkout or operator divergence untested",
@@ -356,7 +356,7 @@
         "It verifies checkout and operator behavior through consumer surfaces rather than testing only the owner module.",
         "It does not claim that the v1 response can change without client evidence."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "keeps both internal transition tables without a named migration reason",
         "tests only `flagState.ts` while leaving checkout or operator divergence untested",
@@ -418,7 +418,7 @@
         "It verifies analytics and order outputs rather than trusting owner-module tests alone.",
         "It states what must be learned before changing the CSV contract."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "deletes or silently changes the published CSV shape",
         "keeps the analytics conversion map without a time-bounded compatibility rationale",
@@ -483,7 +483,7 @@
         "It verifies analytics and order outputs rather than trusting owner-module tests alone.",
         "It states what must be learned before changing the CSV contract."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "deletes or silently changes the published CSV shape",
         "keeps the analytics conversion map without a time-bounded compatibility rationale",
@@ -545,7 +545,7 @@
         "It proposes consumer-level checks that expose framing and orientation divergence with the real asymmetric asset.",
         "It preserves uncertainty about consumers not present in the supplied graph."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "keeps an independent centering calculation in the static exporter",
         "proves only that the owner module returns a value",
@@ -610,7 +610,7 @@
         "It proposes consumer-level checks that expose framing and orientation divergence with the real asymmetric asset.",
         "It preserves uncertainty about consumers not present in the supplied graph."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "keeps an independent centering calculation in the static exporter",
         "proves only that the owner module returns a value",
@@ -672,7 +672,7 @@
         "It uses consumer-surface verification that would catch divergence in checkout, invoices, and reporting, without treating owner-module tests alone as sufficient proof.",
         "It prevents a second precision re-derivation in verification and states what must be learned before changing the published v1 boundary."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "keeps the checkout and reporting precision maps without an external-boundary or short-lived migration rationale",
         "proves only that `currencyScale.ts` works while leaving consumer divergence untested",
@@ -738,7 +738,7 @@
         "It uses consumer-surface verification that would catch divergence in checkout, invoices, and reporting, without treating owner-module tests alone as sufficient proof.",
         "It prevents a second precision re-derivation in verification and states what must be learned before changing the published v1 boundary."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "keeps the checkout and reporting precision maps without an external-boundary or short-lived migration rationale",
         "proves only that `currencyScale.ts` works while leaving consumer divergence untested",
@@ -801,7 +801,7 @@
         "It verifies preview and debug outputs against the owner's actual phase sequence.",
         "It does not claim that the plugin API can change without replacement evidence."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "leaves preview or debug with a second phase-order source",
         "tests only the pipeline owner while missing the omitted commit phase",
@@ -866,7 +866,7 @@
         "It verifies preview and debug outputs against the owner's actual phase sequence.",
         "It does not claim that the plugin API can change without replacement evidence."
       ],
-      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "experiment_id": "composition-study-2f97a4031c5b5f0a",
       "failure_smells": [
         "leaves preview or debug with a second phase-order source",
         "tests only the pipeline owner while missing the omitted commit phase",

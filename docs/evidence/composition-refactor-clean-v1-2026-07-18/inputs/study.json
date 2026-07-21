@@ -15,7 +15,7 @@
     "first-principles.txt": "sha256:e87ef8958eadf3fba9a671a8ec8f6f678c22f377ff1961f2cd8ce542e9fb961b",
     "fixtures-reviewed-v1.json": "sha256:7a4decc2efece89300b2ce9dc269deb3dc9721ee5b07e8eecf6b681aa97ae673",
     "packet-base.md": "sha256:4b052a53823762ba978b790b3245996c81f51e95decae0789dc13961d85c61fc",
-    "primary-harness.json": "sha256:3c28092ded4180b7646ea624d24815775f98e87c0560a5b890e6773bc9bc8d2d",
+    "primary-harness.json": "sha256:013ddd7f0829c2f9f360f7ec8750b7d9134e527ac2dd03f3ba787c7f5b8a719e",
     "source-bundle.md": "sha256:90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0"
   },
   "selected_sources": [

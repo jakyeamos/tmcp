@@ -2,8 +2,27 @@
   "cell_count": 36,
   "design": "baseline_reliability",
   "gaps": [],
+  "judge_configuration": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "high"
+  },
+  "judge_effort": "high",
   "judge_model": "gpt-5.5",
   "ready": true,
+  "runner_configurations": [
+    {
+      "model": "gpt-5.6-luna",
+      "reasoning_effort": "high"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "high"
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "high"
+    }
+  ],
   "runner_models": [
     "gpt-5.6-luna",
     "gpt-5.6-sol",

@@ -59,8 +59,10 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
 - Revalidate the handoff's structural evidence, not just its `ok` or `ready`
   booleans: bind the verification report to the exact causal plan path and
   matrix counts, require a checked-and-matched live-source report, and compare
-  the readiness models and judge against the baseline policy. A self-declared
-  readiness artifact is not independent verification.
+  the full readiness runner configurations and judge configuration—including
+  reasoning effort—against the baseline policy. Model-name-only matching leaves
+  stale matrix settings undetected; a self-declared readiness artifact is not
+  independent verification.
 - Require a directness review for every observable: the event an O/S item grades
   must occur in the fixture prompt, not in an implied later turn. Record an
   independent review that also confirms every bar is expressible by the target
