@@ -12,9 +12,10 @@ preregistered composition-lift campaign only with explicit host/evaluator author
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `029b6a2` records the guidebook audit and package-gate baseline; the
-next slice adds an independent-rejudge envelope and a non-mutating manual-review
-promotion candidate command. Focused composition/guidebook checks are green.
+**Status:** `4c634e4` records the proposal-activation delta diagnostic and the
+held dogfooded guidebook pattern. The branch also carries the independent-rejudge
+envelope and non-mutating manual-review promotion candidate command. Focused
+composition/guidebook checks are green.
 0.6.0 still requires real host/evaluator/rejudge outcomes and the stronger
 real-task corpus; no model call or receipt has been made in this slice.
 **Started:** 2026-07-17
@@ -36,8 +37,12 @@ real-task corpus; no model call or receipt has been made in this slice.
   manifest digest `ca7df7be877d635db24ab724b787b21cb35affc47fbd08e22ecc20cf0dfaf0a9`.
   `1d4591d` also makes the static audit fail closed on eligible entries missing
   the non-auto-apply policy, evidence references, or primary/independent-rejudge
-  replication markers. Next: separately authorize the real host/evaluator and
-  independent-rejudge run.
+  replication markers. `4c634e4` records a deterministic compatibility-vs-
+  proposal source-activation delta, preserves the one-skill bootstrap cap, and
+  adds the held `composition.proposal-activation-delta` guidebook/catalog entry;
+  its diagnostic explicitly carries `causal_claim: none`. Focused verification
+  is green (26 composition/guidebook tests plus Ruff and audit). Next:
+  separately authorize the real host/evaluator and independent-rejudge run.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -49,7 +54,7 @@ real-task corpus; no model call or receipt has been made in this slice.
   the role's inputs/outputs; keeping the contract inline preserves grounding.
   No model call, receipt, promotion, lift, or release claim was made.
 
-- `af42a44` adds `scripts/audit_skill_guidebook.py`, four held catalog entries,
+- `af42a44` adds `scripts/audit_skill_guidebook.py`, the initial held catalog entries,
   projection metadata parity, and regression tests. The audit is documentation
   integrity only: controlled claims need an experiment ID found in source-only
   evidence, and campaign plans or synthetic traces cannot promote guidance.
@@ -61,7 +66,12 @@ real-task corpus; no model call or receipt has been made in this slice.
 
 - `1d4591d` adds negative audit coverage for policy weakening and records the
   durable-entry invariant in the guidebook. The checked-in catalog still has
-  four hypothesis-level held entries and zero controlled claims.
+  five held entries and zero controlled claims.
+
+- `4c634e4` adds a non-authoritative `proposal_activation_delta` packet
+  diagnostic comparing compatibility selection with validated semantic roles;
+  active and deferred sources remain separate, and no quality or causal claim is
+  inferred from routing expansion.
 
 _(1 older entries trimmed)_
 
