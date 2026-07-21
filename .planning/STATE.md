@@ -29,8 +29,12 @@ real-task corpus; no model call or receipt has been made in this slice.
   agreement tolerance, then emits `eligible_for_manual_review` with
   `auto_apply:false`; it never mutates the guidebook. Focused checks and the
   documentation audit pass. No model call, receipt, lift, promotion, or release
-  claim was made. Next: clean commit/package verification, then separately
-  authorize the real host/evaluator and independent-rejudge run.
+  claim was made. The clean package gate passed from
+  `dad9e74f9dc21f1b805e8e6e3edcf3b52f1c3256`: 947 tests in 413.046s (4 skips),
+  archive digest
+  `a435d205e31563d1730aa9273439d01c968737c06267c2fed80c6062560f47e6`, and
+  manifest digest `ca7df7be877d635db24ab724b787b21cb35affc47fbd08e22ecc20cf0dfaf0a9`.
+  Next: separately authorize the real host/evaluator and independent-rejudge run.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
