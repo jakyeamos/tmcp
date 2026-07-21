@@ -15,8 +15,11 @@ preregistered composition-lift campaign only with explicit host/evaluator author
 **Status:** `a0ee07c` hardens the five behavioral fixtures with observable,
 provenance-friendly output contracts and rejects expected skills that omit
 them. The full 939-test readiness command completed in 493.197s (8:13.8
-wall), so the isolated scoped Pre-CR policy is set to 600s. 0.6.0 still
-requires real host/evaluator outcomes and the stronger real-task corpus.
+wall), so the isolated scoped Pre-CR policy is set to 600s. Commit `24fb4e8`
+then passed the reproducible package gate: 939 tests in 398.181s, matching
+archive digest `f7822c76…d6963` and manifest digest `46e7ec62…b4636`.
+0.6.0 still requires real host/evaluator outcomes and the stronger real-task
+corpus.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -27,10 +30,10 @@ requires real host/evaluator outcomes and the stronger real-task corpus.
   output contracts to every expected behavioral skill, keeping role and handoff
   claims inside the bounded cited slice. The direct readiness command ran 939
   tests in 493.197s (8:13.8 wall); the isolated 600s policy covers the observed
-  runtime while the global 90s hook remains unchanged. This run produced no
-  model call, receipt, promotion, or release evidence.
-  Next: reproducible package verification, then explicitly authorized host and
-  external-evaluator evidence.
+  runtime while the global 90s hook remains unchanged. Commit `24fb4e8` passed
+  the reproducible package gate with matching archive/manifest digests and all
+  release surfaces green. No model call, receipt, promotion, or release claim
+  was made. Next: explicitly authorized host and external-evaluator evidence.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
