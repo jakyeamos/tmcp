@@ -13,6 +13,7 @@
         "expected_direction": "negative"
       },
       "evidence_level": "controlled_multi_agent_eval",
+      "experiment": "skill-eval-95cfdd0ee52ff673",
       "internal_atoms": [
         "behavior-verification",
         "evidence-backed-claims",

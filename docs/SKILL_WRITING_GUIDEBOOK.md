@@ -61,6 +61,7 @@ controlled intervention before becoming a corpus recommendation.
 ## Controlled multi-configuration candidate: staged evaluation workflow section
 
 - Pattern ID: `evaluation.staged-workflow-section`
+- Catalog title: Staged evaluation workflow section
 - Status: supported internal candidate
 - Evidence: `controlled_multi_agent_eval`
 - Claim granularity: section
@@ -169,6 +170,8 @@ The first dogfood statically flagged `output.missing-observable-contract`. That
 finding is not promoted: it has no behaviorally judged contrast, and the target skill
 already names several report fields. Treat it as a detector-calibration case.
 
+- Catalog title: Missing observable output contract
+
 The multi-configuration campaign produced no safety-regression labels, so the pilot's
 single cleanup-safety signal did not reproduce. Two of 36 intact artifacts and 0 of
 36 ablated artifacts were instead labeled cost regressions because they required a
@@ -186,3 +189,11 @@ The source-checkout evidence bundles are
 included in the immutable package.
 The machine-readable catalog is
 [`docs/SKILL_PATTERN_CATALOG.json`](SKILL_PATTERN_CATALOG.json).
+
+Run `python3 scripts/audit_skill_guidebook.py` from the source checkout before
+using the guidebook for a corpus decision. The audit checks catalog/guidebook
+identity, projection evidence and promotion parity, and that every controlled
+claim's experiment ID still occurs in the source-only evidence tree. A packaged
+runtime intentionally omits that tree; its audit is therefore expected to report
+that source evidence is unavailable rather than silently treating the claims as
+current.
