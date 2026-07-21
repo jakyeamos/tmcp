@@ -12,253 +12,36 @@ preregistered composition-lift campaign only with explicit host/evaluator author
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `2d6ec12` binds the replay-bound campaign's 540 factorial cells to
-opaque host/evaluator dispatches, artifact digests, rubric evidence, and
-repeated lift metrics. 0.6.0 still requires real host/evaluator outcomes and
-the stronger real-task corpus; the isolated scoped Pre-CR policy now proves
-the full gate can finish.
+**Status:** `a0ee07c` hardens the five behavioral fixtures with observable,
+provenance-friendly output contracts and rejects expected skills that omit
+them. 0.6.0 still requires real host/evaluator outcomes and the stronger
+real-task corpus; the isolated scoped Pre-CR policy still needs a live 330s
+readiness confirmation.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** `2d6ec12` adds cell-level host/evaluator contracts, audience-specific
-  opaque dispatch bundles, matched slot/replicate validation, and a no-call lift
-  scorer. It neither executes nor records outcomes. The full changed-line
-  Pre-CR gate passed in 242 seconds under the isolated 330-second TMCP policy;
-  next: reproducible package verification, then explicitly authorized host and
+- **Status:** `a0ee07c` adds a deterministic corpus-readiness gate and explicit
+  output contracts to every expected behavioral skill, keeping role and handoff
+  claims inside the bounded cited slice. It neither executes nor records
+  outcomes. The commit hook reported the known global 90-second timeout; the
+  corrected isolated 330-second policy must be run before the next commit.
+  Next: reproducible package verification, then explicitly authorized host and
   external-evaluator evidence.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
 
-- `2d6ec12` closes the campaign-to-evidence gap: 540 factorial cells now have
-  separate runner and blind-judge result contracts, dispatch/artifact/rubric
-  provenance checks, cross-block and secret-text rejection, matched
-  slot/replicate lift aggregation, and an advisory-only CLI. Runner and judge
-  bundles expose no controller cells or graph/recipe condition data. Synthetic
-  evidence remains ineligible for real-host/trusted-evaluator gates; no model
-  call, receipt, promotion, or release claim was made.
-- `93f81e0` preregisters a replay-bound campaign across five fixtures: six
-  baseline arms and twelve causal arms, each across three configuration slots
-  and two replicates. It validates canonical skill order, matched comparators,
-  source-control/rubric/recipe/graph binding, opaque host-facing dispatches,
-  and package inclusion. It makes no model/tool calls, writes no receipt, and
-  makes no lift or release claim. The full changed-line Pre-CR gate passed in
-  263 seconds through the isolated TMCP 330-second policy.
-- `cb2dd13` completes the native host path begun by `f102756`:
-  `run_host_composition` gives a host one bounded frozen snapshot; a private
-  unregistered server seam, closed lineage/receipt provenance, graph-bound
-  recompile statuses, strict redaction, and extracted-package smoke preserve it.
-  `cache_policy=none`, no automatic tool execution, and no receipt persistence
-  remain enforced. Focused tests (119), contracts/install/compile, and required
-  pre-CR full tests pass. This proves runtime/package wiring, not host quality,
-  evaluator lift, promotion, or release readiness.
-- `b2e85d8` and `d316542` close the compositional-runtime hardening slice:
-  canonical source roles and safe activation, source-backed semantic graphs,
-  phase/runtime capsules, session-only continuation replay, recipe rehydration,
-  release-evidence admissibility, and extracted-package session smoke. Direct
-  packets cannot forge a continuation or preload future gate/handoff evidence.
-  `543c7ff` preserves strict release secret scanning by shortening one benchmark
-  test identifier. `4b69d5b` removes the remaining identifier-shaped false
-  positives without an allowlist or heuristic exemption. `8aef995` isolates
-  session phase bindings and continuation tests, restoring the 600/900-line
-  budgets while retaining package compilation. `9d32d1d` marks the shared test
-  harness honestly, clearing the final quality-gate advisory. `e00a42f` gives
-  extracted-package discovery an explicit ten-minute ceiling and structured
-  timeout result. The clean reproducible archive passes 826 tests (4 expected
-  skips), contract/install/compile, launcher, and composition smoke; no dogfood
-  receipt was written.
-- `a6591e1` restores the enforced source-size budgets without exceptions:
-  benchmark bundle scanning, composition scoring, project-recipe promotion
-  validation, and the two broad benchmark test owners now have focused siblings.
-  Full discovered tests, contracts, install, release compilation, and the
-  required pre-CR gate passed.
-- `1fb0274` binds each phase capsule to exact cited source slices and makes
-  benchmark replay, isolated-context receipts, promotion eligibility, project
-  recipes, sessions, package checks, and release schemas reject mismatched or
-  self-asserted evidence. Focused/full tests, contract/install/compile checks,
-  and read-only fallback plus assisted two-stage dogfood passed; no receipt was
-  persisted for the planning/dogfood run.
-- `195b24f` fixes a live dogfood regression where generic planning language
-  activated the UI rubric and browser gates. Bare `design` and neutral planning
-  terms no longer qualify source activation; exact launcher dogfood now defers
-  every active skill until source-backed semantic evidence exists.
-- `6fdf9de` separates oversized benchmark assembly/replay and behavior-manifest
-  owners behind compatibility facades, explicitly compiles the new shipped
-  modules, and restores the <600 nonblank-line hard domain-size check. Focused
-  behavior/replay/protocol tests plus install and package compilation pass.
-- `7f72822` binds every benchmark observation to a compiler replay plus explicit
-  bounded host/evaluator artifacts. It validates actual phase/stage/gate/handoff
-  lineage, projects nested receipts safely, rejects secret-like free text and
-  oversized direct-domain inputs, preserves benchmark digests through receipt
-  APIs, and requires each rubric requirement to cite variant-local evidence.
-  Focused assembly, benchmark, receipt, MCP, package, contract, install, and
-  release-compile checks pass; evidence remains advisory and the current
-  same-host context result remains ineligible.
-- `d70b4e7` normalizes benchmark graph provenance to compiler-equivalent
-  content-and-edge identity, moves fixture source-node IDs to the shared source
-  contract, and keeps legacy synthetic fixtures compatible. Exact replay graph
-  identity now survives a workspace-root relocation and changes when same-path
-  source content changes; focused benchmark protocol and manifest tests pass.
-- `5745420` makes benchmark semantic evidence complete but opt-in and bounded:
-  normal low-context preflight behavior is unchanged, while benchmark sources
-  can all be cited. It replays each supplied proposal with the exact prepared
-  limits, rejects phase drift, emits hash-bound full-composition recipes with
-  stages, bridges, handoffs, gates, and derived context, and labels wrong-order
-  and leave-one-out cases as explicit counterfactual controls. Fresh semantic
-  proposal/control schemas, a no-execution control-plan assembler, deterministic
-  tamper validation, package inclusion, focused replay/safety tests, contract,
-  install, and compile checks pass.
-- `9f13813` adds a content-addressed, prepare-only benchmark protocol: five
-  isolated fixture source roots, bounded preflight artifacts for every routing
-  and behavioral request, a no-oracle host plan, and descriptor-safe atomic tree
-  materialization. The plan fixes `cache_policy=none`, forbids automatic tool
-  execution and receipt writes, remains stable across output roots, and changes
-  when source content changes. Protocol/schema, safety, benchmark, install,
-  contract, release-compile, and live materialization checks pass.
-- `f190a82` compiles source-cited typed handoff contracts, binds each to its
-  actual graph edge and staged endpoints, blocks phase advancement without exact
-  artifact evidence, revalidates carried evidence, preserves same-graph runtime
-  continuity, and records contracts through recipes, receipts, and packet diffs.
-  It rejects forged endpoints, relationships, stage copies, and duplicate-content
-  collapse. Full unit, contract, install, release-compile, lint, and live
-  prepare → compose dogfood pass (669 tests, 3 expected skips).
-- `5fcefab` replaces weak single-route fallback with deterministic task facets,
-  compound-task fallback, explicit validated-route provenance, safe shortcut
-  gating, packet-identity binding, and graph-aware facet recompiles. Full unit,
-  contract, compile, install, and live TMCP compose checks pass; the actual
-  hardening prompt resolves to `skill_composition` with a validated route.
-- `9b4d72e` eliminates embedded route-term collisions, preserves intended lexical
-  forms, contextualizes contrast, and invalidates stale routing provenance. The
-  590-test suite passes with three expected skips.
-- `9f26520` moves preflight budget and identity cases into a focused test module;
-  the pre-CR quality gate is clean and the full 584-test suite remains green.
-- `a70fd04` adds provenance-bound, content-addressed behavior manifests, compact
-  always-on indexes, bounded lazy hydration, target-aware source selection, and
-  backward-compatible schemas. 584 tests pass (3 expected skips); live dogfood
-  compiles 1,472 tokens from a 9,188-token naïve union (16.0%).
-- `280fbb6` makes reference trees permanently advisory, removes content-keyword
-  workflow activation, preserves same-relative-path skills from distinct roots,
-  and hydrates only governing/current-stage reads. Its `harvest_nodes.py`
-  responsibility split is completed by `a70fd04`.
-- Clean-tree reproducible package verification passes at `18a1f65`: archive
-  digest `f0850b6f…`, manifest digest `e2f9e96f…`, installed compilation and 614
-  tests, and packaged prepare → assisted compose → full recompile smoke all pass.
-- `ee915b6` keeps new benchmark, cache, redaction, and recipe fixtures compatible
-  with strict release secret scanning; the full allowlisted working-tree content
-  scan and 80 focused tests pass without changing scanner policy.
-- `5fd181f` breaks one long adapter wiring token at the call site so strict
-  archive secret scanning does not misclassify code; behavior and scanner policy
-  are unchanged and 24 focused tests pass.
-- `bf11cd7` narrows package-secret scanning so versioned lowercase schema
-  identifiers are not misclassified as credentials; opaque-token detection and
-  31 focused redaction/release tests remain green.
-- `2ceb787` splits public composition tool schemas and oversized tests by
-  responsibility; the commit quality gate passes without warnings and the full
-  613-test suite remains green with three expected skips.
-- `318c5fb` implements the compositional intelligence compiler and its public
-  contracts while preserving the deterministic compatibility path and version
-  0.5.7. The integrated suite passes 613 tests with three expected skips.
-- `49a87c9` separates CLI/launcher contract coverage from server-domain tests,
-  removing the test-size quality warning without changing behavior.
-- `3abe21c` moves harvest through `tmcp_runtime/safety` and its artifact output
-  through descriptor-safe staged bundles. It adds 13 boundary tests; the full
-  suite passes.
-- `42b922f` adds redacted, bounded exact-file inputs for evaluation and a single
-  text/JSON artifact store with descriptor-relative writes, directory identity
-  checks, and fail-closed behavior when those primitives are unavailable. The
-  evaluation/artifact boundary is covered.
-- `587b8c1` moves skill evaluation onto those boundaries: data-only variant
-  composition, bounded/redacted plan and evidence inputs, safe artifact writes,
-  and one-read score persistence.
-- `c31641a` removes the last plan-path filesystem probe from advisory analysis;
-  evaluation variants are now composed from redacted in-memory node data only.
-- `1e43ed0` restores the hosted verification matrix: job-level environment
-  values now use the permitted `github.workspace` context instead of
-  `runner.temp`, which GitHub rejected before scheduling any jobs.
-- `32fb08d` moves review, recommendation, promotion, global cache, and receipt
-  artifacts through the shared safe store; redacts direct user inputs before
-  return/persistence; slugs implicit promotion directories; and publishes the
-  storage capability through `doctor` and `status`.
-- `4c5877f` keeps the new artifact-safety coverage in a focused test module;
-  unsupported-platform denial remains an expected local skip.
-- `3f4b74b` closes the adversarial boundary findings: review auto mode stays
-  standalone; explicit AIOS review is preview-only; default writes reject
-  symlink-derived roots; cache reads are bounded, schema-gated, and canonical;
-  Windows junctions are link-like; artifact identities retain opaque collision
-  resistance; and Windows runs the portable package smoke instead of skipping it.
-- `c31a9ee` moves MCP adapter/status safety coverage into its own test module,
-  restoring the repository test-source size gate.
-- Clean package reproducibility passes at `1b3697f`; the extracted package
-  verifies portable receipt denial as well as persistence-capable receipt flow.
-- `2d04122` moves deterministic route inference into `tmcp_runtime/domain`,
-  removing the first packet-domain owner from the legacy adapter.
-- `31a1d47` adds explicit, redacted project-local packet sessions with absolute
-  project roots, opaque keys, revision-locked latest records, pinned recompile
-  lineage, portable denial, and CLI/MCP/package coverage.
-- The clean committed tree at `fcbae5e` passes reproducible package verification,
-  including the packaged session compose → recompile smoke.
-- `6864350` moves composition/runtime/session release dogfood into focused
-  helpers, preserves the main release checker as an orchestrator, and makes the
-  shared release compile helper the documented local source-validation command.
-- `401e125` moves compatibility parsing, reason/diff/merge policy, validated
-  proposal application, and recompile Markdown rendering into
-  `tmcp_runtime/domain/recompile.py`; the server retains only runtime state,
-  source enrichment, composition/session selection, and transport assembly.
-- `2eedd09` moves UI/contextual gates, source-gate filtering, and reference-read
-  selection into `tmcp_runtime/domain/composition.py`, shared by compose and
-  runtime without changing MCP/CLI behavior.
-- `8b2cdb5` moves composed-packet provenance, shortcut eligibility, rationale,
-  and Markdown rendering into the same composition domain; package smoke now
-  asserts those public packet fields in extracted releases.
-- `9cb3c8b` moves final composed-packet assembly into the composition domain:
-  normalization/caps, deferred and ignored items, stable packet IDs, receipts,
-  safety metadata, and Markdown all derive from one deterministic builder.
-- `06defa0` moves scoped-seed and router task-family policy into
-  `tmcp_runtime/domain/families.py`: family-context construction, primary and
-  sibling decisions, and declared-load/slug normalization. The adapter retains
-  source-text interpretation and runtime state; direct and integration tests
-  cover threshold/tie, router, support-doc, and transition-only fallback paths.
-- `9b6c47f` moves node scoring, ordering/caps, route/family interactions, and
-  lexical selection helpers into `tmcp_runtime/domain/composition.py`; direct
-  tests cover guardrails, metadata, fallback, and tie behavior. The commit gate
-  reports that this owner is now above the 600-line source limit, so split it
-  before the next feature change.
-- `6cc0769` resolves that source-size gate by separating final packet
-  construction, provenance, shortcut selection, and Markdown rendering into
-  `tmcp_runtime/domain/packets.py`. Both domain owners are below the 600-line
-  limit; the server keeps recompile renderer injection as a dependency-free
-  callback.
-- `32d6a9f` moves family-phase aliases, seed transition fallback, phase choice,
-  skill activation/deactivation, and transition-only seed lookup into
-  `tmcp_runtime/domain/families.py`, initially keeping declared-read resolution
-  adapter-injected to preserve the domain dependency direction.
-- `6a3acc8` moves declared-read parsing, path matching/narrowing, and selected
-  source enrichment into `tmcp_runtime/domain/declared_loads.py`; runtime-family
-  transitions now call that sibling domain directly, while composition owns the
-  generic selected-node merge.
-- `775782e` moves standalone task routing, source projection, substance checks,
-  packet assembly, and Markdown rendering into
-  `tmcp_runtime/domain/standalone_packets.py`; the adapter now only orchestrates
-  its three existing public call paths.
-- `7ed60d4` moves review profile dimensions, coverage requirements, profile
-  selection precedence, and fallback behavior into
-  `tmcp_runtime/domain/review_profiles.py`; standalone review and workflow
-  recommendation now consume one canonical catalog.
-- `516a497` moves review evidence parsing/contracts, rubric synthesis, audit
-  scoring, remediation planning, handoff construction, validations, and Markdown
-  rendering into `review_evidence.py` and `review_results.py`; the adapter now
-  retains only harvest, redaction, artifact persistence, status, and MCP dispatch.
-- `55ddb54` moves curated workflow definitions, candidate filtering, stability
-  classification, and ID lookup into `tmcp_runtime/domain/workflow_catalog.py`;
-  recommendation, promotion, and global-cache selection share one catalog owner.
-- `f6f50f3` moves workflow signal scoring, recommendation reasons, rubric/template
-  construction, required-evidence guidance, source-scope policy, and candidate
-  instance construction into `tmcp_runtime/domain/workflow_recommendations.py`.
-- `03009f9` moves scoped-seed projection, custom workflow ideas, adaptive-pack
-  construction, duplicate-label analysis, process-gap policy, and…
+- `a0ee07c` strengthens all five behavioral fixtures with domain-specific,
+  observable `Output contract:` handoffs and adds a preparation-time validator
+  plus focused preflight tests. A separate Markdown contract section was
+  rejected during dogfood because bounded hydration could select it without
+  the role's inputs/outputs; keeping the contract inline preserves grounding.
+  No model call, receipt, promotion, lift, or release claim was made.
+
+_(1 older entries trimmed)_
 
 _(truncated for length)_
 
@@ -378,27 +161,9 @@ _(truncated for length)_
   promotion-planning, and review-plan policy are runtime-owned; the adapter
   retains source acquisition, redaction, and all durable-write authority.
 - Optional-cache policy is runtime-owned and direct-tested. The adapter controls
-  roots, catalog/schema injection, and persistence; storage owns bounded,
-  redacted, TOCTOU-safe advisory cache ingestion.
-- Optional AIOS execution remains adapter-only. Its child output, configured
-  paths, optional composed packet, and execution errors are redacted before any
-  MCP or CLI response is returned.
-- `adapter=auto` never starts AIOS. Explicit AIOS requests reject known sensitive
-  argument values until AIOS offers protected request input; decoded review
-  evidence is checked before subprocess execution.
-- Runtime state remains raw only inside the adapter until recompile/session work
-  completes. Public runtime responses redact paths; callers must supply a real
-  path instead of reusing a redacted packet location for an inline recompile.
-- Runtime-state reduction is pure and receives only preharvested source nodes and
-  cache warnings. The adapter retains cache-policy gating and all filesystem
-  authority.
-- Packet composition/source enrichment and recompile finalization are pure
-  service work over adapter-supplied safe data. cache_policy=none discards
-  injected cache inputs defensively; storage cache snapshots, TMCP_HOME redaction,
-  raw-path checks, sessions, and final response redaction preserve their boundaries.
-- Public compose and explain results redact complete response trees after internal
-  session work, while the protected session record retains its existing redaction
-  guarantees.
+  roots, catalog/schema injection, and persistence;…
+
+_(truncated for length)_
 
 ## Accumulated Context
 
@@ -429,10 +194,7 @@ _(truncated for length)_
   Windows junctions as links, and runs portable package verification on Windows.
 - 2026-07-12: M3 adds an explicit project-local compose → full-recompile
   session path while retaining inline previous-packet compatibility; a fresh
-  adversarial pass closes relative-root and forged-lineage findings, then
-  `6864350` separates its release dogfood into focused composition/session helpers;
-  `401e125` moves deterministic recompile policy and `2eedd09` moves contextual
-  composition policy behind domain boundaries;…
+  adversarial pass closes relative-root and forged-lineage findings, then…
 _(truncated)_
 
 ## Next Command
