@@ -76,3 +76,10 @@ requires distinct evaluator identities and execution IDs, and emits
 `eligible_for_manual_review` with `auto_apply: false`. It never edits this
 guidebook or the catalog; a human must review the candidate and any later
 replication before a durable evidence-level change.
+
+An eligible catalog entry is a separate, reviewed state change. The audit
+requires the entry to retain non-empty `evidence_refs`, a `replication` record
+with both `primary: true` and `independent_rejudge: true`, and this exact policy
+envelope: `auto_apply: false`, `requires_human_review: true`,
+`requires_replication: true`, and `requires_independent_rejudge: true`. Missing
+or weakened fields fail the read-only guidebook audit.

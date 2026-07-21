@@ -35,6 +35,12 @@ CONTROLLED_LEVELS = {
     "production_reinforced",
 }
 HELD_BOUNDARY = "Every currently shipped entry is on `hold`."
+REQUIRED_PROMOTION_POLICY = {
+    "auto_apply": False,
+    "requires_human_review": True,
+    "requires_replication": True,
+    "requires_independent_rejudge": True,
+}
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -122,6 +128,31 @@ def _audit_entry(
         issues.append(f"{pattern_id} has malformed promotion state")
     elif eligible != (decision == "eligible_for_manual_review"):
         issues.append(f"{pattern_id} promotion decision/eligible state disagrees")
+    if eligible:
+        policy = entry.get("promotion_policy")
+        if not isinstance(policy, dict):
+            issues.append(f"{pattern_id} eligible promotion has no policy envelope")
+        else:
+            for field, expected in REQUIRED_PROMOTION_POLICY.items():
+                if policy.get(field) is not expected:
+                    issues.append(
+                        f"{pattern_id} promotion policy {field} must be {expected!r}"
+                    )
+        evidence_refs = entry.get("evidence_refs")
+        if not isinstance(evidence_refs, list) or not all(
+            isinstance(reference, str) and reference.strip()
+            for reference in evidence_refs
+        ):
+            issues.append(f"{pattern_id} eligible promotion has no evidence_refs")
+        replication = entry.get("replication")
+        if not isinstance(replication, dict):
+            issues.append(f"{pattern_id} eligible promotion has no replication record")
+        else:
+            for field in ("primary", "independent_rejudge"):
+                if replication.get(field) is not True:
+                    issues.append(
+                        f"{pattern_id} replication.{field} must be true before promotion"
+                    )
     if evidence_level in CONTROLLED_LEVELS:
         experiment = entry.get("experiment")
         if not isinstance(experiment, str) or not experiment.strip():
