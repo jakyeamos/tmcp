@@ -121,6 +121,44 @@ clean-room skill isolation therefore remains unproven. Neither artifact is a
 lift, causal claim, promotion candidate, or release claim may be derived from
 this pilot.
 
+### Subscription calibration and artifact-boundary rejudge (2026-07-21)
+
+The authorized subscription-only calibration exercised five behavioral fixtures
+across the proposed runner slots before any campaign-scale dispatch:
+
+- `slot-1-luna-low`: `gpt-5.6-luna`, low reasoning
+- `slot-2-terra-low`: `gpt-5.6-terra`, low reasoning
+- `slot-3-terra-medium`: `gpt-5.6-terra`, medium reasoning
+- blind judge: `gpt-5.6-terra`, medium reasoning
+
+All 15 runner calls and all 15 blind-judge calls exited successfully through
+the logged-in ChatGPT subscription. The runner manifest is outside the
+repository at `/private/tmp/tmcp-calibration-20260721/manifest.json`, digest
+`7cef4f7cbe492c7305a15bcb263ea85229b53cf655530653644693d3c681bdcf`; the
+bundle-aware blind-judge manifest is at
+`/private/tmp/tmcp-calibration-20260721/judges-bundled/manifest.json`, digest
+`7ef51746e9870731168cd5c1bfdc6c7c7b6fc8c50037f66165a575165e23072c`.
+
+The first 15-cell judge pass was intentionally rejected as a harness result:
+its mean score was `0.1664` because the judge received runner handoff text
+that pointed to files without receiving those files. The repaired rejudge
+materialized the handoff plus runner-created files, while excluding fixture
+instruction files and campaign/controller metadata. Its mean score was
+`0.5683` (median `0.5575`), with every cell parsed and every judge call exiting
+zero. This is an artifact-contract and launchability finding, not a model
+quality or causal-lift claim. Slot means were `0.6041` (Luna/low), `0.5489`
+(Terra/low), and `0.5518` (Terra/medium); the spread does not justify changing
+the preregistered slot assignments on this sample.
+
+For every external run, the submitted host artifact must therefore be a
+bounded materialized bundle: the runner handoff plus the files it created and
+their verification evidence. A path-only pointer is an anti-pattern because
+it makes blind scoring dependent on inaccessible runner state and can turn a
+valid implementation into an unevaluable summary. The bundle must still omit
+fixture instructions, controller identity, skill order, graph identity, and
+execution recipes. The calibration remains outside the six required campaign
+artifacts and cannot support receipt, lift, promotion, or release claims.
+
 Promotion is a separate, non-mutating gate. After a complete eligible summary,
 retain the primary evaluator artifacts and obtain a second blind judgment in
 `tmcp-composition-lift-rejudge-envelope-v0.1`. The independent executor and

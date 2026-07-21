@@ -20,9 +20,12 @@ envelope and non-mutating manual-review promotion candidate command. Focused
 composition/guidebook checks are green.
 0.6.0 still requires real host/evaluator/rejudge outcomes and the stronger
 real-task corpus. An authorized one-cell external runner plus independent judge
-pilot now proves launchability only; it is not a campaign result, receipt, lift,
-promotion, or release claim. The pilot also exposed missing rendered-browser
-verification and incomplete clean-room skill isolation.
+pilot and a 15-cell subscription-only calibration now prove launchability only;
+they are not campaign results, receipts, lift, promotion, or release claims.
+The calibration exposed and repaired a path-only artifact handoff: blind judges
+must receive a bounded materialized bundle containing the runner-created files.
+Rendered-browser verification and strict clean-room skill isolation remain
+unproven.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -55,11 +58,13 @@ verification and incomplete clean-room skill isolation.
   180 baseline and 360 causal cells. Opaque runner and blind-judge bundles
   were prepared and inspected without execution or receipt persistence; their
   digests are recorded in `docs/COMPOSITION_BENCHMARK.md`. The authorized
-  external pilot is recorded there with raw artifact digests and a 0.738
-  independent judge score, but no campaign evidence was assembled. Next: add a
-  bounded external-run adapter, provision rendered verification for UI fixtures
-  (or keep that gate blocked), and only then schedule the full 540 runner plus
-  540 judge cells.
+  external pilot and 15-cell subscription calibration are recorded there with
+  raw artifact digests and no campaign evidence was assembled. Calibration
+  repaired the path-only handoff by materializing runner-created files for the
+  blind judge; it did not establish a model winner. Next: add a bounded
+  external-run adapter, provision rendered verification for UI fixtures (or
+  keep that gate blocked), and only then schedule the full 540 runner plus 540
+  judge cells.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
