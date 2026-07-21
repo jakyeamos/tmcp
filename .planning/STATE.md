@@ -12,30 +12,26 @@ preregistered composition-lift campaign only with explicit host/evaluator author
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `a0ee07c` hardens the five behavioral fixtures with observable,
-provenance-friendly output contracts and rejects expected skills that omit
-them. The full 939-test readiness command completed in 493.197s (8:13.8
-wall), so the isolated scoped Pre-CR policy is set to 600s. Commit `24fb4e8`
-then passed the reproducible package gate: 939 tests in 398.181s, matching
-archive digest `f7822c76…d6963` and manifest digest `46e7ec62…b4636`. The
-review-only AIOS policy branch `5bf6bac` now carries the same 600s scoped
-budget after this runtime measurement; canonical AIOS remains untouched.
-0.6.0 still requires real host/evaluator outcomes and the stronger real-task
-corpus.
+**Status:** `af42a44` binds the checked-in skill guidebook to its machine-readable
+pattern catalog with a read-only audit, held promotion metadata, and projection
+parity tests. The full 943-test readiness command completed in 366.744s
+(6:06.7 wall), with 3 skips. The commit hook timed out at its 90s local policy
+after reporting package-manager advisory text; the commit was created without
+bypassing verification. 0.6.0 still requires real host/evaluator outcomes and
+the stronger real-task corpus.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** `a0ee07c` adds a deterministic corpus-readiness gate and explicit
-  output contracts to every expected behavioral skill, keeping role and handoff
-  claims inside the bounded cited slice. The direct readiness command ran 939
-  tests in 493.197s (8:13.8 wall); the isolated 600s policy covers the observed
-  runtime while the global 90s hook remains unchanged. Commit `24fb4e8` passed
-  the reproducible package gate with matching archive/manifest digests and all
-  release surfaces green. No model call, receipt, promotion, or release claim
-  was made. Next: explicitly authorized host and external-evaluator evidence.
+- **Status:** `af42a44` adds the guidebook/catalog audit and preserves evidence,
+  status, and promotion metadata when runtime reports render catalog projections.
+  The direct readiness command ran 943 tests in 366.744s (6:06.7 wall), with 3
+  skips; focused composition and guidebook checks are green. The reproducible
+  package gate is pending a clean truth-file commit. No model call, receipt,
+  promotion, lift, or release claim was made. Next: package verification, then
+  explicitly authorized host and external-evaluator evidence.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -46,6 +42,11 @@ corpus.
   rejected during dogfood because bounded hydration could select it without
   the role's inputs/outputs; keeping the contract inline preserves grounding.
   No model call, receipt, promotion, lift, or release claim was made.
+
+- `af42a44` adds `scripts/audit_skill_guidebook.py`, four held catalog entries,
+  projection metadata parity, and regression tests. The audit is documentation
+  integrity only: controlled claims need an experiment ID found in source-only
+  evidence, and campaign plans or synthetic traces cannot promote guidance.
 
 _(1 older entries trimmed)_
 
@@ -78,6 +79,9 @@ _(truncated for length)_
 - Keep guidebook rendering, pattern-catalog merging, and advisory formatting
   runtime-owned over safe source text; legacy script aliases must not become
   server dependencies.
+- Keep the checked-in guidebook and pattern catalog synchronized through the
+  read-only guidebook audit; preserve evidence/status/promotion metadata and
+  fail closed on unsupported controlled claims.
 - Keep redaction primitives in `tmcp_runtime/safety`; the historical script
   module is a compatibility facade and must not be imported by runtime safety.
 - Keep MCP framing/JSON-RPC, CLI output/error translation, and typed registry
@@ -206,5 +210,6 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 -m unittest tests.test_tmcp_composition_preflight tests.test_tmcp_composition_source_activation
+python3 scripts/audit_skill_guidebook.py
+python3 scripts/check_release_package.py . --verify-reproducible
 ```
