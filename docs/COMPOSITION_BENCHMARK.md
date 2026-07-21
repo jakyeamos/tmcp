@@ -90,6 +90,37 @@ surfaces only: the runner bundle exposes execution references and bounded
 instructions; the judge bundle exposes artifact slots and the fixture rubric.
 Neither contains controller condition identity, skill order, graph, or recipe.
 
+### Authorized external-run pilot (2026-07-21)
+
+After explicit authorization, one runner dispatch and its independent blind
+judge were exercised through an isolated temporary Codex home. The pilot used
+the `behavior-ui-product` fixture and preserved the opaque runner/judge
+boundary; it was not expanded into the 540-cell campaign because TMCP has no
+host supervisor that resolves opaque execution references, persists the cell
+contracts, and safely schedules 540 external runner calls plus 540 independent
+judgments.
+
+The raw pilot artifacts remain outside the repository at
+`/private/tmp/tmcp-external-pilot/`:
+
+- runner artifact: `artifact.md`, SHA-256
+  `61f22675b239d29e85ec37afc0ef826fb43e1e63fd877985c7b0aa223e261a08`
+- blind-judge artifact: `judge.md`, SHA-256
+  `e6e66081d2503a499720ce00c2befce36e2a343995e0eee80f2a089f9ab23279`
+- independent judge result: weighted score `0.738` under
+  `tmcp-ui-product-quality-v0.1`
+
+The pilot is launchability evidence only. The runner reported source-level
+accessibility and responsive checks but correctly marked rendered browser and
+accessibility-tree verification blocked because the fixture has no browser
+engine or accessibility package. The subprocess also retained visibility of
+global skill descriptions despite `--ignore-user-config --ignore-rules`; strict
+clean-room skill isolation therefore remains unproven. Neither artifact is a
+`tmcp-composition-lift-host-results-v0.1` or
+`tmcp-composition-lift-evaluator-artifacts-v0.1` campaign result, and no receipt,
+lift, causal claim, promotion candidate, or release claim may be derived from
+this pilot.
+
 Promotion is a separate, non-mutating gate. After a complete eligible summary,
 retain the primary evaluator artifacts and obtain a second blind judgment in
 `tmcp-composition-lift-rejudge-envelope-v0.1`. The independent executor and
