@@ -41,7 +41,23 @@ Label every pattern claim with an evidence level:
 Evaluation may propose harvest warnings. It must not auto-promote or silently
 rewrite durable routing state.
 
-## 5. Instruction precedence
+## 5. Composition activation evidence
+
+When dogfooding composition, record the no-proposal compatibility selection next
+to the validated semantic proposal. A proposal may unlock cited sources while
+still deferring later-phase roles; that source-activation delta is a routing
+observation, not evidence that the composition improves task quality. Preserve
+the automatic-bootstrap cap, list active and deferred sources separately, and
+set `causal_claim: none` until an authorized controlled campaign supplies
+independent host/evaluator traces.
+
+Catalog entry: `composition.proposal-activation-delta` — Proposal-enabled source
+activation is measured without treating routing expansion as a quality result.
+Title: “Proposal-enabled source activation is measured without treating routing expansion as a quality result”
+
+Evidence level: `dogfooded` · Status: `held` · Promotion: `hold`
+
+## 6. Instruction precedence
 
 Treat system, developer, and user instructions as higher-priority constraints.
 Do not write skill language that asks an agent to ignore or override them.
@@ -50,9 +66,9 @@ Catalog entry: `precedence.override-hazard` — Instruction precedence is preser
 
 Evidence level: `hypothesis` · Status: `held` · Promotion: `hold`
 
-## 6. Promotion boundary
+## 7. Promotion boundary
 
-Every currently shipped entry is on `hold`. The four catalog entries above are
+Every currently shipped entry is on `hold`. The five catalog entries above are
 starting hypotheses, not proven composition rules. A controlled claim must name
 an experiment and resolve to source-only evidence before it can become eligible
 for manual review. A benchmark plan, fixture, dry run, or synthetic trace can

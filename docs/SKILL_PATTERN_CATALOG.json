@@ -69,6 +69,22 @@
       "suggested_harvest_warning": "Skill language may attempt to override higher-priority instructions.",
       "safe_to_auto_warn": true,
       "safe_to_auto_rewrite": false
+    },
+    {
+      "pattern_id": "composition.proposal-activation-delta",
+      "label": "Proposal activation delta",
+      "classification": "effective_pattern",
+      "evidence_level": "dogfooded",
+      "status": "held",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": ["No controlled task-quality result has been scored."]
+      },
+      "internal_atoms": ["skill-routing", "explicit-evidence-gaps"],
+      "good_example": "Record compatibility selection, proposal activation, and deferred sources with causal_claim: none.",
+      "weak_example": "The proposal activated more skills, so the task will be better.",
+      "detection_terms": ["proposal activation", "deferred sources", "causal_claim"]
     }
   ],
   "guidebook_entries": [
@@ -119,6 +135,18 @@
         "gaps": ["No controlled composition result has been scored."]
       },
       "internal_atoms": ["conflict-preservation"]
+    },
+    {
+      "pattern_id": "composition.proposal-activation-delta",
+      "title": "Proposal-enabled source activation is measured without treating routing expansion as a quality result",
+      "status": "held",
+      "evidence_level": "dogfooded",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": ["No controlled task-quality result has been scored."]
+      },
+      "internal_atoms": ["skill-routing", "explicit-evidence-gaps"]
     }
   ]
 }

@@ -328,6 +328,44 @@ def apply_semantic_composition(
     diagnostics = dict(packet.get("composition_diagnostics") or {})
     diagnostics.update(plan_diagnostics)
     diagnostics["preflight"] = dict(preflight.get("diagnostics") or {})
+    compatibility_selection = dict(
+        diagnostics.get("compatibility_selection") or {}
+    )
+    compatibility_sources = string_list(
+        compatibility_selection.get("selected_sources")
+    )
+    proposal_sources = ordered_unique(
+        [
+            str(selected[str(role.get("node_id") or "")].get("relative_path") or "")
+            for role in roles
+            if str(role.get("node_id") or "") in selected
+        ]
+    )
+    active_sources = ordered_unique(
+        [
+            str(selected[str(role.get("node_id") or "")].get("relative_path") or "")
+            for role in roles
+            if str(role.get("node_id") or "") in active_node_ids
+            and str(role.get("node_id") or "") in selected
+        ]
+    )
+    deferred_sources = [
+        source for source in proposal_sources if source not in active_sources
+    ]
+    diagnostics["proposal_activation_delta"] = {
+        "comparison": "compatibility_without_proposal_vs_validated_semantic_proposal",
+        "compatibility_selected_sources": compatibility_sources,
+        "proposal_selected_sources": proposal_sources,
+        "proposal_active_sources": active_sources,
+        "proposal_deferred_sources": deferred_sources,
+        "proposal_unlocked_sources": [
+            source for source in proposal_sources if source not in compatibility_sources
+        ],
+        "automatic_bootstrap_cap": compatibility_selection.get(
+            "max_automatic_bootstrap_skills"
+        ),
+        "causal_claim": "none",
+    }
     if activation_rejections:
         diagnostics["source_activation_projection"] = {
             "schema": SOURCE_ACTIVATION_PROJECTION_SCHEMA,

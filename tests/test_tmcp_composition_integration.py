@@ -204,6 +204,56 @@ class CompositionIntegrationTests(unittest.TestCase):
         self.assertTrue(packet["semantic_proposal_validation"]["accepted"])
         self.assertEqual(packet["composition_plan"]["current_phase"], "implementation")
 
+    def test_proposal_activation_delta_keeps_bootstrap_baseline_observable(self) -> None:
+        preflight = prepare_composition_from_source_nodes(
+            self.arguments,
+            source_nodes=self.nodes,
+        )
+        baseline = self._compose(self.arguments)
+        assisted = self._compose(
+            {**self.arguments, "semantic_proposal": self._proposal(preflight)}
+        )
+
+        compatibility = baseline["composition_diagnostics"][
+            "compatibility_selection"
+        ]
+        self.assertEqual(compatibility["selection_mode"], "narrow_bootstrap")
+        self.assertEqual(compatibility["selected_sources"], ["AGENTS.md"])
+        self.assertEqual(compatibility["max_automatic_bootstrap_skills"], 1)
+
+        delta = assisted["composition_diagnostics"]["proposal_activation_delta"]
+        self.assertEqual(
+            delta["compatibility_selected_sources"],
+            ["AGENTS.md"],
+        )
+        self.assertEqual(
+            delta["proposal_selected_sources"],
+            [
+                "AGENTS.md",
+                "skills/research/SKILL.md",
+                "skills/implement/SKILL.md",
+                "skills/verify/SKILL.md",
+            ],
+        )
+        self.assertEqual(
+            delta["proposal_active_sources"],
+            ["AGENTS.md", "skills/implement/SKILL.md"],
+        )
+        self.assertEqual(
+            delta["proposal_deferred_sources"],
+            ["skills/research/SKILL.md", "skills/verify/SKILL.md"],
+        )
+        self.assertEqual(
+            delta["proposal_unlocked_sources"],
+            [
+                "skills/research/SKILL.md",
+                "skills/implement/SKILL.md",
+                "skills/verify/SKILL.md",
+            ],
+        )
+        self.assertEqual(delta["automatic_bootstrap_cap"], 1)
+        self.assertEqual(delta["causal_claim"], "none")
+
     def test_semantic_plan_activates_only_current_phase_with_bridges(self) -> None:
         preflight = prepare_composition_from_source_nodes(
             self.arguments,

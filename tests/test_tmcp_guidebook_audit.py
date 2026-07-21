@@ -18,8 +18,8 @@ class GuidebookAuditTests(unittest.TestCase):
         report = audit_guidebook()
 
         self.assertTrue(report["passed"], report["issues"])
-        self.assertEqual(report["entry_count"], 4)
-        self.assertEqual(report["projection_count"], 4)
+        self.assertEqual(report["entry_count"], 5)
+        self.assertEqual(report["projection_count"], 5)
         self.assertEqual(report["controlled_claim_count"], 0)
 
     def test_audit_rejects_controlled_claim_without_source_evidence(self) -> None:
