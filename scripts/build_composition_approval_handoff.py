@@ -26,6 +26,8 @@ from tmcp_runtime.api.evaluation import validate_evaluation_plan  # noqa: E402
 
 
 HANDOFF_SCHEMA = "tmcp-composition-approval-handoff-v0.1"
+STUDY_VERIFICATION_SCHEMA = "tmcp-composition-study-verification-v0.1"
+READINESS_SCHEMA = "tmcp-skill-eval-campaign-readiness-v0.1"
 
 
 def _sha256_file(path: Path) -> str:
@@ -125,6 +127,82 @@ def _counts(plan: Mapping[str, Any], *, label: str, baseline: bool) -> dict[str,
     }
 
 
+def _verify_study_verification(
+    verification: Mapping[str, Any], *, causal_path: Path, causal_id: str
+) -> None:
+    """Reject a hand-edited success report whose structural checks are false."""
+
+    if verification.get("schema") != STUDY_VERIFICATION_SCHEMA:
+        raise ValueError("study verification schema does not match.")
+    if verification.get("ok") is not True:
+        raise ValueError("study verification is not successful.")
+    if verification.get("experiment_id") != causal_id:
+        raise ValueError("study verification experiment does not match causal plan.")
+    reported_plan = verification.get("plan_path")
+    if (
+        not isinstance(reported_plan, str)
+        or Path(reported_plan).resolve() != causal_path.resolve()
+    ):
+        raise ValueError("study verification plan path does not match causal plan.")
+    static = verification.get("static")
+    if not isinstance(static, Mapping):
+        raise ValueError("study verification static report is missing.")
+    for field in ("plan_matches_generated", "plan_valid"):
+        if static.get(field) is not True:
+            raise ValueError(f"study verification {field} is not true.")
+    if static.get("fixture_count") != 6 or static.get("matrix_row_count") != 12:
+        raise ValueError("study verification matrix counts do not match the study.")
+    live_sources = verification.get("live_sources")
+    if not isinstance(live_sources, Mapping) or live_sources.get("checked") is not True:
+        raise ValueError("study verification did not check live sources.")
+    if live_sources.get("status") != "matched":
+        raise ValueError("study verification does not match live sources.")
+    sources = live_sources.get("sources")
+    if (
+        not isinstance(sources, list)
+        or not sources
+        or any(
+            not isinstance(source, Mapping) or source.get("status") != "matched"
+            for source in sources
+        )
+    ):
+        raise ValueError("study verification has an incomplete live-source report.")
+
+
+def _verify_readiness(
+    readiness: Mapping[str, Any], *, baseline_experiment: Mapping[str, Any]
+) -> None:
+    """Bind the dry-run readiness summary to the baseline policy matrix."""
+
+    if readiness.get("schema") != READINESS_SCHEMA:
+        raise ValueError("baseline readiness schema does not match.")
+    if (
+        readiness.get("ready") is not True
+        or readiness.get("design") != "baseline_reliability"
+    ):
+        raise ValueError("baseline readiness gate is not ready.")
+    if readiness.get("gaps") != []:
+        raise ValueError("baseline readiness gate has unresolved gaps.")
+    policy = _campaign_policy(baseline_experiment, "baseline")
+    configurations = policy.get("runner_configurations")
+    judge = policy.get("judge_configuration")
+    if not isinstance(configurations, list) or not isinstance(judge, Mapping):
+        raise ValueError("baseline policy matrix is incomplete.")
+    expected_models = sorted(
+        str(configuration.get("model") or "")
+        for configuration in configurations
+        if isinstance(configuration, Mapping)
+    )
+    actual_models = readiness.get("runner_models")
+    if (
+        not isinstance(actual_models, list)
+        or sorted(str(model) for model in actual_models) != expected_models
+    ):
+        raise ValueError("baseline readiness runner models do not match policy.")
+    if readiness.get("judge_model") != judge.get("model"):
+        raise ValueError("baseline readiness judge model does not match policy.")
+
+
 def build_handoff(study_dir: Path, output_path: Path | None = None) -> dict[str, Any]:
     """Validate the local study package and return a no-call approval handoff."""
 
@@ -158,22 +236,12 @@ def build_handoff(study_dir: Path, output_path: Path | None = None) -> dict[str,
         raise ValueError("baseline plan is not derived from the causal experiment.")
 
     verification = _load_object(verification_path)
-    if verification.get("ok") is not True:
-        raise ValueError("study verification is not successful.")
-    if verification.get("experiment_id") != causal_id:
-        raise ValueError("study verification experiment does not match causal plan.")
-    live_sources = verification.get("live_sources")
-    if not isinstance(live_sources, Mapping) or live_sources.get("status") != "matched":
-        raise ValueError("study verification does not match live sources.")
+    _verify_study_verification(
+        verification, causal_path=causal_path, causal_id=causal_id
+    )
 
     readiness = _load_object(readiness_path)
-    if (
-        readiness.get("ready") is not True
-        or readiness.get("design") != "baseline_reliability"
-    ):
-        raise ValueError("baseline readiness gate is not ready.")
-    if readiness.get("gaps") != []:
-        raise ValueError("baseline readiness gate has unresolved gaps.")
+    _verify_readiness(readiness, baseline_experiment=baseline_experiment)
 
     baseline = _counts(baseline_plan, label="baseline", baseline=True)
     causal = _counts(causal_plan, label="causal", baseline=False)
