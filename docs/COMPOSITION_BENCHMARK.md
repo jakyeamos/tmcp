@@ -68,6 +68,23 @@ makes no model or tool calls and writes neither campaign artifacts nor receipts.
 The campaign is not behavioral evidence and remains `pilot_only` with
 `causal_claim_status: not_evaluated` until separately executed and scored.
 
+### Current no-call handoff
+
+The latest fixture-bound handoff (2026-07-21) is:
+
+- campaign: `composition-lift-campaign-01696e55d67fa8ecb6e5`
+- campaign digest: `01696e55d67fa8ecb6e5b48ce5a919bdc8c68a2c239bdafd8a4389cf7514799a`
+- run manifest: `benchmark-run-1a5c87a7a3761fdc926a`
+- run manifest digest: `1a5c87a7a3761fdc926a08e49cd2b950a0bb8894f8265db4d3650af214766318`
+- control plan: `benchmark-control-fa4e2c940b51ef125968`
+- control plan digest: `fa4e2c940b51ef1259680cfe4c1537edd87c958e487fbb777defb828fbdde9ab`
+- dimensions: 5 blocks, 180 baseline cells, 360 causal cells, 540 runner dispatches, and 540 blind-judge dispatches
+
+This handoff is a reproducibility anchor only. It has no model-call authority,
+does not persist receipts, and cannot support a lift or guidebook-promotion
+claim. A future host/evaluator run must bind its raw artifacts to these exact
+digests before scoring or rejudging.
+
 Promotion is a separate, non-mutating gate. After a complete eligible summary,
 retain the primary evaluator artifacts and obtain a second blind judgment in
 `tmcp-composition-lift-rejudge-envelope-v0.1`. The independent executor and
