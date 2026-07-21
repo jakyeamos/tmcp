@@ -68,6 +68,16 @@ makes no model or tool calls and writes neither campaign artifacts nor receipts.
 The campaign is not behavioral evidence and remains `pilot_only` with
 `causal_claim_status: not_evaluated` until separately executed and scored.
 
+Promotion is a separate, non-mutating gate. After a complete eligible summary,
+retain the primary evaluator artifacts and obtain a second blind judgment in
+`tmcp-composition-lift-rejudge-envelope-v0.1`. The independent executor and
+execution ID must differ from the primary evaluation, and the second judgment
+must cover the same 540 cells and agree within the preregistered tolerance.
+Only then may `scripts/promote_guidebook_from_campaign.py` emit an
+`eligible_for_manual_review` candidate. The candidate is not an automatic
+guidebook rewrite or a release receipt; raw artifacts remain the evidence of
+record for human review and later replication.
+
 The campaign's 540 cells are intentionally carried by separate experimental
 cell-result contracts. The ordinary benchmark host/evaluator artifacts collapse
 one result per variant, which is sufficient for the release benchmark but cannot

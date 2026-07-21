@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-guidebook-promotion-candidate-v0.1.schema.json",
+  "title": "TMCP Guidebook Promotion Candidate v0.1",
+  "description": "A non-mutating, manual-review candidate derived from replicated composition evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "campaign_id",
+    "campaign_digest",
+    "pattern_ids",
+    "decision",
+    "eligible",
+    "promotion_policy",
+    "evidence"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-guidebook-promotion-candidate-v0.1"},
+    "campaign_id": {"type": "string", "pattern": "^composition-lift-campaign-[a-f0-9]{20}$"},
+    "campaign_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "pattern_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "decision": {"const": "eligible_for_manual_review"},
+    "eligible": {"const": true},
+    "promotion_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["auto_apply", "requires_human_review", "requires_replication", "requires_independent_rejudge"],
+      "properties": {
+        "auto_apply": {"const": false},
+        "requires_human_review": {"const": true},
+        "requires_replication": {"const": true},
+        "requires_independent_rejudge": {"const": true}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary_digest", "primary_evaluator_digest", "rejudge_digest", "rejudge_execution_id", "agreement"],
+      "properties": {
+        "summary_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "primary_evaluator_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "rejudge_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "rejudge_execution_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "agreement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cell_count", "dimension_count", "max_absolute_score_delta", "quality_metric_deltas"],
+          "properties": {
+            "cell_count": {"const": 540},
+            "dimension_count": {"type": "integer", "minimum": 3},
+            "max_absolute_score_delta": {"type": "number", "minimum": 0, "maximum": 1},
+            "quality_metric_deltas": {"type": "object", "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}}
+          }
+        }
+      }
+    }
+  }
+}

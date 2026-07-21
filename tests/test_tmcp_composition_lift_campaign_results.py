@@ -301,14 +301,18 @@ class CompositionLiftCampaignResultsTests(unittest.TestCase):
         for path in (
             "schemas/tmcp-composition-lift-host-results-v0.1.schema.json",
             "schemas/tmcp-composition-lift-evaluator-artifacts-v0.1.schema.json",
+            "schemas/tmcp-composition-lift-rejudge-envelope-v0.1.schema.json",
             "schemas/tmcp-composition-lift-summary-v0.1.schema.json",
             "schemas/tmcp-composition-lift-dispatch-bundle-v0.1.schema.json",
+            "schemas/tmcp-guidebook-promotion-candidate-v0.1.schema.json",
         ):
             self.assertIn(path, REQUIRED_FILES)
         for path in (
             "scripts/score_composition_lift_campaign.py",
+            "scripts/promote_guidebook_from_campaign.py",
             "tmcp_runtime/domain/composition_lift_campaign_results.py",
             "tmcp_runtime/domain/composition_lift_campaign_scoring.py",
+            "tmcp_runtime/domain/guidebook_promotion.py",
         ):
             self.assertIn(path, COMPILE_PATHS)
 

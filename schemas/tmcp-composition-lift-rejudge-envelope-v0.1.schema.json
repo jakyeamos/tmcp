@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-composition-lift-rejudge-envelope-v0.1.schema.json",
+  "title": "TMCP Composition Lift Independent Rejudge Envelope v0.1",
+  "description": "An independent blind rejudge bound to the same raw host artifacts and campaign.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "campaign_id",
+    "campaign_digest",
+    "primary_evaluator_digest",
+    "independence",
+    "artifacts"
+  ],
+  "properties": {
+    "schema": {"const": "tmcp-composition-lift-rejudge-envelope-v0.1"},
+    "campaign_id": {"type": "string", "pattern": "^composition-lift-campaign-[a-f0-9]{20}$"},
+    "campaign_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "primary_evaluator_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "independence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "executor_id", "execution_id", "primary_execution_id", "method"],
+      "properties": {
+        "mode": {"const": "independent_rejudge"},
+        "executor_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "execution_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "primary_execution_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "method": {"type": "string", "minLength": 1, "maxLength": 8000}
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "description": "Validated against tmcp-composition-lift-evaluator-artifacts-v0.1 by TMCP.",
+      "additionalProperties": true
+    }
+  }
+}
