@@ -24,6 +24,8 @@ from tmcp_runtime.services.compose import prepare_composition_from_source_nodes
 
 BENCHMARK_RUN_PLAN_SCHEMA = "tmcp-composition-benchmark-run-plan-v0.1"
 BENCHMARK_PROTOCOL_SCHEMA = "tmcp-composition-benchmark-protocol-v0.1"
+TASK_CONTEXT_SCHEMA = "tmcp-composition-task-context-v0.1"
+TASK_CONTEXT_MODE = "fixture_supplied_evidence"
 _LOGICAL_WORKSPACE_ROOT = Path("/tmcp-benchmark")
 
 
@@ -81,6 +83,107 @@ def validate_fixture_observable_contracts(
         )
 
 
+def validate_fixture_task_context(
+    fixture_id: str,
+    fixture: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Validate the bounded task input kept separate from active skill sources."""
+
+    raw_context = fixture.get("task_context")
+    if not isinstance(raw_context, Mapping):
+        raise ValueError(f"{fixture_id}.task_context must be an object.")
+    if raw_context.get("schema") != TASK_CONTEXT_SCHEMA:
+        raise ValueError(
+            f"{fixture_id}.task_context.schema must be {TASK_CONTEXT_SCHEMA}."
+        )
+    if raw_context.get("mode") != TASK_CONTEXT_MODE:
+        raise ValueError(
+            f"{fixture_id}.task_context.mode must be {TASK_CONTEXT_MODE}."
+        )
+    objective_context = str(raw_context.get("objective_context") or "").strip()
+    if not objective_context or len(objective_context) > 2000:
+        raise ValueError(
+            f"{fixture_id}.task_context.objective_context must be 1-2000 characters."
+        )
+    constraints = raw_context.get("constraints")
+    if isinstance(constraints, (str, bytes)) or not isinstance(constraints, Sequence):
+        raise ValueError(f"{fixture_id}.task_context.constraints must be a sequence.")
+    normalized_constraints = [str(item or "").strip() for item in constraints]
+    if not 1 <= len(normalized_constraints) <= 8 or any(
+        not item or len(item) > 500 for item in normalized_constraints
+    ):
+        raise ValueError(
+            f"{fixture_id}.task_context.constraints must contain 1-8 bounded strings."
+        )
+    if len(set(normalized_constraints)) != len(normalized_constraints):
+        raise ValueError(f"{fixture_id}.task_context.constraints must be unique.")
+    evidence = raw_context.get("evidence")
+    if isinstance(evidence, (str, bytes)) or not isinstance(evidence, Sequence):
+        raise ValueError(f"{fixture_id}.task_context.evidence must be a sequence.")
+    if not 1 <= len(evidence) <= 8:
+        raise ValueError(f"{fixture_id}.task_context.evidence must contain 1-8 items.")
+    normalized_evidence: list[dict[str, str]] = []
+    seen_ids: set[str] = set()
+    for index, item in enumerate(evidence, start=1):
+        if not isinstance(item, Mapping):
+            raise ValueError(
+                f"{fixture_id}.task_context.evidence[{index}] must be an object."
+            )
+        evidence_id = str(item.get("evidence_id") or "").strip()
+        kind = str(item.get("kind") or "").strip()
+        media_type = str(item.get("media_type") or "").strip()
+        provenance = str(item.get("provenance") or "").strip()
+        content = str(item.get("content") or "").strip()
+        if not evidence_id or not kind or not media_type or not content:
+            raise ValueError(
+                f"{fixture_id}.task_context.evidence[{index}] has an empty field."
+            )
+        if evidence_id in seen_ids:
+            raise ValueError(f"{fixture_id}.task_context evidence ids must be unique.")
+        if len(kind) > 128 or len(media_type) > 128 or len(content) > 8000:
+            raise ValueError(
+                f"{fixture_id}.task_context.evidence[{index}] exceeds a bounded field."
+            )
+        if provenance != "fixture_supplied":
+            raise ValueError(
+                f"{fixture_id}.task_context.evidence[{index}].provenance must be fixture_supplied."
+            )
+        seen_ids.add(evidence_id)
+        normalized_evidence.append(
+            {
+                "evidence_id": evidence_id,
+                "kind": kind,
+                "media_type": media_type,
+                "provenance": provenance,
+                "content": content,
+            }
+        )
+    normalized = {
+        "schema": TASK_CONTEXT_SCHEMA,
+        "mode": TASK_CONTEXT_MODE,
+        "objective_context": objective_context,
+        "constraints": normalized_constraints,
+        "evidence": normalized_evidence,
+    }
+    serialized = json.dumps(normalized, sort_keys=True).casefold()
+    for forbidden in (
+        "expected_skill_ids",
+        "expected_order",
+        "expected_relationships",
+        "quality_rubric",
+    ):
+        if forbidden in serialized:
+            raise ValueError(
+                f"{fixture_id}.task_context must not contain benchmark oracle {forbidden}."
+            )
+    return normalized
+
+
+def task_context_digest(fixture: Mapping[str, Any]) -> str:
+    fixture_id = _nonempty(fixture.get("fixture_id"), field="fixture.fixture_id")
+    return stable_digest(validate_fixture_task_context(fixture_id, fixture))
+
+
 def _json_text(payload: object) -> str:
     return json.dumps(payload, indent=2, sort_keys=True) + "\n"
 
@@ -116,6 +219,7 @@ def _fixture_records(payload: Mapping[str, Any]) -> list[Mapping[str, Any]]:
         by_domain.add(domain)
         validate_fixture_skill_sources(fixture_id, fixture)
         validate_fixture_observable_contracts(fixture_id, fixture)
+        validate_fixture_task_context(fixture_id, fixture)
     return fixtures
 
 
@@ -184,6 +288,7 @@ def prepare_fixture_preflight(
     objective: str,
 ) -> dict[str, Any]:
     fixture_root = _LOGICAL_WORKSPACE_ROOT / fixture_workspace_relative_path(fixture)
+    context_digest = task_context_digest(fixture)
     return prepare_composition_from_source_nodes(
         {
             "objective": objective,
@@ -196,6 +301,7 @@ def prepare_fixture_preflight(
             "max_total_tokens": 12_000,
             "explicitly_scoped_paths": ["skills"],
             "include_all_active_source_slices": True,
+            "task_context_digest": context_digest,
         },
         source_nodes=fixture_source_nodes(fixture),
     )
@@ -237,6 +343,8 @@ def _request_record(
     artifact_path: str,
     input_digest: str,
     preflight: Mapping[str, Any],
+    task_context_digest_value: str,
+    task_context_artifact: str,
 ) -> dict[str, Any]:
     return {
         "request_id": request_id,
@@ -248,6 +356,8 @@ def _request_record(
         "preflight_id": _nonempty(preflight.get("preflight_id"), field="preflight.id"),
         "preflight_digest": stable_digest(dict(preflight)),
         "preflight_artifact": artifact_path,
+        "task_context_digest": task_context_digest_value,
+        "task_context_artifact": task_context_artifact,
     }
 
 
@@ -290,6 +400,10 @@ def build_benchmark_preparation(
         fixture_id = _nonempty(fixture.get("fixture_id"), field="fixture.fixture_id")
         objective = _nonempty(fixture.get("objective"), field=f"{fixture_id}.objective")
         workspace = fixture_workspace_relative_path(fixture)
+        context = validate_fixture_task_context(fixture_id, fixture)
+        context_digest = stable_digest(context)
+        context_path = f"host-inputs/behavioral-{fixture_id}-task-context.json"
+        artifacts[context_path] = _json_text(context)
         for skill_id, source in validate_fixture_skill_sources(
             fixture_id, fixture
         ).items():
@@ -317,9 +431,12 @@ def build_benchmark_preparation(
                         "objective": objective,
                         "phase": "start",
                         "cache_policy": "none",
+                        "task_context_digest": context_digest,
                     }
                 ),
                 preflight=preflight,
+                task_context_digest_value=context_digest,
+                task_context_artifact=context_path,
             )
         )
         fixture_records.append(
@@ -330,6 +447,8 @@ def build_benchmark_preparation(
                 ),
                 "workspace_root": workspace,
                 "source_inventory": _source_inventory(fixture),
+                "task_context_digest": context_digest,
+                "task_context_artifact": context_path,
             }
         )
 
@@ -343,14 +462,28 @@ def build_benchmark_preparation(
         preflight = prepare_fixture_preflight(fixture=fixture, objective=objective)
         preflight_path = f"host-inputs/routing-{case_id}-preflight.json"
         artifacts[preflight_path] = _json_text(preflight)
+        context = validate_fixture_task_context(
+            _nonempty(fixture.get("fixture_id"), field=f"{case_id}.fixture_id"),
+            fixture,
+        )
+        context_digest = stable_digest(context)
+        context_path = f"host-inputs/routing-{case_id}-task-context.json"
+        artifacts[context_path] = _json_text(context)
         routing_requests.append(
             _request_record(
                 request_id=f"routing-{case_id}",
                 fixture=fixture,
                 objective=objective,
                 artifact_path=preflight_path,
-                input_digest=routing_input_digest(case),
+                input_digest=stable_digest(
+                    {
+                        "routing_input_digest": routing_input_digest(case),
+                        "task_context_digest": context_digest,
+                    }
+                ),
                 preflight=preflight,
+                task_context_digest_value=context_digest,
+                task_context_artifact=context_path,
             )
             | {"case_id": case_id}
         )

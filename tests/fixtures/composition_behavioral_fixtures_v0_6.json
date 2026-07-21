@@ -27,6 +27,22 @@
       "domain": "ui_product",
       "root_node_id": "product-discovery",
       "objective": "Discover product needs, establish UI structure, implement the surface, and verify rendered accessibility.",
+      "task_context": {
+        "schema": "tmcp-composition-task-context-v0.1",
+        "mode": "fixture_supplied_evidence",
+        "objective_context": "A product team is preparing a keyboard-first settings surface for a desktop app. The work must cover first-run, empty, populated, error, and reduced-motion states before a release decision.",
+        "constraints": [
+          "Use the existing component and design-token primitives; do not invent a parallel surface.",
+          "Treat the supplied observations as precondition evidence, not as browser execution performed by the host.",
+          "Keep unresolved product decisions and unavailable rendered checks explicit in the final handoff."
+        ],
+        "evidence": [
+          {"evidence_id": "ui-product-brief", "kind": "product_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Users need to change notification level, understand the current value, recover from a save error, and leave the surface without losing unsaved changes. The primary action must remain discoverable in keyboard navigation."},
+          {"evidence_id": "ui-state-inventory", "kind": "state_inventory", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Required states: first-run with no saved preference; empty account with no destinations; populated account with the current preference; save failure with retry and preserved input; narrow viewport; keyboard focus; and reduced-motion preference."},
+          {"evidence_id": "ui-acceptance-notes", "kind": "acceptance_notes", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Reviewers will look for a coherent hierarchy, explicit interaction states, token-based contrast, visible focus, responsive behavior at 320px, and a reduced-motion path. No browser run or rendered capture is supplied by this fixture."
+          }
+        ]
+      },
       "quality_rubric": {
         "rubric_id": "tmcp-ui-product-quality-v0.1",
         "version": "0.1",
@@ -64,6 +80,22 @@
       "domain": "migration_data",
       "root_node_id": "migration-readiness",
       "objective": "Assess migration readiness, verify data integrity, prove rollback, and execute the regression strategy.",
+      "task_context": {
+        "schema": "tmcp-composition-task-context-v0.1",
+        "mode": "fixture_supplied_evidence",
+        "objective_context": "A service is moving records from a legacy schema to a versioned store. The team needs a bounded readiness recommendation with invariant checks, a recoverable cutover, and regression coverage for partial and repeated runs.",
+        "constraints": [
+          "Do not recommend cutover without named invariants, rollback triggers, and recovery checkpoints.",
+          "Treat the supplied logs as fixture preconditions; do not present them as commands executed by the host.",
+          "Separate observed migration evidence from remaining readiness risks."
+        ],
+        "evidence": [
+          {"evidence_id": "migration-schema-inventory", "kind": "schema_inventory", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Records are keyed by account_id and record_id. The destination adds version and updated_at. Referential links to account and owner must remain valid, ordering by updated_at must be stable, and duplicate record_id values must not be introduced."},
+          {"evidence_id": "migration-dry-run-notes", "kind": "dry_run_notes", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "A bounded dry-run sample contains new, already-migrated, malformed, and interrupted records. The fixture does not include a complete query transcript; integrity results and unresolved cases must be called out rather than inferred."},
+          {"evidence_id": "migration-recovery-brief", "kind": "recovery_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Rollback must be triggered by invariant drift, repeated failures, or an unavailable checkpoint. Recovery should identify the last safe checkpoint, restore referential integrity, and prove that a repeated migration is idempotent."
+          }
+        ]
+      },
       "quality_rubric": {
         "rubric_id": "tmcp-migration-data-quality-v0.1",
         "version": "0.1",
@@ -101,6 +133,22 @@
       "domain": "agent_workflow",
       "root_node_id": "workflow-design",
       "objective": "Design the agent workflow, define routing, audit safety boundaries, and verify receipts before promotion.",
+      "task_context": {
+        "schema": "tmcp-composition-task-context-v0.1",
+        "mode": "fixture_supplied_evidence",
+        "objective_context": "An agent platform is adding a multi-stage workflow that routes capability packets, handles sensitive inputs, and learns only from explicitly reviewed receipts. The design must make deferral and promotion boundaries inspectable.",
+        "constraints": [
+          "No external side effect or automatic promotion is authorized by this fixture.",
+          "Treat the supplied trace as a design input, not as a receipt emitted by the host.",
+          "Every deferred route, safety decision, and promotion decision must state its evidence and owner."
+        ],
+        "evidence": [
+          {"evidence_id": "workflow-stage-brief", "kind": "workflow_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "The intended stages are workflow design, deterministic routing, safety and privacy review, and receipt verification. Each stage needs explicit inputs, outputs, entry conditions, and an exit decision before the next stage can activate."},
+          {"evidence_id": "workflow-routing-signals", "kind": "routing_signals", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Routing signals include task facet, evidence availability, source trust, requested side effects, and whether a reviewed project recipe exists. Missing evidence should defer a capability instead of silently activating it."},
+          {"evidence_id": "workflow-safety-brief", "kind": "safety_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Sensitive data, instruction precedence, external effects, user overrides, receipt provenance, and lift thresholds must be visible in the review. Promotion is a separate explicit decision and never an automatic learning side effect."
+          }
+        ]
+      },
       "quality_rubric": {
         "rubric_id": "tmcp-agent-workflow-quality-v0.1",
         "version": "0.1",
@@ -138,6 +186,22 @@
       "domain": "research_writing_review",
       "root_node_id": "source-research",
       "objective": "Research sources, write the domain artifact, review the draft, and verify all citations.",
+      "task_context": {
+        "schema": "tmcp-composition-task-context-v0.1",
+        "mode": "fixture_supplied_evidence",
+        "objective_context": "A domain team needs a concise decision artifact built from authoritative sources. The workflow must keep a source ledger, distinguish evidence from synthesis, require an editorial revision, and resolve every material citation.",
+        "constraints": [
+          "Do not invent sources or imply network retrieval; the supplied excerpts are the available research input.",
+          "Keep material claims mapped to evidence and label unresolved citation gaps.",
+          "The final artifact must separate source-backed findings, domain reasoning, and editorial changes."
+        ],
+        "evidence": [
+          {"evidence_id": "research-source-ledger", "kind": "source_ledger", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Source A is an authoritative standards excerpt about the domain constraint. Source B is a maintained implementation guide describing the operational tradeoff. Source C is a dated measurement note. The fixture provides excerpts and provenance labels, not a live network lookup."},
+          {"evidence_id": "research-claim-map", "kind": "claim_map", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Material claims must identify the supporting source, quote or paraphrase boundary, confidence, and any gap. Claims that rely on synthesis rather than a direct excerpt must be labeled as reasoning."},
+          {"evidence_id": "research-review-brief", "kind": "editorial_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "The audience needs a clear recommendation, assumptions, counterargument, and next action. Editorial review should record structure, clarity, claim precision, and audience-fit findings before citation verification."
+          }
+        ]
+      },
       "quality_rubric": {
         "rubric_id": "tmcp-research-writing-review-quality-v0.1",
         "version": "0.1",
@@ -175,6 +239,22 @@
       "domain": "diagnose_fix_regression",
       "root_node_id": "root-cause-analysis",
       "objective": "Diagnose the failure, implement the narrow fix, protect it with regression coverage, and verify release behavior.",
+      "task_context": {
+        "schema": "tmcp-composition-task-context-v0.1",
+        "mode": "fixture_supplied_evidence",
+        "objective_context": "A production defect has a reproducible symptom and a suspected narrow cause. The team needs a diagnosis record, a bounded fix, before-and-after regression protection, and an installed or release verification handoff.",
+        "constraints": [
+          "Do not patch the symptom before separating reproduction, cause, and collateral risk.",
+          "Treat the supplied reproduction and test notes as fixture evidence; do not claim the host ran them.",
+          "Keep release identity, residual risk, and untested paths explicit."
+        ],
+        "evidence": [
+          {"evidence_id": "diagnosis-reproduction", "kind": "failure_reproduction", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "The failure appears when a saved state is reloaded after an interrupted update. The expected behavior is to preserve the prior valid state and surface a recoverable error. The fixture supplies a reproduction narrative but no live process transcript."},
+          {"evidence_id": "diagnosis-change-boundary", "kind": "change_boundary", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "The likely change boundary is the state-reconciliation path, not the persistence adapter or release packaging. A focused diff should identify affected files, root-cause linkage, and collateral-risk checks."},
+          {"evidence_id": "diagnosis-regression-brief", "kind": "regression_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Regression coverage should include the original interruption, a successful update, repeated reload, malformed state, and the release or installed smoke path. Before-and-after results must distinguish fixture notes from host-run verification."
+          }
+        ]
+      },
       "quality_rubric": {
         "rubric_id": "tmcp-diagnose-fix-regression-quality-v0.1",
         "version": "0.1",

@@ -178,6 +178,7 @@
       "required": [
         "fixture_id",
         "request_id",
+        "task_context_digest",
         "variant_id",
         "input_packet_digest",
         "execution_recipe_digest",
@@ -195,6 +196,7 @@
       "properties": {
         "fixture_id": {"type": "string", "minLength": 1},
         "request_id": {"type": "string", "minLength": 1},
+        "task_context_digest": {"$ref": "#/$defs/digest"},
         "variant_id": {"type": "string", "minLength": 1},
         "input_packet_digest": {"$ref": "#/$defs/digest"},
         "execution_recipe_digest": {"$ref": "#/$defs/digest"},

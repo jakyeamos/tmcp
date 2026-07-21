@@ -77,7 +77,7 @@
     "fixture_workspace": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["fixture_id", "domain", "workspace_root", "source_inventory"],
+      "required": ["fixture_id", "domain", "workspace_root", "source_inventory", "task_context_digest", "task_context_artifact"],
       "properties": {
         "fixture_id": {"type": "string", "minLength": 1},
         "domain": {"type": "string", "minLength": 1},
@@ -86,7 +86,9 @@
           "type": "array",
           "minItems": 3,
           "items": {"$ref": "#/$defs/source"}
-        }
+        },
+        "task_context_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "task_context_artifact": {"type": "string", "pattern": "^host-inputs/[^/]+-task-context\\.json$"}
       }
     },
     "source": {
@@ -121,7 +123,9 @@
         "input_digest",
         "preflight_id",
         "preflight_digest",
-        "preflight_artifact"
+        "preflight_artifact",
+        "task_context_digest",
+        "task_context_artifact"
       ],
       "properties": {
         "request_id": {"type": "string", "minLength": 1},
@@ -132,7 +136,9 @@
         "input_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "preflight_id": {"type": "string", "pattern": "^preflight-[a-f0-9]{20}$"},
         "preflight_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-        "preflight_artifact": {"type": "string", "pattern": "^host-inputs/[^/]+-preflight\\.json$"}
+        "preflight_artifact": {"type": "string", "pattern": "^host-inputs/[^/]+-preflight\\.json$"},
+        "task_context_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "task_context_artifact": {"type": "string", "pattern": "^host-inputs/[^/]+-task-context\\.json$"}
       }
     },
     "routing_request": {

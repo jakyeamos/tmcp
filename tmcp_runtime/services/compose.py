@@ -87,6 +87,17 @@ def _composition_boolean(
     return value
 
 
+def _optional_digest(arguments: Mapping[str, Any], name: str) -> str | None:
+    value = arguments.get(name)
+    if value is None:
+        return None
+    if not isinstance(value, str) or len(value) != 64 or value != value.casefold():
+        raise ValueError(f"{name} must be a lowercase SHA-256 digest.")
+    if any(character not in "0123456789abcdef" for character in value):
+        raise ValueError(f"{name} must be a lowercase SHA-256 digest.")
+    return value
+
+
 def _composition_identity(
     arguments: Mapping[str, Any],
     source_nodes: list[dict[str, Any]],
@@ -194,6 +205,7 @@ def prepare_composition_from_source_nodes(
             "include_all_active_source_slices",
             default=False,
         ),
+        task_context_digest=_optional_digest(arguments, "task_context_digest"),
     )
 
 

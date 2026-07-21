@@ -17,8 +17,10 @@ RUNNER_DISPATCH_SCHEMA = "tmcp-composition-lift-runner-dispatch-v0.1"
 BLIND_JUDGE_DISPATCH_SCHEMA = "tmcp-composition-lift-blind-judge-dispatch-v0.1"
 RUNNER_INSTRUCTION = (
     "Complete the supplied isolated task using only its supplied execution input and "
-    "recipe reference. Return one bounded artifact and concrete verification evidence. "
-    "Do not add unstated materials or persist a receipt."
+    "recipe reference. Treat task_context evidence as fixture-supplied preconditions, "
+    "not as host-executed evidence; keep any host-run verification separate and label "
+    "missing checks blocked or unverified. Return one bounded artifact and concrete "
+    "verification evidence. Do not add unstated materials or persist a receipt."
 )
 BLIND_JUDGE_INSTRUCTION = (
     "Score only the presented artifact against the supplied rubric. Cite artifact "
@@ -119,6 +121,7 @@ def _binding(
     binding = {
         "fixture_id": control["fixture_id"],
         "request_id": control["request_id"],
+        "task_context_digest": control["task_context_digest"],
         "variant_id": variant["variant_id"],
         "input_packet_digest": variant["input_packet_digest"],
         "execution_recipe_digest": variant["execution_recipe_digest"],
@@ -377,6 +380,7 @@ def _validate_binding(
     ) != variant_skill_order(variant_id, selected_skill_ids):
         raise ValueError(f"{field} ordered skills drifted from the canonical control.")
     for key, length in (
+        ("task_context_digest", 64),
         ("input_packet_digest", 64),
         ("execution_recipe_digest", 64),
         ("source_composition_plan_digest", 64),

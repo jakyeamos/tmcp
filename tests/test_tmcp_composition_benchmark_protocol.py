@@ -94,6 +94,9 @@ def _proposal_for_fixture(
 ) -> dict[str, object]:
     """Return a test-only host proposal with citations from its prepared input."""
 
+    def _unique(values: list[str]) -> list[str]:
+        return list(dict.fromkeys(values))
+
     preflight = prepare_fixture_preflight(fixture=fixture, objective=objective)
     node_by_skill = {
         str(node["skill_id"]): str(node["id"]) for node in fixture_source_nodes(fixture)
@@ -152,11 +155,26 @@ def _proposal_for_fixture(
         "preflight_id": preflight["preflight_id"],
         "current_phase": "start",
         "task_model": {
-            "deliverables": ["handoff"],
-            "success_criteria": ["evidence"],
-            "constraints": ["evidence"],
-            "subgoals": ["handoff"],
-            "evidence_needs": ["evidence"],
+            "deliverables": _unique([
+                contracts_by_skill[skill_id]["outputs"]
+                for skill_id in selected_skill_ids
+            ]),
+            "success_criteria": _unique([
+                contracts_by_skill[skill_id]["exit_gate"]
+                for skill_id in selected_skill_ids
+            ]),
+            "constraints": _unique([
+                contracts_by_skill[selected_skill_ids[0]]["inputs"],
+                "evidence",
+            ]),
+            "subgoals": _unique([
+                contracts_by_skill[skill_id]["inputs"]
+                for skill_id in selected_skill_ids
+            ]),
+            "evidence_needs": _unique([
+                contracts_by_skill[skill_id]["exit_gate"]
+                for skill_id in selected_skill_ids
+            ]),
         },
         "skill_roles": roles,
         "relationships": relationships,

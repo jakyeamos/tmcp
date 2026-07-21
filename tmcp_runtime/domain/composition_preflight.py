@@ -235,8 +235,17 @@ def prepare_composition(
     max_total_chars: int = 12000,
     max_total_tokens: int = 3000,
     include_all_active_source_slices: bool = False,
+    task_context_digest: str | None = None,
 ) -> dict[str, Any]:
     """Prepare deterministic, bounded evidence for host-assisted composition."""
+
+    if task_context_digest is not None:
+        if (
+            len(task_context_digest) != 64
+            or task_context_digest != task_context_digest.casefold()
+            or any(character not in "0123456789abcdef" for character in task_context_digest)
+        ):
+            raise ValueError("task_context_digest must be a lowercase SHA-256 digest.")
 
     def build_slices(reserved_metadata_tokens: int) -> tuple[
         list[dict[str, Any]], dict[str, Any]
@@ -389,6 +398,8 @@ def prepare_composition(
         ),
         "declared_dependency_closure": closure_projection,
     }
+    if task_context_digest is not None:
+        identity_input["task_context_digest"] = task_context_digest
     preflight_id = "preflight-" + stable_digest(identity_input, 20)
     role_counts = {
         role: len(
@@ -409,7 +420,7 @@ def prepare_composition(
         "include_all_active_source_slices": include_all_active_source_slices,
         "explicitly_scoped_paths": sorted(set(explicitly_scoped_paths or [])),
     }
-    return {
+    result = {
         "schema": PREFLIGHT_SCHEMA,
         "preflight_id": preflight_id,
         "objective": objective,
@@ -428,3 +439,6 @@ def prepare_composition(
         "trust": COMPOSITION_TRUST,
         "instruction_override_policy": INSTRUCTION_OVERRIDE_POLICY,
     }
+    if task_context_digest is not None:
+        result["task_context_digest"] = task_context_digest
+    return result

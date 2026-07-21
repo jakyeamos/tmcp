@@ -253,6 +253,8 @@ class CompositionLiftCampaignTests(unittest.TestCase):
                     runner["schema"],
                     "tmcp-composition-lift-runner-dispatch-v0.1",
                 )
+                self.assertIn("fixture-supplied", runner["instruction"])
+                self.assertIn("host-executed", runner["instruction"])
                 lift_campaign_support._assert_label_free(
                     runner, field="test.runner_dispatch"
                 )

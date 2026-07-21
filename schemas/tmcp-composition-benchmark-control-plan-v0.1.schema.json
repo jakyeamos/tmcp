@@ -92,11 +92,12 @@
     "routing_control": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["case_id", "request_id", "input_digest", "selected_skill_ids", "replay"],
+      "required": ["case_id", "request_id", "input_digest", "task_context_digest", "selected_skill_ids", "replay"],
       "properties": {
         "case_id": {"type": "string", "minLength": 1},
         "request_id": {"type": "string", "minLength": 1},
         "input_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "task_context_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "selected_skill_ids": {"$ref": "#/$defs/skill_ids"},
         "replay": {"$ref": "#/$defs/replay"}
       }
@@ -107,6 +108,7 @@
       "required": [
         "fixture_id",
         "request_id",
+        "task_context_digest",
         "selected_skill_ids",
         "ordered_skill_ids",
         "quality_rubric",
@@ -119,6 +121,7 @@
       "properties": {
         "fixture_id": {"type": "string", "minLength": 1},
         "request_id": {"type": "string", "minLength": 1},
+        "task_context_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "selected_skill_ids": {"$ref": "#/$defs/skill_ids"},
         "ordered_skill_ids": {"$ref": "#/$defs/skill_ids"},
         "quality_rubric": {"$ref": "#/$defs/quality_rubric"},
@@ -137,6 +140,7 @@
         "fixture_id",
         "request_id",
         "variant_id",
+        "task_context_digest",
         "cache_policy",
         "composition_enabled",
         "ordered_skill_ids",
@@ -153,6 +157,7 @@
         "fixture_id": {"type": "string", "minLength": 1},
         "request_id": {"type": "string", "minLength": 1},
         "variant_id": {"type": "string", "minLength": 1},
+        "task_context_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "cache_policy": {"const": "none"},
         "composition_enabled": {"type": "boolean"},
         "ordered_skill_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
@@ -173,6 +178,7 @@
         "fixture_id",
         "request_id",
         "variant_id",
+        "task_context_digest",
         "cache_policy",
         "execution_mode",
         "source_composition_plan_id",
@@ -188,6 +194,7 @@
         "fixture_id": {"type": "string", "minLength": 1},
         "request_id": {"type": "string", "minLength": 1},
         "variant_id": {"type": "string", "minLength": 1},
+        "task_context_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "cache_policy": {"const": "none"},
         "execution_mode": {
           "enum": [

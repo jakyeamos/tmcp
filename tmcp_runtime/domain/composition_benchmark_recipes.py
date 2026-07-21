@@ -325,6 +325,9 @@ def _execution_recipe(
         "fixture_id": fixture_id,
         "request_id": request_id,
         "variant_id": variant_id,
+        "task_context_digest": _nonempty(
+            preflight.get("task_context_digest"), field="preflight.task_context_digest"
+        ),
         "cache_policy": "none",
         "source_composition_plan_id": full_projection["composition_plan_id"],
         "source_composition_plan_digest": full_projection["composition_plan_digest"],
@@ -464,6 +467,10 @@ def _variant_controls(
             "fixture_id": fixture_id,
             "request_id": request_id,
             "variant_id": variant_id,
+            "task_context_digest": _nonempty(
+                preflight.get("task_context_digest"),
+                field="preflight.task_context_digest",
+            ),
             "cache_policy": "none",
             "composition_enabled": variant_id == "full_composition",
             "ordered_skill_ids": skill_order,

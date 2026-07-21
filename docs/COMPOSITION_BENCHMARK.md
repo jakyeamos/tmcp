@@ -223,13 +223,18 @@ python3 scripts/prepare_composition_lift_dispatches.py \
 The runner bundle contains only opaque execution references and the bounded
 runner instruction. The judge bundle contains only opaque artifact slots and
 the fixture rubric. Neither bundle contains controller cells, skill order,
-graph identity, or execution recipes.
+graph identity, or execution recipes. The execution input may include a bounded
+`task_context` artifact whose evidence is explicitly `fixture_supplied`; it is a
+precondition, never proof that the runner performed the corresponding check.
 
 Controller cells retain condition identity, recipe, graph, and provenance for
 audit. Never send those cells to a runner or evaluator. Instead send only the
 block's opaque `runner_dispatches` to runners and `blind_judge_dispatches` to
 judges; the latter carry the exact quality rubric while neither dispatch surface
-contains a condition label, skill order, graph, or execution recipe.
+contains a condition label, skill order, graph, or execution recipe. Runners
+must keep `fixture_supplied`, `host_executed`, and unavailable or unverified
+evidence distinct in their artifact; judges must score only what the artifact
+actually supports.
 
 Run the final two steps with every bound artifact:
 

@@ -251,6 +251,7 @@ def _validate_variant(
     field: str,
     fixture_id: str,
     request_id: str,
+    task_context_digest: str,
     selected_skill_ids: list[str],
     source_bindings: list[dict[str, Any]],
     packet: Mapping[str, Any],
@@ -284,6 +285,8 @@ def _validate_variant(
         or variant.get("request_id") != request_id
     ):
         raise ValueError(f"{field} is bound to a different fixture request.")
+    if variant.get("task_context_digest") != task_context_digest:
+        raise ValueError(f"{field}.task_context_digest drifted from its fixture input.")
     if variant.get("cache_policy") != "none":
         raise ValueError(f"{field}.cache_policy must be none.")
     if variant.get("composition_enabled") is not (variant_id == "full_composition"):
@@ -313,6 +316,7 @@ def _validate_variant(
         "fixture_id": fixture_id,
         "request_id": request_id,
         "variant_id": variant_id,
+        "task_context_digest": task_context_digest,
         "cache_policy": "none",
         "execution_mode": _execution_mode(variant_id),
         "source_composition_plan_id": plan_id,
@@ -361,6 +365,10 @@ def _validated_control(control: Mapping[str, Any], *, index: int) -> dict[str, A
         field=f"{field}.source_bindings",
         expected_skill_ids=selected,
     )
+    task_context_digest = _digest(
+        control.get("task_context_digest"),
+        field=f"{field}.task_context_digest",
+    )
     _replay, packet, plan_id, graph_digest = _replay_binding(control, field=field)
     plan_digest = stable_digest(
         dict(_mapping(packet.get("composition_plan"), field=f"{field}.packet.plan"))
@@ -383,6 +391,7 @@ def _validated_control(control: Mapping[str, Any], *, index: int) -> dict[str, A
             field=f"{field}.variants[{variant.get('variant_id')} ]",
             fixture_id=fixture_id,
             request_id=request_id,
+            task_context_digest=task_context_digest,
             selected_skill_ids=selected,
             source_bindings=source_bindings,
             packet=packet,
@@ -394,6 +403,7 @@ def _validated_control(control: Mapping[str, Any], *, index: int) -> dict[str, A
     return {
         "fixture_id": fixture_id,
         "request_id": request_id,
+        "task_context_digest": task_context_digest,
         "selected_skill_ids": selected,
         "quality_rubric": rubric,
         "quality_rubric_digest": rubric_digest,

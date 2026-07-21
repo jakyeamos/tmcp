@@ -124,6 +124,7 @@ def build_benchmark_control_plan(
                 "case_id": case_id,
                 "request_id": request["request_id"],
                 "input_digest": request["input_digest"],
+                "task_context_digest": request["task_context_digest"],
                 "selected_skill_ids": selected_skill_ids,
                 "replay": _replay_record(
                     preflight=preflight,
@@ -155,6 +156,7 @@ def build_benchmark_control_plan(
             {
                 "fixture_id": fixture_id,
                 "request_id": request["request_id"],
+                "task_context_digest": request["task_context_digest"],
                 "selected_skill_ids": selected_skill_ids,
                 "ordered_skill_ids": list(selected_skill_ids),
                 "quality_rubric": dict(rubric),

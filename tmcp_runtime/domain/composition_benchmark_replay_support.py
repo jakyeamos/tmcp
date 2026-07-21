@@ -10,6 +10,7 @@ from .composition_benchmark_protocol import (
     fixture_source_nodes,
     fixture_workspace_relative_path,
     prepare_fixture_preflight,
+    task_context_digest,
 )
 from .composition_preflight import stable_digest
 from .composition_validation import ordering_pair
@@ -141,6 +142,11 @@ def _replay_packet(
     fixture_id = _nonempty(fixture.get("fixture_id"), field="fixture.fixture_id")
     objective = _nonempty(request.get("objective"), field=f"{fixture_id}.objective")
     preflight = prepare_fixture_preflight(fixture=fixture, objective=objective)
+    expected_task_context_digest = task_context_digest(fixture)
+    if request.get("task_context_digest") != expected_task_context_digest:
+        raise ValueError(f"{fixture_id} task context digest is stale.")
+    if preflight.get("task_context_digest") != expected_task_context_digest:
+        raise ValueError(f"{fixture_id} preflight is not bound to its task context.")
     expected_preflight_id = _nonempty(
         request.get("preflight_id"), field=f"{fixture_id}.preflight_id"
     )
@@ -169,6 +175,7 @@ def _replay_packet(
             "max_total_tokens": 12_000,
             "explicitly_scoped_paths": ["skills"],
             "include_all_active_source_slices": True,
+            "task_context_digest": expected_task_context_digest,
             "semantic_proposal": dict(proposal),
         },
         source_nodes=fixture_source_nodes(fixture),
