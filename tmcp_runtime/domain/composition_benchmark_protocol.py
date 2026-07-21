@@ -43,6 +43,44 @@ def _nonempty(value: object, *, field: str) -> str:
     return result
 
 
+def validate_fixture_observable_contracts(
+    fixture_id: str,
+    fixture: Mapping[str, Any],
+) -> None:
+    """Reject benchmark fixtures whose expected skills lack observable outputs."""
+
+    sources = validate_fixture_skill_sources(fixture_id, fixture)
+    raw_expected = fixture.get("expected_skill_ids")
+    if isinstance(raw_expected, (str, bytes)) or not isinstance(raw_expected, Sequence):
+        raise ValueError(f"{fixture_id}.expected_skill_ids must be a sequence.")
+    expected_skill_ids = [str(item).strip() for item in raw_expected]
+    missing: list[str] = []
+    for skill_id in expected_skill_ids:
+        source = sources.get(skill_id)
+        content = str(source.get("content") if source is not None else "")
+        lines = content.splitlines()
+        marker = next(
+            (
+                index
+                for index, line in enumerate(lines)
+                if line.strip().casefold() in {"## output contract", "output contract:"}
+            ),
+            None,
+        )
+        contract_lines = (
+            [line.strip() for line in lines[marker + 1 :] if line.strip()]
+            if marker is not None
+            else []
+        )
+        if marker is None or not contract_lines:
+            missing.append(skill_id or "<empty>")
+    if missing:
+        raise ValueError(
+            f"{fixture_id} expected skills require nonempty ## Output contract "
+            f"sections: {', '.join(sorted(missing))}."
+        )
+
+
 def _json_text(payload: object) -> str:
     return json.dumps(payload, indent=2, sort_keys=True) + "\n"
 
@@ -77,6 +115,7 @@ def _fixture_records(payload: Mapping[str, Any]) -> list[Mapping[str, Any]]:
         by_id.add(fixture_id)
         by_domain.add(domain)
         validate_fixture_skill_sources(fixture_id, fixture)
+        validate_fixture_observable_contracts(fixture_id, fixture)
     return fixtures
 
 

@@ -20,6 +20,20 @@ replay, and derives weighted quality from evaluator dimension scores. A host
 does report an advisory execution-context mode and opaque context-instance IDs;
 TMCP validates those only against compiler-issued capsule digests.
 
+## Corpus readiness gate
+
+Every expected skill in a behavioral fixture must carry a nonempty inline
+`Output contract:` beside its inputs, outputs, and exit gate. Benchmark
+preparation rejects a fixture that omits that contract, and its preflight test
+requires every expected skill to remain an explicitly scoped, provenance-backed
+active slice. Keep the contract inline in the bounded skill body: a separate
+Markdown section can be ranked as a different behavior slice and leave the
+host without evidence for the role or handoff claims it is proposing.
+
+This is a deterministic corpus/readiness check only. It proves that the
+benchmark can expose observable artifacts and cited handoffs; it does not
+generate model results, receipts, lift, or release evidence.
+
 ## Preregistering a composition-lift campaign
 
 Before any host or evaluator work, derive a no-call campaign only from the five
