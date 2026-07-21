@@ -1,0 +1,92 @@
+{
+  "approval_sequence": [
+    "execute the 36-cell baseline runner, primary-judge, and cost-rejudge sequence",
+    "independently verify the baseline receipt and evidence bundle, then bind both digests",
+    "obtain separate approval for the causal 72-cell runner and primary-judge sequence",
+    "obtain separate approval for the causal 72-trace condition-blind cost rejudge"
+  ],
+  "artifacts": {
+    "baseline_plan": {
+      "experiment_id": "composition-baseline-f61e366337297bb4",
+      "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/tmcp-composition-baseline-plan.json",
+      "sha256": "sha256:6802cbc296144f63415e0967a7e92fddb9a4d24a60feadd56ec7da363cd16cf2"
+    },
+    "baseline_readiness": {
+      "experiment_id": null,
+      "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/baseline-readiness-gate.json",
+      "sha256": "sha256:a0db9f0e693189c99df6aaf11a7e6d358005b7f04ce52382adedd05db20782b1"
+    },
+    "causal_plan": {
+      "experiment_id": "composition-study-8ce548cdb7b9141e",
+      "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/tmcp-composition-study-plan.json",
+      "sha256": "sha256:e3f50d0b0357ae524bb870f453e444613ca126593c82480f49837db4f5aa258f"
+    },
+    "study_verification": {
+      "experiment_id": null,
+      "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/study-verification.json",
+      "sha256": "sha256:1354433a9abb1734731a7d13203e3b02c87918eef5bc9710ad7f972895dd4333"
+    }
+  },
+  "baseline": {
+    "cell_count": 36,
+    "cost_rejudge_calls": 36,
+    "design": "baseline_reliability",
+    "experiment_id": "composition-baseline-f61e366337297bb4",
+    "fixture_count": 6,
+    "matrix_row_count": 6,
+    "primary_judge_calls": 36,
+    "readiness_gate": {
+      "path": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18/generated/baseline-readiness-gate.json",
+      "sha256": "sha256:a0db9f0e693189c99df6aaf11a7e6d358005b7f04ce52382adedd05db20782b1"
+    },
+    "receipt_required_before_causal": true,
+    "receipt_sha256": null,
+    "repetitions_per_cell": 2,
+    "runner_calls": 36,
+    "runner_configuration_count": 3,
+    "selected_task_ids": [
+      "dev-query-adapter-is-sediment",
+      "flag-state-has-parallel-owners",
+      "legacy-money-export-has-boundary-seam",
+      "marker-geometry-has-placeholder-drift",
+      "currency-scale-has-parallel-owners",
+      "render-phase-has-duplicate-labels"
+    ],
+    "verification_sha256": null
+  },
+  "causal": {
+    "baseline_dependency_status": "awaiting_completed_compatible_receipt",
+    "baseline_receipt_required": true,
+    "baseline_verification_required": true,
+    "cell_count": 72,
+    "cost_rejudge_calls": 72,
+    "design": "causal_contrast",
+    "experiment_id": "composition-study-8ce548cdb7b9141e",
+    "fixture_count": 6,
+    "matrix_row_count": 12,
+    "primary_judge_calls": 72,
+    "repetitions_per_cell": 2,
+    "runner_calls": 72,
+    "runner_configuration_count": 3,
+    "selected_task_ids": [
+      "dev-query-adapter-is-sediment",
+      "dev-query-adapter-is-sediment",
+      "flag-state-has-parallel-owners",
+      "flag-state-has-parallel-owners",
+      "legacy-money-export-has-boundary-seam",
+      "legacy-money-export-has-boundary-seam",
+      "marker-geometry-has-placeholder-drift",
+      "marker-geometry-has-placeholder-drift",
+      "currency-scale-has-parallel-owners",
+      "currency-scale-has-parallel-owners",
+      "render-phase-has-duplicate-labels",
+      "render-phase-has-duplicate-labels"
+    ]
+  },
+  "claim_boundary": "No behavioral or guidebook promotion claim is permitted until the preregistered baseline and causal evidence gates clear.",
+  "execution_started": false,
+  "model_calls_authorized": false,
+  "schema": "tmcp-composition-approval-handoff-v0.1",
+  "status": "approval_required",
+  "study_dir": "/private/tmp/tmcp-skill-eval-dogfood/docs/evidence/composition-refactor-clean-v1-2026-07-18"
+}

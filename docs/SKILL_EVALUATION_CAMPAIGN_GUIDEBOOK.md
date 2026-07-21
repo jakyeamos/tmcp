@@ -49,6 +49,13 @@ turn an operational rule into a corpus-wide recommendation by repetition alone.
   raw packet output; it must not be described as a durable global TMCP receipt.
   Readiness permits a future behavioral plan but never authorizes model calls;
   record the next gate explicitly.
+- Emit a machine-readable approval handoff from the pinned baseline and causal
+  plans before requesting execution. It must count runner, primary-judge, and
+  condition-blind cost-rejudge calls separately, preserve the baseline receipt
+  and independent-verification prerequisites, and keep both
+  `model_calls_authorized:false` and `execution_started:false` until fresh
+  approval. A dry-run readiness result is design evidence, not a completed
+  baseline receipt.
 - Require a directness review for every observable: the event an O/S item grades
   must occur in the fixture prompt, not in an implied later turn. Record an
   independent review that also confirms every bar is expressible by the target

@@ -38,6 +38,13 @@ no-call verification artifact. It confirms the checked-in plan reproduces from
 the pinned inputs, validates the 12-row matrix and 72-trace cost policy, and
 matches the live source digest. It does not authorize calls.
 
+[`generated/approval-handoff.json`](generated/approval-handoff.json) is the
+machine-readable execution boundary. It computes 36 baseline runner calls,
+36 baseline primary-judge calls, and 36 baseline cost-rejudge calls; only
+after those artifacts are independently verified does it permit a separate
+approval for the causal 72/72/72 sequence. Its `model_calls_authorized` and
+`execution_started` fields remain `false`.
+
 The candidate readiness record and the study binding also preserve the secure
 receipt persistence limitation: the local packet output and receipt are
 available and digest-bound, while the CLI's unavailable durable global receipt
