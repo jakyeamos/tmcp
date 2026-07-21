@@ -14,9 +14,9 @@ preregistered composition-lift campaign only with explicit host/evaluator author
 **Name:** TMCP Compositional Intelligence 0.6
 **Status:** `a0ee07c` hardens the five behavioral fixtures with observable,
 provenance-friendly output contracts and rejects expected skills that omit
-them. 0.6.0 still requires real host/evaluator outcomes and the stronger
-real-task corpus; the isolated scoped Pre-CR policy still needs a live 330s
-readiness confirmation.
+them. The full 939-test readiness command completed in 493.197s (8:13.8
+wall), so the isolated scoped Pre-CR policy is set to 600s. 0.6.0 still
+requires real host/evaluator outcomes and the stronger real-task corpus.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -25,9 +25,10 @@ readiness confirmation.
 - **Slug:** `compositional-intelligence-0.6`
 - **Status:** `a0ee07c` adds a deterministic corpus-readiness gate and explicit
   output contracts to every expected behavioral skill, keeping role and handoff
-  claims inside the bounded cited slice. It neither executes nor records
-  outcomes. The commit hook reported the known global 90-second timeout; the
-  corrected isolated 330-second policy must be run before the next commit.
+  claims inside the bounded cited slice. The direct readiness command ran 939
+  tests in 493.197s (8:13.8 wall); the isolated 600s policy covers the observed
+  runtime while the global 90s hook remains unchanged. This run produced no
+  model call, receipt, promotion, or release evidence.
   Next: reproducible package verification, then explicitly authorized host and
   external-evaluator evidence.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
