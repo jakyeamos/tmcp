@@ -30,19 +30,21 @@ real-task corpus; no model call or receipt has been made in this slice.
   agreement tolerance, then emits `eligible_for_manual_review` with
   `auto_apply:false`; it never mutates the guidebook. Focused checks and the
   documentation audit pass. No model call, receipt, lift, promotion, or release
-  claim was made. The clean package gate passed from
-  `dad9e74f9dc21f1b805e8e6e3edcf3b52f1c3256`: 947 tests in 413.046s (4 skips),
+  claim was made. The exact feature tip `53e7d47a29f3907dd952ddbea5ca4e476e142520`
+  passed the reproducible package gate: 952 tests in 378.921s (4 skips),
   archive digest
-  `a435d205e31563d1730aa9273439d01c968737c06267c2fed80c6062560f47e6`, and
-  manifest digest `ca7df7be877d635db24ab724b787b21cb35affc47fbd08e22ecc20cf0dfaf0a9`.
+  `c5508866118833a1cd6c0f72394d0fc926fde05daaf652ed5a612cfd99101e4c`, and
+  manifest digest `ec7d09ab2f7f35ab5c08802eef1fbcb016c81d594103e26edfafb93cfcbdcbd8`.
   `1d4591d` also makes the static audit fail closed on eligible entries missing
   the non-auto-apply policy, evidence references, or primary/independent-rejudge
   replication markers. `4c634e4` records a deterministic compatibility-vs-
   proposal source-activation delta, preserves the one-skill bootstrap cap, and
   adds the held `composition.proposal-activation-delta` guidebook/catalog entry;
   its diagnostic explicitly carries `causal_claim: none`. Focused verification
-  is green (26 composition/guidebook tests plus Ruff and audit). Next:
-  separately authorize the real host/evaluator and independent-rejudge run.
+  is green (26 composition/guidebook tests plus Ruff and audit). The current
+  static dogfood packet receipt is recorded at
+  `/private/tmp/tmcp-receipt-home-20260721/receipts/2026-07/packet-a7fa53ed6280-7c843241353794bcf2afb6f0dd6db2f9-76d289fcbe-815d7ec4a63a4a2884ab480bcc5ccd27.json`.
+  Next: separately authorize the real host/evaluator and independent-rejudge run.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
