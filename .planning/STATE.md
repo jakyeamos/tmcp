@@ -17,7 +17,9 @@ provenance-friendly output contracts and rejects expected skills that omit
 them. The full 939-test readiness command completed in 493.197s (8:13.8
 wall), so the isolated scoped Pre-CR policy is set to 600s. Commit `24fb4e8`
 then passed the reproducible package gate: 939 tests in 398.181s, matching
-archive digest `f7822c76…d6963` and manifest digest `46e7ec62…b4636`.
+archive digest `f7822c76…d6963` and manifest digest `46e7ec62…b4636`. The
+review-only AIOS policy branch `5bf6bac` now carries the same 600s scoped
+budget after this runtime measurement; canonical AIOS remains untouched.
 0.6.0 still requires real host/evaluator outcomes and the stronger real-task
 corpus.
 **Started:** 2026-07-17
