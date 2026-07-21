@@ -12,26 +12,25 @@ preregistered composition-lift campaign only with explicit host/evaluator author
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `af42a44` binds the checked-in skill guidebook to its machine-readable
-pattern catalog with a read-only audit, held promotion metadata, and projection
-parity tests. The full 943-test readiness command completed in 366.744s
-(6:06.7 wall), with 3 skips. The commit hook timed out at its 90s local policy
-after reporting package-manager advisory text; the commit was created without
-bypassing verification. 0.6.0 still requires real host/evaluator outcomes and
-the stronger real-task corpus.
+**Status:** `029b6a2` records the guidebook audit and package-gate baseline; the
+next slice adds an independent-rejudge envelope and a non-mutating manual-review
+promotion candidate command. Focused composition/guidebook checks are green.
+0.6.0 still requires real host/evaluator/rejudge outcomes and the stronger
+real-task corpus; no model call or receipt has been made in this slice.
 **Started:** 2026-07-17
 
 ## Active Phase
 
 - **Phase:** Compositional Intelligence 0.6
 - **Slug:** `compositional-intelligence-0.6`
-- **Status:** `af42a44` adds the guidebook/catalog audit and preserves evidence,
-  status, and promotion metadata when runtime reports render catalog projections.
-  The direct readiness command ran 943 tests in 366.744s (6:06.7 wall), with 3
-  skips; focused composition and guidebook checks are green. The reproducible
-  package gate is pending a clean truth-file commit. No model call, receipt,
-  promotion, lift, or release claim was made. Next: package verification, then
-  explicitly authorized host and external-evaluator evidence.
+- **Status:** The branch now carries `tmcp-composition-lift-rejudge-envelope-v0.1`
+  and `tmcp-guidebook-promotion-candidate-v0.1`. The promotion command validates
+  campaign binding, distinct evaluator identities, all 540 cell dimensions, and
+  agreement tolerance, then emits `eligible_for_manual_review` with
+  `auto_apply:false`; it never mutates the guidebook. Focused checks and the
+  documentation audit pass. No model call, receipt, lift, promotion, or release
+  claim was made. Next: clean commit/package verification, then separately
+  authorize the real host/evaluator and independent-rejudge run.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
@@ -47,6 +46,11 @@ the stronger real-task corpus.
   projection metadata parity, and regression tests. The audit is documentation
   integrity only: controlled claims need an experiment ID found in source-only
   evidence, and campaign plans or synthetic traces cannot promote guidance.
+
+- The rejudge/promotion slice adds versioned schemas, pure validation/scoring,
+  CLI coverage, and package/install manifests. It creates a manual-review
+  candidate only after replicated trusted evidence; catalog entries remain held
+  until a human decision.
 
 _(1 older entries trimmed)_
 
