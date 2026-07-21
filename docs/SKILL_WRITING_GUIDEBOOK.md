@@ -1,17 +1,28 @@
 # TMCP Skill Writing Guidebook
 
-Experimental v0.1 seed for skill evaluation outputs. Generated reports may update
-`docs/SKILL_PATTERN_CATALOG.json` and this guidebook with evidence levels.
+Experimental v0.1 seed for skill evaluation outputs. The pattern catalog and
+this guidebook are audited together; neither is behavioral evidence by itself.
+Generated reports may propose entries, but they may not silently promote or
+rewrite durable guidance.
 
 ## 1. Skill activation patterns
 
 Prefer narrow trigger descriptions tied to task evidence. Avoid frontmatter that
 matches any task class.
 
+Catalog entry: `trigger.overbroad-description` — Narrow skill activation
+
+Evidence level: `hypothesis` · Status: `held` · Promotion: `hold`
+
 ## 2. Verification gate patterns
 
 Prefer concrete commands with pass/fail reporting. Avoid vague quality language
 such as "make sure everything works."
+
+Catalog entries: `verification.concrete-command` — Concrete verification command;
+`verification.vague-quality-language` — Vague verification language
+
+Evidence level: `hypothesis` · Status: `held` · Promotion: `hold`
 
 ## 3. Evidence levels and confidence
 
@@ -29,3 +40,20 @@ Label every pattern claim with an evidence level:
 
 Evaluation may propose harvest warnings. It must not auto-promote or silently
 rewrite durable routing state.
+
+## 5. Instruction precedence
+
+Treat system, developer, and user instructions as higher-priority constraints.
+Do not write skill language that asks an agent to ignore or override them.
+
+Catalog entry: `precedence.override-hazard` — Instruction precedence is preserved
+
+Evidence level: `hypothesis` · Status: `held` · Promotion: `hold`
+
+## 6. Promotion boundary
+
+Every currently shipped entry is on `hold`. The four catalog entries above are
+starting hypotheses, not proven composition rules. A controlled claim must name
+an experiment and resolve to source-only evidence before it can become eligible
+for manual review. A benchmark plan, fixture, dry run, or synthetic trace can
+prepare that experiment but cannot promote a guidebook entry.

@@ -56,22 +56,35 @@ def build_pattern_catalog(
 ) -> dict[str, Any]:
     """Build the serializable pattern catalog from supplied pattern data."""
 
+    entry_by_id = {
+        str(entry.get("pattern_id")): entry
+        for entry in entries
+        if isinstance(entry, dict) and entry.get("pattern_id")
+    }
+    projected_patterns: list[dict[str, Any]] = []
+    for pattern in patterns:
+        pattern_id = str(pattern["pattern_id"])
+        entry = entry_by_id.get(pattern_id, {})
+        projection = {
+            "pattern_id": pattern_id,
+            "label": pattern["label"],
+            "classification": pattern["classification"],
+            "evidence_level": entry.get(
+                "evidence_level", pattern.get("evidence_level", "static_review")
+            ),
+            "internal_atoms": list(pattern["internal_atoms"]),
+            "good_example": pattern.get("good_example"),
+            "weak_example": pattern.get("weak_example"),
+            "detection_terms": list(pattern.get("detection_terms") or ()),
+        }
+        for field in ("status", "promotion"):
+            if field in entry:
+                projection[field] = entry[field]
+        projected_patterns.append(projection)
     return {
         "schema": "tmcp-skill-pattern-catalog-v0.1",
         "created_at": created_at,
-        "patterns": [
-            {
-                "pattern_id": pattern["pattern_id"],
-                "label": pattern["label"],
-                "classification": pattern["classification"],
-                "evidence_level": "static_review",
-                "internal_atoms": list(pattern["internal_atoms"]),
-                "good_example": pattern.get("good_example"),
-                "weak_example": pattern.get("weak_example"),
-                "detection_terms": list(pattern.get("detection_terms") or ()),
-            }
-            for pattern in patterns
-        ],
+        "patterns": projected_patterns,
         "guidebook_entries": entries,
     }
 

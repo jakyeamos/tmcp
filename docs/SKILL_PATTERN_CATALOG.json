@@ -6,6 +6,12 @@
       "label": "Concrete verification command",
       "classification": "effective_pattern",
       "evidence_level": "hypothesis",
+      "status": "held",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": ["No controlled composition result has been scored."]
+      },
       "internal_atoms": ["behavior-verification", "quality-gate-disclosure"],
       "good_example": "Run `npm test -- --runInBand` and report pass/fail.",
       "weak_example": "Make sure everything works.",
@@ -16,6 +22,12 @@
       "label": "Vague verification language",
       "classification": "anti_pattern",
       "evidence_level": "hypothesis",
+      "status": "held",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": ["No controlled composition result has been scored."]
+      },
       "internal_atoms": ["behavior-verification", "quality-gate-disclosure"],
       "good_example": "Run the targeted test command and report whether it passed or failed.",
       "weak_example": "Make sure the implementation is high quality.",
@@ -29,6 +41,12 @@
       "label": "Overbroad trigger description",
       "classification": "anti_pattern",
       "evidence_level": "hypothesis",
+      "status": "held",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": ["No controlled composition result has been scored."]
+      },
       "internal_atoms": ["tool-use-policy"],
       "detection_terms": ["use when", "always", "any task", "whenever"],
       "suggested_harvest_warning": "Trigger description may over-activate because it matches broad task classes.",
@@ -40,11 +58,67 @@
       "label": "Instruction-precedence hazards",
       "classification": "anti_pattern",
       "evidence_level": "hypothesis",
+      "status": "held",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": ["No controlled composition result has been scored."]
+      },
       "internal_atoms": ["conflict-preservation"],
       "detection_terms": ["ignore system", "override user", "ignore developer", "highest priority"],
       "suggested_harvest_warning": "Skill language may attempt to override higher-priority instructions.",
       "safe_to_auto_warn": true,
       "safe_to_auto_rewrite": false
+    }
+  ],
+  "guidebook_entries": [
+    {
+      "pattern_id": "verification.concrete-command",
+      "title": "Concrete verification command",
+      "status": "held",
+      "evidence_level": "hypothesis",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": ["No controlled composition result has been scored."]
+      },
+      "internal_atoms": ["behavior-verification", "quality-gate-disclosure"]
+    },
+    {
+      "pattern_id": "verification.vague-quality-language",
+      "title": "Vague verification language",
+      "status": "held",
+      "evidence_level": "hypothesis",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": ["No controlled composition result has been scored."]
+      },
+      "internal_atoms": ["behavior-verification", "quality-gate-disclosure"]
+    },
+    {
+      "pattern_id": "trigger.overbroad-description",
+      "title": "Narrow skill activation",
+      "status": "held",
+      "evidence_level": "hypothesis",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": ["No controlled composition result has been scored."]
+      },
+      "internal_atoms": ["tool-use-policy"]
+    },
+    {
+      "pattern_id": "precedence.override-hazard",
+      "title": "Instruction precedence is preserved",
+      "status": "held",
+      "evidence_level": "hypothesis",
+      "promotion": {
+        "decision": "hold",
+        "eligible": false,
+        "gaps": ["No controlled composition result has been scored."]
+      },
+      "internal_atoms": ["conflict-preservation"]
     }
   ]
 }

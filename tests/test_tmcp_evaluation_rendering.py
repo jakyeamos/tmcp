@@ -73,6 +73,34 @@ class EvaluationRenderingServiceTests(unittest.TestCase):
         self.assertEqual(merged["p1"]["label"], "Catalog")
         self.assertIn("Needs a concrete gate.", warning)
 
+    def test_catalog_projection_preserves_guidebook_evidence_metadata(self) -> None:
+        catalog = evaluation_rendering.build_pattern_catalog(
+            [
+                {
+                    "pattern_id": "p1",
+                    "title": "A pattern",
+                    "evidence_level": "hypothesis",
+                    "status": "held",
+                    "promotion": {"decision": "hold", "eligible": False},
+                }
+            ],
+            patterns=[
+                {
+                    "pattern_id": "p1",
+                    "label": "A pattern",
+                    "classification": "effective_pattern",
+                    "evidence_level": "static_review",
+                    "internal_atoms": ("behavior-verification",),
+                }
+            ],
+            created_at="now",
+        )
+
+        projection = catalog["patterns"][0]
+        self.assertEqual(projection["evidence_level"], "hypothesis")
+        self.assertEqual(projection["status"], "held")
+        self.assertEqual(projection["promotion"]["decision"], "hold")
+
     def test_harvest_advisories_filter_and_format_supplied_findings(self) -> None:
         findings = [
             {

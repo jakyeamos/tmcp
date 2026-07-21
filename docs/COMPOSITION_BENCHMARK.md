@@ -34,6 +34,20 @@ This is a deterministic corpus/readiness check only. It proves that the
 benchmark can expose observable artifacts and cited handoffs; it does not
 generate model results, receipts, lift, or release evidence.
 
+Before preparing a campaign, audit the checked-in skill guidance and catalog:
+
+```bash
+python3 scripts/audit_skill_guidebook.py
+```
+
+This read-only audit requires every catalog projection to have a matching
+guidebook entry, preserves evidence level/status/promotion state across the two
+surfaces, and fails closed when a controlled claim has no experiment identifier
+in the source-only evidence tree. A passing audit is a documentation-integrity
+signal, not behavioral evidence. Only a completed, replicated, policy-bound
+composition observation may update an entry's evidence level; campaign plans,
+golden fixtures, synthetic traces, and dry runs remain held hypotheses.
+
 ## Preregistering a composition-lift campaign
 
 Before any host or evaluator work, derive a no-call campaign only from the five
