@@ -123,9 +123,7 @@ def _verify_isolation(
     remote_required = isolation.get("remote_schema_preflight_required") is True
     remote_path = output_dir / "remote-schema-preflight.json"
     if remote_required:
-        remote = _object(
-            _load_json(remote_path), context="Remote-schema preflight"
-        )
+        remote = _object(_load_json(remote_path), context="Remote-schema preflight")
         if (
             remote.get("schema") != _REMOTE_SCHEMA_PREFLIGHT
             or remote.get("passed") is not True
@@ -188,7 +186,9 @@ def _verify_stage(
         _load_json(marker_path), context=f"Cost rejudge cell {cell.cell_id} marker"
     )
     if marker.get("schema") != _STAGE_SCHEMA or marker.get("stage") != stage:
-        raise ValueError(f"Cost rejudge cell {cell.cell_id} marker protocol is invalid.")
+        raise ValueError(
+            f"Cost rejudge cell {cell.cell_id} marker protocol is invalid."
+        )
     prompt = cost_rejudge_prompt(task_prompt, runner_artifact, cost_bar=cost_bar)
     expected = {
         "prompt_sha256": _sha256_text(prompt),
@@ -207,7 +207,9 @@ def _verify_stage(
         marker.get("event_audit") != event_audit
         or event_audit.get("passed") is not True
     ):
-        raise ValueError(f"Cost rejudge cell {cell.cell_id} event audit does not match.")
+        raise ValueError(
+            f"Cost rejudge cell {cell.cell_id} event audit does not match."
+        )
     usage = _load_json(usage_path)
     if marker.get("usage") != usage or not isinstance(usage, dict) or not usage:
         raise ValueError(f"Cost rejudge cell {cell.cell_id} usage does not match.")
@@ -257,7 +259,9 @@ def _verify_manifest(
     observed_binding = manifest.get("preregistered_cost_rejudge")
     if binding is None:
         if observed_binding is not None:
-            raise ValueError("Cost rejudge manifest claims an undeclared policy binding.")
+            raise ValueError(
+                "Cost rejudge manifest claims an undeclared policy binding."
+            )
     else:
         validate_preregistered_cost_rejudge_binding(plan, observed_binding)
         if (
@@ -270,7 +274,9 @@ def _verify_manifest(
             != binding["cost_bar_file"]
             or source.get("cost_bar_sha256") != binding["cost_bar_sha256"]
         ):
-            raise ValueError("Cost rejudge source cost bar does not match policy binding.")
+            raise ValueError(
+                "Cost rejudge source cost bar does not match policy binding."
+            )
         for field in ("model", "judge_effort", "seed", "expected_trace_count"):
             observed = (
                 manifest.get(field)
@@ -300,12 +306,6 @@ def verify_cost_rejudge(
         raise ValueError(f"Cost bar file is missing: {cost_bar_file}")
     if not rejudge_runs.is_dir():
         raise ValueError(f"Cost rejudge runs directory is missing: {rejudge_runs}")
-    plan, source_manifest, source_traces, source_thread_ids = _load_source_traces(
-        source_plan=source_plan,
-        source_runs=source_runs,
-        expected_trace_count=expected_trace_count,
-    )
-    source_bundle_contract_verified = _is_source_bundle_study(plan)
     manifest = _object(
         _load_json(rejudge_runs / "cost-rejudge-manifest.json"),
         context="Cost rejudge manifest",
@@ -317,6 +317,12 @@ def verify_cost_rejudge(
         cost_bar_file=cost_bar_file,
         expected_trace_count=expected_trace_count,
     )
+    plan, source_manifest, source_traces, source_thread_ids = _load_source_traces(
+        source_plan=source_plan,
+        source_runs=source_runs,
+        expected_trace_count=expected_trace_count,
+    )
+    source_bundle_contract_verified = _is_source_bundle_study(plan)
     cells = build_cost_rejudge_cells(source_traces, seed=manifest.get("seed"))
     schema = cost_rejudge_output_schema()
     schema_path = rejudge_runs / "cost-rejudge-output.schema.json"
