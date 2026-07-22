@@ -61,7 +61,9 @@ def _bridge_instruction(role: dict[str, Any], source: dict[str, Any]) -> dict[st
         "exit_gates": ordered_unique(string_list(role.get("exit_gates"))),
         "handoff_ids": [],
         "instruction": (
-            f"Apply {role_name} using {inputs}; produce {outputs}; exit when {gates}."
+            f"Apply {role_name} using {inputs}; produce {outputs} as a named handoff; "
+            "preserve source-backed evidence and label host-executed checks separately; "
+            f"exit when {gates}."
         ),
         "citations": string_list(role.get("citations")),
         "trust": COMPOSITION_TRUST,
