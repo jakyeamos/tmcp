@@ -6,24 +6,21 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Verify the clean release package, then execute the
-preregistered composition-lift campaign only with explicit host/evaluator
-authority and a real external-run adapter.
+**Current focus:** Complete the bounded-input, phase-aware composition-lift
+rerun; 0.6.0 remains blocked until replicated external host/evaluator results
+pass the preregistered lift and safety gates.
 
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `cd9b5fc` binds bounded fixture-supplied task context through
-preflight, replay, factorial recipes, and campaign cells after `44911f0`
-pinning the current no-call campaign handoff. The branch also carries the
-independent-rejudge envelope and non-mutating manual-review promotion candidate
-command. Focused composition/guidebook checks are green.
-0.6.0 still requires real host/evaluator/rejudge outcomes and the stronger
-real-task corpus. The earlier no-context campaign remains a valid failed
-eligibility result, not release evidence. The next campaign harness now
-materializes and verifies the context digest before dispatch; supplied evidence
-must remain distinct from host-executed verification. No receipt, promotion, or
-release claim was made by this slice.
+**Status:** `e080aab` adds bounded, fixture-supplied task inputs for all five
+behavioral fixtures and enforces that corpus gate. The second authorized
+campaign (`97c5dfe9…`) completed with trusted evaluator execution but failed all
+three lift thresholds; it remains diagnostic evidence, not release evidence.
+The corrected phase/order campaign (`91b9f99d…`) is prepared but not yet run.
+0.6.0 still requires replicated external host/evaluator/rejudge outcomes,
+matching graph provenance, and explicit manual promotion. No receipt,
+promotion, or release claim was made by this slice.
 
 `44911f0` pins the current no-call campaign handoff after
 `4c634e4` recorded the proposal-activation delta diagnostic and the
@@ -64,6 +61,12 @@ unproven.
   is green (26 composition/guidebook tests plus Ruff and audit). The current
   static dogfood packet receipt is recorded at
   `/private/tmp/tmcp-receipt-home-20260721/receipts/2026-07/packet-a7fa53ed6280-7c843241353794bcf2afb6f0dd6db2f9-76d289fcbe-815d7ec4a63a4a2884ab480bcc5ccd27.json`.
+  `e080aab` records the bounded-input fixture slice and its 44-test focused
+  verification. The corrected campaign handoff is `91b9f99d…` (180 baseline,
+  360 causal cells); its host and judge outputs remain pending. The known
+  repository pre-CR hook still times out at 90 seconds while the readiness
+  suite takes roughly 250 seconds; this is a hook-policy mismatch, not a reason
+  to weaken TMCP verification.
   `44911f0` records the reproducibility anchor for the no-call handoff:
   campaign `composition-lift-campaign-01696e55d67fa8ecb6e5`, digest
   `01696e55d67fa8ecb6e5b48ce5a919bdc8c68a2c239bdafd8a4389cf7514799a`, with
