@@ -6,9 +6,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Complete the bounded-input, phase-faithful composition-lift
-rerun; 0.6.0 remains blocked until replicated external host/evaluator results
-pass the preregistered lift and safety gates.
+**Current focus:** Complete the phase-aware, multi-pass composition-lift rerun;
+0.6.0 remains blocked until replicated external host/evaluator results pass the
+preregistered lift and safety gates.
 
 ## Milestone
 
@@ -33,6 +33,19 @@ mapping and release-package surface are covered by 41 passing tests plus two
 subtests. The required pre-CR hook timed out at its 90-second budget before
 readiness completed; the commit was created, and this remains a hook-policy
 mismatch rather than a verification bypass.
+
+`29addea` adds phase-specific external projection: each semantic stage can
+hydrate only its current skill bodies while carrying deferred entry metadata.
+The active/deferred-faithful one-shot rerun completed 540 host and 540 judge
+cells with host digest `9273089f…` and evaluator digest `f9f1dd8d…`; synergy
+`-0.131`, compiler `-0.057`, and order `+0.004` all missed their thresholds.
+The result is a valid diagnostic, not a release claim: one-shot full
+composition remained discovery-only while naïve union received every body, so
+the comparison was not phase-fair. A bounded phase-aware calibration v2 then
+completed 15 host and 15 judge cells; full composition beat naïve union on
+agent, migration, research, and UI examples, but diagnose remained weak. The
+next evidence slice is the full phase-aware campaign; no receipt, promotion, or
+release claim has been made.
 
 `44911f0` pins the current no-call campaign handoff after
 `4c634e4` recorded the proposal-activation delta diagnostic and the
@@ -80,6 +93,8 @@ unproven.
   recorded in `docs/COMPOSITION_BENCHMARK.md`. `14e9950` now makes the
   external packet mirror active/governing source hydration and repairs
   content-bound skill-node mapping before the next rerun.
+  `29addea` adds current-stage-only hydration for phase-aware multipass runs;
+  calibration v2 is directional only and the diagnose fixture remains weak.
   The known repository pre-CR hook still times out at 90 seconds while the
   readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
   not a reason to weaken TMCP verification.
@@ -92,8 +107,8 @@ unproven.
   external pilot and 15-cell subscription calibration are recorded there with
   raw artifact digests and no campaign evidence was assembled. Calibration
   repaired the path-only handoff by materializing runner-created files for the
-  blind judge; it did not establish a model winner. Next: run a bounded
-  active/deferred calibration, then the full 540 runner plus 540 judge cells;
+  blind judge; it did not establish a model winner. Next: run the full
+  phase-aware 540 runner plus 540 judge cells;
   keep rendered-browser verification and strict clean-room skill isolation
   explicitly blocked unless provisioned.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
