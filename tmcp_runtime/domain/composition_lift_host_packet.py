@@ -115,3 +115,22 @@ def project_external_skill_ids(
     ]
     deferred = [skill_id for skill_id in ordered if skill_id not in hydrated]
     return hydrated, deferred
+
+
+def project_external_stage_skill_ids(
+    plan: Mapping[str, object],
+    ordered_skill_ids: Sequence[str],
+    source_paths: Mapping[str, str],
+    stage_node_ids: Sequence[str],
+) -> list[str]:
+    """Project the selected bodies for one recompiled phase capsule."""
+
+    node_by_skill = source_node_ids_by_skill_id(plan, ordered_skill_ids, source_paths)
+    stage_nodes = {_text(item) for item in stage_node_ids if _text(item)}
+    return [
+        skill_id
+        for skill_id in dict.fromkeys(
+            _text(item) for item in ordered_skill_ids if _text(item)
+        )
+        if node_by_skill.get(skill_id) in stage_nodes
+    ]

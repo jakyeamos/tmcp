@@ -4,6 +4,7 @@ import unittest
 
 from tmcp_runtime.domain.composition_lift_host_packet import (
     project_external_skill_ids,
+    project_external_stage_skill_ids,
     source_node_ids_by_skill_id,
 )
 
@@ -85,6 +86,17 @@ class CompositionLiftHostPacketTests(unittest.TestCase):
                 variant_id="naive_union",
             ),
             (["discovery", "implementation"], []),
+        )
+
+    def test_phase_projection_hydrates_only_the_current_stage(self) -> None:
+        self.assertEqual(
+            project_external_stage_skill_ids(
+                self.plan,
+                ["discovery", "implementation", "governing"],
+                self.source_paths,
+                ["node-implementation"],
+            ),
+            ["implementation"],
         )
 
     def test_unresolved_skill_is_deferred_instead_of_hydrated(self) -> None:
