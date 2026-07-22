@@ -58,6 +58,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/domain/composition_benchmark_replay_support.py",
     "tmcp_runtime/domain/composition_lift_campaign.py",
     "tmcp_runtime/domain/composition_lift_campaign_support.py",
+    "tmcp_runtime/domain/composition_lift_host_packet.py",
     "tmcp_runtime/domain/composition_lift_campaign_results.py",
     "tmcp_runtime/domain/composition_lift_campaign_scoring.py",
     "tmcp_runtime/domain/guidebook_promotion.py",

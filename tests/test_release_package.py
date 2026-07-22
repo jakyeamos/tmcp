@@ -896,6 +896,10 @@ class ReleasePackageTests(unittest.TestCase):
             self.compiler.COMPILE_PATHS,
         )
         self.assertIn(
+            "tmcp_runtime/domain/composition_lift_host_packet.py",
+            self.compiler.COMPILE_PATHS,
+        )
+        self.assertIn(
             "tmcp_runtime/domain/composition_runtime_continuations.py",
             self.compiler.COMPILE_PATHS,
         )

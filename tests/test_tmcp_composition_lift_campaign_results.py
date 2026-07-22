@@ -312,6 +312,7 @@ class CompositionLiftCampaignResultsTests(unittest.TestCase):
             "scripts/promote_guidebook_from_campaign.py",
             "tmcp_runtime/domain/composition_lift_campaign_results.py",
             "tmcp_runtime/domain/composition_lift_campaign_scoring.py",
+            "tmcp_runtime/domain/composition_lift_host_packet.py",
             "tmcp_runtime/domain/guidebook_promotion.py",
         ):
             self.assertIn(path, COMPILE_PATHS)
