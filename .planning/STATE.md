@@ -6,9 +6,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Complete the phase-aware, multi-pass composition-lift rerun;
-0.6.0 remains blocked until replicated external host/evaluator results pass the
-preregistered lift and safety gates.
+**Current focus:** Close the phase-aware campaign's compiler/context gap and
+synergy shortfall, then obtain replicated rejudge and full release-gate proof;
+0.6.0 remains blocked until every preregistered gate passes.
 
 ## Milestone
 
@@ -46,6 +46,15 @@ completed 15 host and 15 judge cells; full composition beat naïve union on
 agent, migration, research, and UI examples, but diagnose remained weak. The
 next evidence slice is the full phase-aware campaign; no receipt, promotion, or
 release claim has been made.
+
+`04e61e4` hardens the safety scanner for bounded benchmark prose and the
+content/task/source digest fields. The phase-aware full campaign then validated
+all 540 host and 540 judge cells with host digest `3d6e110c…` and evaluator
+digest `2ec10093…`; scorer exit `1` reports synergy `+0.097`, compiler `+0.010`,
+and order `+0.2295`. Host/evaluator execution gates pass, but the lift gates do
+not. The result is diagnostic only, with no receipt, promotion, or release
+claim; the pre-CR hook again timed out at 90 seconds while the commit was
+created.
 
 `44911f0` pins the current no-call campaign handoff after
 `4c634e4` recorded the proposal-activation delta diagnostic and the
@@ -94,7 +103,10 @@ unproven.
   external packet mirror active/governing source hydration and repairs
   content-bound skill-node mapping before the next rerun.
   `29addea` adds current-stage-only hydration for phase-aware multipass runs;
-  calibration v2 is directional only and the diagnose fixture remains weak.
+  `04e61e4` clears the campaign artifact scanner false positive without
+  weakening explicit secret patterns. The full phase-aware run now has real
+  540/540 evidence, but compiler and synergy thresholds fail; next is a
+  context/bridge-quality improvement followed by an independent rejudge.
   The known repository pre-CR hook still times out at 90 seconds while the
   readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
   not a reason to weaken TMCP verification.
@@ -107,8 +119,9 @@ unproven.
   external pilot and 15-cell subscription calibration are recorded there with
   raw artifact digests and no campaign evidence was assembled. Calibration
   repaired the path-only handoff by materializing runner-created files for the
-  blind judge; it did not establish a model winner. Next: run the full
-  phase-aware 540 runner plus 540 judge cells;
+  blind judge; it did not establish a model winner. The full phase-aware run is
+  complete but ineligible; next improve compiler/context parity and repeat the
+  campaign before rejudge or promotion.
   keep rendered-browser verification and strict clean-room skill isolation
   explicitly blocked unless provisioned.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`

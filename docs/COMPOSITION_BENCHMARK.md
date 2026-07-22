@@ -120,6 +120,32 @@ the host packet to active/governing source slices, retain deferred stages only
 as cited entry-condition metadata, and record the resulting context boundary
 before another 540-cell claim.
 
+### Authorized phase-aware full campaign diagnostic (2026-07-22)
+
+The follow-up run recompiled each semantic arm at every ordered stage, hydrated
+only the current stage's source bodies, and carried the prior handoff forward in
+a fresh phase context. It completed the full campaign before scoring:
+
+- campaign: `composition-lift-campaign-91b9f99de690ec4cc908`
+- campaign digest: `91b9f99de690ec4cc9089cbed3a4d785c77df82391ee7d0c9ab7bda5ebf39592`
+- host artifact: 540/540 cells, SHA-256
+  `3d6e110cde3a175407f530e9ea15c9d657cd779de772bbf53d8e8eef75bb5b56`
+- blind-judge artifact: 540/540 cells, SHA-256
+  `2ec10093bc089a01d8a17b8af1c2e39317f5d3caea1b2c5e68c1db84e2190f24`
+- evidence classes: `host_executed` and `trusted_evaluator_execution`
+- median lift: synergy `+0.097`, compiler `+0.010`, order `+0.2295`
+- acceptance: order passed; synergy and compiler failed; eligibility `false`
+
+The unchanged artifacts initially hit a narrow redaction false positive on a
+normal prose token. `04e61e4` makes the scanner recognize bounded lowercase
+assignment/path prose and the benchmark's content/task/source digest fields;
+the same content-bound artifacts then pass safety validation and produce the
+metrics above. This remains real repeated-cell diagnostic evidence only: no
+receipt, promotion, or release claim follows. The result says phase ordering is
+valuable, but the compiler does not yet beat naïve union and the synergy median
+is just below threshold. The next slice must reduce fair active-context cost and
+improve cross-skill handoffs rather than lower the preregistered gates.
+
 ### Authorized external-run pilot (2026-07-21)
 
 After explicit authorization, one runner dispatch and its independent blind
