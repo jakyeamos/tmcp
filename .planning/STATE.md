@@ -8,7 +8,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Close the phase-aware campaign's compiler/context gap and
 synergy shortfall, then obtain replicated rejudge and full release-gate proof;
-0.6.0 remains blocked until every preregistered gate passes.
+0.6.0 remains blocked until every preregistered gate passes. The next bounded
+calibration exercises the typed phase-handoff fix before any full rerun.
 
 ## Milestone
 
@@ -55,6 +56,14 @@ and order `+0.2295`. Host/evaluator execution gates pass, but the lift gates do
 not. The result is diagnostic only, with no receipt, promotion, or release
 claim; the pre-CR hook again timed out at 90 seconds while the commit was
 created.
+
+`e793da6` adds source-backed typed phase contracts, incoming handoff rendering,
+fixture-evidence indexing, and bounded artifact envelopes to the phase-aware
+dogfood harness. The runtime bridge now requires named handoffs, preserves
+source-backed evidence, and labels host checks separately. Focused composition,
+schema, handoff, and phase-capsule tests pass; the pre-CR hook again timed out
+at 90 seconds before readiness completed. No campaign, receipt, promotion, or
+release claim was made by this change.
 
 `44911f0` pins the current no-call campaign handoff after
 `4c634e4` recorded the proposal-activation delta diagnostic and the
@@ -107,6 +116,9 @@ unproven.
   weakening explicit secret patterns. The full phase-aware run now has real
   540/540 evidence, but compiler and synergy thresholds fail; next is a
   context/bridge-quality improvement followed by an independent rejudge.
+  `e793da6` now carries the typed phase-contract and complete bounded handoff
+  helper used by the external phase harness; its focused tests are green, but
+  the lift impact is unmeasured until the authorized calibration runs.
   The known repository pre-CR hook still times out at 90 seconds while the
   readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
   not a reason to weaken TMCP verification.
