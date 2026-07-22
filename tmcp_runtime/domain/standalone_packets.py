@@ -7,6 +7,8 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
+from .packet_substance import packet_substance_check
+
 
 TMCP_PACKET_SCHEMA = "tmcp-skill-packet-v0.2"
 TMCP_RECEIPT_SCHEMA = "tmcp-traversal-receipt-v0.2"
@@ -81,75 +83,6 @@ MODULE_BEHAVIOR_ATOMS: dict[str, tuple[str, ...]] = {
     "tool_use_policy": ("safe-tool-routing", "bounded-tool-side-effects"),
     "user_approval_gate": ("approval-before-implementation", "audit-plan-before-edit"),
 }
-
-PROCESS_ONLY_MODULES = {
-    "context_gathering",
-    "evidence_first",
-    "output_contract",
-    "provenance_policy",
-    "test_gate",
-    "tool_use_policy",
-    "user_approval_gate",
-}
-
-PLAYBOOK_ACTION_TERMS = (
-    "audit",
-    "blocker",
-    "check",
-    "criterion",
-    "criteria",
-    "evidence",
-    "gate",
-    "inspect",
-    "must",
-    "readiness",
-    "require",
-    "review",
-    "risk",
-    "score",
-    "validate",
-    "verify",
-)
-
-DOMAIN_PLAYBOOK_TERMS = (
-    "accessibility",
-    "audit log",
-    "auditability",
-    "auth",
-    "calculation",
-    "compliance",
-    "deployment",
-    "evidence gate",
-    "government",
-    "legal",
-    "migration",
-    "observability",
-    "permission",
-    "privacy",
-    "public sector",
-    "readiness",
-    "release blocker",
-    "retention",
-    "rollback",
-    "security",
-    "tenant",
-    "uat",
-)
-
-SUBSTANTIVE_SOURCE_TYPES = {
-    "agent_operating_contract",
-    "cursor_rule",
-    "github_process",
-    "project_documentation",
-    "skill_definition",
-    "workflow_prompt",
-}
-
-NON_SUBSTANTIVE_SOURCE_NAME_TERMS = (
-    "changelog",
-    "release_checklist",
-    "verification",
-)
 
 TASK_PRIORITY = {
     "audit": 8,
@@ -228,6 +161,9 @@ def select_branch(objective: str, task_id: str) -> tuple[str, str]:
 def source_node_for_packet(node: dict[str, Any]) -> dict[str, Any]:
     """Project one harvested source into the standalone packet contract."""
 
+    frontmatter = node.get("frontmatter")
+    guidance_labels = node.get("guidance_labels")
+    routing_metadata = node.get("routing_metadata")
     return {
         "id": f"@source:{node['id']}",
         "path": node.get("path"),
@@ -235,143 +171,16 @@ def source_node_for_packet(node: dict[str, Any]) -> dict[str, Any]:
         "title": node.get("title"),
         "source_type": node.get("source_type"),
         "source_tier": node.get("source_tier"),
+        "frontmatter": dict(frontmatter) if isinstance(frontmatter, dict) else {},
         "behavior_atoms": node.get("behavior_atoms", []),
+        "guidance_labels": [
+            dict(label) for label in guidance_labels or [] if isinstance(label, dict)
+        ],
         "keywords": _string_list(node.get("keywords"))[:20],
         "excerpt": str(node.get("excerpt", ""))[:800],
-    }
-
-
-def packet_substance_check(
-    *,
-    objective: str,
-    task_id: str,
-    modules: list[str],
-    source_nodes: list[dict[str, Any]],
-) -> dict[str, Any]:
-    """Assess whether standalone packet sources contain domain playbook substance."""
-
-    source_texts = [
-        " ".join(
-            [
-                str(node.get("title", "")),
-                str(node.get("source_type", "")),
-                " ".join(_string_list(node.get("keywords"))),
-                str(node.get("excerpt", "")),
-            ]
-        ).lower()
-        for node in source_nodes
-    ]
-    source_combined = " ".join(source_texts)
-    objective_lower = objective.lower()
-    requested_anchor_terms = sorted(
-        {
-            term
-            for term in (
-                "government",
-                "public sector",
-                "public-sector",
-                "compliance",
-                "legal",
-                "calculation",
-            )
-            if term in objective_lower
-        }
-    )
-    matched_domain_terms = sorted(
-        {term for term in DOMAIN_PLAYBOOK_TERMS if term in source_combined}
-    )
-    matched_action_terms = sorted(
-        {term for term in PLAYBOOK_ACTION_TERMS if term in source_combined}
-    )
-    substantive_nodes: list[dict[str, Any]] = []
-    for node, text in zip(source_nodes, source_texts):
-        domain_hits = [term for term in DOMAIN_PLAYBOOK_TERMS if term in text]
-        action_hits = [term for term in PLAYBOOK_ACTION_TERMS if term in text]
-        has_required_anchor = not requested_anchor_terms or any(
-            term in text for term in requested_anchor_terms
-        )
-        has_substantive_type = (
-            str(node.get("source_type", "")) in SUBSTANTIVE_SOURCE_TYPES
-        )
-        name_scope = " ".join(
-            [
-                str(node.get("path", "")),
-                str(node.get("relative_path", "")),
-                str(node.get("title", "")),
-            ]
-        ).lower()
-        is_non_substantive = any(
-            term in name_scope for term in NON_SUBSTANTIVE_SOURCE_NAME_TERMS
-        )
-        if (
-            has_substantive_type
-            and not is_non_substantive
-            and has_required_anchor
-            and len(domain_hits) >= 2
-            and len(action_hits) >= 2
-        ):
-            substantive_nodes.append(
-                {
-                    "id": node.get("id"),
-                    "path": node.get("path"),
-                    "title": node.get("title"),
-                    "matched_domain_terms": sorted(set(domain_hits))[:8],
-                    "matched_action_terms": sorted(set(action_hits))[:8],
-                }
-            )
-    process_modules = [module for module in modules if module in PROCESS_ONLY_MODULES]
-    score = 0
-    if source_nodes:
-        score += 1
-    if matched_action_terms:
-        score += 1
-    if len(matched_domain_terms) >= 2:
-        score += 1
-    if substantive_nodes:
-        score += 1
-    score = min(score, 4)
-    if score >= 3 and substantive_nodes:
-        level = "source_backed_playbook"
-    elif score >= 2:
-        level = "thin_domain_signals"
-    else:
-        level = "process_only"
-    issues: list[str] = []
-    if not source_nodes:
-        issues.append(
-            "No harvested source nodes were available for task-specific playbook content."
-        )
-    if not substantive_nodes:
-        issues.append(
-            "Selected TMCP modules are mostly process scaffolding, not a concrete domain playbook."
-        )
-    if task_id == "audit" and level != "source_backed_playbook":
-        issues.append(
-            "Audit rubric substance should be derived from target repo evidence and cited artifacts."
-        )
-    fallback_policy = (
-        "Use TMCP for routing, evidence discipline, and output contract; derive rubric substance from target repo docs, code, tests, risk registers, and readiness gates."
-        if level != "source_backed_playbook"
-        else "Use harvested source nodes as substantive rubric guidance, then verify every finding against target evidence."
-    )
-    return {
-        "schema": "tmcp-packet-substance-v0.1",
-        "level": level,
-        "score": score,
-        "has_domain_playbook": level == "source_backed_playbook",
-        "source_node_count": len(source_nodes),
-        "substantive_source_count": len(substantive_nodes),
-        "process_only_modules": process_modules,
-        "matched_domain_terms": matched_domain_terms[:12],
-        "matched_action_terms": matched_action_terms[:12],
-        "requested_anchor_terms": requested_anchor_terms,
-        "substantive_source_nodes": substantive_nodes[:5],
-        "issues": issues,
-        "fallback_policy": fallback_policy,
-        "recommended_next_step": (
-            "Harvest the completed review into a reusable TMCP skill after the audit."
-            if level != "source_backed_playbook"
-            else "Run the review with evidence-backed scoring and preserve source citations."
+        "signal_excerpt": str(node.get("signal_excerpt", ""))[:800],
+        "routing_metadata": (
+            dict(routing_metadata) if isinstance(routing_metadata, dict) else {}
         ),
     }
 
@@ -427,9 +236,10 @@ def compile_standalone_packet(
     if "tmcp" in objective.lower() and "provenance_policy" not in modules:
         modules.append("provenance_policy")
     branch_id, branch_reason = select_branch(objective, task_id)
-    source_nodes = [
-        source_node_for_packet(node) for node in (harvested_nodes or [])[:8]
+    classified_source_nodes = [
+        source_node_for_packet(node) for node in (harvested_nodes or [])
     ]
+    source_nodes = classified_source_nodes[:8]
     selected_nodes = [
         f"@task:{task_id}",
         *(f"@module:{module}" for module in modules),
@@ -469,8 +279,9 @@ def compile_standalone_packet(
         objective=objective,
         task_id=task_id,
         modules=modules,
-        source_nodes=source_nodes,
+        source_nodes=classified_source_nodes,
     )
+    packet_domain = domain or str(substance_check.get("inferred_domain") or "general")
     packet: dict[str, Any] = {
         "schema": TMCP_PACKET_SCHEMA,
         "receipt_schema": TMCP_RECEIPT_SCHEMA,
@@ -478,7 +289,7 @@ def compile_standalone_packet(
         "adapter": "standalone",
         "task_id": task_id,
         "phase": phase or "unspecified",
-        "domain": domain or "general",
+        "domain": packet_domain,
         "objective": objective,
         "project_path": project_path,
         "source_graph_version": graph_version,

@@ -157,7 +157,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                     "write_artifacts": False,
                 }
             )
-            packet = self.server._compile_standalone_packet(
+            packet = standalone_packets.compile_standalone_packet(
                 objective="Collect the newly installed skills",
                 project_path=str(root),
                 harvested_nodes=harvest["source_nodes"],
@@ -192,7 +192,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                     "write_artifacts": False,
                 }
             )
-            packet = self.server._compile_standalone_packet(
+            packet = standalone_packets.compile_standalone_packet(
                 objective="Collect the newly installed skills",
                 project_path=str(root),
                 harvested_nodes=harvest["source_nodes"],
@@ -222,7 +222,7 @@ class TmcpMcpServerTests(unittest.TestCase):
                     "write_artifacts": False,
                 }
             )
-            packet = self.server._compile_standalone_packet(
+            packet = standalone_packets.compile_standalone_packet(
                 objective="Use a generic objective",
                 project_path=str(root),
                 harvested_nodes=harvest["source_nodes"],
@@ -736,17 +736,21 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertIn("spacing", " ".join(gap_slice["scope"]).lower())
 
     def test_profile_coverage_accepts_tuple_terms(self) -> None:
-        requirements = list(self.server.PROFILE_COVERAGE_REQUIREMENTS["visual_polish"])
+        requirements = list(
+            review_evidence.PROFILE_COVERAGE_REQUIREMENTS["visual_polish"]
+        )
         self.assertTrue(all(isinstance(item["terms"], tuple) for item in requirements))
         coverage_text = " ".join(
             str(term) for requirement in requirements for term in requirement["terms"]
         )
 
-        report = self.server._build_audit_report(
+        report = review_evidence.build_audit_report(
             {
                 "profile": "visual_polish",
                 "coverage_requirements": requirements,
-                "dimensions": [{"id": "visual_product_quality", "name": "Visual product quality"}],
+                "dimensions": [
+                    {"id": "visual_product_quality", "name": "Visual product quality"}
+                ],
             },
             [
                 {
