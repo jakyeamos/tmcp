@@ -28,7 +28,12 @@ preparation rejects a fixture that omits that contract, and its preflight test
 requires every expected skill to remain an explicitly scoped, provenance-backed
 active slice. Keep the contract inline in the bounded skill body: a separate
 Markdown section can be ranked as a different behavior slice and leave the
-host without evidence for the role or handoff claims it is proposing.
+host without evidence for the role or handoff claims it is proposing. Each
+fixture must also include at least one bounded task-input evidence item (for
+example a target contract, sample records, source excerpts, a routing case
+table, or a code excerpt). A requirement narrative alone makes every no-tool
+host block before the composition can demonstrate a useful handoff; bounded
+inputs are still `fixture_supplied` preconditions and never host-run proof.
 
 This is a deterministic corpus/readiness check only. It proves that the
 benchmark can expose observable artifacts and cited handoffs; it does not

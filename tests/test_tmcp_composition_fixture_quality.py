@@ -62,6 +62,30 @@ class CompositionFixtureQualityTests(unittest.TestCase):
                 self.assertTrue(slices_by_skill[skill_id]["explicitly_scoped"])
                 self.assertIn("output contract", str(slices_by_skill[skill_id]["content"]).casefold())
 
+    def test_behavioral_fixtures_expose_bounded_task_inputs(self) -> None:
+        """A no-tool host must receive enough bounded material to do useful work."""
+
+        bounded_kinds = {
+            "bounded_ui_input",
+            "bounded_migration_input",
+            "bounded_recovery_input",
+            "bounded_workflow_input",
+            "bounded_receipt_input",
+            "bounded_draft_input",
+            "bounded_code_input",
+        }
+        for fixture in self.behavioral["fixtures"]:
+            evidence = fixture["task_context"]["evidence"]
+            kinds = {str(item["kind"]) for item in evidence}
+            self.assertTrue(
+                kinds.intersection(bounded_kinds),
+                fixture["fixture_id"],
+            )
+            for item in evidence:
+                if str(item["kind"]) in bounded_kinds:
+                    self.assertGreaterEqual(len(str(item["content"])), 160)
+                    self.assertEqual(item["provenance"], "fixture_supplied")
+
     def test_preparation_rejects_expected_skill_without_observable_contract(self) -> None:
         behavioral = copy.deepcopy(self.behavioral)
         fixture = behavioral["fixtures"][0]

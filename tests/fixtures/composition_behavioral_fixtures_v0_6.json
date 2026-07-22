@@ -19,7 +19,7 @@
       "run_receipt"
     ],
     "quality_scores": ["no_skill", "singletons", "naive_union", "full_composition", "leave_one_out", "wrong_order"],
-    "note": "Fixture definitions contain expectations and review rubrics only. Quality, context, harvested-slice bindings, and evaluator provenance must come from observed benchmark runs."
+    "note": "Fixture definitions contain bounded task inputs, expectations, and review rubrics only. Quality, context, harvested-slice bindings, and evaluator provenance must come from observed benchmark runs."
   },
   "fixtures": [
     {
@@ -34,12 +34,14 @@
         "constraints": [
           "Use the existing component and design-token primitives; do not invent a parallel surface.",
           "Treat the supplied observations as precondition evidence, not as browser execution performed by the host.",
-          "Keep unresolved product decisions and unavailable rendered checks explicit in the final handoff."
+            "Produce the bounded surface handoff from the supplied target contract even when browser execution is unavailable; keep only host-run checks marked unverified."
         ],
         "evidence": [
           {"evidence_id": "ui-product-brief", "kind": "product_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Users need to change notification level, understand the current value, recover from a save error, and leave the surface without losing unsaved changes. The primary action must remain discoverable in keyboard navigation."},
           {"evidence_id": "ui-state-inventory", "kind": "state_inventory", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Required states: first-run with no saved preference; empty account with no destinations; populated account with the current preference; save failure with retry and preserved input; narrow viewport; keyboard focus; and reduced-motion preference."},
           {"evidence_id": "ui-acceptance-notes", "kind": "acceptance_notes", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Reviewers will look for a coherent hierarchy, explicit interaction states, token-based contrast, visible focus, responsive behavior at 320px, and a reduced-motion path. No browser run or rendered capture is supplied by this fixture."
+          },
+          {"evidence_id": "ui-target-contract", "kind": "bounded_ui_input", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Bounded target contract for the settings surface: SettingsPanel receives savedLevel, destinations, and saveResult; it renders PageShell, Fieldset, RadioGroup, InlineAlert, Button, and ConfirmDialog from the existing primitive set. State transitions are first-run -> selected -> saving -> saved or save-error, with save-error retaining the selected value and dirty exit opening ConfirmDialog. The supplied token inventory is --surface, --text, --muted-text, --focus-ring, --danger, --space-2, and --space-4. The implementation handoff should name changed components and state transitions; the fixture does not claim those changes were host-executed."
           }
         ]
       },
@@ -87,12 +89,16 @@
         "constraints": [
           "Do not recommend cutover without named invariants, rollback triggers, and recovery checkpoints.",
           "Treat the supplied logs as fixture preconditions; do not present them as commands executed by the host.",
-          "Separate observed migration evidence from remaining readiness risks."
+            "Use the bounded sample and recovery transcript to produce a readiness and regression handoff; label any missing production-scale checks separately."
         ],
         "evidence": [
           {"evidence_id": "migration-schema-inventory", "kind": "schema_inventory", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Records are keyed by account_id and record_id. The destination adds version and updated_at. Referential links to account and owner must remain valid, ordering by updated_at must be stable, and duplicate record_id values must not be introduced."},
           {"evidence_id": "migration-dry-run-notes", "kind": "dry_run_notes", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "A bounded dry-run sample contains new, already-migrated, malformed, and interrupted records. The fixture does not include a complete query transcript; integrity results and unresolved cases must be called out rather than inferred."},
           {"evidence_id": "migration-recovery-brief", "kind": "recovery_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Rollback must be triggered by invariant drift, repeated failures, or an unavailable checkpoint. Recovery should identify the last safe checkpoint, restore referential integrity, and prove that a repeated migration is idempotent."
+          },
+          {"evidence_id": "migration-bounded-sample", "kind": "bounded_migration_input", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Bounded source sample: (acct=A1, record=r1, version=1, owner=O1, updated_at=2026-07-20T10:00Z), (A1,r2,1,O1,2026-07-20T10:01Z), (A2,r3,2,O2,2026-07-20T10:02Z), and malformed (A2,r4,missing-owner,O9,2026-07-20T10:03Z). Destination snapshot before the run contains (A1,r1,version=1) only. Migration rules are composite identity (account_id, record_id), preserve version for already-migrated rows, quarantine malformed rows with a reason, and use updated_at plus record_id as the stable order."
+          },
+          {"evidence_id": "migration-recovery-transcript", "kind": "bounded_recovery_input", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Fixture recovery transcript: checkpoint C0 was captured before the bounded run; the worker inserted r2 and r3, then interrupted before r4. Reconciliation reported one malformed row and no duplicate or orphan in the bounded sample. Restoring C0 removed the two inserts. A second bounded run recorded inserts=2, quarantined=1, and a repeat run delta of zero. This transcript is supplied input evidence, not a command run by the host."
           }
         ]
       },
@@ -140,12 +146,16 @@
         "constraints": [
           "No external side effect or automatic promotion is authorized by this fixture.",
           "Treat the supplied trace as a design input, not as a receipt emitted by the host.",
-          "Every deferred route, safety decision, and promotion decision must state its evidence and owner."
+            "Use the supplied cases and receipt shape to produce the workflow handoff; every deferred route, safety decision, and promotion decision must state its evidence and owner."
         ],
         "evidence": [
           {"evidence_id": "workflow-stage-brief", "kind": "workflow_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "The intended stages are workflow design, deterministic routing, safety and privacy review, and receipt verification. Each stage needs explicit inputs, outputs, entry conditions, and an exit decision before the next stage can activate."},
           {"evidence_id": "workflow-routing-signals", "kind": "routing_signals", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Routing signals include task facet, evidence availability, source trust, requested side effects, and whether a reviewed project recipe exists. Missing evidence should defer a capability instead of silently activating it."},
           {"evidence_id": "workflow-safety-brief", "kind": "safety_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Sensitive data, instruction precedence, external effects, user overrides, receipt provenance, and lift thresholds must be visible in the review. Promotion is a separate explicit decision and never an automatic learning side effect."
+          },
+          {"evidence_id": "workflow-case-table", "kind": "bounded_workflow_input", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Bounded routing cases: C1={facet:ui, evidence:fixture_supplied, trust:advisory, side_effects:none, reviewed_recipe:false}; C2={facet:migration, evidence:host_executed, trust:verified, side_effects:database_write, reviewed_recipe:true}; C3={facet:security, evidence:missing, trust:unknown, side_effects:external_message, reviewed_recipe:false}. The route map must select only capabilities supported by these signals and defer C3."
+          },
+          {"evidence_id": "workflow-receipt-shape", "kind": "bounded_receipt_input", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "The reviewed receipt shape contains recipe_id, task_identity, graph_digest, selected_skills, phase_trace, gate_results, quality_metrics, cost, and overrides. A receipt is reviewable evidence only after its host-run evidence and safety gates are recorded; promotion remains a separate manual decision."
           }
         ]
       },
@@ -193,12 +203,14 @@
         "constraints": [
           "Do not invent sources or imply network retrieval; the supplied excerpts are the available research input.",
           "Keep material claims mapped to evidence and label unresolved citation gaps.",
-          "The final artifact must separate source-backed findings, domain reasoning, and editorial changes."
+          "Use the supplied excerpts as the complete bounded research input; the final artifact must separate source-backed findings, domain reasoning, and editorial changes."
         ],
         "evidence": [
-          {"evidence_id": "research-source-ledger", "kind": "source_ledger", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Source A is an authoritative standards excerpt about the domain constraint. Source B is a maintained implementation guide describing the operational tradeoff. Source C is a dated measurement note. The fixture provides excerpts and provenance labels, not a live network lookup."},
+          {"evidence_id": "research-source-ledger", "kind": "source_ledger", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Bounded source ledger with excerpts: Source A — 2025-11-04, Standards Council, locator A-4, authoritative constraint: ‘A retained record must be addressable by one stable identity for the full retention period; replacement identifiers are not equivalent.’ Source B — 2026-02-18, Maintainer Guide v3, locator B-7, operational tradeoff: ‘Batch validation lowers write overhead but increases the window in which an invalid record can wait before quarantine.’ Source C — 2026-06-30, Operations Measurement Note, locator C-2, dated measurement: ‘In the pilot, bounded validation reduced retry volume from 8.1% to 3.4% across 10,000 records; the note does not establish behavior outside that workload.’ These excerpts and locators are fixture-supplied; no network lookup occurred."},
           {"evidence_id": "research-claim-map", "kind": "claim_map", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Material claims must identify the supporting source, quote or paraphrase boundary, confidence, and any gap. Claims that rely on synthesis rather than a direct excerpt must be labeled as reasoning."},
           {"evidence_id": "research-review-brief", "kind": "editorial_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "The audience needs a clear recommendation, assumptions, counterargument, and next action. Editorial review should record structure, clarity, claim precision, and audience-fit findings before citation verification."
+          },
+          {"evidence_id": "research-review-input", "kind": "bounded_draft_input", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "The bounded draft question is whether to adopt bounded validation before the next retention migration. The draft must use Source A for the identity constraint, Source B for the validation-window tradeoff, and Source C only as pilot measurement context; any recommendation beyond those excerpts must be labeled synthesis."
           }
         ]
       },
@@ -245,13 +257,14 @@
         "objective_context": "A production defect has a reproducible symptom and a suspected narrow cause. The team needs a diagnosis record, a bounded fix, before-and-after regression protection, and an installed or release verification handoff.",
         "constraints": [
           "Do not patch the symptom before separating reproduction, cause, and collateral risk.",
-          "Treat the supplied reproduction and test notes as fixture evidence; do not claim the host ran them.",
-          "Keep release identity, residual risk, and untested paths explicit."
+            "Use the supplied bounded code excerpt and failure trace to produce a diagnosis and narrow patch handoff; keep host-run regression and release verification separately labeled.",
+            "Keep release identity, residual risk, and untested paths explicit."
         ],
         "evidence": [
-          {"evidence_id": "diagnosis-reproduction", "kind": "failure_reproduction", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "The failure appears when a saved state is reloaded after an interrupted update. The expected behavior is to preserve the prior valid state and surface a recoverable error. The fixture supplies a reproduction narrative but no live process transcript."},
+          {"evidence_id": "diagnosis-reproduction", "kind": "failure_reproduction", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Bounded reproduction input: committed state is {version:7, value:'green'}; an interrupted update leaves pending state {version:8, value:'blue', committed:false}; reload currently promotes pending before validation and returns {error:'invalid checksum', value:null}. Expected behavior is to retain version 7 and return a recoverable checksum error while preserving the pending record for retry. This is fixture-supplied input, not a live process transcript."},
           {"evidence_id": "diagnosis-change-boundary", "kind": "change_boundary", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "The likely change boundary is the state-reconciliation path, not the persistence adapter or release packaging. A focused diff should identify affected files, root-cause linkage, and collateral-risk checks."},
-          {"evidence_id": "diagnosis-regression-brief", "kind": "regression_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Regression coverage should include the original interruption, a successful update, repeated reload, malformed state, and the release or installed smoke path. Before-and-after results must distinguish fixture notes from host-run verification."
+          {"evidence_id": "diagnosis-regression-brief", "kind": "regression_brief", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Regression coverage should include the original interruption, a successful update, repeated reload, malformed state, and the release or installed smoke path. The supplied acceptance matrix expects: interrupted reload preserves version 7; successful update promotes version 8; repeated reload is stable; malformed state preserves the last committed value; and the installed smoke path reports the same recoverable error contract. Before-and-after results must distinguish fixture notes from host-run verification."},
+          {"evidence_id": "diagnosis-code-excerpt", "kind": "bounded_code_input", "media_type": "text/plain", "provenance": "fixture_supplied", "content": "Bounded pre-fix code excerpt: reload() { const candidate = disk.pending ?? disk.committed; this.state = candidate; return validate(candidate); } commit(candidate) { disk.pending = candidate; disk.committed = candidate; disk.pending = null; }. The narrow change boundary is reload/reconciliation: validation must complete before replacing the committed in-memory state, and an invalid pending candidate must remain retryable without clearing the last valid snapshot."
           }
         ]
       },
