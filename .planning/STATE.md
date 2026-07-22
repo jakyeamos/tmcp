@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 
 **Core value:** Deliver a trustworthy, portable packet compiler with safe local
 file boundaries and a coherent agent-facing workflow.
-**Current focus:** Complete the bounded-input, phase-aware composition-lift
+**Current focus:** Complete the bounded-input, phase-faithful composition-lift
 rerun; 0.6.0 remains blocked until replicated external host/evaluator results
 pass the preregistered lift and safety gates.
 
@@ -25,6 +25,14 @@ TMCP active-stage hydration. 0.6.0 still requires an active/deferred-faithful
 rerun, replicated external host/evaluator/rejudge outcomes, matching graph
 provenance, and explicit manual promotion. No receipt, promotion, or release
 claim was made by this slice.
+
+`14e9950` adds the content-bound external host-packet projection: semantic
+arms hydrate only active/governing source bodies, while deferred roles remain
+bridge metadata; the naïve union retains all bodies as its control. The node
+mapping and release-package surface are covered by 41 passing tests plus two
+subtests. The required pre-CR hook timed out at its 90-second budget before
+readiness completed; the commit was created, and this remains a hook-policy
+mismatch rather than a verification bypass.
 
 `44911f0` pins the current no-call campaign handoff after
 `4c634e4` recorded the proposal-activation delta diagnostic and the
@@ -69,8 +77,9 @@ unproven.
   verification. The corrected campaign `91b9f99d…` completed 540/540 host and
   540/540 judge cells; order lift passed, but synergy and compiler lift failed.
   Its raw artifact digests and the active/deferred hydration mismatch are
-  recorded in `docs/COMPOSITION_BENCHMARK.md`. The next slice is to make the
-  external packet mirror active/governing source hydration before rerunning.
+  recorded in `docs/COMPOSITION_BENCHMARK.md`. `14e9950` now makes the
+  external packet mirror active/governing source hydration and repairs
+  content-bound skill-node mapping before the next rerun.
   The known repository pre-CR hook still times out at 90 seconds while the
   readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
   not a reason to weaken TMCP verification.
@@ -83,10 +92,10 @@ unproven.
   external pilot and 15-cell subscription calibration are recorded there with
   raw artifact digests and no campaign evidence was assembled. Calibration
   repaired the path-only handoff by materializing runner-created files for the
-  blind judge; it did not establish a model winner. Next: add a bounded
-  external-run adapter, provision rendered verification for UI fixtures (or
-  keep that gate blocked), materialize the new task contexts in the external
-  harness, and only then schedule the full 540 runner plus 540 judge cells.
+  blind judge; it did not establish a model winner. Next: run a bounded
+  active/deferred calibration, then the full 540 runner plus 540 judge cells;
+  keep rendered-browser verification and strict clean-room skill isolation
+  explicitly blocked unless provisioned.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
