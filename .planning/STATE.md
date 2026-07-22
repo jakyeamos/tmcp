@@ -17,10 +17,14 @@ pass the preregistered lift and safety gates.
 behavioral fixtures and enforces that corpus gate. The second authorized
 campaign (`97c5dfe9…`) completed with trusted evaluator execution but failed all
 three lift thresholds; it remains diagnostic evidence, not release evidence.
-The corrected phase/order campaign (`91b9f99d…`) is prepared but not yet run.
-0.6.0 still requires replicated external host/evaluator/rejudge outcomes,
-matching graph provenance, and explicit manual promotion. No receipt,
-promotion, or release claim was made by this slice.
+The corrected phase/order campaign (`91b9f99d…`) completed 540 host and 540
+judge cells: order lift passed at `+0.1110`, while synergy `-0.0423` and
+compiler `+0.0235` failed. The run is diagnostic, not release evidence, because
+the external harness still supplied deferred skill bodies instead of mirroring
+TMCP active-stage hydration. 0.6.0 still requires an active/deferred-faithful
+rerun, replicated external host/evaluator/rejudge outcomes, matching graph
+provenance, and explicit manual promotion. No receipt, promotion, or release
+claim was made by this slice.
 
 `44911f0` pins the current no-call campaign handoff after
 `4c634e4` recorded the proposal-activation delta diagnostic and the
@@ -62,11 +66,14 @@ unproven.
   static dogfood packet receipt is recorded at
   `/private/tmp/tmcp-receipt-home-20260721/receipts/2026-07/packet-a7fa53ed6280-7c843241353794bcf2afb6f0dd6db2f9-76d289fcbe-815d7ec4a63a4a2884ab480bcc5ccd27.json`.
   `e080aab` records the bounded-input fixture slice and its 44-test focused
-  verification. The corrected campaign handoff is `91b9f99d…` (180 baseline,
-  360 causal cells); its host and judge outputs remain pending. The known
-  repository pre-CR hook still times out at 90 seconds while the readiness
-  suite takes roughly 250 seconds; this is a hook-policy mismatch, not a reason
-  to weaken TMCP verification.
+  verification. The corrected campaign `91b9f99d…` completed 540/540 host and
+  540/540 judge cells; order lift passed, but synergy and compiler lift failed.
+  Its raw artifact digests and the active/deferred hydration mismatch are
+  recorded in `docs/COMPOSITION_BENCHMARK.md`. The next slice is to make the
+  external packet mirror active/governing source hydration before rerunning.
+  The known repository pre-CR hook still times out at 90 seconds while the
+  readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
+  not a reason to weaken TMCP verification.
   `44911f0` records the reproducibility anchor for the no-call handoff:
   campaign `composition-lift-campaign-01696e55d67fa8ecb6e5`, digest
   `01696e55d67fa8ecb6e5b48ce5a919bdc8c68a2c239bdafd8a4389cf7514799a`, with

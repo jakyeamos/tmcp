@@ -95,6 +95,31 @@ surfaces only: the runner bundle exposes execution references and bounded
 instructions; the judge bundle exposes artifact slots and the fixture rubric.
 Neither contains controller condition identity, skill order, graph, or recipe.
 
+### Authorized full campaign diagnostic (2026-07-21)
+
+The first complete authorized host/evaluator run used the bounded-input,
+phase-aware campaign:
+
+- campaign: `composition-lift-campaign-91b9f99de690ec4cc908`
+- campaign digest: `91b9f99de690ec4cc9089cbed3a4d785c77df82391ee7d0c9ab7bda5ebf39592`
+- host artifact: 540/540 cells, SHA-256
+  `01144e52192ee11155fc0cea4f0e2eff52a6297e8f1c73a516ad85ee77ab7c11`
+- blind-judge artifact: 540/540 cells, SHA-256
+  `ea234f22fb75a16ab3795940f4f0e073db1ba1a03680774aca17ab114b9af393`
+- evidence classes: `host_executed` and `trusted_evaluator_execution`
+- median lift: synergy `-0.0423`, compiler `+0.0235`, order `+0.1110`
+- acceptance: order passed; synergy and compiler failed; eligibility `false`
+
+This is real repeated-cell diagnostic evidence, not a receipt, promotion
+candidate, or release claim. The corrected wrong-order recipe made order lift
+meaningful, but the external harness still supplied every selected skill body
+even when the compiled plan marked later stages deferred. That raw-source
+union is broader than TMCP's active-stage hydration and can make redundant or
+future instructions compete with the current handoff. The next rerun must bind
+the host packet to active/governing source slices, retain deferred stages only
+as cited entry-condition metadata, and record the resulting context boundary
+before another 540-cell claim.
+
 ### Authorized external-run pilot (2026-07-21)
 
 After explicit authorization, one runner dispatch and its independent blind
