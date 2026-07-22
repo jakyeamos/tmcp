@@ -13,7 +13,19 @@ authority and a real external-run adapter.
 ## Milestone
 
 **Name:** TMCP Compositional Intelligence 0.6
-**Status:** `44911f0` pins the current no-call campaign handoff after
+**Status:** `cd9b5fc` binds bounded fixture-supplied task context through
+preflight, replay, factorial recipes, and campaign cells after `44911f0`
+pinning the current no-call campaign handoff. The branch also carries the
+independent-rejudge envelope and non-mutating manual-review promotion candidate
+command. Focused composition/guidebook checks are green.
+0.6.0 still requires real host/evaluator/rejudge outcomes and the stronger
+real-task corpus. The earlier no-context campaign remains a valid failed
+eligibility result, not release evidence. The next campaign harness now
+materializes and verifies the context digest before dispatch; supplied evidence
+must remain distinct from host-executed verification. No receipt, promotion, or
+release claim was made by this slice.
+
+`44911f0` pins the current no-call campaign handoff after
 `4c634e4` recorded the proposal-activation delta diagnostic and the
 held dogfooded guidebook pattern. The branch also carries the independent-rejudge
 envelope and non-mutating manual-review promotion candidate command. Focused
@@ -63,11 +75,19 @@ unproven.
   repaired the path-only handoff by materializing runner-created files for the
   blind judge; it did not establish a model winner. Next: add a bounded
   external-run adapter, provision rendered verification for UI fixtures (or
-  keep that gate blocked), and only then schedule the full 540 runner plus 540
-  judge cells.
+  keep that gate blocked), materialize the new task contexts in the external
+  harness, and only then schedule the full 540 runner plus 540 judge cells.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
 
 ## Completed Scope
+
+- `cd9b5fc` adds a bounded `tmcp-composition-task-context-v0.1` fixture
+  contract, materialized context artifacts, content-bound preflight/replay/
+  campaign digests, and an execution instruction distinguishing
+  fixture-supplied preconditions from host-executed evidence. Focused protocol,
+  schema, campaign, and result checks pass (41 tests). The repository pre-CR
+  hook still times out at 90 seconds while reporting the existing oversized
+  protocol-test warning.
 
 - `a0ee07c` strengthens all five behavioral fixtures with domain-specific,
   observable `Output contract:` handoffs and adds a preparation-time validator
