@@ -78,6 +78,10 @@ _STRUCTURED_HIGH_ENTROPY_VALUE_FIELDS = frozenset(
         "semantic_proposals_digest",
         "slice_digest",
         "source_digest",
+        "source_digests",
+        "source_slice_digests",
+        "task_context_digest",
+        "task_context_artifact",
     }
 )
 _SAFE_RUN_ID_RE = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+){2,}")

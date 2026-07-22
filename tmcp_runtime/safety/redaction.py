@@ -43,6 +43,7 @@ def looks_high_entropy(value: str) -> bool:
         or re.fullmatch(r"/?(?:schemas/)?[a-z]+(?:[_/-][a-z]+)+[_/-]v[0-9]+", value)
         or re.fullmatch(r"[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+){2,}", value)
         or re.fullmatch(r"[a-z][a-z0-9_]*=[A-Z][A-Z0-9_]*", value)
+        or re.fullmatch(r"[a-z][a-z0-9_]*=[a-z][a-z0-9_]*(?:/[a-z][a-z0-9_]*)+", value)
     ):
         return False
     return True

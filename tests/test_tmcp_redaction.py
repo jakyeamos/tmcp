@@ -11,6 +11,11 @@ class TmcpRedactionTests(unittest.TestCase):
             looks_high_entropy("canonical_cli_command=CLI_CANONICAL_COMMANDS")
         )
         self.assertFalse(looks_high_entropy("output_schema_ids=TOOL_OUTPUT_SCHEMA_IDS"))
+        self.assertFalse(
+            looks_high_entropy(
+                "exit=identity/digest/trace/gates/metrics/cost/overrides"
+            )
+        )
 
     def test_versioned_schema_identifiers_are_not_secret_like(self) -> None:
         self.assertFalse(
