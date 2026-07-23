@@ -160,6 +160,11 @@ diagnostic only and no receipt, promotion, or release claim was made.
 research, and diagnose matrices. Focused tests and Ruff pass; the v12 campaign
 remains diagnostic because compiler and synergy thresholds still fail. No
 receipt, promotion, or release claim was made.
+`c7a312c` makes the phase contract explicit that every material state, path,
+claim, gate, and unresolved row must remain in the source-backed deliverable
+matrix; "concise" may remove repeated context but not required evidence.
+Focused tests and Ruff pass. The v13 impact is unmeasured, so no receipt,
+promotion, or release claim was made.
 **Started:** 2026-07-17
 
 ## Active Phase
