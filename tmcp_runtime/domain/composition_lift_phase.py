@@ -16,6 +16,10 @@ DEFAULT_PHASE_ARTIFACT_LIMIT = 4000
 # Keep cumulative handoffs below the lift-campaign contract's 16,000-character
 # artifact ceiling while leaving room for serialization and validation metadata.
 DEFAULT_COMPOSITION_HANDOFF_LIMIT = 15_000
+DEFAULT_COMPOSITION_INDEX_DELIVERABLE_LIMIT = 300
+DEFAULT_COMPOSITION_INDEX_HANDOFF_LIMIT = 180
+DEFAULT_COMPOSITION_PRIOR_CAPSULE_LIMIT = 650
+DEFAULT_COMPOSITION_CURRENT_CAPSULE_LIMIT = 3_200
 _PHASE_HEADINGS = (
     "PHASE_RESULT",
     "STATUS",
@@ -40,6 +44,16 @@ _SECTION_BUDGETS = {
     "EXIT_GATE": 600,
     "NEXT_ENTRY": 260,
     "UNRESOLVED_GAPS": 440,
+}
+_CAPSULE_SECTION_BUDGETS = {
+    "PHASE_RESULT": 140,
+    "STATUS": 100,
+    "DELIVERABLES": 320,
+    "EVIDENCE_BOUNDARY": 140,
+    "PRODUCED_HANDOFF": 220,
+    "EXIT_GATE": 180,
+    "NEXT_ENTRY": 180,
+    "UNRESOLVED_GAPS": 240,
 }
 
 
@@ -297,6 +311,9 @@ def phase_exit_gate_status(artifact: str) -> str:
 
 def phase_deliverable_index(
     phase_artifacts: Sequence[tuple[Mapping[str, object], str]],
+    *,
+    deliverable_limit: int = 420,
+    handoff_limit: int = 260,
 ) -> str:
     """Quote each phase's concrete deliverable and produced handoff."""
 
@@ -310,10 +327,10 @@ def phase_deliverable_index(
         phase = _text(stage.get("phase")) or "unknown"
         gate = phase_exit_gate_status(artifact).upper()
         deliverables = _compact_text(
-            bodies.get("DELIVERABLES", "") or "- none", 420
+            bodies.get("DELIVERABLES", "") or "- none", deliverable_limit
         )
         handoff = _compact_text(
-            bodies.get("PRODUCED_HANDOFF", "") or "- none", 260
+            bodies.get("PRODUCED_HANDOFF", "") or "- none", handoff_limit
         )
         lines.append(
             f"- phase {index} {phase} | gate={gate} | "
@@ -322,24 +339,68 @@ def phase_deliverable_index(
     return "\n".join(lines)
 
 
+def _phase_capsule(artifact: str, *, limit: int) -> str:
+    """Keep prior-phase decisions without replaying every incoming detail."""
+
+    preamble, sections = _phase_sections(artifact)
+    wanted = tuple(_CAPSULE_SECTION_BUDGETS)
+    selected: list[tuple[str, str, str]] = []
+    seen: set[str] = set()
+    for heading, suffix, body in sections:
+        if heading in wanted and heading not in seen:
+            selected.append((heading, suffix, body))
+            seen.add(heading)
+    if not selected:
+        return _compact_text(artifact.strip(), limit)
+    return _bounded_phase_sections(
+        preamble,
+        selected,
+        limit=limit,
+        section_budgets=_CAPSULE_SECTION_BUDGETS,
+    )
+
+
 def render_composition_handoff(
     phase_artifacts: Sequence[tuple[Mapping[str, object], str]],
     *,
     limit: int = DEFAULT_COMPOSITION_HANDOFF_LIMIT,
 ) -> str:
-    """Render phase handoffs with a quote-only cumulative deliverable index."""
+    """Render a bounded phase-aware handoff without replaying prior contexts."""
 
     sections = [
-        phase_deliverable_index(phase_artifacts),
+        phase_deliverable_index(
+            phase_artifacts,
+            deliverable_limit=DEFAULT_COMPOSITION_INDEX_DELIVERABLE_LIMIT,
+            handoff_limit=DEFAULT_COMPOSITION_INDEX_HANDOFF_LIMIT,
+        ),
         "# Phase-aware composition handoff",
         "Each section is a handoff from a fresh isolated phase context. "
-        "Fixture-supplied evidence is not host execution.",
+        "Fixture-supplied evidence is not host execution. Prior phases are "
+        "represented by quote-only capsules; the current phase retains its "
+        "complete bounded envelope.",
     ]
+    last_index = len(phase_artifacts) - 1
     for index, (stage, artifact) in enumerate(phase_artifacts, 1):
+        if index - 1 == last_index:
+            body = bound_phase_artifact(
+                artifact,
+                limit=DEFAULT_COMPOSITION_CURRENT_CAPSULE_LIMIT,
+            )
+        else:
+            body = _phase_capsule(
+                artifact,
+                limit=DEFAULT_COMPOSITION_PRIOR_CAPSULE_LIMIT,
+            )
         sections.append(
-            f"## Phase {index}: {stage.get('phase')} ({stage.get('status')})\n{artifact}"
+            f"## Phase {index}: {stage.get('phase')} ({stage.get('status')})\n{body}"
         )
-    return "\n\n".join(sections)[:limit]
+    rendered = "\n\n".join(sections)
+    if len(rendered) <= limit:
+        return rendered
+    # Small caller-supplied limits are diagnostic bounds. Preserve the index,
+    # phase headings, and the current phase's gate before compacting the body.
+    compacted = _compact_text(rendered, limit)
+    return compacted[:limit]
 
 
 def _bounded_phase_sections(
@@ -347,6 +408,7 @@ def _bounded_phase_sections(
     sections: list[tuple[str, str, str]],
     *,
     limit: int,
+    section_budgets: Mapping[str, int] | None = None,
 ) -> str:
     fixed_parts = [
         (heading + (f": {suffix}" if suffix else ""))
@@ -362,7 +424,8 @@ def _bounded_phase_sections(
         fixed_length += preamble_budget + 2
     available = max(0, limit - fixed_length)
     desired = [
-        _SECTION_BUDGETS.get(heading, 280) for heading, _suffix, _body in sections
+        (section_budgets or _SECTION_BUDGETS).get(heading, 280)
+        for heading, _suffix, _body in sections
     ]
     minimum = 16 * len(sections)
     if available < minimum:

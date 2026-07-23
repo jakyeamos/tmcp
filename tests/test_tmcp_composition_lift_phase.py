@@ -202,6 +202,32 @@ Output contract:
         self.assertLessEqual(len(rendered), DEFAULT_COMPOSITION_HANDOFF_LIMIT)
         self.assertLess(len(rendered), 16_000)
 
+    def test_render_compacts_prior_phases_but_keeps_current_envelope(self) -> None:
+        headings = (
+            "PHASE_RESULT",
+            "STATUS: PASS",
+            "DELIVERABLES",
+            "EVIDENCE_BOUNDARY",
+            "PRODUCED_HANDOFF",
+            "EXIT_GATE: PASS",
+            "NEXT_ENTRY",
+            "UNRESOLVED_GAPS",
+        )
+        artifacts = [
+            (
+                {"phase": f"phase-{index}", "status": "active"},
+                "\n\n".join(f"{heading}\n" + ("detail " * 160) for heading in headings),
+            )
+            for index in range(1, 4)
+        ]
+        rendered = render_composition_handoff(artifacts)
+        self.assertLess(len(rendered), 8_000)
+        self.assertEqual(rendered.count("## Phase "), 3)
+        self.assertEqual(rendered.count("EXIT_GATE"), 3)
+        self.assertIn("phase 1 phase-1", rendered)
+        self.assertIn("phase 3 phase-3", rendered)
+        self.assertIn("UNRESOLVED_GAPS", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()
