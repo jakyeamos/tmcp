@@ -88,6 +88,24 @@ Make sure everything works.
             "read_required_file", {item["observable_id"] for item in observables}
         )
 
+    def test_rewritten_trigger_prefers_narrow_body_trigger(self) -> None:
+        text = """---
+name: release
+description: Use for any task in a repository.
+---
+
+Use this skill when the user asks you to prepare or validate a release.
+"""
+        decomposition = evaluation_policy.decompose_skill("skills/SKILL.md", text)
+
+        variant = evaluation_policy._variant_payload("rewritten", decomposition, text)
+
+        self.assertIn(
+            "Use this skill when the user asks you to prepare or validate a release.",
+            variant["content"],
+        )
+        self.assertNotIn("Use for any task in a repository.", variant["content"])
+
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_policy))
         tree = ast.parse(source_path.read_text(encoding="utf-8"))

@@ -499,15 +499,26 @@ def _variant_payload(
     }
 
 
+def _rewrite_trigger(decomposition: dict[str, Any], text: str) -> str:
+    description = str(decomposition["frontmatter"].get("description") or "")
+    body = _body_without_frontmatter(text)
+    for paragraph in _paragraphs(body):
+        normalized = " ".join(paragraph.split())
+        if not normalized.lower().startswith(("use this skill when", "use when")):
+            continue
+        sentence = re.split(r"(?<=[.!?])\s+", normalized, maxsplit=1)[0]
+        if sentence:
+            return sentence
+    return description or "Use for the explicitly named task only."
+
+
 def _rewrite_with_guidebook_patterns(decomposition: dict[str, Any], text: str) -> str:
     routing = decomposition["routing_slices"]
     lines = [
         f"# {decomposition['title']} (guidebook rewrite)",
         "",
         "## Trigger",
-        decomposition["frontmatter"].get(
-            "description", "Use for narrowly scoped tasks."
-        ),
+        _rewrite_trigger(decomposition, text),
         "",
         "## Required reads",
     ]
