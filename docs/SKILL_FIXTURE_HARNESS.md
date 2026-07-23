@@ -82,6 +82,26 @@ the runner input and is supplied only to a separate judge. Candidate edits are
 never auto-applied; they must be evaluated across all cases and compared with
 the original version before promotion.
 
+For subscription-backed Codex runs, pass the prompt through stdin with the
+shell-safe wrapper. This preserves literal backticks, substitutions, and other
+fixture text while recording runner provenance:
+
+```bash
+python3 scripts/run_skill_fixture_codex.py \
+  --prompt-file /path/to/blind-prompt.txt \
+  --output-last-message /path/to/trace.txt \
+  --cwd /private/tmp/isolated-run \
+  --model gpt-5.5 \
+  --reasoning-effort low \
+  --sandbox read-only
+```
+
+The wrapper uses `subprocess.run(..., shell=False)`, so prompt content never
+becomes shell syntax. Its JSON report includes the prompt digest, model,
+reasoning effort, sandbox, exit code, session id when available, and an explicit
+`shell_interpolation: false` provenance field. The Codex runner sees only the
+prompt; bars remain judge-only inputs.
+
 After editing a candidate copy, record its new digest before validation:
 
 ```bash
