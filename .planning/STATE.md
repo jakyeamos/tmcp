@@ -23,8 +23,10 @@ prior capsules. The paired v13 campaign now scores synergy `+0.2153` and order
 `+0.3468` above threshold, but compiler lift is `-0.1180`; the naïve union
 still wins on migration, research, and diagnose. `34a7b81` narrows the safety
 scanner false positive for readable title-case handoff identifiers. The
-campaign remains diagnostic; next work is a fair final synthesis/implementation
-handoff that preserves phase gates without conceding complete-outcome quality.
+`246d250` adds a bounded final-synthesis bridge with cumulative prior-phase
+input and explicit task-model coverage. Its campaign impact is unmeasured; the
+next step is a small pilot before the full rerun. The campaign remains
+diagnostic and preserves phase gates without conceding complete-outcome quality.
 
 ## Milestone
 
@@ -174,6 +176,12 @@ high-entropy scanner while keeping opaque-token rejection; focused redaction,
 phase, and scorer validation pass. The full v13 campaign is trusted host and
 blind-judge execution but fails compiler lift, so no receipt, promotion, or
 release claim was made.
+`246d250` adds a final-stage synthesis bridge: prior phase handoffs are passed
+as a bounded quote-only cumulative input, compiled deliverables and success
+criteria are rendered as plan metadata, and the terminal worker must produce a
+standalone implementation-ready outcome while preserving gate and evidence
+boundaries. Focused phase tests and Ruff pass; campaign impact is unmeasured,
+and no receipt, promotion, or release claim was made.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -259,6 +267,11 @@ release claim was made.
   blind judge; it did not establish a model winner. The full phase-aware run is
   complete but ineligible; next improve compiler/context parity and repeat the
   campaign before rejudge or promotion.
+  `246d250` now supplies the terminal worker with cumulative prior-phase
+  handoffs plus the compiled success contract and requires a standalone
+  implementation-ready synthesis. Focused phase tests and Ruff pass; run the
+  bounded pilot and inspect final artifacts before the full campaign. The
+  result remains diagnostic until lift gates pass.
   keep rendered-browser verification and strict clean-room skill isolation
   explicitly blocked unless provisioned.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
