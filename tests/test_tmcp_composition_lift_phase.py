@@ -11,7 +11,9 @@ from tmcp_runtime.domain.composition_lift_phase import (
     phase_deliverable_index,
     phase_contract_text,
     phase_handoff_requirements,
+    render_phase_synthesis_input,
     render_composition_handoff,
+    task_model_contract_text,
 )
 from tmcp_runtime.safety.redaction import redact_sensitive_text
 
@@ -62,6 +64,12 @@ Output contract:
                 }
             ]
         }
+        self.task_model = {
+            "deliverables": ["fix handoff", "regression handoff"],
+            "success_criteria": ["narrowest change", "regression coverage"],
+            "evidence_needs": ["diagnosis evidence"],
+            "constraints": ["preserve the last committed value"],
+        }
 
     def test_phase_contract_preserves_typed_source_contract(self) -> None:
         rendered = phase_contract_text(self.stage, ["targeted-fix"], self.sources)
@@ -98,6 +106,49 @@ Output contract:
         self.assertIn("concise means no repeated incoming context", rendered)
         self.assertIn("PHASE_RESULT; STATUS; INPUT_HANDOFF", rendered)
         self.assertIn("Complete root cause handoff.", rendered)
+
+    def test_task_model_contract_is_metadata_not_execution_evidence(self) -> None:
+        rendered = task_model_contract_text(self.task_model)
+        self.assertIn("Success criteria: narrowest change; regression coverage", rendered)
+        self.assertIn("Deliverables: fix handoff; regression handoff", rendered)
+        self.assertIn("not execution evidence", rendered)
+
+    def test_final_requirements_add_synthesis_bridge_and_criteria(self) -> None:
+        rendered = phase_handoff_requirements(
+            {**self.stage, "phase": "final"},
+            ["targeted-fix"],
+            self.sources,
+            self.task_context,
+            task_model=self.task_model,
+            final_phase=True,
+        )
+        self.assertIn("Final synthesis bridge", rendered)
+        self.assertIn("one decision/implementation-ready outcome", rendered)
+        self.assertIn("completion decision/status", rendered)
+        self.assertIn("narrowest change; regression coverage", rendered)
+
+    def test_synthesis_input_quotes_prior_handoffs_and_bounds_task_contract(self) -> None:
+        artifacts = [
+            (
+                {"phase": "discovery", "status": "active"},
+                "DELIVERABLES\nRoot cause record.\nPRODUCED_HANDOFF\nROOT_CAUSE_HANDOFF\nEXIT_GATE: PASS",
+            ),
+            (
+                {"phase": "verification", "status": "deferred"},
+                "DELIVERABLES\nRegression matrix.\nPRODUCED_HANDOFF\nBEHAVIOR_HANDOFF\nEXIT_GATE: BLOCKED",
+            ),
+        ]
+        rendered = render_phase_synthesis_input(
+            artifacts,
+            task_model=self.task_model,
+            limit=3_000,
+        )
+        self.assertLessEqual(len(rendered), 3_000)
+        self.assertIn("Cumulative phase synthesis input", rendered)
+        self.assertIn("Success criteria", rendered)
+        self.assertIn("Root cause record", rendered)
+        self.assertIn("Regression matrix", rendered)
+        self.assertIn("adds no execution evidence", rendered)
 
     def test_bounded_artifact_retains_head_and_exit_tail(self) -> None:
         artifact = "DELIVERABLES\n" + ("x" * 200) + "\nEXIT_GATE: PASS\n" + ("y" * 200)

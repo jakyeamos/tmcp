@@ -20,6 +20,7 @@ DEFAULT_COMPOSITION_INDEX_DELIVERABLE_LIMIT = 260
 DEFAULT_COMPOSITION_INDEX_HANDOFF_LIMIT = 140
 DEFAULT_COMPOSITION_PRIOR_CAPSULE_LIMIT = 2_200
 DEFAULT_COMPOSITION_CURRENT_CAPSULE_LIMIT = 3_400
+DEFAULT_COMPOSITION_SYNTHESIS_INPUT_LIMIT = 11_000
 _PHASE_HEADINGS = (
     "PHASE_RESULT",
     "STATUS",
@@ -227,17 +228,58 @@ def evidence_index_text(task_context: Mapping[str, object]) -> str:
     return "\n".join(lines) if lines else "- none supplied"
 
 
+def task_model_contract_text(task_model: object) -> str:
+    """Render bounded task-model obligations without treating them as evidence."""
+
+    model = _mapping(task_model)
+    if model is None:
+        return "Compiled task success contract (plan metadata; not execution evidence):\n- none"
+    labels = (
+        ("deliverables", "Deliverables"),
+        ("success_criteria", "Success criteria"),
+        ("evidence_needs", "Evidence needs"),
+        ("constraints", "Constraints"),
+    )
+    lines = [
+        "Compiled task success contract (plan metadata; not execution evidence):"
+    ]
+    for key, label in labels:
+        values = _strings(model.get(key))
+        if values:
+            lines.append(f"{label}: " + "; ".join(values))
+    return "\n".join(lines)
+
+
+def final_synthesis_contract_text(task_model: object) -> str:
+    """Render the final-stage bridge that turns phase handoffs into an outcome."""
+
+    return "\n".join(
+        [
+            "Final synthesis bridge (compiler-provided; preserve evidence boundaries):",
+            "- Reconcile every prior phase deliverable into one decision/implementation-ready outcome; do not merely restate the last handoff.",
+            "- Begin DELIVERABLES with a completion decision/status, then map each compiled success criterion and deliverable to status, source evidence IDs, and the next owner or action.",
+            "- Include the concrete task artifact as applicable: recommendation or decision, implementation/change list, and verification matrix.",
+            "- Carry forward every PASS, FAIL, or BLOCKED gate and every unresolved gap; a missing host check stays BLOCKED or UNVERIFIED.",
+            "- Keep fixture-supplied evidence separate from host-run evidence; never claim execution, authorization, promotion, or release completion.",
+            "- Make PRODUCED_HANDOFF a named implementation-ready handoff with required inputs, produced outputs, and an exact exit or re-entry condition.",
+            task_model_contract_text(task_model),
+        ]
+    )
+
+
 def phase_handoff_requirements(
     stage: Mapping[str, object],
     stage_skill_ids: Sequence[str],
     sources: Mapping[str, str],
     task_context: Mapping[str, object],
+    *,
+    task_model: object = None,
+    final_phase: bool = False,
 ) -> str:
     """Return a compact directive for a phase worker's complete handoff."""
 
     entry_conditions = _strings(stage.get("entry_conditions"))
-    return "\n".join(
-        [
+    lines = [
             "Typed phase contract (source-backed; satisfy this phase before downstream work):",
             phase_contract_text(stage, stage_skill_ids, sources),
             "Current bridge obligations (source-backed; do not omit these handoff fields):",
@@ -252,12 +294,22 @@ def phase_handoff_requirements(
             "- Enumerate every material state, path, claim, or gate required by the active source contract; do not replace a matrix with a generic summary.",
             "- Put the concrete decision matrix, change list, citation map, or smoke record in DELIVERABLES and retain its source evidence labels.",
             "- Preserve unresolved rows and their exact re-entry condition; concise means no repeated incoming context, not omission of required evidence.",
+        ]
+    if final_phase:
+        lines.extend(
+            [
+                final_synthesis_contract_text(task_model),
+            ]
+        )
+    lines.extend(
+        [
             "Required handoff envelope headings:",
             "PHASE_RESULT; STATUS; INPUT_HANDOFF; DELIVERABLES; EVIDENCE_BOUNDARY; "
             "PRODUCED_HANDOFF; EXIT_GATE: PASS|FAIL|BLOCKED; NEXT_ENTRY; "
             "UNRESOLVED_GAPS",
         ]
     )
+    return "\n".join(lines)
 
 
 def _compact_text(text: str, budget: int) -> str:
@@ -405,6 +457,29 @@ def render_composition_handoff(
     # phase headings, and the current phase's gate before compacting the body.
     compacted = _compact_text(rendered, limit)
     return compacted[:limit]
+
+
+def render_phase_synthesis_input(
+    phase_artifacts: Sequence[tuple[Mapping[str, object], str]],
+    *,
+    task_model: object = None,
+    limit: int = DEFAULT_COMPOSITION_SYNTHESIS_INPUT_LIMIT,
+) -> str:
+    """Build the bounded cumulative input for a final synthesis worker."""
+
+    if limit < 1_000:
+        raise ValueError("synthesis input limit must leave room for the contract")
+    preamble = (
+        "# Cumulative phase synthesis input\n"
+        "The following envelope quotes prior isolated phase handoffs. It adds no "
+        "execution evidence; reconcile it without upgrading a gate or provenance claim."
+    )
+    contract = task_model_contract_text(task_model)
+    prefix = f"{preamble}\n\n{contract}"
+    remaining = max(800, limit - len(prefix) - 2)
+    handoff = render_composition_handoff(phase_artifacts, limit=remaining)
+    rendered = f"{prefix}\n\n{handoff}"
+    return rendered if len(rendered) <= limit else _compact_text(rendered, limit)
 
 
 def _bounded_phase_sections(
