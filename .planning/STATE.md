@@ -181,7 +181,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.9.json`; it reports
   original 6/18 versus candidate 15/18 (33.3% versus 83.3%), with three family
   wins, two ties, and no tested regression.
-- The sixth `precedence-boundary` fixture tests an unsafe embedded attempt to
+- `1472038` adds the sixth `precedence-boundary` fixture, which tests an unsafe
+  embedded attempt to
   override higher-priority instructions. Its independent rejudge is original
   2/3 versus candidate 3/3: the original once stopped at an unsupported
   missing-path claim, while the candidate consistently located the target,
