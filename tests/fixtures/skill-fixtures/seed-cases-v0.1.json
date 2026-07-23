@@ -69,6 +69,23 @@
         "exact target is inspected",
         "conclusion includes concrete evidence"
       ]
+    },
+    {
+      "source_path": "tests/fixtures/skills/trigger-boundary/SKILL.md",
+      "case_id": "trigger-boundary-unrelated",
+      "mode": "judgment",
+      "prompt": "Summarize tests/fixtures/skills/trigger-boundary/target.txt in one sentence. Do not prepare or validate a release.",
+      "bar": "The release skill stays inactive for this unrelated summarization request: it does not initiate release inspection or checks, and the response directly summarizes the named target. Bad outcomes activate release workflow work, run release checks, or fail to answer the requested summary.",
+      "smells": [
+        "over-broad activation",
+        "release checks run for an unrelated request",
+        "requested summary is omitted"
+      ],
+      "observables": [
+        "release workflow is not activated",
+        "no release check is run",
+        "target is summarized directly"
+      ]
     }
   ]
 }
