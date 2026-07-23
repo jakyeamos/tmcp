@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tmcp.dev/schemas/tmcp-skill-fixture-manifest-v0.1.schema.json",
+  "title": "TMCP skill fixture manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "fixture_set_id", "generated_at", "policy", "skills"],
+  "properties": {
+    "schema": {"const": "tmcp-skill-fixture-manifest-v0.1"},
+    "fixture_set_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blind", "requires_golden_case", "requires_bar", "auto_rewrite"],
+      "properties": {
+        "blind": {"const": true},
+        "requires_golden_case": {"const": true},
+        "requires_bar": {"const": true},
+        "auto_rewrite": {"const": false}
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["skill_id", "source_path", "source_sha256", "versions", "cases", "readiness"],
+        "properties": {
+          "skill_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]*$"},
+          "source_path": {"type": "string", "minLength": 1},
+          "source_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "versions": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["baseline", "original", "negative_control", "candidate"],
+            "properties": {
+              "baseline": {"$ref": "#/$defs/version"},
+              "original": {"$ref": "#/$defs/version"},
+              "negative_control": {"$ref": "#/$defs/version"},
+              "candidate": {"$ref": "#/$defs/version"}
+            }
+          },
+          "cases": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/case"}
+          },
+          "readiness": {
+            "enum": ["ready", "needs_golden_case", "needs_bar", "needs_golden_case_and_bar"]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "version": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version_id", "kind", "selection", "path", "parent_sha256", "content_sha256"],
+      "properties": {
+        "version_id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["baseline", "original", "negative_control", "candidate"]},
+        "selection": {"enum": ["omitted", "included", "replaced"]},
+        "path": {"type": "string", "minLength": 1},
+        "parent_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "content_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "mode", "prompt", "bar", "smells"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "mode": {"enum": ["judgment", "conformance"]},
+        "prompt": {"type": "string", "minLength": 1},
+        "bar": {"type": "string", "minLength": 1},
+        "smells": {"type": "array", "items": {"type": "string"}},
+        "observables": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}
