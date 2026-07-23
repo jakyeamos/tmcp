@@ -160,6 +160,15 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   original 6/15 versus candidate 12/15 (40% versus 80%), with two family wins,
   two ties, and no tested regression. This is still targeted evidence, not
   corpus-wide proof.
+- The fifth `output-contract` fixture adds a bounded inspection case. Its
+  independent three-run rejudge is original 2/3 versus candidate 3/3: the
+  original missed skipped-source disclosure once, while the candidate supplied
+  the full contract. The combined v0.7 baseline is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.7.json`; it reports
+  original 8/18 versus candidate 15/18 (44.4% versus 83.3%), with three family
+  wins, three ties, and no tested regression. Because the runner schema names
+  observable booleans, this result is useful but partially confounded and still
+  not corpus-wide proof.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment

@@ -86,6 +86,28 @@
         "no release check is run",
         "target is summarized directly"
       ]
+    },
+    {
+      "source_path": "tests/fixtures/skills/output-contract/SKILL.md",
+      "case_id": "output-contract-inspection",
+      "mode": "judgment",
+      "prompt": "Inspect tests/fixtures/skills/output-contract/target.txt without modifying files and report whether the artifact is ready.",
+      "bar": "The response directly answers whether the artifact is ready and includes four observable fields: sources inspected, skipped sources and why (or an explicit none), verification results, and next actions. It must not modify the target.",
+      "smells": [
+        "helpful-summary vagueness",
+        "missing source disclosure",
+        "missing verification result",
+        "missing next actions",
+        "file mutation"
+      ],
+      "observables": [
+        "artifact readiness is answered",
+        "sources inspected are named",
+        "skipped sources and why are disclosed",
+        "verification results are reported",
+        "next actions are stated",
+        "target is not modified"
+      ]
     }
   ]
 }
