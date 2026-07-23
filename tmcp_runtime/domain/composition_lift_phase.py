@@ -165,6 +165,32 @@ def handoff_contract_text(stage: Mapping[str, object]) -> str:
     return "\n".join(lines) if lines else "- none"
 
 
+def bridge_obligation_text(stage: Mapping[str, object]) -> str:
+    """Render the active bridge as explicit typed obligations."""
+
+    raw_bridges = stage.get("bridge_instructions")
+    if not isinstance(raw_bridges, Sequence) or isinstance(
+        raw_bridges, (str, bytes)
+    ):
+        return "- none"
+    lines: list[str] = []
+    for raw in raw_bridges:
+        bridge = _mapping(raw)
+        if bridge is None:
+            continue
+        role = _text(bridge.get("role")) or "active role"
+        required = ", ".join(_strings(bridge.get("required_inputs"))) or "none"
+        produced = ", ".join(_strings(bridge.get("produced_outputs"))) or "none"
+        criteria = ", ".join(_strings(bridge.get("covered_criteria"))) or "none"
+        gates = ", ".join(_strings(bridge.get("exit_gates"))) or "none"
+        citations = ", ".join(_strings(bridge.get("citations"))) or "none"
+        lines.append(
+            f"- {role}: required input={required}; produced handoff={produced}; "
+            f"cover criterion={criteria}; exit gate={gates}; citations={citations}"
+        )
+    return "\n".join(lines) if lines else "- none"
+
+
 def evidence_index_text(task_context: Mapping[str, object]) -> str:
     """Expose only fixture evidence identifiers and provenance labels."""
 
@@ -197,6 +223,8 @@ def phase_handoff_requirements(
         [
             "Typed phase contract (source-backed; satisfy this phase before downstream work):",
             phase_contract_text(stage, stage_skill_ids, sources),
+            "Current bridge obligations (source-backed; do not omit these handoff fields):",
+            bridge_obligation_text(stage),
             "Incoming handoff contracts:",
             handoff_contract_text(stage),
             "Entry conditions:",
@@ -262,6 +290,53 @@ def phase_exit_gate_status(artifact: str) -> str:
         if match:
             return match.group(1).casefold()
     return "unknown"
+
+
+def phase_deliverable_index(
+    phase_artifacts: Sequence[tuple[Mapping[str, object], str]],
+) -> str:
+    """Quote each phase's concrete deliverable and produced handoff."""
+
+    lines = [
+        "# Composition deliverable index",
+        "This index quotes the phase handoffs below; it adds no execution evidence.",
+    ]
+    for index, (stage, artifact) in enumerate(phase_artifacts, 1):
+        _preamble, sections = _phase_sections(artifact)
+        bodies = {heading: body for heading, _suffix, body in sections}
+        phase = _text(stage.get("phase")) or "unknown"
+        gate = phase_exit_gate_status(artifact).upper()
+        deliverables = _compact_text(
+            bodies.get("DELIVERABLES", "") or "- none", 420
+        )
+        handoff = _compact_text(
+            bodies.get("PRODUCED_HANDOFF", "") or "- none", 260
+        )
+        lines.append(
+            f"- phase {index} {phase} | gate={gate} | "
+            f"deliverable={deliverables} | handoff={handoff}"
+        )
+    return "\n".join(lines)
+
+
+def render_composition_handoff(
+    phase_artifacts: Sequence[tuple[Mapping[str, object], str]],
+    *,
+    limit: int = 18_000,
+) -> str:
+    """Render phase handoffs with a quote-only cumulative deliverable index."""
+
+    sections = [
+        phase_deliverable_index(phase_artifacts),
+        "# Phase-aware composition handoff",
+        "Each section is a handoff from a fresh isolated phase context. "
+        "Fixture-supplied evidence is not host execution.",
+    ]
+    for index, (stage, artifact) in enumerate(phase_artifacts, 1):
+        sections.append(
+            f"## Phase {index}: {stage.get('phase')} ({stage.get('status')})\n{artifact}"
+        )
+    return "\n\n".join(sections)[:limit]
 
 
 def _bounded_phase_sections(

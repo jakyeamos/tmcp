@@ -4,10 +4,13 @@ import unittest
 
 from tmcp_runtime.domain.composition_lift_phase import (
     bound_phase_artifact,
+    bridge_obligation_text,
     handoff_contract_text,
     phase_exit_gate_status,
+    phase_deliverable_index,
     phase_contract_text,
     phase_handoff_requirements,
+    render_composition_handoff,
 )
 
 
@@ -16,6 +19,16 @@ class CompositionLiftPhaseTests(unittest.TestCase):
         self.stage = {
             "phase": "implementation",
             "entry_conditions": ["Complete root cause handoff."],
+            "bridge_instructions": [
+                {
+                    "role": "targeted-fix specialist",
+                    "required_inputs": ["root cause handoff"],
+                    "produced_outputs": ["fix handoff"],
+                    "covered_criteria": ["narrowest change"],
+                    "exit_gates": ["narrowest change"],
+                    "citations": ["slice-" + "c" * 20],
+                }
+            ],
             "handoff_contracts": [
                 {
                     "handoff_id": "handoff-" + "a" * 20,
@@ -61,6 +74,14 @@ Output contract:
         self.assertIn("root cause handoff", rendered)
         self.assertIn("slice-" + "b" * 20, rendered)
 
+    def test_bridge_obligations_preserve_typed_handoff_fields(self) -> None:
+        rendered = bridge_obligation_text(self.stage)
+        self.assertIn("required input=root cause handoff", rendered)
+        self.assertIn("produced handoff=fix handoff", rendered)
+        self.assertIn("cover criterion=narrowest change", rendered)
+        self.assertIn("exit gate=narrowest change", rendered)
+        self.assertIn("slice-" + "c" * 20, rendered)
+
     def test_requirements_include_evidence_index_and_complete_envelope(self) -> None:
         rendered = phase_handoff_requirements(
             self.stage,
@@ -69,6 +90,8 @@ Output contract:
             self.task_context,
         )
         self.assertIn("diagnosis-reproduction", rendered)
+        self.assertIn("Current bridge obligations", rendered)
+        self.assertIn("cover criterion=narrowest change", rendered)
         self.assertIn("PHASE_RESULT; STATUS; INPUT_HANDOFF", rendered)
         self.assertIn("Complete root cause handoff.", rendered)
 
@@ -127,6 +150,26 @@ Output contract:
             "blocked",
         )
         self.assertEqual(phase_exit_gate_status("STATUS: PASS"), "unknown")
+
+    def test_deliverable_index_quotes_phase_outputs_without_execution_claims(self) -> None:
+        artifacts = [
+            (
+                {"phase": "discovery", "status": "active"},
+                "DELIVERABLES\nRoot cause record.\nPRODUCED_HANDOFF\nROOT_CAUSE_HANDOFF\nEXIT_GATE: PASS",
+            ),
+            (
+                {"phase": "verification", "status": "deferred"},
+                "DELIVERABLES\nRegression matrix.\nPRODUCED_HANDOFF\nBEHAVIOR_HANDOFF\nEXIT_GATE: BLOCKED",
+            ),
+        ]
+        index = phase_deliverable_index(artifacts)
+        self.assertIn("phase 1 discovery | gate=PASS", index)
+        self.assertIn("Root cause record", index)
+        self.assertIn("BEHAVIOR_HANDOFF", index)
+        self.assertNotIn("host execution", index.casefold())
+        rendered = render_composition_handoff(artifacts, limit=2_000)
+        self.assertIn("# Composition deliverable index", rendered)
+        self.assertIn("## Phase 2: verification (deferred)", rendered)
 
 
 if __name__ == "__main__":
