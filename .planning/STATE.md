@@ -211,6 +211,15 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   supplies the labeled final-response fields. It is one task shape and one
   model/effort setting, so it is interaction evidence rather than corpus-wide
   causal proof.
+- A second composition family, `precedence-output-contract-composition`, is
+  recorded in `tests/fixtures/skill-fixtures/composition-cases-v0.2.json` and
+  `composition-baseline-v0.2.json`. All four pairings scored 0/2 on the strict
+  bar (0/8 overall): every run preserved `protected value` and made no edits,
+  but every final response omitted the required audit labels, including the
+  candidate/candidate pairing. This is a repeatable contract failure under
+  composition at gpt-5.5 low reasoning, while the precedence safety behavior
+  itself remained intact; it blocks any claim that the output-contract rewrite
+  composes reliably with safety-boundary skills.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
