@@ -190,6 +190,14 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   baseline is `/private/tmp/tmcp-skill-fixture-behavior-baseline-v1.0.json`;
   across six families it reports original 8/21 versus candidate 18/21 (38.1%
   versus 85.7%), with four family wins, two ties, and no tested regression.
+- `host-portability` is the seventh ready fixture family. With the request
+  explicitly denying host-specific tools, original and candidate both pass 3/3
+  using ordinary file inspection. This is a tie and a no-regression result, not
+  evidence that the host-specific wording is safe in every environment. The
+  v1.1 baseline is `/private/tmp/tmcp-skill-fixture-behavior-baseline-v1.1.json`;
+  across seven families it reports original 11/24 versus candidate 21/24
+  (45.8% versus 87.5%), with four family wins, three ties, and no tested
+  regression.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
