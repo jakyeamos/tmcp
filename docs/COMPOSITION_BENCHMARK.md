@@ -176,6 +176,27 @@ naïve `0.391`; these directional values identify migration handoff quality as
 the next target but cannot support a causal, receipt, promotion, or release
 claim. No receipt was recorded.
 
+### Authorized handoff-evidence budget calibration (2026-07-22)
+
+The next bounded calibration kept the 4,000-character phase envelope but
+reallocated space from status and repeated boundary prose to deliverables,
+produced handoffs, and exit gates:
+
+- campaign: `composition-lift-campaign-91b9f99de690ec4cc908`
+- campaign digest: `91b9f99de690ec4cc9089cbed3a4d785c77df82391ee7d0c9ab7bda5ebf39592`
+- host cells: 15/15, SHA-256
+  `71689c0f59e9a5612e9b52404671b13a49f4c2b6a0856e7b72d46d17041c7c34`
+- blind-judge cells: 15/15, SHA-256
+  `9529310d80b9bc0d8f6fdaa674300d2d9803a7cdf5d0f0e0cd7b9d6452d25524`
+- output directory: `/private/tmp/tmcp-composition-next2/.tmp/lift-next2/calibration-phase-handoffs-v5`
+
+Migration full-composition quality in the observed spot pair was `0.782`
+versus naïve `0.744`; diagnose full-composition quality was `0.357` versus
+naïve `0.458`. Both comparisons are non-paired single cells from an incomplete
+15/540 subset, and the full scorer rejects the subset. They are useful for
+prioritizing handoff quality only, not for a causal lift, receipt, promotion, or
+release claim. No receipt was recorded.
+
 ### Authorized external-run pilot (2026-07-21)
 
 After explicit authorization, one runner dispatch and its independent blind

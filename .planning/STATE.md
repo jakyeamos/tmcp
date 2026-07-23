@@ -75,6 +75,14 @@ phases, but the non-paired spot scores are not lift evidence; migration remains
 the next quality target. The pre-CR hook again timed out at 90 seconds before
 readiness completed.
 
+`88490a2` reallocates the bounded phase envelope toward deliverables, produced
+handoffs, and exit gates so evidence-bearing matrices lose less middle content.
+The authorized v5 calibration completed 15 host and 15 judge cells with raw
+host digest `71689c0f…` and evaluator digest `9529310d…`. Migration improved in
+the observed spot pair (`0.782` full vs `0.744` naive), while diagnose declined
+(`0.357` vs `0.458`); the subset is unpaired and remains diagnostic only. The
+pre-CR hook again timed out at 90 seconds before readiness completed.
+
 `44911f0` pins the current no-call campaign handoff after
 `4c634e4` recorded the proposal-activation delta diagnostic and the
 held dogfooded guidebook pattern. The branch also carries the independent-rejudge
@@ -134,6 +142,11 @@ unproven.
   pass (41 tests). The v4 calibration and raw digests are recorded in
   `docs/COMPOSITION_BENCHMARK.md`; it did not establish a paired lift, receipt,
   promotion, or release claim. Improve migration/diagnose handoff quality next.
+  `88490a2` prioritizes evidence-bearing phase sections within the same bounded
+  envelope; focused checks pass (42 tests). The v5 calibration and raw digests
+  are recorded in `docs/COMPOSITION_BENCHMARK.md`; its directional scores do
+  not establish a paired lift, receipt, promotion, or release claim. The next
+  audit checks that external phase advancement mirrors runtime gate enforcement.
   The known repository pre-CR hook still times out at 90 seconds while the
   readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
   not a reason to weaken TMCP verification.
