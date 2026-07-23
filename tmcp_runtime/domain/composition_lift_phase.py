@@ -317,7 +317,7 @@ def phase_deliverable_index(
         )
         lines.append(
             f"- phase {index} {phase} | gate={gate} | "
-            f"deliverable={deliverables} | handoff={handoff}"
+            f"deliverable: {deliverables} | handoff: {handoff}"
         )
     return "\n".join(lines)
 

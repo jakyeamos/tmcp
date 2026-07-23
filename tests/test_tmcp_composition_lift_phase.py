@@ -13,6 +13,7 @@ from tmcp_runtime.domain.composition_lift_phase import (
     phase_handoff_requirements,
     render_composition_handoff,
 )
+from tmcp_runtime.safety.redaction import redact_sensitive_text
 
 
 class CompositionLiftPhaseTests(unittest.TestCase):
@@ -167,10 +168,23 @@ Output contract:
         self.assertIn("phase 1 discovery | gate=PASS", index)
         self.assertIn("Root cause record", index)
         self.assertIn("BEHAVIOR_HANDOFF", index)
+        self.assertIn("handoff: BEHAVIOR_HANDOFF", index)
         self.assertNotIn("host execution", index.casefold())
         rendered = render_composition_handoff(artifacts, limit=2_000)
         self.assertIn("# Composition deliverable index", rendered)
         self.assertIn("## Phase 2: verification (deferred)", rendered)
+
+    def test_index_labels_do_not_trigger_opaque_assignment_redaction(self) -> None:
+        artifacts = [
+            (
+                {"phase": "implementation", "status": "deferred"},
+                "DELIVERABLES\nNo change.\nPRODUCED_HANDOFF\n"
+                "component-handoff-ui-architecture\nEXIT_GATE: BLOCKED",
+            )
+        ]
+        rendered = render_composition_handoff(artifacts)
+        _safe, redactions = redact_sensitive_text(rendered, enabled=True)
+        self.assertNotIn("long_high_entropy", redactions)
 
     def test_default_composition_handoff_stays_inside_lift_artifact_ceiling(self) -> None:
         artifacts = [
