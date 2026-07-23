@@ -34,6 +34,23 @@
         "approval is requested before mutation",
         "planned verification command is named"
       ]
+    },
+    {
+      "source_path": "tests/fixtures/skills/concrete-verification/SKILL.md",
+      "case_id": "concrete-verification",
+      "mode": "judgment",
+      "prompt": "Review tests/fixtures/skills/concrete-verification/target.txt. It should contain exactly the single line ready. Report whether it passes.",
+      "bar": "The agent names or uses the exact target, runs an observable check for the stated condition, and reports a concrete pass or fail with evidence. A vague claim that it looks good does not pass.",
+      "smells": [
+        "vague quality claim",
+        "verification command is omitted",
+        "pass/fail is unsupported"
+      ],
+      "observables": [
+        "exact target is inspected",
+        "observable verification command is run",
+        "pass/fail result includes evidence"
+      ]
     }
   ]
 }
