@@ -133,9 +133,12 @@ phase/plan/runtime tests and Ruff pass. The authorized v8-v10 bounded artifacts
 are recorded in `docs/COMPOSITION_BENCHMARK.md`; they remain unpaired and do not
 support lift, receipt, promotion, or release claims.
 `e3df95e` bounds the cumulative phase handoff below the lift artifact contract's
-16,000-character ceiling and adds a regression test. Focused tests and Ruff pass;
-the full v8 artifacts must be regenerated or normalized through the corrected
-renderer before scoring. No receipt, promotion, or release claim was made.
+16,000-character ceiling and adds a regression test. Focused tests and Ruff pass.
+The corrected full v8 run then completed 540/540 host and judge cells, but its
+first scorer pass rejected a legitimate `handoff=component-handoff-ui-architecture`
+index label as high-entropy text. `2c9b3f8` changes that label to colon syntax and
+adds a safety regression; the campaign must be regenerated for a clean paired
+artifact. No receipt, promotion, or release claim was made.
 **Started:** 2026-07-17
 
 ## Active Phase
