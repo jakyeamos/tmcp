@@ -105,6 +105,10 @@ Use this skill when the user asks you to prepare or validate a release.
             variant["content"],
         )
         self.assertNotIn("Use for any task in a repository.", variant["content"])
+        self.assertIn(
+            "Always include these labeled fields in the final response:",
+            variant["content"],
+        )
 
     def test_service_has_no_filesystem_or_adapter_imports(self) -> None:
         source_path = Path(inspect.getfile(evaluation_policy))

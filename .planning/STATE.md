@@ -163,12 +163,24 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - The fifth `output-contract` fixture adds a bounded inspection case. Its
   independent three-run rejudge is original 2/3 versus candidate 3/3: the
   original missed skipped-source disclosure once, while the candidate supplied
-  the full contract. The combined v0.7 baseline is
+  the full contract. That first result was partially confounded because the
+  runner schema named the observables; it is retained as v0.7 but superseded by
+  the neutral-format rejudge. The corrected v0.8 baseline is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.8.json`; original is
+  0/3 versus candidate 2/3 on this case, with one candidate miss on explicit
+  next actions. Across all five families, v0.8 reports original 6/18 versus
+  candidate 14/18 (33.3% versus 77.8%), with three family wins, two ties, and
+  no tested regression. The earlier v0.7 baseline is
   `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.7.json`; it reports
-  original 8/18 versus candidate 15/18 (44.4% versus 83.3%), with three family
-  wins, three ties, and no tested regression. Because the runner schema names
-  observable booleans, this result is useful but partially confounded and still
-  not corpus-wide proof.
+  the schema-primed measurement and remains useful only for comparison. This
+  is still not corpus-wide proof.
+- The evaluator now makes the generated output contract explicit: the final
+  response must include labeled Sources inspected, Skipped sources and why,
+  Verification results, and Next actions fields. The neutral-format candidate
+  rejudge is 3/3 after this change. The authoritative v0.9 baseline is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.9.json`; it reports
+  original 6/18 versus candidate 15/18 (33.3% versus 83.3%), with three family
+  wins, two ties, and no tested regression.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment

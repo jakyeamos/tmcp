@@ -533,6 +533,7 @@ def _rewrite_with_guidebook_patterns(decomposition: dict[str, Any], text: str) -
             "Run the targeted test or command and report pass/fail with evidence.",
             "",
             "## Output contract",
+            "Always include these labeled fields in the final response:",
             "- Sources inspected",
             "- Skipped sources and why",
             "- Verification results",
