@@ -109,6 +109,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - `44c428b` adds review-only proposal generation from TMCP static findings and
   the guidebook rewrite variant. Corpus generation produced 102 proposed
   bundles and leaves every one unapplied until human review changes its status.
+- `c986f61` adds an explicit experimental proposal mode so numeric original-vs-
+  proposal baselines can run before review; proposed rewrites are disposable,
+  provenance-labelled, and still cannot be promoted as approved changes.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
