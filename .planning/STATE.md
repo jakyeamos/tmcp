@@ -13,7 +13,11 @@ envelope now retains every present handoff heading and external gate parsing
 mirrors active/deferred hydration. `9914ed7` now distinguishes hard execution
 advancement from source-backed reporting continuation while preserving typed
 handoff blocking. Improve migration/diagnose bridge quality before another full
-rerun.
+rerun. `c9b3beb` now deterministically promotes exact source-cited role exit
+gates into success-criterion coverage and renders those criteria in bridge
+instructions; focused and benchmark contract tests pass. Regenerate the
+control/campaign artifacts and rerun a bounded calibration before making any
+lift claim.
 
 ## Milestone
 
@@ -116,6 +120,13 @@ runtime, schema, recipe, receipt, and typed-handoff tests. The authorized v7
 15-cell calibration is recorded in `docs/COMPOSITION_BENCHMARK.md`; it proves
 safe reporting continuation but is unpaired diagnostic evidence only. No
 receipt, promotion, or release claim was made.
+
+`c9b3beb` infers criterion coverage only from exact matches between a role's
+source-cited exit gate and the task success criteria, records the inference
+provenance, and includes covered criteria in each bridge instruction. Five
+behavioral fixture plans now report complete criterion coverage with no
+process-only roles. Contract and benchmark tests pass; no calibration, receipt,
+promotion, or release claim was made.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -177,7 +188,10 @@ receipt, promotion, or release claim was made.
   target entry gates and exact typed handoffs remain hard blockers, while failed
   non-entry gates are retained as warnings in reporting-continuation mode.
   The v7 calibration is directional and unpaired; migration/diagnose bridge
-  quality remains the next implementation target.
+  quality remains the next implementation target. `c9b3beb` closes the
+  compiler-side coverage/bridge gap using exact source-cited exit-gate matches;
+  next regenerate and run the bounded calibration to measure whether the
+  improved handoffs affect migration/diagnose quality.
   The known repository pre-CR hook still times out at 90 seconds while the
   readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
   not a reason to weaken TMCP verification.
