@@ -19,8 +19,12 @@ v11 campaign still passed synergy/order but compiler lift fell to `-0.129`.
 `7905fe8` raises prior-phase evidence budgets while retaining deduplication;
 the paired v12 campaign improved compiler lift to `-0.0765` but still missed,
 and synergy fell to `+0.089`. `913f138` preserves larger evidence matrices in
-prior capsules; rerun the paired campaign before any independent rejudge,
-receipt, promotion, or release decision.
+prior capsules. The paired v13 campaign now scores synergy `+0.2153` and order
+`+0.3468` above threshold, but compiler lift is `-0.1180`; the naïve union
+still wins on migration, research, and diagnose. `34a7b81` narrows the safety
+scanner false positive for readable title-case handoff identifiers. The
+campaign remains diagnostic; next work is a fair final synthesis/implementation
+handoff that preserves phase gates without conceding complete-outcome quality.
 
 ## Milestone
 
@@ -165,6 +169,11 @@ claim, gate, and unresolved row must remain in the source-backed deliverable
 matrix; "concise" may remove repeated context but not required evidence.
 Focused tests and Ruff pass. The v13 impact is unmeasured, so no receipt,
 promotion, or release claim was made.
+`34a7b81` permits human-readable title-case handoff identifiers through the
+high-entropy scanner while keeping opaque-token rejection; focused redaction,
+phase, and scorer validation pass. The full v13 campaign is trusted host and
+blind-judge execution but fails compiler lift, so no receipt, promotion, or
+release claim was made.
 **Started:** 2026-07-17
 
 ## Active Phase
