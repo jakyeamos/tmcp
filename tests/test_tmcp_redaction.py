@@ -24,6 +24,9 @@ class TmcpRedactionTests(unittest.TestCase):
         self.assertFalse(
             looks_high_entropy("/schemas/tmcp-composition-routing-golden-v0")
         )
+        self.assertFalse(
+            looks_high_entropy("EVIDENCE_HANDOFF_RETENTION_VALIDATION_V1")
+        )
 
     def test_opaque_token_remains_secret_like(self) -> None:
         opaque_token = "A9b8C7d6E5f4G3h2I1j0" + "K9l8M7n6O5p4Q3r2S1t0"
