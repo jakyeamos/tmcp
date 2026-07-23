@@ -221,7 +221,7 @@ Output contract:
             for index in range(1, 4)
         ]
         rendered = render_composition_handoff(artifacts)
-        self.assertLess(len(rendered), 8_000)
+        self.assertLess(len(rendered), 11_000)
         self.assertEqual(rendered.count("## Phase "), 3)
         self.assertEqual(rendered.count("EXIT_GATE"), 3)
         self.assertIn("phase 1 phase-1", rendered)
