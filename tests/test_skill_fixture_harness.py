@@ -13,6 +13,7 @@ SCAFFOLD = ROOT / "scripts" / "scaffold_skill_fixtures.py"
 VALIDATE = ROOT / "scripts" / "validate_skill_fixtures.py"
 PREPARE = ROOT / "scripts" / "prepare_skill_fixture_eval.py"
 APPLY = ROOT / "scripts" / "apply_skill_fixture_proposals.py"
+GENERATE = ROOT / "scripts" / "generate_skill_fixture_proposals.py"
 
 
 class SkillFixtureHarnessTests(unittest.TestCase):
@@ -207,6 +208,52 @@ class SkillFixtureHarnessTests(unittest.TestCase):
             )
             prepared_report = json.loads(prepared.stdout)
             self.assertEqual(prepared_report["candidate_proposals"]["applied_proposal_ids"], ["add-verification-gate"])
+
+    def test_generated_proposals_are_review_only(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "skills" / "alpha" / "SKILL.md"
+            source.parent.mkdir(parents=True)
+            source.write_text(
+                "---\nname: Alpha\ndescription: Use for any task.\n---\n\n# Alpha\n\nMake sure everything works.\n",
+                encoding="utf-8",
+            )
+            output = root / "fixtures"
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(SCAFFOLD),
+                    "--root",
+                    str(root / "skills"),
+                    "--output-dir",
+                    str(output),
+                ],
+                check=True,
+                cwd=ROOT,
+            )
+            manifest_path = output / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            proposals_dir = root / "proposals"
+            generated = subprocess.run(
+                [
+                    sys.executable,
+                    str(GENERATE),
+                    str(manifest_path),
+                    "--output-dir",
+                    str(proposals_dir),
+                ],
+                check=True,
+                cwd=ROOT,
+                env={**__import__("os").environ, "PYTHONPATH": str(ROOT)},
+                capture_output=True,
+                text=True,
+            )
+            report = json.loads(generated.stdout)
+            self.assertEqual(report["skills_with_proposals"], 1)
+            bundle = json.loads((proposals_dir / f"{manifest['skills'][0]['skill_id']}.json").read_text(encoding="utf-8"))
+            self.assertEqual(bundle["proposals"][0]["status"], "proposed")
+            candidate = output / manifest["skills"][0]["versions"]["candidate"]["path"]
+            self.assertEqual(candidate.read_text(encoding="utf-8"), source.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

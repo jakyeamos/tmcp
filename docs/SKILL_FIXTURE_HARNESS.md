@@ -16,6 +16,18 @@ python3 scripts/validate_skill_fixtures.py \
   /private/tmp/tmcp-skill-fixtures/run-20260722/manifest.json
 ```
 
+Generate review-only bundles from TMCP's static findings and guidebook rewrite
+variant:
+
+```bash
+PYTHONPATH=. python3 scripts/generate_skill_fixture_proposals.py \
+  /private/tmp/tmcp-skill-fixtures/run-20260722/manifest.json \
+  --output-dir /private/tmp/tmcp-skill-fixtures/run-20260722/proposals-review
+```
+
+Generation never marks a proposal approved. Review each bundle, change only
+the intended entries to `status: "approved"`, then run the apply command.
+
 Apply reviewed proposal bundles explicitly; the original copy is never
 modified, and only proposals with `status: "approved"` are applied:
 
