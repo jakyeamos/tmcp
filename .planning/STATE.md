@@ -99,6 +99,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - `587b8c1` moves skill evaluation onto those boundaries: data-only variant
   composition, bounded/redacted plan and evidence inputs, safe artifact writes,
   and one-read score persistence.
+- `a5959a3` adds a fail-closed versioned skill-fixture harness: exact original,
+  editable candidate, omitted baseline, controlled negative variant, explicit
+  golden-case/bar readiness, candidate digest recording, and no-call eval-plan
+  preparation across the discovered skill corpus.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
