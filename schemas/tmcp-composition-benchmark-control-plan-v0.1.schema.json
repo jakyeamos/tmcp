@@ -209,6 +209,12 @@
         "source_composition_plan_id": {"type": "string", "pattern": "^composition-[a-f0-9]{20}$"},
         "source_composition_plan_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "graph_digest": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+        "phase_gate_policy": {
+          "enum": [
+            "strict_exit_and_entry_gates",
+            "entry_gates_and_handoffs"
+          ]
+        },
         "ordered_skill_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
         "source_bindings": {"type": "array", "items": {"$ref": "#/$defs/source_binding"}},
         "required_gate_overrides": {"type": "array", "items": {"type": "object"}},

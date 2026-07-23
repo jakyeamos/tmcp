@@ -114,6 +114,7 @@ class CompositionPlanTests(unittest.TestCase):
         self.assertTrue(bridge["citations"])
         self.assertEqual(plan["coverage"]["uncovered_criteria"], [])
         self.assertEqual(plan["coverage"]["unresolved_gaps"], [])
+        self.assertEqual(plan["phase_gate_policy"], "entry_gates_and_handoffs")
         self.assertEqual(plan["trust"], "advisory_untrusted")
         self.assertEqual(
             plan["provenance"]["identity_policy"],

@@ -150,6 +150,9 @@ def _logical_compiled_plan(
             plan.get("composition_plan_id"), field="composition_plan.id"
         ),
         "composition_plan_digest": stable_digest(dict(plan)),
+        "phase_gate_policy": str(
+            plan.get("phase_gate_policy") or "strict_exit_and_entry_gates"
+        ),
         "graph_digest": _nonempty(
             dict(plan.get("provenance") or {}).get("graph_digest"),
             field="composition_plan.graph_digest",
@@ -343,7 +346,9 @@ def _execution_recipe(
                 "stages": full_projection["stages"],
                 "typed_edges": full_projection["typed_edges"],
                 "handoff_contracts": full_projection["handoff_contracts"],
-                "phase_gate_policy": "block_phase_advancement_until_entry_gates_pass",
+                "phase_gate_policy": str(
+                    plan.get("phase_gate_policy") or "strict_exit_and_entry_gates"
+                ),
                 "required_gate_overrides": [],
                 "context_accounting": _compiled_context_accounting(
                     preflight=preflight,

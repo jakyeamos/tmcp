@@ -32,6 +32,12 @@
       "pattern": "^preflight-[a-f0-9]{20}$"
     },
     "current_phase": { "type": "string", "minLength": 1 },
+    "phase_gate_policy": {
+      "enum": [
+        "strict_exit_and_entry_gates",
+        "entry_gates_and_handoffs"
+      ]
+    },
     "governing_node_ids": {
       "type": "array",
       "items": { "type": "string", "minLength": 1 },

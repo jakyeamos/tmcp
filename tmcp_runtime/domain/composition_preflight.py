@@ -29,6 +29,35 @@ from .scoped_seeds import normalize_scoped_seed
 from .harvest_nodes import estimate_tokens
 
 
+__all__ = [
+    "ACTIVE_SOURCE_ROLES",
+    "ALLOWED_RELATIONSHIPS",
+    "COMPOSITION_PLAN_SCHEMA",
+    "COMPOSITION_TRUST",
+    "DEFAULT_MAX_BEHAVIOR_BLOCKS_PER_SOURCE",
+    "INSTRUCTION_OVERRIDE_POLICY",
+    "PHASE_GATE_POLICIES",
+    "PHASE_GATE_POLICY_DEFAULT",
+    "PHASE_GATE_POLICY_ENTRY_HANDOFF",
+    "PHASE_ORDER",
+    "PREFLIGHT_SCHEMA",
+    "RELATIONSHIP_TYPE_SEMANTICS",
+    "SEMANTIC_PROPOSAL_SCHEMA",
+    "SOURCE_ROLES",
+    "SOURCE_DIGEST_BINDING_SCHEMA",
+    "build_source_slices",
+    "json_list",
+    "normalized_text",
+    "ordered_unique",
+    "prepare_composition",
+    "scoped_seed_composition_hints",
+    "semantic_proposal_starter",
+    "source_role_for",
+    "stable_digest",
+    "string_list",
+]
+
+
 PREFLIGHT_SCHEMA = "tmcp-composition-preflight-v0.1"
 SEMANTIC_PROPOSAL_SCHEMA = "tmcp-semantic-proposal-v0.1"
 COMPOSITION_PLAN_SCHEMA = "tmcp-composition-plan-v0.1"
@@ -81,6 +110,11 @@ RELATIONSHIP_TYPE_SEMANTICS = {
 }
 ALLOWED_RELATIONSHIPS = frozenset(RELATIONSHIP_TYPE_SEMANTICS)
 PHASE_ORDER = ("start", "discovery", "implementation", "verification", "final")
+PHASE_GATE_POLICY_DEFAULT = "strict_exit_and_entry_gates"
+PHASE_GATE_POLICY_ENTRY_HANDOFF = "entry_gates_and_handoffs"
+PHASE_GATE_POLICIES = frozenset(
+    {PHASE_GATE_POLICY_DEFAULT, PHASE_GATE_POLICY_ENTRY_HANDOFF}
+)
 _EMPTY_SCOPED_SEED_GRAPH_HINTS = {"scoped_seeds": [], "typed_edges": []}
 _SCOPED_SEED_HINT_FIELDS = (
     "id",

@@ -367,6 +367,49 @@ class CompositionRuntimeTransitionTests(unittest.TestCase):
         self.assertEqual(len(result["fulfilled_obligations"]), 2)
         self.assertEqual(len(result["graph_diff"]["gates"]["newly_fulfilled"]), 2)
 
+    def test_reporting_continuation_requires_entry_gates_but_surfaces_failed_exit_gate(
+        self,
+    ) -> None:
+        plan = _plan()
+        plan["phase_gate_policy"] = "entry_gates_and_handoffs"
+
+        result = advance_composition_runtime(
+            plan,
+            {
+                "requested_phase": "implementation",
+                "gate_results": [
+                    _passed("Research handoff available"),
+                    {"gate": "Research brief approved", "status": "failed"},
+                ],
+            },
+        )
+
+        research_exit_gate_id = next(
+            item["gate_id"]
+            for item in composition_gate_catalog(plan)
+            if item["kind"] == "exit" and item["name"] == "Research brief approved"
+        )
+        self.assertTrue(result["phase_advance"]["allowed"])
+        self.assertEqual(result["current_phase"], "implementation")
+        self.assertEqual(
+            result["phase_advance"]["nonblocking_failed_gate_ids"],
+            [research_exit_gate_id],
+        )
+        self.assertEqual(
+            result["graph_diff"]["gates"]["nonblocking_failed"],
+            [research_exit_gate_id],
+        )
+        self.assertTrue(
+            any("reporting-continuation mode" in warning for warning in result["warnings"])
+        )
+
+    def test_unknown_phase_gate_policy_is_rejected(self) -> None:
+        plan = _plan()
+        plan["phase_gate_policy"] = "ignore_all_gates"
+
+        with self.assertRaisesRegex(ValueError, "Unsupported phase_gate_policy"):
+            advance_composition_runtime(plan, {"requested_phase": "implementation"})
+
     def test_failures_block_even_when_named_gates_pass(self) -> None:
         result = advance_composition_runtime(
             _plan(),

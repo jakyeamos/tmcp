@@ -30,6 +30,7 @@ from tmcp_runtime.domain.composition_runtime_evidence import (
     evaluate_composition_gates,
     evaluate_composition_handoffs,
 )
+from tmcp_runtime.domain.composition_runtime import transition_gate_ids
 from tmcp_runtime.domain.receipts import (
     BENCHMARK_HOST_RECEIPT_MARKER,
     RECEIPT_INSTRUCTION_OVERRIDE_POLICY,
@@ -155,26 +156,17 @@ def _transition_obligation_ids(
 
     if requested_index <= current_index:
         return [], []
-    exit_stage_ids = {
-        _nonempty(stage.get("stage_id"), field="composition_plan.stage_id")
-        for stage in stages[current_index:requested_index]
-    }
     entry_stage_ids = {
         _nonempty(stage.get("stage_id"), field="composition_plan.stage_id")
         for stage in stages[current_index + 1 : requested_index + 1]
     }
-    gate_ids = [
-        _nonempty(gate.get("gate_id"), field="composition_plan.gate_id")
-        for gate in composition_gate_catalog(plan)
-        if (
-            gate.get("kind") == "exit"
-            and gate.get("owner_stage_id") in exit_stage_ids
-        )
-        or (
-            gate.get("kind") == "entry"
-            and gate.get("owner_stage_id") in entry_stage_ids
-        )
-    ]
+    gate_ids = transition_gate_ids(
+        plan,
+        composition_gate_catalog(plan),
+        [dict(stage) for stage in stages],
+        current_index,
+        requested_index,
+    )
     handoff_ids = [
         _nonempty(contract.get("handoff_id"), field="composition_plan.handoff_id")
         for contract in composition_handoff_catalog(plan)

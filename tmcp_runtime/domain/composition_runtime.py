@@ -9,6 +9,9 @@ from typing import Any
 from .composition_preflight import (
     COMPOSITION_PLAN_SCHEMA,
     COMPOSITION_TRUST,
+    PHASE_GATE_POLICIES,
+    PHASE_GATE_POLICY_DEFAULT,
+    PHASE_GATE_POLICY_ENTRY_HANDOFF,
     json_list,
     ordered_unique,
     stable_digest,
@@ -23,6 +26,7 @@ from .composition_runtime_evidence import (
     evaluate_composition_handoffs,
     evidence_summary as _summary,
     normalize_runtime_evidence,
+    transition_gate_ids,
 )
 
 
@@ -37,6 +41,7 @@ __all__ = [
     "evaluate_composition_gates",
     "evaluate_composition_handoffs",
     "normalize_runtime_evidence",
+    "transition_gate_ids",
 ]
 
 
@@ -50,6 +55,9 @@ def _require_plan(plan: Mapping[str, Any]) -> None:
     ]
     if not stages:
         raise ValueError("Composition plan requires at least one ordered stage.")
+    phase_gate_policy = str(plan.get("phase_gate_policy") or PHASE_GATE_POLICY_DEFAULT)
+    if phase_gate_policy not in PHASE_GATE_POLICIES:
+        raise ValueError(f"Unsupported phase_gate_policy: {phase_gate_policy!r}.")
     seen_stage_ids: set[str] = set()
     for index, stage in enumerate(stages):
         stage_id = str(stage.get("stage_id") or "").strip()
@@ -93,29 +101,6 @@ def _requested_stage_index(
     if stages[current_index].get("phase") == requested_phase:
         return later[0] if later else current_index
     return later[0] if later else matches[0]
-
-
-def _transition_gate_ids(
-    catalog: list[dict[str, Any]],
-    stages: list[dict[str, Any]],
-    current_index: int,
-    target_index: int,
-) -> list[str]:
-    if target_index <= current_index:
-        return []
-    exit_stage_ids = {
-        str(stages[index]["stage_id"]) for index in range(current_index, target_index)
-    }
-    entry_stage_ids = {
-        str(stages[index]["stage_id"])
-        for index in range(current_index + 1, target_index + 1)
-    }
-    return [
-        str(item["gate_id"])
-        for item in catalog
-        if (item["kind"] == "exit" and item["owner_stage_id"] in exit_stage_ids)
-        or (item["kind"] == "entry" and item["owner_stage_id"] in entry_stage_ids)
-    ]
 
 
 def _transition_handoff_ids(
@@ -276,8 +261,12 @@ def advance_composition_runtime(
             )
         else:
             target_index = requested_index
-    required_gate_ids = _transition_gate_ids(
-        gate_evaluation["catalog"], stages, current_index, target_index
+    required_gate_ids = transition_gate_ids(
+        previous_plan,
+        gate_evaluation["catalog"],
+        stages,
+        current_index,
+        target_index,
     )
     required_handoff_ids = _transition_handoff_ids(
         handoff_evaluation["catalog"], stages, current_index, target_index
@@ -286,6 +275,15 @@ def advance_composition_runtime(
     pending_required = [
         gate_id for gate_id in required_gate_ids if gate_id not in passed_ids
     ]
+    phase_gate_policy = str(
+        previous_plan.get("phase_gate_policy") or PHASE_GATE_POLICY_DEFAULT
+    )
+    nonblocking_failed_gate_ids = []
+    if phase_gate_policy == PHASE_GATE_POLICY_ENTRY_HANDOFF:
+        nonblocking_failed_gate_ids = [
+            gate_id for gate_id in string_list(gate_evaluation["failed_gate_ids"])
+            if gate_id not in required_gate_ids
+        ]
     available_handoff_ids = set(
         string_list(handoff_evaluation["available_handoff_ids"])
     )
@@ -326,6 +324,11 @@ def advance_composition_runtime(
     if target_index > current_index and invalid_handoff_contracts:
         warnings.append(
             "Composition phase advancement is blocked because a handoff contract is malformed."
+        )
+    if target_index > current_index and nonblocking_failed_gate_ids:
+        warnings.append(
+            "Composition phase advanced in reporting-continuation mode; failed "
+            "non-entry gates remain unresolved and downstream work must not claim execution."
         )
     override = explicit_phase_override(
         list(normalized["user_overrides"]),
@@ -568,6 +571,7 @@ def advance_composition_runtime(
             "newly_fulfilled": [item["gate_id"] for item in newly_fulfilled],
             "failed": gate_evaluation["failed_gate_ids"],
             "pending": gate_evaluation["pending_gate_ids"],
+            "nonblocking_failed": nonblocking_failed_gate_ids,
             "bypassed": pending_required if override_applied else [],
         },
         "handoffs": {
@@ -598,6 +602,7 @@ def advance_composition_runtime(
             "blocked_reason": blocked_reason if not advancement_allowed else "",
             "required_gate_ids": required_gate_ids,
             "pending_gate_ids": pending_required,
+            "nonblocking_failed_gate_ids": nonblocking_failed_gate_ids,
             "required_handoff_ids": required_handoff_ids,
             "pending_handoff_ids": pending_required_handoffs,
             "failed_handoff_ids": failed_required_handoffs,

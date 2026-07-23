@@ -220,6 +220,37 @@ class CompositionRuntimeHandoffEnforcementTests(unittest.TestCase):
         )
         self.assertEqual(carried["graph_diff"]["handoffs"]["newly_available"], [])
 
+    def test_reporting_continuation_does_not_bypass_typed_handoff(self) -> None:
+        plan = _plan()
+        plan["phase_gate_policy"] = "entry_gates_and_handoffs"
+        failed_exit = {"gate": "Research complete", "status": "failed"}
+        entry_gate = {"gate": "Research handoff ready", "status": "passed"}
+
+        blocked = advance_composition_runtime(
+            plan,
+            {
+                "requested_phase": "implementation",
+                "gate_results": [failed_exit, entry_gate],
+            },
+        )
+        self.assertFalse(blocked["phase_advance"]["allowed"])
+        self.assertEqual(
+            blocked["phase_advance"]["blocked_reason"],
+            "required_handoffs_not_available",
+        )
+        self.assertTrue(blocked["phase_advance"]["nonblocking_failed_gate_ids"])
+
+        advanced = advance_composition_runtime(
+            plan,
+            {
+                "requested_phase": "implementation",
+                "gate_results": [failed_exit, entry_gate],
+                "handoff_results": [_handoff_result()],
+            },
+        )
+        self.assertTrue(advanced["phase_advance"]["allowed"])
+        self.assertTrue(advanced["phase_advance"]["nonblocking_failed_gate_ids"])
+
     def test_explicit_phase_override_lists_bypassed_handoffs_without_fulfilling_them(
         self,
     ) -> None:

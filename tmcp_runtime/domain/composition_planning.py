@@ -9,6 +9,7 @@ from .composition_preflight import (
     COMPOSITION_PLAN_SCHEMA,
     COMPOSITION_TRUST,
     INSTRUCTION_OVERRIDE_POLICY,
+    PHASE_GATE_POLICY_ENTRY_HANDOFF,
     PHASE_ORDER,
     json_list,
     ordered_unique,
@@ -448,6 +449,7 @@ def build_composition_plan(
         "task_model": task_model,
         "graph_digest": provenance["graph_digest"],
         "current_phase": resolved_phase,
+        "phase_gate_policy": PHASE_GATE_POLICY_ENTRY_HANDOFF,
         "roles": recipe_roles,
         "stages": recipe_stages,
         "handoff_contracts": handoff_identity_projection(
@@ -501,6 +503,7 @@ def build_composition_plan(
         "composition_plan_id": "composition-" + recipe_digest[:20],
         "preflight_id": preflight.get("preflight_id"),
         "current_phase": resolved_phase,
+        "phase_gate_policy": PHASE_GATE_POLICY_ENTRY_HANDOFF,
         "governing_node_ids": sorted(governing_node_ids),
         "task_model": task_model,
         "skill_roles": [

@@ -10,6 +10,9 @@ from typing import Any
 from .composition_handoffs import handoff_contract_catalog
 from .composition_preflight import (
     COMPOSITION_PLAN_SCHEMA,
+    PHASE_GATE_POLICIES,
+    PHASE_GATE_POLICY_DEFAULT,
+    PHASE_GATE_POLICY_ENTRY_HANDOFF,
     json_list,
     ordered_unique,
     stable_digest,
@@ -292,6 +295,9 @@ def _require_plan(plan: Mapping[str, Any]) -> None:
         raise ValueError(f"Expected {COMPOSITION_PLAN_SCHEMA}.")
     if not json_list(plan.get("ordered_stages")):
         raise ValueError("Composition plan requires at least one ordered stage.")
+    policy = str(plan.get("phase_gate_policy") or PHASE_GATE_POLICY_DEFAULT)
+    if policy not in PHASE_GATE_POLICIES:
+        raise ValueError(f"Unsupported phase_gate_policy: {policy!r}.")
 
 
 def composition_gate_catalog(plan: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -338,6 +344,37 @@ def composition_gate_catalog(plan: Mapping[str, Any]) -> list[dict[str, Any]]:
         item
         for item in catalog
         if not (str(item["gate_id"]) in seen or seen.add(str(item["gate_id"])))
+    ]
+
+
+def transition_gate_ids(
+    plan: Mapping[str, Any],
+    catalog: list[dict[str, Any]],
+    stages: list[dict[str, Any]],
+    current_index: int,
+    target_index: int,
+) -> list[str]:
+    if target_index <= current_index:
+        return []
+    entry_stage_ids = {
+        str(stages[index]["stage_id"])
+        for index in range(current_index + 1, target_index + 1)
+    }
+    policy = str(plan.get("phase_gate_policy") or PHASE_GATE_POLICY_DEFAULT)
+    if policy == PHASE_GATE_POLICY_ENTRY_HANDOFF:
+        return [
+            str(item["gate_id"])
+            for item in catalog
+            if item["kind"] == "entry" and item["owner_stage_id"] in entry_stage_ids
+        ]
+    exit_stage_ids = {
+        str(stages[index]["stage_id"]) for index in range(current_index, target_index)
+    }
+    return [
+        str(item["gate_id"])
+        for item in catalog
+        if (item["kind"] == "exit" and item["owner_stage_id"] in exit_stage_ids)
+        or (item["kind"] == "entry" and item["owner_stage_id"] in entry_stage_ids)
     ]
 
 
