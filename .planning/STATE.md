@@ -11,11 +11,12 @@ synergy shortfall, then obtain replicated rejudge and full release-gate proof;
 0.6.0 remains blocked until every preregistered gate passes. `349cc0b` now
 renders typed bridge obligations and a quote-only cumulative deliverable index,
 so active-phase inputs, produced handoffs, covered criteria, gates, and concrete
-phase outputs remain visible without loading deferred skill bodies. The v10
-15-cell calibration improved migration and agent directional scores but left
-diagnose slightly below naïve union; it is unpaired diagnostic evidence only.
-Run the full v8 campaign next, then independently rejudge before any receipt,
-promotion, or release decision.
+phase outputs remain visible without loading deferred skill bodies. The full v8
+campaign completed 540 host and 540 blind-judge cells, but the first scoring
+attempt found six cumulative artifacts over the 16,000-character contract
+ceiling. `e3df95e` bounds the default cumulative renderer to 15,000 characters;
+rerun deterministic scoring and record the resulting lift eligibility before
+independent rejudge, receipt, promotion, or release decisions.
 
 ## Milestone
 
@@ -131,6 +132,10 @@ adds a quote-only cumulative deliverable index for multi-phase artifacts. Focuse
 phase/plan/runtime tests and Ruff pass. The authorized v8-v10 bounded artifacts
 are recorded in `docs/COMPOSITION_BENCHMARK.md`; they remain unpaired and do not
 support lift, receipt, promotion, or release claims.
+`e3df95e` bounds the cumulative phase handoff below the lift artifact contract's
+16,000-character ceiling and adds a regression test. Focused tests and Ruff pass;
+the full v8 artifacts must be regenerated or normalized through the corrected
+renderer before scoring. No receipt, promotion, or release claim was made.
 **Started:** 2026-07-17
 
 ## Active Phase
