@@ -131,6 +131,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   provenance, and has a regression test proving literal shell syntax cannot
   execute. The original and candidate copies remain isolated and judge-only
   bars remain outside runner input.
+- Three-run independent rejudge of the approval family now gives the
+  ambiguous refusal control original 0/3 and candidate 0/3, while the explicit
+  target is original 0/3 and candidate 3/3. The reproducible pass-rate record is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.3.json`; this is a
+  targeted approval-gate result, not corpus-wide proof.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
