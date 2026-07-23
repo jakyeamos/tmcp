@@ -148,6 +148,18 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.5.json`; it reports
   original 3/12 versus candidate 9/12 using variant-specific denominators
   (25% versus 75%), with two family wins, one tie, and no tested regression.
+- `70ee045` adds the fourth ready fixture family, `trigger-boundary`. Its
+  unrelated-request
+  rejudge is original 3/3 versus corrected candidate 3/3, confirming no tested
+  behavioral regression. `48ae0f5` fixes a real structural defect in the
+  proposal generator: it copied the broad frontmatter description into the
+  trigger rewrite. The fix narrows the candidate to the body's explicit
+  `Use this skill when...`
+  sentence, covered by a policy regression test. The combined v0.6 baseline is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.6.json`; it reports
+  original 6/15 versus candidate 12/15 (40% versus 80%), with two family wins,
+  two ties, and no tested regression. This is still targeted evidence, not
+  corpus-wide proof.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
