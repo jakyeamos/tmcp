@@ -146,6 +146,36 @@ valuable, but the compiler does not yet beat naïve union and the synergy median
 is just below threshold. The next slice must reduce fair active-context cost and
 improve cross-skill handoffs rather than lower the preregistered gates.
 
+### Authorized phase-envelope calibration (2026-07-22)
+
+After the typed phase-contract slice, an explicitly authorized 15-cell
+subscription calibration reran the same bounded host/evaluator harness:
+
+- campaign: `composition-lift-campaign-91b9f99de690ec4cc908`
+- campaign digest: `91b9f99de690ec4cc9089cbed3a4d785c77df82391ee7d0c9ab7bda5ebf39592`
+- host cells: 15/15, SHA-256
+  `33e05534138af8f8855a59634232323b252288f5d36ac72fdb608ccbbd161948`
+- blind-judge cells: 15/15, SHA-256
+  `35d2fda1c8e16fd9894e7e0e84f56bf4f94cd29c2ae4d574ef795542cce3831b`
+- output directory: `/private/tmp/tmcp-composition-next2/.tmp/lift-next2/calibration-phase-handoffs-v4`
+
+The calibration verified the artifact contract change: the migration and
+diagnose full-composition artifacts each retain all nine typed headings
+(`PHASE_RESULT`, `STATUS`, `INPUT_HANDOFF`, `DELIVERABLES`,
+`EVIDENCE_BOUNDARY`, `PRODUCED_HANDOFF`, `EXIT_GATE`, `NEXT_ENTRY`, and
+`UNRESOLVED_GAPS`) across four phases, without the legacy whole-body elision
+marker. This is a bounded contract check, not proof that every body is
+complete or that downstream gates passed.
+
+The sample is intentionally not scored as campaign lift: it contains only 15
+of 540 cells, and the available migration/diagnose spot comparisons do not
+form the preregistered paired replicate set. The full scorer correctly rejects
+the subset as incomplete. In the observed spot cells, migration full weighted
+quality was `0.772` versus naïve `0.793`, while diagnose full was `0.4105` versus
+naïve `0.391`; these directional values identify migration handoff quality as
+the next target but cannot support a causal, receipt, promotion, or release
+claim. No receipt was recorded.
+
 ### Authorized external-run pilot (2026-07-21)
 
 After explicit authorization, one runner dispatch and its independent blind

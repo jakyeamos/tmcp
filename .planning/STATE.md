@@ -131,7 +131,7 @@ unproven.
   the lift impact is unmeasured until the authorized calibration runs.
   `2540929` now preserves all nine typed phase headings under the bounded
   artifact limit; focused composition, schema, handoff, and phase-capsule tests
-  pass (41 tests). The v4 calibration completed with raw digests recorded in
+  pass (41 tests). The v4 calibration and raw digests are recorded in
   `docs/COMPOSITION_BENCHMARK.md`; it did not establish a paired lift, receipt,
   promotion, or release claim. Improve migration/diagnose handoff quality next.
   The known repository pre-CR hook still times out at 90 seconds while the
