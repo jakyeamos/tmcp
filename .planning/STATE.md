@@ -106,6 +106,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - `1d8341e` adds hash-chained reviewed proposal bundles: only explicitly
   approved per-skill replacements are applied to candidates; originals remain
   immutable and eval preparation reports applied/skipped proposal provenance.
+- `44c428b` adds review-only proposal generation from TMCP static findings and
+  the guidebook rewrite variant. Corpus generation produced 102 proposed
+  bundles and leaves every one unapplied until human review changes its status.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
