@@ -13,6 +13,9 @@ from collections.abc import Mapping, Sequence
 
 
 DEFAULT_PHASE_ARTIFACT_LIMIT = 4000
+# Keep cumulative handoffs below the lift-campaign contract's 16,000-character
+# artifact ceiling while leaving room for serialization and validation metadata.
+DEFAULT_COMPOSITION_HANDOFF_LIMIT = 15_000
 _PHASE_HEADINGS = (
     "PHASE_RESULT",
     "STATUS",
@@ -322,7 +325,7 @@ def phase_deliverable_index(
 def render_composition_handoff(
     phase_artifacts: Sequence[tuple[Mapping[str, object], str]],
     *,
-    limit: int = 18_000,
+    limit: int = DEFAULT_COMPOSITION_HANDOFF_LIMIT,
 ) -> str:
     """Render phase handoffs with a quote-only cumulative deliverable index."""
 

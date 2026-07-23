@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from tmcp_runtime.domain.composition_lift_phase import (
+    DEFAULT_COMPOSITION_HANDOFF_LIMIT,
     bound_phase_artifact,
     bridge_obligation_text,
     handoff_contract_text,
@@ -170,6 +171,22 @@ Output contract:
         rendered = render_composition_handoff(artifacts, limit=2_000)
         self.assertIn("# Composition deliverable index", rendered)
         self.assertIn("## Phase 2: verification (deferred)", rendered)
+
+    def test_default_composition_handoff_stays_inside_lift_artifact_ceiling(self) -> None:
+        artifacts = [
+            (
+                {"phase": f"phase-{index}", "status": "active"},
+                "DELIVERABLES\n"
+                + ("deliverable " * 900)
+                + "\nPRODUCED_HANDOFF\n"
+                + ("handoff " * 900)
+                + "\nEXIT_GATE: PASS",
+            )
+            for index in range(5)
+        ]
+        rendered = render_composition_handoff(artifacts)
+        self.assertLessEqual(len(rendered), DEFAULT_COMPOSITION_HANDOFF_LIMIT)
+        self.assertLess(len(rendered), 16_000)
 
 
 if __name__ == "__main__":
