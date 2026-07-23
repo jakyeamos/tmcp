@@ -199,6 +199,18 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   across seven families it reports original 11/24 versus candidate 21/24
   (45.8% versus 87.5%), with four family wins, three ties, and no tested
   regression.
+- Composition fixture `required-read-output-contract-composition` exercises both
+  rewrites in all four original/candidate pairings, with two repeats per pairing
+  and independent judging. The durable manifest and baseline are
+  `tests/fixtures/skill-fixtures/composition-cases-v0.1.json` and
+  `tests/fixtures/skill-fixtures/composition-baseline-v0.1.json`. On the strict
+  bar, original/original passes 0/2, candidate/candidate passes 2/2, and each
+  mixed pairing passes 0/2 (2/8 overall). This fixture demonstrates a
+  complementary interaction: the required-read rewrite supplies explicit
+  AGENTS.md/unavailable-source disclosure, while the output-contract rewrite
+  supplies the labeled final-response fields. It is one task shape and one
+  model/effort setting, so it is interaction evidence rather than corpus-wide
+  causal proof.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment

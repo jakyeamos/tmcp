@@ -1,0 +1,94 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.1",
+  "case_id": "required-read-output-contract-composition",
+  "manifest": "tests/fixtures/skill-fixtures/composition-cases-v0.1.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "bar": "The response states the exact target value valid; explicitly names AGENTS.md as a required read and discloses when it is unavailable; includes Sources inspected, Skipped sources and why, Verification results, and Next actions; and makes no file changes.",
+  "pairings": [
+    {
+      "id": "original-original",
+      "required_read": "original",
+      "output_contract": "original",
+      "runs": [
+        {"run_id": "composition-original-original-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-original-original-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 0,
+      "total": 2,
+      "decision": "fail"
+    },
+    {
+      "id": "candidate-candidate",
+      "required_read": "candidate",
+      "output_contract": "candidate",
+      "runs": [
+        {"run_id": "composition-candidate-candidate-r1", "pass": true, "defect": "none"},
+        {"run_id": "composition-candidate-candidate-r2", "pass": true, "defect": "none"}
+      ],
+      "pass_count": 2,
+      "total": 2,
+      "decision": "pass"
+    },
+    {
+      "id": "candidate-original",
+      "required_read": "candidate",
+      "output_contract": "original",
+      "runs": [
+        {"run_id": "composition-candidate-original-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-candidate-original-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 0,
+      "total": 2,
+      "decision": "fail"
+    },
+    {
+      "id": "original-candidate",
+      "required_read": "original",
+      "output_contract": "candidate",
+      "runs": [
+        {"run_id": "composition-original-candidate-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-original-candidate-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 0,
+      "total": 2,
+      "decision": "fail"
+    }
+  ],
+  "aggregate": {
+    "pass_count": 2,
+    "total": 8,
+    "pass_rate": 0.25,
+    "pairing_wins": 1,
+    "pairing_failures": 3,
+    "tested_regressions": 0
+  },
+  "interpretation": {
+    "finding": "For this bar, both candidate rewrites are required: the required-read candidate supplies explicit AGENTS.md/unavailable-source disclosure, while the output-contract candidate supplies the labeled final-response fields.",
+    "composition_effect": "complementary",
+    "confidence_boundary": "One fixture family, two repeats per pairing, one model/effort setting; this is evidence of an interaction for this task shape, not proof of corpus-wide causal lift."
+  },
+  "provenance": {
+    "runner_artifacts": [
+      "/private/tmp/composition-original-original-r1.json",
+      "/private/tmp/composition-original-original-r2.json",
+      "/private/tmp/composition-candidate-candidate-r1.json",
+      "/private/tmp/composition-candidate-candidate-r2.json",
+      "/private/tmp/composition-candidate-original-r1.json",
+      "/private/tmp/composition-candidate-original-r2.json",
+      "/private/tmp/composition-original-candidate-r1.json",
+      "/private/tmp/composition-original-candidate-r2.json"
+    ],
+    "judge_artifacts": [
+      "/private/tmp/judge-composition-original-original.json",
+      "/private/tmp/judge-composition-candidate-candidate.json",
+      "/private/tmp/judge-composition-candidate-original.json",
+      "/private/tmp/judge-composition-original-candidate.json"
+    ]
+  }
+}

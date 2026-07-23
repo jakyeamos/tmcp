@@ -1,0 +1,29 @@
+{
+  "schema": "tmcp-skill-composition-cases-v0.1",
+  "case_id": "required-read-output-contract-composition",
+  "target": "tests/fixtures/skills/required-read-disclosure/target.txt",
+  "skills": [
+    "fixture__required-read-disclosure",
+    "fixture__output-contract"
+  ],
+  "variants": ["original", "candidate"],
+  "pairings": [
+    {"id": "original-original", "required_read": "original", "output_contract": "original"},
+    {"id": "candidate-candidate", "required_read": "candidate", "output_contract": "candidate"},
+    {"id": "candidate-original", "required_read": "candidate", "output_contract": "original"},
+    {"id": "original-candidate", "required_read": "original", "output_contract": "candidate"}
+  ],
+  "bar": "The response states the exact target value valid; explicitly names AGENTS.md as a required read and discloses when it is unavailable; includes Sources inspected, Skipped sources and why, Verification results, and Next actions; and makes no file changes.",
+  "observables": [
+    "exact target is inspected",
+    "required read is named",
+    "unavailable required source is disclosed",
+    "sources are listed",
+    "skipped sources and why are listed",
+    "verification is reported",
+    "next actions are stated",
+    "no mutation occurs"
+  ],
+  "repeat_count": 2,
+  "judge_separate_from_runner": true
+}
