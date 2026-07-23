@@ -8,8 +8,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Close the phase-aware campaign's compiler/context gap and
 synergy shortfall, then obtain replicated rejudge and full release-gate proof;
-0.6.0 remains blocked until every preregistered gate passes. The next bounded
-calibration exercises the typed phase-handoff fix before any full rerun.
+0.6.0 remains blocked until every preregistered gate passes. The typed phase
+envelope now retains every present handoff heading under the runner bound; the
+next slice improves migration/diagnose quality before any full rerun.
 
 ## Milestone
 
@@ -65,6 +66,15 @@ schema, handoff, and phase-capsule tests pass; the pre-CR hook again timed out
 at 90 seconds before readiness completed. No campaign, receipt, promotion, or
 release claim was made by this change.
 
+`2540929` makes bounded phase envelopes preserve every present typed heading,
+including `EVIDENCE_BOUNDARY`, while retaining per-section body limits. The
+authorized 15-cell v4 calibration completed 15 host and 15 judge cells; raw
+host digest `33e05534…` and evaluator digest `35d2fda1…` are diagnostic only.
+Migration and diagnose full artifacts retain all nine headings across four
+phases, but the non-paired spot scores are not lift evidence; migration remains
+the next quality target. The pre-CR hook again timed out at 90 seconds before
+readiness completed.
+
 `44911f0` pins the current no-call campaign handoff after
 `4c634e4` recorded the proposal-activation delta diagnostic and the
 held dogfooded guidebook pattern. The branch also carries the independent-rejudge
@@ -119,6 +129,11 @@ unproven.
   `e793da6` now carries the typed phase-contract and complete bounded handoff
   helper used by the external phase harness; its focused tests are green, but
   the lift impact is unmeasured until the authorized calibration runs.
+  `2540929` now preserves all nine typed phase headings under the bounded
+  artifact limit; focused composition, schema, handoff, and phase-capsule tests
+  pass (41 tests). The v4 calibration completed with raw digests recorded in
+  `docs/COMPOSITION_BENCHMARK.md`; it did not establish a paired lift, receipt,
+  promotion, or release claim. Improve migration/diagnose handoff quality next.
   The known repository pre-CR hook still times out at 90 seconds while the
   readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
   not a reason to weaken TMCP verification.
