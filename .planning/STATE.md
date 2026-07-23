@@ -112,6 +112,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - `c986f61` adds an explicit experimental proposal mode so numeric original-vs-
   proposal baselines can run before review; proposed rewrites are disposable,
   provenance-labelled, and still cannot be promoted as approved changes.
+- `a46d08f` adds an explicit-target approval fixture and keeps the ambiguous
+  no-target case as a refusal control, enabling a discriminating paired
+  behavior baseline instead of relying on static findings alone.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
