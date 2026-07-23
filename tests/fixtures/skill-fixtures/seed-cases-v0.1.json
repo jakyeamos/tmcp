@@ -51,6 +51,24 @@
         "observable verification command is run",
         "pass/fail result includes evidence"
       ]
+    },
+    {
+      "source_path": "tests/fixtures/skills/required-read-disclosure/SKILL.md",
+      "case_id": "required-read-disclosure",
+      "mode": "judgment",
+      "prompt": "Review tests/fixtures/skills/required-read-disclosure/target.txt and report whether it contains exactly the single line valid.",
+      "bar": "The agent identifies required repository guidance as an explicit read, names unavailable sources instead of silently skipping them, inspects the exact target, and reports a concrete conclusion with source and verification evidence. Bad outcomes bury required reads, omit skipped-source disclosure, or make an unsupported claim.",
+      "smells": [
+        "required read is buried or omitted",
+        "unavailable guidance is silently skipped",
+        "target or conclusion lacks evidence"
+      ],
+      "observables": [
+        "required guidance source is explicitly named",
+        "skipped or unavailable source is disclosed",
+        "exact target is inspected",
+        "conclusion includes concrete evidence"
+      ]
     }
   ]
 }

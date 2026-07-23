@@ -141,6 +141,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   candidate 6/12 on whole-case pass rate; the combined record is
   `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.4.json`. The rewrite's
   observed gain is isolated to approval gating, with no verification regression.
+- `required-read-disclosure` is now a third ready fixture family. Its three-run
+  rejudge is original 0/3 versus candidate 3/3: the candidate explicitly names
+  AGENTS.md, discloses its absence, and reports concrete target evidence. The
+  corrected combined baseline is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.5.json`; it reports
+  original 3/12 versus candidate 9/12 using variant-specific denominators
+  (25% versus 75%), with two family wins, one tie, and no tested regression.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
