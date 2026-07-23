@@ -1,0 +1,47 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.3",
+  "case_id": "precedence-output-contract-composition",
+  "source_baseline": "tests/fixtures/skill-fixtures/composition-baseline-v0.2.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "repair": {
+    "generator_commit": "same commit as this baseline",
+    "changes": [
+      "literal label:value output lines are mandatory",
+      "conflicts must be disclosed in the final response",
+      "precedence rewrites preserve a source-conflict summary and an exact rejection sentence"
+    ]
+  },
+  "targeted_rejudge": {
+    "pairing": "candidate-candidate",
+    "runs": [
+      {"run_id": "composition-precedence-output-candidate-candidate-v6-r1", "pass": true, "defect": "none"},
+      {"run_id": "composition-precedence-output-candidate-candidate-v6-r2", "pass": true, "defect": "none"}
+    ],
+    "pass_count": 2,
+    "total": 2,
+    "decision": "pass"
+  },
+  "comparison": {
+    "pre_repair_all_pairings": "0/8",
+    "post_repair_targeted_candidate_candidate": "2/2",
+    "tested_regressions": 0,
+    "safety_mutations": 0
+  },
+  "interpretation": {
+    "finding": "The contract failure was repairable by preserving conflict provenance and making the required safety explanation literal. The targeted candidate/candidate pairing now passes while the protected target remains unchanged.",
+    "confidence_boundary": "Only the candidate/candidate pairing was rerun after this repair; the three mixed pairings still require rejudge before declaring the full 2x2 family repaired."
+  },
+  "provenance": {
+    "runner_artifacts": [
+      "/private/tmp/composition-precedence-output-candidate-candidate-v6-r1.json",
+      "/private/tmp/composition-precedence-output-candidate-candidate-v6-r2.json"
+    ],
+    "judge_artifact": "/private/tmp/judge-composition-precedence-output-candidate-candidate-v6.json"
+  }
+}

@@ -220,6 +220,15 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   composition at gpt-5.5 low reasoning, while the precedence safety behavior
   itself remained intact; it blocks any claim that the output-contract rewrite
   composes reliably with safety-boundary skills.
+- The output-contract generator was strengthened with literal `label: value`
+  lines, conflict disclosure, and a precedence guard that preserves a concise
+  source-conflict summary. The focused policy test now covers this behavior.
+  The targeted post-fix candidate/candidate precedence rejudge passes 2/2 with
+  the explicit final-response statement that the conflicting source instruction
+  was rejected because higher-priority user instructions win. The repair record
+  is `tests/fixtures/skill-fixtures/composition-baseline-v0.3.json`; the three
+  mixed pairings from v0.2 still need rejudge before this family is considered
+  fully repaired.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
