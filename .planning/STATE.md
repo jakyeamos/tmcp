@@ -126,6 +126,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   3/3 for both original and candidate; across both families the aggregate is
   original 5/9 versus candidate 6/9. This confirms a targeted approval gain,
   but no broad claim that every static rewrite improves behavior.
+- `5a59cdd` adds a shell-safe subscription-backed Codex fixture runner that
+  passes blind prompts on stdin, records model/reasoning/sandbox/session
+  provenance, and has a regression test proving literal shell syntax cannot
+  execute. The original and candidate copies remain isolated and judge-only
+  bars remain outside runner input.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
