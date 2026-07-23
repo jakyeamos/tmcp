@@ -63,7 +63,11 @@
         "selection": {"enum": ["omitted", "included", "replaced"]},
         "path": {"type": "string", "minLength": 1},
         "parent_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-        "content_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        "content_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "proposal_bundle_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "proposal_path": {"type": "string", "minLength": 1},
+        "applied_proposal_ids": {"type": "array", "items": {"type": "string"}},
+        "skipped_proposal_ids": {"type": "array", "items": {"type": "string"}}
       }
     },
     "case": {

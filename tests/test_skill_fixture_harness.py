@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCAFFOLD = ROOT / "scripts" / "scaffold_skill_fixtures.py"
 VALIDATE = ROOT / "scripts" / "validate_skill_fixtures.py"
 PREPARE = ROOT / "scripts" / "prepare_skill_fixture_eval.py"
+APPLY = ROOT / "scripts" / "apply_skill_fixture_proposals.py"
 
 
 class SkillFixtureHarnessTests(unittest.TestCase):
@@ -90,6 +91,122 @@ class SkillFixtureHarnessTests(unittest.TestCase):
             )
             self.assertTrue((plans / f"{alpha['skill_id']}--original.json").is_file())
             self.assertTrue((plans / f"{alpha['skill_id']}--candidate.json").is_file())
+
+    def test_apply_only_approved_hash_chained_proposals(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_root = root / "skills"
+            source = source_root / "alpha" / "SKILL.md"
+            source.parent.mkdir(parents=True)
+            original = "# Alpha\nReturn a checked result.\n"
+            replacement = original + "\n## Verification\nRun the targeted check and report pass/fail.\n"
+            source.write_text(original, encoding="utf-8")
+            seed = root / "seed.json"
+            seed.write_text(
+                json.dumps({
+                    "schema": "tmcp-skill-fixture-seed-cases-v0.1",
+                    "cases": [{
+                        "source_path": "skills/alpha/SKILL.md",
+                        "case_id": "alpha-case",
+                        "mode": "judgment",
+                        "prompt": "Review this input.",
+                        "bar": "The result is defensible and cites concrete evidence.",
+                        "smells": ["unsupported claim"],
+                    }],
+                }),
+                encoding="utf-8",
+            )
+            output = root / "fixtures"
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(SCAFFOLD),
+                    "--root",
+                    str(source_root),
+                    "--seed-cases",
+                    str(seed),
+                    "--project-root",
+                    str(root),
+                    "--output-dir",
+                    str(output),
+                ],
+                check=True,
+                cwd=ROOT,
+            )
+            manifest_path = output / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            skill_id = manifest["skills"][0]["skill_id"]
+            proposals = root / "proposals"
+            proposals.mkdir()
+            source_hash = __import__("hashlib").sha256(original.encode()).hexdigest()
+            replacement_hash = __import__("hashlib").sha256(replacement.encode()).hexdigest()
+            (proposals / f"{skill_id}.json").write_text(
+                json.dumps({
+                    "schema": "tmcp-skill-fixture-proposals-v0.1",
+                    "skill_id": skill_id,
+                    "source_sha256": source_hash,
+                    "proposals": [
+                        {
+                            "proposal_id": "add-verification-gate",
+                            "status": "approved",
+                            "target": "SKILL.md",
+                            "reason": "Replace vague quality language with an observable check.",
+                            "before_sha256": source_hash,
+                            "after_sha256": replacement_hash,
+                            "replacement": replacement,
+                        },
+                        {
+                            "proposal_id": "unreviewed-follow-up",
+                            "status": "proposed",
+                            "target": "SKILL.md",
+                            "reason": "Not yet reviewed.",
+                            "before_sha256": replacement_hash,
+                            "after_sha256": source_hash,
+                            "replacement": original,
+                        },
+                    ],
+                }),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(APPLY),
+                    str(manifest_path),
+                    "--proposals-dir",
+                    str(proposals),
+                    "--skill-id",
+                    skill_id,
+                ],
+                check=True,
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            report = json.loads(result.stdout)
+            self.assertEqual(report["results"][0]["applied_proposal_ids"], ["add-verification-gate"])
+            self.assertEqual(report["results"][0]["skipped_proposal_ids"], ["unreviewed-follow-up"])
+            candidate = output / manifest["skills"][0]["versions"]["candidate"]["path"]
+            self.assertEqual(candidate.read_text(encoding="utf-8"), replacement)
+            subprocess.run([sys.executable, str(VALIDATE), str(manifest_path)], check=True, cwd=ROOT)
+            prepared = subprocess.run(
+                [
+                    sys.executable,
+                    str(PREPARE),
+                    str(manifest_path),
+                    "--skill-id",
+                    skill_id,
+                    "--output-dir",
+                    str(root / "plans"),
+                ],
+                check=True,
+                cwd=ROOT,
+                env={**__import__("os").environ, "PYTHONPATH": str(ROOT)},
+                capture_output=True,
+                text=True,
+            )
+            prepared_report = json.loads(prepared.stdout)
+            self.assertEqual(prepared_report["candidate_proposals"]["applied_proposal_ids"], ["add-verification-gate"])
 
 
 if __name__ == "__main__":

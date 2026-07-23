@@ -59,6 +59,11 @@ def main() -> None:
         "plans": outputs,
         "model_calls": 0,
         "golden_bar_included_in_plan": False,
+        "candidate_proposals": {
+            "bundle_sha256": skill["versions"]["candidate"].get("proposal_bundle_sha256"),
+            "applied_proposal_ids": skill["versions"]["candidate"].get("applied_proposal_ids", []),
+            "skipped_proposal_ids": skill["versions"]["candidate"].get("skipped_proposal_ids", []),
+        },
         "note": "The plan carries the case prompt; judges must receive the bar separately and never the expected outcome.",
     }, indent=2))
 

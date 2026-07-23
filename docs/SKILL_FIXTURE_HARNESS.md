@@ -16,6 +16,22 @@ python3 scripts/validate_skill_fixtures.py \
   /private/tmp/tmcp-skill-fixtures/run-20260722/manifest.json
 ```
 
+Apply reviewed proposal bundles explicitly; the original copy is never
+modified, and only proposals with `status: "approved"` are applied:
+
+```bash
+python3 scripts/apply_skill_fixture_proposals.py \
+  /private/tmp/tmcp-skill-fixtures/run-20260722/manifest.json \
+  --proposals-dir /path/to/reviewed-proposals \
+  --all
+```
+
+Each `<skill_id>.json` bundle is hash-chained: every proposal names its
+reason, target, review status, exact preceding-content hash, and replacement
+hash. Proposed or rejected entries remain recorded as skipped. A candidate
+that already contains an unrecorded edit is refused unless
+`--replace-candidate` is supplied explicitly.
+
 Each skill receives four version slots:
 
 - `original`: an exact digest-bound snapshot of the source skill;

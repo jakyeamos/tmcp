@@ -72,6 +72,14 @@ def main() -> None:
                 issues.append(f"{prefix}.original does not match source digest")
             if variant == "baseline" and item.get("selection") != "omitted":
                 issues.append(f"{prefix}.baseline must be omitted")
+            if variant == "candidate" and item.get("proposal_bundle_sha256"):
+                proposal_path = (manifest_path.parent / str(item.get("proposal_path", ""))).resolve()
+                if manifest_path.parent not in proposal_path.parents or not proposal_path.is_file():
+                    issues.append(f"{prefix}.candidate proposal bundle is missing or escapes fixture root")
+                elif digest(proposal_path) != item.get("proposal_bundle_sha256"):
+                    issues.append(f"{prefix}.candidate proposal bundle digest is wrong")
+                if not isinstance(item.get("applied_proposal_ids"), list) or not isinstance(item.get("skipped_proposal_ids"), list):
+                    issues.append(f"{prefix}.candidate proposal application lists are invalid")
         cases = skill.get("cases") or []
         if cases:
             ready += 1
