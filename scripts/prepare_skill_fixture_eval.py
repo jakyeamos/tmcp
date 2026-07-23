@@ -61,6 +61,7 @@ def main() -> None:
         "golden_bar_included_in_plan": False,
         "candidate_proposals": {
             "bundle_sha256": skill["versions"]["candidate"].get("proposal_bundle_sha256"),
+            "application_mode": skill["versions"]["candidate"].get("proposal_application_mode"),
             "applied_proposal_ids": skill["versions"]["candidate"].get("applied_proposal_ids", []),
             "skipped_proposal_ids": skill["versions"]["candidate"].get("skipped_proposal_ids", []),
         },

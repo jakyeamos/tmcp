@@ -80,6 +80,8 @@ def main() -> None:
                     issues.append(f"{prefix}.candidate proposal bundle digest is wrong")
                 if not isinstance(item.get("applied_proposal_ids"), list) or not isinstance(item.get("skipped_proposal_ids"), list):
                     issues.append(f"{prefix}.candidate proposal application lists are invalid")
+                if item.get("proposal_application_mode") not in {"approved", "experimental"}:
+                    issues.append(f"{prefix}.candidate proposal application mode is invalid")
         cases = skill.get("cases") or []
         if cases:
             ready += 1

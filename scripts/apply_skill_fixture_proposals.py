@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply explicitly approved, hash-chained skill proposals to candidates."""
+"""Apply approved or explicitly experimental hash-chained proposals to candidates."""
 
 from __future__ import annotations
 
@@ -57,6 +57,7 @@ def apply_bundle(
     skill: dict[str, Any],
     bundle_path: Path,
     replace_candidate: bool,
+    include_proposed: bool,
 ) -> dict[str, Any]:
     skill_id = str(skill["skill_id"])
     source_sha256 = str(skill["source_sha256"])
@@ -80,6 +81,7 @@ def apply_bundle(
             "bundle_sha256": bundle_sha256,
             "applied_proposal_ids": candidate_info.get("applied_proposal_ids", []),
             "skipped_proposal_ids": candidate_info.get("skipped_proposal_ids", []),
+            "application_mode": candidate_info.get("proposal_application_mode", "approved"),
             "changed": False,
         }
     if candidate_digest != source_sha256 and not replace_candidate:
@@ -93,7 +95,10 @@ def apply_bundle(
     skipped: list[str] = []
     for proposal in payload["proposals"]:
         proposal_id = str(proposal["proposal_id"])
-        if proposal["status"] != "approved":
+        allowed = proposal["status"] == "approved" or (
+            include_proposed and proposal["status"] == "proposed"
+        )
+        if not allowed:
             skipped.append(proposal_id)
             continue
         if proposal["before_sha256"] != current_sha256:
@@ -114,11 +119,13 @@ def apply_bundle(
     candidate_info["proposal_path"] = str(proposal_copy.relative_to(manifest_path.parent))
     candidate_info["applied_proposal_ids"] = applied
     candidate_info["skipped_proposal_ids"] = skipped
+    candidate_info["proposal_application_mode"] = "experimental" if include_proposed else "approved"
     return {
         "skill_id": skill_id,
         "bundle_sha256": bundle_sha256,
         "applied_proposal_ids": applied,
         "skipped_proposal_ids": skipped,
+        "application_mode": candidate_info["proposal_application_mode"],
         "changed": True,
     }
 
@@ -130,6 +137,11 @@ def main() -> None:
     parser.add_argument("--skill-id", action="append", default=[])
     parser.add_argument("--all", action="store_true", help="apply every proposal bundle found")
     parser.add_argument("--replace-candidate", action="store_true")
+    parser.add_argument(
+        "--include-proposed",
+        action="store_true",
+        help="apply proposed entries to a disposable experimental candidate; never a promotion",
+    )
     args = parser.parse_args()
     if not args.all and not args.skill_id:
         raise SystemExit("select skills with --skill-id or use --all")
@@ -148,7 +160,15 @@ def main() -> None:
         bundle = args.proposals_dir / f"{skill_id}.json"
         if not bundle.is_file():
             raise SystemExit(f"missing proposal bundle for {skill_id}: {bundle}")
-        results.append(apply_bundle(manifest_path, skills[skill_id], bundle, args.replace_candidate))
+        results.append(
+            apply_bundle(
+                manifest_path,
+                skills[skill_id],
+                bundle,
+                args.replace_candidate,
+                args.include_proposed,
+            )
+        )
     manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
         "schema": "tmcp-skill-fixture-proposal-application-v0.1",

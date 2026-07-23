@@ -66,6 +66,7 @@
         "content_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "proposal_bundle_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "proposal_path": {"type": "string", "minLength": 1},
+        "proposal_application_mode": {"enum": ["approved", "experimental"]},
         "applied_proposal_ids": {"type": "array", "items": {"type": "string"}},
         "skipped_proposal_ids": {"type": "array", "items": {"type": "string"}}
       }

@@ -38,6 +38,19 @@ python3 scripts/apply_skill_fixture_proposals.py \
   --all
 ```
 
+For the pre-review experiment, apply all `proposed` entries to the disposable
+candidate and label the run experimental:
+
+```bash
+python3 scripts/apply_skill_fixture_proposals.py \
+  /private/tmp/tmcp-skill-fixtures/run-20260722/manifest.json \
+  --proposals-dir /private/tmp/tmcp-skill-fixtures/run-20260722/proposals-review \
+  --all --include-proposed
+```
+
+This is the correct path for establishing the original-vs-proposal numeric
+baseline. It does not approve or promote any rewrite.
+
 Each `<skill_id>.json` bundle is hash-chained: every proposal names its
 reason, target, review status, exact preceding-content hash, and replacement
 hash. Proposed or rejected entries remain recorded as skipped. A candidate

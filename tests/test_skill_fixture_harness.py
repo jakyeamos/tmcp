@@ -254,6 +254,25 @@ class SkillFixtureHarnessTests(unittest.TestCase):
             self.assertEqual(bundle["proposals"][0]["status"], "proposed")
             candidate = output / manifest["skills"][0]["versions"]["candidate"]["path"]
             self.assertEqual(candidate.read_text(encoding="utf-8"), source.read_text(encoding="utf-8"))
+            experimental = subprocess.run(
+                [
+                    sys.executable,
+                    str(APPLY),
+                    str(manifest_path),
+                    "--proposals-dir",
+                    str(proposals_dir),
+                    "--all",
+                    "--include-proposed",
+                ],
+                check=True,
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            experiment_report = json.loads(experimental.stdout)
+            self.assertEqual(experiment_report["results"][0]["application_mode"], "experimental")
+            self.assertNotEqual(candidate.read_text(encoding="utf-8"), source.read_text(encoding="utf-8"))
+            subprocess.run([sys.executable, str(VALIDATE), str(manifest_path)], check=True, cwd=ROOT)
 
 
 if __name__ == "__main__":
