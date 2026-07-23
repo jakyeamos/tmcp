@@ -14,11 +14,11 @@ so active-phase inputs, produced handoffs, covered criteria, gates, and concrete
 phase outputs remain visible without loading deferred skill bodies. The final
 paired v8 campaign validates all 540 host and blind-judge cells: synergy
 `+0.1798` and order `+0.3510` pass, while compiler lift `+0.0032` misses the
-`+0.05` gate. `267c975` now compacts prior phase handoffs into quote-only
-capsules while retaining the current phase's complete bounded envelope; run a
-bounded host/judge pilot to measure whether this lowers context and improves
-the migration/diagnose compiler gap before any independent rejudge, receipt,
-promotion, or release decision.
+`+0.05` gate. `267c975`'s first capsule budget was too aggressive: the paired
+v11 campaign still passed synergy/order but compiler lift fell to `-0.129`.
+`7905fe8` raises prior-phase evidence budgets while retaining deduplication;
+rerun the paired campaign before any independent rejudge, receipt, promotion,
+or release decision.
 
 ## Milestone
 
@@ -150,6 +150,10 @@ no receipt, promotion, or release claim.
 deliverables, handoffs, gates, and gaps while the current phase retains its
 complete envelope. Focused phase tests and Ruff pass; campaign impact is
 unmeasured and no receipt, promotion, or release claim was made.
+`7905fe8` retains richer prior-phase matrices and handoff contracts within the
+same compact renderer. Focused tests and Ruff pass; the v11 paired campaign
+found the initial capsule budget regressed compiler lift, so its artifacts are
+diagnostic only and no receipt, promotion, or release claim was made.
 **Started:** 2026-07-17
 
 ## Active Phase
