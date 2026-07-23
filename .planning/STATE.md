@@ -174,7 +174,7 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.7.json`; it reports
   the schema-primed measurement and remains useful only for comparison. This
   is still not corpus-wide proof.
-- The evaluator now makes the generated output contract explicit: the final
+- `b12fd06` makes the generated output contract explicit: the final
   response must include labeled Sources inspected, Skipped sources and why,
   Verification results, and Next actions fields. The neutral-format candidate
   rejudge is 3/3 after this change. The authoritative v0.9 baseline is
