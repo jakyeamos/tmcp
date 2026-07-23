@@ -197,6 +197,39 @@ naïve `0.458`. Both comparisons are non-paired single cells from an incomplete
 prioritizing handoff quality only, not for a causal lift, receipt, promotion, or
 release claim. No receipt was recorded.
 
+### Authorized machine-readable phase-gate calibration (2026-07-22)
+
+The next bounded calibration kept the handoff envelope and made the external
+runner parse each `EXIT_GATE` status before hydrating the next phase. A phase
+worker receives only its current-stage sources when the preceding status is
+`PASS`; after `FAIL`, `BLOCKED`, or an unparseable gate it receives a blocked
+handoff without deferred skill bodies. This mirrors the tracked runtime's
+active/deferred safety boundary.
+
+- campaign: `composition-lift-campaign-91b9f99de690ec4cc908`
+- campaign digest: `91b9f99de690ec4cc9089cbed3a4d785c77df82391ee7d0c9ab7bda5ebf39592`
+- host cells: 15/15, SHA-256
+  `874ea953a9ca3a84bd3cd3e4c4339c45ede41116d7f6064c8e2e38c1ba85f657`
+- blind-judge cells: 15/15, SHA-256
+  `e37f7d7954ec36a676250f6ec44147cfdf1964252c4bd1b8591c34542cf9dc22`
+- output directory: `/private/tmp/tmcp-composition-next2/.tmp/lift-next2/calibration-phase-gates-v6`
+- observed full-composition gate traces: migration `FAIL -> BLOCKED ->
+  BLOCKED -> BLOCKED`; diagnose `PASS -> PASS -> FAIL -> BLOCKED`
+- directional spot quality: migration `0.633` full versus `0.813` naive;
+  diagnose `0.345` full versus `0.405` naive
+
+The safety result is positive: deferred bodies were not activated after a
+failed or blocked gate, and wrong-order controls stayed blocked after their
+first phase. The quality result exposes a benchmark-design tension rather than
+an excuse to weaken the gate: the current migration fixture intentionally
+withholds production-scale evidence, so strict advancement stops later
+assessment skills while its rubric still rewards a complete downstream matrix.
+The next slice must make this distinction explicit—separating hard execution
+advancement from source-backed reporting/assessment continuation, or revising
+the fixture graph so a failed readiness gate is genuinely a prerequisite. This
+15/540 subset is unpaired diagnostic evidence; the full scorer rejects it. No
+receipt, promotion, or release claim was made.
+
 ### Authorized external-run pilot (2026-07-21)
 
 After explicit authorization, one runner dispatch and its independent blind

@@ -9,8 +9,9 @@ file boundaries and a coherent agent-facing workflow.
 **Current focus:** Close the phase-aware campaign's compiler/context gap and
 synergy shortfall, then obtain replicated rejudge and full release-gate proof;
 0.6.0 remains blocked until every preregistered gate passes. The typed phase
-envelope now retains every present handoff heading under the runner bound; the
-next slice improves migration/diagnose quality before any full rerun.
+envelope now retains every present handoff heading and external gate parsing
+mirrors active/deferred hydration. The next slice distinguishes hard execution
+advancement from source-backed reporting continuation before another full rerun.
 
 ## Milestone
 
@@ -83,6 +84,16 @@ the observed spot pair (`0.782` full vs `0.744` naive), while diagnose declined
 (`0.357` vs `0.458`); the subset is unpaired and remains diagnostic only. The
 pre-CR hook again timed out at 90 seconds before readiness completed.
 
+`8f464e4` makes the phase envelope's `EXIT_GATE` machine-readable and blocks
+external deferred-skill hydration after `FAIL`, `BLOCKED`, or unknown status.
+The authorized v6 calibration completed 15 host and 15 judge cells with raw
+digests `874ea953…` and `e37f7d79…`; migration traced `FAIL -> BLOCKED ->
+BLOCKED -> BLOCKED`, while diagnose traced `PASS -> PASS -> FAIL -> BLOCKED`.
+This confirms gate parity and safety, but strict blocking lowered the observed
+spot quality because the migration rubric rewards downstream assessment despite
+fixture-supplied readiness gaps. The subset is diagnostic only; no receipt,
+promotion, or release claim was made.
+
 `44911f0` pins the current no-call campaign handoff after
 `4c634e4` recorded the proposal-activation delta diagnostic and the
 held dogfooded guidebook pattern. The branch also carries the independent-rejudge
@@ -147,6 +158,12 @@ unproven.
   are recorded in `docs/COMPOSITION_BENCHMARK.md`; its directional scores do
   not establish a paired lift, receipt, promotion, or release claim. The next
   audit checks that external phase advancement mirrors runtime gate enforcement.
+  `8f464e4` closes the external gate-parity gap: machine-readable `EXIT_GATE`
+  parsing now suppresses deferred bodies after failed or blocked phases. The v6
+  trace is recorded in `docs/COMPOSITION_BENCHMARK.md`; it confirms safety but
+  reveals a fixture/evaluator tension between hard execution gates and useful
+  downstream assessment. Resolve that semantic distinction before re-running
+  the full campaign.
   The known repository pre-CR hook still times out at 90 seconds while the
   readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
   not a reason to weaken TMCP verification.
