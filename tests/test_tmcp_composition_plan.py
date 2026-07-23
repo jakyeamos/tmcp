@@ -121,6 +121,37 @@ class CompositionPlanTests(unittest.TestCase):
             "normalized_source_content_typed_relationships_and_declared_dependencies",
         )
 
+    def test_exact_exit_gate_match_infers_source_backed_criterion_coverage(self) -> None:
+        preflight, proposal = self._build_fixture()
+        proposal["skill_roles"][2]["covers"] = []
+
+        plan = ci.build_composition_plan(proposal, preflight)
+
+        criterion = "Verification passes"
+        self.assertEqual(plan["coverage"]["covered_criteria"], [criterion])
+        self.assertEqual(plan["coverage"]["uncovered_criteria"], [])
+        selection = plan["composition_diagnostics"]["subgraph_selection"]
+        self.assertEqual(
+            selection["inferred_role_coverage"],
+            [
+                {
+                    "node_id": "verify",
+                    "criterion": criterion,
+                    "exit_gate": criterion,
+                    "basis": "exact_source_cited_exit_gate_match",
+                    "citations": [proposal["skill_roles"][2]["citations"][0]],
+                }
+            ],
+        )
+        bridge = next(
+            bridge
+            for stage in plan["ordered_stages"]
+            for bridge in stage["bridge_instructions"]
+            if bridge["node_id"] == "verify"
+        )
+        self.assertEqual(bridge["covered_criteria"], [criterion])
+        self.assertIn("cover Verification passes", bridge["instruction"])
+
     def test_same_phase_successor_stays_deferred_until_its_handoff_gate(self) -> None:
         preflight, proposal = self._build_fixture()
         proposal["skill_roles"][2]["phase_affinity"] = ["implementation"]

@@ -54,15 +54,21 @@ def _bridge_instruction(role: dict[str, Any], source: dict[str, Any]) -> dict[st
     inputs = "; ".join(string_list(role.get("inputs")))
     outputs = "; ".join(string_list(role.get("outputs")))
     gates = "; ".join(string_list(role.get("exit_gates")))
+    covered_criteria = ordered_unique(string_list(role.get("covers")))
+    coverage_clause = (
+        f"cover {'; '.join(covered_criteria)}; " if covered_criteria else ""
+    )
     return {
         "node_id": node_id,
         "role": role_name,
         "required_inputs": ordered_unique(string_list(role.get("inputs"))),
         "produced_outputs": ordered_unique(string_list(role.get("outputs"))),
         "exit_gates": ordered_unique(string_list(role.get("exit_gates"))),
+        "covered_criteria": covered_criteria,
         "handoff_ids": [],
         "instruction": (
-            f"Apply {role_name} using {inputs}; produce {outputs} as a named handoff; "
+            f"Apply {role_name} using {inputs}; {coverage_clause}"
+            f"produce {outputs} as a named handoff; "
             "preserve source-backed evidence and label host-executed checks separately; "
             f"exit when {gates}."
         ),

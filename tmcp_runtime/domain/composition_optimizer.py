@@ -138,6 +138,59 @@ def _role_terms(role: Mapping[str, Any]) -> set[str]:
     )
 
 
+def _canonical_label(value: object) -> str:
+    """Normalize a human-readable task label for exact semantic matching."""
+
+    return re.sub(r"\s+", " ", str(value or "").strip().casefold())
+
+
+def _infer_role_coverage(
+    roles: list[dict[str, Any]],
+    success_criteria: list[str],
+) -> list[dict[str, Any]]:
+    """Promote exact, source-cited exit gates into explicit criterion coverage.
+
+    Hosts frequently describe the same obligation as a role exit gate without
+    repeating it in ``covers``. Exact matching keeps this deterministic and
+    conservative: the compiler does not invent capabilities or use fuzzy
+    task-language similarity. The role's existing citations carry the source
+    provenance for the inferred coverage.
+    """
+
+    criteria_by_label = {
+        _canonical_label(criterion): criterion
+        for criterion in success_criteria
+        if _canonical_label(criterion)
+    }
+    inferences: list[dict[str, Any]] = []
+    for role in roles:
+        explicit = ordered_unique(string_list(role.get("covers")))
+        inferred: list[str] = []
+        for gate in string_list(role.get("exit_gates")):
+            criterion = criteria_by_label.get(_canonical_label(gate))
+            if criterion and criterion not in explicit and criterion not in inferred:
+                inferred.append(criterion)
+        if not inferred:
+            role["covers"] = explicit
+            continue
+        role["covers"] = ordered_unique([*explicit, *inferred])
+        inferences.extend(
+            {
+                "node_id": str(role.get("node_id") or ""),
+                "criterion": criterion,
+                "exit_gate": next(
+                    gate
+                    for gate in string_list(role.get("exit_gates"))
+                    if criteria_by_label.get(_canonical_label(gate)) == criterion
+                ),
+                "basis": "exact_source_cited_exit_gate_match",
+                "citations": ordered_unique(string_list(role.get("citations"))),
+            }
+            for criterion in inferred
+        )
+    return inferences
+
+
 def _best_role_for_target(
     target: str,
     roles: list[dict[str, Any]],
@@ -217,6 +270,10 @@ def optimize_semantic_subgraph(
     for role in roles:
         node_id = str(role.get("node_id") or "")
         role["context_cost"] = source_context_costs.get(node_id, 1)
+    task_model = optimized.get("task_model")
+    task = task_model if isinstance(task_model, Mapping) else {}
+    criteria = string_list(task.get("success_criteria"))
+    inferred_role_coverage = _infer_role_coverage(roles, criteria)
     edges = [
         dict(item)
         for item in json_list(optimized.get("relationships"))
@@ -261,8 +318,6 @@ def optimize_semantic_subgraph(
         if str(edge.get("from")) in available_ids
         and str(edge.get("to")) in available_ids
     ]
-    task_model = optimized.get("task_model")
-    task = task_model if isinstance(task_model, Mapping) else {}
     coverage = optimized.get("coverage")
     coverage_map = coverage if isinstance(coverage, Mapping) else {}
     task_targets = ordered_unique(
@@ -389,6 +444,7 @@ def optimize_semantic_subgraph(
         "dependency_edge_count": len(dependency_edges),
         "verification_edge_count": len(verification_edges),
         "complementarity_edge_count": len(complement_edges),
+        "inferred_role_coverage": inferred_role_coverage,
         "required_dependency_closure_preserved": all(
             predecessor in selected_ids
             for successor in selected_ids
