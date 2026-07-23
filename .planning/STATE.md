@@ -115,6 +115,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - `a46d08f` adds an explicit-target approval fixture and keeps the ambiguous
   no-target case as a refusal control, enabling a discriminating paired
   behavior baseline instead of relying on static findings alone.
+- The first subscription-backed `gpt-5.5` low-reasoning paired run scored the
+  original 2/6 and experimental candidate 3/6 across the two cases; the
+  explicit-target case improved 2/3 to 3/3, while the refusal control tied 0/3.
+  Full traces and the independent judge are recorded in the ephemeral baseline
+  artifact `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.1.json`.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
