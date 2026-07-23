@@ -17,8 +17,10 @@ paired v8 campaign validates all 540 host and blind-judge cells: synergy
 `+0.05` gate. `267c975`'s first capsule budget was too aggressive: the paired
 v11 campaign still passed synergy/order but compiler lift fell to `-0.129`.
 `7905fe8` raises prior-phase evidence budgets while retaining deduplication;
-rerun the paired campaign before any independent rejudge, receipt, promotion,
-or release decision.
+the paired v12 campaign improved compiler lift to `-0.0765` but still missed,
+and synergy fell to `+0.089`. `913f138` preserves larger evidence matrices in
+prior capsules; rerun the paired campaign before any independent rejudge,
+receipt, promotion, or release decision.
 
 ## Milestone
 
@@ -154,6 +156,10 @@ unmeasured and no receipt, promotion, or release claim was made.
 same compact renderer. Focused tests and Ruff pass; the v11 paired campaign
 found the initial capsule budget regressed compiler lift, so its artifacts are
 diagnostic only and no receipt, promotion, or release claim was made.
+`913f138` raises prior-phase capsule capacity to retain measured migration,
+research, and diagnose matrices. Focused tests and Ruff pass; the v12 campaign
+remains diagnostic because compiler and synergy thresholds still fail. No
+receipt, promotion, or release claim was made.
 **Started:** 2026-07-17
 
 ## Active Phase
