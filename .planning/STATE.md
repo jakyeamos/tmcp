@@ -11,12 +11,11 @@ synergy shortfall, then obtain replicated rejudge and full release-gate proof;
 0.6.0 remains blocked until every preregistered gate passes. `349cc0b` now
 renders typed bridge obligations and a quote-only cumulative deliverable index,
 so active-phase inputs, produced handoffs, covered criteria, gates, and concrete
-phase outputs remain visible without loading deferred skill bodies. The full v8
-campaign completed 540 host and 540 blind-judge cells, but the first scoring
-attempt found six cumulative artifacts over the 16,000-character contract
-ceiling. `e3df95e` bounds the default cumulative renderer to 15,000 characters;
-rerun deterministic scoring and record the resulting lift eligibility before
-independent rejudge, receipt, promotion, or release decisions.
+phase outputs remain visible without loading deferred skill bodies. The final
+paired v8 campaign validates all 540 host and blind-judge cells: synergy
+`+0.1798` and order `+0.3510` pass, while compiler lift `+0.0032` misses the
+`+0.05` gate. Diagnose the compiler shortfall before any independent rejudge,
+receipt, promotion, or release decision.
 
 ## Milestone
 
@@ -139,6 +138,11 @@ first scorer pass rejected a legitimate `handoff=component-handoff-ui-architectu
 index label as high-entropy text. `2c9b3f8` changes that label to colon syntax and
 adds a safety regression; the campaign must be regenerated for a clean paired
 artifact. No receipt, promotion, or release claim was made.
+`8eb24ba` adds the narrowly scoped uppercase `_Vn` identifier exemption needed
+to validate versioned handoff constants without weakening opaque-token checks.
+The regenerated paired v8 campaign now scores as real host/evaluator evidence:
+synergy and order pass, compiler lift fails; it remains diagnostic and produced
+no receipt, promotion, or release claim.
 **Started:** 2026-07-17
 
 ## Active Phase
