@@ -272,6 +272,46 @@ unpaired, so no synergy, compiler, or order-lift claim is made. No receipt,
 promotion, or release claim was recorded. The complete paired campaign and
 independent rejudge remain required.
 
+### Authorized bridge-obligation and cumulative-index calibrations (2026-07-22)
+
+The next bounded checks measured two presentation fixes against the same
+content-bound campaign/control plan. The first made each active phase's required
+input, produced handoff, covered criterion, exit gate, and source citation
+explicit in the phase contract. The second added a deterministic quote-only
+cumulative deliverable index before the phase bodies so a composed packet keeps
+its concrete diagnosis, fix, regression, and release outputs legible without
+inventing execution evidence.
+
+- campaign: `composition-lift-campaign-756054f78e2589944a3f`
+- campaign digest: `756054f78e2589944a3fe46fc784d3890a97c5641e1bbcc39c443515d83d2fa9`
+- control plan: `benchmark-control-c189f4c3bff573a2008aa0`
+- v8 host/judge artifacts: 15/15 each, SHA-256
+  `4d52b114832ed9c73592dc279f0e69540cb523a9778532142162152de1d13493` and
+  `bdc71b11621622401ebd0cbbe059bccd50e1cfb3fe8c5d1ee0d3646d95e78895`
+- v9 typed-obligation artifacts: 15/15 each, SHA-256
+  `1b0e6459b09d9364a1a470d2be086176da8520700acf6b2af4fad3acd9606fc7` and
+  `f90e079cd72c4ef331dfc81be4ed9f305c60a2ccf4a880566ec91fdf482ddaa9`
+- v10 cumulative-index artifacts: 15/15 each, SHA-256
+  `d0ada84ca479ab395d2cff9703d872e21f3591c3be22c372afd26eb0da79ef0c` and
+  `4ccfbf1d05864894ab90ae24d6f292374eb251df47c2fae6132b748ac708ee54`
+
+The v10 spot scores (one unpaired cell per arm and fixture) were:
+
+| fixture | naive union | full composition | wrong order |
+| --- | ---: | ---: | ---: |
+| UI/product | 0.533 | 0.580 | 0.315 |
+| migration/data | 0.200 | 0.843 | 0.710 |
+| agent workflow | 0.878 | 0.953 | 0.673 |
+| research -> writing -> review | 0.893 | 0.748 | 0.048 |
+| diagnose -> fix -> regression | 0.405 | 0.370 | 0.070 |
+
+These values are directional only: the 15/540 subset is unpaired, model
+sampling varies between cells, and the full scorer rejects it as incomplete.
+The index materially improved the migration and agent handoffs and narrowed the
+diagnose gap, but diagnose remains the next quality target. No receipt,
+promotion, causal lift, or release claim was recorded; the full paired campaign
+and independent rejudge remain required.
+
 ### Authorized external-run pilot (2026-07-21)
 
 After explicit authorization, one runner dispatch and its independent blind

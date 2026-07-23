@@ -8,16 +8,14 @@ See: `.planning/PROJECT.md` (updated 2026-07-11)
 file boundaries and a coherent agent-facing workflow.
 **Current focus:** Close the phase-aware campaign's compiler/context gap and
 synergy shortfall, then obtain replicated rejudge and full release-gate proof;
-0.6.0 remains blocked until every preregistered gate passes. The typed phase
-envelope now retains every present handoff heading and external gate parsing
-mirrors active/deferred hydration. `9914ed7` now distinguishes hard execution
-advancement from source-backed reporting continuation while preserving typed
-handoff blocking. Improve migration/diagnose bridge quality before another full
-rerun. `c9b3beb` now deterministically promotes exact source-cited role exit
-gates into success-criterion coverage and renders those criteria in bridge
-instructions; focused and benchmark contract tests pass. Regenerate the
-control/campaign artifacts and rerun a bounded calibration before making any
-lift claim.
+0.6.0 remains blocked until every preregistered gate passes. `349cc0b` now
+renders typed bridge obligations and a quote-only cumulative deliverable index,
+so active-phase inputs, produced handoffs, covered criteria, gates, and concrete
+phase outputs remain visible without loading deferred skill bodies. The v10
+15-cell calibration improved migration and agent directional scores but left
+diagnose slightly below naïve union; it is unpaired diagnostic evidence only.
+Run the full v8 campaign next, then independently rejudge before any receipt,
+promotion, or release decision.
 
 ## Milestone
 
@@ -127,6 +125,12 @@ provenance, and includes covered criteria in each bridge instruction. Five
 behavioral fixture plans now report complete criterion coverage with no
 process-only roles. Contract and benchmark tests pass; no calibration, receipt,
 promotion, or release claim was made.
+
+`349cc0b` makes the phase handoff contract render typed bridge obligations and
+adds a quote-only cumulative deliverable index for multi-phase artifacts. Focused
+phase/plan/runtime tests and Ruff pass. The authorized v8-v10 bounded artifacts
+are recorded in `docs/COMPOSITION_BENCHMARK.md`; they remain unpaired and do not
+support lift, receipt, promotion, or release claims.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -192,6 +196,11 @@ promotion, or release claim was made.
   compiler-side coverage/bridge gap using exact source-cited exit-gate matches;
   next regenerate and run the bounded calibration to measure whether the
   improved handoffs affect migration/diagnose quality.
+  `349cc0b` now makes the bridge's typed inputs/outputs/criteria/gates explicit
+  and prefixes composed phase artifacts with a provenance-preserving cumulative
+  deliverable index. The v10 spot run improved migration and agent quality but
+  diagnose remains slightly below naïve union; no causal claim follows. The
+  full v8 campaign and independent rejudge are the next evidence actions.
   The known repository pre-CR hook still times out at 90 seconds while the
   readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
   not a reason to weaken TMCP verification.
