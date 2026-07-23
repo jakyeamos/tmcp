@@ -205,7 +205,8 @@ def phase_handoff_requirements(
             evidence_index_text(task_context),
             "Required handoff envelope headings:",
             "PHASE_RESULT; STATUS; INPUT_HANDOFF; DELIVERABLES; EVIDENCE_BOUNDARY; "
-            "PRODUCED_HANDOFF; EXIT_GATE; NEXT_ENTRY; UNRESOLVED_GAPS",
+            "PRODUCED_HANDOFF; EXIT_GATE: PASS|FAIL|BLOCKED; NEXT_ENTRY; "
+            "UNRESOLVED_GAPS",
         ]
     )
 
@@ -247,6 +248,20 @@ def _phase_sections(artifact: str) -> tuple[str, list[tuple[str, str, str]]]:
             (current_heading, current_suffix, "\n".join(current_body).strip())
         )
     return "\n".join(preamble).strip(), sections
+
+
+def phase_exit_gate_status(artifact: str) -> str:
+    """Return the first machine-readable exit-gate status from a phase artifact."""
+
+    _preamble, sections = _phase_sections(artifact)
+    for heading, suffix, body in sections:
+        if heading != "EXIT_GATE":
+            continue
+        candidate = suffix or body
+        match = re.search(r"\b(PASS|FAIL|BLOCKED)\b", candidate, re.IGNORECASE)
+        if match:
+            return match.group(1).casefold()
+    return "unknown"
 
 
 def _bounded_phase_sections(

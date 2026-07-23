@@ -5,6 +5,7 @@ import unittest
 from tmcp_runtime.domain.composition_lift_phase import (
     bound_phase_artifact,
     handoff_contract_text,
+    phase_exit_gate_status,
     phase_contract_text,
     phase_handoff_requirements,
 )
@@ -111,6 +112,21 @@ Output contract:
         self.assertLessEqual(len(bounded), 900)
         self.assertIn("STATUS: COMPLETE", bounded)
         self.assertIn("EXIT_GATE: PASS", bounded)
+
+    def test_phase_exit_gate_status_is_deterministic(self) -> None:
+        self.assertEqual(
+            phase_exit_gate_status("EXIT_GATE: PASS\nEvidence is complete."),
+            "pass",
+        )
+        self.assertEqual(
+            phase_exit_gate_status("EXIT_GATE\nreadiness risks: FAIL."),
+            "fail",
+        )
+        self.assertEqual(
+            phase_exit_gate_status("EXIT_GATE: BLOCKED\nMissing handoff."),
+            "blocked",
+        )
+        self.assertEqual(phase_exit_gate_status("STATUS: PASS"), "unknown")
 
 
 if __name__ == "__main__":
