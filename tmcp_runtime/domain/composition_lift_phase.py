@@ -8,10 +8,36 @@ deterministic and independently testable.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 
 
 DEFAULT_PHASE_ARTIFACT_LIMIT = 4000
+_PHASE_HEADINGS = (
+    "PHASE_RESULT",
+    "STATUS",
+    "INPUT_HANDOFF",
+    "DELIVERABLES",
+    "EVIDENCE_BOUNDARY",
+    "PRODUCED_HANDOFF",
+    "EXIT_GATE",
+    "NEXT_ENTRY",
+    "UNRESOLVED_GAPS",
+)
+_PHASE_HEADING_RE = re.compile(
+    rf"^({'|'.join(map(re.escape, _PHASE_HEADINGS))})(?::\s*(.*))?$"
+)
+_SECTION_BUDGETS = {
+    "PHASE_RESULT": 300,
+    "STATUS": 220,
+    "INPUT_HANDOFF": 360,
+    "DELIVERABLES": 500,
+    "EVIDENCE_BOUNDARY": 300,
+    "PRODUCED_HANDOFF": 500,
+    "EXIT_GATE": 500,
+    "NEXT_ENTRY": 300,
+    "UNRESOLVED_GAPS": 500,
+}
 
 
 def _mapping(value: object) -> Mapping[str, object] | None:
@@ -184,6 +210,85 @@ def phase_handoff_requirements(
     )
 
 
+def _compact_text(text: str, budget: int) -> str:
+    if len(text) <= budget:
+        return text
+    marker = "\n[section body elided]\n"
+    if budget <= len(marker) + 2:
+        return text[:budget]
+    available = budget - len(marker)
+    head_limit = available // 2
+    tail_limit = available - head_limit
+    return text[:head_limit].rstrip() + marker + text[-tail_limit:].lstrip()
+
+
+def _phase_sections(artifact: str) -> tuple[str, list[tuple[str, str, str]]]:
+    preamble: list[str] = []
+    sections: list[tuple[str, str, str]] = []
+    current_heading = ""
+    current_suffix = ""
+    current_body: list[str] = []
+    for line in artifact.splitlines():
+        match = _PHASE_HEADING_RE.match(line.strip())
+        if match:
+            if current_heading:
+                sections.append(
+                    (current_heading, current_suffix, "\n".join(current_body).strip())
+                )
+            current_heading = match.group(1)
+            current_suffix = str(match.group(2) or "").strip()
+            current_body = []
+        elif current_heading:
+            current_body.append(line)
+        else:
+            preamble.append(line)
+    if current_heading:
+        sections.append(
+            (current_heading, current_suffix, "\n".join(current_body).strip())
+        )
+    return "\n".join(preamble).strip(), sections
+
+
+def _bounded_phase_sections(
+    preamble: str,
+    sections: list[tuple[str, str, str]],
+    *,
+    limit: int,
+) -> str:
+    fixed_parts = [
+        (heading + (f": {suffix}" if suffix else ""))
+        for heading, suffix, _body in sections
+    ]
+    fixed_length = (
+        sum(len(part) for part in fixed_parts)
+        + sum(1 for _heading, _suffix, body in sections if body)
+        + max(0, (len(fixed_parts) - 1) * 2)
+    )
+    preamble_budget = min(len(preamble), 160) if preamble else 0
+    if preamble_budget:
+        fixed_length += preamble_budget + 2
+    available = max(0, limit - fixed_length)
+    desired = [
+        _SECTION_BUDGETS.get(heading, 280) for heading, _suffix, _body in sections
+    ]
+    minimum = 16 * len(sections)
+    if available < minimum:
+        return ""
+    budgets = [min(value, available) for value in desired]
+    while sum(budgets) > available:
+        index = max(range(len(budgets)), key=lambda item: budgets[item])
+        if budgets[index] <= 16:
+            break
+        budgets[index] -= 1
+    parts: list[str] = []
+    if preamble:
+        parts.append(_compact_text(preamble, preamble_budget))
+    for (heading, suffix, body), budget in zip(sections, budgets, strict=True):
+        title = heading + (f": {suffix}" if suffix else "")
+        parts.append(title if not body else f"{title}\n{_compact_text(body, budget)}")
+    return "\n\n".join(parts)
+
+
 def bound_phase_artifact(
     artifact: str, *, limit: int = DEFAULT_PHASE_ARTIFACT_LIMIT
 ) -> str:
@@ -198,6 +303,15 @@ def bound_phase_artifact(
     available = limit - len(marker)
     if available < 2:
         raise ValueError("phase artifact limit is too small for the elision marker")
+    preamble, sections = _phase_sections(normalized)
+    if sections:
+        bounded = _bounded_phase_sections(
+            preamble,
+            sections,
+            limit=limit,
+        )
+        if bounded and len(bounded) <= limit:
+            return bounded
     head_limit = available // 2
     tail_limit = available - head_limit
     head = normalized[:head_limit].rstrip()

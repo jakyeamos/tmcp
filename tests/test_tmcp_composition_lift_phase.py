@@ -79,6 +79,26 @@ Output contract:
         self.assertIn("EXIT_GATE: PASS", bounded)
         self.assertIn("elided", bounded)
 
+    def test_bounded_phase_envelope_preserves_present_headings(self) -> None:
+        headings = (
+            "PHASE_RESULT",
+            "STATUS",
+            "INPUT_HANDOFF",
+            "DELIVERABLES",
+            "EVIDENCE_BOUNDARY",
+            "PRODUCED_HANDOFF",
+            "EXIT_GATE",
+            "NEXT_ENTRY",
+            "UNRESOLVED_GAPS",
+        )
+        artifact = "\n\n".join(
+            f"{heading}\n" + (f"{heading.lower()} detail " * 80) for heading in headings
+        )
+        bounded = bound_phase_artifact(artifact, limit=900)
+        self.assertLessEqual(len(bounded), 900)
+        for heading in headings:
+            self.assertEqual(bounded.count(heading), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
