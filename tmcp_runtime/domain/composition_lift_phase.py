@@ -248,6 +248,10 @@ def phase_handoff_requirements(
             "\n".join(f"- {condition}" for condition in entry_conditions) or "- none",
             "Available fixture evidence identifiers (cite these inline; not host execution):",
             evidence_index_text(task_context),
+            "Evidence-bearing output rules:",
+            "- Enumerate every material state, path, claim, or gate required by the active source contract; do not replace a matrix with a generic summary.",
+            "- Put the concrete decision matrix, change list, citation map, or smoke record in DELIVERABLES and retain its source evidence labels.",
+            "- Preserve unresolved rows and their exact re-entry condition; concise means no repeated incoming context, not omission of required evidence.",
             "Required handoff envelope headings:",
             "PHASE_RESULT; STATUS; INPUT_HANDOFF; DELIVERABLES; EVIDENCE_BOUNDARY; "
             "PRODUCED_HANDOFF; EXIT_GATE: PASS|FAIL|BLOCKED; NEXT_ENTRY; "

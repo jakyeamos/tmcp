@@ -94,6 +94,8 @@ Output contract:
         self.assertIn("diagnosis-reproduction", rendered)
         self.assertIn("Current bridge obligations", rendered)
         self.assertIn("cover criterion=narrowest change", rendered)
+        self.assertIn("Enumerate every material state, path, claim, or gate", rendered)
+        self.assertIn("concise means no repeated incoming context", rendered)
         self.assertIn("PHASE_RESULT; STATUS; INPUT_HANDOFF", rendered)
         self.assertIn("Complete root cause handoff.", rendered)
 
