@@ -136,6 +136,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   target is original 0/3 and candidate 3/3. The reproducible pass-rate record is
   `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.3.json`; this is a
   targeted approval-gate result, not corpus-wide proof.
+- Three-run independent rejudge of concrete verification gives original 3/3 and
+  candidate 3/3. Combined across both fixture families, original is 3/12 and
+  candidate 6/12 on whole-case pass rate; the combined record is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.4.json`. The rewrite's
+  observed gain is isolated to approval gating, with no verification regression.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
