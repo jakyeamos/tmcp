@@ -230,6 +230,48 @@ the fixture graph so a failed readiness gate is genuinely a prerequisite. This
 15/540 subset is unpaired diagnostic evidence; the full scorer rejects it. No
 receipt, promotion, or release claim was made.
 
+### Authorized reporting-continuation phase-gate calibration (2026-07-22)
+
+The semantic gate-policy slice makes the distinction explicit. Newly compiled
+plans carry `entry_gates_and_handoffs`; legacy or hand-authored plans retain the
+`strict_exit_and_entry_gates` default. Under the new policy, runtime advancement
+still requires every target entry gate and every exact typed handoff. A failed
+non-entry exit gate remains in the phase trace, diagnostics, and warning surface
+but does not authorize downstream execution. The external harness hydrates later
+full-composition stages only for reporting, assessment, or follow-up design and
+keeps execution and authorization claims blocked.
+
+- campaign: `composition-lift-campaign-99cf7ca99b308daa6bd2`
+- campaign digest: `99cf7ca99b308daa6bd290fe7e6f8c7960ba8bb0d40fe8424bc0a781d3042002`
+- control plan: `benchmark-control-cd3466603a14ae78e39e`
+- control plan digest: `cd3466603a14ae78e39e1122f33ac64051069e259ca40150deedc8b522bef89d`
+- host cells: 15/15, SHA-256
+  `4f7086d8a4b928b04bd5bd929081d8a7f80d3d591b6b7373b99f1f63af6f3df3`
+- blind-judge cells: 15/15, SHA-256
+  `6f3a1cedc149e45a14b8b26eb85b7315870bf65fa7d50e6f5cdcf13d34d38cf4`
+- full-composition traces: UI `PASS -> PASS -> FAIL -> BLOCKED`; migration
+  `FAIL -> FAIL -> BLOCKED -> BLOCKED`; agent `PASS -> PASS -> PASS -> FAIL`;
+  research `PASS -> PASS -> PASS -> PASS`; diagnose `PASS -> PASS -> PASS -> BLOCKED`
+
+The bounded cells are intentionally unpaired directional observations, weighted
+with the preregistered fixture rubrics:
+
+| fixture | naive union | full composition | wrong order |
+| --- | ---: | ---: | ---: |
+| UI/product | 0.496 | 0.4595 | 0.2225 |
+| migration/data | 0.736 | 0.558 | 0.410 |
+| agent workflow | 0.940 | 0.926 | 0.5515 |
+| research -> writing -> review | 0.908 | 0.806 | 0.088 |
+| diagnose -> fix -> regression | 0.418 | 0.351 | 0.052 |
+
+This calibration demonstrates the intended safety/product behavior: later
+assessment can explain what remains blocked without pretending that a failed
+prerequisite was executed or authorized, and a missing typed handoff still
+blocks phase transition. It is not lift evidence: the sample is 15/540 and
+unpaired, so no synergy, compiler, or order-lift claim is made. No receipt,
+promotion, or release claim was recorded. The complete paired campaign and
+independent rejudge remain required.
+
 ### Authorized external-run pilot (2026-07-21)
 
 After explicit authorization, one runner dispatch and its independent blind

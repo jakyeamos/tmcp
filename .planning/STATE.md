@@ -10,8 +10,10 @@ file boundaries and a coherent agent-facing workflow.
 synergy shortfall, then obtain replicated rejudge and full release-gate proof;
 0.6.0 remains blocked until every preregistered gate passes. The typed phase
 envelope now retains every present handoff heading and external gate parsing
-mirrors active/deferred hydration. The next slice distinguishes hard execution
-advancement from source-backed reporting continuation before another full rerun.
+mirrors active/deferred hydration. `9914ed7` now distinguishes hard execution
+advancement from source-backed reporting continuation while preserving typed
+handoff blocking. Improve migration/diagnose bridge quality before another full
+rerun.
 
 ## Milestone
 
@@ -107,6 +109,13 @@ The calibration exposed and repaired a path-only artifact handoff: blind judges
 must receive a bounded materialized bundle containing the runner-created files.
 Rendered-browser verification and strict clean-room skill isolation remain
 unproven.
+
+`9914ed7` adds the explicit `entry_gates_and_handoffs` policy for newly
+compiled plans while preserving strict legacy behavior, and validates it through
+runtime, schema, recipe, receipt, and typed-handoff tests. The authorized v7
+15-cell calibration is recorded in `docs/COMPOSITION_BENCHMARK.md`; it proves
+safe reporting continuation but is unpaired diagnostic evidence only. No
+receipt, promotion, or release claim was made.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -164,6 +173,11 @@ unproven.
   reveals a fixture/evaluator tension between hard execution gates and useful
   downstream assessment. Resolve that semantic distinction before re-running
   the full campaign.
+  `9914ed7` now carries that semantic distinction in the plan/runtime contract:
+  target entry gates and exact typed handoffs remain hard blockers, while failed
+  non-entry gates are retained as warnings in reporting-continuation mode.
+  The v7 calibration is directional and unpaired; migration/diagnose bridge
+  quality remains the next implementation target.
   The known repository pre-CR hook still times out at 90 seconds while the
   readiness suite takes roughly 250 seconds; this is a hook-policy mismatch,
   not a reason to weaken TMCP verification.
