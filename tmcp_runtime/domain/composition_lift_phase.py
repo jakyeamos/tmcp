@@ -28,15 +28,15 @@ _PHASE_HEADING_RE = re.compile(
     rf"^({'|'.join(map(re.escape, _PHASE_HEADINGS))})(?::\s*(.*))?$"
 )
 _SECTION_BUDGETS = {
-    "PHASE_RESULT": 300,
-    "STATUS": 220,
-    "INPUT_HANDOFF": 360,
-    "DELIVERABLES": 500,
+    "PHASE_RESULT": 220,
+    "STATUS": 140,
+    "INPUT_HANDOFF": 320,
+    "DELIVERABLES": 720,
     "EVIDENCE_BOUNDARY": 300,
-    "PRODUCED_HANDOFF": 500,
-    "EXIT_GATE": 500,
-    "NEXT_ENTRY": 300,
-    "UNRESOLVED_GAPS": 500,
+    "PRODUCED_HANDOFF": 720,
+    "EXIT_GATE": 600,
+    "NEXT_ENTRY": 260,
+    "UNRESOLVED_GAPS": 440,
 }
 
 

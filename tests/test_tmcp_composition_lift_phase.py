@@ -99,6 +99,19 @@ Output contract:
         for heading in headings:
             self.assertEqual(bounded.count(heading), 1)
 
+    def test_bounded_phase_envelope_preserves_gate_suffixes(self) -> None:
+        artifact = "\n\n".join(
+            [
+                "STATUS: COMPLETE\n" + ("status detail " * 80),
+                "DELIVERABLES\n" + ("deliverable detail " * 80),
+                "EXIT_GATE: PASS\n" + ("gate detail " * 80),
+            ]
+        )
+        bounded = bound_phase_artifact(artifact, limit=900)
+        self.assertLessEqual(len(bounded), 900)
+        self.assertIn("STATUS: COMPLETE", bounded)
+        self.assertIn("EXIT_GATE: PASS", bounded)
+
 
 if __name__ == "__main__":
     unittest.main()
