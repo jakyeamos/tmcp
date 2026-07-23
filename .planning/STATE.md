@@ -190,7 +190,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   baseline is `/private/tmp/tmcp-skill-fixture-behavior-baseline-v1.0.json`;
   across six families it reports original 8/21 versus candidate 18/21 (38.1%
   versus 85.7%), with four family wins, two ties, and no tested regression.
-- `host-portability` is the seventh ready fixture family. With the request
+- `d809ad9` adds the seventh ready fixture family, `host-portability`. With the
+  request
   explicitly denying host-specific tools, original and candidate both pass 3/3
   using ordinary file inspection. This is a tie and a no-regression result, not
   evidence that the host-specific wording is safe in every environment. The
