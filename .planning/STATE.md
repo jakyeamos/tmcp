@@ -122,6 +122,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   artifact `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.1.json`.
 - `e6cc97a` adds a concrete-verification fixture family with an exact target
   condition and an evidence-backed pass/fail bar for the next paired run.
+- The second subscription-backed paired run tied on concrete verification at
+  3/3 for both original and candidate; across both families the aggregate is
+  original 5/9 versus candidate 6/9. This confirms a targeted approval gain,
+  but no broad claim that every static rewrite improves behavior.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
