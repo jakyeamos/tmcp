@@ -1,0 +1,66 @@
+{
+  "schema": "tmcp-mined-skill-corpus-baseline-v0.1",
+  "manifest": "tests/fixtures/skill-fixtures/mined-corpus-v0.1.json",
+  "campaign_report": "/private/tmp/tmcp-skill-fixtures-mined-campaign-20260725-escalated/campaign-report.json",
+  "campaign_report_sha256": "8d73063ab99a8a464dc3075b4fd23014b780713d5c02a045359a46654bbbcefc",
+  "auth_mode": "chatgpt_subscription_only",
+  "model": "gpt-5.5",
+  "reasoning_effort": "low",
+  "repeats_per_variant": 3,
+  "runner_cells": 24,
+  "judge_cells": 24,
+  "runner_failures": 0,
+  "judge_failures": 0,
+  "unparsed_judges": 0,
+  "skills": [
+    {
+      "skill_id": "fixture__tmcp-data-integrity-audit",
+      "original_mean_score": 0.9966666667,
+      "candidate_mean_score": 1.0,
+      "delta": 0.0033333333,
+      "original_decisions": ["pass", "pass", "pass"],
+      "candidate_decisions": ["pass", "pass", "pass"],
+      "original_sha256": "84fa7f2ad5aac85233d96aae31bc70412630a891715578213a91b1c4b93daf77",
+      "candidate_sha256": "84fa7f2ad5aac85233d96aae31bc70412630a891715578213a91b1c4b93daf77"
+    },
+    {
+      "skill_id": "fixture__tmcp-migration-readiness",
+      "original_mean_score": 0.98125,
+      "candidate_mean_score": 0.9825,
+      "delta": 0.00125,
+      "original_decisions": ["pass", "pass", "pass"],
+      "candidate_decisions": ["pass", "pass", "pass"],
+      "original_sha256": "8cc1eb80974eb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7",
+      "candidate_sha256": "8cc1eb80974eb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7"
+    },
+    {
+      "skill_id": "fixture__tmcp-security-privacy-audit",
+      "original_mean_score": 0.971,
+      "candidate_mean_score": 0.9796333333,
+      "delta": 0.0086333333,
+      "original_decisions": ["pass", "pass", "pass"],
+      "candidate_decisions": ["pass", "pass", "pass"],
+      "original_sha256": "18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7",
+      "candidate_sha256": "18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7"
+    },
+    {
+      "skill_id": "fixture__tmcp-test-strategy",
+      "original_mean_score": 0.9533333333,
+      "candidate_mean_score": 0.9146666667,
+      "delta": -0.0386666666,
+      "original_decisions": ["pass", "pass", "pass"],
+      "candidate_decisions": ["pass", "pass", "pass"],
+      "original_sha256": "0e25ff48438ad100b32db04f6bb36c61692011c56ecf4eaf625deaa5d440be29",
+      "candidate_sha256": "0e25ff48438ad100b32db04f6bb36c61692011c56ecf4eaf625deaa5d440be29"
+    }
+  ],
+  "aggregate": {
+    "original_mean_score": 0.9755625,
+    "candidate_mean_score": 0.9692,
+    "delta": -0.0063625,
+    "all_judge_decisions_pass": true,
+    "candidate_content_changed": false,
+    "interpretation": "The mined bars are satisfied by both byte-identical variants. Score movement is judge/runner variance, not causal rewrite evidence. Keep automatic rewrite promotion blocked and admit this as a source-backed behavioral baseline."
+  },
+  "confidence_boundary": "Four TMCP plugin skills, one no-evidence task shape per skill, one gpt-5.5 low-reasoning subscription runner, three repeats per variant, and separate judges. This establishes a reproducible mined baseline and non-fabrication signal; it does not establish cross-task or cross-model lift, production reliability, or permission to rewrite the installed corpus."
+}

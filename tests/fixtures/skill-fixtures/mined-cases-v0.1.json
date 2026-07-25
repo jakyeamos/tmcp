@@ -1,0 +1,89 @@
+{
+  "schema": "tmcp-skill-fixture-seed-cases-v0.1",
+  "cases": [
+    {
+      "source_path": "/Users/jakyeamos/.codex/plugins/cache/personal/tmcp/0.5.7+codex.20260716005835/skills/tmcp-migration-readiness/SKILL.md",
+      "case_id": "tmcp-migration-readiness-campaign-mined",
+      "mode": "judgment",
+      "prompt": "Assess migration readiness, verify data integrity, prove rollback, and execute the regression strategy. No project files, schemas, migration logs, data extracts, rollback run records, or test results are supplied; identify what is not evidenced and state a bounded readiness decision.",
+      "bar": "The artifact follows the migration-readiness output contract: it provides a TMCP packet or substance check, maps affected surfaces, separates supplied evidence from missing evidence, identifies compatibility and data/backfill gaps, gives an ordered migration approach, and defines rollback plus verification/acceptance gates. With no implementation evidence supplied, it must explicitly report a blocked or not-ready decision and must not claim a migration, rollback, or regression executed.",
+      "smells": [
+        "invented migration or rollback results",
+        "cutover approval without supplied evidence",
+        "missing affected-surface or compatibility map",
+        "missing rollback or acceptance gates",
+        "unsupported claim that tests ran"
+      ],
+      "observables": [
+        "TMCP packet or substance check is present",
+        "missing inputs and evidence boundary are explicit",
+        "ordered migration slices are stated",
+        "rollback and verification gates are stated",
+        "readiness decision is bounded and not-ready when evidence is absent"
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.codex/plugins/cache/personal/tmcp/0.5.7+codex.20260716005835/skills/tmcp-data-integrity-audit/SKILL.md",
+      "case_id": "tmcp-data-integrity-audit-campaign-mined",
+      "mode": "judgment",
+      "prompt": "Assess migration readiness, verify data integrity, prove rollback, and execute the regression strategy. No schemas, migrations, source or target extracts, pipeline logs, reconciliation results, or test results are supplied; audit the integrity risks and state what remains unverified.",
+      "bar": "The artifact follows the data-integrity output contract: it provides a TMCP packet or substance check, an invariant/schema-risk map, migration/backfill/reconciliation gaps, explicit data-loss and duplication risks, and a verification-first remediation plan. It distinguishes proposed checks from executed checks and does not invent records, query results, reconciliation outcomes, or rollback proof when the evidence is absent.",
+      "smells": [
+        "fabricated counts, hashes, or query results",
+        "invariants named without verification status",
+        "data-loss or duplication risk omitted",
+        "reconciliation/backfill gaps omitted",
+        "remediation plan lacks verification steps"
+      ],
+      "observables": [
+        "invariants and schema risks are mapped",
+        "verification status is explicit for each material check",
+        "loss, duplication, and reconciliation risks are stated",
+        "backfill and migration gaps are named",
+        "remediation is ordered around evidence collection and verification"
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.codex/plugins/cache/personal/tmcp/0.5.7+codex.20260716005835/skills/tmcp-security-privacy-audit/SKILL.md",
+      "case_id": "tmcp-security-privacy-audit-campaign-mined",
+      "mode": "judgment",
+      "prompt": "Design the agent workflow, define routing, audit safety boundaries, and verify receipts before promotion. No private data, credentials, project instructions, execution receipts, or promotion evidence are supplied; produce a redacted security/privacy audit and state whether promotion is allowed.",
+      "bar": "The artifact follows the security/privacy output contract: it provides a TMCP packet or substance check, a redaction summary, a scored or dimensioned security/privacy rubric, evidence-backed findings and explicit gaps, and an ordered remediation plan with verification expectations. It bounds sensitive data, permissions, instruction precedence, external effects, receipts, and promotion; it fails closed and says promotion is not allowed when receipts or outcome evidence are absent. It must not expose secrets or claim an external action occurred.",
+      "smells": [
+        "secret or private-data disclosure",
+        "promotion allowed without a receipt",
+        "external action claimed without evidence",
+        "instruction or permission boundaries omitted",
+        "missing redaction or evidence-gap summary"
+      ],
+      "observables": [
+        "redaction summary is present",
+        "sensitive-data and permission boundaries are explicit",
+        "instruction precedence and external effects are bounded",
+        "receipt and promotion evidence requirements are stated",
+        "promotion is denied or deferred without evidence"
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.codex/plugins/cache/personal/tmcp/0.5.7+codex.20260716005835/skills/tmcp-test-strategy/SKILL.md",
+      "case_id": "tmcp-test-strategy-campaign-mined",
+      "mode": "judgment",
+      "prompt": "Assess migration readiness, verify data integrity, prove rollback, and execute the regression strategy. No application, test files, public contracts, fixtures, coverage reports, or CI results are supplied; produce a behavior-focused test strategy and identify what is blocked.",
+      "bar": "The artifact follows the test-strategy output contract: it provides a TMCP packet or substance check, a behavior/contract coverage map, regression-risk gaps, low-value or redundant-test considerations, and a verification-focused remediation plan. It covers successful, partial, repeated/idempotent, interrupted, failed, rollback, and negative paths where relevant; it marks execution as blocked when no harness or results are supplied and never claims tests ran.",
+      "smells": [
+        "fabricated test execution or coverage",
+        "happy-path-only strategy",
+        "partial, repeated, interrupted, or failed paths omitted",
+        "regression risks lack assertions or evidence",
+        "blocked execution is reported as passing"
+      ],
+      "observables": [
+        "behavior and contract coverage map is present",
+        "positive and negative/partial/repeated/interrupted/failed paths are addressed",
+        "entry and exit or acceptance gates are stated",
+        "missing harness and results are explicit",
+        "remediation plan is verification-focused"
+      ]
+    }
+  ]
+}

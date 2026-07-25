@@ -81,3 +81,31 @@ finds 158 discovered skills but only 1 ready skill and 1 golden case in the
 full discovery manifest; 157 still need a case and bar. The later calibrated
 subset contains 7 skills and 8 cases. That gap is an explicit promotion stop,
 not missing evidence to be inferred from static rewrites.
+
+## 7. Mine real task shapes before admitting a new skill case
+
+When a skill has no golden case, mine a completed, provenance-preserving task
+source before writing a fixture. Record the source campaign/objective, selected
+runner artifact, independent judge handoff, source hashes, and the evidence
+boundary. Derive the bar from the skill's output contract and the independent
+judge dimensions; do not copy an expected answer into the runner prompt.
+
+The mined TMCP tranche is recorded in
+`tests/fixtures/skill-fixtures/mined-corpus-v0.1.json` and its three-repeat
+subscription baseline in
+`tests/fixtures/skill-fixtures/mined-corpus-baseline-v0.1.json`. It covers four
+TMCP plugin skills with 24 blind runner cells and 24 independent judge cells at
+`gpt-5.5` low reasoning. Both variants passed the no-fabrication bars, but the
+candidate hashes were identical because static review produced no proposals.
+Therefore the score movement is a behavior baseline and variance signal, not
+rewrite lift. Keep the automatic rewrite gate closed until a later mined case
+has a real, reviewable candidate delta and repeats it without regression.
+
+The reusable campaign command is:
+
+```bash
+PYTHONPATH=. python3 scripts/run_mined_skill_fixture_campaign.py \
+  /path/to/mined-manifest.json \
+  --output-dir /private/tmp/tmcp-mined-campaign \
+  --repeats 3 --model gpt-5.5 --reasoning-effort low
+```
