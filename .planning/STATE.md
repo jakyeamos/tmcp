@@ -242,7 +242,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   This is a non-commutative composition result: both rewrites are needed for
   stable behavior, with no tested mutation or regression. It remains one task
   shape at gpt-5.5 low reasoning, not corpus-wide causal proof.
-- `composition-cases-v0.4.json` and `composition-baseline-v0.6.json` add a
+- `5f74a1d` records `composition-cases-v0.4.json` and
+  `composition-baseline-v0.6.json`, adding a
   trigger-boundary/required-read interaction. Under the strict required-but-
   unavailable disclosure bar, candidate-candidate is unstable at 1/2 and the
   other three pairings fail 0/2, for 1/8 overall. This is a negative
