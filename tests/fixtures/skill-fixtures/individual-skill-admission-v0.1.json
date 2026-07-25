@@ -3,7 +3,7 @@
   "source_audit": "/private/tmp/tmcp-skill-corpus-audit-20260722/audit.json",
   "source_audit_sha256": "455e18c87a1b430ef4e61e321fa515cd6d7a20828d77a51ea7b52bc4850bb664",
   "case_source": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
-  "case_source_sha256": "3572dd69db179e0bb13669b98e2ea93ade8ddcbabca5dbf2f0e757f26bffabfb",
+  "case_source_sha256": "2f0bcedcb87e26e022af46dea2d43a9d8b79569928b31b398470d9cfa27997f7",
   "policy": {
     "source_bound_cases_only": true,
     "provenance_checked": true,
@@ -14,7 +14,8 @@
   },
   "summary": {
     "skill_count": 156,
-    "case_ready_skill_count": 5,
+    "case_ready_skill_count": 0,
+    "needs_execution_boundary_skill_count": 5,
     "needs_case_or_bar_count": 151,
     "case_count": 5
   },
@@ -24,7 +25,7 @@
       "source_sha256": "58f54b13beaa00713dd5f4402d377db859a6ba3b2469b0b28f4498d493f69612",
       "static_status": "no_static_findings",
       "static_warning_ids": [],
-      "admission_status": "case_ready",
+      "admission_status": "needs_execution_boundary",
       "cases": [
         {
           "source_path": "/Users/jakyeamos/.agents/skills/find-skills/SKILL.md",
@@ -38,6 +39,10 @@
             "missing install command or discovery link",
             "silent installation without authorization"
           ],
+          "execution_boundary": {
+            "status": "incomplete",
+            "evidence": "The task requires a live skills CLI search and concrete result records; no search result or verified network/tool availability is supplied in the fixture."
+          },
           "provenance": [
             {
               "line": 14,
@@ -69,7 +74,7 @@
             }
           ],
           "source_sha256": "58f54b13beaa00713dd5f4402d377db859a6ba3b2469b0b28f4498d493f69612",
-          "admission_status": "case_ready",
+          "admission_status": "needs_execution_boundary",
           "bar_status": "source_bound"
         }
       ],
@@ -820,7 +825,7 @@
       "source_sha256": "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f",
       "static_status": "no_static_findings",
       "static_warning_ids": [],
-      "admission_status": "case_ready",
+      "admission_status": "needs_execution_boundary",
       "cases": [
         {
           "source_path": "/Users/jakyeamos/.agents/skills/gsd-reapply-patches/SKILL.md",
@@ -834,6 +839,10 @@
             "uncertain file silently skipped",
             "conflict resolved without user review"
           ],
+          "execution_boundary": {
+            "status": "incomplete",
+            "evidence": "The GSD workflow requires backup metadata, pristine/current files, and backed-up patch contents; the source example supplies none of those inputs."
+          },
           "provenance": [
             {
               "line": 3,
@@ -853,7 +862,7 @@
             }
           ],
           "source_sha256": "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f",
-          "admission_status": "case_ready",
+          "admission_status": "needs_execution_boundary",
           "bar_status": "source_bound"
         }
       ],
@@ -1082,7 +1091,7 @@
         "host.tool-assumption",
         "reads.buried-required-reads"
       ],
-      "admission_status": "case_ready",
+      "admission_status": "needs_execution_boundary",
       "cases": [
         {
           "source_path": "/Users/jakyeamos/.agents/skills/last30days/SKILL.md",
@@ -1097,6 +1106,10 @@
             "forbidden body section headers",
             "fabricated research findings"
           ],
+          "execution_boundary": {
+            "status": "incomplete",
+            "evidence": "The source document names a Python engine, source results, and a pass-through footer, but this admission input supplies only the prompt and SKILL.md text."
+          },
           "provenance": [
             {
               "line": 5,
@@ -1120,7 +1133,7 @@
             }
           ],
           "source_sha256": "016ce06212a0f9b807f91459146aa8cec7b28f96872a9dee95d72d77fb9014d3",
-          "admission_status": "case_ready",
+          "admission_status": "needs_execution_boundary",
           "bar_status": "source_bound"
         }
       ],
@@ -1144,7 +1157,7 @@
       "static_warning_ids": [
         "reads.buried-required-reads"
       ],
-      "admission_status": "case_ready",
+      "admission_status": "needs_execution_boundary",
       "cases": [
         {
           "source_path": "/Users/jakyeamos/.agents/skills/nlm-skill/SKILL.md",
@@ -1158,6 +1171,10 @@
             "destructive command executed",
             "listing claimed without output"
           ],
+          "execution_boundary": {
+            "status": "incomplete",
+            "evidence": "NotebookLM authentication state and a successful CLI/MCP listing are not supplied; the runner cannot distinguish an auth refusal from a no-op command recipe."
+          },
           "provenance": [
             {
               "line": 51,
@@ -1177,7 +1194,7 @@
             }
           ],
           "source_sha256": "cee8acdfc010d44459ca47d9ec59c7a3df8d2d523c3374f70959c68996f4bb6b",
-          "admission_status": "case_ready",
+          "admission_status": "needs_execution_boundary",
           "bar_status": "source_bound"
         }
       ],
@@ -1411,7 +1428,7 @@
         "host.tool-assumption",
         "reads.buried-required-reads"
       ],
-      "admission_status": "case_ready",
+      "admission_status": "needs_execution_boundary",
       "cases": [
         {
           "source_path": "/Users/jakyeamos/.codex/skills/.system/skill-creator/SKILL.md",
@@ -1425,6 +1442,10 @@
             "writes to an unconfirmed location",
             "claims completion without validation"
           ],
+          "execution_boundary": {
+            "status": "incomplete",
+            "evidence": "The source example is a PDF-rotation prompt, but no PDF, destination, or skill-authoring target is supplied for the reusable-skill workflow."
+          },
           "provenance": [
             {
               "line": 244,
@@ -1444,7 +1465,7 @@
             }
           ],
           "source_sha256": "da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c",
-          "admission_status": "case_ready",
+          "admission_status": "needs_execution_boundary",
           "bar_status": "source_bound"
         }
       ],

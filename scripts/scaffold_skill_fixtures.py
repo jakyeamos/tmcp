@@ -52,7 +52,10 @@ def load_seed_cases(path: Path | None, project_root: Path) -> dict[str, list[dic
     if path is None:
         return {}
     payload = json.loads(path.read_text(encoding="utf-8"))
-    if payload.get("schema") != "tmcp-skill-fixture-seed-cases-v0.1":
+    if payload.get("schema") not in {
+        "tmcp-skill-fixture-seed-cases-v0.1",
+        "tmcp-individual-skill-admission-cases-v0.1",
+    }:
         raise ValueError("seed cases have the wrong schema")
     result: dict[str, list[dict[str, Any]]] = {}
     for case in payload.get("cases", []):
@@ -60,6 +63,8 @@ def load_seed_cases(path: Path | None, project_root: Path) -> dict[str, list[dic
         clean = {key: case[key] for key in ("case_id", "mode", "prompt", "bar", "smells")}
         if "observables" in case:
             clean["observables"] = case["observables"]
+        if "provenance" in case:
+            clean["provenance"] = case["provenance"]
         if not clean["bar"].strip():
             raise ValueError(f"seed case {clean['case_id']} has an empty bar")
         result.setdefault(source, []).append(clean)

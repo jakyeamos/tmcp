@@ -17,7 +17,8 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
         self.assertEqual(record["schema"], "tmcp-individual-skill-admission-v0.1")
         self.assertEqual(record["summary"], {
             "skill_count": 156,
-            "case_ready_skill_count": 5,
+            "case_ready_skill_count": 0,
+            "needs_execution_boundary_skill_count": 5,
             "needs_case_or_bar_count": 151,
             "case_count": 5,
         })
@@ -25,13 +26,14 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
         self.assertTrue(record["policy"]["provenance_checked"])
         self.assertFalse(record["policy"]["automatic_rewrite"])
         self.assertTrue(all(
-            item["admission_status"] == "case_ready" and item["cases"]
+            item["admission_status"] == "needs_execution_boundary" and item["cases"]
             or item["admission_status"] == "needs_golden_case_and_bar" and not item["cases"]
             for item in record["skills"]
         ))
         self.assertTrue(all(
-            case["admission_status"] == "case_ready"
+            case["admission_status"] == "needs_execution_boundary"
             and case["bar_status"] == "source_bound"
+            and case["execution_boundary"]["status"] == "incomplete"
             and case["provenance"]
             for item in record["skills"]
             for case in item["cases"]
@@ -48,6 +50,7 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
                     "prompt": "find a skill",
                     "bar": "show a relevant result",
                     "smells": [],
+                    "execution_boundary": {"status": "incomplete", "evidence": "fixture lacks source"},
                     "provenance": [{"line": 1, "excerpt": "not in source"}],
                 },
                 {source: {"source_sha256": sha256(Path(source))}},

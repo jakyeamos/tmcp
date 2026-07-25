@@ -17,6 +17,49 @@ GENERATE = ROOT / "scripts" / "generate_skill_fixture_proposals.py"
 
 
 class SkillFixtureHarnessTests(unittest.TestCase):
+    def test_scaffold_accepts_source_bound_admission_cases(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "skills" / "alpha" / "SKILL.md"
+            source.parent.mkdir(parents=True)
+            source.write_text("# Alpha\nReturn a checked result.\n", encoding="utf-8")
+            seed = root / "admission.json"
+            seed.write_text(
+                json.dumps({
+                    "schema": "tmcp-individual-skill-admission-cases-v0.1",
+                    "cases": [{
+                        "source_path": "skills/alpha/SKILL.md",
+                        "case_id": "alpha-admission",
+                        "mode": "judgment",
+                        "prompt": "Review this input.",
+                        "bar": "The result cites concrete evidence.",
+                        "smells": ["unsupported claim"],
+                        "provenance": [{"line": 1, "excerpt": "# Alpha"}],
+                    }],
+                }),
+                encoding="utf-8",
+            )
+            output = root / "fixtures"
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(SCAFFOLD),
+                    "--root",
+                    str(root / "skills"),
+                    "--seed-cases",
+                    str(seed),
+                    "--project-root",
+                    str(root),
+                    "--output-dir",
+                    str(output),
+                ],
+                check=True,
+                cwd=ROOT,
+            )
+            manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["skills"][0]["readiness"], "ready")
+            self.assertEqual(manifest["skills"][0]["cases"][0]["provenance"][0]["line"], 1)
+
     def test_scaffold_validate_and_prepare_versions(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

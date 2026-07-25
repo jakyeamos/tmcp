@@ -30,13 +30,18 @@ def validate_case(case: dict[str, Any], skills: dict[str, dict[str, Any]]) -> di
     path = str(case.get("source_path", ""))
     if path not in skills:
         raise ValueError(f"admission case points outside audit: {path}")
-    for field in ("case_id", "mode", "prompt", "bar", "smells", "provenance"):
+    for field in ("case_id", "mode", "prompt", "bar", "smells", "provenance", "execution_boundary"):
         if field not in case:
             raise ValueError(f"admission case {case.get('case_id', '<unknown>')} lacks {field}")
     if not str(case["prompt"]).strip() or not str(case["bar"]).strip():
         raise ValueError(f"admission case {case['case_id']} has an empty prompt or bar")
     if not isinstance(case["provenance"], list) or not case["provenance"]:
         raise ValueError(f"admission case {case['case_id']} needs provenance")
+    boundary = case["execution_boundary"]
+    if not isinstance(boundary, dict) or boundary.get("status") not in {"complete", "incomplete"}:
+        raise ValueError(f"admission case {case['case_id']} needs an execution boundary status")
+    if not str(boundary.get("evidence", "")).strip():
+        raise ValueError(f"admission case {case['case_id']} needs execution-boundary evidence")
     source = Path(path)
     if not source.is_file():
         raise ValueError(f"admission case source does not exist: {path}")
@@ -52,7 +57,9 @@ def validate_case(case: dict[str, Any], skills: dict[str, dict[str, Any]]) -> di
             raise ValueError(f"invalid provenance for {case['case_id']}: line {line}")
     record = dict(case)
     record["source_sha256"] = actual_hash
-    record["admission_status"] = "case_ready"
+    record["admission_status"] = (
+        "case_ready" if boundary["status"] == "complete" else "needs_execution_boundary"
+    )
     record["bar_status"] = "source_bound"
     return record
 
@@ -83,7 +90,11 @@ def main() -> None:
             "source_sha256": audit_record.get("source_sha256") or audit_record.get("sha256"),
             "static_status": audit_record.get("static_status"),
             "static_warning_ids": audit_record.get("warning_ids", []),
-            "admission_status": "case_ready" if cases else "needs_golden_case_and_bar",
+            "admission_status": (
+                "case_ready"
+                if any(case["admission_status"] == "case_ready" for case in cases)
+                else "needs_execution_boundary" if cases else "needs_golden_case_and_bar"
+            ),
             "cases": cases,
             "next_case_shape": audit_record.get("recommended_next_case", {}).get("case_shape"),
         })
@@ -104,7 +115,10 @@ def main() -> None:
         "summary": {
             "skill_count": len(skills_out),
             "case_ready_skill_count": sum(item["admission_status"] == "case_ready" for item in skills_out),
-            "needs_case_or_bar_count": sum(item["admission_status"] != "case_ready" for item in skills_out),
+            "needs_execution_boundary_skill_count": sum(
+                item["admission_status"] == "needs_execution_boundary" for item in skills_out
+            ),
+            "needs_case_or_bar_count": sum(item["admission_status"] == "needs_golden_case_and_bar" for item in skills_out),
             "case_count": len(case_ids),
         },
         "skills": skills_out,

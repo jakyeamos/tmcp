@@ -20,6 +20,10 @@
         "forbidden body section headers",
         "fabricated research findings"
       ],
+      "execution_boundary": {
+        "status": "incomplete",
+        "evidence": "The source document names a Python engine, source results, and a pass-through footer, but this admission input supplies only the prompt and SKILL.md text."
+      },
       "provenance": [
         {"line": 5, "excerpt": "argument-hint: 'last30days nvidia earnings reaction | last30days AI video tools | last30days what users want in react'"},
         {"line": 114, "excerpt": "BADGE (MANDATORY, FIRST LINE OF OUTPUT)"},
@@ -40,6 +44,10 @@
         "missing install command or discovery link",
         "silent installation without authorization"
       ],
+      "execution_boundary": {
+        "status": "incomplete",
+        "evidence": "The task requires a live skills CLI search and concrete result records; no search result or verified network/tool availability is supplied in the fixture."
+      },
       "provenance": [
         {"line": 14, "excerpt": "Asks \"how do I do X\" where X might be a common task with an existing skill"},
         {"line": 46, "excerpt": "Run the find command with a relevant query"},
@@ -62,6 +70,10 @@
         "destructive command executed",
         "listing claimed without output"
       ],
+      "execution_boundary": {
+        "status": "incomplete",
+        "evidence": "NotebookLM authentication state and a successful CLI/MCP listing are not supplied; the runner cannot distinguish an auth refusal from a no-op command recipe."
+      },
       "provenance": [
         {"line": 51, "excerpt": "Always authenticate first**: Run `nlm login` before any operations"},
         {"line": 59, "excerpt": "DO NOT launch REPL**: Never use `nlm chat start`"},
@@ -81,6 +93,10 @@
         "writes to an unconfirmed location",
         "claims completion without validation"
       ],
+      "execution_boundary": {
+        "status": "incomplete",
+        "evidence": "The source example is a PDF-rotation prompt, but no PDF, destination, or skill-authoring target is supplied for the reusable-skill workflow."
+      },
       "provenance": [
         {"line": 244, "excerpt": "Step 1: Understanding the Skill with Concrete Examples"},
         {"line": 252, "excerpt": "What functionality should the image-editor skill support? Editing, rotating, anything else?"},
@@ -100,6 +116,10 @@
         "uncertain file silently skipped",
         "conflict resolved without user review"
       ],
+      "execution_boundary": {
+        "status": "incomplete",
+        "evidence": "The GSD workflow requires backup metadata, pristine/current files, and backed-up patch contents; the source example supplies none of those inputs."
+      },
       "provenance": [
         {"line": 3, "excerpt": "description: \"Reapply local modifications after a GSD update\""},
         {"line": 8, "excerpt": "Uses three-way comparison (pristine baseline, user-modified backup, newly installed version)"},

@@ -139,13 +139,13 @@ case produces a repeatable failure should a proposal be treated as a targeted
 skill improvement candidate.
 
 The first source-bound admission pass is recorded in
-`tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json`. It admits
-five concrete cases mined from explicit examples or command contracts in the
-skill documents (`last30days`, `find-skills`, `nlm-skill`, `skill-creator`, and
-`gsd-reapply-patches`). Each case stores line-level provenance for both the
-input shape and the judgment bar. The remaining 151 skills stay blocked on a
-real golden case and bar; their static warnings are not promoted into runtime
-failures.
+`tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json`. It found
+five source examples with line-level provenance (`last30days`, `find-skills`,
+`nlm-skill`, `skill-creator`, and `gsd-reapply-patches`), but none is runnable
+yet because each lacks an execution boundary such as engine output, a live
+search result, authenticated state, an attached file, or patch contents. The
+other 151 skills still need a real golden case and bar. This distinction is
+intentional: source provenance alone does not admit a behavioral case.
 
 Rebuild and validate the queue with:
 
@@ -157,5 +157,9 @@ python3 scripts/build_individual_skill_admission.py \
 ```
 
 This is an admission gate, not an evaluation result. A `case_ready` record is
-eligible for a blind runner and independent judge; it has not yet passed that
-behavioral evaluation.
+eligible for a blind runner and independent judge; a
+`needs_execution_boundary` record is not. A disposable five-skill campaign
+confirmed why this matters: all 30 runner and 30 judge cells completed, but
+the judges mostly saw refusal/no-op artifacts because the required external
+inputs were absent. That is case-quality evidence, not five proven skill
+failures, and it does not authorize rewrites.
