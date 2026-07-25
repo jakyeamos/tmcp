@@ -209,6 +209,17 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   corpus runner executes 34 available artifacts, finds 23 structural passes,
   and agrees with the independent judge on 34/34 runs. Coverage exclusions are
   recorded in the manifest rather than silently treated as passes.
+- `cd43781` records the mined TMCP tranche with four source-backed cases in
+  `tests/fixtures/skill-fixtures/mined-corpus-v0.1.json`, with campaign
+  objectives, selected runner artifacts, independent judge handoffs, and source
+  hashes. The subscription baseline
+  `tests/fixtures/skill-fixtures/mined-corpus-baseline-v0.1.json` completed
+  24 blind runner cells and 24 independent judge cells at `gpt-5.5` low
+  reasoning: all parsed decisions passed, while original and candidate hashes
+  were identical because static review produced no proposals. Aggregate means
+  are original 0.9756 versus candidate 0.9692; this is a reproducible
+  non-fabrication baseline and variance signal, not rewrite lift or permission
+  to promote automatic rewrites.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
@@ -593,5 +604,6 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Monitor the published v0.5.0 release surfaces; no additional publication action is pending.
+# Mine the next bounded TMCP skill tranche from completed campaign artifacts;
+# require a concrete case/bar and a real candidate delta before any rewrite claim.
 ```
