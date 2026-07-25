@@ -289,6 +289,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   candidate-containing v6 runs pass structurally and by independent judge;
   the original-original control is explicitly absent, so this is not a full
   2x2 family claim.
+- A batch CLI now runs the same post-run validator over a complete artifact
+  matrix, emits per-artifact checks and SHA-256s, and exits nonzero if any
+  artifact fails. This removes ad hoc aggregation from the campaign workflow;
+  independent judging remains a separate stage.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment

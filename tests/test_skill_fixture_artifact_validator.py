@@ -12,6 +12,7 @@ from scripts.validate_skill_fixture_artifact import validate_fixture_artifact
 
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts" / "validate_skill_fixture_artifact.py"
+BATCH_VALIDATOR = ROOT / "scripts" / "validate_skill_fixture_batch.py"
 SPEC = {
     "schema": "tmcp-skill-fixture-structural-spec-v0.1",
     "case_id": "trigger-required-read-composition",
@@ -169,6 +170,36 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
             )
             self.assertEqual(completed.returncode, 1)
             self.assertFalse(json.loads(completed.stdout)["passed"])
+
+    def test_batch_cli_preserves_per_artifact_results(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            passing = root / "passing.json"
+            failing = root / "failing.json"
+            spec = root / "spec.json"
+            passing.write_text(
+                json.dumps(_artifact(
+                    "Sources inspected: target.txt\n"
+                    "Skipped sources and why: AGENTS.md was required but unavailable.\n"
+                    "Verification results: exact target value is valid.\n"
+                    "Next actions: None."
+                )),
+                encoding="utf-8",
+            )
+            failing.write_text(json.dumps(_artifact("not compliant")), encoding="utf-8")
+            spec.write_text(json.dumps(SPEC), encoding="utf-8")
+            completed = subprocess.run(
+                [sys.executable, str(BATCH_VALIDATOR), str(passing), str(failing), "--spec", str(spec)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            report = json.loads(completed.stdout)
+            self.assertEqual(completed.returncode, 1)
+            self.assertEqual(report["artifact_count"], 2)
+            self.assertEqual(report["passed_count"], 1)
+            self.assertEqual([item["passed"] for item in report["results"]], [True, False])
 
 
 if __name__ == "__main__":
