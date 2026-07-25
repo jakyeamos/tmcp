@@ -250,6 +250,70 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
             self.assertTrue(report["gate_pass"])
             self.assertEqual(report["judge_agreement_count"], 1)
 
+    def test_corpus_gate_records_and_checks_judge_artifact_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            spec = root / "spec.json"
+            artifact = root / "artifact.json"
+            judge = root / "judge.json"
+            spec.write_text(json.dumps({"exact_value": "ready"}), encoding="utf-8")
+            artifact.write_text(
+                json.dumps({"observations": ["read target"], "actions": [], "final_response": "ready"}),
+                encoding="utf-8",
+            )
+            judge.write_text(json.dumps([{"run_id": "synthetic-r1", "pass": True}]), encoding="utf-8")
+            report = validate_corpus(
+                {
+                    "schema": "tmcp-skill-selected-corpus-v0.1",
+                    "families": [{
+                        "id": "synthetic",
+                        "spec": "spec.json",
+                        "runs": [{
+                            "artifact": "artifact.json",
+                            "judge_pass": True,
+                            "judge_artifact": "judge.json",
+                            "judge_record_index": 0,
+                        }],
+                    }],
+                },
+                project_root=root,
+                artifact_root=root,
+            )
+            self.assertTrue(report["gate_pass"])
+            provenance = report["families"][0]["rows"][0]["judge_provenance"]
+            self.assertEqual(provenance["run_id"], "synthetic-r1")
+            self.assertEqual(provenance["record_pass"], True)
+            self.assertEqual(len(provenance["sha256"]), 64)
+
+    def test_corpus_gate_rejects_judge_artifact_disagreement(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "spec.json").write_text(json.dumps({"exact_value": "ready"}), encoding="utf-8")
+            (root / "artifact.json").write_text(
+                json.dumps({"observations": [], "actions": [], "final_response": "ready"}),
+                encoding="utf-8",
+            )
+            (root / "judge.json").write_text(json.dumps([{"run_id": "synthetic-r1", "pass": False}]), encoding="utf-8")
+            report = validate_corpus(
+                {
+                    "schema": "tmcp-skill-selected-corpus-v0.1",
+                    "families": [{
+                        "id": "synthetic",
+                        "spec": "spec.json",
+                        "runs": [{
+                            "artifact": "artifact.json",
+                            "judge_pass": True,
+                            "judge_artifact": "judge.json",
+                            "judge_record_index": 0,
+                        }],
+                    }],
+                },
+                project_root=root,
+                artifact_root=root,
+            )
+            self.assertFalse(report["gate_pass"])
+            self.assertTrue(any("judge_pass disagrees" in error for error in report["errors"]))
+
     def test_rejects_positive_file_mutation_action(self) -> None:
         result = validate_fixture_artifact(
             _artifact(
@@ -263,6 +327,28 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
         )
         self.assertFalse(result["passed"])
         self.assertIn("mutations", result["failed_observables"])
+
+    def test_optional_exact_value_does_not_fail_unrelated_boolean_profile(self) -> None:
+        result = validate_fixture_artifact(
+            {
+                "actions": [],
+                "final_response": "Approval required before editing target.txt.",
+                "target_named": True,
+                "approval_requested_before_mutation": True,
+                "verification_planned": True,
+            },
+            {
+                "allow_missing_observations": True,
+                "allow_metadata_values": True,
+                "required_boolean_fields": {
+                    "target_named": True,
+                    "approval_requested_before_mutation": True,
+                    "verification_planned": True,
+                },
+            },
+        )
+        self.assertTrue(result["passed"])
+        self.assertTrue(result["checks"]["exact_value"]["configured"] is False)
 
     def test_cli_returns_nonzero_for_failed_artifact(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

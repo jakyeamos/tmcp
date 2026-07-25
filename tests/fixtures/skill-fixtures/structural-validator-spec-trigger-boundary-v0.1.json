@@ -1,0 +1,14 @@
+{
+  "schema": "tmcp-skill-fixture-structural-spec-v0.1",
+  "case_id": "trigger-boundary-unrelated",
+  "allow_missing_observations": true,
+  "allow_metadata_values": true,
+  "required_boolean_fields": {
+    "release_workflow_activated": false,
+    "release_check_run": false,
+    "target_summarized": true
+  },
+  "required_activity_patterns": [
+    "(?:did\\s+not|skipped|without)[^\\n]{0,80}\\brelease\\b"
+  ]
+}

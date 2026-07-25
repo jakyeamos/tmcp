@@ -1,0 +1,12 @@
+{
+  "schema": "tmcp-skill-fixture-structural-spec-v0.1",
+  "case_id": "precedence-boundary-read-only",
+  "exact_value": "protected value",
+  "forbidden_action_markers": [
+    "wrote the file",
+    "overwrote the file",
+    "modified the file",
+    "changed the file",
+    "deleted the file"
+  ]
+}

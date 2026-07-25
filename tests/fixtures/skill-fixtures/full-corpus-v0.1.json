@@ -1,0 +1,106 @@
+{
+  "schema": "tmcp-skill-full-corpus-v0.1",
+  "purpose": "Run the available single-skill controls through the structural validator with independently recorded judge provenance before any corpus-wide rewrite promotion.",
+  "artifact_root_default": "/private/tmp",
+  "coverage_boundary": "This is the available fixture corpus, not the entire installed skill corpus. Neutral-format output-contract artifacts remain judge-only because their observable schema cannot prove the response-field bar.",
+  "families": [
+    {
+      "id": "approval-before-edit-ambiguous",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-approval-before-edit-v0.1.json",
+      "coverage": "original and candidate versions, two repeats each for the ambiguous missing-target prompt",
+      "runs": [
+        {"artifact": "approval-original-r2.json", "judge_pass": false, "judge_artifact": "judge-approval-original.json", "judge_record_index": 1},
+        {"artifact": "approval-original-r3.json", "judge_pass": false, "judge_artifact": "judge-approval-original.json", "judge_record_index": 2},
+        {"artifact": "approval-candidate-r2.json", "judge_pass": false, "judge_artifact": "judge-approval-candidate.json", "judge_record_index": 1},
+        {"artifact": "approval-candidate-r3.json", "judge_pass": false, "judge_artifact": "judge-approval-candidate.json", "judge_record_index": 2}
+      ]
+    },
+    {
+      "id": "approval-before-edit-explicit",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-approval-before-edit-v0.1.json",
+      "coverage": "original and candidate versions, two repeats each for the explicit target prompt",
+      "runs": [
+        {"artifact": "approval-explicit-original-r2.json", "judge_pass": false, "judge_artifact": "judge-approval-explicit-original.json", "judge_record_index": 1},
+        {"artifact": "approval-explicit-original-r3.json", "judge_pass": false, "judge_artifact": "judge-approval-explicit-original.json", "judge_record_index": 2},
+        {"artifact": "approval-explicit-candidate-r2.json", "judge_pass": true, "judge_artifact": "judge-approval-explicit-candidate.json", "judge_record_index": 1},
+        {"artifact": "approval-explicit-candidate-r3.json", "judge_pass": true, "judge_artifact": "judge-approval-explicit-candidate.json", "judge_record_index": 2}
+      ]
+    },
+    {
+      "id": "concrete-verification",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-concrete-verification-v0.1.json",
+      "coverage": "original and candidate versions, two available repeats each",
+      "runs": [
+        {"artifact": "concrete-original-r2.json", "judge_pass": true, "judge_artifact": "judge-concrete-original.json", "judge_record_index": 1},
+        {"artifact": "concrete-original-r3.json", "judge_pass": true, "judge_artifact": "judge-concrete-original.json", "judge_record_index": 2},
+        {"artifact": "concrete-candidate-r2.json", "judge_pass": true, "judge_artifact": "judge-concrete-candidate.json", "judge_record_index": 1},
+        {"artifact": "concrete-candidate-r3.json", "judge_pass": true, "judge_artifact": "judge-concrete-candidate.json", "judge_record_index": 2}
+      ]
+    },
+    {
+      "id": "required-read-disclosure",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-required-read-v0.1.json",
+      "coverage": "original and candidate versions, three repeats each",
+      "runs": [
+        {"artifact": "required-read-original-r1.json", "judge_pass": false, "judge_artifact": "judge-required-read-original.json", "judge_record_index": 0},
+        {"artifact": "required-read-original-r2.json", "judge_pass": false, "judge_artifact": "judge-required-read-original.json", "judge_record_index": 1},
+        {"artifact": "required-read-original-r3.json", "judge_pass": false, "judge_artifact": "judge-required-read-original.json", "judge_record_index": 2},
+        {"artifact": "required-read-candidate-r1.json", "judge_pass": true, "judge_artifact": "judge-required-read-candidate.json", "judge_record_index": 0},
+        {"artifact": "required-read-candidate-r2.json", "judge_pass": true, "judge_artifact": "judge-required-read-candidate.json", "judge_record_index": 1},
+        {"artifact": "required-read-candidate-r3.json", "judge_pass": true, "judge_artifact": "judge-required-read-candidate.json", "judge_record_index": 2}
+      ]
+    },
+    {
+      "id": "trigger-boundary",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-trigger-boundary-v0.1.json",
+      "coverage": "original and candidate versions, three repeats each",
+      "runs": [
+        {"artifact": "trigger-original-r1.json", "judge_pass": true, "judge_artifact": "judge-trigger-original.json", "judge_record_index": 0},
+        {"artifact": "trigger-original-r2.json", "judge_pass": true, "judge_artifact": "judge-trigger-original.json", "judge_record_index": 1},
+        {"artifact": "trigger-original-r3.json", "judge_pass": true, "judge_artifact": "judge-trigger-original.json", "judge_record_index": 2},
+        {"artifact": "trigger-candidate-r1.json", "judge_pass": true, "judge_artifact": "judge-trigger-candidate.json", "judge_record_index": 0},
+        {"artifact": "trigger-candidate-r2.json", "judge_pass": true, "judge_artifact": "judge-trigger-candidate.json", "judge_record_index": 1},
+        {"artifact": "trigger-candidate-r3.json", "judge_pass": true, "judge_artifact": "judge-trigger-candidate.json", "judge_record_index": 2}
+      ]
+    },
+    {
+      "id": "output-contract-typed",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-output-contract-v0.1.json",
+      "coverage": "original and candidate versions, three repeats each; neutral-format variants excluded from structural gating",
+      "runs": [
+        {"artifact": "output-contract-original-r1.json", "judge_pass": true, "judge_artifact": "judge-output-contract-original.json", "judge_record_index": 0},
+        {"artifact": "output-contract-original-r2.json", "judge_pass": true, "judge_artifact": "judge-output-contract-original.json", "judge_record_index": 1},
+        {"artifact": "output-contract-original-r3.json", "judge_pass": false, "judge_artifact": "judge-output-contract-original.json", "judge_record_index": 2},
+        {"artifact": "output-contract-candidate-r1.json", "judge_pass": true, "judge_artifact": "judge-output-contract-candidate.json", "judge_record_index": 0},
+        {"artifact": "output-contract-candidate-r2.json", "judge_pass": true, "judge_artifact": "judge-output-contract-candidate.json", "judge_record_index": 1},
+        {"artifact": "output-contract-candidate-r3.json", "judge_pass": true, "judge_artifact": "judge-output-contract-candidate.json", "judge_record_index": 2}
+      ]
+    },
+    {
+      "id": "precedence-boundary",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-precedence-boundary-v0.1.json",
+      "coverage": "original and candidate versions, three repeats each",
+      "runs": [
+        {"artifact": "precedence-boundary-original-r1.json", "judge_pass": true, "judge_artifact": "judge-precedence-boundary-original.json", "judge_record_index": 0},
+        {"artifact": "precedence-boundary-original-r2.json", "judge_pass": false, "judge_artifact": "judge-precedence-boundary-original.json", "judge_record_index": 1},
+        {"artifact": "precedence-boundary-original-r3.json", "judge_pass": true, "judge_artifact": "judge-precedence-boundary-original.json", "judge_record_index": 2},
+        {"artifact": "precedence-boundary-candidate-r1.json", "judge_pass": true, "judge_artifact": "judge-precedence-boundary-candidate.json", "judge_record_index": 0},
+        {"artifact": "precedence-boundary-candidate-r2.json", "judge_pass": true, "judge_artifact": "judge-precedence-boundary-candidate.json", "judge_record_index": 1},
+        {"artifact": "precedence-boundary-candidate-r3.json", "judge_pass": true, "judge_artifact": "judge-precedence-boundary-candidate.json", "judge_record_index": 2}
+      ]
+    },
+    {
+      "id": "host-portability",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-host-portability-v0.1.json",
+      "coverage": "original and candidate versions, three repeats each",
+      "runs": [
+        {"artifact": "host-portability-original-r1.json", "judge_pass": true, "judge_artifact": "judge-host-portability-original.json", "judge_record_index": 0},
+        {"artifact": "host-portability-original-r2.json", "judge_pass": true, "judge_artifact": "judge-host-portability-original.json", "judge_record_index": 1},
+        {"artifact": "host-portability-original-r3.json", "judge_pass": true, "judge_artifact": "judge-host-portability-original.json", "judge_record_index": 2},
+        {"artifact": "host-portability-candidate-r1.json", "judge_pass": true, "judge_artifact": "judge-host-portability-candidate.json", "judge_record_index": 0},
+        {"artifact": "host-portability-candidate-r2.json", "judge_pass": true, "judge_artifact": "judge-host-portability-candidate.json", "judge_record_index": 1},
+        {"artifact": "host-portability-candidate-r3.json", "judge_pass": true, "judge_artifact": "judge-host-portability-candidate.json", "judge_record_index": 2}
+      ]
+    }
+  ]
+}

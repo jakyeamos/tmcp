@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -66,6 +67,49 @@ def validate_corpus(
             structural = validate_fixture_artifact(artifact, spec)
             expected_judge = run.get("judge_pass")
             agreement = expected_judge == structural["passed"] if isinstance(expected_judge, bool) else None
+            judge_provenance: dict[str, Any] | None = None
+            judge_artifact = run.get("judge_artifact")
+            judge_record_index = run.get("judge_record_index")
+            if judge_artifact is not None:
+                if not isinstance(judge_artifact, str):
+                    errors.append(f"{family_id}/{artifact_path.name}: judge_artifact must be a string")
+                elif not isinstance(judge_record_index, int) or judge_record_index < 0:
+                    errors.append(
+                        f"{family_id}/{artifact_path.name}: judge_record_index must be a non-negative integer"
+                    )
+                else:
+                    judge_path = Path(judge_artifact)
+                    if not judge_path.is_absolute():
+                        judge_path = artifact_root / judge_path
+                    try:
+                        judge_bytes = judge_path.read_bytes()
+                        judge_payload = json.loads(judge_bytes)
+                        if isinstance(judge_payload, list):
+                            judge_record = judge_payload[judge_record_index]
+                        elif judge_record_index == 0:
+                            judge_record = judge_payload
+                        else:
+                            raise IndexError("record index is greater than zero for an object judge artifact")
+                        if not isinstance(judge_record, dict) or not isinstance(judge_record.get("pass"), bool):
+                            raise ValueError("judge record must be an object with a boolean pass field")
+                        record_pass = judge_record["pass"]
+                        if isinstance(expected_judge, bool) and record_pass is not expected_judge:
+                            errors.append(
+                                f"{family_id}/{artifact_path.name}: recorded judge_pass disagrees with "
+                                f"judge artifact record {judge_artifact}[{judge_record_index}]"
+                            )
+                        judge_provenance = {
+                            "path": str(judge_path),
+                            "sha256": hashlib.sha256(judge_bytes).hexdigest(),
+                            "record_index": judge_record_index,
+                            "record_pass": record_pass,
+                            "run_id": judge_record.get("run_id"),
+                        }
+                    except (OSError, json.JSONDecodeError, IndexError, TypeError, ValueError) as exc:
+                        errors.append(
+                            f"{family_id}/{artifact_path.name}: unable to load judge artifact "
+                            f"{judge_artifact}[{judge_record_index}]: {exc}"
+                        )
             row = {
                 "artifact": str(run["artifact"]),
                 "structural_pass": structural["passed"],
@@ -73,6 +117,8 @@ def validate_corpus(
                 "judge_pass": expected_judge,
                 "judge_agreement": agreement,
             }
+            if judge_provenance is not None:
+                row["judge_provenance"] = judge_provenance
             rows.append(row)
             all_rows.append({"family": family_id, **row})
 

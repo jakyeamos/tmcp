@@ -163,8 +163,11 @@ def validate_fixture_artifact(
     labels = _text_fragments(spec.get("required_final_labels"))
     missing_labels = [label for label in labels if not _has_final_label(final_response_text, label)]
 
+    exact_value_configured = "exact_value" in spec
     exact_value = spec.get("exact_value")
-    exact_value_passed = _contains_exact_value(final_response_text, exact_value)
+    exact_value_passed = (
+        _contains_exact_value(final_response_text, exact_value) if exact_value_configured else True
+    )
 
     disclosure_terms = _text_fragments(spec.get("required_disclosure_terms"))
     disclosure_lower = final_response_text.casefold()
@@ -218,6 +221,7 @@ def validate_fixture_artifact(
         "exact_value": {
             "passed": exact_value_passed,
             "expected": exact_value,
+            "configured": exact_value_configured,
         },
         "required_activity": {
             "passed": not missing_activity_markers and not missing_activity_patterns,
