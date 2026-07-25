@@ -163,3 +163,37 @@ confirmed why this matters: all 30 runner and 30 judge cells completed, but
 the judges mostly saw refusal/no-op artifacts because the required external
 inputs were absent. That is case-quality evidence, not five proven skill
 failures, and it does not authorize rewrites.
+
+### 9. Disposition campaign results before proposing a rewrite
+
+Campaign completion is not the same as skill evidence. Record each completed
+case in `individual-skill-behavior-dispositions-v0.1.json` with an explicit
+classification, rationale, next action, original/candidate cell counts, and
+independent-judge decisions. Use these dispositions:
+
+- `case_boundary_blocked`: the golden case omitted an input, authenticated
+  state, external result, or task target required by its own bar.
+- `runner_boundary_blocked`: the case is complete, but the blind runner was
+  not given the bounded repository/tool context needed to exercise it.
+- `skill_failure`: only after a `case_ready` case has a repeatable independent
+  judge failure with the required execution evidence.
+
+The first six-case disposition pass completed 36 runner cells and 36 judge
+cells with no harness failures. Five cases were `case_boundary_blocked`; the
+read-only ownership case was `runner_boundary_blocked` because the runner
+could not execute its scoped repository commands. The resulting summary is
+zero observed skill failures and six rewrite holds. This is a useful maturity
+checkpoint: the harness can expose missing evidence, but it still must gain a
+bounded read-only execution mode before repository-inspection skills can be
+judged behaviorally.
+
+Rebuild the disposition artifact with:
+
+```bash
+python3 scripts/build_skill_behavior_dispositions.py \
+  tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json \
+  tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json \
+  --campaign /private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json \
+  --campaign /private/tmp/tmcp-check-thread-campaign-20260725/campaign-report.json \
+  --output tests/fixtures/skill-fixtures/individual-skill-behavior-dispositions-v0.1.json
+```

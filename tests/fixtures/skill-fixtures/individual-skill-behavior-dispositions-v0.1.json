@@ -1,0 +1,296 @@
+{
+  "schema": "tmcp-individual-skill-behavior-dispositions-v0.1",
+  "generated_from": {
+    "admission_registry": "tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json",
+    "admission_registry_sha256": "ccbeb95542783055d43459b461dfcab5216b37a59b92f397304097e00245557e",
+    "disposition_input": "tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json",
+    "disposition_input_sha256": "4975b21bbd22f7623411834fe52c8ddde781e6aa24b0d040427939dafe60651e",
+    "campaigns": [
+      {
+        "report_path": "/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json",
+        "report_sha256": "9ac35c0691758bbea6bc1ec19feb50ec466393a9e8bdbfe798545141642192e6",
+        "manifest": "/private/tmp/tmcp-individual-admission-fixtures/manifest.json",
+        "model": "gpt-5.5",
+        "reasoning_effort": "low",
+        "runner_count": 30,
+        "judge_count": 30
+      },
+      {
+        "report_path": "/private/tmp/tmcp-check-thread-campaign-20260725/campaign-report.json",
+        "report_sha256": "fd62d12600e8e2902d97db88aa05a94878292e91db01b820ee74bc9267d9d532",
+        "manifest": "/private/tmp/tmcp-check-thread-fixtures/manifest.json",
+        "model": "gpt-5.5",
+        "reasoning_effort": "low",
+        "runner_count": 6,
+        "judge_count": 6
+      }
+    ]
+  },
+  "policy": {
+    "independent_judging_required": true,
+    "repeatable_failure_required": true,
+    "case_quality_and_runner_boundaries_are_separate": true,
+    "automatic_rewrite": false
+  },
+  "summary": {
+    "case_count": 6,
+    "campaign_ready_case_count": 6,
+    "observed_skill_failure_count": 0,
+    "rewrite_hold_count": 6,
+    "case_or_runner_boundary_count": 6
+  },
+  "cases": [
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/check-thread-ownership/SKILL.md",
+      "source_sha256": "d8ddc1a0c4a5c68a0fd6cf2b74f0b58c1515832a79b133f5016cae0217cf7d2a",
+      "admission_status": "case_ready",
+      "case_id": "check-thread-ownership-read-only-current-repo",
+      "campaign_cell_count": 6,
+      "versions": {
+        "original": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.6933,
+          "skill_sha256": [
+            "d8ddc1a0c4a5c68a0fd6cf2b74f0b58c1515832a79b133f5016cae0217cf7d2a"
+          ]
+        },
+        "candidate": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.6633,
+          "skill_sha256": [
+            "d8ddc1a0c4a5c68a0fd6cf2b74f0b58c1515832a79b133f5016cae0217cf7d2a"
+          ]
+        }
+      },
+      "disposition": "runner_boundary_blocked",
+      "observed_skill_failure": false,
+      "rewrite_status": "hold",
+      "rationale": "The case has a complete read-only boundary, but the blind runner was not given repository or command execution context; the artifact safely reported unavailable evidence instead of running the skill's commands.",
+      "next_action": "Add a bounded read-only repository/tool execution mode and rerun original and candidate independently."
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/find-skills/SKILL.md",
+      "source_sha256": "58f54b13beaa00713dd5f4402d377db859a6ba3b2469b0b28f4498d493f69612",
+      "admission_status": "needs_execution_boundary",
+      "case_id": "find-skills-react-performance",
+      "campaign_cell_count": 6,
+      "versions": {
+        "original": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.3533,
+          "skill_sha256": [
+            "58f54b13beaa00713dd5f4402d377db859a6ba3b2469b0b28f4498d493f69612"
+          ]
+        },
+        "candidate": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.3933,
+          "skill_sha256": [
+            "58f54b13beaa00713dd5f4402d377db859a6ba3b2469b0b28f4498d493f69612"
+          ]
+        }
+      },
+      "disposition": "case_boundary_blocked",
+      "observed_skill_failure": false,
+      "rewrite_status": "hold",
+      "rationale": "The campaign supplied no live skills CLI/search result or network/tool boundary, so a refusal cannot distinguish skill behavior from missing discovery infrastructure.",
+      "next_action": "Provide a recorded search result or bounded discovery tool and rerun the source-bound case."
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-reapply-patches/SKILL.md",
+      "source_sha256": "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f",
+      "admission_status": "needs_execution_boundary",
+      "case_id": "gsd-reapply-patches-after-update",
+      "campaign_cell_count": 6,
+      "versions": {
+        "original": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.2833,
+          "skill_sha256": [
+            "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f"
+          ]
+        },
+        "candidate": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.0933,
+          "skill_sha256": [
+            "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f"
+          ]
+        }
+      },
+      "disposition": "case_boundary_blocked",
+      "observed_skill_failure": false,
+      "rewrite_status": "hold",
+      "rationale": "The task requires patch files, pristine/current targets, and backup metadata; none was supplied, so refusal is the expected safe behavior rather than a skill failure.",
+      "next_action": "Construct a disposable patch fixture with pristine/current/backup states and a known classification bar."
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/last30days/SKILL.md",
+      "source_sha256": "016ce06212a0f9b807f91459146aa8cec7b28f96872a9dee95d72d77fb9014d3",
+      "admission_status": "needs_execution_boundary",
+      "case_id": "last30days-nvidia-earnings-reaction",
+      "campaign_cell_count": 6,
+      "versions": {
+        "original": {
+          "cell_count": 3,
+          "pass_count": 1,
+          "fail_count": 2,
+          "decisions": [
+            "pass",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.6967,
+          "skill_sha256": [
+            "016ce06212a0f9b807f91459146aa8cec7b28f96872a9dee95d72d77fb9014d3"
+          ]
+        },
+        "candidate": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.71,
+          "skill_sha256": [
+            "016ce06212a0f9b807f91459146aa8cec7b28f96872a9dee95d72d77fb9014d3"
+          ]
+        }
+      },
+      "disposition": "case_boundary_blocked",
+      "observed_skill_failure": false,
+      "rewrite_status": "hold",
+      "rationale": "The task requires engine output, source links, and a concrete footer; those inputs were absent, and the mixed scores are not causal evidence of a rewrite effect.",
+      "next_action": "Freeze a dated engine/source transcript and footer expectation, then rerun the case."
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/nlm-skill/SKILL.md",
+      "source_sha256": "cee8acdfc010d44459ca47d9ec59c7a3df8d2d523c3374f70959c68996f4bb6b",
+      "admission_status": "needs_execution_boundary",
+      "case_id": "nlm-list-notebooks-json",
+      "campaign_cell_count": 6,
+      "versions": {
+        "original": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.5267,
+          "skill_sha256": [
+            "cee8acdfc010d44459ca47d9ec59c7a3df8d2d523c3374f70959c68996f4bb6b"
+          ]
+        },
+        "candidate": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.4733,
+          "skill_sha256": [
+            "cee8acdfc010d44459ca47d9ec59c7a3df8d2d523c3374f70959c68996f4bb6b"
+          ]
+        }
+      },
+      "disposition": "case_boundary_blocked",
+      "observed_skill_failure": false,
+      "rewrite_status": "hold",
+      "rationale": "The campaign had no authenticated NotebookLM state or listing response, so login/list instructions cannot be judged as a JSON listing behavior.",
+      "next_action": "Supply a disposable authenticated fixture or deterministic tool response and rerun with the JSON bar."
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/.system/skill-creator/SKILL.md",
+      "source_sha256": "da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c",
+      "admission_status": "needs_execution_boundary",
+      "case_id": "skill-creator-rotate-pdf",
+      "campaign_cell_count": 6,
+      "versions": {
+        "original": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.3833,
+          "skill_sha256": [
+            "da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c"
+          ]
+        },
+        "candidate": {
+          "cell_count": 3,
+          "pass_count": 0,
+          "fail_count": 3,
+          "decisions": [
+            "fail",
+            "fail",
+            "fail"
+          ],
+          "mean_score": 0.3667,
+          "skill_sha256": [
+            "da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c"
+          ]
+        }
+      },
+      "disposition": "case_boundary_blocked",
+      "observed_skill_failure": false,
+      "rewrite_status": "hold",
+      "rationale": "The prompt describes a one-off PDF operation while the source skill is an authoring workflow; no PDF or authoring target was supplied, so the case is task-mismatched.",
+      "next_action": "Replace this with a reusable-skill authoring request and provide the target skill directory and acceptance bar."
+    }
+  ]
+}

@@ -126,6 +126,32 @@
         {"line": 10, "excerpt": "Every file in `gsd-local-patches/` was backed up because the installer's hash comparison detected it was modified."},
         {"line": 10, "excerpt": "When in doubt, classify as CONFLICT requiring user review, not SKIP."}
       ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.codex/skills/check-thread-ownership/SKILL.md",
+      "case_id": "check-thread-ownership-read-only-current-repo",
+      "mode": "judgment",
+      "prompt": "Before any mutation, verify ownership of the current repository at /private/tmp/tmcp-skill-fixtures-20260722 from its read-only state and return the compact ownership report.",
+      "bar": "Return the compact ownership report with repository, worktree, branch, snapshot, current HEAD, changed paths, activity evidence, exactly one allowed classification, mutation status, and one safe next action. Scope inspection to the target repository, never mutate it, and classify missing or conflicting activity evidence as unknown rather than assuming ownership.",
+      "smells": [
+        "missing required report field",
+        "broad home-directory scan",
+        "mutation command executed",
+        "ownership inferred from appearance",
+        "unknown activity evidence treated as safe"
+      ],
+      "execution_boundary": {
+        "status": "complete",
+        "evidence": "The target repository exists in the fixture workspace and all required evidence commands are read-only; no external service or attached artifact is required."
+      },
+      "provenance": [
+        {"line": 30, "excerpt": "Capture current repository evidence without changing state:"},
+        {"line": 43, "excerpt": "Scope every command to the affected repository. Do not use a broad home"},
+        {"line": 44, "excerpt": "directory scan."},
+        {"line": 64, "excerpt": "Treat `owned-by-other-or-recent-thread` and `unknown` as hard stops."},
+        {"line": 76, "excerpt": "Until the gate clears, do not edit files or run commands that stage, commit,"},
+        {"line": 87, "excerpt": "Return a compact ownership report with these fields:"}
+      ]
     }
   ]
 }
