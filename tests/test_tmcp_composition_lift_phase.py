@@ -207,7 +207,7 @@ Output contract:
         artifact = "DELIVERABLES\n" + ("decision row " * 500)
         bounded = bound_current_phase_artifact(artifact, limit=4_000)
         self.assertLessEqual(len(bounded), 4_000)
-        self.assertGreater(len(bounded), 720)
+        self.assertGreater(len(bounded), 1_200)
 
     def test_phase_exit_gate_status_is_deterministic(self) -> None:
         self.assertEqual(
