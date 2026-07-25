@@ -203,7 +203,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   concrete-verification family. It checks boolean observables and structured
   final responses without weakening the canonical schema; the four available
   r2/r3 artifacts match the judge 4/4.
-- `selected-corpus-v0.1.json` and `selected-corpus-baseline-v0.1.json` now
+- `d8e89ea` adds `selected-corpus-v0.1.json` and
+  `selected-corpus-baseline-v0.1.json`, which now
   consolidate six calibrated families into one reproducible pre-screen. The
   corpus runner executes 34 available artifacts, finds 23 structural passes,
   and agrees with the independent judge on 34/34 runs. Coverage exclusions are
