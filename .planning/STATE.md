@@ -233,6 +233,14 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   as well. No tested regression or safety mutation occurred; this remains
   fixture-level interaction evidence at gpt-5.5 low reasoning, not corpus-wide
   causal proof.
+- `composition-cases-v0.3.json` and `composition-baseline-v0.5.json` add a
+  trigger-boundary/output-contract interaction on a bounded artifact-read task.
+  Candidate-candidate passes 2/2; candidate-original is unstable at 1/2; and
+  original-candidate fails 0/2 because the broad original trigger launches
+  unrequested release checks. Original-original is 0/2, for 3/8 overall.
+  This is a non-commutative composition result: both rewrites are needed for
+  stable behavior, with no tested mutation or regression. It remains one task
+  shape at gpt-5.5 low reasoning, not corpus-wide causal proof.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment

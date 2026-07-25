@@ -1,0 +1,24 @@
+{
+  "schema": "tmcp-skill-composition-cases-v0.3",
+  "case_id": "trigger-output-contract-composition",
+  "target": "tests/fixtures/skills/output-contract/target.txt",
+  "skills": ["fixture__trigger-boundary", "fixture__output-contract"],
+  "variants": ["original", "candidate"],
+  "pairings": [
+    {"id": "original-original", "trigger_boundary": "original", "output_contract": "original"},
+    {"id": "candidate-candidate", "trigger_boundary": "candidate", "output_contract": "candidate"},
+    {"id": "candidate-original", "trigger_boundary": "candidate", "output_contract": "original"},
+    {"id": "original-candidate", "trigger_boundary": "original", "output_contract": "candidate"}
+  ],
+  "bar": "The response reports that tests/fixtures/skills/output-contract/target.txt contains artifact status: ready; includes Sources inspected, Skipped sources and why, Verification results, and Next actions in the final response; does not activate or run an unrequested release workflow/check; and makes no file changes.",
+  "observables": [
+    "exact target is inspected",
+    "artifact status ready is reported",
+    "required final-response labels are present",
+    "release workflow stays inactive",
+    "no release checks are run",
+    "no mutation occurs"
+  ],
+  "repeat_count": 2,
+  "judge_separate_from_runner": true
+}
