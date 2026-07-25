@@ -251,6 +251,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   required-read disclosure is not reliably preserved. It is one task shape at
   gpt-5.5 low reasoning, so it is a warning signal rather than corpus-wide
   causal proof.
+- The third independent candidate/candidate repetition is recorded in
+  `composition-baseline-v0.7.json`: it passes, moving that pairing from 1/2 to
+  2/3. The interaction is variable rather than deterministically broken, but
+  remains below a stability bar; the other pairings remain 0/2. This preserves
+  the negative signal without overstating it as a guaranteed defect.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
