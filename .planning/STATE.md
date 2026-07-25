@@ -223,12 +223,15 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - The output-contract generator was strengthened with literal `label: value`
   lines, conflict disclosure, and a precedence guard that preserves a concise
   source-conflict summary. The focused policy test now covers this behavior.
-  The targeted post-fix candidate/candidate precedence rejudge passes 2/2 with
-  the explicit final-response statement that the conflicting source instruction
-  was rejected because higher-priority user instructions win. The repair record
-  is `tests/fixtures/skill-fixtures/composition-baseline-v0.3.json`; the three
-  mixed pairings from v0.2 still need rejudge before this family is considered
-  fully repaired.
+  The complete post-fix precedence/output-contract rejudge is recorded in
+  `tests/fixtures/skill-fixtures/composition-baseline-v0.4.json`: candidate-
+  candidate, candidate-original, and original-candidate each pass 2/2, while
+  the unchanged original/original control remains 0/2, for 6/8 across the full
+  family and 6/6 across candidate-containing pairings. The required-read/
+  output-contract candidate/candidate artifacts were independently judged 2/2
+  as well. No tested regression or safety mutation occurred; this remains
+  fixture-level interaction evidence at gpt-5.5 low reasoning, not corpus-wide
+  causal proof.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
