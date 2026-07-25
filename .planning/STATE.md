@@ -220,6 +220,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   are original 0.9756 versus candidate 0.9692; this is a reproducible
   non-fabrication baseline and variance signal, not rewrite lift or permission
   to promote automatic rewrites.
+- `b588231` adds the reproducible per-skill registry
+  `tests/fixtures/skill-fixtures/individual-skill-audit-v0.1.json`: 156 unique
+  skills, 100 with static findings, 56 without, and 134 warnings. Every entry
+  records its source hash, warning IDs, proposed change, definition-of-done
+  status, observed-failure status, and recommended next case. Static warnings
+  remain hypotheses; observed failures and definition-of-done claims require a
+  concrete case plus independent judgment.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
