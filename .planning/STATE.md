@@ -250,6 +250,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - `a7b13a9` preserves `execution_boundary` when admission cases are scaffolded
   into blind manifests, preventing a complete case from silently losing the
   evidence that made it runnable. The focused fixture/admission tests pass.
+- `e1d4077` adds an explicit bounded read-only execution mode to the blind
+  campaign runner. A complete case now requires `--execution-root`, receives
+  that exact root in its prompt, runs with the read-only sandbox, and records
+  `execution_mode`/`execution_root` in each report cell. The focused runner
+  tests pass; the ownership case is ready for its rejudge disposition update.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
