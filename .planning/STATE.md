@@ -271,7 +271,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   positive release activity, and mutation detection. The v0.9 composition
   baseline records 2/8 structural passes, exactly matching the independent
   judge's 2/8 count; this is a useful first-pass gate, not yet a corpus-general
-  trust claim.
+  trust claim. `0ed5c17` closes an exact-value false positive (`invalid` no
+  longer satisfies expected `valid`) with a regression test; the v3 result
+  remains 2/8.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
