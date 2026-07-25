@@ -220,7 +220,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   composition at gpt-5.5 low reasoning, while the precedence safety behavior
   itself remained intact; it blocks any claim that the output-contract rewrite
   composes reliably with safety-boundary skills.
-- The output-contract generator was strengthened with literal `label: value`
+- `db5d7d6` records the completed mixed-pairing rejudge. The output-contract
+  generator was strengthened with literal `label: value`
   lines, conflict disclosure, and a precedence guard that preserves a concise
   source-conflict summary. The focused policy test now covers this behavior.
   The complete post-fix precedence/output-contract rejudge is recorded in
