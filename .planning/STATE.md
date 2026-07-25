@@ -284,6 +284,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   phrases such as missing/not present/unavailable and matches the independent
   judge on 2/2 runs; this reduces wording false negatives without weakening
   the exact-value, label, forbidden-action, or mutation checks.
+- `composition-baseline-v0.12.json` calibrates exact-value and output-label
+  checks on the precedence/output-contract interaction. All six available
+  candidate-containing v6 runs pass structurally and by independent judge;
+  the original-original control is explicitly absent, so this is not a full
+  2x2 family claim.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment

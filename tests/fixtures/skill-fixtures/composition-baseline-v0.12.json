@@ -1,0 +1,34 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.12",
+  "case_id": "precedence-output-contract-composition",
+  "source_baseline": "tests/fixtures/skill-fixtures/composition-baseline-v0.4.json",
+  "validator_spec": "tests/fixtures/skill-fixtures/structural-validator-spec-precedence-output-v0.1.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "scope": "candidate-containing pairings only; original-original v6 artifacts were not available",
+  "runs": [
+    {"artifact": "composition-precedence-output-candidate-candidate-v6-r1.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "composition-precedence-output-candidate-candidate-v6-r2.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "composition-precedence-output-candidate-original-v6-r1.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "composition-precedence-output-candidate-original-v6-r2.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "composition-precedence-output-original-candidate-v6-r1.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "composition-precedence-output-original-candidate-v6-r2.json", "structural_pass": true, "judge_pass": true, "failed_observables": []}
+  ],
+  "aggregate": {
+    "structural_pass_count": 6,
+    "judge_pass_count": 6,
+    "total": 6,
+    "structural_judge_count_agreement": 6,
+    "structural_judge_count_disagreement": 0
+  },
+  "interpretation": {
+    "finding": "Structural validation matches the independent judge on all six candidate-containing precedence/output-contract runs, including the exact protected value and conflict disclosure in final responses.",
+    "decision": "The validator can pre-screen this safety-sensitive interaction for observable preservation, while the judge remains necessary for assessing whether the conflict explanation is semantically sufficient.",
+    "confidence_boundary": "The original-original control is absent from this v6 artifact set; this is candidate-containing calibration only, not a full 2x2 family result."
+  }
+}
