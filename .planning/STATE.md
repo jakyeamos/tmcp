@@ -239,6 +239,14 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   queue cannot call source provenance alone `case_ready`. The campaign report
   is `/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json`
   (SHA-256 `9ac35c0691758bbe6bc1ec19feb50ec466393a9e8bdbfe798545141642192e6`).
+- `63f1c49` records the six-case behavior disposition pass. It completes 36
+  runner and 36 independent-judge cells with zero harness failures, but admits
+  zero skill failures and keeps all six rewrites on hold: five cases are
+  `case_boundary_blocked`, while `check-thread-ownership` is
+  `runner_boundary_blocked` because blind execution lacked bounded read-only
+  repository/tool access. The durable disposition artifact is
+  `tests/fixtures/skill-fixtures/individual-skill-behavior-dispositions-v0.1.json`;
+  the next gate is a bounded read-only runner mode followed by a rerun.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
