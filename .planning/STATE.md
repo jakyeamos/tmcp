@@ -233,6 +233,12 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   remain blocked on a real golden case and bar. The queue validates source
   hashes and provenance and does not claim behavioral passes or authorize
   automatic rewrites.
+- `cab4ed9` tightens that gate after the disposable five-skill campaign
+  completed 30 runner and 30 judge cells but exposed missing execution inputs:
+  all five source examples now remain `needs_execution_boundary`, and the
+  queue cannot call source provenance alone `case_ready`. The campaign report
+  is `/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json`
+  (SHA-256 `9ac35c0691758bbe6bc1ec19feb50ec466393a9e8bdbfe798545141642192e6`).
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
