@@ -8,11 +8,11 @@
   "cases": [
     {
       "case_id": "check-thread-ownership-read-only-current-repo",
-      "disposition": "runner_boundary_blocked",
+      "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
-      "rewrite_status": "hold",
-      "rationale": "The case has a complete read-only boundary, but the blind runner was not given repository or command execution context; the artifact safely reported unavailable evidence instead of running the skill's commands.",
-      "next_action": "Add a bounded read-only repository/tool execution mode and rerun original and candidate independently."
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "After the runner received the bounded read-only repository/tool context, all three original and all three candidate cells passed independent judgment. The original and candidate skill hashes are identical, so this establishes a baseline pass without rewrite lift.",
+      "next_action": "Use this case as a regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     },
     {
       "case_id": "find-skills-react-performance",

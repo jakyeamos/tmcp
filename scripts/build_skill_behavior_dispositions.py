@@ -135,6 +135,12 @@ def main() -> None:
             "campaign_ready_case_count": sum(case["campaign_cell_count"] > 0 for case in cases),
             "observed_skill_failure_count": sum(case["observed_skill_failure"] for case in cases),
             "rewrite_hold_count": sum(case["rewrite_status"] == "hold" for case in cases),
+            "no_candidate_delta_count": sum(
+                case["rewrite_status"] == "no_candidate_delta" for case in cases
+            ),
+            "behaviorally_passed_case_count": sum(
+                case["disposition"] == "behavioral_baseline_pass" for case in cases
+            ),
             "case_or_runner_boundary_count": sum(
                 case["disposition"] in {"case_boundary_blocked", "runner_boundary_blocked"}
                 for case in cases

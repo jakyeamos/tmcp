@@ -180,12 +180,14 @@ independent-judge decisions. Use these dispositions:
 
 The first six-case disposition pass completed 36 runner cells and 36 judge
 cells with no harness failures. Five cases were `case_boundary_blocked`; the
-read-only ownership case was `runner_boundary_blocked` because the runner
-could not execute its scoped repository commands. The resulting summary is
-zero observed skill failures and six rewrite holds. This is a useful maturity
-checkpoint: the harness can expose missing evidence, but it still must gain a
-bounded read-only execution mode before repository-inspection skills can be
-judged behaviorally.
+read-only ownership case was initially `runner_boundary_blocked` because the
+runner could not execute its scoped repository commands. After the runner
+gained an explicit bounded read-only execution root, a second 6-runner/6-judge
+rejudge passed all original and candidate cells for that case. Its final
+disposition is `behavioral_baseline_pass` with `no_candidate_delta`: the
+original and candidate hashes are identical, so this is a regression control,
+not rewrite lift. The resulting summary is zero observed skill failures, one
+behavioral baseline pass, and five rewrite holds.
 
 Rebuild the disposition artifact with:
 
@@ -194,6 +196,6 @@ python3 scripts/build_skill_behavior_dispositions.py \
   tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json \
   tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json \
   --campaign /private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json \
-  --campaign /private/tmp/tmcp-check-thread-campaign-20260725/campaign-report.json \
+  --campaign /private/tmp/tmcp-check-thread-campaign-v3-20260725/campaign-report.json \
   --output tests/fixtures/skill-fixtures/individual-skill-behavior-dispositions-v0.1.json
 ```

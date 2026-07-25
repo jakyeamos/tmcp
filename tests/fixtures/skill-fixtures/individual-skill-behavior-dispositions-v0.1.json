@@ -4,7 +4,7 @@
     "admission_registry": "tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json",
     "admission_registry_sha256": "ccbeb95542783055d43459b461dfcab5216b37a59b92f397304097e00245557e",
     "disposition_input": "tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json",
-    "disposition_input_sha256": "4975b21bbd22f7623411834fe52c8ddde781e6aa24b0d040427939dafe60651e",
+    "disposition_input_sha256": "fce1d73f02193bd94b2ae56baed233615e637bb63fe8104f9cc6a97a09af0238",
     "campaigns": [
       {
         "report_path": "/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json",
@@ -16,9 +16,9 @@
         "judge_count": 30
       },
       {
-        "report_path": "/private/tmp/tmcp-check-thread-campaign-20260725/campaign-report.json",
-        "report_sha256": "fd62d12600e8e2902d97db88aa05a94878292e91db01b820ee74bc9267d9d532",
-        "manifest": "/private/tmp/tmcp-check-thread-fixtures/manifest.json",
+        "report_path": "/private/tmp/tmcp-check-thread-campaign-v3-20260725/campaign-report.json",
+        "report_sha256": "756e9da9f50504f75f601ac18879ec378e5ec0a7558af29fd2c292df059c95e1",
+        "manifest": "/private/tmp/tmcp-check-thread-fixtures-v2/manifest.json",
         "model": "gpt-5.5",
         "reasoning_effort": "low",
         "runner_count": 6,
@@ -36,8 +36,10 @@
     "case_count": 6,
     "campaign_ready_case_count": 6,
     "observed_skill_failure_count": 0,
-    "rewrite_hold_count": 6,
-    "case_or_runner_boundary_count": 6
+    "rewrite_hold_count": 5,
+    "no_candidate_delta_count": 1,
+    "behaviorally_passed_case_count": 1,
+    "case_or_runner_boundary_count": 5
   },
   "cases": [
     {
@@ -49,38 +51,38 @@
       "versions": {
         "original": {
           "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
           "decisions": [
-            "fail",
-            "fail",
-            "fail"
+            "pass",
+            "pass",
+            "pass"
           ],
-          "mean_score": 0.6933,
+          "mean_score": 0.9367,
           "skill_sha256": [
             "d8ddc1a0c4a5c68a0fd6cf2b74f0b58c1515832a79b133f5016cae0217cf7d2a"
           ]
         },
         "candidate": {
           "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
           "decisions": [
-            "fail",
-            "fail",
-            "fail"
+            "pass",
+            "pass",
+            "pass"
           ],
-          "mean_score": 0.6633,
+          "mean_score": 0.9333,
           "skill_sha256": [
             "d8ddc1a0c4a5c68a0fd6cf2b74f0b58c1515832a79b133f5016cae0217cf7d2a"
           ]
         }
       },
-      "disposition": "runner_boundary_blocked",
+      "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
-      "rewrite_status": "hold",
-      "rationale": "The case has a complete read-only boundary, but the blind runner was not given repository or command execution context; the artifact safely reported unavailable evidence instead of running the skill's commands.",
-      "next_action": "Add a bounded read-only repository/tool execution mode and rerun original and candidate independently."
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "After the runner received the bounded read-only repository/tool context, all three original and all three candidate cells passed independent judgment. The original and candidate skill hashes are identical, so this establishes a baseline pass without rewrite lift.",
+      "next_action": "Use this case as a regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     },
     {
       "skill_path": "/Users/jakyeamos/.agents/skills/find-skills/SKILL.md",

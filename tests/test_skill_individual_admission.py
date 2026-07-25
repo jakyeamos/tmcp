@@ -70,20 +70,26 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
             "case_count": 6,
             "campaign_ready_case_count": 6,
             "observed_skill_failure_count": 0,
-            "rewrite_hold_count": 6,
-            "case_or_runner_boundary_count": 6,
+            "rewrite_hold_count": 5,
+            "no_candidate_delta_count": 1,
+            "behaviorally_passed_case_count": 1,
+            "case_or_runner_boundary_count": 5,
         })
         self.assertFalse(record["policy"]["automatic_rewrite"])
         self.assertTrue(record["policy"]["case_quality_and_runner_boundaries_are_separate"])
         self.assertTrue(all(case["observed_skill_failure"] is False for case in record["cases"]))
-        self.assertTrue(all(case["rewrite_status"] == "hold" for case in record["cases"]))
+        self.assertEqual(
+            sum(case["rewrite_status"] == "hold" for case in record["cases"]),
+            5,
+        )
         ownership = next(
             case for case in record["cases"]
             if case["case_id"] == "check-thread-ownership-read-only-current-repo"
         )
-        self.assertEqual(ownership["disposition"], "runner_boundary_blocked")
-        self.assertEqual(ownership["versions"]["original"]["fail_count"], 3)
-        self.assertEqual(ownership["versions"]["candidate"]["fail_count"], 3)
+        self.assertEqual(ownership["disposition"], "behavioral_baseline_pass")
+        self.assertEqual(ownership["rewrite_status"], "no_candidate_delta")
+        self.assertEqual(ownership["versions"]["original"]["pass_count"], 3)
+        self.assertEqual(ownership["versions"]["candidate"]["pass_count"], 3)
 
 
 if __name__ == "__main__":
