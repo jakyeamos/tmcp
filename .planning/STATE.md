@@ -260,6 +260,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   candidate passed 3/3 (mean 0.9333). Hashes are identical, so the final
   disposition is `behavioral_baseline_pass`/`no_candidate_delta`, not rewrite
   lift. The five other mined cases remain `case_boundary_blocked`.
+- `272fb97` adds a narrowly scoped disposable `CODEX_HOME` binding for complete
+  fixtures. The campaign runner forwards only the explicit
+  `--execution-codex-home` path as `CODEX_HOME`; it has no arbitrary environment
+  passthrough or credential channel. This is the execution prerequisite for the
+  GSD patch fixture.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
