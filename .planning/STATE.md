@@ -265,7 +265,7 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   at 1/2, and original-original is 0/2. The repair clarifies the contract but
   does not establish behavioral lift; no further prose-only heuristic should
   be inferred from this single task shape.
-- A post-run structural artifact validator now checks observable contract facts
+- `319ef2d` adds a post-run structural artifact validator that checks observable contract facts
   without a model call or bar exposure to the runner. Its seven focused tests
   cover schema/labels, exact values, required-read disclosure, negated versus
   positive release activity, and mutation detection. The v0.9 composition
