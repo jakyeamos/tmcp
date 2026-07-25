@@ -318,6 +318,15 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   assertion as a failure. Neutral-format output-contract variants remain
   explicitly judge-only because their artifact schema cannot prove the full
   response-field bar. Full regression: 477 tests passed, 3 skipped.
+- `0e1b300` closes the neutral-format evidence gap and adds a provenance-bound
+  coverage audit. The neutral corpus now scopes exact/disclosure checks across
+  observations, actions, and final response while requiring a final readiness
+  statement: original 0/3, candidate v1 2/3, corrected candidate v2 3/3,
+  with 9/9 structural–judge agreement. The discovered manifest audit finds
+  158 skills, only 1 ready skill and 1 golden case, leaving 157 skills needing
+  an explicit case and bar; automatic rewrite promotion remains blocked. The
+  calibrated subset is separately recorded at 7 skills and 8 cases. Full
+  regression: 482 tests passed, 3 skipped.
 - `51a4637` adds a batch CLI that runs the same post-run validator over a complete artifact
   matrix, emits per-artifact checks and SHA-256s, and exits nonzero if any
   artifact fails. This removes ad hoc aggregation from the campaign workflow;
