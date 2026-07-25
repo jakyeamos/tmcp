@@ -256,7 +256,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   2/3. The interaction is variable rather than deterministically broken, but
   remains below a stability bar; the other pairings remain 0/2. This preserves
   the negative signal without overstating it as a guaranteed defect.
-- The required-read rewrite was strengthened with literal attempted-read,
+- `0162223` records the required-read rewrite strengthened with literal
+  attempted-read,
   required-but-unavailable, and exact-value instructions, covered by
   `test_rewrite_makes_required_read_disclosure_literal`. The full v3 matrix is
   recorded in `composition-baseline-v0.8.json`: candidate-candidate remains
