@@ -1,0 +1,30 @@
+{
+  "schema": "tmcp-skill-neutral-corpus-v0.1",
+  "purpose": "Calibrate structural validation for neutral-format artifacts whose evidence is distributed across observations, actions, and structured final responses.",
+  "artifact_root_default": "/private/tmp",
+  "families": [
+    {
+      "id": "output-contract-neutral-v1",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-output-contract-neutral-v0.1.json",
+      "coverage": "original and candidate versions, three repeats each",
+      "runs": [
+        {"artifact": "output-contract-neutral-original-r1.json", "judge_pass": false, "judge_artifact": "judge-output-contract-neutral-original.json", "judge_record_index": 0},
+        {"artifact": "output-contract-neutral-original-r2.json", "judge_pass": false, "judge_artifact": "judge-output-contract-neutral-original.json", "judge_record_index": 1},
+        {"artifact": "output-contract-neutral-original-r3.json", "judge_pass": false, "judge_artifact": "judge-output-contract-neutral-original.json", "judge_record_index": 2},
+        {"artifact": "output-contract-neutral-candidate-r1.json", "judge_pass": false, "judge_artifact": "judge-output-contract-neutral-candidate.json", "judge_record_index": 0},
+        {"artifact": "output-contract-neutral-candidate-r2.json", "judge_pass": true, "judge_artifact": "judge-output-contract-neutral-candidate.json", "judge_record_index": 1},
+        {"artifact": "output-contract-neutral-candidate-r3.json", "judge_pass": true, "judge_artifact": "judge-output-contract-neutral-candidate.json", "judge_record_index": 2}
+      ]
+    },
+    {
+      "id": "output-contract-neutral-v2",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-output-contract-neutral-v0.1.json",
+      "coverage": "candidate-only corrected neutral-format variant, three repeats; no original-v2 control is available",
+      "runs": [
+        {"artifact": "output-contract-neutral-candidate-v2-r1.json", "judge_pass": true, "judge_artifact": "judge-output-contract-neutral-candidate-v2.json", "judge_record_index": 0},
+        {"artifact": "output-contract-neutral-candidate-v2-r2.json", "judge_pass": true, "judge_artifact": "judge-output-contract-neutral-candidate-v2.json", "judge_record_index": 1},
+        {"artifact": "output-contract-neutral-candidate-v2-r3.json", "judge_pass": true, "judge_artifact": "judge-output-contract-neutral-candidate-v2.json", "judge_record_index": 2}
+      ]
+    }
+  ]
+}

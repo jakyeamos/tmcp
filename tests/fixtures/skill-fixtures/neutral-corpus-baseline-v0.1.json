@@ -1,0 +1,16 @@
+{
+  "schema": "tmcp-skill-neutral-corpus-baseline-v0.1",
+  "manifest": "tests/fixtures/skill-fixtures/neutral-corpus-v0.1.json",
+  "validator": "tmcp-skill-fixture-corpus-validation-v0.1",
+  "aggregate": {
+    "family_count": 2,
+    "artifact_count": 9,
+    "structural_pass_count": 5,
+    "judge_pass_count": 5,
+    "judge_agreement_count": 9,
+    "judge_disagreement_count": 0,
+    "gate_pass": true
+  },
+  "finding": "Evidence-scope-aware validation closes the prior neutral-format blind spot: candidate v1 passes 2/3, corrected candidate v2 passes 3/3, and the original control remains 0/3.",
+  "confidence_boundary": "The candidate-v2 family has no original-v2 control and remains one task shape at one model/effort setting; this is validator calibration and fixture evidence, not corpus-wide causal proof."
+}

@@ -1,0 +1,25 @@
+{
+  "schema": "tmcp-skill-fixture-coverage-baseline-v0.1",
+  "source_manifest": "/private/tmp/tmcp-skill-fixtures-full-20260722/manifest.json",
+  "source_fixture_set_id": "skill-corpus-20260723T011051Z",
+  "source_manifest_sha256": "55d3bc5740a2a7041237e02028316079a00be9ee2caddbd01bfde942b922b601",
+  "discovered_corpus": {
+    "skill_count": 158,
+    "ready_skill_count": 1,
+    "needs_golden_case_and_bar_count": 157,
+    "case_count": 1,
+    "skills_with_cases_count": 1,
+    "coverage_rate": 0.006329113924050633,
+    "corpus_promotion_ready": false
+  },
+  "calibrated_fixture_subset": {
+    "source_manifest": "/private/tmp/tmcp-skill-fixtures-proposal-run-20260722-v9/manifest.json",
+    "source_fixture_set_id": "skill-corpus-20260723T031929Z",
+    "source_manifest_sha256": "638299c0e37a2c6e4ac5168e275cc6ffac9c91b18acfd5829b5331290bf12711",
+    "skill_count": 7,
+    "ready_skill_count": 7,
+    "case_count": 8,
+    "corpus_promotion_ready": true
+  },
+  "decision": "Keep automatic rewrite promotion blocked for the discovered corpus until the remaining 157 skills receive explicit golden cases and bars. Continue dogfooding the seven-skill calibrated subset and record each newly admitted case in provenance-bound baselines."
+}

@@ -350,6 +350,54 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
         self.assertTrue(result["passed"])
         self.assertTrue(result["checks"]["exact_value"]["configured"] is False)
 
+    def test_neutral_artifact_can_prove_contract_across_observable_fields(self) -> None:
+        result = validate_fixture_artifact(
+            {
+                "observations": [
+                    "Sources inspected: target.txt",
+                    "Skipped sources and why: AGENTS.md was not present.",
+                    "The file contains artifact status: ready.",
+                ],
+                "actions": ["Ran a read-only verification command."],
+                "final_response": "The artifact is ready.",
+            },
+            {
+                "exact_value": "artifact status: ready",
+                "exact_value_scope": "artifact",
+                "disclosure_scope": "artifact",
+                "required_disclosure_patterns": [
+                    "sources inspected",
+                    "skipped sources and why",
+                    "verification",
+                ],
+                "required_final_patterns": ["artifact\\s+is\\s+ready"],
+            },
+        )
+        self.assertTrue(result["passed"])
+        self.assertEqual(result["checks"]["exact_value"]["scope"], "artifact")
+
+    def test_neutral_artifact_fails_when_cross_field_contract_is_incomplete(self) -> None:
+        result = validate_fixture_artifact(
+            {
+                "observations": ["Sources inspected: target.txt"],
+                "actions": ["Read the target without modifying files."],
+                "final_response": "The artifact is ready.",
+            },
+            {
+                "exact_value": "artifact status: ready",
+                "exact_value_scope": "artifact",
+                "disclosure_scope": "artifact",
+                "required_disclosure_patterns": [
+                    "sources inspected",
+                    "skipped sources and why",
+                    "verification",
+                ],
+                "required_final_patterns": ["artifact\\s+is\\s+ready"],
+            },
+        )
+        self.assertFalse(result["passed"])
+        self.assertIn("required_disclosure", result["failed_observables"])
+
     def test_cli_returns_nonzero_for_failed_artifact(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

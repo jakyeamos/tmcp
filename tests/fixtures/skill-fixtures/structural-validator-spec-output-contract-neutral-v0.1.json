@@ -1,0 +1,16 @@
+{
+  "schema": "tmcp-skill-fixture-structural-spec-v0.1",
+  "case_id": "output-contract-inspection-neutral-format",
+  "exact_value": "artifact status: ready",
+  "exact_value_scope": "artifact",
+  "disclosure_scope": "artifact",
+  "required_disclosure_patterns": [
+    "(?:source|sources) inspected",
+    "(?:skipped sources and why|skipped|not present|no [^\\n]{0,30}needed)",
+    "(?:verification|read-only)",
+    "next action"
+  ],
+  "required_final_patterns": [
+    "artifact\\s+is\\s+ready"
+  ]
+}

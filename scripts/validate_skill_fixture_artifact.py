@@ -165,22 +165,35 @@ def validate_fixture_artifact(
 
     exact_value_configured = "exact_value" in spec
     exact_value = spec.get("exact_value")
+    artifact_text = "\n".join(_text_fragments(artifact))
+    exact_value_text = artifact_text if spec.get("exact_value_scope") == "artifact" else final_response_text
     exact_value_passed = (
-        _contains_exact_value(final_response_text, exact_value) if exact_value_configured else True
+        _contains_exact_value(exact_value_text, exact_value) if exact_value_configured else True
     )
 
     disclosure_terms = _text_fragments(spec.get("required_disclosure_terms"))
-    disclosure_lower = final_response_text.casefold()
+    disclosure_text = artifact_text if spec.get("disclosure_scope") == "artifact" else final_response_text
+    disclosure_lower = disclosure_text.casefold()
     missing_disclosure_terms = [term for term in disclosure_terms if term.casefold() not in disclosure_lower]
     disclosure_patterns = _text_fragments(spec.get("required_disclosure_patterns"))
     missing_disclosure_patterns: list[str] = []
     for pattern in disclosure_patterns:
         try:
-            matched = re.search(pattern, final_response_text, flags=re.IGNORECASE) is not None
+            matched = re.search(pattern, disclosure_text, flags=re.IGNORECASE) is not None
         except re.error:
             matched = False
         if not matched:
             missing_disclosure_patterns.append(pattern)
+
+    final_patterns = _text_fragments(spec.get("required_final_patterns"))
+    missing_final_patterns: list[str] = []
+    for pattern in final_patterns:
+        try:
+            matched = re.search(pattern, final_response_text, flags=re.IGNORECASE) is not None
+        except re.error:
+            matched = False
+        if not matched:
+            missing_final_patterns.append(pattern)
 
     activity_text = "\n".join((*observations, *actions))
     required_activity_markers = _text_fragments(spec.get("required_activity_markers"))
@@ -222,6 +235,7 @@ def validate_fixture_artifact(
             "passed": exact_value_passed,
             "expected": exact_value,
             "configured": exact_value_configured,
+            "scope": spec.get("exact_value_scope", "final_response"),
         },
         "required_activity": {
             "passed": not missing_activity_markers and not missing_activity_patterns,
@@ -241,6 +255,11 @@ def validate_fixture_artifact(
             "missing_terms": missing_disclosure_terms,
             "required_patterns": disclosure_patterns,
             "missing_patterns": missing_disclosure_patterns,
+        },
+        "required_final_patterns": {
+            "passed": not missing_final_patterns,
+            "required": final_patterns,
+            "missing": missing_final_patterns,
         },
         "forbidden_actions": {
             "passed": not forbidden_matches,

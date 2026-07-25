@@ -54,7 +54,30 @@ This is a readiness gate for the fixture/evaluator apparatus, not a claim that
 all skills are good. The 11 failures are behavior signals: the ambiguous
 approval prompt remains a no-target failure, required-read and precedence
 controls expose original-version gaps, and the candidate versions pass the
-tested explicit controls. Neutral-format output-contract variants remain
-judge-only because their artifact schema does not expose enough typed evidence
-to prove the response-field bar. Keep those exclusions visible rather than
-weakening the bar or treating structural agreement as causal proof.
+tested explicit controls. Untyped variants remain outside the gate until their
+evidence scope is explicit; keep those exclusions visible rather than weakening
+the bar or treating structural agreement as causal proof.
+
+## 6. Neutral evidence and discovered-corpus coverage
+
+Neutral artifacts are now admitted through
+`tests/fixtures/skill-fixtures/neutral-corpus-v0.1.json`. The validator can
+scope exact values and disclosure patterns to the complete artifact while still
+requiring a final-response readiness statement. This matches the judge's bar
+for evidence distributed across `observations`, `actions`, and a structured
+`final_response`: the original control is 0/3, the first candidate is 2/3, and
+the corrected candidate variant is 3/3, with 9/9 structural–judge agreement.
+
+Coverage of the discovered corpus is a separate gate. Audit a scaffolded
+manifest with:
+
+```bash
+python3 scripts/audit_skill_fixture_coverage.py \
+  /path/to/fixture-set/manifest.json
+```
+
+The recorded [coverage baseline](/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/corpus-coverage-baseline-v0.1.json)
+finds 158 discovered skills but only 1 ready skill and 1 golden case in the
+full discovery manifest; 157 still need a case and bar. The later calibrated
+subset contains 7 skills and 8 cases. That gap is an explicit promotion stop,
+not missing evidence to be inferred from static rewrites.
