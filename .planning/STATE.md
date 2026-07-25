@@ -242,6 +242,14 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   This is a non-commutative composition result: both rewrites are needed for
   stable behavior, with no tested mutation or regression. It remains one task
   shape at gpt-5.5 low reasoning, not corpus-wide causal proof.
+- `composition-cases-v0.4.json` and `composition-baseline-v0.6.json` add a
+  trigger-boundary/required-read interaction. Under the strict required-but-
+  unavailable disclosure bar, candidate-candidate is unstable at 1/2 and the
+  other three pairings fail 0/2, for 1/8 overall. This is a negative
+  composition signal: the trigger rewrite changes context enough that the
+  required-read disclosure is not reliably preserved. It is one task shape at
+  gpt-5.5 low reasoning, so it is a warning signal rather than corpus-wide
+  causal proof.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment

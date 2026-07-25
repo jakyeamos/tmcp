@@ -1,0 +1,71 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.6",
+  "case_id": "trigger-required-read-composition",
+  "source_case": "tests/fixtures/skill-fixtures/composition-cases-v0.4.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "pairings": [
+    {
+      "pairing": "original-original",
+      "runs": [
+        {"run_id": "composition-trigger-required-read-original-original-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-trigger-required-read-original-original-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 0,
+      "total": 2,
+      "decision": "fail",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-required-read-original-original.json"
+    },
+    {
+      "pairing": "candidate-candidate",
+      "runs": [
+        {"run_id": "composition-trigger-required-read-candidate-candidate-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-trigger-required-read-candidate-candidate-r2", "pass": true, "defect": "none"}
+      ],
+      "pass_count": 1,
+      "total": 2,
+      "decision": "unstable",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-required-read-candidate-candidate.json"
+    },
+    {
+      "pairing": "candidate-original",
+      "runs": [
+        {"run_id": "composition-trigger-required-read-candidate-original-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-trigger-required-read-candidate-original-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 0,
+      "total": 2,
+      "decision": "fail",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-required-read-candidate-original.json"
+    },
+    {
+      "pairing": "original-candidate",
+      "runs": [
+        {"run_id": "composition-trigger-required-read-original-candidate-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-trigger-required-read-original-candidate-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 0,
+      "total": 2,
+      "decision": "fail",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-required-read-original-candidate.json"
+    }
+  ],
+  "aggregate": {
+    "full_family_pass_count": 1,
+    "full_family_total": 8,
+    "candidate_containing_pass_count": 1,
+    "candidate_containing_total": 6,
+    "tested_regressions": 0,
+    "safety_mutations": 0
+  },
+  "interpretation": {
+    "finding": "The trigger-boundary and required-read rewrites do not compose reliably on this task. Even candidate-candidate is unstable at 1/2; all other pairings fail the explicit required-but-unavailable disclosure bar.",
+    "composition_result": "The trigger rewrite changes the context enough that required-read disclosure is not consistently preserved, revealing a negative interaction that the required-read/output-contract family did not expose.",
+    "confidence_boundary": "One review task, two repetitions per pairing, one model, and low reasoning; this is a reproducible warning signal, not a corpus-wide causal claim."
+  }
+}
