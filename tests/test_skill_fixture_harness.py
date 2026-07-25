@@ -33,7 +33,7 @@ class SkillFixtureHarnessTests(unittest.TestCase):
         self.assertIn("bounded read-only shell access", bounded)
         self.assertIn("/tmp/fixture-repo", bounded)
         self.assertIn("Do not edit, stage, commit", bounded)
-        self.assertIn("disposable CODEX_HOME", codex_home)
+        self.assertIn("CODEX_HOME=/tmp/fixture-home", codex_home)
         self.assertIn("/tmp/fixture-home", codex_home)
 
     def test_scaffold_accepts_source_bound_admission_cases(self) -> None:
