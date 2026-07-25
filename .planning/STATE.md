@@ -227,6 +227,12 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   status, observed-failure status, and recommended next case. Static warnings
   remain hypotheses; observed failures and definition-of-done claims require a
   concrete case plus independent judgment.
+- `394ccd2` adds the source-bound behavioral admission queue
+  `tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json`: five
+  skills have concrete cases with line-level input/bar provenance, while 151
+  remain blocked on a real golden case and bar. The queue validates source
+  hashes and provenance and does not claim behavioral passes or authorize
+  automatic rewrites.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
