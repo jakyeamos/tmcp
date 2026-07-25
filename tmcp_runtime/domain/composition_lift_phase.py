@@ -56,6 +56,20 @@ _CAPSULE_SECTION_BUDGETS = {
     "NEXT_ENTRY": 300,
     "UNRESOLVED_GAPS": 400,
 }
+# The terminal phase carries the implementation-ready decision matrix and
+# handoff. Keep its overall capsule bound unchanged, but reserve more space
+# for those two sections than the generic artifact envelope does.
+_CURRENT_CAPSULE_SECTION_BUDGETS = {
+    "PHASE_RESULT": 120,
+    "STATUS": 80,
+    "INPUT_HANDOFF": 100,
+    "DELIVERABLES": 1_200,
+    "EVIDENCE_BOUNDARY": 120,
+    "PRODUCED_HANDOFF": 600,
+    "EXIT_GATE": 300,
+    "NEXT_ENTRY": 160,
+    "UNRESOLVED_GAPS": 300,
+}
 
 
 def _mapping(value: object) -> Mapping[str, object] | None:
@@ -441,6 +455,7 @@ def render_composition_handoff(
             body = bound_phase_artifact(
                 artifact,
                 limit=DEFAULT_COMPOSITION_CURRENT_CAPSULE_LIMIT,
+                section_budgets=_CURRENT_CAPSULE_SECTION_BUDGETS,
             )
         else:
             body = _phase_capsule(
@@ -525,7 +540,10 @@ def _bounded_phase_sections(
 
 
 def bound_phase_artifact(
-    artifact: str, *, limit: int = DEFAULT_PHASE_ARTIFACT_LIMIT
+    artifact: str,
+    *,
+    limit: int = DEFAULT_PHASE_ARTIFACT_LIMIT,
+    section_budgets: Mapping[str, int] | None = None,
 ) -> str:
     """Bound an artifact while retaining both deliverables and exit gates."""
 
@@ -544,6 +562,7 @@ def bound_phase_artifact(
             preamble,
             sections,
             limit=limit,
+            section_budgets=section_budgets,
         )
         if bounded and len(bounded) <= limit:
             return bounded

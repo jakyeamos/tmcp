@@ -191,6 +191,17 @@ Output contract:
         self.assertIn("STATUS: COMPLETE", bounded)
         self.assertIn("EXIT_GATE: PASS", bounded)
 
+    def test_custom_phase_budget_can_preserve_more_deliverable_detail(self) -> None:
+        artifact = "DELIVERABLES\n" + ("decision row " * 500)
+        default = bound_phase_artifact(artifact, limit=3_400)
+        current = bound_phase_artifact(
+            artifact,
+            limit=3_400,
+            section_budgets={"DELIVERABLES": 1_200},
+        )
+        self.assertLessEqual(len(current), 3_400)
+        self.assertGreater(len(current), len(default))
+
     def test_phase_exit_gate_status_is_deterministic(self) -> None:
         self.assertEqual(
             phase_exit_gate_status("EXIT_GATE: PASS\nEvidence is complete."),
