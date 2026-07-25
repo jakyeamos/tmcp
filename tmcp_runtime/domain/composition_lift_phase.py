@@ -579,3 +579,15 @@ def bound_phase_artifact(
         tail = exit_line + ("\n" + tail[:reserved_tail] if reserved_tail else "")
     result = head + marker + tail
     return result[:limit]
+
+
+def bound_current_phase_artifact(
+    artifact: str, *, limit: int = DEFAULT_PHASE_ARTIFACT_LIMIT
+) -> str:
+    """Bound a terminal artifact while preserving its decision handoff."""
+
+    return bound_phase_artifact(
+        artifact,
+        limit=limit,
+        section_budgets=_CURRENT_CAPSULE_SECTION_BUDGETS,
+    )

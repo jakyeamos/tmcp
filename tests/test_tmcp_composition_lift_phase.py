@@ -4,6 +4,7 @@ import unittest
 
 from tmcp_runtime.domain.composition_lift_phase import (
     DEFAULT_COMPOSITION_HANDOFF_LIMIT,
+    bound_current_phase_artifact,
     bound_phase_artifact,
     bridge_obligation_text,
     handoff_contract_text,
@@ -201,6 +202,12 @@ Output contract:
         )
         self.assertLessEqual(len(current), 3_400)
         self.assertGreater(len(current), len(default))
+
+    def test_current_phase_binding_uses_terminal_budget(self) -> None:
+        artifact = "DELIVERABLES\n" + ("decision row " * 500)
+        bounded = bound_current_phase_artifact(artifact, limit=4_000)
+        self.assertLessEqual(len(bounded), 4_000)
+        self.assertGreater(len(bounded), 720)
 
     def test_phase_exit_gate_status_is_deterministic(self) -> None:
         self.assertEqual(
