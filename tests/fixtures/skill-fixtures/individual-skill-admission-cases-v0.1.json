@@ -117,8 +117,8 @@
         "conflict resolved without user review"
       ],
       "execution_boundary": {
-        "status": "incomplete",
-        "evidence": "The GSD workflow requires backup metadata, pristine/current files, and backed-up patch contents; the source example supplies none of those inputs."
+        "status": "complete",
+        "evidence": "The disposable CODEX_HOME contains backup-meta.json plus pristine, backed-up, and newly installed workflow files for merge, conflict, and incorporated classifications; the runner is read-only."
       },
       "provenance": [
         {"line": 3, "excerpt": "description: \"Reapply local modifications after a GSD update\""},

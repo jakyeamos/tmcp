@@ -17,8 +17,8 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
         self.assertEqual(record["schema"], "tmcp-individual-skill-admission-v0.1")
         self.assertEqual(record["summary"], {
             "skill_count": 156,
-            "case_ready_skill_count": 1,
-            "needs_execution_boundary_skill_count": 5,
+            "case_ready_skill_count": 2,
+            "needs_execution_boundary_skill_count": 4,
             "needs_case_or_bar_count": 150,
             "case_count": 6,
         })
@@ -27,7 +27,7 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
         self.assertFalse(record["policy"]["automatic_rewrite"])
         self.assertEqual(
             sum(item["admission_status"] == "case_ready" for item in record["skills"]),
-            1,
+            2,
         )
         self.assertTrue(all(
             item["admission_status"] == "case_ready" and item["cases"]

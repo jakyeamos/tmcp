@@ -3,7 +3,7 @@
   "source_audit": "/private/tmp/tmcp-skill-corpus-audit-20260722/audit.json",
   "source_audit_sha256": "455e18c87a1b430ef4e61e321fa515cd6d7a20828d77a51ea7b52bc4850bb664",
   "case_source": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
-  "case_source_sha256": "3d9a9635c71766c355534b436cbf315542bde4cdbcac9b0e550d9499478d98f8",
+  "case_source_sha256": "ec1b5b25d21f55795cfb6180d11da6db523086e6877e79825700dcef528d2b17",
   "policy": {
     "source_bound_cases_only": true,
     "provenance_checked": true,
@@ -14,8 +14,8 @@
   },
   "summary": {
     "skill_count": 156,
-    "case_ready_skill_count": 1,
-    "needs_execution_boundary_skill_count": 5,
+    "case_ready_skill_count": 2,
+    "needs_execution_boundary_skill_count": 4,
     "needs_case_or_bar_count": 150,
     "case_count": 6
   },
@@ -825,7 +825,7 @@
       "source_sha256": "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f",
       "static_status": "no_static_findings",
       "static_warning_ids": [],
-      "admission_status": "needs_execution_boundary",
+      "admission_status": "case_ready",
       "cases": [
         {
           "source_path": "/Users/jakyeamos/.agents/skills/gsd-reapply-patches/SKILL.md",
@@ -840,8 +840,8 @@
             "conflict resolved without user review"
           ],
           "execution_boundary": {
-            "status": "incomplete",
-            "evidence": "The GSD workflow requires backup metadata, pristine/current files, and backed-up patch contents; the source example supplies none of those inputs."
+            "status": "complete",
+            "evidence": "The disposable CODEX_HOME contains backup-meta.json plus pristine, backed-up, and newly installed workflow files for merge, conflict, and incorporated classifications; the runner is read-only."
           },
           "provenance": [
             {
@@ -862,7 +862,7 @@
             }
           ],
           "source_sha256": "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f",
-          "admission_status": "needs_execution_boundary",
+          "admission_status": "case_ready",
           "bar_status": "source_bound"
         }
       ],
