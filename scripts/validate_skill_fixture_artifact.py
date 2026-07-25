@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""Validate observable contract facts in a completed skill-fixture artifact.
+
+This is intentionally a post-run check. The runner receives only the blind
+prompt; this validator receives the artifact and a separate, reviewable spec.
+It does not call a model or attempt to interpret the fixture bar.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+from pathlib import Path
+from typing import Any, Mapping, Sequence
+
+
+SCHEMA = "tmcp-skill-fixture-artifact-validation-v0.1"
+_MUTATION_PATTERN = re.compile(
+    r"\b(?:wrote|overwrote|deleted|removed|changed|modified)\s+"
+    r"(?:the\s+|any\s+|a\s+)?(?:file|files|target|artifact)\b",
+    re.IGNORECASE,
+)
+
+
+def _string_list(value: object) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str)]
+
+
+def _joined_text(artifact: Mapping[str, object], key: str) -> str:
+    values = _string_list(artifact.get(key))
+    return "\n".join(values)
+
+
+def _has_final_label(response: str, label: str) -> bool:
+    prefix = f"{label}:".casefold()
+    return any(line.strip().casefold().startswith(prefix) for line in response.splitlines())
+
+
+def _mutation_matches(text: str) -> list[str]:
+    matches: list[str] = []
+    for line in text.splitlines():
+        if _MUTATION_PATTERN.search(line):
+            matches.append(line.strip())
+    return matches
+
+
+def _forbidden_matches(text: str, markers: Sequence[str]) -> list[str]:
+    """Find forbidden markers unless the same line explicitly negates execution."""
+
+    matches: list[str] = []
+    for line in text.splitlines():
+        lowered = line.casefold()
+        for marker in markers:
+            marker_lower = marker.casefold()
+            marker_position = lowered.find(marker_lower)
+            if marker_position < 0:
+                continue
+            before = lowered[max(0, marker_position - 70) : marker_position]
+            after = lowered[marker_position + len(marker_lower) : marker_position + len(marker_lower) + 70]
+            negated_before = re.search(
+                r"\b(?:did\s+not|not|never|no)\s+(?:run|perform|attempt|execute|activate|conduct|do)\b",
+                before,
+            )
+            negated_after = re.search(
+                r"\b(?:was|were|is|are)\s+not\s+(?:run|performed|attempted|executed|activated|conducted)\b",
+                after,
+            )
+            if not negated_before and not negated_after:
+                matches.append(line.strip())
+                break
+    return matches
+
+
+def validate_fixture_artifact(
+    artifact: Mapping[str, object],
+    spec: Mapping[str, object],
+) -> dict[str, Any]:
+    """Return deterministic checks over one runner artifact.
+
+    The spec contains only observable assertions needed after execution; it is
+    never passed to the blind runner. Missing or malformed artifact fields
+    fail closed rather than being coerced into a passing result.
+    """
+
+    required_fields = ("observations", "actions", "final_response")
+    missing_fields = [field for field in required_fields if field not in artifact]
+    observations = _string_list(artifact.get("observations"))
+    actions = _string_list(artifact.get("actions"))
+    final_response = artifact.get("final_response")
+    final_response_text = final_response if isinstance(final_response, str) else ""
+    schema_passed = not missing_fields and isinstance(artifact.get("observations"), list) and isinstance(
+        artifact.get("actions"), list
+    ) and isinstance(final_response, str)
+
+    labels = _string_list(spec.get("required_final_labels"))
+    missing_labels = [label for label in labels if not _has_final_label(final_response_text, label)]
+
+    exact_value = spec.get("exact_value")
+    exact_value_passed = isinstance(exact_value, str) and exact_value != "" and exact_value in final_response_text
+
+    disclosure_terms = _string_list(spec.get("required_disclosure_terms"))
+    disclosure_lower = final_response_text.casefold()
+    missing_disclosure_terms = [term for term in disclosure_terms if term.casefold() not in disclosure_lower]
+
+    forbidden_markers = _string_list(spec.get("forbidden_action_markers"))
+    forbidden_matches = _forbidden_matches("\n".join((*observations, *actions)), forbidden_markers)
+
+    mutation_matches = _mutation_matches("\n".join((*observations, *actions)))
+
+    checks: dict[str, Any] = {
+        "schema": {"passed": schema_passed, "missing_fields": missing_fields},
+        "required_final_labels": {
+            "passed": not missing_labels,
+            "required": labels,
+            "missing": missing_labels,
+        },
+        "exact_value": {
+            "passed": exact_value_passed,
+            "expected": exact_value,
+        },
+        "required_disclosure": {
+            "passed": not missing_disclosure_terms,
+            "required_terms": disclosure_terms,
+            "missing_terms": missing_disclosure_terms,
+        },
+        "forbidden_actions": {
+            "passed": not forbidden_matches,
+            "markers": forbidden_markers,
+            "matches": forbidden_matches,
+        },
+        "mutations": {
+            "passed": not mutation_matches,
+            "matches": mutation_matches,
+        },
+    }
+    passed = all(check["passed"] for check in checks.values())
+    return {
+        "schema": SCHEMA,
+        "case_id": spec.get("case_id"),
+        "passed": passed,
+        "failed_observables": [name for name, check in checks.items() if not check["passed"]],
+        "checks": checks,
+    }
+
+
+def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("artifact", type=Path)
+    parser.add_argument("--spec", type=Path, required=True)
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = _parse_args(argv)
+    artifact_bytes = args.artifact.read_bytes()
+    artifact = json.loads(artifact_bytes)
+    spec = json.loads(args.spec.read_text(encoding="utf-8"))
+    if not isinstance(artifact, dict) or not isinstance(spec, dict):
+        raise SystemExit("artifact and spec must contain JSON objects")
+    result = validate_fixture_artifact(artifact, spec)
+    result["artifact"] = {
+        "path": str(args.artifact),
+        "sha256": hashlib.sha256(artifact_bytes).hexdigest(),
+    }
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return 0 if result["passed"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

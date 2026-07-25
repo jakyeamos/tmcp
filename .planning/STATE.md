@@ -265,6 +265,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   at 1/2, and original-original is 0/2. The repair clarifies the contract but
   does not establish behavioral lift; no further prose-only heuristic should
   be inferred from this single task shape.
+- A post-run structural artifact validator now checks observable contract facts
+  without a model call or bar exposure to the runner. Its seven focused tests
+  cover schema/labels, exact values, required-read disclosure, negated versus
+  positive release activity, and mutation detection. The v0.9 composition
+  baseline records 2/8 structural passes, exactly matching the independent
+  judge's 2/8 count; this is a useful first-pass gate, not yet a corpus-general
+  trust claim.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment

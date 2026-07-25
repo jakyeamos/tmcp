@@ -1,0 +1,46 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.9",
+  "case_id": "trigger-required-read-composition",
+  "source_baseline": "tests/fixtures/skill-fixtures/composition-baseline-v0.8.json",
+  "validator": {
+    "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-v0.1.json",
+    "schema": "tmcp-skill-fixture-artifact-validation-v0.1",
+    "checks": [
+      "required final labels occur as separate lines",
+      "exact target value appears in final response",
+      "required AGENTS.md/unavailable disclosure terms appear",
+      "positive forbidden release activity is absent",
+      "positive file mutation actions are absent"
+    ]
+  },
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "runs": [
+    {"artifact": "composition-trigger-required-read-original-original-v3-r1.json", "passed": false, "failed_observables": ["required_final_labels", "required_disclosure", "forbidden_actions"]},
+    {"artifact": "composition-trigger-required-read-original-original-v3-r2.json", "passed": false, "failed_observables": ["required_final_labels", "required_disclosure"]},
+    {"artifact": "composition-trigger-required-read-candidate-candidate-v3-r1.json", "passed": false, "failed_observables": ["required_final_labels"]},
+    {"artifact": "composition-trigger-required-read-candidate-candidate-v3-r2.json", "passed": true, "failed_observables": []},
+    {"artifact": "composition-trigger-required-read-candidate-original-v3-r1.json", "passed": false, "failed_observables": ["required_disclosure"]},
+    {"artifact": "composition-trigger-required-read-candidate-original-v3-r2.json", "passed": false, "failed_observables": ["required_disclosure"]},
+    {"artifact": "composition-trigger-required-read-original-candidate-v3-r1.json", "passed": false, "failed_observables": ["required_final_labels", "forbidden_actions"]},
+    {"artifact": "composition-trigger-required-read-original-candidate-v3-r2.json", "passed": true, "failed_observables": []}
+  ],
+  "aggregate": {
+    "structural_pass_count": 2,
+    "structural_total": 8,
+    "judge_pass_count": 2,
+    "judge_total": 8,
+    "structural_judge_count_agreement": 8,
+    "structural_judge_count_disagreement": 0
+  },
+  "interpretation": {
+    "finding": "The structural validator reproduces the independent judge's 2/8 pass count and identifies concrete failure classes for every failed artifact.",
+    "decision": "Use structural validation as a first-pass observable gate before spending independent-judge effort; retain the judge for semantic and evidence-quality review.",
+    "confidence_boundary": "This is validator agreement on one eight-run family, not proof that the validator is corpus-general. Expand it with additional fixture families and adversarial negation cases before treating it as a trusted gate."
+  }
+}
