@@ -289,7 +289,7 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   candidate-containing v6 runs pass structurally and by independent judge;
   the original-original control is explicitly absent, so this is not a full
   2x2 family claim.
-- `composition-baseline-v0.13.json` extends calibration to the materially
+- `5e7bf1c` extends calibration to the materially
   different host-portability family. The validator now accepts structured
   observation maps, requires portable-inspection evidence in activity fields,
   and matches the judge on all 6/6 original/candidate runs. This is the first
