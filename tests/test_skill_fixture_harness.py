@@ -22,11 +22,19 @@ class SkillFixtureHarnessTests(unittest.TestCase):
     def test_runner_prompt_exposes_only_explicit_bounded_execution_root(self) -> None:
         prompt_only = runner_prompt("# Skill", "Inspect the task.")
         bounded = runner_prompt("# Skill", "Inspect the task.", Path("/tmp/fixture-repo"))
+        codex_home = runner_prompt(
+            "# Skill",
+            "Inspect the task.",
+            Path("/tmp/fixture-repo"),
+            Path("/tmp/fixture-home"),
+        )
         self.assertIn("no other project evidence", prompt_only)
         self.assertNotIn("bounded read-only shell access", prompt_only)
         self.assertIn("bounded read-only shell access", bounded)
         self.assertIn("/tmp/fixture-repo", bounded)
         self.assertIn("Do not edit, stage, commit", bounded)
+        self.assertIn("disposable CODEX_HOME", codex_home)
+        self.assertIn("/tmp/fixture-home", codex_home)
 
     def test_scaffold_accepts_source_bound_admission_cases(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

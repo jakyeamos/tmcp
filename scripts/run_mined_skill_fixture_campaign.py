@@ -7,6 +7,7 @@ import argparse
 import concurrent.futures
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -34,6 +35,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         help="bounded read-only root for cases whose execution_boundary is complete",
     )
+    parser.add_argument(
+        "--execution-codex-home",
+        type=Path,
+        help="disposable CODEX_HOME for complete cases; no arbitrary environment is forwarded",
+    )
     return parser.parse_args()
 
 
@@ -45,6 +51,7 @@ def run_codex(
     cwd: Path,
     model: str,
     reasoning_effort: str,
+    codex_home: Path | None = None,
 ) -> dict[str, Any]:
     command = [
         codex,
@@ -63,12 +70,16 @@ def run_codex(
         "-",
     ]
     prompt = prompt_file.read_text(encoding="utf-8")
+    environment = os.environ.copy()
+    if codex_home is not None:
+        environment["CODEX_HOME"] = str(codex_home)
     completed = subprocess.run(
         command,
         cwd=cwd,
         input=prompt,
         text=True,
         capture_output=True,
+        env=environment,
         check=False,
     )
     return {
@@ -84,7 +95,12 @@ def run_codex(
     }
 
 
-def runner_prompt(skill_text: str, prompt: str, execution_root: Path | None = None) -> str:
+def runner_prompt(
+    skill_text: str,
+    prompt: str,
+    execution_root: Path | None = None,
+    codex_home: Path | None = None,
+) -> str:
     execution_contract = (
         "The fixture intentionally supplies no other project evidence."
         if execution_root is None
@@ -97,6 +113,11 @@ def runner_prompt(skill_text: str, prompt: str, execution_root: Path | None = No
             "clean, or remove worktrees."
         )
     )
+    codex_home_contract = (
+        ""
+        if codex_home is None
+        else f"The disposable CODEX_HOME for this run is `{codex_home}`.\n"
+    )
     return (
         "You are the blind runner for one skill fixture. Use only the skill text below "
         "and the user task, plus only the explicitly granted execution contract. "
@@ -104,7 +125,8 @@ def runner_prompt(skill_text: str, prompt: str, execution_root: Path | None = No
         "Return the best final artifact for the user task; do not discuss this harness.\n\n"
         + execution_contract
         + "\n\n"
-        "=== SKILL TEXT ===\n"
+        + codex_home_contract
+        + "=== SKILL TEXT ===\n"
         + skill_text
         + "\n=== USER TASK ===\n"
         + prompt
@@ -183,8 +205,11 @@ def main() -> None:
                     execution_root = args.execution_root.resolve() if execution_ready else None
                     if execution_root is not None and not execution_root.is_dir():
                         raise SystemExit(f"execution root is not a directory: {execution_root}")
+                    codex_home = args.execution_codex_home.resolve() if execution_ready else None
+                    if codex_home is not None and not codex_home.is_dir():
+                        raise SystemExit(f"execution CODEX_HOME is not a directory: {codex_home}")
                     prompt_file.write_text(
-                        runner_prompt(skill_text, str(case["prompt"]), execution_root),
+                        runner_prompt(skill_text, str(case["prompt"]), execution_root, codex_home),
                         encoding="utf-8",
                     )
                     jobs.append({
@@ -203,6 +228,7 @@ def main() -> None:
                         "bar": str(case["bar"]),
                         "execution_mode": "bounded_read_only" if execution_root else "prompt_only",
                         "execution_root": str(execution_root) if execution_root else None,
+                        "execution_codex_home": str(codex_home) if codex_home else None,
                     })
 
     def run_job(job: dict[str, Any]) -> dict[str, Any]:
@@ -213,6 +239,9 @@ def main() -> None:
             cwd=Path(job["execution_root"] or job["workspace"]),
             model=args.model,
             reasoning_effort=args.reasoning_effort,
+            codex_home=Path(job["execution_codex_home"])
+            if job["execution_codex_home"]
+            else None,
         )
         return {**job, "runner": result}
 
