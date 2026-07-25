@@ -255,6 +255,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   that exact root in its prompt, runs with the read-only sandbox, and records
   `execution_mode`/`execution_root` in each report cell. The focused runner
   tests pass; the ownership case is ready for its rejudge disposition update.
+- `530f527` records the bounded ownership rejudge. The case completed 6 runner
+  and 6 judge cells with zero failures; original passed 3/3 (mean 0.9367) and
+  candidate passed 3/3 (mean 0.9333). Hashes are identical, so the final
+  disposition is `behavioral_baseline_pass`/`no_candidate_delta`, not rewrite
+  lift. The five other mined cases remain `case_boundary_blocked`.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
