@@ -247,6 +247,9 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   repository/tool access. The durable disposition artifact is
   `tests/fixtures/skill-fixtures/individual-skill-behavior-dispositions-v0.1.json`;
   the next gate is a bounded read-only runner mode followed by a rerun.
+- `a7b13a9` preserves `execution_boundary` when admission cases are scaffolded
+  into blind manifests, preventing a complete case from silently losing the
+  evidence that made it runnable. The focused fixture/admission tests pass.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
