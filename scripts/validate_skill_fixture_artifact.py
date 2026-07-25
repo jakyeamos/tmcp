@@ -40,6 +40,13 @@ def _has_final_label(response: str, label: str) -> bool:
     return any(line.strip().casefold().startswith(prefix) for line in response.splitlines())
 
 
+def _contains_exact_value(response: str, expected: object) -> bool:
+    if not isinstance(expected, str) or not expected:
+        return False
+    pattern = rf"(?<![A-Za-z0-9_]){re.escape(expected)}(?![A-Za-z0-9_])"
+    return re.search(pattern, response) is not None
+
+
 def _mutation_matches(text: str) -> list[str]:
     matches: list[str] = []
     for line in text.splitlines():
@@ -100,7 +107,7 @@ def validate_fixture_artifact(
     missing_labels = [label for label in labels if not _has_final_label(final_response_text, label)]
 
     exact_value = spec.get("exact_value")
-    exact_value_passed = isinstance(exact_value, str) and exact_value != "" and exact_value in final_response_text
+    exact_value_passed = _contains_exact_value(final_response_text, exact_value)
 
     disclosure_terms = _string_list(spec.get("required_disclosure_terms"))
     disclosure_lower = final_response_text.casefold()

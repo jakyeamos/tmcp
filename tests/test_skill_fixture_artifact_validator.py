@@ -105,6 +105,19 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
         self.assertFalse(result["passed"])
         self.assertIn("required_disclosure", result["failed_observables"])
 
+    def test_does_not_treat_embedded_value_as_exact_value(self) -> None:
+        result = validate_fixture_artifact(
+            _artifact(
+                "Sources inspected: target.txt\n"
+                "Skipped sources and why: AGENTS.md was required but unavailable.\n"
+                "Verification results: exact target value is invalid.\n"
+                "Next actions: None."
+            ),
+            SPEC,
+        )
+        self.assertFalse(result["passed"])
+        self.assertIn("exact_value", result["failed_observables"])
+
     def test_rejects_positive_file_mutation_action(self) -> None:
         result = validate_fixture_artifact(
             _artifact(
