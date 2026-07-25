@@ -28,10 +28,12 @@ input and explicit task-model coverage. `9ce8e92` reallocates the unchanged
 terminal capsule budget toward the final deliverable matrix and produced
 handoff. The v15 pilot showed the terminal phase was still clipped upstream by
 the generic 720-character binding budget; `114224e` applies the specialized
-terminal budget at that earlier boundary. Focused phase tests and Ruff pass.
-The fix's campaign impact is unmeasured; the next step is a small pilot before
-the full rerun. The campaign remains diagnostic and preserves phase gates
-without conceding complete-outcome quality.
+terminal budget at that earlier boundary. The v16 pilot confirms 1,200-character
+terminal matrices but still shows row-level elision; `00d2115` raises the
+terminal matrix budget to 1,750 characters while shrinking repeated metadata.
+Focused phase tests and Ruff pass. The fix's campaign impact is unmeasured; the
+next step is a small pilot before the full rerun. The campaign remains
+diagnostic and preserves phase gates without conceding complete-outcome quality.
 
 ## Milestone
 
@@ -195,6 +197,10 @@ receipt, promotion, or release claim made.
 artifact, preventing the generic pre-render clip from discarding its decision
 matrix. Focused phase tests and Ruff pass; the v15 pilot remains diagnostic and
 does not establish lift, receipt, promotion, or release evidence.
+`00d2115` raises the terminal `DELIVERABLES` budget to 1,750 characters and
+reduces repeated terminal metadata within the same overall capsule cap. The v16
+pilot remains diagnostic; no lift, receipt, promotion, or release evidence was
+established.
 **Started:** 2026-07-17
 
 ## Active Phase
@@ -285,9 +291,10 @@ does not establish lift, receipt, promotion, or release evidence.
   implementation-ready synthesis. `9ce8e92` preserves more terminal matrix and
   handoff detail within the same capsule cap. `114224e` moves that budget to the
   upstream terminal binding boundary after v15 showed the generic clip still
-  won. Focused phase tests and Ruff pass; run the bounded pilot and inspect
-  final artifacts before the full campaign. The result remains diagnostic until
-  lift gates pass.
+  won. `00d2115` gives the terminal decision matrix more room after v16 still
+  showed row-level elision. Focused phase tests and Ruff pass; run the bounded
+  pilot and inspect final artifacts before the full campaign. The result remains
+  diagnostic until lift gates pass.
   keep rendered-browser verification and strict clean-room skill isolation
   explicitly blocked unless provisioned.
 - **Plan:** `.planning/ROADMAP.md` and `docs/COMPOSITION_BENCHMARK.md`
@@ -497,5 +504,5 @@ _(truncated)_
 ## Next Command
 
 ```bash
-python3 .tmp/run_real_lift.py --campaign .tmp/composition-lift-campaign-v8.json --fixtures tests/fixtures/composition_behavioral_fixtures_v0_6.json --control-plan .tmp/benchmark-control-v8/benchmark-control-plan.json --output-dir .tmp/lift-v16-terminal-binding-pilot --mode all --workers 16 --timeout 180 --cell-limit 15
+python3 .tmp/run_real_lift.py --campaign .tmp/composition-lift-campaign-v8.json --fixtures tests/fixtures/composition_behavioral_fixtures_v0_6.json --control-plan .tmp/benchmark-control-v8/benchmark-control-plan.json --output-dir .tmp/lift-v17-terminal-matrix-pilot --mode all --workers 16 --timeout 180 --cell-limit 15
 ```
