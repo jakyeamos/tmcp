@@ -112,6 +112,15 @@ def validate_fixture_artifact(
     disclosure_terms = _string_list(spec.get("required_disclosure_terms"))
     disclosure_lower = final_response_text.casefold()
     missing_disclosure_terms = [term for term in disclosure_terms if term.casefold() not in disclosure_lower]
+    disclosure_patterns = _string_list(spec.get("required_disclosure_patterns"))
+    missing_disclosure_patterns: list[str] = []
+    for pattern in disclosure_patterns:
+        try:
+            matched = re.search(pattern, final_response_text, flags=re.IGNORECASE) is not None
+        except re.error:
+            matched = False
+        if not matched:
+            missing_disclosure_patterns.append(pattern)
 
     forbidden_markers = _string_list(spec.get("forbidden_action_markers"))
     forbidden_matches = _forbidden_matches("\n".join((*observations, *actions)), forbidden_markers)
@@ -130,9 +139,11 @@ def validate_fixture_artifact(
             "expected": exact_value,
         },
         "required_disclosure": {
-            "passed": not missing_disclosure_terms,
+            "passed": not missing_disclosure_terms and not missing_disclosure_patterns,
             "required_terms": disclosure_terms,
             "missing_terms": missing_disclosure_terms,
+            "required_patterns": disclosure_patterns,
+            "missing_patterns": missing_disclosure_patterns,
         },
         "forbidden_actions": {
             "passed": not forbidden_matches,

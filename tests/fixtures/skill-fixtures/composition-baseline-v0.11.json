@@ -1,0 +1,29 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.11",
+  "case_id": "required-read-output-contract-composition",
+  "source_baseline": "tests/fixtures/skill-fixtures/composition-baseline-v0.4.json",
+  "validator_spec": "tests/fixtures/skill-fixtures/structural-validator-spec-required-read-output-v0.1.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "runs": [
+    {"artifact": "composition-required-read-output-candidate-candidate-v3-r1.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "composition-required-read-output-candidate-candidate-v3-r2.json", "structural_pass": true, "judge_pass": true, "failed_observables": []}
+  ],
+  "aggregate": {
+    "structural_pass_count": 2,
+    "judge_pass_count": 2,
+    "total": 2,
+    "structural_judge_count_agreement": 2,
+    "structural_judge_count_disagreement": 0
+  },
+  "interpretation": {
+    "finding": "Reviewed disclosure patterns accept equivalent required-read wording while preserving exact target and output-label checks; both candidate/candidate runs pass structurally and by independent judge.",
+    "decision": "Keep disclosure wording alternatives explicit in fixture specs; do not normalize them into a single required phrase.",
+    "confidence_boundary": "This is a two-run candidate/candidate calibration, not a complete four-pairing family rejudge."
+  }
+}

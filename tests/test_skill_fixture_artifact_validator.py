@@ -118,6 +118,27 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
         self.assertFalse(result["passed"])
         self.assertIn("exact_value", result["failed_observables"])
 
+    def test_accepts_reviewed_disclosure_pattern_alternatives(self) -> None:
+        spec = {
+            **SPEC,
+            "required_disclosure_terms": [],
+            "required_disclosure_patterns": [
+                r"AGENTS\.md",
+                r"required",
+                r"(?:unavailable|missing|does not exist|not present)",
+            ],
+        }
+        result = validate_fixture_artifact(
+            _artifact(
+                "Sources inspected: target.txt\n"
+                "Skipped sources and why: AGENTS.md was required but missing.\n"
+                "Verification results: exact target value is valid.\n"
+                "Next actions: None."
+            ),
+            spec,
+        )
+        self.assertTrue(result["passed"])
+
     def test_rejects_positive_file_mutation_action(self) -> None:
         result = validate_fixture_artifact(
             _artifact(

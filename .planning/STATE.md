@@ -279,6 +279,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `composition-baseline-v0.10.json` records 3/8 structural passes, matching
   the judge on all eight runs (3/8); this extends agreement to a second family
   but still covers related output-contract observables rather than the corpus.
+- `composition-baseline-v0.11.json` calibrates reviewed disclosure patterns on
+  the required-read/output-contract candidate pair. It accepts equivalent
+  phrases such as missing/not present/unavailable and matches the independent
+  judge on 2/2 runs; this reduces wording false negatives without weakening
+  the exact-value, label, forbidden-action, or mutation checks.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment

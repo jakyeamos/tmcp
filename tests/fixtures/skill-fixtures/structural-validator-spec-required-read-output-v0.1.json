@@ -1,0 +1,22 @@
+{
+  "schema": "tmcp-skill-fixture-structural-spec-v0.1",
+  "case_id": "required-read-output-contract-composition",
+  "exact_value": "valid",
+  "required_final_labels": [
+    "Sources inspected",
+    "Skipped sources and why",
+    "Verification results",
+    "Next actions"
+  ],
+  "required_disclosure_patterns": [
+    "AGENTS\\.md",
+    "required",
+    "(?:unavailable|missing|does not exist|not present)"
+  ],
+  "forbidden_action_markers": [
+    "release check",
+    "release verification",
+    "check_release",
+    "check_release_package"
+  ]
+}
