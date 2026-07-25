@@ -233,7 +233,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   as well. No tested regression or safety mutation occurred; this remains
   fixture-level interaction evidence at gpt-5.5 low reasoning, not corpus-wide
   causal proof.
-- `composition-cases-v0.3.json` and `composition-baseline-v0.5.json` add a
+- `a66566e` records `composition-cases-v0.3.json` and
+  `composition-baseline-v0.5.json`, adding a
   trigger-boundary/output-contract interaction on a bounded artifact-read task.
   Candidate-candidate passes 2/2; candidate-original is unstable at 1/2; and
   original-candidate fails 0/2 because the broad original trigger launches
