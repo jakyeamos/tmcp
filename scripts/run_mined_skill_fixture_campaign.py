@@ -29,6 +29,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--reasoning-effort", choices=("low", "medium", "high", "max"), default="low")
     parser.add_argument("--max-workers", type=int, default=4)
     parser.add_argument("--codex", default="codex")
+    parser.add_argument(
+        "--execution-root",
+        type=Path,
+        help="bounded read-only root for cases whose execution_boundary is complete",
+    )
     return parser.parse_args()
 
 
@@ -79,12 +84,26 @@ def run_codex(
     }
 
 
-def runner_prompt(skill_text: str, prompt: str) -> str:
+def runner_prompt(skill_text: str, prompt: str, execution_root: Path | None = None) -> str:
+    execution_contract = (
+        "The fixture intentionally supplies no other project evidence."
+        if execution_root is None
+        else (
+            "The fixture grants bounded read-only shell access to the exact execution root "
+            f"`{execution_root}`. Run the skill's read-only evidence commands against that "
+            "root before composing the artifact. Include the relevant command results and "
+            "do not claim unavailable fields when the commands can provide them. Do not "
+            "edit, stage, commit, stash, restore, reset, switch, merge, rebase, push, "
+            "clean, or remove worktrees."
+        )
+    )
     return (
         "You are the blind runner for one skill fixture. Use only the skill text below "
-        "and the user task. The fixture intentionally supplies no other project evidence. "
+        "and the user task, plus only the explicitly granted execution contract. "
         "Do not invent files, records, commands, tool results, or external actions. "
         "Return the best final artifact for the user task; do not discuss this harness.\n\n"
+        + execution_contract
+        + "\n\n"
         "=== SKILL TEXT ===\n"
         + skill_text
         + "\n=== USER TASK ===\n"
@@ -156,7 +175,18 @@ def main() -> None:
                     artifact_file = output / "artifacts" / f"{run_id}.md"
                     workspace = output / "workspaces" / run_id
                     workspace.mkdir(parents=True, exist_ok=True)
-                    prompt_file.write_text(runner_prompt(skill_text, str(case["prompt"])), encoding="utf-8")
+                    execution_ready = case.get("execution_boundary", {}).get("status") == "complete"
+                    if execution_ready and args.execution_root is None:
+                        raise SystemExit(
+                            f"case {case['case_id']} is execution-ready; pass --execution-root"
+                        )
+                    execution_root = args.execution_root.resolve() if execution_ready else None
+                    if execution_root is not None and not execution_root.is_dir():
+                        raise SystemExit(f"execution root is not a directory: {execution_root}")
+                    prompt_file.write_text(
+                        runner_prompt(skill_text, str(case["prompt"]), execution_root),
+                        encoding="utf-8",
+                    )
                     jobs.append({
                         "run_id": run_id,
                         "skill_id": skill_id,
@@ -171,6 +201,8 @@ def main() -> None:
                         "source_sha256": str(skill["source_sha256"]),
                         "prompt": str(case["prompt"]),
                         "bar": str(case["bar"]),
+                        "execution_mode": "bounded_read_only" if execution_root else "prompt_only",
+                        "execution_root": str(execution_root) if execution_root else None,
                     })
 
     def run_job(job: dict[str, Any]) -> dict[str, Any]:
@@ -178,7 +210,7 @@ def main() -> None:
             codex=args.codex,
             prompt_file=Path(job["prompt_file"]),
             output_file=Path(job["artifact_file"]),
-            cwd=Path(job["workspace"]),
+            cwd=Path(job["execution_root"] or job["workspace"]),
             model=args.model,
             reasoning_effort=args.reasoning_effort,
         )
