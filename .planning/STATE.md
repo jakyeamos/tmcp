@@ -270,6 +270,12 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   adds the disposable three-way fixture with merge, conflict, and incorporated
   files under `tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/`;
   the next action is its bounded subscription campaign.
+- `6c6d202` fixes the fixture-home auth boundary after the first GSD campaign
+  attempt showed that overriding `CODEX_HOME` on the Codex subprocess removes
+  subscription authentication (401). The runner now keeps its auth environment
+  unchanged and tells only the skill's shell commands to set the disposable
+  `CODEX_HOME` inline. The commit's readiness hook timed out at 90s, but the
+  commit completed; focused tests passed before commit.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
