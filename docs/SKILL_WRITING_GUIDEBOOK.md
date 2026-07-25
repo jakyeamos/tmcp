@@ -109,3 +109,31 @@ PYTHONPATH=. python3 scripts/run_mined_skill_fixture_campaign.py \
   --output-dir /private/tmp/tmcp-mined-campaign \
   --repeats 3 --model gpt-5.5 --reasoning-effort low
 ```
+
+## 8. Individual corpus audit and failure linkage
+
+The per-skill registry is
+`tests/fixtures/skill-fixtures/individual-skill-audit-v0.1.json`. It covers
+156 unique skills and preserves each source hash, warning, proposed change,
+definition-of-done status, and next fixture shape. The current static inventory
+contains 134 warnings across 100 skills; 56 skills have no static finding.
+
+The registry deliberately records `observed_failure_status` as
+`not_established` for every entry. A static finding such as a broad trigger,
+buried required read, or missing output contract is a failure hypothesis—not a
+runtime failure. The registry also does not infer that a definition of done is
+present or absent. It marks only the narrower case where the static audit found
+no observable output contract, then requires a concrete case and independent
+judge to establish behavior.
+
+Rebuild the registry after refreshing the source audit:
+
+```bash
+python3 scripts/build_individual_skill_audit.py \
+  /path/to/audit.json \
+  --output tests/fixtures/skill-fixtures/individual-skill-audit-v0.1.json
+```
+
+Use each entry's `recommended_next_case` to admit targeted tests. Only after a
+case produces a repeatable failure should a proposal be treated as a targeted
+skill improvement candidate.
