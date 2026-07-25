@@ -1,0 +1,75 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.8",
+  "case_id": "trigger-required-read-composition",
+  "source_baseline": "tests/fixtures/skill-fixtures/composition-baseline-v0.7.json",
+  "repair": {
+    "runtime_change": "Required-read rewrites now require literal attempted-read disclosure, required-but-unavailable explanation, and exact target value rather than only a boolean check.",
+    "focused_test": "test_rewrite_makes_required_read_disclosure_literal"
+  },
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "pairings": [
+    {
+      "pairing": "original-original",
+      "runs": [
+        {"run_id": "composition-trigger-required-read-original-original-v3-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-trigger-required-read-original-original-v3-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 0,
+      "total": 2,
+      "decision": "fail",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-required-read-original-original-v3.json"
+    },
+    {
+      "pairing": "candidate-candidate",
+      "runs": [
+        {"run_id": "composition-trigger-required-read-candidate-candidate-v3-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-trigger-required-read-candidate-candidate-v3-r2", "pass": true, "defect": "none"}
+      ],
+      "pass_count": 1,
+      "total": 2,
+      "decision": "unstable",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-required-read-candidate-candidate-v3.json"
+    },
+    {
+      "pairing": "candidate-original",
+      "runs": [
+        {"run_id": "composition-trigger-required-read-candidate-original-v3-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-trigger-required-read-candidate-original-v3-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 0,
+      "total": 2,
+      "decision": "fail",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-required-read-candidate-original-v3.json"
+    },
+    {
+      "pairing": "original-candidate",
+      "runs": [
+        {"run_id": "composition-trigger-required-read-original-candidate-v3-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-trigger-required-read-original-candidate-v3-r2", "pass": true, "defect": "none"}
+      ],
+      "pass_count": 1,
+      "total": 2,
+      "decision": "unstable",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-required-read-original-candidate-v3.json"
+    }
+  ],
+  "aggregate": {
+    "full_family_pass_count": 2,
+    "full_family_total": 8,
+    "candidate_containing_pass_count": 2,
+    "candidate_containing_total": 6,
+    "tested_regressions": 0,
+    "safety_mutations": 0
+  },
+  "interpretation": {
+    "finding": "The deterministic required-read wording does not stabilize composition. Candidate-candidate remains 1/2; candidate-original remains 0/2; original-candidate is variable at 1/2 because the broad trigger sometimes runs an unrequested release check; original-original remains 0/2.",
+    "repair_decision": "Do not add further prose-only generator heuristics from this case. Treat the runtime repair as a useful contract clarification but insufficient evidence of behavioral lift.",
+    "confidence_boundary": "One review task, two repetitions per pairing, one model, and low reasoning; this is a negative/variance signal, not corpus-wide causal proof."
+  }
+}

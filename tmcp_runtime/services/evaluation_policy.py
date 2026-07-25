@@ -524,6 +524,15 @@ def _rewrite_with_guidebook_patterns(decomposition: dict[str, Any], text: str) -
     ]
     if routing["required_reads"]:
         lines.extend(f"- {item}" for item in routing["required_reads"])
+        lines.extend(
+            [
+                "",
+                "## Required-read disclosure",
+                "The final response MUST state that each required read was attempted.",
+                "If a required source is unavailable, state that it was required but unavailable and explain why.",
+                "The final response MUST state the inspected target's exact value, not only a boolean check result.",
+            ]
+        )
     else:
         lines.append("- None beyond project defaults.")
     lines.extend(

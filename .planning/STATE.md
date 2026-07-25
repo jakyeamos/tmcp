@@ -256,6 +256,14 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   2/3. The interaction is variable rather than deterministically broken, but
   remains below a stability bar; the other pairings remain 0/2. This preserves
   the negative signal without overstating it as a guaranteed defect.
+- The required-read rewrite was strengthened with literal attempted-read,
+  required-but-unavailable, and exact-value instructions, covered by
+  `test_rewrite_makes_required_read_disclosure_literal`. The full v3 matrix is
+  recorded in `composition-baseline-v0.8.json`: candidate-candidate remains
+  unstable at 1/2, candidate-original is 0/2, original-candidate is variable
+  at 1/2, and original-original is 0/2. The repair clarifies the contract but
+  does not establish behavioral lift; no further prose-only heuristic should
+  be inferred from this single task shape.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment

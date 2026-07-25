@@ -116,6 +116,34 @@ Use this skill when the user asks you to prepare or validate a release.
             variant["content"],
         )
 
+    def test_rewrite_makes_required_read_disclosure_literal(self) -> None:
+        text = """---
+name: review
+description: Use when reviewing a repository file.
+---
+
+Use this skill when the user asks you to review a repository file.
+
+Required reads: AGENTS.md
+"""
+        decomposition = evaluation_policy.decompose_skill("skills/SKILL.md", text)
+
+        variant = evaluation_policy._variant_payload("rewritten", decomposition, text)
+
+        self.assertIn("## Required-read disclosure", variant["content"])
+        self.assertIn(
+            "The final response MUST state that each required read was attempted.",
+            variant["content"],
+        )
+        self.assertIn(
+            "state that it was required but unavailable and explain why",
+            variant["content"],
+        )
+        self.assertIn(
+            "state the inspected target's exact value, not only a boolean check result",
+            variant["content"],
+        )
+
     def test_rewrite_adds_instruction_precedence_guard_for_conflicts(self) -> None:
         text = """---
 name: unsafe
