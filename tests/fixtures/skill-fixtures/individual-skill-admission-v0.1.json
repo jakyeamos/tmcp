@@ -1,0 +1,1853 @@
+{
+  "schema": "tmcp-individual-skill-admission-v0.1",
+  "source_audit": "/private/tmp/tmcp-skill-corpus-audit-20260722/audit.json",
+  "source_audit_sha256": "455e18c87a1b430ef4e61e321fa515cd6d7a20828d77a51ea7b52bc4850bb664",
+  "case_source": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
+  "case_source_sha256": "3572dd69db179e0bb13669b98e2ea93ade8ddcbabca5dbf2f0e757f26bffabfb",
+  "policy": {
+    "source_bound_cases_only": true,
+    "provenance_checked": true,
+    "static_findings_are_not_runtime_failures": true,
+    "runner_bar_hidden": true,
+    "independent_judge_required": true,
+    "automatic_rewrite": false
+  },
+  "summary": {
+    "skill_count": 156,
+    "case_ready_skill_count": 5,
+    "needs_case_or_bar_count": 151,
+    "case_count": 5
+  },
+  "skills": [
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/find-skills/SKILL.md",
+      "source_sha256": "58f54b13beaa00713dd5f4402d377db859a6ba3b2469b0b28f4498d493f69612",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "case_ready",
+      "cases": [
+        {
+          "source_path": "/Users/jakyeamos/.agents/skills/find-skills/SKILL.md",
+          "case_id": "find-skills-react-performance",
+          "mode": "judgment",
+          "prompt": "how do I make my React app faster?",
+          "bar": "Identify the domain and concrete task, search the skills ecosystem with a relevant query, and present results with each skill's name, purpose, install command, and skills.sh link. Offer installation without installing anything unless the user explicitly asks to proceed.",
+          "smells": [
+            "no search attempt",
+            "irrelevant or unscoped skill suggestions",
+            "missing install command or discovery link",
+            "silent installation without authorization"
+          ],
+          "provenance": [
+            {
+              "line": 14,
+              "excerpt": "Asks \"how do I do X\" where X might be a common task with an existing skill"
+            },
+            {
+              "line": 46,
+              "excerpt": "Run the find command with a relevant query"
+            },
+            {
+              "line": 54,
+              "excerpt": "User asks \"how do I make my React app faster?\" \u2192 `pnpm dlx skills find react performance`"
+            },
+            {
+              "line": 69,
+              "excerpt": "When you find relevant skills, present them to the user with:"
+            },
+            {
+              "line": 71,
+              "excerpt": "The skill name and what it does"
+            },
+            {
+              "line": 72,
+              "excerpt": "The install command they can run"
+            },
+            {
+              "line": 73,
+              "excerpt": "A link to learn more at skills.sh"
+            }
+          ],
+          "source_sha256": "58f54b13beaa00713dd5f4402d377db859a6ba3b2469b0b28f4498d493f69612",
+          "admission_status": "case_ready",
+          "bar_status": "source_bound"
+        }
+      ],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-agent/SKILL.md",
+      "source_sha256": "cffedd82a1834530afdf9bbcebb5026ec5a3ad85d2778c7274882078e9631073",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-build-interact/SKILL.md",
+      "source_sha256": "cb28225617a633afef90b03a928c4d22b64dd1672b5c41f98792577df1c2bf84",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-build-onboarding/SKILL.md",
+      "source_sha256": "992fe55eaf1272086fb2af0d546e496504fb061aa4ef5bab8eba7fe6ffd04e60",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-build-scrape/SKILL.md",
+      "source_sha256": "c85122ac58b7ea64c3613534428b7f85cd66fe1b1758a5d94ca1094548ada575",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-build-search/SKILL.md",
+      "source_sha256": "e18d80ecfff5ddae40dd19f8360973b1996a55af16a81dbccc91aa754c5e691c",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-build/SKILL.md",
+      "source_sha256": "1c029145462ab562d4ed3930e055c7fe321769e14ae8d5686482fc0ba98a8585",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-company-directories/SKILL.md",
+      "source_sha256": "a270d3d9172e0048879a6e703f3815f85b90dbfff72a059a864b82ebb3fa2e95",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-competitive-intel/SKILL.md",
+      "source_sha256": "a73942c75fa84a520b858ad5eff72550e1d8a21824be27e36d5ba544e2c18d15",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-crawl/SKILL.md",
+      "source_sha256": "d88fd3a9987a36a73f4b39ff27674fbdd57a386fbb3f7871d86ef16c47665f8b",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-dashboard-reporting/SKILL.md",
+      "source_sha256": "ab9605d8576967f0203fa60379ba87ff4876a866f43d227998da473ee6d0815e",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-deep-research/SKILL.md",
+      "source_sha256": "bd59275e2f854be2cac50d50b5626930e1c3034f2b9082df31c80ce6928e61ad",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-demo-walkthrough/SKILL.md",
+      "source_sha256": "8d32a50f6b2b66a78db69e1bf68f9e7e9fd51e5cc5ea62bdad025ddd79745a8b",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-download/SKILL.md",
+      "source_sha256": "de29733c9fb42df964fff6740dbee082cf35575134b2ee90ca564e53e4628105",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-interact/SKILL.md",
+      "source_sha256": "9a073dcda9caf699a0bbdfa43e29b643c348fa5789f61a631d88694da5bb9c5b",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-knowledge-base/SKILL.md",
+      "source_sha256": "33ec3a6223b07f7dd486e08d829ed3be68bf5e4ad29ccdfcdf26d2058f043723",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-knowledge-ingest/SKILL.md",
+      "source_sha256": "2b8cbf4b0faeac3941c9a8ad73677ebdea5f10058b4d630b20b05c150d8ce2b7",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-lead-gen/SKILL.md",
+      "source_sha256": "f009c55a3f4d3b2cb11205cea485be26277be832a6c956c8aefa1fd5b97c3309",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-lead-research/SKILL.md",
+      "source_sha256": "1b52c42404c564aeb3a6a221165792f1194470b8159a6e89f9578d72c820ee84",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-map/SKILL.md",
+      "source_sha256": "3602fa56f9bdaf304747d4cd85bb5aefd98b05ccf0aca28de287d935b317bfd2",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-market-research/SKILL.md",
+      "source_sha256": "9ec1040c5abdead2efd5cd5c996e41a3ae36b7716f558c0aa9444c1944cbc5dd",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-monitor/SKILL.md",
+      "source_sha256": "a374e1e57f179ee6349a4f56bc79d29c46c5bdfba0f3c60277be3e6280c1b327",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-parse/SKILL.md",
+      "source_sha256": "e429d86b25ec0df74d78bd2542eda3fb7b6614b81ec5f5ed2744649ce8151dde",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-qa/SKILL.md",
+      "source_sha256": "f8f0c23d22f0440c0486fdfed27d82a06cfda7eb62da1d0ba21b2416595d0280",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-research-index/SKILL.md",
+      "source_sha256": "b3be488a25857b5b4a633c45d362b8b84129aed8d51b16a05d7b215c6685a6f3",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-research-papers/SKILL.md",
+      "source_sha256": "92285877318318ae8e5f7f1906b12860914012a56cab0971ba8c83ca580d8a95",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-scrape/SKILL.md",
+      "source_sha256": "8f24893c7dda4c4976b785d8cc4b9b83725394b0e2c630a3d5e2cbb896d97f95",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-search/SKILL.md",
+      "source_sha256": "e855d83d36f290a14c9bf1c9aeef1f428079847a056fb4ff8637b3c5a38333bb",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-seo-audit/SKILL.md",
+      "source_sha256": "a04bf7f3806fef718e48ad05ad20d38548410b2d51b92a4ad43cd8838068e0bc",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-shop/SKILL.md",
+      "source_sha256": "aafea0f0ecdf3a098492635b5f1a24ff4b8cf339945170beee8b75ce12ff4f0c",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-website-design-clone/SKILL.md",
+      "source_sha256": "94b1beac10274c974396a9289d4ae6e28e6cd0f09cd7d273dd0e85c2dd2f7787",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-workflows/SKILL.md",
+      "source_sha256": "5616e68c701c5a948fb0becece1496292f967a0bd89fc1b0662b3a2574d5a766",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl/SKILL.md",
+      "source_sha256": "5c65b907606e0e5b314e11bd2c8d65b2e0224e122f07f26a51392835de609c58",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-add-backlog/SKILL.md",
+      "source_sha256": "7a410f57978040b1409283ad1dd796776b6511b8331eb4e49070a811d7e0995e",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-add-phase/SKILL.md",
+      "source_sha256": "1f7b0100dbd6883fe85dfbb470f10196ca700af9ac4626534f7ff78664f37945",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-add-tests/SKILL.md",
+      "source_sha256": "5fc3e426cea8a073ee0fc7e12590af435c283c592ec8d49c2bafa64b2b3e7458",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-add-todo/SKILL.md",
+      "source_sha256": "35ceb1fdda6918b97b563a4ff59e6a774fe3bce70ea0fd326836a7da3858df96",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-analyze-dependencies/SKILL.md",
+      "source_sha256": "65be1f3efca877229612647c3278f7c850ca55d7cf2b280f954e15034cf974b8",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-audit-milestone/SKILL.md",
+      "source_sha256": "cd6190e28a66603a7da4fdcb698e28a0ab86a6182293e6a5148f54d5aa6c0587",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-audit-uat/SKILL.md",
+      "source_sha256": "e0f008cef512e85548a4da3609ba933ced00021dc3dfe50d3674f6a12d112910",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-autonomous/SKILL.md",
+      "source_sha256": "4cc675e3785d97f20081ac90b2436e284fba1749bd3a1056eddff9ecae2caafc",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-check-todos/SKILL.md",
+      "source_sha256": "c34450aff2c561c227a96a62e4400078493b44b6eb1e75a9f38bdf57d5ee213b",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-cleanup/SKILL.md",
+      "source_sha256": "3cce9d50b31c9f67923ee348e962e1cc5ad3506e38d5cb763a97565fe0f6ba9f",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-complete-milestone/SKILL.md",
+      "source_sha256": "793f9b557db99b158b902579aac68f6a62553d5ebf7a16e7822d138fe5d76b79",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-debug/SKILL.md",
+      "source_sha256": "fe767272fdf5554979fcaf5392446045b5d1e9268b8122436448b13865101fb1",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-discuss-phase/SKILL.md",
+      "source_sha256": "1cb39391ad6b9a7f5d9f32f65b50db04cf87b69470a3ba9eecc5fb1bf3efd98e",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-do/SKILL.md",
+      "source_sha256": "8f4e493c2d8bffbae8c887d1f2aeb01d46e95e5def7179a53bc52a837570dcd2",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-docs-update/SKILL.md",
+      "source_sha256": "f937b1ce0c34428335c34a3018b29a41d89dd4c9f30fb0f4e93b0abf45a5f638",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-execute-phase/SKILL.md",
+      "source_sha256": "2ee8c1df786d951b2a2480805e9b584c2a33c215678530bf08aea442d6260ce7",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-fast/SKILL.md",
+      "source_sha256": "1d1e54545a593ec8cc249ad115d683c27e6549c91d9548e4990a7c117911326d",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-forensics/SKILL.md",
+      "source_sha256": "077d6d4169b82edb5b0b40bed3b6ea99ca4eb32e2a223e6f9436b2a98df06ea0",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-health/SKILL.md",
+      "source_sha256": "299dc7705e8a23eae870682823dfcc628dab935841f34bf1011103ecc57dee93",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-help/SKILL.md",
+      "source_sha256": "6867106619726a8084ab6f6be375bd7c5169f55ad2ada9e3dd83dbb23d0bcbe6",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-insert-phase/SKILL.md",
+      "source_sha256": "7055350d5c7537f521b73d099d087d491dac1a6cfdb51e8640ba036ce48829ae",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-join-discord/SKILL.md",
+      "source_sha256": "9ac388d3f0f89dd7c7f6771323d371a4a2529687121935520bb29c75ffda0092",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-list-phase-assumptions/SKILL.md",
+      "source_sha256": "89313d7698daefde76753ef47ffc76353848fa99926bb1f966c192dd75d4dd75",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-list-workspaces/SKILL.md",
+      "source_sha256": "4ab494818a4d08812152a91a88e92781dfe7341432276933351cfe760a792056",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-manager/SKILL.md",
+      "source_sha256": "2565560184cc6cb760d175e0c9a43a1f1beeb3fca46a6a13812f500ba2fe3e4c",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-map-codebase/SKILL.md",
+      "source_sha256": "b4b29ddf807aa4d512440c8f35f5fe68fafaa75dcbeb25fddac1f209cc6c3360",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-milestone-summary/SKILL.md",
+      "source_sha256": "e5797931106084059be743a1582b0929ba6ecc6b724f6b8abd0565d5e450ff18",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-new-milestone/SKILL.md",
+      "source_sha256": "ccf3f9b51af6f8638dc4756ced7cc42143049e30440647b0b237a7121c5b11c6",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-new-project/SKILL.md",
+      "source_sha256": "455f87ccebdcc37186de95156ce92fddcbcd09f7a8ae70c23057d9ae4b4e37e0",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-new-workspace/SKILL.md",
+      "source_sha256": "710253c3abeec7d43d9e7654493202095894bbb09ce0fb4f35f6c48d2fd16811",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-next/SKILL.md",
+      "source_sha256": "e247ab1ca1b0ff29bf8ca100f9c0132be425589eeae0afd81e734ec7e569d1f3",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-note/SKILL.md",
+      "source_sha256": "bbab1dca56eed68dd6177089f4968026da6e119622547be77f5d7696e2648b96",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-pause-work/SKILL.md",
+      "source_sha256": "2f4c01766f8c8fda2ab85378c1e3ee040e4a28f43ba0ff84d95486912b96cc86",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-plan-complete-phase/SKILL.md",
+      "source_sha256": "300fdbe846024d6451417134da66191cfba4f9932f8b7ec16b87acbfec5019ff",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-plan-milestone-gaps/SKILL.md",
+      "source_sha256": "290ce0c1da5ed0863c30da821794f3a21a7bb5976d4954da1421a4130bcec986",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-plan-phase/SKILL.md",
+      "source_sha256": "5364c06c07e428c016feae0b1fa62d628018e26efbe11442c26abbd523061a67",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-plant-seed/SKILL.md",
+      "source_sha256": "5eced23dc88043dc0295958d5f4ae6b2cb72f2809e3ebd5f74dc435376fda2de",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-pr-branch/SKILL.md",
+      "source_sha256": "e289d1f7a8c883a3e4371489f6a7576ad3ae0f0e48ee5e2a14c9dd9315942530",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-profile-user/SKILL.md",
+      "source_sha256": "db54d0cd7c7c2376313f179b4f4f512f628c8c928ccebe4b20b4721e07a95a95",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-progress/SKILL.md",
+      "source_sha256": "038b70366eef8364178db3e7c8dea83e4cbefc1c1c8cf254883e3c9cee2cb7c5",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-quick/SKILL.md",
+      "source_sha256": "e5354a2b4c0b8f00605a614e497aa5bb9579b2bdc8a09eb35b5d456078c35d2c",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-reapply-patches/SKILL.md",
+      "source_sha256": "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "case_ready",
+      "cases": [
+        {
+          "source_path": "/Users/jakyeamos/.agents/skills/gsd-reapply-patches/SKILL.md",
+          "case_id": "gsd-reapply-patches-after-update",
+          "mode": "conformance",
+          "prompt": "Reapply local modifications after a GSD update.",
+          "bar": "Use three-way comparison across the pristine baseline, user-modified backup, and newly installed version. Every backed-up file must be classified as preserved, changed, or CONFLICT requiring review; never report no custom content for a backed-up file, and never silently skip an uncertain file.",
+          "smells": [
+            "two-way overwrite instead of three-way comparison",
+            "backed-up file reported as no custom content",
+            "uncertain file silently skipped",
+            "conflict resolved without user review"
+          ],
+          "provenance": [
+            {
+              "line": 3,
+              "excerpt": "description: \"Reapply local modifications after a GSD update\""
+            },
+            {
+              "line": 8,
+              "excerpt": "Uses three-way comparison (pristine baseline, user-modified backup, newly installed version)"
+            },
+            {
+              "line": 10,
+              "excerpt": "Every file in `gsd-local-patches/` was backed up because the installer's hash comparison detected it was modified."
+            },
+            {
+              "line": 10,
+              "excerpt": "When in doubt, classify as CONFLICT requiring user review, not SKIP."
+            }
+          ],
+          "source_sha256": "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f",
+          "admission_status": "case_ready",
+          "bar_status": "source_bound"
+        }
+      ],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-remove-phase/SKILL.md",
+      "source_sha256": "b6a6d877d19e4d5d2309b462259cf4486b501ed6b41d7185425b7613d8619153",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-remove-workspace/SKILL.md",
+      "source_sha256": "aabc4ca3454a5488d007553a41b065ba5ae28d7c596510de2e4d88c1103f1749",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-research-phase/SKILL.md",
+      "source_sha256": "690c06937a37314953c76235077767e796ad151a4f164c3c5c65a53410c9048c",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-resume-work/SKILL.md",
+      "source_sha256": "156063050ecd6266bce8d19dac60095b57855e1f05115d13c1a8fe33a0a38db2",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-review-backlog/SKILL.md",
+      "source_sha256": "a6aaf48696fa4ad63edc5a923876a9e6f20306ebb68efcda26a8637715c6812a",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-review/SKILL.md",
+      "source_sha256": "8c4a12c04378defc8f1e1f3ee2081d32f2d0b168b3ec3909dfe47ac805c862de",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-secure-phase/SKILL.md",
+      "source_sha256": "0aadc1cfd3629965c313941a985f1ee520650a24581fcbc360bff0903914d683",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-session-report/SKILL.md",
+      "source_sha256": "359b92224581b5b428cf8fb987a2ed448c428e6d85deafb63c5411eaf99ef1ee",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-set-profile/SKILL.md",
+      "source_sha256": "b3f26259c99479d7448cd0571922f0e08c453ac83b366c70f79b37865428b4d1",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-settings/SKILL.md",
+      "source_sha256": "6f9a1b9552ed80f9b6f378f61578985f317cd6fbc8f2b95cb9f055bee6f60f28",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-ship/SKILL.md",
+      "source_sha256": "edb007ac25dec66bae206c61616316c8e435f2b7eddaca4a8c9951e49b0de32a",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-stats/SKILL.md",
+      "source_sha256": "e80059346f46499f6a88b51b8a783f4b2df54ebed3de3646e05030a14d3ecb1f",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-thread/SKILL.md",
+      "source_sha256": "7211d576f40ec4f2b13d1a0e18fcbcc4c0d38855f584e32be368e2327824b187",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-ui-phase/SKILL.md",
+      "source_sha256": "c119c1a25c3a0223b67d6f0f64b798e3e0e57cd113ffc20c3326dfa9120ff2a1",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-ui-review/SKILL.md",
+      "source_sha256": "4b865af85c4f534497bbd880d4c5bab3146837072112bb8791206d93f39d5c51",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-update/SKILL.md",
+      "source_sha256": "fb945d2d183a2b6b925d4c58d0acb9c65f2c0ce60e2823b1622afdbf0f35fd2c",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-validate-phase/SKILL.md",
+      "source_sha256": "5a2970522b6b2042b1905f14f6ac316cc8e37989553365d323a1b19e94fd2ba4",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-verify-work/SKILL.md",
+      "source_sha256": "d95b463e419521b8c65c4d36cc4b12413546cc231e4221828a1b56d7292271b6",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/gsd-workstreams/SKILL.md",
+      "source_sha256": "0c01a79cd69bc0543dd505d3087e22c5f5338d0ce7ea566d8c228eee64b7e77e",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/humanizer/SKILL.md",
+      "source_sha256": "422ba0842f0079d768e1770591b66d01cb253153ae00c8b01905392cd5b45061",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "verification.vague-quality-language"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/impeccable/SKILL.md",
+      "source_sha256": "c06283d40a4dd7680001488be3d9481c6f047c99e0f3084d060f3a084b3c66fa",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/last30days/SKILL.md",
+      "source_sha256": "016ce06212a0f9b807f91459146aa8cec7b28f96872a9dee95d72d77fb9014d3",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "host.tool-assumption",
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "case_ready",
+      "cases": [
+        {
+          "source_path": "/Users/jakyeamos/.agents/skills/last30days/SKILL.md",
+          "case_id": "last30days-nvidia-earnings-reaction",
+          "mode": "conformance",
+          "prompt": "last30days nvidia earnings reaction",
+          "bar": "For this GENERAL query, the response begins with the mandatory version/date badge, then one blank line and `What I learned:`; it uses the skill's required narrative shape, does not append a Sources/References block or forbidden body section headers, and includes the engine footer verbatim when the engine returns one. It must not invent research findings when the required research inputs are unavailable.",
+          "smells": [
+            "missing or non-first badge",
+            "invented title instead of What I learned",
+            "trailing Sources or References block",
+            "forbidden body section headers",
+            "fabricated research findings"
+          ],
+          "provenance": [
+            {
+              "line": 5,
+              "excerpt": "argument-hint: 'last30days nvidia earnings reaction | last30days AI video tools | last30days what users want in react'"
+            },
+            {
+              "line": 114,
+              "excerpt": "BADGE (MANDATORY, FIRST LINE OF OUTPUT)"
+            },
+            {
+              "line": 125,
+              "excerpt": "GENERAL / NEWS / PROMPTING / RECOMMENDATIONS: badge on line 1, blank line 2, `What I learned:` on line 3"
+            },
+            {
+              "line": 136,
+              "excerpt": "LAW 1 - NO `Sources:` BLOCK AT THE END."
+            },
+            {
+              "line": 150,
+              "excerpt": "LAW 4 - NO `##` or `###` SECTION HEADERS IN BODY"
+            }
+          ],
+          "source_sha256": "016ce06212a0f9b807f91459146aa8cec7b28f96872a9dee95d72d77fb9014d3",
+          "admission_status": "case_ready",
+          "bar_status": "source_bound"
+        }
+      ],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/loop-me/SKILL.md",
+      "source_sha256": "c64706fbe1d4916c6c1d46cdc3a57d9e3a2e4863449f775088ddd02c0dc82e4e",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/nlm-skill/SKILL.md",
+      "source_sha256": "cee8acdfc010d44459ca47d9ec59c7a3df8d2d523c3374f70959c68996f4bb6b",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "case_ready",
+      "cases": [
+        {
+          "source_path": "/Users/jakyeamos/.agents/skills/nlm-skill/SKILL.md",
+          "case_id": "nlm-list-notebooks-json",
+          "mode": "judgment",
+          "prompt": "List my NotebookLM notebooks as JSON.",
+          "bar": "Check the available NotebookLM interfaces and authentication before operating. If the CLI path is used, run the documented JSON listing command or report the exact authentication/tool blocker; do not launch the interactive chat REPL, create or delete notebooks, or claim a listing when no result was obtained.",
+          "smells": [
+            "operation before authentication or tool detection",
+            "interactive chat REPL launched",
+            "destructive command executed",
+            "listing claimed without output"
+          ],
+          "provenance": [
+            {
+              "line": 51,
+              "excerpt": "Always authenticate first**: Run `nlm login` before any operations"
+            },
+            {
+              "line": 59,
+              "excerpt": "DO NOT launch REPL**: Never use `nlm chat start`"
+            },
+            {
+              "line": 159,
+              "excerpt": "nlm notebook list --json               # JSON output for parsing"
+            },
+            {
+              "line": 154,
+              "excerpt": "Delete requires `confirm=True`."
+            }
+          ],
+          "source_sha256": "cee8acdfc010d44459ca47d9ec59c7a3df8d2d523c3374f70959c68996f4bb6b",
+          "admission_status": "case_ready",
+          "bar_status": "source_bound"
+        }
+      ],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/opencli-adapter-author/SKILL.md",
+      "source_sha256": "29a1719e8d7e71c2403e9ea9c537fd3d7bf376d49707f26e6f92618e88150dba",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/opencli-autofix/SKILL.md",
+      "source_sha256": "55d9afc300b70568e8562602826523e45f2dfebd1eb09a314f915064c187a8e2",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/opencli-browser/SKILL.md",
+      "source_sha256": "d286687c3262bbbbbbe91fd219d287a062633ebd749bf5718e895565dbf8908e",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/opencli-usage/SKILL.md",
+      "source_sha256": "b660b8f8c4bedd2e403964c602936d3c8fd68abc74f99e1cc9bc472a1d75ff29",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/printing-press/SKILL.md",
+      "source_sha256": "9a034b40b91a18b69528a3d712374c52186dcf9be24c07f3018bdc8b23ea6f3b",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "host.tool-assumption",
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/react-components/SKILL.md",
+      "source_sha256": "f7edfb00df7e9e58263a9cd71331164d450738b6451fcbe4643f8de0d24ba351",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/remotion-best-practices/SKILL.md",
+      "source_sha256": "bcd6b934454bcb950b36db0493ecc3af134f19b1f3e605b09eda257b0e14430d",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/repo-behavior-spec-loop/SKILL.md",
+      "source_sha256": "b05a57cec2ab104e733d8d42cf1c4dea5c6ddec24a583cd23324dc12910e3919",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/smart-search/SKILL.md",
+      "source_sha256": "d0ad02f44d552f07a9410646a167beca7220498690209ed661db07741c7448ec",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/terrace/SKILL.md",
+      "source_sha256": "7194b482c711e0e017c93e00dc1f381cf12b99e280e643c8f2d8f8e7700ccdc2",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/tmcp/SKILL.md",
+      "source_sha256": "0946638bacb3f7be0d336006cb1e8d39e1000744befd7ab6802197ed75236e16",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/wayfinder/SKILL.md",
+      "source_sha256": "96340f6e5569173178a1977703acec67b2a851f2d49679a7e61621795e110107",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/wizard/SKILL.md",
+      "source_sha256": "b2e95dac72d1ed1ea6a24e0d4459e443ec7c81159584d73f078520025b91a42d",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/writing-beats/SKILL.md",
+      "source_sha256": "1faaf20101a995e69fd00133f920fb571f1e9e65f58b9d0df441b6d5991fc19b",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/writing-fragments/SKILL.md",
+      "source_sha256": "33cdbdc9773d02edfeb14fa0ef025b41ecc76b88054299f94408ed59727c8a86",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/writing-shape/SKILL.md",
+      "source_sha256": "893643bfa8c20d77c941662bcaa0423fefe5b2cb95ca42d379ce46c65dfe2c38",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/.system/imagegen/SKILL.md",
+      "source_sha256": "59981d23519222bcecf1be48bb37730bbc50539ceb0e35ad09fcef98a3df19d3",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/.system/openai-docs/SKILL.md",
+      "source_sha256": "9914a79e6e1bd70d780b777e9019677af0eba60bbdfac3b7fe9b0407f16b5cc4",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/.system/plugin-creator/SKILL.md",
+      "source_sha256": "8fd56316b2c49cbdc657a5d197967a233018e1fada65b00a5dd030dce6499a6e",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/.system/review-agent/SKILL.md",
+      "source_sha256": "07079efd0dc76f05fade424e5dfb048dce1de2df7626e1a4f56292a4f3f92228",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/.system/skill-creator/SKILL.md",
+      "source_sha256": "da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "host.tool-assumption",
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "case_ready",
+      "cases": [
+        {
+          "source_path": "/Users/jakyeamos/.codex/skills/.system/skill-creator/SKILL.md",
+          "case_id": "skill-creator-rotate-pdf",
+          "mode": "judgment",
+          "prompt": "Help me rotate this PDF.",
+          "bar": "Treat the request as a concrete example for a reusable skill: clarify the supported functionality and destination when needed, identify a reusable rotation resource such as a script, and finish with a clear understanding of the skill's intended use before scaffolding or editing files. Do not claim a finished skill without a validated target and output.",
+          "smells": [
+            "skips understanding the concrete example",
+            "creates a generic skill without reusable resources",
+            "writes to an unconfirmed location",
+            "claims completion without validation"
+          ],
+          "provenance": [
+            {
+              "line": 244,
+              "excerpt": "Step 1: Understanding the Skill with Concrete Examples"
+            },
+            {
+              "line": 252,
+              "excerpt": "What functionality should the image-editor skill support? Editing, rotating, anything else?"
+            },
+            {
+              "line": 269,
+              "excerpt": "Example: When building a `pdf-editor` skill to handle queries like \"Help me rotate this PDF,\""
+            },
+            {
+              "line": 272,
+              "excerpt": "A `scripts/rotate_pdf.py` script would be helpful to store in the skill"
+            }
+          ],
+          "source_sha256": "da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c",
+          "admission_status": "case_ready",
+          "bar_status": "source_bound"
+        }
+      ],
+      "next_case_shape": "required_read_available_unavailable"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/.system/skill-installer/SKILL.md",
+      "source_sha256": "d68b77e5bbb34dedab89d134da52855f140fc4b4299b80104f534e3b9e98f8ee",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/01-establish-visual-hierarchy/SKILL.md",
+      "source_sha256": "dc621b0178f79f0a7435a0deb8622e69e015d6a64c07d1685d73a8d90653d1df",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/02-apply-typography-scale/SKILL.md",
+      "source_sha256": "bf3b9c52d489dc9b14a9c5a3b6d6ab03ce0a6095a55981222d0569537e28aeca",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/03-build-color-palette/SKILL.md",
+      "source_sha256": "777a8262fb77e7ebca46438ba23921b87a591c2c53b3309903bd443c01fc86dc",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/04-apply-consistent-spacing/SKILL.md",
+      "source_sha256": "909922cd9169edf5335562ac5a4f05911b4773034d4fc145adaf3dd0dfad5cee",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/05-design-button-hierarchy/SKILL.md",
+      "source_sha256": "1c22ff26f1adf0ed9b77c1ccb1c7280231a12d8e28d2ab521a5a32be4bf9a0bf",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/06-eliminate-visual-clutter/SKILL.md",
+      "source_sha256": "a3eee20b08817100a719926aaeca3ee9bc0212cfbbf949d0f3972c1e7724e7d0",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/07-design-empty-states/SKILL.md",
+      "source_sha256": "8b74c235cf187ae70aded39d78f4a655a39b94818768287d7aa7a70fa2983b86",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/08-use-shadows-appropriately/SKILL.md",
+      "source_sha256": "06268fb39db0409ba5d4fd6b0a31a51f9b6ea95c5c95576c1e236f7b524228dd",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/09-manage-color-contrast/SKILL.md",
+      "source_sha256": "732d8fc73f800c6cef23b4400e4b713c5a3abf8ad0edee7a68f1638e37b263f6",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/10-group-related-elements/SKILL.md",
+      "source_sha256": "b13c912e825170b5ec5faf902539e866c7ef98729e8b90657931e3d48e4890ce",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/amicro-components/SKILL.md",
+      "source_sha256": "10393211384e7040e82d456efd4c9ab05d19c7432ef140eb4b02d2c4a5bc2b25",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/animation-vocabulary/SKILL.md",
+      "source_sha256": "d718b48fe3c7898804d588f050a2e266d82c9f5ef51da256c8cb8b5951527757",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/apple-design/SKILL.md",
+      "source_sha256": "11840b24a11d7f94f39c6aaab074750ae4e4de4ef54ee4b1dd97e16ebd485e61",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/career-ops-application-runner/SKILL.md",
+      "source_sha256": "042cd537c8551cb66285f541455e22620281f6d1bce450bd11f0594465a216d3",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "reads.buried-required-reads"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/check-thread-ownership/SKILL.md",
+      "source_sha256": "d8ddc1a0c4a5c68a0fd6cf2b74f0b58c1515832a79b133f5016cae0217cf7d2a",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/emil-design-eng/SKILL.md",
+      "source_sha256": "433b5a239cda18e0576e4e558532e7e53512e21fafe5b85db4894c28ec399b72",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/execution-reassessment/SKILL.md",
+      "source_sha256": "defa9636a1aff4c706ec45c0c8927786dc075e82e2bc10933917ebaba0b67e5e",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/fold-feature-branches/SKILL.md",
+      "source_sha256": "b17609dff0acbf1d9c22b04ded8f8d556f2f7057c6fc85b6107d98b82e5249c4",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/improve-animations/SKILL.md",
+      "source_sha256": "68f17bbc4671593d2f43dba26a679243e2153ba5f26965fb7d59df52842534ff",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/layers-conceptual-model/SKILL.md",
+      "source_sha256": "11af2274a1c64ed2bc9c668c6c47ed842b6e56c2e18ed41dd4a59609af153926",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/layers-domain/SKILL.md",
+      "source_sha256": "f50fc58c122e8d09a41877826dff789b75af01af2790a5c641f1d898a5374298",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/layers-interaction-flow/SKILL.md",
+      "source_sha256": "a1ee7fa4d3bdea7060a74fbd3d35e97b307b00be4f830072cb8e3e1820e43149",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/layers-intro/SKILL.md",
+      "source_sha256": "724549b81bc52ae1e791bcf088d9f22b67d7dfcab95dc68462827774fbb04707",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/layers-observed-behaviour/SKILL.md",
+      "source_sha256": "7f8b2692940fd371e450eb76594414feac05ef3f991c46c5d2ea1ff588a7b740",
+      "static_status": "no_static_findings",
+      "static_warning_ids": [],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "domain_golden_case_required"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/layers-orient/SKILL.md",
+      "source_sha256": "cdd02877ee65eb0d9f17e9772b7541d231346eac2af403835abcda455205639e",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/layers-product-strategy/SKILL.md",
+      "source_sha256": "b60639535e110379d4fed0c5e3894d9e05a2183dd3aa410677d1f787f86a4571",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/layers-surface/SKILL.md",
+      "source_sha256": "2ffa29c0466b0cbc7e345fcb88b6e47df36267f501dad0def7197aec2f110eff",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/layers-user-needs/SKILL.md",
+      "source_sha256": "05b7bd8e224a9b8a4bf65a242732d04968460706eb6f34d7b1d0ab32ec19b5d2",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/meta-refactor-ui/SKILL.md",
+      "source_sha256": "84781b94d8fb476e791dbe5359cc3689559f9ce11e3b20ca1c6634a56200d4dc",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.codex/skills/review-animations/SKILL.md",
+      "source_sha256": "27c1ec78634a08bcb588229497f4fbc3bcb9db8f8032dcdd275eb844f30fc004",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "concrete_output_contract"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/skills/authoring/eval-skills/SKILL.md",
+      "source_sha256": "2e9bf33371fce396b434f9f34d4b87cd4761626c30cc1f4f64df55c726696074",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/skills/engineering/derive-api-client/SKILL.md",
+      "source_sha256": "5b537683e5b8a0b67da363bf453fd9d75d134563a2c94e186eed9e84bbd0e252",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/skills/engineering/explore-unknowns/SKILL.md",
+      "source_sha256": "d2b29abcaee937ede07bf908ee0ab6a7ce03d429f51082d65cae7fdb0beac3fa",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "reads.buried-required-reads",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/skills/engineering/refactor-clean/SKILL.md",
+      "source_sha256": "90709ad4daf33b34ded487de2a5e666e130969c1abb431306efc20d3388000d0",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "output.missing-observable-contract",
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    },
+    {
+      "skill_path": "/Users/jakyeamos/skills/engineering/write-docs/SKILL.md",
+      "source_sha256": "36fa7d1781c0775987414962ccdf878010dae8dd6bb378bd978774e7d52f76bb",
+      "static_status": "static_findings",
+      "static_warning_ids": [
+        "trigger.overbroad-description"
+      ],
+      "admission_status": "needs_golden_case_and_bar",
+      "cases": [],
+      "next_case_shape": "paired_trigger_boundary"
+    }
+  ]
+}

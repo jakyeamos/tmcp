@@ -137,3 +137,25 @@ python3 scripts/build_individual_skill_audit.py \
 Use each entry's `recommended_next_case` to admit targeted tests. Only after a
 case produces a repeatable failure should a proposal be treated as a targeted
 skill improvement candidate.
+
+The first source-bound admission pass is recorded in
+`tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json`. It admits
+five concrete cases mined from explicit examples or command contracts in the
+skill documents (`last30days`, `find-skills`, `nlm-skill`, `skill-creator`, and
+`gsd-reapply-patches`). Each case stores line-level provenance for both the
+input shape and the judgment bar. The remaining 151 skills stay blocked on a
+real golden case and bar; their static warnings are not promoted into runtime
+failures.
+
+Rebuild and validate the queue with:
+
+```bash
+python3 scripts/build_individual_skill_admission.py \
+  tests/fixtures/skill-fixtures/individual-skill-audit-v0.1.json \
+  tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json \
+  --output tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json
+```
+
+This is an admission gate, not an evaluation result. A `case_ready` record is
+eligible for a blind runner and independent judge; it has not yet passed that
+behavioral evaluation.

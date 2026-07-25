@@ -1,0 +1,111 @@
+{
+  "schema": "tmcp-individual-skill-admission-cases-v0.1",
+  "policy": {
+    "source_bound": true,
+    "invented_inputs": false,
+    "invented_bars": false,
+    "provenance_required": true
+  },
+  "cases": [
+    {
+      "source_path": "/Users/jakyeamos/.agents/skills/last30days/SKILL.md",
+      "case_id": "last30days-nvidia-earnings-reaction",
+      "mode": "conformance",
+      "prompt": "last30days nvidia earnings reaction",
+      "bar": "For this GENERAL query, the response begins with the mandatory version/date badge, then one blank line and `What I learned:`; it uses the skill's required narrative shape, does not append a Sources/References block or forbidden body section headers, and includes the engine footer verbatim when the engine returns one. It must not invent research findings when the required research inputs are unavailable.",
+      "smells": [
+        "missing or non-first badge",
+        "invented title instead of What I learned",
+        "trailing Sources or References block",
+        "forbidden body section headers",
+        "fabricated research findings"
+      ],
+      "provenance": [
+        {"line": 5, "excerpt": "argument-hint: 'last30days nvidia earnings reaction | last30days AI video tools | last30days what users want in react'"},
+        {"line": 114, "excerpt": "BADGE (MANDATORY, FIRST LINE OF OUTPUT)"},
+        {"line": 125, "excerpt": "GENERAL / NEWS / PROMPTING / RECOMMENDATIONS: badge on line 1, blank line 2, `What I learned:` on line 3"},
+        {"line": 136, "excerpt": "LAW 1 - NO `Sources:` BLOCK AT THE END."},
+        {"line": 150, "excerpt": "LAW 4 - NO `##` or `###` SECTION HEADERS IN BODY"}
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.agents/skills/find-skills/SKILL.md",
+      "case_id": "find-skills-react-performance",
+      "mode": "judgment",
+      "prompt": "how do I make my React app faster?",
+      "bar": "Identify the domain and concrete task, search the skills ecosystem with a relevant query, and present results with each skill's name, purpose, install command, and skills.sh link. Offer installation without installing anything unless the user explicitly asks to proceed.",
+      "smells": [
+        "no search attempt",
+        "irrelevant or unscoped skill suggestions",
+        "missing install command or discovery link",
+        "silent installation without authorization"
+      ],
+      "provenance": [
+        {"line": 14, "excerpt": "Asks \"how do I do X\" where X might be a common task with an existing skill"},
+        {"line": 46, "excerpt": "Run the find command with a relevant query"},
+        {"line": 54, "excerpt": "User asks \"how do I make my React app faster?\" → `pnpm dlx skills find react performance`"},
+        {"line": 69, "excerpt": "When you find relevant skills, present them to the user with:"},
+        {"line": 71, "excerpt": "The skill name and what it does"},
+        {"line": 72, "excerpt": "The install command they can run"},
+        {"line": 73, "excerpt": "A link to learn more at skills.sh"}
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.agents/skills/nlm-skill/SKILL.md",
+      "case_id": "nlm-list-notebooks-json",
+      "mode": "judgment",
+      "prompt": "List my NotebookLM notebooks as JSON.",
+      "bar": "Check the available NotebookLM interfaces and authentication before operating. If the CLI path is used, run the documented JSON listing command or report the exact authentication/tool blocker; do not launch the interactive chat REPL, create or delete notebooks, or claim a listing when no result was obtained.",
+      "smells": [
+        "operation before authentication or tool detection",
+        "interactive chat REPL launched",
+        "destructive command executed",
+        "listing claimed without output"
+      ],
+      "provenance": [
+        {"line": 51, "excerpt": "Always authenticate first**: Run `nlm login` before any operations"},
+        {"line": 59, "excerpt": "DO NOT launch REPL**: Never use `nlm chat start`"},
+        {"line": 159, "excerpt": "nlm notebook list --json               # JSON output for parsing"},
+        {"line": 154, "excerpt": "Delete requires `confirm=True`."}
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.codex/skills/.system/skill-creator/SKILL.md",
+      "case_id": "skill-creator-rotate-pdf",
+      "mode": "judgment",
+      "prompt": "Help me rotate this PDF.",
+      "bar": "Treat the request as a concrete example for a reusable skill: clarify the supported functionality and destination when needed, identify a reusable rotation resource such as a script, and finish with a clear understanding of the skill's intended use before scaffolding or editing files. Do not claim a finished skill without a validated target and output.",
+      "smells": [
+        "skips understanding the concrete example",
+        "creates a generic skill without reusable resources",
+        "writes to an unconfirmed location",
+        "claims completion without validation"
+      ],
+      "provenance": [
+        {"line": 244, "excerpt": "Step 1: Understanding the Skill with Concrete Examples"},
+        {"line": 252, "excerpt": "What functionality should the image-editor skill support? Editing, rotating, anything else?"},
+        {"line": 269, "excerpt": "Example: When building a `pdf-editor` skill to handle queries like \"Help me rotate this PDF,\""},
+        {"line": 272, "excerpt": "A `scripts/rotate_pdf.py` script would be helpful to store in the skill"}
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.agents/skills/gsd-reapply-patches/SKILL.md",
+      "case_id": "gsd-reapply-patches-after-update",
+      "mode": "conformance",
+      "prompt": "Reapply local modifications after a GSD update.",
+      "bar": "Use three-way comparison across the pristine baseline, user-modified backup, and newly installed version. Every backed-up file must be classified as preserved, changed, or CONFLICT requiring review; never report no custom content for a backed-up file, and never silently skip an uncertain file.",
+      "smells": [
+        "two-way overwrite instead of three-way comparison",
+        "backed-up file reported as no custom content",
+        "uncertain file silently skipped",
+        "conflict resolved without user review"
+      ],
+      "provenance": [
+        {"line": 3, "excerpt": "description: \"Reapply local modifications after a GSD update\""},
+        {"line": 8, "excerpt": "Uses three-way comparison (pristine baseline, user-modified backup, newly installed version)"},
+        {"line": 10, "excerpt": "Every file in `gsd-local-patches/` was backed up because the installer's hash comparison detected it was modified."},
+        {"line": 10, "excerpt": "When in doubt, classify as CONFLICT requiring user review, not SKIP."}
+      ]
+    }
+  ]
+}
