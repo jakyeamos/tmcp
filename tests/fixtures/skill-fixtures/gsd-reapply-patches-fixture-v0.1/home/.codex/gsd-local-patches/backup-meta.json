@@ -1,0 +1,23 @@
+{
+  "from_version": "1.0.0",
+  "files": [
+    {
+      "path": "workflow/merge.md",
+      "backup_path": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/home/.codex/gsd-local-patches/workflow/merge.md",
+      "pristine_path": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/home/.codex/gsd-pristine/workflow/merge.md",
+      "current_path": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/home/.codex/installed/workflow/merge.md"
+    },
+    {
+      "path": "workflow/conflict.md",
+      "backup_path": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/home/.codex/gsd-local-patches/workflow/conflict.md",
+      "pristine_path": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/home/.codex/gsd-pristine/workflow/conflict.md",
+      "current_path": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/home/.codex/installed/workflow/conflict.md"
+    },
+    {
+      "path": "workflow/incorporated.md",
+      "backup_path": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/home/.codex/gsd-local-patches/workflow/incorporated.md",
+      "pristine_path": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/home/.codex/gsd-pristine/workflow/incorporated.md",
+      "current_path": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/home/.codex/installed/workflow/incorporated.md"
+    }
+  ]
+}

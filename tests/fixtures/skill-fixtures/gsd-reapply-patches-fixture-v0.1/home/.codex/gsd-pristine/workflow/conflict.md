@@ -1,0 +1,2 @@
+name=conflict
+mode=old
