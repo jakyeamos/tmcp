@@ -309,6 +309,15 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   reviewed `portable\\s+(?:file|shell)` pattern passes 6/6 and matches the
   judge. This is a concrete validator false-negative finding, not a skill
   regression.
+- `733f6f5` adds `full-corpus-v0.1.json` and its v0.1 baseline, covering eight
+  available single-skill families and 42 runner artifacts. Structural checks
+  pass 31/42, independent judges pass 31/42, and the two agree on 42/42. Each
+  run can now bind to a judge JSON record by index; the corpus report records
+  that source SHA-256 and fails closed if the copied judge boolean drifts. The
+  validator also fixes an optional-rule bug that treated an absent exact-value
+  assertion as a failure. Neutral-format output-contract variants remain
+  explicitly judge-only because their artifact schema cannot prove the full
+  response-field bar. Full regression: 477 tests passed, 3 skipped.
 - `51a4637` adds a batch CLI that runs the same post-run validator over a complete artifact
   matrix, emits per-artifact checks and SHA-256s, and exits nonzero if any
   artifact fails. This removes ad hoc aggregation from the campaign workflow;
