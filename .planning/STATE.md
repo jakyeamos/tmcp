@@ -265,6 +265,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `--execution-codex-home` path as `CODEX_HOME`; it has no arbitrary environment
   passthrough or credential channel. This is the execution prerequisite for the
   GSD patch fixture.
+- `e257f2f` admits `gsd-reapply-patches` as the second case-ready skill and
+  updates the queue to 2 ready / 4 execution-boundary-blocked skills. `c6bdee8`
+  adds the disposable three-way fixture with merge, conflict, and incorporated
+  files under `tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/`;
+  the next action is its bounded subscription campaign.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
