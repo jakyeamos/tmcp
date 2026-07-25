@@ -140,6 +140,51 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
         )
         self.assertTrue(result["passed"])
 
+    def test_accepts_structured_observations_and_requires_activity_marker(self) -> None:
+        spec = {
+            "case_id": "host-portability-inspection",
+            "exact_value": "portable value",
+            "required_activity_markers": ["portable file inspection"],
+        }
+        result = validate_fixture_artifact(
+            {
+                "observations": {
+                    "Sources inspected": ["target.txt"],
+                    "Verification results": "portable value",
+                },
+                "actions": ["Used ordinary portable file inspection."],
+                "final_response": "portable value",
+            },
+            spec,
+        )
+        self.assertTrue(result["passed"])
+
+    def test_fails_when_required_activity_is_only_claimed_in_final_response(self) -> None:
+        result = validate_fixture_artifact(
+            {
+                "observations": ["The target was read."],
+                "actions": ["Read the target."],
+                "final_response": "portable value; used portable file inspection",
+            },
+            {"exact_value": "portable value", "required_activity_markers": ["portable file inspection"]},
+        )
+        self.assertFalse(result["passed"])
+        self.assertIn("required_activity", result["failed_observables"])
+
+    def test_accepts_reviewed_activity_pattern_alternatives(self) -> None:
+        result = validate_fixture_artifact(
+            {
+                "observations": ["The target was located."],
+                "actions": ["Inspected the file with ordinary portable shell commands."],
+                "final_response": "portable value",
+            },
+            {
+                "exact_value": "portable value",
+                "required_activity_patterns": [r"portable\s+(?:file|shell)"],
+            },
+        )
+        self.assertTrue(result["passed"])
+
     def test_rejects_positive_file_mutation_action(self) -> None:
         result = validate_fixture_artifact(
             _artifact(

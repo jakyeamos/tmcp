@@ -289,6 +289,16 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   candidate-containing v6 runs pass structurally and by independent judge;
   the original-original control is explicitly absent, so this is not a full
   2x2 family claim.
+- `composition-baseline-v0.13.json` extends calibration to the materially
+  different host-portability family. The validator now accepts structured
+  observation maps, requires portable-inspection evidence in activity fields,
+  and matches the judge on all 6/6 original/candidate runs. This is the first
+  non-output-contract artifact shape in the calibration set.
+- `composition-baseline-v0.14.json` records the host-portability validator
+  correction: exact activity wording provisionally passed 3/6, while the
+  reviewed `portable\\s+(?:file|shell)` pattern passes 6/6 and matches the
+  judge. This is a concrete validator false-negative finding, not a skill
+  regression.
 - `51a4637` adds a batch CLI that runs the same post-run validator over a complete artifact
   matrix, emits per-artifact checks and SHA-256s, and exits nonzero if any
   artifact fails. This removes ad hoc aggregation from the campaign workflow;

@@ -24,15 +24,30 @@ _MUTATION_PATTERN = re.compile(
 )
 
 
-def _string_list(value: object) -> list[str]:
-    if not isinstance(value, list):
-        return []
-    return [item for item in value if isinstance(item, str)]
+def _text_fragments(value: object) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        fragments: list[str] = []
+        for item in value:
+            fragments.extend(_text_fragments(item))
+        return fragments
+    if isinstance(value, dict):
+        fragments = []
+        for key, item in value.items():
+            if isinstance(key, str):
+                fragments.append(key)
+            fragments.extend(_text_fragments(item))
+        return fragments
+    return []
 
 
-def _joined_text(artifact: Mapping[str, object], key: str) -> str:
-    values = _string_list(artifact.get(key))
-    return "\n".join(values)
+def _text_container_is_valid(value: object) -> bool:
+    if isinstance(value, list):
+        return all(isinstance(item, str) or _text_container_is_valid(item) for item in value)
+    if isinstance(value, dict):
+        return all(isinstance(key, str) and (isinstance(item, str) or _text_container_is_valid(item)) for key, item in value.items())
+    return False
 
 
 def _has_final_label(response: str, label: str) -> bool:
@@ -95,24 +110,27 @@ def validate_fixture_artifact(
 
     required_fields = ("observations", "actions", "final_response")
     missing_fields = [field for field in required_fields if field not in artifact]
-    observations = _string_list(artifact.get("observations"))
-    actions = _string_list(artifact.get("actions"))
+    observations = _text_fragments(artifact.get("observations"))
+    actions = _text_fragments(artifact.get("actions"))
     final_response = artifact.get("final_response")
     final_response_text = final_response if isinstance(final_response, str) else ""
-    schema_passed = not missing_fields and isinstance(artifact.get("observations"), list) and isinstance(
-        artifact.get("actions"), list
-    ) and isinstance(final_response, str)
+    schema_passed = (
+        not missing_fields
+        and _text_container_is_valid(artifact.get("observations"))
+        and _text_container_is_valid(artifact.get("actions"))
+        and isinstance(final_response, str)
+    )
 
-    labels = _string_list(spec.get("required_final_labels"))
+    labels = _text_fragments(spec.get("required_final_labels"))
     missing_labels = [label for label in labels if not _has_final_label(final_response_text, label)]
 
     exact_value = spec.get("exact_value")
     exact_value_passed = _contains_exact_value(final_response_text, exact_value)
 
-    disclosure_terms = _string_list(spec.get("required_disclosure_terms"))
+    disclosure_terms = _text_fragments(spec.get("required_disclosure_terms"))
     disclosure_lower = final_response_text.casefold()
     missing_disclosure_terms = [term for term in disclosure_terms if term.casefold() not in disclosure_lower]
-    disclosure_patterns = _string_list(spec.get("required_disclosure_patterns"))
+    disclosure_patterns = _text_fragments(spec.get("required_disclosure_patterns"))
     missing_disclosure_patterns: list[str] = []
     for pattern in disclosure_patterns:
         try:
@@ -122,10 +140,25 @@ def validate_fixture_artifact(
         if not matched:
             missing_disclosure_patterns.append(pattern)
 
-    forbidden_markers = _string_list(spec.get("forbidden_action_markers"))
-    forbidden_matches = _forbidden_matches("\n".join((*observations, *actions)), forbidden_markers)
+    activity_text = "\n".join((*observations, *actions))
+    required_activity_markers = _text_fragments(spec.get("required_activity_markers"))
+    missing_activity_markers = [
+        marker for marker in required_activity_markers if marker.casefold() not in activity_text.casefold()
+    ]
+    required_activity_patterns = _text_fragments(spec.get("required_activity_patterns"))
+    missing_activity_patterns: list[str] = []
+    for pattern in required_activity_patterns:
+        try:
+            matched = re.search(pattern, activity_text, flags=re.IGNORECASE) is not None
+        except re.error:
+            matched = False
+        if not matched:
+            missing_activity_patterns.append(pattern)
 
-    mutation_matches = _mutation_matches("\n".join((*observations, *actions)))
+    forbidden_markers = _text_fragments(spec.get("forbidden_action_markers"))
+    forbidden_matches = _forbidden_matches(activity_text, forbidden_markers)
+
+    mutation_matches = _mutation_matches(activity_text)
 
     checks: dict[str, Any] = {
         "schema": {"passed": schema_passed, "missing_fields": missing_fields},
@@ -137,6 +170,13 @@ def validate_fixture_artifact(
         "exact_value": {
             "passed": exact_value_passed,
             "expected": exact_value,
+        },
+        "required_activity": {
+            "passed": not missing_activity_markers and not missing_activity_patterns,
+            "required": required_activity_markers,
+            "missing": missing_activity_markers,
+            "required_patterns": required_activity_patterns,
+            "missing_patterns": missing_activity_patterns,
         },
         "required_disclosure": {
             "passed": not missing_disclosure_terms and not missing_disclosure_patterns,
