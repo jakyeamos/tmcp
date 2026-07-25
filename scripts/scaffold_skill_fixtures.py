@@ -65,6 +65,8 @@ def load_seed_cases(path: Path | None, project_root: Path) -> dict[str, list[dic
             clean["observables"] = case["observables"]
         if "provenance" in case:
             clean["provenance"] = case["provenance"]
+        if "execution_boundary" in case:
+            clean["execution_boundary"] = case["execution_boundary"]
         if not clean["bar"].strip():
             raise ValueError(f"seed case {clean['case_id']} has an empty bar")
         result.setdefault(source, []).append(clean)

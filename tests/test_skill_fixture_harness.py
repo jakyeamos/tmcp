@@ -34,6 +34,10 @@ class SkillFixtureHarnessTests(unittest.TestCase):
                         "prompt": "Review this input.",
                         "bar": "The result cites concrete evidence.",
                         "smells": ["unsupported claim"],
+                        "execution_boundary": {
+                            "status": "complete",
+                            "evidence": "The fixture contains the complete read-only input.",
+                        },
                         "provenance": [{"line": 1, "excerpt": "# Alpha"}],
                     }],
                 }),
@@ -59,6 +63,10 @@ class SkillFixtureHarnessTests(unittest.TestCase):
             manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["skills"][0]["readiness"], "ready")
             self.assertEqual(manifest["skills"][0]["cases"][0]["provenance"][0]["line"], 1)
+            self.assertEqual(
+                manifest["skills"][0]["cases"][0]["execution_boundary"]["status"],
+                "complete",
+            )
 
     def test_scaffold_validate_and_prepare_versions(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
