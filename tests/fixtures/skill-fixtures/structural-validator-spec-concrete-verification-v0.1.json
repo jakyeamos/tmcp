@@ -1,0 +1,12 @@
+{
+  "schema": "tmcp-skill-fixture-structural-spec-v0.1",
+  "case_id": "concrete-verification",
+  "allow_missing_observations": true,
+  "allow_metadata_values": true,
+  "required_boolean_fields": {
+    "target_named": true,
+    "verification_command_run": true,
+    "pass_fail_evidence_reported": true
+  },
+  "exact_value": "ready"
+}

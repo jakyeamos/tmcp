@@ -42,11 +42,31 @@ def _text_fragments(value: object) -> list[str]:
     return []
 
 
-def _text_container_is_valid(value: object) -> bool:
+def _text_container_is_valid(
+    value: object,
+    *,
+    allow_scalar: bool = False,
+    allow_metadata: bool = False,
+) -> bool:
+    if allow_scalar and isinstance(value, str):
+        return True
+    if allow_metadata and (value is None or isinstance(value, (bool, int, float))):
+        return True
     if isinstance(value, list):
-        return all(isinstance(item, str) or _text_container_is_valid(item) for item in value)
+        return all(
+            isinstance(item, str)
+            or _text_container_is_valid(item, allow_metadata=allow_metadata)
+            for item in value
+        )
     if isinstance(value, dict):
-        return all(isinstance(key, str) and (isinstance(item, str) or _text_container_is_valid(item)) for key, item in value.items())
+        return all(
+            isinstance(key, str)
+            and (
+                isinstance(item, str)
+                or _text_container_is_valid(item, allow_metadata=allow_metadata)
+            )
+            for key, item in value.items()
+        )
     return False
 
 
@@ -108,17 +128,36 @@ def validate_fixture_artifact(
     fail closed rather than being coerced into a passing result.
     """
 
-    required_fields = ("observations", "actions", "final_response")
+    configured_required_fields = _text_fragments(spec.get("required_artifact_fields"))
+    required_fields = configured_required_fields or ["observations", "actions", "final_response"]
+    if spec.get("allow_missing_observations") is True:
+        required_fields = [field for field in required_fields if field != "observations"]
     missing_fields = [field for field in required_fields if field not in artifact]
     observations = _text_fragments(artifact.get("observations"))
     actions = _text_fragments(artifact.get("actions"))
     final_response = artifact.get("final_response")
-    final_response_text = final_response if isinstance(final_response, str) else ""
+    final_response_text = "\n".join(_text_fragments(final_response))
+    allow_metadata = spec.get("allow_metadata_values") is True
     schema_passed = (
         not missing_fields
-        and _text_container_is_valid(artifact.get("observations"))
-        and _text_container_is_valid(artifact.get("actions"))
-        and isinstance(final_response, str)
+        and (
+            "observations" not in artifact
+            or _text_container_is_valid(
+                artifact.get("observations"), allow_scalar=True, allow_metadata=allow_metadata
+            )
+        )
+        and (
+            "actions" not in artifact
+            or _text_container_is_valid(
+                artifact.get("actions"), allow_scalar=True, allow_metadata=allow_metadata
+            )
+        )
+        and (
+            "final_response" not in artifact
+            or _text_container_is_valid(
+                artifact.get("final_response"), allow_scalar=True, allow_metadata=allow_metadata
+            )
+        )
     )
 
     labels = _text_fragments(spec.get("required_final_labels"))
@@ -160,6 +199,15 @@ def validate_fixture_artifact(
 
     mutation_matches = _mutation_matches(activity_text)
 
+    boolean_expectations = spec.get("required_boolean_fields")
+    if not isinstance(boolean_expectations, dict):
+        boolean_expectations = {}
+    boolean_failures: dict[str, object] = {}
+    for field, expected in boolean_expectations.items():
+        actual = artifact.get(field)
+        if not isinstance(expected, bool) or not isinstance(actual, bool) or actual is not expected:
+            boolean_failures[field] = {"expected": expected, "actual": actual}
+
     checks: dict[str, Any] = {
         "schema": {"passed": schema_passed, "missing_fields": missing_fields},
         "required_final_labels": {
@@ -177,6 +225,11 @@ def validate_fixture_artifact(
             "missing": missing_activity_markers,
             "required_patterns": required_activity_patterns,
             "missing_patterns": missing_activity_patterns,
+        },
+        "required_boolean_fields": {
+            "passed": not boolean_failures,
+            "expected": boolean_expectations,
+            "failures": boolean_failures,
         },
         "required_disclosure": {
             "passed": not missing_disclosure_terms and not missing_disclosure_patterns,

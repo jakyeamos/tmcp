@@ -185,6 +185,45 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
         )
         self.assertTrue(result["passed"])
 
+    def test_explicit_legacy_profile_validates_boolean_observables(self) -> None:
+        result = validate_fixture_artifact(
+            {
+                "target_named": True,
+                "verification_command_run": True,
+                "pass_fail_evidence_reported": True,
+                "actions": "Inspected target and ran verification command.",
+                "final_response": {"verification_results": "PASS: exact value ready"},
+            },
+            {
+                "allow_missing_observations": True,
+                "required_boolean_fields": {
+                    "target_named": True,
+                    "verification_command_run": True,
+                    "pass_fail_evidence_reported": True,
+                },
+                "exact_value": "ready",
+            },
+        )
+        self.assertTrue(result["passed"])
+
+    def test_legacy_profile_fails_closed_on_wrong_boolean_observable(self) -> None:
+        result = validate_fixture_artifact(
+            {
+                "target_named": True,
+                "verification_command_run": False,
+                "pass_fail_evidence_reported": True,
+                "actions": "Inspected target.",
+                "final_response": "ready",
+            },
+            {
+                "allow_missing_observations": True,
+                "required_boolean_fields": {"verification_command_run": True},
+                "exact_value": "ready",
+            },
+        )
+        self.assertFalse(result["passed"])
+        self.assertIn("required_boolean_fields", result["failed_observables"])
+
     def test_rejects_positive_file_mutation_action(self) -> None:
         result = validate_fixture_artifact(
             _artifact(

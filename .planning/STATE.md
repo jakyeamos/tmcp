@@ -199,6 +199,10 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   across seven families it reports original 11/24 versus candidate 21/24
   (45.8% versus 87.5%), with four family wins, three ties, and no tested
   regression.
+- `composition-baseline-v0.15.json` adds an explicit legacy profile for the
+  concrete-verification family. It checks boolean observables and structured
+  final responses without weakening the canonical schema; the four available
+  r2/r3 artifacts match the judge 4/4.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
