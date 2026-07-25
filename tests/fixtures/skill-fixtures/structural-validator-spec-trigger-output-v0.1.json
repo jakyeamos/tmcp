@@ -1,0 +1,18 @@
+{
+  "schema": "tmcp-skill-fixture-structural-spec-v0.1",
+  "case_id": "trigger-output-contract-composition",
+  "exact_value": "artifact status: ready",
+  "required_final_labels": [
+    "Sources inspected",
+    "Skipped sources and why",
+    "Verification results",
+    "Next actions"
+  ],
+  "forbidden_action_markers": [
+    "release check",
+    "release verification",
+    "check_release",
+    "check_release_package",
+    "check_contracts"
+  ]
+}

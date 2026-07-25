@@ -274,6 +274,11 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   trust claim. `0ed5c17` closes an exact-value false positive (`invalid` no
   longer satisfies expected `valid`) with a regression test; the v3 result
   remains 2/8.
+- The validator was calibrated on the independent trigger/output-contract
+  family using `structural-validator-spec-trigger-output-v0.1.json`.
+  `composition-baseline-v0.10.json` records 3/8 structural passes, matching
+  the judge on all eight runs (3/8); this extends agreement to a second family
+  but still covers related output-contract observables rather than the corpus.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
