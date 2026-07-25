@@ -1,0 +1,83 @@
+{
+  "schema": "tmcp-skill-selected-corpus-v0.1",
+  "purpose": "Pre-screen calibrated fixture artifacts before any corpus-wide skill rewrite promotion.",
+  "artifact_root_default": "/private/tmp",
+  "families": [
+    {
+      "id": "trigger-required-read-v3",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-v0.1.json",
+      "coverage": "full 2x2 pairing matrix, two repeats per pairing",
+      "runs": [
+        {"artifact": "composition-trigger-required-read-original-original-v3-r1.json", "judge_pass": false},
+        {"artifact": "composition-trigger-required-read-original-original-v3-r2.json", "judge_pass": false},
+        {"artifact": "composition-trigger-required-read-candidate-candidate-v3-r1.json", "judge_pass": false},
+        {"artifact": "composition-trigger-required-read-candidate-candidate-v3-r2.json", "judge_pass": true},
+        {"artifact": "composition-trigger-required-read-candidate-original-v3-r1.json", "judge_pass": false},
+        {"artifact": "composition-trigger-required-read-candidate-original-v3-r2.json", "judge_pass": false},
+        {"artifact": "composition-trigger-required-read-original-candidate-v3-r1.json", "judge_pass": false},
+        {"artifact": "composition-trigger-required-read-original-candidate-v3-r2.json", "judge_pass": true}
+      ]
+    },
+    {
+      "id": "trigger-output-contract",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-trigger-output-v0.1.json",
+      "coverage": "full 2x2 pairing matrix, two repeats per pairing",
+      "runs": [
+        {"artifact": "composition-trigger-output-candidate-candidate-r1.json", "judge_pass": true},
+        {"artifact": "composition-trigger-output-candidate-candidate-r2.json", "judge_pass": true},
+        {"artifact": "composition-trigger-output-candidate-original-r1.json", "judge_pass": true},
+        {"artifact": "composition-trigger-output-candidate-original-r2.json", "judge_pass": false},
+        {"artifact": "composition-trigger-output-original-candidate-r1.json", "judge_pass": false},
+        {"artifact": "composition-trigger-output-original-candidate-r2.json", "judge_pass": false},
+        {"artifact": "composition-trigger-output-original-original-r1.json", "judge_pass": false},
+        {"artifact": "composition-trigger-output-original-original-r2.json", "judge_pass": false}
+      ]
+    },
+    {
+      "id": "required-read-output-candidate",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-required-read-output-v0.1.json",
+      "coverage": "candidate/candidate pairing, two repeats; mixed and original controls excluded because this calibration targets disclosure pattern variance",
+      "runs": [
+        {"artifact": "composition-required-read-output-candidate-candidate-v3-r1.json", "judge_pass": true},
+        {"artifact": "composition-required-read-output-candidate-candidate-v3-r2.json", "judge_pass": true}
+      ]
+    },
+    {
+      "id": "precedence-output-candidate-containing",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-precedence-output-v0.1.json",
+      "coverage": "three candidate-containing pairings, two repeats; original/original v6 artifacts unavailable",
+      "runs": [
+        {"artifact": "composition-precedence-output-candidate-candidate-v6-r1.json", "judge_pass": true},
+        {"artifact": "composition-precedence-output-candidate-candidate-v6-r2.json", "judge_pass": true},
+        {"artifact": "composition-precedence-output-candidate-original-v6-r1.json", "judge_pass": true},
+        {"artifact": "composition-precedence-output-candidate-original-v6-r2.json", "judge_pass": true},
+        {"artifact": "composition-precedence-output-original-candidate-v6-r1.json", "judge_pass": true},
+        {"artifact": "composition-precedence-output-original-candidate-v6-r2.json", "judge_pass": true}
+      ]
+    },
+    {
+      "id": "host-portability",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-host-portability-v0.1.json",
+      "coverage": "original and candidate versions, three repeats each",
+      "runs": [
+        {"artifact": "host-portability-original-r1.json", "judge_pass": true},
+        {"artifact": "host-portability-original-r2.json", "judge_pass": true},
+        {"artifact": "host-portability-original-r3.json", "judge_pass": true},
+        {"artifact": "host-portability-candidate-r1.json", "judge_pass": true},
+        {"artifact": "host-portability-candidate-r2.json", "judge_pass": true},
+        {"artifact": "host-portability-candidate-r3.json", "judge_pass": true}
+      ]
+    },
+    {
+      "id": "concrete-verification",
+      "spec": "tests/fixtures/skill-fixtures/structural-validator-spec-concrete-verification-v0.1.json",
+      "coverage": "original and candidate versions, two available repeats each; older last-message artifacts use a separate schema",
+      "runs": [
+        {"artifact": "concrete-original-r2.json", "judge_pass": true},
+        {"artifact": "concrete-original-r3.json", "judge_pass": true},
+        {"artifact": "concrete-candidate-r2.json", "judge_pass": true},
+        {"artifact": "concrete-candidate-r3.json", "judge_pass": true}
+      ]
+    }
+  ]
+}

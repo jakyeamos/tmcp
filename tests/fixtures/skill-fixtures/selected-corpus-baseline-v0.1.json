@@ -1,0 +1,32 @@
+{
+  "schema": "tmcp-skill-selected-corpus-baseline-v0.1",
+  "manifest": "tests/fixtures/skill-fixtures/selected-corpus-v0.1.json",
+  "validator": "scripts/validate_skill_fixture_corpus.py",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only"
+  },
+  "aggregate": {
+    "family_count": 6,
+    "artifact_count": 34,
+    "structural_pass_count": 23,
+    "judge_pass_count": 23,
+    "judge_agreement_count": 34,
+    "judge_disagreement_count": 0,
+    "gate_pass": true
+  },
+  "families": {
+    "trigger-required-read-v3": {"artifacts": 8, "structural_pass": 2, "judge_agreement": "8/8"},
+    "trigger-output-contract": {"artifacts": 8, "structural_pass": 3, "judge_agreement": "8/8"},
+    "required-read-output-candidate": {"artifacts": 2, "structural_pass": 2, "judge_agreement": "2/2"},
+    "precedence-output-candidate-containing": {"artifacts": 6, "structural_pass": 6, "judge_agreement": "6/6"},
+    "host-portability": {"artifacts": 6, "structural_pass": 6, "judge_agreement": "6/6"},
+    "concrete-verification": {"artifacts": 4, "structural_pass": 4, "judge_agreement": "4/4"}
+  },
+  "interpretation": {
+    "finding": "The selected corpus gate executes all 34 available artifacts, preserves per-family failure classes, and agrees with the independently recorded judge outcome on every run.",
+    "decision": "Use this manifest and gate as the pre-screen before semantic rejudge or rewrite promotion; never treat structural pass rate as skill quality by itself.",
+    "confidence_boundary": "Coverage is selected and partly composition-focused; precedence original/original and some mixed families remain explicitly excluded where artifacts are unavailable."
+  }
+}

@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 
 from scripts.validate_skill_fixture_artifact import validate_fixture_artifact
+from scripts.validate_skill_fixture_corpus import validate_corpus
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -223,6 +224,31 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
         )
         self.assertFalse(result["passed"])
         self.assertIn("required_boolean_fields", result["failed_observables"])
+
+    def test_corpus_gate_compares_structural_results_to_recorded_judges(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            spec = root / "spec.json"
+            artifact = root / "artifact.json"
+            spec.write_text(json.dumps({"exact_value": "ready"}), encoding="utf-8")
+            artifact.write_text(
+                json.dumps({"observations": ["read target"], "actions": [], "final_response": "ready"}),
+                encoding="utf-8",
+            )
+            report = validate_corpus(
+                {
+                    "schema": "tmcp-skill-selected-corpus-v0.1",
+                    "families": [{
+                        "id": "synthetic",
+                        "spec": "spec.json",
+                        "runs": [{"artifact": "artifact.json", "judge_pass": True}],
+                    }],
+                },
+                project_root=root,
+                artifact_root=root,
+            )
+            self.assertTrue(report["gate_pass"])
+            self.assertEqual(report["judge_agreement_count"], 1)
 
     def test_rejects_positive_file_mutation_action(self) -> None:
         result = validate_fixture_artifact(
