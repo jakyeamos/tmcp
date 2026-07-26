@@ -286,6 +286,17 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   failure. `run_mined_skill_fixture_campaign.py` now records per-cell timeouts
   and kills the Codex process group to prevent incomplete campaigns from
   hanging without a report; the timeout regression test passes.
+- `74dca18` admits the source-bound `skill-creator` authoring fixture. Its
+  three-repeat subscription campaign completed 6 runner and 6 judge cells with
+  zero failures; original passed 3/3 (mean 0.9583) and candidate passed 3/3
+  (mean 0.9650). Hashes are identical, so it is a
+  `behavioral_baseline_pass`/`no_candidate_delta` regression control. The
+  campaign runner now uses file-backed stdin/stdout/stderr so large prompts and
+  inherited child pipes cannot defeat per-cell timeouts. Disposition rebuilding
+  can exclude a stale case only from the historical campaign that used its old
+  definition. The queue is now 3 case-ready, 3 execution-boundary-blocked, and
+  150 awaiting a case/bar; there are 2 baseline passes, 4 holds, and 0 observed
+  skill failures.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
