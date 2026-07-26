@@ -326,6 +326,13 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   `behavioral_baseline_pass`/`no_candidate_delta` regression control. The queue
   is now 6 case-ready, 0 execution-boundary-blocked, and 150 awaiting a
   case/bar; there are 5 baseline passes, 1 hold, and 0 observed skill failures.
+- `6451052` admits `firecrawl-build` with a bounded TypeScript/pnpm fixture for
+  a known-URL article extraction. Its three-repeat subscription campaign
+  completed 6 runner and 6 judge cells with zero failures; original passed 3/3
+  (mean 0.9767) and candidate passed 3/3 (mean 0.9800). Hashes are identical,
+  so it is a `behavioral_baseline_pass`/`no_candidate_delta` routing control.
+  The queue is now 7 case-ready, 0 execution-boundary-blocked, and 149 awaiting
+  a case/bar; there are 6 baseline passes, 1 hold, and 0 observed skill failures.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
