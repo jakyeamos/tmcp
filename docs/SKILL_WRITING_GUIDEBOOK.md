@@ -140,10 +140,10 @@ skill improvement candidate.
 
 The first source-bound admission pass is recorded in
 `tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json`. It found
-six source examples with line-level provenance; the current queue has five
-`case_ready` skills, one `needs_execution_boundary` skill, and 150 skills
+six source examples with line-level provenance; the current queue has six
+`case_ready` skills, no skills awaiting an execution boundary, and 150 skills
 that still need a real golden case and bar. `check-thread-ownership`,
-`find-skills`, `gsd-reapply-patches`, `last30days`, and `skill-creator` are
+`find-skills`, `gsd-reapply-patches`, `last30days`, `nlm-skill`, and `skill-creator` are
 runnable because their fixtures provide bounded read-only execution roots and
 task-specific bars. This
 distinction is intentional: source provenance alone does not admit a
@@ -180,9 +180,9 @@ independent-judge decisions. Use these dispositions:
 - `skill_failure`: only after a `case_ready` case has a repeatable independent
   judge failure with the required execution evidence.
 
-The six-case disposition pass now has 36 runner cells and 36 judge cells with
-no harness failures. Two cases remain `case_boundary_blocked`; the bounded
-ownership, find-skills, last30days, and skill-creator cases are
+The six-case disposition pass now has 42 runner cells and 42 judge cells with
+no harness failures. One case remains `case_boundary_blocked`; the bounded
+ownership, find-skills, last30days, nlm-skill, and skill-creator cases are
 `behavioral_baseline_pass` with
 `no_candidate_delta`. The ownership case passed all original and candidate
 cells after gaining an explicit bounded read-only execution root. The
@@ -196,8 +196,12 @@ fixture evidence, original and candidate passed 3/3 (means 0.9533 and 0.9700).
 The last30days case uses a dated offline engine with evidence, URLs, community
 comments, and the pass-through footer; after calibrating the bar to the source
 contract, original and candidate passed 3/3 (means 0.9483 and 0.9800). The
-resulting summary is zero observed skill failures, four behavioral baseline
-passes, four no-delta controls, and two rewrite holds.
+The nlm-skill case uses a deterministic authenticated `nlm` shim that returns
+two notebooks as JSON and rejects chat/create/delete commands; original and
+candidate passed 3/3 (means 0.9583 and 0.9167), with the runner trace proving
+authentication preceded listing. The resulting summary is zero observed skill
+failures, five behavioral baseline passes, five no-delta controls, and one
+rewrite hold.
 
 The GSD case then received a disposable three-way fixture containing merge,
 conflict, and incorporated files. Its first bounded 6-runner/6-judge campaign
@@ -226,11 +230,12 @@ python3 scripts/build_skill_behavior_dispositions.py \
   --campaign /private/tmp/tmcp-skill-creator-campaign-v7-20260725/campaign-report.json \
   --campaign /private/tmp/tmcp-find-skills-campaign-v2-20260725/campaign-report.json \
   --campaign /private/tmp/tmcp-last30days-campaign-v3-20260725/campaign-report.json \
+  --campaign /private/tmp/tmcp-nlm-campaign-v2-20260725/campaign-report.json \
   --output tests/fixtures/skill-fixtures/individual-skill-behavior-dispositions-v0.1.json
 ```
 
 For the older five-skill report, the rebuild used
 `--exclude-case-from /private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json=find-skills-react-performance`
 plus equivalent `skill-creator-rotate-pdf` and
-`last30days-nvidia-earnings-reaction` exclusions so earlier task-mismatched
-cells could not contaminate the current baselines.
+`last30days-nvidia-earnings-reaction` and `nlm-list-notebooks-json` exclusions
+so earlier task-mismatched cells could not contaminate the current baselines.

@@ -2,9 +2,9 @@
   "schema": "tmcp-individual-skill-behavior-dispositions-v0.1",
   "generated_from": {
     "admission_registry": "tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json",
-    "admission_registry_sha256": "ab1f5a54fc85ed4b3a559d26ef7f150425963c1738ec24f747ec966a28a507f1",
+    "admission_registry_sha256": "81e59a0f15a3499ecf1888889e3db44873a5425e0ae7cf3ed9cc1734dc3d57a5",
     "disposition_input": "tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json",
-    "disposition_input_sha256": "157afcf222c5f95b2bddfb0f0024331387c5e358d7ef7103bc2a707a235bb55a",
+    "disposition_input_sha256": "f3d145e780bedfbe7092ceed880626dc4d07fe128666d6ed98af6ae03f43a612",
     "campaigns": [
       {
         "report_path": "/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json",
@@ -59,6 +59,15 @@
         "reasoning_effort": "low",
         "runner_count": 6,
         "judge_count": 6
+      },
+      {
+        "report_path": "/private/tmp/tmcp-nlm-campaign-v2-20260725/campaign-report.json",
+        "report_sha256": "58ad931854e5e31635be31707c6d9b7321bce73ce67884f26119febb3564308b",
+        "manifest": "/private/tmp/tmcp-nlm-fixtures-v2/manifest.json",
+        "model": "gpt-5.5",
+        "reasoning_effort": "low",
+        "runner_count": 6,
+        "judge_count": 6
       }
     ]
   },
@@ -72,10 +81,10 @@
     "case_count": 6,
     "campaign_ready_case_count": 6,
     "observed_skill_failure_count": 0,
-    "rewrite_hold_count": 2,
-    "no_candidate_delta_count": 4,
-    "behaviorally_passed_case_count": 4,
-    "case_or_runner_boundary_count": 2
+    "rewrite_hold_count": 1,
+    "no_candidate_delta_count": 5,
+    "behaviorally_passed_case_count": 5,
+    "case_or_runner_boundary_count": 1
   },
   "cases": [
     {
@@ -255,44 +264,44 @@
     {
       "skill_path": "/Users/jakyeamos/.agents/skills/nlm-skill/SKILL.md",
       "source_sha256": "cee8acdfc010d44459ca47d9ec59c7a3df8d2d523c3374f70959c68996f4bb6b",
-      "admission_status": "needs_execution_boundary",
+      "admission_status": "case_ready",
       "case_id": "nlm-list-notebooks-json",
       "campaign_cell_count": 6,
       "versions": {
         "original": {
           "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
           "decisions": [
-            "fail",
-            "fail",
-            "fail"
+            "pass",
+            "pass",
+            "pass"
           ],
-          "mean_score": 0.5267,
+          "mean_score": 0.9583,
           "skill_sha256": [
             "cee8acdfc010d44459ca47d9ec59c7a3df8d2d523c3374f70959c68996f4bb6b"
           ]
         },
         "candidate": {
           "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
           "decisions": [
-            "fail",
-            "fail",
-            "fail"
+            "pass",
+            "pass",
+            "pass"
           ],
-          "mean_score": 0.4733,
+          "mean_score": 0.9167,
           "skill_sha256": [
             "cee8acdfc010d44459ca47d9ec59c7a3df8d2d523c3374f70959c68996f4bb6b"
           ]
         }
       },
-      "disposition": "case_boundary_blocked",
+      "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
-      "rewrite_status": "hold",
-      "rationale": "The campaign had no authenticated NotebookLM state or listing response, so login/list instructions cannot be judged as a JSON listing behavior.",
-      "next_action": "Supply a disposable authenticated fixture or deterministic tool response and rerun with the JSON bar."
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "The bounded fixture supplied deterministic authentication and JSON listing responses while rejecting interactive or destructive commands. All three original and all three candidate artifacts returned exactly the two fixture notebooks and passed independent judging; mean scores were 0.9583 and 0.9167. The original and candidate hashes are identical, so this is a baseline pass without rewrite lift. The runner trace separately confirms auth preceded listing in each cell.",
+      "next_action": "Use this case as a NotebookLM JSON-listing regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     },
     {
       "skill_path": "/Users/jakyeamos/.codex/skills/.system/skill-creator/SKILL.md",

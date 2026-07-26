@@ -40,11 +40,11 @@
     },
     {
       "case_id": "nlm-list-notebooks-json",
-      "disposition": "case_boundary_blocked",
+      "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
-      "rewrite_status": "hold",
-      "rationale": "The campaign had no authenticated NotebookLM state or listing response, so login/list instructions cannot be judged as a JSON listing behavior.",
-      "next_action": "Supply a disposable authenticated fixture or deterministic tool response and rerun with the JSON bar."
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "The bounded fixture supplied deterministic authentication and JSON listing responses while rejecting interactive or destructive commands. All three original and all three candidate artifacts returned exactly the two fixture notebooks and passed independent judging; mean scores were 0.9583 and 0.9167. The original and candidate hashes are identical, so this is a baseline pass without rewrite lift. The runner trace separately confirms auth preceded listing in each cell.",
+      "next_action": "Use this case as a NotebookLM JSON-listing regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     },
     {
       "case_id": "skill-creator-rotate-pdf",

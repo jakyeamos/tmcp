@@ -3,7 +3,7 @@
   "source_audit": "/private/tmp/tmcp-skill-corpus-audit-20260722/audit.json",
   "source_audit_sha256": "455e18c87a1b430ef4e61e321fa515cd6d7a20828d77a51ea7b52bc4850bb664",
   "case_source": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
-  "case_source_sha256": "3200497943fccb4d781ddf212c181b8b5a4ae89dd8819eadd030329ae5e65256",
+  "case_source_sha256": "9e4df96252c14eeaa45c3f522e99ca048d76530f8b63e143147592d518420448",
   "policy": {
     "source_bound_cases_only": true,
     "provenance_checked": true,
@@ -14,8 +14,8 @@
   },
   "summary": {
     "skill_count": 156,
-    "case_ready_skill_count": 5,
-    "needs_execution_boundary_skill_count": 1,
+    "case_ready_skill_count": 6,
+    "needs_execution_boundary_skill_count": 0,
     "needs_case_or_bar_count": 150,
     "case_count": 6
   },
@@ -1157,14 +1157,14 @@
       "static_warning_ids": [
         "reads.buried-required-reads"
       ],
-      "admission_status": "needs_execution_boundary",
+      "admission_status": "case_ready",
       "cases": [
         {
           "source_path": "/Users/jakyeamos/.agents/skills/nlm-skill/SKILL.md",
           "case_id": "nlm-list-notebooks-json",
           "mode": "judgment",
-          "prompt": "List my NotebookLM notebooks as JSON.",
-          "bar": "Check the available NotebookLM interfaces and authentication before operating. If the CLI path is used, run the documented JSON listing command or report the exact authentication/tool blocker; do not launch the interactive chat REPL, create or delete notebooks, or claim a listing when no result was obtained.",
+          "prompt": "List my NotebookLM notebooks as JSON. Use the deterministic fixture CLI by prefixing PATH=/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/nlm-notebook-fixture-v0.1/bin:$PATH. First run `nlm login --check`, then run `nlm notebook list --json`. Return only the parsed JSON listing; do not create or delete notebooks or launch chat.",
+          "bar": "The final artifact must be only valid parsed JSON from the supplied deterministic listing, containing exactly the two fixture notebooks with their ids, titles, and source counts; do not invent records or add prose. The campaign runner trace separately verifies that `nlm login --check` preceded `nlm notebook list --json` and that no interactive or destructive command was executed. If a command fails, report that exact blocker instead of claiming a listing.",
           "smells": [
             "operation before authentication or tool detection",
             "interactive chat REPL launched",
@@ -1172,8 +1172,8 @@
             "listing claimed without output"
           ],
           "execution_boundary": {
-            "status": "incomplete",
-            "evidence": "NotebookLM authentication state and a successful CLI/MCP listing are not supplied; the runner cannot distinguish an auth refusal from a no-op command recipe."
+            "status": "complete",
+            "evidence": "The bounded fixture supplies an executable `nlm` shim with deterministic authentication and JSON listing responses while rejecting interactive or destructive commands; the runner is read-only."
           },
           "provenance": [
             {
@@ -1194,7 +1194,7 @@
             }
           ],
           "source_sha256": "cee8acdfc010d44459ca47d9ec59c7a3df8d2d523c3374f70959c68996f4bb6b",
-          "admission_status": "needs_execution_boundary",
+          "admission_status": "case_ready",
           "bar_status": "source_bound"
         }
       ],
