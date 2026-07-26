@@ -2,9 +2,9 @@
   "schema": "tmcp-individual-skill-behavior-dispositions-v0.1",
   "generated_from": {
     "admission_registry": "tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json",
-    "admission_registry_sha256": "2875a12050ed3a94f7063ac632d3abbcfc87e15fa659053caaae11f71b36cdce",
+    "admission_registry_sha256": "86bbef0a473d347c7dde2281931cb752f2496bf5291779667cc73fd27c1bc1b3",
     "disposition_input": "tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json",
-    "disposition_input_sha256": "3f377319a207fa40aca08458875ef53232f3981d2375a3d92aa40d5cda514430",
+    "disposition_input_sha256": "f43fd1df852dc724cf70bab04b66e11afe557254d54a5e34624d6f6a91a90fb2",
     "campaigns": [
       {
         "report_path": "/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json",
@@ -41,6 +41,15 @@
         "reasoning_effort": "low",
         "runner_count": 6,
         "judge_count": 6
+      },
+      {
+        "report_path": "/private/tmp/tmcp-find-skills-campaign-v2-20260725/campaign-report.json",
+        "report_sha256": "83af18e5a8f8666adeb1b7dea61ff09614db56352aafb6be7d31aacd797a9645",
+        "manifest": "/private/tmp/tmcp-find-skills-fixtures-v2/manifest.json",
+        "model": "gpt-5.5",
+        "reasoning_effort": "low",
+        "runner_count": 6,
+        "judge_count": 6
       }
     ]
   },
@@ -54,10 +63,10 @@
     "case_count": 6,
     "campaign_ready_case_count": 6,
     "observed_skill_failure_count": 0,
-    "rewrite_hold_count": 4,
-    "no_candidate_delta_count": 2,
-    "behaviorally_passed_case_count": 2,
-    "case_or_runner_boundary_count": 4
+    "rewrite_hold_count": 3,
+    "no_candidate_delta_count": 3,
+    "behaviorally_passed_case_count": 3,
+    "case_or_runner_boundary_count": 3
   },
   "cases": [
     {
@@ -105,44 +114,44 @@
     {
       "skill_path": "/Users/jakyeamos/.agents/skills/find-skills/SKILL.md",
       "source_sha256": "58f54b13beaa00713dd5f4402d377db859a6ba3b2469b0b28f4498d493f69612",
-      "admission_status": "needs_execution_boundary",
+      "admission_status": "case_ready",
       "case_id": "find-skills-react-performance",
       "campaign_cell_count": 6,
       "versions": {
         "original": {
           "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
           "decisions": [
-            "fail",
-            "fail",
-            "fail"
+            "pass",
+            "pass",
+            "pass"
           ],
-          "mean_score": 0.3533,
+          "mean_score": 0.9533,
           "skill_sha256": [
             "58f54b13beaa00713dd5f4402d377db859a6ba3b2469b0b28f4498d493f69612"
           ]
         },
         "candidate": {
           "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
           "decisions": [
-            "fail",
-            "fail",
-            "fail"
+            "pass",
+            "pass",
+            "pass"
           ],
-          "mean_score": 0.3933,
+          "mean_score": 0.97,
           "skill_sha256": [
             "58f54b13beaa00713dd5f4402d377db859a6ba3b2469b0b28f4498d493f69612"
           ]
         }
       },
-      "disposition": "case_boundary_blocked",
+      "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
-      "rewrite_status": "hold",
-      "rationale": "The campaign supplied no live skills CLI/search result or network/tool boundary, so a refusal cannot distinguish skill behavior from missing discovery infrastructure.",
-      "next_action": "Provide a recorded search result or bounded discovery tool and rerun the source-bound case."
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "The bounded fixture supplied an executable pnpm shim and recorded React-performance result, with installation prohibited. After the bar was clarified to accept semantic fixture evidence rather than require a verbatim transcript, all three original and all three candidate artifacts passed independent judging; mean scores were 0.9533 and 0.9700, and the original and candidate hashes are identical, so this is a baseline pass without rewrite lift.",
+      "next_action": "Use this case as a discovery regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     },
     {
       "skill_path": "/Users/jakyeamos/.agents/skills/gsd-reapply-patches/SKILL.md",

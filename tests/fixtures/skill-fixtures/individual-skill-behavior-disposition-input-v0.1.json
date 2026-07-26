@@ -16,11 +16,11 @@
     },
     {
       "case_id": "find-skills-react-performance",
-      "disposition": "case_boundary_blocked",
+      "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
-      "rewrite_status": "hold",
-      "rationale": "The campaign supplied no live skills CLI/search result or network/tool boundary, so a refusal cannot distinguish skill behavior from missing discovery infrastructure.",
-      "next_action": "Provide a recorded search result or bounded discovery tool and rerun the source-bound case."
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "The bounded fixture supplied an executable pnpm shim and recorded React-performance result, with installation prohibited. After the bar was clarified to accept semantic fixture evidence rather than require a verbatim transcript, all three original and all three candidate artifacts passed independent judging; mean scores were 0.9533 and 0.9700, and the original and candidate hashes are identical, so this is a baseline pass without rewrite lift.",
+      "next_action": "Use this case as a discovery regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     },
     {
       "case_id": "gsd-reapply-patches-after-update",

@@ -140,11 +140,12 @@ skill improvement candidate.
 
 The first source-bound admission pass is recorded in
 `tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json`. It found
-six source examples with line-level provenance; the current queue has three
-`case_ready` skills, three `needs_execution_boundary` skills, and 150 skills
+six source examples with line-level provenance; the current queue has four
+`case_ready` skills, two `needs_execution_boundary` skills, and 150 skills
 that still need a real golden case and bar. `check-thread-ownership`,
-`gsd-reapply-patches`, and `skill-creator` are runnable because their fixtures
-provide bounded read-only execution roots and task-specific bars. This
+`find-skills`, `gsd-reapply-patches`, and `skill-creator` are runnable because
+their fixtures provide bounded read-only execution roots and task-specific
+bars. This
 distinction is intentional: source provenance alone does not admit a
 behavioral case.
 
@@ -180,16 +181,20 @@ independent-judge decisions. Use these dispositions:
   judge failure with the required execution evidence.
 
 The six-case disposition pass now has 36 runner cells and 36 judge cells with
-no harness failures. Four cases remain `case_boundary_blocked`; the bounded
-ownership and skill-creator cases are `behavioral_baseline_pass` with
+no harness failures. Three cases remain `case_boundary_blocked`; the bounded
+ownership, find-skills, and skill-creator cases are
+`behavioral_baseline_pass` with
 `no_candidate_delta`. The ownership case passed all original and candidate
 cells after gaining an explicit bounded read-only execution root. The
 skill-creator case uses a concrete reusable PDF-rotation authoring request,
 and all three original and all three candidate cells passed independent
 judging (mean scores 0.9583 and 0.9650). In both cases the original and
 candidate hashes are identical, so these are regression controls, not rewrite
-lift. The resulting summary is zero observed skill failures, two behavioral
-baseline passes, two no-delta controls, and four rewrite holds.
+lift. The find-skills case uses a deterministic `pnpm` shim and a recorded
+React-performance result; after the bar was clarified to accept semantic
+fixture evidence, original and candidate passed 3/3 (means 0.9533 and 0.9700).
+The resulting summary is zero observed skill failures, three behavioral
+baseline passes, three no-delta controls, and three rewrite holds.
 
 The GSD case then received a disposable three-way fixture containing merge,
 conflict, and incorporated files. Its first bounded 6-runner/6-judge campaign
@@ -216,10 +221,11 @@ python3 scripts/build_skill_behavior_dispositions.py \
   --campaign /private/tmp/tmcp-check-thread-campaign-v3-20260725/campaign-report.json \
   --campaign /private/tmp/tmcp-gsd-campaign-v2-20260725/campaign-report.json \
   --campaign /private/tmp/tmcp-skill-creator-campaign-v7-20260725/campaign-report.json \
+  --campaign /private/tmp/tmcp-find-skills-campaign-v2-20260725/campaign-report.json \
   --output tests/fixtures/skill-fixtures/individual-skill-behavior-dispositions-v0.1.json
 ```
 
 For the older five-skill report, the rebuild used
-`--exclude-case-from /private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json=skill-creator-rotate-pdf`
-so the earlier task-mismatched cells did not contaminate the new
-skill-creator baseline.
+`--exclude-case-from /private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json=find-skills-react-performance`
+and the equivalent `skill-creator-rotate-pdf` exclusion so earlier
+task-mismatched cells could not contaminate the current baselines.

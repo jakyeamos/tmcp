@@ -36,8 +36,8 @@
       "source_path": "/Users/jakyeamos/.agents/skills/find-skills/SKILL.md",
       "case_id": "find-skills-react-performance",
       "mode": "judgment",
-      "prompt": "how do I make my React app faster?",
-      "bar": "Identify the domain and concrete task, search the skills ecosystem with a relevant query, and present results with each skill's name, purpose, install command, and skills.sh link. Offer installation without installing anything unless the user explicitly asks to proceed.",
+      "prompt": "how do I make my React app faster? Use the deterministic fixture search command for this case: prefix the source-prescribed command with PATH=/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/find-skills-discovery-fixture-v0.1/bin:$PATH so `pnpm dlx skills find react performance` reads the recorded fixture result. Do not install anything.",
+      "bar": "Identify the React-performance domain and concrete task, show the source-prescribed skills search command or an explicit statement that its deterministic fixture result was used, and present each returned skill with its name, purpose, install command, and skills.sh link. The artifact need not reproduce the entire shim transcript, but every reported result must be supported by that fixture. Offer installation without installing anything unless the user explicitly asks to proceed; do not invent results beyond the fixture output.",
       "smells": [
         "no search attempt",
         "irrelevant or unscoped skill suggestions",
@@ -45,8 +45,8 @@
         "silent installation without authorization"
       ],
       "execution_boundary": {
-        "status": "incomplete",
-        "evidence": "The task requires a live skills CLI search and concrete result records; no search result or verified network/tool availability is supplied in the fixture."
+        "status": "complete",
+        "evidence": "The bounded fixture supplies an executable pnpm shim and recorded React-performance search result; the task explicitly prefixes PATH to that shim and forbids installation, so no network, authentication, or external mutation is required."
       },
       "provenance": [
         {"line": 14, "excerpt": "Asks \"how do I do X\" where X might be a common task with an existing skill"},

@@ -17,8 +17,8 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
         self.assertEqual(record["schema"], "tmcp-individual-skill-admission-v0.1")
         self.assertEqual(record["summary"], {
             "skill_count": 156,
-            "case_ready_skill_count": 3,
-            "needs_execution_boundary_skill_count": 3,
+            "case_ready_skill_count": 4,
+            "needs_execution_boundary_skill_count": 2,
             "needs_case_or_bar_count": 150,
             "case_count": 6,
         })
@@ -27,7 +27,7 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
         self.assertFalse(record["policy"]["automatic_rewrite"])
         self.assertEqual(
             sum(item["admission_status"] == "case_ready" for item in record["skills"]),
-            3,
+            4,
         )
         self.assertTrue(all(
             item["admission_status"] == "case_ready" and item["cases"]
@@ -70,17 +70,17 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
             "case_count": 6,
             "campaign_ready_case_count": 6,
             "observed_skill_failure_count": 0,
-            "rewrite_hold_count": 4,
-            "no_candidate_delta_count": 2,
-            "behaviorally_passed_case_count": 2,
-            "case_or_runner_boundary_count": 4,
+            "rewrite_hold_count": 3,
+            "no_candidate_delta_count": 3,
+            "behaviorally_passed_case_count": 3,
+            "case_or_runner_boundary_count": 3,
         })
         self.assertFalse(record["policy"]["automatic_rewrite"])
         self.assertTrue(record["policy"]["case_quality_and_runner_boundaries_are_separate"])
         self.assertTrue(all(case["observed_skill_failure"] is False for case in record["cases"]))
         self.assertEqual(
             sum(case["rewrite_status"] == "hold" for case in record["cases"]),
-            4,
+            3,
         )
         ownership = next(
             case for case in record["cases"]
