@@ -297,6 +297,15 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   definition. The queue is now 3 case-ready, 3 execution-boundary-blocked, and
   150 awaiting a case/bar; there are 2 baseline passes, 4 holds, and 0 observed
   skill failures.
+- `4fd5074` admits `find-skills` with a deterministic `pnpm` shim and recorded
+  React-performance result. The clarified source-bound bar accepts semantic
+  fixture evidence instead of requiring a verbatim transcript; its three-repeat
+  campaign completed 6 runner and 6 judge cells with zero failures. Original
+  passed 3/3 (mean 0.9533) and candidate passed 3/3 (mean 0.9700). Hashes are
+  identical, so this is a `behavioral_baseline_pass`/`no_candidate_delta`
+  regression control. The queue is now 4 case-ready, 2
+  execution-boundary-blocked, and 150 awaiting a case/bar; there are 3 baseline
+  passes, 3 holds, and 0 observed skill failures.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
