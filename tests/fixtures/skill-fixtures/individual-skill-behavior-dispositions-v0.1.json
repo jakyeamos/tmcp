@@ -2,9 +2,9 @@
   "schema": "tmcp-individual-skill-behavior-dispositions-v0.1",
   "generated_from": {
     "admission_registry": "tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json",
-    "admission_registry_sha256": "81e59a0f15a3499ecf1888889e3db44873a5425e0ae7cf3ed9cc1734dc3d57a5",
+    "admission_registry_sha256": "1bff23428227e3403bdfcddefc0ecd1bb08922f66af2778ca062a8e230dc9122",
     "disposition_input": "tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json",
-    "disposition_input_sha256": "f3d145e780bedfbe7092ceed880626dc4d07fe128666d6ed98af6ae03f43a612",
+    "disposition_input_sha256": "fde707cf946951006477e6383a6a4925bb78df2de21065de6ed14c0b5a37ea8d",
     "campaigns": [
       {
         "report_path": "/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json",
@@ -68,6 +68,15 @@
         "reasoning_effort": "low",
         "runner_count": 6,
         "judge_count": 6
+      },
+      {
+        "report_path": "/private/tmp/tmcp-firecrawl-build-campaign-v1-20260725/campaign-report.json",
+        "report_sha256": "052fa8ff0525d4b56bf6d351be6b25d43ec33c06a063fc66a9da33a2f8a44d6f",
+        "manifest": "/private/tmp/tmcp-firecrawl-build-fixtures-v1/manifest.json",
+        "model": "gpt-5.5",
+        "reasoning_effort": "low",
+        "runner_count": 6,
+        "judge_count": 6
       }
     ]
   },
@@ -78,12 +87,12 @@
     "automatic_rewrite": false
   },
   "summary": {
-    "case_count": 6,
-    "campaign_ready_case_count": 6,
+    "case_count": 7,
+    "campaign_ready_case_count": 7,
     "observed_skill_failure_count": 0,
     "rewrite_hold_count": 1,
-    "no_candidate_delta_count": 5,
-    "behaviorally_passed_case_count": 5,
+    "no_candidate_delta_count": 6,
+    "behaviorally_passed_case_count": 6,
     "case_or_runner_boundary_count": 1
   },
   "cases": [
@@ -170,6 +179,48 @@
       "rewrite_status": "no_candidate_delta",
       "rationale": "The bounded fixture supplied an executable pnpm shim and recorded React-performance result, with installation prohibited. After the bar was clarified to accept semantic fixture evidence rather than require a verbatim transcript, all three original and all three candidate artifacts passed independent judging; mean scores were 0.9533 and 0.9700, and the original and candidate hashes are identical, so this is a baseline pass without rewrite lift.",
       "next_action": "Use this case as a discovery regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
+    },
+    {
+      "skill_path": "/Users/jakyeamos/.agents/skills/firecrawl-build/SKILL.md",
+      "source_sha256": "1c029145462ab562d4ed3930e055c7fe321769e14ae8d5686482fc0ba98a8585",
+      "admission_status": "case_ready",
+      "case_id": "firecrawl-build-known-url-routing",
+      "campaign_cell_count": 6,
+      "versions": {
+        "original": {
+          "cell_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
+          "decisions": [
+            "pass",
+            "pass",
+            "pass"
+          ],
+          "mean_score": 0.9767,
+          "skill_sha256": [
+            "1c029145462ab562d4ed3930e055c7fe321769e14ae8d5686482fc0ba98a8585"
+          ]
+        },
+        "candidate": {
+          "cell_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
+          "decisions": [
+            "pass",
+            "pass",
+            "pass"
+          ],
+          "mean_score": 0.98,
+          "skill_sha256": [
+            "1c029145462ab562d4ed3930e055c7fe321769e14ae8d5686482fc0ba98a8585"
+          ]
+        }
+      },
+      "disposition": "behavioral_baseline_pass",
+      "observed_skill_failure": false,
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "The bounded fixture supplied an existing TypeScript/pnpm project, a known extraction URL, and an explicit no-credentials/no-network boundary. All three original and all three candidate artifacts read the fixture, selected the source-defined firecrawl-build-scrape `/scrape` route, rejected `/search` and `/interact`, and avoided unsupported execution claims; independent judges passed every cell with mean scores of 0.9767 and 0.9800. The original and candidate hashes are identical, so this is a routing baseline without rewrite lift.",
+      "next_action": "Use this case as a known-URL Firecrawl routing regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     },
     {
       "skill_path": "/Users/jakyeamos/.agents/skills/gsd-reapply-patches/SKILL.md",

@@ -1,0 +1,12 @@
+{
+  "name": "docs-reader-fixture",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@mendable/firecrawl-js": "^4.0.0"
+  }
+}

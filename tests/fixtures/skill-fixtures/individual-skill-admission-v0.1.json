@@ -3,7 +3,7 @@
   "source_audit": "/private/tmp/tmcp-skill-corpus-audit-20260722/audit.json",
   "source_audit_sha256": "455e18c87a1b430ef4e61e321fa515cd6d7a20828d77a51ea7b52bc4850bb664",
   "case_source": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
-  "case_source_sha256": "9e4df96252c14eeaa45c3f522e99ca048d76530f8b63e143147592d518420448",
+  "case_source_sha256": "db48400a610bddcfe838ea156eb3f5785ea1ce0c24734ba3ed8d5f65f41955e3",
   "policy": {
     "source_bound_cases_only": true,
     "provenance_checked": true,
@@ -14,10 +14,10 @@
   },
   "summary": {
     "skill_count": 156,
-    "case_ready_skill_count": 6,
+    "case_ready_skill_count": 7,
     "needs_execution_boundary_skill_count": 0,
-    "needs_case_or_bar_count": 150,
-    "case_count": 6
+    "needs_case_or_bar_count": 149,
+    "case_count": 7
   },
   "skills": [
     {
@@ -138,8 +138,56 @@
       "static_warning_ids": [
         "trigger.overbroad-description"
       ],
-      "admission_status": "needs_golden_case_and_bar",
-      "cases": [],
+      "admission_status": "case_ready",
+      "cases": [
+        {
+          "source_path": "/Users/jakyeamos/.agents/skills/firecrawl-build/SKILL.md",
+          "case_id": "firecrawl-build-known-url-routing",
+          "mode": "judgment",
+          "prompt": "We need add one Firecrawl-backed behavior to an existing TypeScript app. Inspect the read-only fixture project at /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/firecrawl-build-routing-fixture-v0.1 before answering. Recommend the narrowest Firecrawl integration route and give a bounded implementation plan. Do not install packages, edit files, read live docs, make network requests, or claim a smoke test ran; credentials are unavailable.",
+          "bar": "Read the supplied fixture project before recommending a route. The artifact must identify the existing TypeScript/pnpm conventions, the known URL extraction behavior, and the missing-credentials/no-network boundary; choose `/scrape` and the source-defined `firecrawl-build-scrape` route, explicitly reject `/search` because no discovery is needed and `/interact` because no browser actions are needed, and scope the plan to one extraction contract. It must not claim files changed, packages installed, live docs read, or a successful smoke test. State that a real smoke test is a follow-up only when credentials are available.",
+          "smells": [
+            "routes known URL through search",
+            "uses interact without browser actions",
+            "skips target-codebase inspection",
+            "claims network or smoke-test evidence without credentials",
+            "scope expands beyond one extraction contract"
+          ],
+          "execution_boundary": {
+            "status": "complete",
+            "evidence": "The bounded fixture supplies a deterministic existing TypeScript project with pnpm conventions, a known extraction URL, and an explicit no-credentials/no-network condition; the runner is read-only."
+          },
+          "provenance": [
+            {
+              "line": 3,
+              "excerpt": "Choose the right Firecrawl API integration path for product code."
+            },
+            {
+              "line": 8,
+              "excerpt": "Read the target codebase first, then route to the narrowest endpoint-specific skill."
+            },
+            {
+              "line": 15,
+              "excerpt": "Product starts from a known URL and needs page extraction | [firecrawl-build-scrape]"
+            },
+            {
+              "line": 22,
+              "excerpt": "Use `/scrape` when a URL is already known."
+            },
+            {
+              "line": 25,
+              "excerpt": "In JavaScript projects, prefer `pnpm` commands."
+            },
+            {
+              "line": 26,
+              "excerpt": "Run a smoke test that proves one real Firecrawl request succeeds when credentials are available."
+            }
+          ],
+          "source_sha256": "1c029145462ab562d4ed3930e055c7fe321769e14ae8d5686482fc0ba98a8585",
+          "admission_status": "case_ready",
+          "bar_status": "source_bound"
+        }
+      ],
       "next_case_shape": "paired_trigger_boundary"
     },
     {

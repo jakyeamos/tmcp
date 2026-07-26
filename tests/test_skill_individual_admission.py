@@ -17,17 +17,17 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
         self.assertEqual(record["schema"], "tmcp-individual-skill-admission-v0.1")
         self.assertEqual(record["summary"], {
             "skill_count": 156,
-            "case_ready_skill_count": 6,
+            "case_ready_skill_count": 7,
             "needs_execution_boundary_skill_count": 0,
-            "needs_case_or_bar_count": 150,
-            "case_count": 6,
+            "needs_case_or_bar_count": 149,
+            "case_count": 7,
         })
         self.assertTrue(record["policy"]["source_bound_cases_only"])
         self.assertTrue(record["policy"]["provenance_checked"])
         self.assertFalse(record["policy"]["automatic_rewrite"])
         self.assertEqual(
             sum(item["admission_status"] == "case_ready" for item in record["skills"]),
-            6,
+            7,
         )
         self.assertTrue(all(
             item["admission_status"] == "case_ready" and item["cases"]
@@ -67,12 +67,12 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
         )
         self.assertEqual(record["schema"], "tmcp-individual-skill-behavior-dispositions-v0.1")
         self.assertEqual(record["summary"], {
-            "case_count": 6,
-            "campaign_ready_case_count": 6,
+            "case_count": 7,
+            "campaign_ready_case_count": 7,
             "observed_skill_failure_count": 0,
             "rewrite_hold_count": 1,
-            "no_candidate_delta_count": 5,
-            "behaviorally_passed_case_count": 5,
+            "no_candidate_delta_count": 6,
+            "behaviorally_passed_case_count": 6,
             "case_or_runner_boundary_count": 1,
         })
         self.assertFalse(record["policy"]["automatic_rewrite"])

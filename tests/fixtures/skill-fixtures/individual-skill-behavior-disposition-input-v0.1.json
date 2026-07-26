@@ -47,6 +47,14 @@
       "next_action": "Use this case as a NotebookLM JSON-listing regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     },
     {
+      "case_id": "firecrawl-build-known-url-routing",
+      "disposition": "behavioral_baseline_pass",
+      "observed_skill_failure": false,
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "The bounded fixture supplied an existing TypeScript/pnpm project, a known extraction URL, and an explicit no-credentials/no-network boundary. All three original and all three candidate artifacts read the fixture, selected the source-defined firecrawl-build-scrape `/scrape` route, rejected `/search` and `/interact`, and avoided unsupported execution claims; independent judges passed every cell with mean scores of 0.9767 and 0.9800. The original and candidate hashes are identical, so this is a routing baseline without rewrite lift.",
+      "next_action": "Use this case as a known-URL Firecrawl routing regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
+    },
+    {
       "case_id": "skill-creator-rotate-pdf",
       "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
