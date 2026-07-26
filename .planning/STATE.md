@@ -306,6 +306,18 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   regression control. The queue is now 4 case-ready, 2
   execution-boundary-blocked, and 150 awaiting a case/bar; there are 3 baseline
   passes, 3 holds, and 0 observed skill failures.
+- `ab3bc37` admits `last30days` with a deterministic offline engine, dated plan,
+  source URLs, community comments, and the exact pass-through footer. Its
+  calibrated three-repeat campaign completed 6 runner and 6 judge cells with
+  zero failures; original passed 3/3 (mean 0.9483) and candidate passed 3/3
+  (mean 0.9800). Hashes are identical, so it is a
+  `behavioral_baseline_pass`/`no_candidate_delta` regression control. The
+  queue is now 5 case-ready, 1 execution-boundary-blocked, and 150 awaiting a
+  case/bar; there are 4 baseline passes, 2 holds, and 0 observed skill failures.
+- `f3cdafb` documents that the offline last30days engine is a smoke fixture
+  whose output contract is asserted by the blind campaign and independent
+  judges; the commit hook still reports its heuristic weak-test warning because
+  the executable is intentionally not a unit-test module.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
