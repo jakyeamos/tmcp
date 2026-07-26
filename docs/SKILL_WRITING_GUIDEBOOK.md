@@ -189,6 +189,19 @@ original and candidate hashes are identical, so this is a regression control,
 not rewrite lift. The resulting summary is zero observed skill failures, one
 behavioral baseline pass, and five rewrite holds.
 
+The GSD case then received a disposable three-way fixture containing merge,
+conflict, and incorporated files. Its first bounded 6-runner/6-judge campaign
+was fixture evidence but not a skill result: the bar demanded
+`preserved/changed/CONFLICT` labels while the source contract reports
+`Merged/Conflict/Incorporated`, and the read-only boundary made actual writes
+impossible. The case bar is now source-bound to those semantic labels and
+requires explicit no-write reporting. Subsequent subscription reruns did not
+produce a complete report, so the GSD disposition remains
+`case_boundary_blocked`/`hold`; no skill failure or rewrite lift is claimed.
+The timeout-guarded runner records slow or interrupted Codex cells as runner
+boundary evidence instead of allowing an incomplete campaign to look like a
+behavioral result.
+
 Rebuild the disposition artifact with:
 
 ```bash
@@ -197,5 +210,6 @@ python3 scripts/build_skill_behavior_dispositions.py \
   tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json \
   --campaign /private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json \
   --campaign /private/tmp/tmcp-check-thread-campaign-v3-20260725/campaign-report.json \
+  --campaign /private/tmp/tmcp-gsd-campaign-v2-20260725/campaign-report.json \
   --output tests/fixtures/skill-fixtures/individual-skill-behavior-dispositions-v0.1.json
 ```

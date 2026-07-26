@@ -2,9 +2,9 @@
   "schema": "tmcp-individual-skill-behavior-dispositions-v0.1",
   "generated_from": {
     "admission_registry": "tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json",
-    "admission_registry_sha256": "ccbeb95542783055d43459b461dfcab5216b37a59b92f397304097e00245557e",
+    "admission_registry_sha256": "cd5a1379c81de14b804c636d14ac9ec5f3c601a969cfbc21ad2f87410bb7f943",
     "disposition_input": "tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json",
-    "disposition_input_sha256": "fce1d73f02193bd94b2ae56baed233615e637bb63fe8104f9cc6a97a09af0238",
+    "disposition_input_sha256": "24fbc67505c7a1ea0048e9bf5642c40221880c7a1bc717767f63f227e2d6a9d3",
     "campaigns": [
       {
         "report_path": "/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json",
@@ -19,6 +19,15 @@
         "report_path": "/private/tmp/tmcp-check-thread-campaign-v3-20260725/campaign-report.json",
         "report_sha256": "756e9da9f50504f75f601ac18879ec378e5ec0a7558af29fd2c292df059c95e1",
         "manifest": "/private/tmp/tmcp-check-thread-fixtures-v2/manifest.json",
+        "model": "gpt-5.5",
+        "reasoning_effort": "low",
+        "runner_count": 6,
+        "judge_count": 6
+      },
+      {
+        "report_path": "/private/tmp/tmcp-gsd-campaign-v2-20260725/campaign-report.json",
+        "report_sha256": "31159b684225427f7894ace24af8100a0a4d2a04ff69483f437dc02330cf98f0",
+        "manifest": "/private/tmp/tmcp-gsd-fixtures-v1/manifest.json",
         "model": "gpt-5.5",
         "reasoning_effort": "low",
         "runner_count": 6,
@@ -129,34 +138,40 @@
     {
       "skill_path": "/Users/jakyeamos/.agents/skills/gsd-reapply-patches/SKILL.md",
       "source_sha256": "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f",
-      "admission_status": "needs_execution_boundary",
+      "admission_status": "case_ready",
       "case_id": "gsd-reapply-patches-after-update",
-      "campaign_cell_count": 6,
+      "campaign_cell_count": 12,
       "versions": {
         "original": {
-          "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "cell_count": 6,
+          "pass_count": 1,
+          "fail_count": 4,
           "decisions": [
             "fail",
             "fail",
-            "fail"
+            "fail",
+            "pass",
+            "fail",
+            "uncertain"
           ],
-          "mean_score": 0.2833,
+          "mean_score": 0.575,
           "skill_sha256": [
             "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f"
           ]
         },
         "candidate": {
-          "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "cell_count": 6,
+          "pass_count": 2,
+          "fail_count": 4,
           "decisions": [
             "fail",
             "fail",
-            "fail"
+            "fail",
+            "pass",
+            "fail",
+            "pass"
           ],
-          "mean_score": 0.0933,
+          "mean_score": 0.4933,
           "skill_sha256": [
             "badb0b14a497cbb0d851b6afefbc5c1b8aae47895a0ba53093f464b7ce8b9c5f"
           ]
@@ -165,8 +180,8 @@
       "disposition": "case_boundary_blocked",
       "observed_skill_failure": false,
       "rewrite_status": "hold",
-      "rationale": "The task requires patch files, pristine/current targets, and backup metadata; none was supplied, so refusal is the expected safe behavior rather than a skill failure.",
-      "next_action": "Construct a disposable patch fixture with pristine/current/backup states and a known classification bar."
+      "rationale": "The disposable patch fixture was constructed and the first six-cell campaign completed, but its strict bar required preserved/changed/CONFLICT labels that did not match the source skill's documented Merged/Conflict/Incorporated report contract. The corrected source-bound bar also adds the read-only no-write boundary, but subscription reruns did not produce a complete report and therefore cannot establish a repeatable skill result.",
+      "next_action": "Rerun the corrected source-bound case when the subscription runner completes cleanly; keep this on hold until two or three complete independent rejudges exist."
     },
     {
       "skill_path": "/Users/jakyeamos/.agents/skills/last30days/SKILL.md",

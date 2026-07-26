@@ -276,6 +276,15 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   unchanged and tells only the skill's shell commands to set the disposable
   `CODEX_HOME` inline. The commit's readiness hook timed out at 90s, but the
   commit completed; focused tests passed before commit.
+- The first bounded GSD fixture campaign completed 6 runner and 6 judge cells,
+  but its strict taxonomy was not source-bound: judges varied between fail and
+  pass on the source-defined `Merged/Conflict/Incorporated` labels and on the
+  read-only no-write boundary. The case bar now accepts those semantic labels
+  and requires explicit no-write reporting. Subscription reruns did not yield
+  a complete report, so GSD remains on rewrite hold with no observed skill
+  failure. `run_mined_skill_fixture_campaign.py` now records per-cell timeouts
+  and kills the Codex process group to prevent incomplete campaigns from
+  hanging without a report; the timeout regression test passes.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are

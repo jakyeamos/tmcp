@@ -3,7 +3,7 @@
   "source_audit": "/private/tmp/tmcp-skill-corpus-audit-20260722/audit.json",
   "source_audit_sha256": "455e18c87a1b430ef4e61e321fa515cd6d7a20828d77a51ea7b52bc4850bb664",
   "case_source": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
-  "case_source_sha256": "ec1b5b25d21f55795cfb6180d11da6db523086e6877e79825700dcef528d2b17",
+  "case_source_sha256": "8aa5a23c60609599a0dc88d1c7e5f7a154d4e8555c2c236cf140a59cd45cc338",
   "policy": {
     "source_bound_cases_only": true,
     "provenance_checked": true,
@@ -832,7 +832,7 @@
           "case_id": "gsd-reapply-patches-after-update",
           "mode": "conformance",
           "prompt": "Reapply local modifications after a GSD update.",
-          "bar": "Use three-way comparison across the pristine baseline, user-modified backup, and newly installed version. Every backed-up file must be classified as preserved, changed, or CONFLICT requiring review; never report no custom content for a backed-up file, and never silently skip an uncertain file.",
+          "bar": "Use three-way comparison across the pristine baseline, user-modified backup, and newly installed version. Account for every file named by the backup metadata and classify each with the source-defined semantic outcomes: Merged/changed when user content can be carried forward, Conflict/CONFLICT when both sides changed and user review is required, or Incorporated/preserved when the user change is already present upstream. Never report no custom content for a backed-up file, and never silently skip an uncertain file. Under this fixture's read-only execution boundary, report the merge candidates and conflict evidence without claiming that files were written or backups were cleaned up.",
           "smells": [
             "two-way overwrite instead of three-way comparison",
             "backed-up file reported as no custom content",

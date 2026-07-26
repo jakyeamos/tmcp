@@ -27,8 +27,8 @@
       "disposition": "case_boundary_blocked",
       "observed_skill_failure": false,
       "rewrite_status": "hold",
-      "rationale": "The task requires patch files, pristine/current targets, and backup metadata; none was supplied, so refusal is the expected safe behavior rather than a skill failure.",
-      "next_action": "Construct a disposable patch fixture with pristine/current/backup states and a known classification bar."
+      "rationale": "The disposable patch fixture was constructed and the first six-cell campaign completed, but its strict bar required preserved/changed/CONFLICT labels that did not match the source skill's documented Merged/Conflict/Incorporated report contract. The corrected source-bound bar also adds the read-only no-write boundary, but subscription reruns did not produce a complete report and therefore cannot establish a repeatable skill result.",
+      "next_action": "Rerun the corrected source-bound case when the subscription runner completes cleanly; keep this on hold until two or three complete independent rejudges exist."
     },
     {
       "case_id": "last30days-nvidia-earnings-reaction",

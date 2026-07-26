@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.run_mined_skill_fixture_campaign import runner_prompt
+from scripts.run_mined_skill_fixture_campaign import run_codex, runner_prompt
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +19,27 @@ GENERATE = ROOT / "scripts" / "generate_skill_fixture_proposals.py"
 
 
 class SkillFixtureHarnessTests(unittest.TestCase):
+    def test_codex_timeout_is_recorded_as_a_runner_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            codex = root / "slow-codex"
+            prompt = root / "prompt.txt"
+            output = root / "output.md"
+            codex.write_text("#!/bin/sh\nsleep 5\n", encoding="utf-8")
+            codex.chmod(0o755)
+            prompt.write_text("Run the fixture.", encoding="utf-8")
+            result = run_codex(
+                codex=str(codex),
+                prompt_file=prompt,
+                output_file=output,
+                cwd=root,
+                model="gpt-5.5",
+                reasoning_effort="low",
+                timeout_seconds=0.1,
+            )
+            self.assertEqual(result["exit_code"], 124)
+            self.assertTrue(result["timed_out"])
+
     def test_runner_prompt_exposes_only_explicit_bounded_execution_root(self) -> None:
         prompt_only = runner_prompt("# Skill", "Inspect the task.")
         bounded = runner_prompt("# Skill", "Inspect the task.", Path("/tmp/fixture-repo"))

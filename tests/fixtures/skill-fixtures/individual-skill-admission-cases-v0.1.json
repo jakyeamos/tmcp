@@ -109,7 +109,7 @@
       "case_id": "gsd-reapply-patches-after-update",
       "mode": "conformance",
       "prompt": "Reapply local modifications after a GSD update.",
-      "bar": "Use three-way comparison across the pristine baseline, user-modified backup, and newly installed version. Every backed-up file must be classified as preserved, changed, or CONFLICT requiring review; never report no custom content for a backed-up file, and never silently skip an uncertain file.",
+      "bar": "Use three-way comparison across the pristine baseline, user-modified backup, and newly installed version. Account for every file named by the backup metadata and classify each with the source-defined semantic outcomes: Merged/changed when user content can be carried forward, Conflict/CONFLICT when both sides changed and user review is required, or Incorporated/preserved when the user change is already present upstream. Never report no custom content for a backed-up file, and never silently skip an uncertain file. Under this fixture's read-only execution boundary, report the merge candidates and conflict evidence without claiming that files were written or backups were cleaned up.",
       "smells": [
         "two-way overwrite instead of three-way comparison",
         "backed-up file reported as no custom content",

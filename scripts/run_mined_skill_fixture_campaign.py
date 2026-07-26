@@ -7,6 +7,8 @@ import argparse
 import concurrent.futures
 import hashlib
 import json
+import os
+import signal
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -28,6 +30,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model", default="gpt-5.5")
     parser.add_argument("--reasoning-effort", choices=("low", "medium", "high", "max"), default="low")
     parser.add_argument("--max-workers", type=int, default=4)
+    parser.add_argument(
+        "--timeout-seconds",
+        type=float,
+        default=120.0,
+        help="per-cell Codex timeout; timed-out cells are recorded as runner failures",
+    )
     parser.add_argument("--codex", default="codex")
     parser.add_argument(
         "--execution-root",
@@ -50,6 +58,7 @@ def run_codex(
     cwd: Path,
     model: str,
     reasoning_effort: str,
+    timeout_seconds: float,
 ) -> dict[str, Any]:
     command = [
         codex,
@@ -68,24 +77,62 @@ def run_codex(
         "-",
     ]
     prompt = prompt_file.read_text(encoding="utf-8")
-    completed = subprocess.run(
+    process = subprocess.Popen(
         command,
         cwd=cwd,
-        input=prompt,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
-        capture_output=True,
-        check=False,
+        start_new_session=True,
     )
+    try:
+        stdout, stderr = process.communicate(input=prompt, timeout=timeout_seconds)
+    except subprocess.TimeoutExpired as exc:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        try:
+            process.kill()
+        except ProcessLookupError:
+            pass
+        process.stdin.close()
+        process.stdout.close()
+        process.stderr.close()
+        try:
+            process.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            pass
+        stdout = exc.stdout or ""
+        stderr = exc.stderr or ""
+        if isinstance(stdout, bytes):
+            stdout = stdout.decode("utf-8", errors="replace")
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode("utf-8", errors="replace")
+        return {
+            "exit_code": 124,
+            "timed_out": True,
+            "model": model,
+            "reasoning_effort": reasoning_effort,
+            "prompt_sha256": sha256_bytes(prompt.encode("utf-8")),
+            "prompt_bytes": len(prompt.encode("utf-8")),
+            "output_sha256": sha256(output_file) if output_file.exists() else None,
+            "output_bytes": output_file.stat().st_size if output_file.exists() else 0,
+            "stdout_tail": str(stdout)[-2000:],
+            "stderr_tail": str(stderr)[-2000:],
+        }
     return {
-        "exit_code": completed.returncode,
+        "exit_code": process.returncode,
+        "timed_out": False,
         "model": model,
         "reasoning_effort": reasoning_effort,
         "prompt_sha256": sha256_bytes(prompt.encode("utf-8")),
         "prompt_bytes": len(prompt.encode("utf-8")),
         "output_sha256": sha256(output_file) if output_file.exists() else None,
         "output_bytes": output_file.stat().st_size if output_file.exists() else 0,
-        "stdout_tail": completed.stdout[-2000:],
-        "stderr_tail": completed.stderr[-2000:],
+        "stdout_tail": stdout[-2000:],
+        "stderr_tail": stderr[-2000:],
     }
 
 
@@ -174,6 +221,8 @@ def main() -> None:
         raise SystemExit("--repeats must be at least 2 for independent rejudging")
     if args.max_workers < 1:
         raise SystemExit("--max-workers must be positive")
+    if args.timeout_seconds <= 0:
+        raise SystemExit("--timeout-seconds must be positive")
     manifest_path = args.manifest.resolve()
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     output = args.output_dir.resolve()
@@ -238,6 +287,7 @@ def main() -> None:
             cwd=Path(job["execution_root"] or job["workspace"]),
             model=args.model,
             reasoning_effort=args.reasoning_effort,
+            timeout_seconds=args.timeout_seconds,
         )
         return {**job, "runner": result}
 
@@ -260,6 +310,7 @@ def main() -> None:
             cwd=Path(job["workspace"]),
             model=args.model,
             reasoning_effort=args.reasoning_effort,
+            timeout_seconds=args.timeout_seconds,
         )
         return {
             **job,
@@ -278,6 +329,7 @@ def main() -> None:
         "auth_mode": "chatgpt_subscription_only",
         "model": args.model,
         "reasoning_effort": args.reasoning_effort,
+        "timeout_seconds": args.timeout_seconds,
         "repeats": args.repeats,
         "max_workers": args.max_workers,
         "runner_count": len(runner_results),
@@ -291,6 +343,7 @@ def main() -> None:
         "runner_count": len(runner_results),
         "judge_count": len(judged_results),
         "runner_failures": sum(item["runner"]["exit_code"] != 0 for item in runner_results),
+        "runner_timeouts": sum(item["runner"].get("timed_out", False) for item in runner_results),
         "judge_failures": sum(item["judge"]["exit_code"] != 0 for item in judged_results),
         "unparsed_judges": sum(item["parsed_judge"] is None for item in judged_results),
     }, indent=2))
