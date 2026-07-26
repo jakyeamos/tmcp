@@ -114,9 +114,9 @@ PYTHONPATH=. python3 scripts/run_mined_skill_fixture_campaign.py \
 
 The per-skill registry is
 `tests/fixtures/skill-fixtures/individual-skill-audit-v0.1.json`. It covers
-156 unique skills and preserves each source hash, warning, proposed change,
+157 unique skills and preserves each source hash, warning, proposed change,
 definition-of-done status, and next fixture shape. The current static inventory
-contains 134 warnings across 100 skills; 56 skills have no static finding.
+contains 135 warnings across 101 skills; 56 skills have no static finding.
 
 The registry deliberately records `observed_failure_status` as
 `not_established` for every entry. A static finding such as a broad trigger,
@@ -141,7 +141,7 @@ skill improvement candidate.
 The first source-bound admission pass is recorded in
 `tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json`. It found
 seven source examples with line-level provenance; the current queue has seven
-`case_ready` skills, no skills awaiting an execution boundary, and 149 skills
+`case_ready` skills, no skills awaiting an execution boundary, and 150 skills
 that still need a real golden case and bar. `check-thread-ownership`,
 `find-skills`, `firecrawl-build`, `gsd-reapply-patches`, `last30days`, `nlm-skill`,
 and `skill-creator` are

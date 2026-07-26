@@ -2,7 +2,7 @@
   "schema": "tmcp-individual-skill-behavior-dispositions-v0.1",
   "generated_from": {
     "admission_registry": "tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json",
-    "admission_registry_sha256": "1bff23428227e3403bdfcddefc0ecd1bb08922f66af2778ca062a8e230dc9122",
+    "admission_registry_sha256": "226445a67d9f6616dc6e1e9fb28bc8e914384bc80d21f3463e14b2246c356234",
     "disposition_input": "tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json",
     "disposition_input_sha256": "fde707cf946951006477e6383a6a4925bb78df2de21065de6ed14c0b5a37ea8d",
     "campaigns": [

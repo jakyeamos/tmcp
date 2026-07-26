@@ -16,10 +16,10 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
         record = json.loads((FIXTURES / "individual-skill-admission-v0.1.json").read_text())
         self.assertEqual(record["schema"], "tmcp-individual-skill-admission-v0.1")
         self.assertEqual(record["summary"], {
-            "skill_count": 156,
+            "skill_count": 157,
             "case_ready_skill_count": 7,
             "needs_execution_boundary_skill_count": 0,
-            "needs_case_or_bar_count": 149,
+            "needs_case_or_bar_count": 150,
             "case_count": 7,
         })
         self.assertTrue(record["policy"]["source_bound_cases_only"])
