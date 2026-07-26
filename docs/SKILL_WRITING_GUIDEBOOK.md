@@ -126,6 +126,14 @@ present or absent. It marks only the narrower case where the static audit found
 no observable output contract, then requires a concrete case and independent
 judge to establish behavior.
 
+The full-corpus proposal sweep is disposable and review-only. It generated 101
+experimental proposal bundles for the warning-bearing skills under
+`/private/tmp/tmcp-full-skill-audit-20260725/proposals/` and applied them only to
+the matching candidate copies. No source skill was rewritten, and candidate
+behavior has not been inferred from the presence of a changed hash; each
+candidate still needs the same blind runner and independent judge as its
+original.
+
 Rebuild the registry after refreshing the source audit:
 
 ```bash
