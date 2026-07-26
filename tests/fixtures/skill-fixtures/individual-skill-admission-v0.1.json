@@ -3,7 +3,7 @@
   "source_audit": "/private/tmp/tmcp-skill-corpus-audit-20260722/audit.json",
   "source_audit_sha256": "455e18c87a1b430ef4e61e321fa515cd6d7a20828d77a51ea7b52bc4850bb664",
   "case_source": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
-  "case_source_sha256": "2e451e3118a26a194515ff575c194aad2cfb625df622a1d13b73f7700169efbc",
+  "case_source_sha256": "3200497943fccb4d781ddf212c181b8b5a4ae89dd8819eadd030329ae5e65256",
   "policy": {
     "source_bound_cases_only": true,
     "provenance_checked": true,
@@ -14,8 +14,8 @@
   },
   "summary": {
     "skill_count": 156,
-    "case_ready_skill_count": 4,
-    "needs_execution_boundary_skill_count": 2,
+    "case_ready_skill_count": 5,
+    "needs_execution_boundary_skill_count": 1,
     "needs_case_or_bar_count": 150,
     "case_count": 6
   },
@@ -1091,14 +1091,14 @@
         "host.tool-assumption",
         "reads.buried-required-reads"
       ],
-      "admission_status": "needs_execution_boundary",
+      "admission_status": "case_ready",
       "cases": [
         {
           "source_path": "/Users/jakyeamos/.agents/skills/last30days/SKILL.md",
           "case_id": "last30days-nvidia-earnings-reaction",
           "mode": "conformance",
-          "prompt": "last30days nvidia earnings reaction",
-          "bar": "For this GENERAL query, the response begins with the mandatory version/date badge, then one blank line and `What I learned:`; it uses the skill's required narrative shape, does not append a Sources/References block or forbidden body section headers, and includes the engine footer verbatim when the engine returns one. It must not invent research findings when the required research inputs are unavailable.",
+          "prompt": "last30days nvidia earnings reaction. Use the deterministic fixture engine at /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/last30days-research-fixture-v0.1/scripts/last30days.py instead of network or setup commands. Run it with the supplied plan file /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/last30days-research-fixture-v0.1/query-plan.json and --emit=compact, then synthesize only from its evidence and pass through its footer. Do not include command transcripts or tooling commentary in the user-facing report; finish with the skill's evidence-grounded invitation containing 2 or 3 follow-up suggestions.",
+          "bar": "For this GENERAL query, the response begins with the deterministic engine's mandatory version/date badge, then one blank line and `What I learned:`; it uses the skill's required narrative shape and its required prose label `KEY PATTERNS from the research:`. It must not append a Sources/References block or use forbidden `##`/`###` body section headers, and it must include the fixture engine footer verbatim followed by an evidence-grounded invitation with 2 or 3 follow-up suggestions. Do not include command transcripts or tooling commentary. Every finding must be supported by the fixture evidence; do not invent research or claim unavailable live sources.",
           "smells": [
             "missing or non-first badge",
             "invented title instead of What I learned",
@@ -1107,8 +1107,8 @@
             "fabricated research findings"
           ],
           "execution_boundary": {
-            "status": "incomplete",
-            "evidence": "The source document names a Python engine, source results, and a pass-through footer, but this admission input supplies only the prompt and SKILL.md text."
+            "status": "complete",
+            "evidence": "The bounded fixture supplies a deterministic Python engine, a dated plan, source evidence, and a pass-through footer; the task explicitly forbids network/setup commands, so the conformance bar can be judged without live research credentials or mutable state."
           },
           "provenance": [
             {
@@ -1133,7 +1133,7 @@
             }
           ],
           "source_sha256": "016ce06212a0f9b807f91459146aa8cec7b28f96872a9dee95d72d77fb9014d3",
-          "admission_status": "needs_execution_boundary",
+          "admission_status": "case_ready",
           "bar_status": "source_bound"
         }
       ],

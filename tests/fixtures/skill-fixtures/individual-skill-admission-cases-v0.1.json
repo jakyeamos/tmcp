@@ -11,8 +11,8 @@
       "source_path": "/Users/jakyeamos/.agents/skills/last30days/SKILL.md",
       "case_id": "last30days-nvidia-earnings-reaction",
       "mode": "conformance",
-      "prompt": "last30days nvidia earnings reaction",
-      "bar": "For this GENERAL query, the response begins with the mandatory version/date badge, then one blank line and `What I learned:`; it uses the skill's required narrative shape, does not append a Sources/References block or forbidden body section headers, and includes the engine footer verbatim when the engine returns one. It must not invent research findings when the required research inputs are unavailable.",
+      "prompt": "last30days nvidia earnings reaction. Use the deterministic fixture engine at /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/last30days-research-fixture-v0.1/scripts/last30days.py instead of network or setup commands. Run it with the supplied plan file /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/last30days-research-fixture-v0.1/query-plan.json and --emit=compact, then synthesize only from its evidence and pass through its footer. Do not include command transcripts or tooling commentary in the user-facing report; finish with the skill's evidence-grounded invitation containing 2 or 3 follow-up suggestions.",
+      "bar": "For this GENERAL query, the response begins with the deterministic engine's mandatory version/date badge, then one blank line and `What I learned:`; it uses the skill's required narrative shape and its required prose label `KEY PATTERNS from the research:`. It must not append a Sources/References block or use forbidden `##`/`###` body section headers, and it must include the fixture engine footer verbatim followed by an evidence-grounded invitation with 2 or 3 follow-up suggestions. Do not include command transcripts or tooling commentary. Every finding must be supported by the fixture evidence; do not invent research or claim unavailable live sources.",
       "smells": [
         "missing or non-first badge",
         "invented title instead of What I learned",
@@ -21,8 +21,8 @@
         "fabricated research findings"
       ],
       "execution_boundary": {
-        "status": "incomplete",
-        "evidence": "The source document names a Python engine, source results, and a pass-through footer, but this admission input supplies only the prompt and SKILL.md text."
+        "status": "complete",
+        "evidence": "The bounded fixture supplies a deterministic Python engine, a dated plan, source evidence, and a pass-through footer; the task explicitly forbids network/setup commands, so the conformance bar can be judged without live research credentials or mutable state."
       },
       "provenance": [
         {"line": 5, "excerpt": "argument-hint: 'last30days nvidia earnings reaction | last30days AI video tools | last30days what users want in react'"},

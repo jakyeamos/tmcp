@@ -2,9 +2,9 @@
   "schema": "tmcp-individual-skill-behavior-dispositions-v0.1",
   "generated_from": {
     "admission_registry": "tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json",
-    "admission_registry_sha256": "86bbef0a473d347c7dde2281931cb752f2496bf5291779667cc73fd27c1bc1b3",
+    "admission_registry_sha256": "ab1f5a54fc85ed4b3a559d26ef7f150425963c1738ec24f747ec966a28a507f1",
     "disposition_input": "tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json",
-    "disposition_input_sha256": "f43fd1df852dc724cf70bab04b66e11afe557254d54a5e34624d6f6a91a90fb2",
+    "disposition_input_sha256": "157afcf222c5f95b2bddfb0f0024331387c5e358d7ef7103bc2a707a235bb55a",
     "campaigns": [
       {
         "report_path": "/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json",
@@ -50,6 +50,15 @@
         "reasoning_effort": "low",
         "runner_count": 6,
         "judge_count": 6
+      },
+      {
+        "report_path": "/private/tmp/tmcp-last30days-campaign-v3-20260725/campaign-report.json",
+        "report_sha256": "06f72b1ace75009e0f0be7227a5200601edd9edaa6260b939cd06eda66a4db0a",
+        "manifest": "/private/tmp/tmcp-last30days-fixtures-v3/manifest.json",
+        "model": "gpt-5.5",
+        "reasoning_effort": "low",
+        "runner_count": 6,
+        "judge_count": 6
       }
     ]
   },
@@ -63,10 +72,10 @@
     "case_count": 6,
     "campaign_ready_case_count": 6,
     "observed_skill_failure_count": 0,
-    "rewrite_hold_count": 3,
-    "no_candidate_delta_count": 3,
-    "behaviorally_passed_case_count": 3,
-    "case_or_runner_boundary_count": 3
+    "rewrite_hold_count": 2,
+    "no_candidate_delta_count": 4,
+    "behaviorally_passed_case_count": 4,
+    "case_or_runner_boundary_count": 2
   },
   "cases": [
     {
@@ -204,44 +213,44 @@
     {
       "skill_path": "/Users/jakyeamos/.agents/skills/last30days/SKILL.md",
       "source_sha256": "016ce06212a0f9b807f91459146aa8cec7b28f96872a9dee95d72d77fb9014d3",
-      "admission_status": "needs_execution_boundary",
+      "admission_status": "case_ready",
       "case_id": "last30days-nvidia-earnings-reaction",
       "campaign_cell_count": 6,
       "versions": {
         "original": {
           "cell_count": 3,
-          "pass_count": 1,
-          "fail_count": 2,
+          "pass_count": 3,
+          "fail_count": 0,
           "decisions": [
             "pass",
-            "fail",
-            "fail"
+            "pass",
+            "pass"
           ],
-          "mean_score": 0.6967,
+          "mean_score": 0.9483,
           "skill_sha256": [
             "016ce06212a0f9b807f91459146aa8cec7b28f96872a9dee95d72d77fb9014d3"
           ]
         },
         "candidate": {
           "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
           "decisions": [
-            "fail",
-            "fail",
-            "fail"
+            "pass",
+            "pass",
+            "pass"
           ],
-          "mean_score": 0.71,
+          "mean_score": 0.98,
           "skill_sha256": [
             "016ce06212a0f9b807f91459146aa8cec7b28f96872a9dee95d72d77fb9014d3"
           ]
         }
       },
-      "disposition": "case_boundary_blocked",
+      "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
-      "rewrite_status": "hold",
-      "rationale": "The task requires engine output, source links, and a concrete footer; those inputs were absent, and the mixed scores are not causal evidence of a rewrite effect.",
-      "next_action": "Freeze a dated engine/source transcript and footer expectation, then rerun the case."
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "The bounded fixture supplied a dated plan, deterministic engine evidence, source URLs, community comments, and the exact pass-through footer. After calibrating the bar to allow the source-required KEY PATTERNS prose label and fixture-backed link invitation, all three original and all three candidate artifacts passed independent judging; mean scores were 0.9483 and 0.9800, and the original and candidate hashes are identical, so this is a baseline pass without rewrite lift.",
+      "next_action": "Use this case as a conformance regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     },
     {
       "skill_path": "/Users/jakyeamos/.agents/skills/nlm-skill/SKILL.md",

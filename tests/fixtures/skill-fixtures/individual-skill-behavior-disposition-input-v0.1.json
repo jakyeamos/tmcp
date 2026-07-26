@@ -32,11 +32,11 @@
     },
     {
       "case_id": "last30days-nvidia-earnings-reaction",
-      "disposition": "case_boundary_blocked",
+      "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
-      "rewrite_status": "hold",
-      "rationale": "The task requires engine output, source links, and a concrete footer; those inputs were absent, and the mixed scores are not causal evidence of a rewrite effect.",
-      "next_action": "Freeze a dated engine/source transcript and footer expectation, then rerun the case."
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "The bounded fixture supplied a dated plan, deterministic engine evidence, source URLs, community comments, and the exact pass-through footer. After calibrating the bar to allow the source-required KEY PATTERNS prose label and fixture-backed link invitation, all three original and all three candidate artifacts passed independent judging; mean scores were 0.9483 and 0.9800, and the original and candidate hashes are identical, so this is a baseline pass without rewrite lift.",
+      "next_action": "Use this case as a conformance regression control and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     },
     {
       "case_id": "nlm-list-notebooks-json",
