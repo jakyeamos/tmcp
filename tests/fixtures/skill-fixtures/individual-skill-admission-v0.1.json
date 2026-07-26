@@ -3,7 +3,7 @@
   "source_audit": "/private/tmp/tmcp-skill-corpus-audit-20260722/audit.json",
   "source_audit_sha256": "455e18c87a1b430ef4e61e321fa515cd6d7a20828d77a51ea7b52bc4850bb664",
   "case_source": "/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
-  "case_source_sha256": "8aa5a23c60609599a0dc88d1c7e5f7a154d4e8555c2c236cf140a59cd45cc338",
+  "case_source_sha256": "b5c80ca6c1e4850c50bf68d6074d47a107ab71c0236fbdb9b875e73cbfd2a7c1",
   "policy": {
     "source_bound_cases_only": true,
     "provenance_checked": true,
@@ -14,8 +14,8 @@
   },
   "summary": {
     "skill_count": 156,
-    "case_ready_skill_count": 2,
-    "needs_execution_boundary_skill_count": 4,
+    "case_ready_skill_count": 3,
+    "needs_execution_boundary_skill_count": 3,
     "needs_case_or_bar_count": 150,
     "case_count": 6
   },
@@ -1428,14 +1428,14 @@
         "host.tool-assumption",
         "reads.buried-required-reads"
       ],
-      "admission_status": "needs_execution_boundary",
+      "admission_status": "case_ready",
       "cases": [
         {
           "source_path": "/Users/jakyeamos/.codex/skills/.system/skill-creator/SKILL.md",
           "case_id": "skill-creator-rotate-pdf",
           "mode": "judgment",
-          "prompt": "Help me rotate this PDF.",
-          "bar": "Treat the request as a concrete example for a reusable skill: clarify the supported functionality and destination when needed, identify a reusable rotation resource such as a script, and finish with a clear understanding of the skill's intended use before scaffolding or editing files. Do not claim a finished skill without a validated target and output.",
+          "prompt": "I want a reusable skill for rotating PDFs. Scope it to rotating a supplied PDF by 90, 180, or 270 degrees, with the user choosing the output path. The target skill directory is /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/skill-creator-authoring-fixture-v0.1/target-skill. Do not create or edit files yet; return the clarified scope, reusable resources to include, and the initialization/validation plan.",
+          "bar": "Establish a concrete, reusable PDF-rotation skill scope before proposing files: resolve the supported rotation behavior and destination, identify a deterministic reusable resource such as a rotation script, and stop at a clear initialization/validation plan without claiming that files were created or validated. Avoid jumping from the example to a generic scaffold, inventing an output location, or claiming completion without a validated target and output.",
           "smells": [
             "skips understanding the concrete example",
             "creates a generic skill without reusable resources",
@@ -1443,8 +1443,8 @@
             "claims completion without validation"
           ],
           "execution_boundary": {
-            "status": "incomplete",
-            "evidence": "The source example is a PDF-rotation prompt, but no PDF, destination, or skill-authoring target is supplied for the reusable-skill workflow."
+            "status": "complete",
+            "evidence": "The fixture supplies a concrete rotation scope, an explicit target-skill directory inside the bounded read-only root, and a plan-only task that requires no PDF mutation or external tool result."
           },
           "provenance": [
             {
@@ -1465,7 +1465,7 @@
             }
           ],
           "source_sha256": "da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c",
-          "admission_status": "needs_execution_boundary",
+          "admission_status": "case_ready",
           "bar_status": "source_bound"
         }
       ],

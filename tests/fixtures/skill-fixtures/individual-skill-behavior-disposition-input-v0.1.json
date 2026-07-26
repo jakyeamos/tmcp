@@ -48,11 +48,11 @@
     },
     {
       "case_id": "skill-creator-rotate-pdf",
-      "disposition": "case_boundary_blocked",
+      "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
-      "rewrite_status": "hold",
-      "rationale": "The prompt describes a one-off PDF operation while the source skill is an authoring workflow; no PDF or authoring target was supplied, so the case is task-mismatched.",
-      "next_action": "Replace this with a reusable-skill authoring request and provide the target skill directory and acceptance bar."
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "The source-bound case supplied a concrete reusable PDF-rotation authoring scope, an explicit bounded target directory, and a plan-only read-only boundary. All three original and all three candidate runner artifacts completed, and every independent judge passed both variants with mean scores of 0.9583 and 0.9650; the original and candidate hashes are identical, so this is a baseline pass without rewrite lift.",
+      "next_action": "Use this case as a regression control for authoring-skill planning and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     }
   ]
 }

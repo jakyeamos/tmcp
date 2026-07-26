@@ -51,8 +51,21 @@ def main() -> None:
     parser.add_argument("admission_registry", type=Path)
     parser.add_argument("disposition_input", type=Path)
     parser.add_argument("--campaign", action="append", type=Path, required=True)
+    parser.add_argument(
+        "--exclude-case-from",
+        action="append",
+        default=[],
+        metavar="CAMPAIGN=CASE_ID",
+        help="ignore a case only from a campaign that used an older case definition",
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    excluded_cases: dict[Path, set[str]] = defaultdict(set)
+    for value in args.exclude_case_from:
+        campaign_text, separator, case_id = value.partition("=")
+        if not separator or not campaign_text or not case_id:
+            raise ValueError("--exclude-case-from must be CAMPAIGN=CASE_ID")
+        excluded_cases[Path(campaign_text).resolve()].add(case_id)
 
     admission = load(args.admission_registry)
     disposition_input = load(args.disposition_input)
@@ -85,7 +98,10 @@ def main() -> None:
             "runner_count": campaign.get("runner_count"),
             "judge_count": campaign.get("judge_count"),
         })
+        ignored = excluded_cases.get(campaign_path.resolve(), set())
         for result in campaign.get("results", []):
+            if result["case_id"] in ignored:
+                continue
             campaign_cases[result["case_id"]].append(result)
 
     disposition_by_case = {

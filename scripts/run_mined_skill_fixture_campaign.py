@@ -10,6 +10,7 @@ import json
 import os
 import signal
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -77,63 +78,67 @@ def run_codex(
         "-",
     ]
     prompt = prompt_file.read_text(encoding="utf-8")
-    process = subprocess.Popen(
-        command,
-        cwd=cwd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        start_new_session=True,
-    )
-    try:
-        stdout, stderr = process.communicate(input=prompt, timeout=timeout_seconds)
-    except subprocess.TimeoutExpired as exc:
+    prompt_bytes = prompt.encode("utf-8")
+
+    def read_tail(log: Any) -> str:
+        log.flush()
+        log.seek(0)
+        return log.read()[-2000:].decode("utf-8", errors="replace")
+
+    with (
+        tempfile.TemporaryFile(mode="w+b") as prompt_input,
+        tempfile.TemporaryFile(mode="w+b") as stdout_log,
+        tempfile.TemporaryFile(mode="w+b") as stderr_log,
+    ):
+        prompt_input.write(prompt_bytes)
+        prompt_input.seek(0)
+        process = subprocess.Popen(
+            command,
+            cwd=cwd,
+            stdin=prompt_input,
+            stdout=stdout_log,
+            stderr=stderr_log,
+            start_new_session=True,
+        )
         try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        try:
-            process.kill()
-        except ProcessLookupError:
-            pass
-        process.stdin.close()
-        process.stdout.close()
-        process.stderr.close()
-        try:
-            process.wait(timeout=1)
+            process.wait(timeout=timeout_seconds)
         except subprocess.TimeoutExpired:
-            pass
-        stdout = exc.stdout or ""
-        stderr = exc.stderr or ""
-        if isinstance(stdout, bytes):
-            stdout = stdout.decode("utf-8", errors="replace")
-        if isinstance(stderr, bytes):
-            stderr = stderr.decode("utf-8", errors="replace")
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except (OSError, ProcessLookupError):
+                pass
+            try:
+                process.kill()
+            except (OSError, ProcessLookupError):
+                pass
+            try:
+                process.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                pass
+            return {
+                "exit_code": 124,
+                "timed_out": True,
+                "model": model,
+                "reasoning_effort": reasoning_effort,
+                "prompt_sha256": sha256_bytes(prompt_bytes),
+                "prompt_bytes": len(prompt_bytes),
+                "output_sha256": sha256(output_file) if output_file.exists() else None,
+                "output_bytes": output_file.stat().st_size if output_file.exists() else 0,
+                "stdout_tail": read_tail(stdout_log),
+                "stderr_tail": read_tail(stderr_log),
+            }
         return {
-            "exit_code": 124,
-            "timed_out": True,
+            "exit_code": process.returncode,
+            "timed_out": False,
             "model": model,
             "reasoning_effort": reasoning_effort,
-            "prompt_sha256": sha256_bytes(prompt.encode("utf-8")),
-            "prompt_bytes": len(prompt.encode("utf-8")),
+            "prompt_sha256": sha256_bytes(prompt_bytes),
+            "prompt_bytes": len(prompt_bytes),
             "output_sha256": sha256(output_file) if output_file.exists() else None,
             "output_bytes": output_file.stat().st_size if output_file.exists() else 0,
-            "stdout_tail": str(stdout)[-2000:],
-            "stderr_tail": str(stderr)[-2000:],
+            "stdout_tail": read_tail(stdout_log),
+            "stderr_tail": read_tail(stderr_log),
         }
-    return {
-        "exit_code": process.returncode,
-        "timed_out": False,
-        "model": model,
-        "reasoning_effort": reasoning_effort,
-        "prompt_sha256": sha256_bytes(prompt.encode("utf-8")),
-        "prompt_bytes": len(prompt.encode("utf-8")),
-        "output_sha256": sha256(output_file) if output_file.exists() else None,
-        "output_bytes": output_file.stat().st_size if output_file.exists() else 0,
-        "stdout_tail": stdout[-2000:],
-        "stderr_tail": stderr[-2000:],
-    }
 
 
 def runner_prompt(
@@ -253,7 +258,11 @@ def main() -> None:
                     execution_root = args.execution_root.resolve() if execution_ready else None
                     if execution_root is not None and not execution_root.is_dir():
                         raise SystemExit(f"execution root is not a directory: {execution_root}")
-                    codex_home = args.execution_codex_home.resolve() if execution_ready else None
+                    codex_home = (
+                        args.execution_codex_home.resolve()
+                        if execution_ready and args.execution_codex_home is not None
+                        else None
+                    )
                     if codex_home is not None and not codex_home.is_dir():
                         raise SystemExit(f"execution CODEX_HOME is not a directory: {codex_home}")
                     prompt_file.write_text(

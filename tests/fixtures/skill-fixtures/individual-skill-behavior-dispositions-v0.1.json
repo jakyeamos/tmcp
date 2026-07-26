@@ -2,9 +2,9 @@
   "schema": "tmcp-individual-skill-behavior-dispositions-v0.1",
   "generated_from": {
     "admission_registry": "tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json",
-    "admission_registry_sha256": "cd5a1379c81de14b804c636d14ac9ec5f3c601a969cfbc21ad2f87410bb7f943",
+    "admission_registry_sha256": "2875a12050ed3a94f7063ac632d3abbcfc87e15fa659053caaae11f71b36cdce",
     "disposition_input": "tests/fixtures/skill-fixtures/individual-skill-behavior-disposition-input-v0.1.json",
-    "disposition_input_sha256": "24fbc67505c7a1ea0048e9bf5642c40221880c7a1bc717767f63f227e2d6a9d3",
+    "disposition_input_sha256": "3f377319a207fa40aca08458875ef53232f3981d2375a3d92aa40d5cda514430",
     "campaigns": [
       {
         "report_path": "/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json",
@@ -32,6 +32,15 @@
         "reasoning_effort": "low",
         "runner_count": 6,
         "judge_count": 6
+      },
+      {
+        "report_path": "/private/tmp/tmcp-skill-creator-campaign-v7-20260725/campaign-report.json",
+        "report_sha256": "dbd9143e394f06f78ef23f0652b2d9bcc2db05bfa365dcd68d7408ea092b5bd9",
+        "manifest": "/private/tmp/tmcp-skill-creator-fixtures-v1/manifest.json",
+        "model": "gpt-5.5",
+        "reasoning_effort": "low",
+        "runner_count": 6,
+        "judge_count": 6
       }
     ]
   },
@@ -45,10 +54,10 @@
     "case_count": 6,
     "campaign_ready_case_count": 6,
     "observed_skill_failure_count": 0,
-    "rewrite_hold_count": 5,
-    "no_candidate_delta_count": 1,
-    "behaviorally_passed_case_count": 1,
-    "case_or_runner_boundary_count": 5
+    "rewrite_hold_count": 4,
+    "no_candidate_delta_count": 2,
+    "behaviorally_passed_case_count": 2,
+    "case_or_runner_boundary_count": 4
   },
   "cases": [
     {
@@ -270,44 +279,44 @@
     {
       "skill_path": "/Users/jakyeamos/.codex/skills/.system/skill-creator/SKILL.md",
       "source_sha256": "da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c",
-      "admission_status": "needs_execution_boundary",
+      "admission_status": "case_ready",
       "case_id": "skill-creator-rotate-pdf",
       "campaign_cell_count": 6,
       "versions": {
         "original": {
           "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
           "decisions": [
-            "fail",
-            "fail",
-            "fail"
+            "pass",
+            "pass",
+            "pass"
           ],
-          "mean_score": 0.3833,
+          "mean_score": 0.9583,
           "skill_sha256": [
             "da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c"
           ]
         },
         "candidate": {
           "cell_count": 3,
-          "pass_count": 0,
-          "fail_count": 3,
+          "pass_count": 3,
+          "fail_count": 0,
           "decisions": [
-            "fail",
-            "fail",
-            "fail"
+            "pass",
+            "pass",
+            "pass"
           ],
-          "mean_score": 0.3667,
+          "mean_score": 0.965,
           "skill_sha256": [
             "da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c"
           ]
         }
       },
-      "disposition": "case_boundary_blocked",
+      "disposition": "behavioral_baseline_pass",
       "observed_skill_failure": false,
-      "rewrite_status": "hold",
-      "rationale": "The prompt describes a one-off PDF operation while the source skill is an authoring workflow; no PDF or authoring target was supplied, so the case is task-mismatched.",
-      "next_action": "Replace this with a reusable-skill authoring request and provide the target skill directory and acceptance bar."
+      "rewrite_status": "no_candidate_delta",
+      "rationale": "The source-bound case supplied a concrete reusable PDF-rotation authoring scope, an explicit bounded target directory, and a plan-only read-only boundary. All three original and all three candidate runner artifacts completed, and every independent judge passed both variants with mean scores of 0.9583 and 0.9650; the original and candidate hashes are identical, so this is a baseline pass without rewrite lift.",
+      "next_action": "Use this case as a regression control for authoring-skill planning and do not propose a rewrite unless a source-backed failure or candidate delta is introduced."
     }
   ]
 }

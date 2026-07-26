@@ -85,8 +85,8 @@
       "source_path": "/Users/jakyeamos/.codex/skills/.system/skill-creator/SKILL.md",
       "case_id": "skill-creator-rotate-pdf",
       "mode": "judgment",
-      "prompt": "Help me rotate this PDF.",
-      "bar": "Treat the request as a concrete example for a reusable skill: clarify the supported functionality and destination when needed, identify a reusable rotation resource such as a script, and finish with a clear understanding of the skill's intended use before scaffolding or editing files. Do not claim a finished skill without a validated target and output.",
+      "prompt": "I want a reusable skill for rotating PDFs. Scope it to rotating a supplied PDF by 90, 180, or 270 degrees, with the user choosing the output path. The target skill directory is /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/skill-creator-authoring-fixture-v0.1/target-skill. Do not create or edit files yet; return the clarified scope, reusable resources to include, and the initialization/validation plan.",
+      "bar": "Establish a concrete, reusable PDF-rotation skill scope before proposing files: resolve the supported rotation behavior and destination, identify a deterministic reusable resource such as a rotation script, and stop at a clear initialization/validation plan without claiming that files were created or validated. Avoid jumping from the example to a generic scaffold, inventing an output location, or claiming completion without a validated target and output.",
       "smells": [
         "skips understanding the concrete example",
         "creates a generic skill without reusable resources",
@@ -94,8 +94,8 @@
         "claims completion without validation"
       ],
       "execution_boundary": {
-        "status": "incomplete",
-        "evidence": "The source example is a PDF-rotation prompt, but no PDF, destination, or skill-authoring target is supplied for the reusable-skill workflow."
+        "status": "complete",
+        "evidence": "The fixture supplies a concrete rotation scope, an explicit target-skill directory inside the bounded read-only root, and a plan-only task that requires no PDF mutation or external tool result."
       },
       "provenance": [
         {"line": 244, "excerpt": "Step 1: Understanding the Skill with Concrete Examples"},
