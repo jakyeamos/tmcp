@@ -333,6 +333,14 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   so it is a `behavioral_baseline_pass`/`no_candidate_delta` routing control.
   The queue is now 7 case-ready, 0 execution-boundary-blocked, and 149 awaiting
   a case/bar; there are 6 baseline passes, 1 hold, and 0 observed skill failures.
+- The full source-bound static audit has been refreshed to 157 unique skills
+  after admitting `quality-runner-pack-update`. It records 135 warnings across
+  101 skills and 56 skills without a static finding. An experimental disposable
+  candidate set generated 101 review-only proposal bundles and applied them only
+  under `/private/tmp`; no source skill was rewritten or promoted. Behavioral
+  evidence remains honest: seven seeded cases are calibrated (six baseline
+  passes and one GSD hold), while 150 skills still require a concrete golden
+  case and bar before runtime claims are allowed.
 - Composition fixture `required-read-output-contract-composition` exercises both
   rewrites in all four original/candidate pairings, with two repeats per pairing
   and independent judging. The durable manifest and baseline are
