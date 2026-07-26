@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Deterministic offline fixture for the last30days conformance case."""
+"""Deterministic offline fixture for the last30days conformance case.
+
+This is an executable smoke fixture rather than a unit-test module; its emitted
+contract is asserted by the blind runner and independent campaign judges.
+"""
 
 from __future__ import annotations
 
