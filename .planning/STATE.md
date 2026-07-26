@@ -276,7 +276,8 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
   unchanged and tells only the skill's shell commands to set the disposable
   `CODEX_HOME` inline. The commit's readiness hook timed out at 90s, but the
   commit completed; focused tests passed before commit.
-- The first bounded GSD fixture campaign completed 6 runner and 6 judge cells,
+- `461328c` records the first bounded GSD fixture campaign's 6 runner and 6
+  judge cells,
   but its strict taxonomy was not source-bound: judges varied between fail and
   pass on the source-defined `Merged/Conflict/Incorporated` labels and on the
   read-only no-write boundary. The case bar now accepts those semantic labels
