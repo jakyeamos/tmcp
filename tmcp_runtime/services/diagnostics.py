@@ -62,7 +62,10 @@ def build_doctor_report(
             "detail": (
                 f"AIOS_ROOT={aios_root_display}"
                 if aios_root_display is not None
-                else "AIOS_ROOT is not set; standalone TMCP is available."
+                else (
+                    "The deprecated AIOS adapter is disabled; standalone TMCP "
+                    "is available."
+                )
             ),
         },
     ]
@@ -83,7 +86,9 @@ def build_doctor_report(
         "claude_desktop": "Add the node launcher as a local stdio MCP server in claude_desktop_config.json.",
         "plain_mcp": "Use command node with args [scripts/tmcp_launcher.mjs] and cwd set to the TMCP repo.",
         "aios_backed": (
-            "Set AIOS_ROOT explicitly only when you want optional AIOS storage/adapter behavior."
+            "Deprecated compatibility only: set both "
+            "TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1 and AIOS_ROOT. "
+            "Standalone TMCP is the supported default."
         ),
     }
     codex_tool_discovery = {
@@ -189,6 +194,7 @@ def build_status_report(
             "available": aios_available,
             "aios_root": aios_root_display,
             "configured": aios_root_display is not None,
-            "role": "optional storage and adapter layer",
+            "deprecated": True,
+            "role": "disabled legacy compatibility adapter",
         },
     }
