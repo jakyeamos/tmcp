@@ -1,5 +1,20 @@
 # Verification Record
 
+## 2026-08-04 0.5.8 AIOS Deprecation Candidate
+
+The 0.5.8 candidate makes `AIOS_ROOT` inert unless the deprecated compatibility
+gate is also explicitly enabled. It also removes inherited `GIT_*` operation
+state from nested runtime Git fixtures so parent executors and hooks cannot
+redirect fixture commits into a locked parent index.
+
+Implementation PR #18 passed all seven hosted quality and Python 3.10/3.13
+Ubuntu, macOS, and Windows jobs on commit `5f10c71`; merged-main run
+`30878526767` passed the same matrix at `07b1e8c`. PR #19 first-pass run
+`30878825115` then passed all seven jobs on exact 0.5.8 candidate commit
+`4914ca7`. The evidence-bound follow-up commit must pass the hosted matrix again
+before merge. Tag, public archive, immutable runtime activation, consumer
+parity, and rollback proof remain pending.
+
 ## 2026-07-16 0.5.7 Risk-Closure Release
 
 The 0.5.7 patch fixes the expert-review profile coverage matcher so in-memory

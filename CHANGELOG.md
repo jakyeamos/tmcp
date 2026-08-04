@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.8 - 2026-08-04
+
+- Deprecated implicit AIOS adapter activation: `AIOS_ROOT` alone is inert, and
+  temporary compatibility now requires the explicit
+  `TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1` gate as well.
+- Made nested Git runtime fixtures remove inherited `GIT_*` operation state so
+  parent executors and commit hooks cannot redirect fixture commits into a
+  locked parent index.
+
 ## 0.5.7 - 2026-07-16
 
 - Fixed profile-coverage matching for rubric definitions represented as

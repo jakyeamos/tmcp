@@ -130,6 +130,14 @@ when the required evidence is present. The packaged Node launcher is also
 executable for direct shell invocation; the `node scripts/tmcp_launcher.mjs`
 form remains portable and supported.
 
+## 0.5.8 AIOS Deprecation Boundary
+
+The 0.5.8 release makes `AIOS_ROOT` inert by default. Temporary legacy adapter
+execution requires both `TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1` and a valid
+`AIOS_ROOT`; standalone behavior is unchanged. Nested Git test repositories
+also strip inherited `GIT_*` operation state so host executors and commit hooks
+cannot redirect fixture commits into a parent repository index.
+
 ## Known Gaps
 
 - The current storage implementation intentionally denies artifact persistence on

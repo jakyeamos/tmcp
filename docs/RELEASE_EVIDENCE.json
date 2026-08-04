@@ -1,102 +1,35 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
-  "version": "0.5.7",
-  "checked_at": "2026-07-16T01:38:55Z",
+  "version": "0.5.8",
+  "checked_at": "2026-08-04T04:51:00Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "tag",
-    "ref": "v0.5.7",
-    "pr_number": null,
+    "source": "pull_request",
+    "ref": "codex/tmcp-0.5.8-aios-deprecation",
+    "pr_number": 19,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 29463457072,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/29463457072",
-    "head_sha": "5ae3d8b0e3d6fd9330a674536fdde18cb9ee0279",
-    "notes": "The v0.5.7 tag hosted verification passed all seven matrix and quality jobs across Ubuntu, macOS, and Windows."
+    "run_id": 30878825115,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/30878825115",
+    "head_sha": "4914ca7a058533f62eba86f58eec473b99de322d",
+    "notes": "PR #19 first-pass hosted verification passed all seven quality and Python 3.10/3.13 Ubuntu, macOS, and Windows jobs. This evidence-bound commit must pass the same matrix again before merge."
   },
   "release_package": {
-    "path": "/private/tmp/tmcp-v0.5.7.tar.gz",
-    "sha256": "3b9e448e65b6c35273126ee38f0c0ee31c98463e8a4b0f0f27518318f225edac",
-    "public_asset": "https://github.com/jakyeamos/tmcp/releases/download/v0.5.7/tmcp-v0.5.7.tar.gz",
-    "source_commit": "5ae3d8b0e3d6fd9330a674536fdde18cb9ee0279",
-    "notes": "The public GitHub asset matched the local reproducible build byte-for-byte and GitHub's asset digest."
-  },
-  "installed_verification": {
-    "runtime_home": "/Users/jakyeamos/.tmcp/runtime",
-    "active_version": "0.5.7",
-    "previous_version": "0.5.6",
-    "content_sha256": "4033aa99af3aa263e6806a5651912ca4c3a36fdad531013af664a6f0509cc304",
-    "skills_sha256": "5bf3733ca8041e31193574939c2891f471ed44be3d67950f4dbef144e3007458",
-    "codex_plugin": "0.5.7+codex.20260716005835",
-    "codex_marketplace": {
-      "mode": "native-git",
-      "provenance": "git",
-      "ref": "v0.5.7",
-      "revision": "5ae3d8b0e3d6fd9330a674536fdde18cb9ee0279"
-    },
-    "claude_plugin": {
-      "version": "0.5.7",
-      "revision": "5ae3d8b0e3d6fd9330a674536fdde18cb9ee0279"
-    },
-    "launcher_mode": "100755 across active, alias, Codex cache, Claude cache, and Claude marketplace",
-    "doctor": "pass",
-    "launcher": {
-      "direct_doctor": "pass",
-      "status": "pass",
-      "expert_review": "pass; four dimensions scored 3/4 with no profile coverage gaps"
-    },
-    "rollback": {
-      "rolled_back_to": "0.5.6",
-      "doctor": "pass",
-      "launcher_status": "pass",
-      "restored_to": "0.5.7",
-      "final_doctor": "pass"
-    },
-    "notes": "Claude marketplace was recreated cleanly after its client installer produced a staged/generated mutation; the runtime manager then synchronized it as a generated copy and retained backups.",
-    "cleanup": {
-      "removed_generated_cache_count": 8,
-      "removed_generated_cache_versions": [
-        "Codex 0.5.5+codex.20260715234751",
-        "Codex 0.5.6+codex.20260715202055",
-        "Claude 0.3.2",
-        "Claude 0.3.3",
-        "Claude 0.5.2",
-        "Claude 0.5.3",
-        "Claude 0.5.4",
-        "Claude 0.5.6"
-      ],
-      "consumer_proof": "Claude and Codex active plugin records report only v0.5.7; active config and marketplace metadata contain no references to the removed snapshots; full runtime doctor passed after cleanup.",
-      "retained_for_rollback": "Central runtime versions 0.5.1 through 0.5.7 and runtime backup directories were retained."
-    }
-  },
-  "registry_publication": {
-    "status": "pending_authorization",
-    "validation": "pass",
-    "descriptor": "mcp-registry/draft-server.json",
-    "publish_attempt": {
-      "command": "mcp-publisher publish mcp-registry/draft-server.json",
-      "status": "blocked",
-      "http_status": 401,
-      "error": "Invalid or expired Registry JWT token",
-      "login_attempt": "mcp-publisher login github failed with incorrect_device_code"
-    },
-    "notes": "The descriptor is bound to the release asset SHA-256. Publication is blocked by the expired local Registry JWT; a fresh GitHub device-login attempt also failed with incorrect_device_code."
+    "path": null,
+    "sha256": null,
+    "public_asset": null,
+    "source_commit": null,
+    "notes": "Pending the clean v0.5.8 tag build; final evidence must record the public asset digest."
   },
   "discovery": {
     "remote": "git@github.com:jakyeamos/tmcp.git",
-    "remote_tag": "refs/tags/v0.5.7",
+    "remote_tag": "refs/tags/v0.5.8",
     "commands": [
-      "gh run view 29463457072 --repo jakyeamos/tmcp --exit-status",
-      "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.5.7.tar.gz --verify-reproducible",
-      "shasum -a 256 /private/tmp/tmcp-v0.5.7.tar.gz",
-      "git tag -a v0.5.7 -m 'TMCP 0.5.7'",
-      "git push origin v0.5.7",
-      "gh release create v0.5.7 /private/tmp/tmcp-v0.5.7.tar.gz --repo jakyeamos/tmcp --verify-tag",
-      "curl -sL https://github.com/jakyeamos/tmcp/releases/download/v0.5.7/tmcp-v0.5.7.tar.gz -o /private/tmp/tmcp-v0.5.7.public.tar.gz",
-      "cmp /private/tmp/tmcp-v0.5.7.tar.gz /private/tmp/tmcp-v0.5.7.public.tar.gz",
-      "mcp-publisher validate mcp-registry/draft-server.json",
-      "mcp-publisher publish mcp-registry/draft-server.json"
+      "python3 scripts/check_release_package.py . --output /private/tmp/tmcp-v0.5.8.tar.gz --verify-reproducible",
+      "shasum -a 256 /private/tmp/tmcp-v0.5.8.tar.gz",
+      "git tag -a v0.5.8 -m 'TMCP 0.5.8'",
+      "git push origin v0.5.8"
     ],
-    "result": "Hosted tag verification, exact release artifact, installed parity, and offline rollback are complete; MCP Registry validation passed, while publication returned HTTP 401 for an expired Registry JWT."
+    "result": "Candidate version metadata is prepared; final pull-request evidence, tag, artifact, installation, and rollback verification remain required."
   }
 }
