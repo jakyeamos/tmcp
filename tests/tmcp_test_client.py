@@ -70,6 +70,8 @@ class TestWorkspace:
         environment["HOME"] = str(home)
         environment["TMCP_HOME"] = str(self.tmcp_home)
         environment["AIOS_ROOT"] = str(self.root / "missing-aios")
+        environment.pop("TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER", None)
+        assert "TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER" not in environment
         environment.pop("XDG_CONFIG_HOME", None)
         environment.pop("XDG_CACHE_HOME", None)
         return environment

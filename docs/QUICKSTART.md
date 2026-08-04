@@ -15,7 +15,7 @@ Run it from the TMCP repo checkout, copied plugin root, or installed plugin cach
 | Skill-only install | Copy `skills/tmcp`; use manual packet synthesis unless a launcher is also available. |
 | Repo checkout | Run `node scripts/tmcp_launcher.mjs ...` from the checkout root. |
 | Codex plugin cache | MCP config launches relative `scripts/tmcp_launcher.mjs` from the plugin root. |
-| AIOS-backed install | Set `AIOS_ROOT` explicitly only when optional adapter behavior is wanted. |
+| Deprecated AIOS compatibility | Requires both `TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1` and `AIOS_ROOT`; new installs should use standalone TMCP. |
 | Plain MCP client | Configure command `node`, args `["scripts/tmcp_launcher.mjs"]`, and cwd as the TMCP root. |
 
 ## 2. Run Doctor And Status

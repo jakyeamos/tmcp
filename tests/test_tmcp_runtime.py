@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import os
 import shutil
 import subprocess
 import tarfile
@@ -16,7 +17,22 @@ RUNTIME_MANAGER = ROOT / "scripts" / "tmcp_runtime.mjs"
 JsonObject = dict[str, object]
 
 
+def isolated_git_environment(environment: dict[str, str]) -> dict[str, str]:
+    """Prevent nested fixture repositories from inheriting a parent Git operation."""
+
+    return {
+        key: value for key, value in environment.items() if not key.startswith("GIT_")
+    }
+
+
 class TmcpRuntimeManagerTests(unittest.TestCase):
+    def test_isolated_git_environment_strips_parent_git_state(self) -> None:
+        environment = isolated_git_environment(
+            {"PATH": "/usr/bin", "GIT_INDEX_FILE": "/parent/index.lock"}
+        )
+
+        self.assertEqual(environment, {"PATH": "/usr/bin"})
+
     def make_package(self, root: Path, version: str, marker: str) -> Path:
         package = root / f"package-{version}"
         (package / ".claude-plugin").mkdir(parents=True)
@@ -67,6 +83,7 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
         return subprocess.run(
             ["node", str(RUNTIME_MANAGER), *arguments],
             cwd=ROOT,
+            env=isolated_git_environment(dict(os.environ)),
             check=False,
             capture_output=True,
             text=True,
@@ -382,14 +399,25 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
                 "Codex native checkout content\n", encoding="utf-8"
             )
             git = ["git", "-C", str(marketplace)]
-            subprocess.run([*git, "init", "--quiet"], check=True)
-            subprocess.run([*git, "config", "user.name", "TMCP Test"], check=True)
+            git_environment = isolated_git_environment(dict(os.environ))
+            subprocess.run([*git, "init", "--quiet"], env=git_environment, check=True)
             subprocess.run(
-                [*git, "config", "user.email", "tmcp@example.invalid"], check=True
+                [*git, "config", "user.name", "TMCP Test"],
+                env=git_environment,
+                check=True,
+            )
+            subprocess.run(
+                [*git, "config", "user.email", "tmcp@example.invalid"],
+                env=git_environment,
+                check=True,
             )
             hooks = root / "hooks"
             hooks.mkdir()
-            subprocess.run([*git, "config", "core.hooksPath", str(hooks)], check=True)
+            subprocess.run(
+                [*git, "config", "core.hooksPath", str(hooks)],
+                env=git_environment,
+                check=True,
+            )
             subprocess.run(
                 [
                     *git,
@@ -398,9 +426,10 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
                     "origin",
                     "https://github.com/jakyeamos/tmcp.git",
                 ],
+                env=git_environment,
                 check=True,
             )
-            subprocess.run([*git, "add", "-A"], check=True)
+            subprocess.run([*git, "add", "-A"], env=git_environment, check=True)
             subprocess.run(
                 [
                     *git,
@@ -413,9 +442,10 @@ class TmcpRuntimeManagerTests(unittest.TestCase):
                     "-m",
                     "native checkout",
                 ],
+                env=git_environment,
                 check=True,
             )
-            subprocess.run([*git, "tag", "v1.0.0"], check=True)
+            subprocess.run([*git, "tag", "v1.0.0"], env=git_environment, check=True)
             diagnosis = self.run_manager(
                 "doctor",
                 "--runtime-home",

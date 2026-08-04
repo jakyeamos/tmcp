@@ -8,7 +8,7 @@ TMCP turns scattered agent instructions into task-specific operating packets. Th
 
 Skill names are provenance, not the user interface. Power users can still force a route; the default is natural prompting.
 
-AIOS is optional storage and adapter support. TMCP runs standalone from a repo checkout, copied plugin package, Codex plugin cache, Claude plugin cache, or any MCP host that can launch the bundled Node entrypoint.
+TMCP runs standalone from a repo checkout, copied plugin package, Codex plugin cache, Claude plugin cache, or any MCP host that can launch the bundled Node entrypoint. The former AIOS adapter is deprecated and disabled by default; `AIOS_ROOT` alone no longer enables it.
 
 See [docs/ADAPTIVE_PACKET_RUNTIME.md](docs/ADAPTIVE_PACKET_RUNTIME.md) for the adaptive packet runtime design.
 
@@ -36,7 +36,7 @@ node scripts/tmcp_launcher.mjs
 - Repo checkout: clone the repo and run `node scripts/tmcp_launcher.mjs doctor` from the checkout root.
 - Codex plugin cache: install as a Codex plugin; MCP config launches relative `scripts/tmcp_launcher.mjs` from the plugin root.
 - Shared local runtime: install a verified archive with `scripts/tmcp_runtime.mjs` so all agent hosts use one pinned active release with offline rollback. See [Central runtime](docs/CENTRAL_RUNTIME.md).
-- AIOS-backed install: set `AIOS_ROOT` explicitly only when you want optional AIOS storage/adapter behavior.
+- Deprecated AIOS compatibility: requires both `TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1` and `AIOS_ROOT`; new installations should use standalone TMCP.
 
 Claude Desktop users can add the launcher as a local stdio MCP server. See [docs/CLAUDE_DESKTOP.md](docs/CLAUDE_DESKTOP.md).
 

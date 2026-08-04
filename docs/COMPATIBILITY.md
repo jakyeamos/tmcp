@@ -51,7 +51,9 @@ The planned 0.5.0 release preserves the public MCP tools, CLI aliases, launcher,
 and v0.1 packet schemas while changing implementation ownership and state-effect
 defaults. Composition and runtime adaptation default to `cache_policy=none`;
 global cache reads and durable writes are explicit opt-ins. `adapter=auto` stays
-standalone, and explicit AIOS requests fail closed for known sensitive values.
+standalone. The deprecated AIOS path is disabled unless both compatibility
+environment gates are present, and explicit AIOS requests fail closed for known
+sensitive values.
 
 Legacy `promoted-harvest.json` summaries remain readable through an in-memory
 projection to the current promotion graph. Current graph files take precedence,

@@ -12,7 +12,7 @@ node scripts/tmcp_launcher.mjs doctor
 - Repo checkout: clone TMCP and run commands from the checkout root.
 - Codex plugin cache: install as a Codex plugin; MCP config launches `scripts/tmcp_launcher.mjs` relative to the plugin root.
 - Central local runtime: install a verified archive into `~/.tmcp/runtime/versions/<release>` and activate it through `scripts/tmcp_runtime.mjs`; generated Codex/Claude caches and compatibility aliases must be parity-checked.
-- AIOS-backed install: set `AIOS_ROOT` explicitly only when optional AIOS adapter behavior is wanted.
+- Deprecated AIOS compatibility: requires both `TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1` and `AIOS_ROOT`. New installations should use standalone TMCP.
 
 ## Local Source Check
 
@@ -108,8 +108,8 @@ The launcher finds Python in this order:
 - Windows: `py -3`, then `python`, then `python3`
 - macOS/Linux: `python3`, then `python`
 
-## AIOS Adapter
+## Deprecated AIOS Adapter
 
-AIOS is optional. `adapter: "auto"` and `adapter: "standalone"` stay inside TMCP even when `AIOS_ROOT` is configured. Use `adapter: "aios"` only when the caller explicitly opts into that local adapter; it returns a clear remediation error when unavailable. Explicit AIOS review is read-only.
+The AIOS adapter is disabled by default. `AIOS_ROOT` alone is ignored, so existing project configurations cannot activate an AIOS subprocess. Temporary legacy compatibility requires both `TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1` and `AIOS_ROOT`; `adapter: "auto"` and `adapter: "standalone"` still remain inside TMCP. New installations should not enable this compatibility path.
 
 TMCP rejects known sensitive request values before passing an explicit AIOS request through process arguments. Use standalone mode until AIOS offers a protected request-input protocol.

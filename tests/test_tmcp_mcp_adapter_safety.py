@@ -36,6 +36,7 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertEqual(result["adapter"], "aios")
         self.assertIn("AIOS_ROOT", result["error"])
         self.assertIn("--adapter standalone", result["remediation"])
+        self.assertIn("TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1", result["remediation"])
 
     def test_status_reports_aios_unconfigured_as_optional(self) -> None:
         original_root = getattr(self.server, "AIOS_ROOT")
@@ -49,6 +50,17 @@ class TmcpMcpAdapterSafetyTests(unittest.TestCase):
         self.assertFalse(result["aios_adapter"]["available"])
         self.assertFalse(result["aios_adapter"]["configured"])
         self.assertIsNone(result["aios_adapter"]["aios_root"])
+        self.assertTrue(result["aios_adapter"]["deprecated"])
+
+    def test_aios_root_alone_does_not_enable_the_deprecated_adapter(self) -> None:
+        self.assertFalse(self.server.AIOS_ADAPTER_COMPATIBILITY_ENABLED)
+        self.assertIsNone(self.server.AIOS_ROOT)
+
+        result = self.server._call_tool("tmcp_status", {})
+
+        self.assertFalse(result["aios_adapter"]["available"])
+        self.assertFalse(result["aios_adapter"]["configured"])
+        self.assertTrue(result["aios_adapter"]["deprecated"])
 
     def test_aios_auto_missing_falls_back_to_standalone(self) -> None:
         original_root = getattr(self.server, "AIOS_ROOT")
