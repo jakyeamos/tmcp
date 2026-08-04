@@ -1,18 +1,18 @@
 {
   "schema": "tmcp-release-evidence-v0.1",
   "version": "0.5.8",
-  "checked_at": "2026-08-04T04:47:00Z",
+  "checked_at": "2026-08-04T04:51:00Z",
   "hosted_verification": {
     "status": "completed",
     "conclusion": "success",
-    "source": "main",
-    "ref": "main",
-    "pr_number": null,
+    "source": "pull_request",
+    "ref": "codex/tmcp-0.5.8-aios-deprecation",
+    "pr_number": 19,
     "workflow": ".github/workflows/verify.yml",
-    "run_id": 30878526767,
-    "url": "https://github.com/jakyeamos/tmcp/actions/runs/30878526767",
-    "head_sha": "07b1e8cf2a94b2956497e1148ca4313e3d4b71b7",
-    "notes": "Candidate bootstrap: hosted main verification passed all seven jobs for the exact AIOS deprecation and Git-isolation code before the metadata-only 0.5.8 version bump. Replace this record with the 0.5.8 pull-request run before merge."
+    "run_id": 30878825115,
+    "url": "https://github.com/jakyeamos/tmcp/actions/runs/30878825115",
+    "head_sha": "4914ca7a058533f62eba86f58eec473b99de322d",
+    "notes": "PR #19 first-pass hosted verification passed all seven quality and Python 3.10/3.13 Ubuntu, macOS, and Windows jobs. This evidence-bound commit must pass the same matrix again before merge."
   },
   "release_package": {
     "path": null,
