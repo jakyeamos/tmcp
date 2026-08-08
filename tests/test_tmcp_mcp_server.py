@@ -25,6 +25,9 @@ SERVER_PATH = Path(__file__).resolve().parents[1] / "scripts" / "tmcp_mcp_server
 PLUGIN_ROOT = SERVER_PATH.parents[1]
 CHECK_INSTALL_PATH = PLUGIN_ROOT / "scripts" / "check_install.py"
 GOLDEN_PACKETS_PATH = PLUGIN_ROOT / "tests" / "fixtures" / "golden_packets.json"
+PACKET_SUBSTANCE_PUBLIC_FIXTURE = (
+    PLUGIN_ROOT / "tests" / "fixtures" / "packet-substance-public-v0.1.json"
+)
 PACKET_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-skill-packet-v0.2.schema.json"
 COMPOSED_PACKET_SCHEMA_PATH = (
     PLUGIN_ROOT / "schemas" / "tmcp-composed-packet-v0.1.schema.json"
@@ -401,6 +404,8 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "schemas/tmcp-run-receipt-v0.1.schema.json",
                 "schemas/tmcp-run-session-v0.1.schema.json",
                 "schemas/tmcp-promoted-harvest-graph-v0.1.schema.json",
+                "schemas/tmcp-handoff-manifest-v0.2.schema.json",
+                "scripts/replay_handoff.py",
                 "scripts/release_package_composition.py",
                 "scripts/release_package_sessions.py",
                 "tmcp_runtime/domain/declared_loads.py",
@@ -875,6 +880,122 @@ class TmcpMcpServerTests(unittest.TestCase):
                 for node in result["expertise_packet"]["source_skill_nodes"]
             )
         )
+
+    def test_public_launcher_and_mcp_expose_packet_substance_without_source_text(
+        self,
+    ) -> None:
+        fixture = json.loads(PACKET_SUBSTANCE_PUBLIC_FIXTURE.read_text())
+        objective = fixture["objective"]
+        source_rich = fixture["source_rich"]
+        process_only = fixture["process_only"]
+
+        with TestWorkspace() as workspace:
+            source_rich_project = workspace.project / "source-rich"
+            process_only_project = workspace.project / "process-only"
+            source_path = source_rich_project / source_rich["relative_path"]
+            source_path.parent.mkdir(parents=True)
+            source_path.write_text(source_rich["content"])
+            process_only_project.mkdir()
+
+            cli_arguments = [
+                "review-plan",
+                objective,
+                "--adapter",
+                "standalone",
+                "--evidence-json",
+                "[]",
+                "--no-write-artifacts",
+                "--compact",
+            ]
+            rich_cli = workspace.run_cli(
+                [*cli_arguments, "--project-path", str(source_rich_project)]
+            )
+            process_cli = workspace.run_cli(
+                [*cli_arguments, "--project-path", str(process_only_project)]
+            )
+            self.assertEqual(rich_cli.returncode, 0, rich_cli.stderr)
+            self.assertEqual(process_cli.returncode, 0, process_cli.stderr)
+            rich_cli_payload = rich_cli.json()
+            process_cli_payload = process_cli.json()
+
+            mcp_responses = workspace.run_mcp(
+                [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "expert_rubric_review_plan",
+                            "arguments": {
+                                "objective": objective,
+                                "project_path": str(source_rich_project),
+                                "evidence_json": "[]",
+                                "write_artifacts": False,
+                            },
+                        },
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "expert_rubric_review_plan",
+                            "arguments": {
+                                "objective": objective,
+                                "project_path": str(process_only_project),
+                                "evidence_json": "[]",
+                                "write_artifacts": False,
+                            },
+                        },
+                    },
+                ]
+            )
+
+        rich_mcp_payload = cast(
+            Mapping[str, object], mcp_responses[0]["result"]["structuredContent"]
+        )
+        process_mcp_payload = cast(
+            Mapping[str, object], mcp_responses[1]["result"]["structuredContent"]
+        )
+
+        def substance(payload: Mapping[str, object]) -> Mapping[str, object]:
+            packet = cast(Mapping[str, object], payload["expertise_packet"])
+            return cast(Mapping[str, object], packet["substance_check"])
+
+        for payload in (rich_cli_payload, rich_mcp_payload):
+            check = substance(payload)
+            self.assertEqual(check["level"], source_rich["expected_level"])
+            self.assertEqual(
+                check["has_domain_playbook"],
+                source_rich["expected_has_domain_playbook"],
+            )
+        for payload in (process_cli_payload, process_mcp_payload):
+            check = substance(payload)
+            self.assertEqual(check["level"], process_only["expected_level"])
+            self.assertEqual(
+                check["has_domain_playbook"],
+                process_only["expected_has_domain_playbook"],
+            )
+
+        rich_packet = cast(Mapping[str, object], rich_cli_payload["expertise_packet"])
+        rich_source_nodes = cast(
+            list[Mapping[str, object]], rich_packet["source_skill_nodes"]
+        )
+        self.assertTrue(rich_source_nodes)
+        self.assertTrue(all("excerpt" not in node for node in rich_source_nodes))
+        self.assertTrue(all("signal_excerpt" not in node for node in rich_source_nodes))
+
+        rendered_responses = json.dumps(
+            {
+                "rich_cli": rich_cli_payload,
+                "process_cli": process_cli_payload,
+                "mcp_responses": mcp_responses,
+                "rich_mcp": rich_mcp_payload,
+                "process_mcp": process_mcp_payload,
+            },
+            sort_keys=True,
+        )
+        self.assertNotIn(source_rich["marker"], rendered_responses)
 
     def test_mcp_protocol_lists_and_calls_tools(self) -> None:
         responses = run_mcp_requests(
