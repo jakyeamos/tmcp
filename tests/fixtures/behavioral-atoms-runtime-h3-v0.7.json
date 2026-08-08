@@ -1,0 +1,347 @@
+{
+  "$schema": "https://github.com/jakyeamos/tmcp/schemas/tmcp-behavioral-atoms-runtime-h3-fixtures-v0.7.schema.json",
+  "schema": "tmcp-behavioral-atoms-runtime-h3-fixtures-v0.7",
+  "version": "0.7.0",
+  "split": "preregistered_h3",
+  "owner": {
+    "owner_id": "behavioral_atoms_h3_boundary",
+    "authority": "coordinator_owned_decision_contract",
+    "scope": "static H3 applicability and boundary decisions only",
+    "contact_boundary": "No provider, runtime, or external evaluator owns or may retune these fixtures."
+  },
+  "non_tuning_boundary": {
+    "tuning_allowed": false,
+    "labels_frozen_before_implementation": true,
+    "expected_outcomes_frozen_before_runtime_or_provider_work": true,
+    "allowed_changes": "Only a separately versioned contract correction may change a label or expected outcome; no in-place tuning is allowed.",
+    "forbidden_uses": [
+      "Do not use fixture text as a provider prompt or provider outcome evidence.",
+      "Do not admit H3 from literal trigger words or lexical candidates.",
+      "Do not infer cross-skill composition support from the combined fixture.",
+      "Do not use the fixtures to change H1, H2, no-bundle, default, admission, or routing behavior.",
+      "Do not treat a static fixture decision as runtime, causal, economic, or provider evidence."
+    ]
+  },
+  "baseline_refs": [
+    {
+      "path": "tests/fixtures/behavioral-atoms-held-out-v0.3.json",
+      "sha256": "172c761fcc5fb8f4814a2e9783b5322ad724b81ebec3ac0c74a1c03e9f9c652f",
+      "role": "immutable H1 semantic fixture baseline"
+    },
+    {
+      "path": "schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json",
+      "sha256": "6b8df833b14b44416ce151674e4bac334e798b2e0ffa2645627606c8796a30f9",
+      "role": "immutable fixture boundary baseline"
+    },
+    {
+      "path": "docs/experiments/behavioral-atoms-runtime-h2-redaction-ship-gate-v0.6.json",
+      "sha256": "8b521e07628628ba84df1816fc5315fdf8cb31b080d23acd40dd8b95d73a988c",
+      "role": "private H2 boundary and deferred-H3 baseline"
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "h3_security_positive_authorized_secret_boundary",
+      "classification": "positive",
+      "domain_scope": "security_privacy",
+      "interaction": "none",
+      "frozen_label": true,
+      "prompt_excerpt": "Review an owned auth/data-flow boundary using a redacted artifact, an explicit owner, and an authorized scope; report boundary findings without returning sensitive values.",
+      "semantic_record": {
+        "explicit_signals": {
+          "security_privacy": "positive",
+          "secret_boundary": "authorized_scope_and_boundary_evidence"
+        },
+        "inputs": [
+          {"name": "authorized_scope", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "boundary_evidence", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "reads": [
+          {"name": "skills/tmcp-security-privacy-audit/SKILL.md", "status": "available", "owner": "h3-fixture-owner", "trust": "committed_source_backed"},
+          {"name": "authorized auth and data-flow boundary evidence", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "evidence": [
+          {"name": "authorized boundary and evidence gaps are mapped", "status": "recorded", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "observed findings are separated from inferred risk", "status": "recorded", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "verification": [
+          {"name": "scope ownership is checked before sensitive evidence use", "status": "passed", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "remediation is checked against the recorded boundary", "status": "passed", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "phase": "planning",
+        "token_budget": 512
+      },
+      "expected_outcome": {
+        "decision": "admit",
+        "required_h3_atoms": ["domain.security_privacy.secret_boundary@0.4.0"],
+        "required_baseline_atoms": ["process.read.required-sources@0.4.0", "domain.security_privacy.redaction@0.4.0"],
+        "unique_delta": "Require owned authorization and boundary mapping before sensitive evidence is used; redaction remains the output-safety baseline.",
+        "missing_evidence": [],
+        "stop": false,
+        "provider_outcome": "not_run",
+        "cross_skill_composition": "closed_gate",
+        "absent_from_current_evidence": false
+      }
+    },
+    {
+      "id": "h3_security_negative_redaction_only",
+      "classification": "negative",
+      "domain_scope": "security_privacy",
+      "interaction": "none",
+      "frozen_label": true,
+      "prompt_excerpt": "Redact an already-owned output and record the redaction summary; no access, authorization, private-data, or auth/data-flow boundary is under review.",
+      "semantic_record": {
+        "explicit_signals": {
+          "security_privacy": "negative",
+          "redaction": "output_transformation_only"
+        },
+        "inputs": [
+          {"name": "redaction_policy", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "reads": [
+          {"name": "skills/tmcp-security-privacy-audit/SKILL.md", "status": "available", "owner": "h3-fixture-owner", "trust": "committed_source_backed"}
+        ],
+        "evidence": [
+          {"name": "redaction summary is recorded", "status": "recorded", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "verification": [
+          {"name": "output contains no unredacted values", "status": "passed", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "phase": "planning",
+        "token_budget": 256
+      },
+      "expected_outcome": {
+        "decision": "reject",
+        "required_h3_atoms": [],
+        "required_baseline_atoms": ["domain.security_privacy.redaction@0.4.0"],
+        "unique_delta": "No H3 obligation: output redaction alone must not imply an authorized secret boundary.",
+        "missing_evidence": [],
+        "stop": false,
+        "provider_outcome": "not_run",
+        "cross_skill_composition": "closed_gate",
+        "absent_from_current_evidence": false
+      }
+    },
+    {
+      "id": "h3_security_ambiguous_inferred_authority",
+      "classification": "ambiguous",
+      "domain_scope": "security_privacy",
+      "interaction": "none",
+      "frozen_label": true,
+      "prompt_excerpt": "Review possible credential-like material from an exported log, but the authorized scope, data owner, and handling boundary are not established.",
+      "semantic_record": {
+        "explicit_signals": {
+          "security_privacy": "ambiguous",
+          "secret_boundary": "possible_sensitive_data_without_authority"
+        },
+        "inputs": [
+          {"name": "authorized_scope", "status": "missing", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "boundary_evidence", "status": "missing", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "reads": [
+          {"name": "exported log", "status": "blocked", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "evidence": [
+          {"name": "data owner", "status": "missing", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "verification": [
+          {"name": "authorized handling boundary", "status": "not_run", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "phase": "planning",
+        "token_budget": 512
+      },
+      "expected_outcome": {
+        "decision": "hold_for_evidence",
+        "required_h3_atoms": [],
+        "required_baseline_atoms": [],
+        "unique_delta": "Do not read, emit, or infer a secret boundary when authority and ownership are unresolved.",
+        "missing_evidence": ["authorized scope", "data owner", "handling boundary"],
+        "stop": true,
+        "provider_outcome": "not_run",
+        "cross_skill_composition": "closed_gate",
+        "absent_from_current_evidence": false
+      }
+    },
+    {
+      "id": "h3_release_positive_quality_ladder",
+      "classification": "positive",
+      "domain_scope": "release_readiness",
+      "interaction": "none",
+      "frozen_label": true,
+      "prompt_excerpt": "Inventory release checks for a declared handoff, including passed, failed, blocked, not-run, and unknown gates, with command scope and freshness for each item.",
+      "semantic_record": {
+        "explicit_signals": {
+          "release_readiness": "positive",
+          "evidence_ladder": "quality_ladder_and_freshness"
+        },
+        "inputs": [
+          {"name": "quality_ladder", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "verification_freshness", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "reads": [
+          {"name": "skills/tmcp-release-readiness/SKILL.md", "status": "available", "owner": "h3-fixture-owner", "trust": "committed_source_backed"},
+          {"name": "CI, tests, build scripts, package metadata, and release checklist", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "evidence": [
+          {"name": "all gate states are inventoried", "status": "recorded", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "each remediation slice has required evidence", "status": "recorded", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "verification": [
+          {"name": "ladder covers the declared release scope", "status": "passed", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "each remediation slice has an acceptance check", "status": "passed", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "phase": "planning",
+        "token_budget": 512
+      },
+      "expected_outcome": {
+        "decision": "admit",
+        "required_h3_atoms": ["domain.release_readiness.evidence_ladder@0.4.0"],
+        "required_baseline_atoms": ["process.read.required-sources@0.4.0", "domain.release_readiness.ship_gate@0.4.0"],
+        "unique_delta": "Require an ordered, fresh inventory of every gate and a per-slice acceptance check; ship/no-ship remains the H2 baseline decision.",
+        "missing_evidence": [],
+        "stop": false,
+        "provider_outcome": "not_run",
+        "cross_skill_composition": "closed_gate",
+        "absent_from_current_evidence": false
+      }
+    },
+    {
+      "id": "h3_release_negative_ship_gate_only",
+      "classification": "negative",
+      "domain_scope": "release_readiness",
+      "interaction": "none",
+      "frozen_label": true,
+      "prompt_excerpt": "Make a ship/no-ship decision from current CI and test status; no quality-ladder inventory, freshness mapping, or ordered remediation slices are requested.",
+      "semantic_record": {
+        "explicit_signals": {
+          "release_readiness": "negative",
+          "ship_gate": "decision_only"
+        },
+        "inputs": [
+          {"name": "release_scope", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "reads": [
+          {"name": "skills/tmcp-release-readiness/SKILL.md", "status": "available", "owner": "h3-fixture-owner", "trust": "committed_source_backed"}
+        ],
+        "evidence": [
+          {"name": "current quality evidence", "status": "recorded", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "verification": [
+          {"name": "required release checks", "status": "passed", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "phase": "planning",
+        "token_budget": 256
+      },
+      "expected_outcome": {
+        "decision": "reject",
+        "required_h3_atoms": [],
+        "required_baseline_atoms": ["domain.release_readiness.ship_gate@0.4.0"],
+        "unique_delta": "No H3 obligation: a ship gate must not be relabeled as a complete quality ladder.",
+        "missing_evidence": [],
+        "stop": false,
+        "provider_outcome": "not_run",
+        "cross_skill_composition": "closed_gate",
+        "absent_from_current_evidence": false
+      }
+    },
+    {
+      "id": "h3_release_ambiguous_partial_ladder",
+      "classification": "ambiguous",
+      "domain_scope": "release_readiness",
+      "interaction": "none",
+      "frozen_label": true,
+      "prompt_excerpt": "Prepare a release handoff with partial checks, but the check scope, freshness, required-gate inventory, and owner for unresolved items are not identified.",
+      "semantic_record": {
+        "explicit_signals": {
+          "release_readiness": "ambiguous",
+          "evidence_ladder": "partial_unknown_scope"
+        },
+        "inputs": [
+          {"name": "quality_ladder", "status": "partial", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "verification_freshness", "status": "missing", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "reads": [
+          {"name": "partial CI output", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "evidence": [
+          {"name": "required gate inventory", "status": "missing", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "verification": [
+          {"name": "freshness and acceptance scope", "status": "not_run", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "phase": "planning",
+        "token_budget": 512
+      },
+      "expected_outcome": {
+        "decision": "hold_for_evidence",
+        "required_h3_atoms": [],
+        "required_baseline_atoms": [],
+        "unique_delta": "Do not treat partial or stale checks as a complete ladder; enumerate missing gates and freshness first.",
+        "missing_evidence": ["required gate inventory", "verification freshness", "owner for unresolved gates"],
+        "stop": true,
+        "provider_outcome": "not_run",
+        "cross_skill_composition": "closed_gate",
+        "absent_from_current_evidence": false
+      }
+    },
+    {
+      "id": "h3_combined_positive_secret_boundary_evidence_ladder",
+      "classification": "positive",
+      "domain_scope": "combined",
+      "interaction": "h3_combined_domain",
+      "frozen_label": true,
+      "prompt_excerpt": "Assess a release handoff that includes a redacted private artifact: verify authorized access scope before reading it, then inventory the complete fresh quality ladder and its remediation acceptance checks.",
+      "semantic_record": {
+        "explicit_signals": {
+          "security_privacy": "positive",
+          "release_readiness": "positive",
+          "secret_boundary": "authorized_artifact_access",
+          "evidence_ladder": "complete_fresh_release_evidence"
+        },
+        "inputs": [
+          {"name": "authorized_scope", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "boundary_evidence", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "quality_ladder", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "verification_freshness", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "reads": [
+          {"name": "skills/tmcp-security-privacy-audit/SKILL.md", "status": "available", "owner": "h3-fixture-owner", "trust": "committed_source_backed"},
+          {"name": "skills/tmcp-release-readiness/SKILL.md", "status": "available", "owner": "h3-fixture-owner", "trust": "committed_source_backed"},
+          {"name": "redacted release artifact and owned auth/data-flow boundary", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "CI, tests, build scripts, package metadata, and release checklist", "status": "available", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "evidence": [
+          {"name": "authorized boundary is recorded before artifact use", "status": "recorded", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "all release gate states and freshness are recorded", "status": "recorded", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "security findings and release gaps remain separately attributed", "status": "recorded", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "verification": [
+          {"name": "no unredacted sensitive value crosses the output boundary", "status": "passed", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "quality ladder is complete for the declared release scope", "status": "passed", "owner": "h3-fixture-owner", "trust": "sealed_fixture"},
+          {"name": "each remediation slice has an acceptance check", "status": "passed", "owner": "h3-fixture-owner", "trust": "sealed_fixture"}
+        ],
+        "phase": "planning",
+        "token_budget": 768
+      },
+      "expected_outcome": {
+        "decision": "admit",
+        "required_h3_atoms": [
+          "domain.security_privacy.secret_boundary@0.4.0",
+          "domain.release_readiness.evidence_ladder@0.4.0"
+        ],
+        "required_baseline_atoms": [
+          "process.read.required-sources@0.4.0",
+          "domain.security_privacy.redaction@0.4.0",
+          "domain.release_readiness.ship_gate@0.4.0"
+        ],
+        "unique_delta": "Join authorized private-artifact access with a complete, fresh release evidence ladder; neither H2 redaction nor H2 ship-gate semantics supplies this combined obligation set.",
+        "missing_evidence": [],
+        "stop": false,
+        "provider_outcome": "not_run",
+        "cross_skill_composition": "closed_gate",
+        "absent_from_current_evidence": true,
+        "absence_basis": "The sealed v0.3 artifact has only single-family cases, and the v0.6 decision explicitly defers H3 without a combined fixture."
+      }
+    }
+  ]
+}
