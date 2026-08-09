@@ -36,7 +36,6 @@ UI_SIGNAL_TERMS = (
     "css",
     "dashboard",
     "landing page",
-    "design",
     "browser",
     "responsive",
     "contrast",
@@ -111,6 +110,15 @@ PR_RISK_PHRASES = (
     "changed surface",
     "merge risk",
 )
+REVIEW_SOURCE_PATH_TERMS = (
+    "audit",
+    "rubric",
+    "readiness",
+    "postmortem",
+    "pr-risk",
+    "risk-review",
+)
+MAX_COMPOSITION_NODES = 6
 
 
 def _json_list(value: object) -> list[Any]:
@@ -167,6 +175,32 @@ def objective_has_phrase(objective: str, phrases: tuple[str, ...]) -> bool:
     return any(phrase in lower or phrase in normalized for phrase in phrases)
 
 
+def objective_explicitly_requests_review_source(
+    objective: str,
+    relative_path: str,
+) -> bool:
+    """Permit review-oriented sources only when the task explicitly names their use."""
+
+    relative_path = relative_path.lower()
+    if "release-readiness" in relative_path and objective_has_phrase(
+        objective, RELEASE_READINESS_PHRASES
+    ):
+        return True
+    for domain in ("migration", "performance", "security", "data"):
+        if f"{domain}-readiness" in relative_path and objective_has_phrase(
+            objective, (f"{domain} readiness",)
+        ):
+            return True
+    if "readiness" in relative_path and _contains_signal_term(objective, "readiness"):
+        return True
+    if "pr-risk" in relative_path and objective_has_phrase(objective, PR_RISK_PHRASES):
+        return True
+    return any(
+        term in relative_path and _contains_signal_term(objective, term)
+        for term in ("audit", "rubric", "postmortem")
+    )
+
+
 def is_uiish_text(value: str) -> bool:
     return any(_contains_signal_term(value, term) for term in UI_SIGNAL_TERMS)
 
@@ -203,6 +237,12 @@ def score_composition_node(
     score = float(len(objective_terms.intersection(node_terms)))
     source_type = str(node.get("source_type") or "")
     rel_path = str(node.get("relative_path") or "").lower()
+
+    if (
+        any(term in rel_path for term in REVIEW_SOURCE_PATH_TERMS)
+        and not objective_explicitly_requests_review_source(objective, rel_path)
+    ):
+        return 0.0
 
     if "repo-behavior" in rel_path and not objective_has_phrase(
         objective,
@@ -280,7 +320,7 @@ def select_composition_nodes(
     active_routes: list[str] | None = None,
     node_signal_text: NodeSignalText,
 ) -> list[Node]:
-    """Return the eight highest-scoring harvested nodes without mutating inputs."""
+    """Return the six highest-scoring harvested nodes without mutating inputs."""
 
     active_family_context = family_context or compose_family_context(
         source_nodes,
@@ -307,14 +347,14 @@ def select_composition_nodes(
             continue
         scored.append((score, str(node.get("relative_path") or ""), node))
     scored.sort(key=lambda item: (-item[0], item[1]))
-    return [node for _, _, node in scored[:8]]
+    return [node for _, _, node in scored[:MAX_COMPOSITION_NODES]]
 
 
 def merge_composition_nodes(
     primary_nodes: list[Node],
     additional_nodes: list[Node],
     *,
-    max_nodes: int = 14,
+    max_nodes: int = MAX_COMPOSITION_NODES,
 ) -> list[Node]:
     """Merge composition selections while preserving source order and identity."""
 
@@ -329,6 +369,35 @@ def merge_composition_nodes(
         if len(merged) >= max_nodes:
             break
     return merged
+
+
+def node_has_task_specific_contribution(
+    node: Node,
+    objective: str,
+    active_routes: list[str],
+    *,
+    node_signal_text: NodeSignalText,
+) -> bool:
+    """Return whether a selected source contributes beyond generic repo policy."""
+
+    text = node_signal_text(node)
+    objective_terms = composition_terms(objective)
+    if objective_terms.intersection(composition_terms(text)):
+        return True
+    metadata = _routing_metadata(node)
+    objective_lower = objective.lower()
+    if any(
+        phrase.lower() in objective_lower
+        for phrase in _string_list(metadata.get("trigger_phrases"))
+        if phrase.lower() not in COMPOSITION_GENERIC_TERMS
+    ):
+        return True
+    return composition_route_boost(
+        active_routes,
+        relative_path=str(node.get("relative_path") or ""),
+        source_type=str(node.get("source_type") or ""),
+        text=text,
+    ) > 0
 
 
 def contextual_atoms_and_gates(

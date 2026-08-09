@@ -5,12 +5,14 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from tmcp_runtime.domain.admission import apply_packet_utility_gate, decide_admission
 from tmcp_runtime.domain.composition import (
     contextual_atoms_and_gates,
     filter_source_verification_gates,
     matching_reference_reads,
     merge_composition_nodes,
     normalize_cache_policy,
+    node_has_task_specific_contribution,
     select_composition_nodes,
 )
 from tmcp_runtime.domain.declared_loads import resolve_declared_load_nodes
@@ -26,6 +28,10 @@ from tmcp_runtime.domain.routes import derive_task_identity
 from tmcp_runtime.domain.workflow_activation import (
     build_global_workflow_activation,
     select_global_workflows,
+)
+from tmcp_runtime.services.behavioral_atom_runtime import (
+    project_semantic_bundle_to_packet,
+    semantic_bundle_from_arguments,
 )
 
 
@@ -162,6 +168,12 @@ def compose_packet_from_source_nodes(
     active_routes = (
         string_list(task_identity.get("active_routes")) or preliminary_routes
     )
+    admission = decide_admission(
+        objective,
+        task_identity,
+        mode=arguments.get("admission_mode"),
+        context=context,
+    )
     selected_nodes = select_composition_nodes(
         source_nodes,
         objective,
@@ -178,6 +190,24 @@ def compose_packet_from_source_nodes(
         family_context=family_context,
     )
     selected_nodes = merge_composition_nodes(selected_nodes, declared_load_nodes)
+    contribution_count = sum(
+        1
+        for node in selected_nodes
+        if node_has_task_specific_contribution(
+            node,
+            objective,
+            active_routes,
+            node_signal_text=node_signal_text,
+        )
+    )
+    admission = apply_packet_utility_gate(
+        admission,
+        selected_source_count=len(selected_nodes),
+        task_specific_contribution_count=contribution_count,
+    )
+    if admission["action"] == "bypass":
+        selected_nodes = []
+        declared_load_paths = []
 
     active_global_graphs: list[dict[str, Any]] = []
     active_receipts: list[dict[str, Any]] = []
@@ -186,7 +216,11 @@ def compose_packet_from_source_nodes(
         active_global_graphs = global_graphs
         active_receipts = receipts
         active_cache_warnings = cache_warnings
-    selected_workflows = select_global_workflows(active_global_graphs, objective)
+    selected_workflows = (
+        select_global_workflows(active_global_graphs, objective)
+        if admission["action"] != "bypass"
+        else []
+    )
 
     active_instructions: list[str] = []
     required_reads: list[str] = []
@@ -226,9 +260,11 @@ def compose_packet_from_source_nodes(
     active_atoms.extend(global_activation["active_atoms"])
     evidence_citations.extend(global_activation["evidence_citations"])
 
-    context_atoms, context_reads, context_gates = contextual_atoms_and_gates(
-        objective, phase, context
-    )
+    context_atoms, context_reads, context_gates = ([], [], [])
+    if admission["action"] != "bypass":
+        context_atoms, context_reads, context_gates = contextual_atoms_and_gates(
+            objective, phase, context
+        )
     active_atoms.extend(context_atoms)
     required_reads.extend(context_reads)
     verification_gates.extend(context_gates)
@@ -251,7 +287,7 @@ def compose_packet_from_source_nodes(
         "warnings": active_cache_warnings,
         "trust": "advisory_untrusted",
     }
-    return build_composed_packet(
+    packet = build_composed_packet(
         composed_packet_schema=COMPOSED_PACKET_SCHEMA,
         objective=objective,
         project_path=str(arguments.get("project_path") or "."),
@@ -272,4 +308,9 @@ def compose_packet_from_source_nodes(
         global_cache=global_cache,
         receipt_count=len(active_receipts),
         user_overrides=string_list(arguments.get("user_overrides")),
+        admission=admission,
     )
+    semantic_bundle = semantic_bundle_from_arguments(arguments)
+    if semantic_bundle is not None:
+        return project_semantic_bundle_to_packet(packet, semantic_bundle)
+    return packet

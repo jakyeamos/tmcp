@@ -9,7 +9,9 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from scripts import replay_handoff
 from scripts.replay_handoff import formatter_fingerprint, main
 
 
@@ -22,6 +24,9 @@ class HandoffReplayTests(unittest.TestCase):
         self.payload = self.bundle / "files" / "nested" / "example.txt"
         self.payload.parent.mkdir(parents=True)
         self.payload.write_bytes(b"stable handoff\n")
+        self.receipt = self.bundle / "handoffs" / "h3-v0.8" / "RECEIPT.md"
+        self.receipt.parent.mkdir(parents=True)
+        self.receipt.write_bytes(b"owner-aware receipt\n")
         digest = hashlib.sha256(self.payload.read_bytes()).hexdigest()
         self.manifest = self.bundle / "manifest.json"
         self.manifest.write_text(
@@ -107,7 +112,9 @@ class HandoffReplayTests(unittest.TestCase):
                         "owner": "worker-h3-v0.8",
                         "receipt": {
                             "reference": "handoffs/h3-v0.8/RECEIPT.md",
-                            "sha256": "e" * 64,
+                            "sha256": hashlib.sha256(
+                                self.receipt.read_bytes()
+                            ).hexdigest(),
                             "freshness": freshness,
                             "observed_at": "2026-08-08T12:00:00Z",
                         },
@@ -119,6 +126,12 @@ class HandoffReplayTests(unittest.TestCase):
             encoding="utf-8",
         )
         return manifest
+
+    def invoke_result(self, arguments: list[str]) -> tuple[int, dict[str, object]]:
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            code = main(arguments)
+        return code, json.loads(output.getvalue())
 
     def test_owner_aware_manifest_reports_custody(self) -> None:
         manifest = self.owner_aware_manifest()
@@ -193,6 +206,72 @@ class HandoffReplayTests(unittest.TestCase):
     def test_require_custody_rejects_stale_receipt(self) -> None:
         manifest = self.owner_aware_manifest(freshness="stale")
         self.assertEqual(self.invoke(["verify", str(manifest), "--require-custody"]), 2)
+
+    def test_require_custody_accepts_matching_referenced_receipt_bytes(self) -> None:
+        manifest = self.owner_aware_manifest()
+        code, result = self.invoke_result(
+            ["verify", str(manifest), "--require-custody"]
+        )
+        self.assertEqual(code, 0)
+        self.assertTrue(result["ok"])
+
+    def test_require_custody_rejects_missing_referenced_receipt(self) -> None:
+        manifest = self.owner_aware_manifest()
+        self.receipt.unlink()
+        code, result = self.invoke_result(
+            ["verify", str(manifest), "--require-custody"]
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("referenced receipt is missing", result["error"])
+        self.assertNotIn(str(self.root), result["error"])
+
+    def test_require_custody_rejects_mismatched_referenced_receipt_hash(self) -> None:
+        manifest = self.owner_aware_manifest()
+        payload = json.loads(manifest.read_text(encoding="utf-8"))
+        payload["custody"]["receipt"]["sha256"] = "0" * 64
+        manifest.write_text(json.dumps(payload), encoding="utf-8")
+        code, result = self.invoke_result(
+            ["verify", str(manifest), "--require-custody"]
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("receipt bytes SHA-256 mismatch", result["error"])
+        self.assertNotIn(str(self.root), result["error"])
+
+    def test_require_custody_rejects_non_file_referenced_receipt(self) -> None:
+        manifest = self.owner_aware_manifest()
+        self.receipt.unlink()
+        self.receipt.mkdir()
+        code, result = self.invoke_result(
+            ["verify", str(manifest), "--require-custody"]
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("not a regular file", result["error"])
+
+    def test_require_custody_rejects_unreadable_referenced_receipt(self) -> None:
+        manifest = self.owner_aware_manifest()
+        with patch.object(
+            replay_handoff,
+            "_digest",
+            side_effect=PermissionError("receipt access denied"),
+        ):
+            code, result = self.invoke_result(
+                ["verify", str(manifest), "--require-custody"]
+            )
+        self.assertEqual(code, 2)
+        self.assertIn("referenced receipt is unreadable", result["error"])
+        self.assertNotIn(str(self.root), result["error"])
+
+    def test_require_custody_rejects_malformed_receipt_reference(self) -> None:
+        manifest = self.owner_aware_manifest()
+        payload = json.loads(manifest.read_text(encoding="utf-8"))
+        payload["custody"]["receipt"]["reference"] = "../RECEIPT.md"
+        manifest.write_text(json.dumps(payload), encoding="utf-8")
+        code, result = self.invoke_result(
+            ["verify", str(manifest), "--require-custody"]
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("safe relative path", result["error"])
+        self.assertNotIn(str(self.root), result["error"])
 
     def test_require_custody_rejects_missing_formatter_fingerprint(self) -> None:
         manifest = self.owner_aware_manifest()

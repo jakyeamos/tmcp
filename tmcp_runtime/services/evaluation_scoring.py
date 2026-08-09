@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from tmcp_runtime.services.evaluation_packets import (
@@ -19,6 +19,64 @@ from tmcp_runtime.services.evaluation_packets import (
 
 EVAL_TRACE_SCHEMA = "tmcp-skill-eval-trace-v0.1"
 ComposeEvaluationRow = Callable[[dict[str, Any], str | None], dict[str, Any]]
+
+
+def score_typed_static_advisory(
+    actual: Mapping[str, Any], expected: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Score an internal typed projection without executing a provider cell.
+
+    This is deliberately a small structural comparison. It records what the
+    compiler produced versus the sealed expectation and never turns the result
+    into promotion, admission, or a provider outcome.
+    """
+
+    actual_decision = str(actual.get("decision") or "")
+    expected_decision = str(expected.get("decision") or "")
+    actual_ids = {
+        str(item)
+        for item in actual.get("domain_selected_ids", actual.get("selected_ids", []))
+        if str(item)
+    }
+    expected_ids = {
+        str(item)
+        for item in expected.get(
+            "required_domain_atoms", expected.get("required_atoms", [])
+        )
+        if str(item)
+    }
+    actual_stops = {str(item) for item in actual.get("stops", []) if str(item)}
+    expected_stops = {
+        str(item)
+        for item in expected.get("required_stops", expected.get("stops", []))
+        if str(item)
+    }
+    decision_match = actual_decision == expected_decision
+    atom_match = expected_ids.issubset(actual_ids) if expected_ids else not actual_ids
+    stop_match = not expected_stops or bool(actual_stops)
+    checks = {
+        "decision": decision_match,
+        "required_domain_atoms": atom_match,
+        "stop_preserved": stop_match,
+    }
+    passed = all(checks.values())
+    return {
+        "score": 1.0 if passed else 0.0,
+        "confidence": "high" if passed else "medium",
+        "evidence_level": "static_review",
+        "provider_execution": False,
+        "checks": checks,
+        "actual": {
+            "decision": actual_decision,
+            "domain_selected_ids": sorted(actual_ids),
+            "stops": sorted(actual_stops),
+        },
+        "expected": {
+            "decision": expected_decision,
+            "required_domain_atoms": sorted(expected_ids),
+            "stops": sorted(expected_stops),
+        },
+    }
 
 
 def _path_name(value: str) -> str:
