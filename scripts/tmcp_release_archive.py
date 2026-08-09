@@ -345,12 +345,17 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     if len(value) not in {40, 64, 96, 128} or not re.fullmatch(r"[A-Fa-f0-9]+", value):
         return False
     line_start = text.rfind("\n", 0, match.start()) + 1
-    prefix = text[line_start : match.start()]
+    previous_line_start = text.rfind("\n", 0, max(line_start - 1, 0)) + 1
+    prefix = text[previous_line_start : match.start()]
     return (
         re.search(
-            r"(?:[\"']?\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b[\"']?"
-            r"(?:\s+(?:hash|digest))?|[\"'][^\"'\r\n]+/[^\"'\r\n]+[\"'])"
-            r"\s*[:=]\s*[\"']?$",
+            r"(?:"
+            r"[\"']?\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest|hash|commit|manifest)\b[\"']?"
+            r"(?:\s+(?:hash|digest))?\s*[:=]\s*[\"'`]?"
+            r"|\b(?:hash|digest|checksum)\b\s+is\s*[\"'`]?"
+            r"|[\"'][^\"'\r\n]+/[^\"'\r\n]+[\"']\s*[:=]\s*[\"']?"
+            r"|\|\s*`[^`\r\n]+/[^`\r\n]+`\s*\|\s*`?"
+            r")$",
             prefix,
             flags=re.IGNORECASE,
         )
