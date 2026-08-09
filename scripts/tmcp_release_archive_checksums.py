@@ -17,7 +17,7 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         if (
             re.search(
                 r"(?i)\b(?:git[_ -])?(?:base[_ -])?commit(?:[_ -](?:sha|id))?"
-                r"\s*[:=]\s*[\"']?\s*$",
+                r"\s*[:=]\s*[\"'`]?\s*$",
                 prefix,
             )
             is not None
@@ -25,7 +25,7 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
             return True
         if (
             re.search(
-                r"(?i)\bexact\s+base(?:\s+commit)?\s*[:=]\s*[\"']?\s*$",
+                r"(?i)\bexact\s+base(?:\s+commit)?\s*[:=]\s*[\"'`]?\s*$",
                 prefix,
             )
             is not None
@@ -97,6 +97,26 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         )
     if len(value) not in {64, 96, 128}:
         return False
+    current_line_prefix = text[line_start : match.start()]
+    previous_line = text[:line_start].rstrip("\n").rsplit("\n", 1)[-1]
+    if (
+        current_line_prefix.strip().startswith(("`", "\"", "'"))
+        and re.search(
+            r"\b(?:hash|digest|checksum)\b\s+is\s*[\"'`]?\s*$",
+            previous_line,
+            flags=re.IGNORECASE,
+        )
+        is not None
+    ):
+        return True
+    if (
+        re.search(
+            r"(?:\|\s*`[^`\r\n]+`\s*\|\s*`?|\|\s*[\"'][^\"'\r\n]+[\"']\s*\|\s*[\"']?)$",
+            prefix,
+        )
+        is not None
+    ):
+        return True
     if (
         re.search(
             r"(?i)(?:^|[\"'])\s*_?(?:source|decision)[_-]sha-?"
@@ -108,8 +128,17 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         return True
     if (
         re.search(
-            r"[\"']?\s*\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b"
+            r"[\"']?\s*\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest|hash|commit|manifest)\b"
             r"[\"']?(?:\s+(?:hash|digest))?\s*[:=]\s*[\"']?\s*$",
+            prefix,
+            flags=re.IGNORECASE,
+        )
+        is not None
+    ):
+        return True
+    if (
+        re.search(
+            r"\b(?:hash|digest|checksum)\b\s+is\s*[\"'`]?\s*$",
             prefix,
             flags=re.IGNORECASE,
         )
