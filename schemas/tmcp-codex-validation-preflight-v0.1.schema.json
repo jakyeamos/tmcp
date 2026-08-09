@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tmcp.dev/schemas/tmcp-codex-validation-preflight-v0.1.schema.json",
+  "title": "TMCP Codex validation preflight",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "ok", "status", "checks", "remediation"],
+  "properties": {
+    "schema": {
+      "const": "tmcp-codex-validation-preflight-v0.1"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": ["ready", "blocked"]
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["toolchain", "storage"],
+      "properties": {
+        "toolchain": {
+          "$ref": "#/$defs/toolchain"
+        },
+        "storage": {
+          "$ref": "#/$defs/storage"
+        },
+        "desktop_bridge": {
+          "$ref": "#/$defs/desktop_bridge"
+        }
+      }
+    },
+    "remediation": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "status": {
+      "enum": ["pass", "blocked"]
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "status"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "remediation": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "pass"
+              }
+            }
+          },
+          "then": {
+            "required": ["version"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "blocked"
+              }
+            }
+          },
+          "then": {
+            "required": ["reason", "remediation"]
+          }
+        }
+      ]
+    },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "required_tools", "tools"],
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "required_tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tool"
+          }
+        }
+      }
+    },
+    "filesystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "status", "minimum_free_gib"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "free_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "free_gib": {
+          "type": "number",
+          "minimum": 0
+        },
+        "minimum_free_gib": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "remediation": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "pass"
+              }
+            }
+          },
+          "then": {
+            "required": ["free_bytes", "free_gib"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "blocked"
+              }
+            }
+          },
+          "then": {
+            "required": ["reason", "remediation"]
+          }
+        }
+      ]
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "filesystems"],
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "filesystems": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/filesystem"
+          }
+        }
+      }
+    },
+    "desktop_bridge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "required"],
+      "properties": {
+        "status": {
+          "enum": ["pass", "blocked", "not_requested"]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "manifest_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "protocol_method": {
+          "const": "thread/setupStatus/read"
+        },
+        "build_command_present": {
+          "const": true
+        },
+        "test_command_present": {
+          "const": true
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "remediation": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "pass"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "manifest_path",
+              "source_root",
+              "protocol_method",
+              "build_command_present",
+              "test_command_present"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "blocked"
+              }
+            }
+          },
+          "then": {
+            "required": ["reason", "remediation"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "not_requested"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "required": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
