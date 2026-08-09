@@ -13,6 +13,15 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         return False
     line_start = text.rfind("\n", 0, match.start()) + 1
     prefix = text[line_start : match.start()]
+    if (
+        re.search(
+            r"\b(?:current\s+HEAD|declared\s+base)\b\s*[\"'`]?\s*$",
+            prefix,
+            flags=re.IGNORECASE,
+        )
+        is not None
+    ):
+        return True
     if len(value) == 40:
         if (
             re.search(
@@ -139,6 +148,15 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     if (
         re.search(
             r"\b(?:hash|digest|checksum)\b\s+is\s*[\"'`]?\s*$",
+            prefix,
+            flags=re.IGNORECASE,
+        )
+        is not None
+    ):
+        return True
+    if (
+        re.search(
+            r"\b(?:current\s+HEAD|declared\s+base)\b\s*[\"'`]?\s*$",
             prefix,
             flags=re.IGNORECASE,
         )

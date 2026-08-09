@@ -30,6 +30,7 @@ class ReleaseArchiveChecksumTests(unittest.TestCase):
             f'{{"sha256": "{checksum}"}}\n',
             f'"skills/example/SKILL.md": "{checksum}"\n',
             f"- Exact base commit: `{checksum[:40]}`\n",
+            f"Base: current HEAD `{checksum[:40]}`; sealed declared base `{checksum[:40]}`\n",
             f"The handoff hash is\n`{checksum}`\n",
             f"| `docs/example.md` | `{checksum}` |\n",
         )
