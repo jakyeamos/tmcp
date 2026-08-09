@@ -1,0 +1,1498 @@
+{
+  "$schema": "https://github.com/jakyeamos/tmcp/schemas/tmcp-behavioral-atoms-semantic-preflight-v0.3.schema.json",
+  "schema": "tmcp-behavioral-atoms-semantic-preflight-v0.3",
+  "version": "0.3.0",
+  "created_at": "2026-08-03",
+  "status": "structurally_valid_preflight",
+  "base": {
+    "repository": "jakyeamos/tmcp",
+    "commit": "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3",
+    "source_branch": "main",
+    "branch_state": "detached HEAD at source branch main",
+    "public_runtime_schema_changed": false
+  },
+  "scope": {
+    "mode": "preflight_only",
+    "runtime_implementation": "not_started",
+    "provider_cells": "not_run",
+    "cross_skill_composition_support": "not_claimed",
+    "excluded": [
+      "runtime atom registry",
+      "compiler",
+      "composition",
+      "evaluator",
+      "routing",
+      "receipts",
+      "admission policy",
+      "always-on behavior",
+      "telemetry",
+      "provider/model outcome cells",
+      "provider economics",
+      "package, install, release, promotion, or merge"
+    ]
+  },
+  "generic_process_shell": {
+    "id": "process-shell.evidence-first",
+    "version": "0.3.0",
+    "atom_ids": [
+      "process.read.required-sources",
+      "process.capture.evidence",
+      "process.verify.obligation",
+      "process.stop.missing-evidence"
+    ],
+    "obligations": [
+      "Read the declared source boundary before making a claim.",
+      "Name the evidence required for each claim.",
+      "Verify obligations with an observable check.",
+      "Stop when a required input or verification result is missing."
+    ],
+    "satisfies_domain_obligations": false,
+    "rendering_boundary": {
+      "renderable_to": [
+        "preflight_record",
+        "research_handoff"
+      ],
+      "forbidden": [
+        "runtime_instruction",
+        "provider_prompt",
+        "provider_outcome",
+        "composition_support_claim"
+      ]
+    }
+  },
+  "typed_atom_contract": {
+    "schema": "tmcp-typed-atom-contract-v0.3",
+    "stable_identity": {
+      "namespace": "tmcp.behavior",
+      "version": "0.3.0",
+      "identity_rule": "An atom identity is domain.<family>.<semantic_name> and its version is part of the identity key.",
+      "stability": "research_preflight"
+    },
+    "required_fields": [
+      {
+        "name": "stable_identity",
+        "type": "object",
+        "required": true,
+        "purpose": "Preserve a versioned identity that does not depend on wording or enumeration order."
+      },
+      {
+        "name": "domain_semantics",
+        "type": "object",
+        "required": true,
+        "purpose": "State the domain target, risk, and intended output."
+      },
+      {
+        "name": "applicability",
+        "type": "object",
+        "required": true,
+        "purpose": "Separate positive, negative, and ambiguous predicates with a fail-closed ambiguous action."
+      },
+      {
+        "name": "dependencies",
+        "type": "array",
+        "required": true,
+        "purpose": "Declare prerequisite process or domain atoms."
+      },
+      {
+        "name": "conflicts",
+        "type": "array",
+        "required": true,
+        "purpose": "Declare incompatible claims or inputs and their resolution."
+      },
+      {
+        "name": "required_inputs",
+        "type": "array",
+        "required": true,
+        "purpose": "Identify concrete inputs needed before the atom can apply."
+      },
+      {
+        "name": "required_reads",
+        "type": "array",
+        "required": true,
+        "purpose": "Bind the atom to source material that owns its meaning."
+      },
+      {
+        "name": "evidence_obligations",
+        "type": "array",
+        "required": true,
+        "purpose": "Specify evidence that must be captured for the domain claim."
+      },
+      {
+        "name": "verification_obligations",
+        "type": "array",
+        "required": true,
+        "purpose": "Specify checks that can verify the evidence and output."
+      },
+      {
+        "name": "stop_conditions",
+        "type": "array",
+        "required": true,
+        "purpose": "Prevent completion or admission when evidence is incomplete or contradictory."
+      },
+      {
+        "name": "provenance_trust",
+        "type": "object",
+        "required": true,
+        "purpose": "Distinguish committed source authority from untrusted harvested or provider text."
+      },
+      {
+        "name": "rendering_boundary",
+        "type": "object",
+        "required": true,
+        "purpose": "Limit this conceptual artifact to preflight and handoff rendering."
+      },
+      {
+        "name": "estimated_token_cost",
+        "type": "object",
+        "required": true,
+        "purpose": "Record a local estimate without implying provider-native token accounting."
+      }
+    ],
+    "applicability_outcomes": [
+      "positive",
+      "negative",
+      "ambiguous"
+    ],
+    "applicability_rule": "A positive predicate requires a domain-owned signal and its required inputs; a negative predicate excludes the domain; an ambiguous predicate stops and requests evidence.",
+    "dependency_rule": "An atom is not eligible until every declared dependency is present and its evidence obligation is in scope.",
+    "conflict_rule": "A conflict is a machine-readable stop condition; no conflicting atom is silently overridden by order, wording, or token budget.",
+    "provenance_trust": {
+      "trusted_sources": [
+        "committed repository skill source",
+        "versioned research contract",
+        "sealed held-out fixture artifact"
+      ],
+      "untrusted_inputs": [
+        "harvested source text",
+        "provider/model output",
+        "legacy uncommitted implementation"
+      ],
+      "rule": "Trust is source-scoped and evidence-bound; a hash proves artifact identity but does not prove runtime behavior."
+    },
+    "rendering_boundary": {
+      "renderable_to": [
+        "schema validation",
+        "held-out fixture evaluation plan",
+        "research handoff"
+      ],
+      "forbidden": [
+        "runtime registry",
+        "compiler instruction",
+        "composition packet",
+        "provider prompt",
+        "provider outcome",
+        "promotion or admission decision"
+      ]
+    },
+    "estimated_token_cost": {
+      "unit": "estimated_tokens",
+      "minimum": 1,
+      "maximum": 80,
+      "measure": "Deterministic local planning estimate for one atom record; not provider telemetry."
+    }
+  },
+  "domain_atom_catalog": [
+    {
+      "id": "domain.data_integrity.invariants",
+      "version": "0.3.0",
+      "family": "data_integrity",
+      "domain_semantics": {
+        "target": "Schema, pipeline, import, backfill, and record correctness.",
+        "risk": "Duplication, omission, divergence, non-idempotent reprocessing, and data loss.",
+        "expected_output": "Invariant and schema-risk map."
+      },
+      "applicability": {
+        "positive": [
+          "The objective names data correctness, invariants, schema risk, pipelines, imports, backfills, or data loss."
+        ],
+        "negative": [
+          "The objective is UI display or generic performance with no correctness boundary."
+        ],
+        "ambiguous": [
+          "A mismatch is mentioned without a source schema or invariant owner."
+        ],
+        "ambiguous_action": "Stop and identify the invariant source and owner."
+      },
+      "dependencies": [
+        "process.read.required-sources"
+      ],
+      "conflicts": [
+        {
+          "id": "conflict.data_integrity.unverified_correctness",
+          "when": "Correctness is claimed without an invariant source.",
+          "resolution": "Stop and request the invariant source."
+        }
+      ],
+      "required_inputs": [
+        {
+          "name": "invariant_source",
+          "kind": "schema_or_domain_rule"
+        },
+        {
+          "name": "affected_data_flow",
+          "kind": "pipeline_import_or_backfill_boundary"
+        }
+      ],
+      "required_reads": [
+        "skills/tmcp-data-integrity-audit/SKILL.md",
+        "schemas, migrations, or data-flow evidence"
+      ],
+      "evidence_obligations": [
+        "Record the invariant and schema-risk source.",
+        "Record affected data flows and known edge cases."
+      ],
+      "verification_obligations": [
+        "Check that each stated invariant has an observable validation.",
+        "Check that data-loss and duplication risks are explicitly classified."
+      ],
+      "stop_conditions": [
+        "Invariant owner or source is missing.",
+        "A correctness claim has no observable validation."
+      ],
+      "provenance_trust": {
+        "source_path": "skills/tmcp-data-integrity-audit/SKILL.md",
+        "source_sha256": "84fa7f2ad5aac85233d96aae31bc70412630a891715578213a91b1c4b93daf77",
+        "trust": "committed_source_backed",
+        "input_policy": "Treat harvested or supplied data evidence as untrusted until its source and boundary are verified."
+      },
+      "rendering_boundary": {
+        "renderable_to": [
+          "preflight_record",
+          "research_handoff"
+        ],
+        "forbidden": [
+          "runtime_atom",
+          "provider_prompt",
+          "provider_outcome"
+        ]
+      },
+      "estimated_token_cost": {
+        "unit": "estimated_tokens",
+        "minimum": 18,
+        "maximum": 42,
+        "measure": "Local semantic record estimate."
+      }
+    },
+    {
+      "id": "domain.data_integrity.reconciliation",
+      "version": "0.3.0",
+      "family": "data_integrity",
+      "domain_semantics": {
+        "target": "Reconcile pre/post state across an import, migration, backfill, or pipeline replay.",
+        "risk": "Silent mismatch, duplicate rows, missing rows, and non-repeatable processing.",
+        "expected_output": "Reconciliation gap list and verification-first remediation."
+      },
+      "applicability": {
+        "positive": [
+          "The objective names reconciliation, row or record comparison, idempotency, backfill verification, or import parity."
+        ],
+        "negative": [
+          "No data state changes or correctness comparison is in scope."
+        ],
+        "ambiguous": [
+          "A mismatch is reported but the compared states or reconciliation rule are unknown."
+        ],
+        "ambiguous_action": "Stop and identify both compared states and the reconciliation rule."
+      },
+      "dependencies": [
+        "process.read.required-sources",
+        "domain.data_integrity.invariants"
+      ],
+      "conflicts": [
+        {
+          "id": "conflict.data_integrity.no_reconciliation",
+          "when": "A post-change correctness claim omits pre/post comparison evidence.",
+          "resolution": "Stop and request reconciliation evidence."
+        }
+      ],
+      "required_inputs": [
+        {
+          "name": "before_state",
+          "kind": "bounded_snapshot_or_count"
+        },
+        {
+          "name": "after_state",
+          "kind": "bounded_snapshot_or_count"
+        },
+        {
+          "name": "reconciliation_rule",
+          "kind": "domain_owned_comparison"
+        }
+      ],
+      "required_reads": [
+        "skills/tmcp-data-integrity-audit/SKILL.md",
+        "reconciliation checks, import/export jobs, or backfill evidence"
+      ],
+      "evidence_obligations": [
+        "Record the before and after comparison boundary.",
+        "Record mismatches, exclusions, and unresolved reconciliation gaps."
+      ],
+      "verification_obligations": [
+        "Run or inspect the declared reconciliation check.",
+        "Repeat the check where idempotency is part of the risk."
+      ],
+      "stop_conditions": [
+        "Either comparison state is unavailable.",
+        "A mismatch is unclassified or the reconciliation rule is absent."
+      ],
+      "provenance_trust": {
+        "source_path": "skills/tmcp-data-integrity-audit/SKILL.md",
+        "source_sha256": "84fa7f2ad5aac85233d96aae31bc70412630a891715578213a91b1c4b93daf77",
+        "trust": "committed_source_backed",
+        "input_policy": "Counts or snapshots are evidence only when their scope and owner are recorded."
+      },
+      "rendering_boundary": {
+        "renderable_to": [
+          "preflight_record",
+          "research_handoff"
+        ],
+        "forbidden": [
+          "runtime_atom",
+          "provider_prompt",
+          "provider_outcome"
+        ]
+      },
+      "estimated_token_cost": {
+        "unit": "estimated_tokens",
+        "minimum": 20,
+        "maximum": 48,
+        "measure": "Local semantic record estimate."
+      }
+    },
+    {
+      "id": "domain.security_privacy.redaction",
+      "version": "0.3.0",
+      "family": "security_privacy",
+      "domain_semantics": {
+        "target": "Secret-handling and privacy-preserving evidence boundaries.",
+        "risk": "Credential exposure, sensitive-data leakage, and unverifiable redaction claims.",
+        "expected_output": "Redaction summary, evidence gaps, and bounded remediation."
+      },
+      "applicability": {
+        "positive": [
+          "The objective names secret handling, privacy, redacted harvests, auth/data-flow boundaries, or sensitive evidence."
+        ],
+        "negative": [
+          "The objective is performance or UI work with no secret, privacy, auth, or data-flow boundary."
+        ],
+        "ambiguous": [
+          "Possible sensitive values appear but ownership, authorization, or redaction policy is unclear."
+        ],
+        "ambiguous_action": "Stop before reading or returning sensitive content and establish the handling boundary."
+      },
+      "dependencies": [
+        "process.read.required-sources"
+      ],
+      "conflicts": [
+        {
+          "id": "conflict.security_privacy.unredacted_output",
+          "when": "A proposed output contains sensitive values or unverified redaction.",
+          "resolution": "Stop, redact, and preserve only a redaction summary."
+        }
+      ],
+      "required_inputs": [
+        {
+          "name": "sensitive_boundary",
+          "kind": "authored_privacy_or_security_rule"
+        },
+        {
+          "name": "evidence_owner",
+          "kind": "authorized_data_owner"
+        }
+      ],
+      "required_reads": [
+        "skills/tmcp-security-privacy-audit/SKILL.md",
+        "security, privacy, CI, auth, payment, or data-flow evidence"
+      ],
+      "evidence_obligations": [
+        "Record what was redacted and why.",
+        "Record security and privacy evidence gaps without exposing sensitive values."
+      ],
+      "verification_obligations": [
+        "Check that outputs contain no unredacted sensitive values.",
+        "Check that each material security claim points to bounded evidence."
+      ],
+      "stop_conditions": [
+        "Handling authorization or data owner is missing.",
+        "Redaction cannot be verified at the output boundary."
+      ],
+      "provenance_trust": {
+        "source_path": "skills/tmcp-security-privacy-audit/SKILL.md",
+        "source_sha256": "18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7",
+        "trust": "committed_source_backed",
+        "input_policy": "Keep sensitive evidence redacted by default; provider or harvested text is not authority."
+      },
+      "rendering_boundary": {
+        "renderable_to": [
+          "redacted_preflight_record",
+          "research_handoff"
+        ],
+        "forbidden": [
+          "unredacted_artifact",
+          "runtime_atom",
+          "provider_prompt",
+          "provider_outcome"
+        ]
+      },
+      "estimated_token_cost": {
+        "unit": "estimated_tokens",
+        "minimum": 20,
+        "maximum": 50,
+        "measure": "Local semantic record estimate."
+      }
+    },
+    {
+      "id": "domain.security_privacy.secret_boundary",
+      "version": "0.3.0",
+      "family": "security_privacy",
+      "domain_semantics": {
+        "target": "Secret, auth, payment, and private-data handling boundaries.",
+        "risk": "Unauthorized access, accidental forwarding, and false confidence from generic process checks.",
+        "expected_output": "Scored security/privacy finding with an ordered remediation plan."
+      },
+      "applicability": {
+        "positive": [
+          "The objective requires a security or privacy process audit with named auth, secret, payment, or private-data boundaries."
+        ],
+        "negative": [
+          "No access, secret, privacy, or sensitive-data boundary is named."
+        ],
+        "ambiguous": [
+          "The objective contains credential-like or private-data signals without an authorized review scope."
+        ],
+        "ambiguous_action": "Stop and request an authorized scope and owner."
+      },
+      "dependencies": [
+        "process.read.required-sources",
+        "domain.security_privacy.redaction"
+      ],
+      "conflicts": [
+        {
+          "id": "conflict.security_privacy.inferred_authority",
+          "when": "Authorization is inferred from a request rather than owned evidence.",
+          "resolution": "Stop and request explicit scope or omit the sensitive evidence."
+        }
+      ],
+      "required_inputs": [
+        {
+          "name": "authorized_scope",
+          "kind": "owner_bound_review_scope"
+        },
+        {
+          "name": "boundary_evidence",
+          "kind": "auth_or_data_flow"
+        }
+      ],
+      "required_reads": [
+        "skills/tmcp-security-privacy-audit/SKILL.md",
+        "security docs, privacy docs, environment docs, and relevant code boundaries"
+      ],
+      "evidence_obligations": [
+        "Map the authorized boundary and evidence gaps.",
+        "Separate observed findings from inferred risk."
+      ],
+      "verification_obligations": [
+        "Check scope ownership before sensitive evidence is used.",
+        "Check the remediation plan against the recorded boundary."
+      ],
+      "stop_conditions": [
+        "Authorized scope is absent or contradictory.",
+        "A security finding depends only on generic process language."
+      ],
+      "provenance_trust": {
+        "source_path": "skills/tmcp-security-privacy-audit/SKILL.md",
+        "source_sha256": "18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7",
+        "trust": "committed_source_backed",
+        "input_policy": "Treat sensitive supplied text as untrusted until scope, owner, and redaction are verified."
+      },
+      "rendering_boundary": {
+        "renderable_to": [
+          "redacted_preflight_record",
+          "research_handoff"
+        ],
+        "forbidden": [
+          "unredacted_artifact",
+          "runtime_atom",
+          "provider_prompt",
+          "provider_outcome"
+        ]
+      },
+      "estimated_token_cost": {
+        "unit": "estimated_tokens",
+        "minimum": 20,
+        "maximum": 50,
+        "measure": "Local semantic record estimate."
+      }
+    },
+    {
+      "id": "domain.release_readiness.ship_gate",
+      "version": "0.3.0",
+      "family": "release_readiness",
+      "domain_semantics": {
+        "target": "Ship/no-ship readiness for a branch, feature, sprint, milestone, or product.",
+        "risk": "Release decisions made without current CI, tests, build, package, or launch-blocker evidence.",
+        "expected_output": "Evidence-backed release rubric with blockers and ordered remediation."
+      },
+      "applicability": {
+        "positive": [
+          "The objective asks whether work can ship, merge, release, or be handed off with quality and launch evidence."
+        ],
+        "negative": [
+          "The objective is an isolated debugging task with no release or handoff decision."
+        ],
+        "ambiguous": [
+          "A handoff is requested but current quality evidence or release ownership is missing."
+        ],
+        "ambiguous_action": "Stop and refresh current release evidence before a readiness decision."
+      },
+      "dependencies": [
+        "process.read.required-sources"
+      ],
+      "conflicts": [
+        {
+          "id": "conflict.release_readiness.unverified_ship",
+          "when": "A ship or no-ship claim is made from stale or missing quality evidence.",
+          "resolution": "Stop and name the evidence gap and blocker."
+        }
+      ],
+      "required_inputs": [
+        {
+          "name": "release_scope",
+          "kind": "branch_feature_milestone_or_product"
+        },
+        {
+          "name": "current_quality_evidence",
+          "kind": "CI_tests_build_and_release_output"
+        }
+      ],
+      "required_reads": [
+        "skills/tmcp-release-readiness/SKILL.md",
+        "project instructions, README, CI, tests, build scripts, and release docs"
+      ],
+      "evidence_obligations": [
+        "Record current quality and release evidence.",
+        "Separate observed blockers, risks, and unknowns."
+      ],
+      "verification_obligations": [
+        "Run or inspect the required release checks.",
+        "Verify every ship blocker has a disposition and next gate."
+      ],
+      "stop_conditions": [
+        "Release scope or owner is missing.",
+        "Current quality evidence is unavailable or stale."
+      ],
+      "provenance_trust": {
+        "source_path": "skills/tmcp-release-readiness/SKILL.md",
+        "source_sha256": "54d435ed0f551048cccd47c3093aa0734aff0fda8a15627ff3fb1d8bc8ca11ff",
+        "trust": "committed_source_backed",
+        "input_policy": "Missing release evidence is a finding, not permission to assume readiness."
+      },
+      "rendering_boundary": {
+        "renderable_to": [
+          "preflight_record",
+          "research_handoff"
+        ],
+        "forbidden": [
+          "release_admission",
+          "runtime_atom",
+          "provider_prompt",
+          "provider_outcome"
+        ]
+      },
+      "estimated_token_cost": {
+        "unit": "estimated_tokens",
+        "minimum": 22,
+        "maximum": 52,
+        "measure": "Local semantic record estimate."
+      }
+    },
+    {
+      "id": "domain.release_readiness.evidence_ladder",
+      "version": "0.3.0",
+      "family": "release_readiness",
+      "domain_semantics": {
+        "target": "Quality ladder, launch blockers, and handoff evidence completeness.",
+        "risk": "A green-looking partial check is mistaken for complete release evidence.",
+        "expected_output": "Ordered remediation slices with verification expectations."
+      },
+      "applicability": {
+        "positive": [
+          "The objective asks for release gaps, launch blockers, quality ladder coverage, or handoff acceptance."
+        ],
+        "negative": [
+          "No release, handoff, or launch acceptance decision is in scope."
+        ],
+        "ambiguous": [
+          "Partial checks are present but their scope and freshness are not known."
+        ],
+        "ambiguous_action": "Stop and identify missing evidence and its freshness."
+      },
+      "dependencies": [
+        "process.read.required-sources",
+        "domain.release_readiness.ship_gate"
+      ],
+      "conflicts": [
+        {
+          "id": "conflict.release_readiness.partial_evidence",
+          "when": "A partial check is represented as a complete quality ladder.",
+          "resolution": "Split the evidence into passed, missing, blocked, and unknown gates."
+        }
+      ],
+      "required_inputs": [
+        {
+          "name": "quality_ladder",
+          "kind": "required_check_inventory"
+        },
+        {
+          "name": "verification_freshness",
+          "kind": "command_output_or_timestamped_evidence"
+        }
+      ],
+      "required_reads": [
+        "skills/tmcp-release-readiness/SKILL.md",
+        "CI config, tests, build scripts, package metadata, and release checklist"
+      ],
+      "evidence_obligations": [
+        "Inventory passed, failed, blocked, not-run, and unknown gates.",
+        "Record the evidence needed for each remediation slice."
+      ],
+      "verification_obligations": [
+        "Confirm the quality ladder is complete for the declared release scope.",
+        "Confirm each remediation slice has an acceptance check."
+      ],
+      "stop_conditions": [
+        "Freshness or scope of the quality ladder is unknown.",
+        "A required gate has no disposition."
+      ],
+      "provenance_trust": {
+        "source_path": "skills/tmcp-release-readiness/SKILL.md",
+        "source_sha256": "54d435ed0f551048cccd47c3093aa0734aff0fda8a15627ff3fb1d8bc8ca11ff",
+        "trust": "committed_source_backed",
+        "input_policy": "Quality output is evidence only when the command, scope, and result are captured."
+      },
+      "rendering_boundary": {
+        "renderable_to": [
+          "preflight_record",
+          "research_handoff"
+        ],
+        "forbidden": [
+          "release_admission",
+          "runtime_atom",
+          "provider_prompt",
+          "provider_outcome"
+        ]
+      },
+      "estimated_token_cost": {
+        "unit": "estimated_tokens",
+        "minimum": 22,
+        "maximum": 52,
+        "measure": "Local semantic record estimate."
+      }
+    },
+    {
+      "id": "domain.migration_readiness.compatibility_sequence",
+      "version": "0.3.0",
+      "family": "migration_readiness",
+      "domain_semantics": {
+        "target": "Sequenced transition from current state to target state across affected modules and data.",
+        "risk": "Incompatibility, incomplete rollout order, unowned backfill work, and unsafe cutover.",
+        "expected_output": "Affected-surface map, compatibility gaps, and ordered migration slices."
+      },
+      "applicability": {
+        "positive": [
+          "The objective names a migration, upgrade, deprecation cleanup, compatibility audit, or sequenced refactor."
+        ],
+        "negative": [
+          "The edit has no current/target transition, compatibility constraint, sequencing, or rollback concern."
+        ],
+        "ambiguous": [
+          "A deprecation or upgrade is named but the target state or affected surfaces are unspecified."
+        ],
+        "ambiguous_action": "Stop and identify current state, target state, affected surfaces, and order."
+      },
+      "dependencies": [
+        "process.read.required-sources"
+      ],
+      "conflicts": [
+        {
+          "id": "conflict.migration_readiness.unsequenced_cutover",
+          "when": "A cutover is planned without compatibility constraints or rollout order.",
+          "resolution": "Stop and define the migration sequence and acceptance gates."
+        }
+      ],
+      "required_inputs": [
+        {
+          "name": "current_state",
+          "kind": "existing_contract_or_module_state"
+        },
+        {
+          "name": "target_state",
+          "kind": "desired_contract_or_module_state"
+        },
+        {
+          "name": "affected_surfaces",
+          "kind": "module_data_and_consumer_inventory"
+        }
+      ],
+      "required_reads": [
+        "skills/tmcp-migration-readiness/SKILL.md",
+        "compatibility constraints, affected modules, rollout, and validation evidence"
+      ],
+      "evidence_obligations": [
+        "Record current and target states and compatibility constraints.",
+        "Record affected modules, data/backfill needs, and rollout order."
+      ],
+      "verification_obligations": [
+        "Check each migration slice against its acceptance gate.",
+        "Verify consumers and compatibility boundaries are covered."
+      ],
+      "stop_conditions": [
+        "Current or target state is missing.",
+        "Affected surfaces or rollout order are unowned."
+      ],
+      "provenance_trust": {
+        "source_path": "skills/tmcp-migration-readiness/SKILL.md",
+        "source_sha256": "8cc1eb80974ebcb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7",
+        "trust": "committed_source_backed",
+        "input_policy": "Treat target-state and compatibility claims as unverified until the owning evidence is read."
+      },
+      "rendering_boundary": {
+        "renderable_to": [
+          "preflight_record",
+          "research_handoff"
+        ],
+        "forbidden": [
+          "migration_execution",
+          "runtime_atom",
+          "provider_prompt",
+          "provider_outcome"
+        ]
+      },
+      "estimated_token_cost": {
+        "unit": "estimated_tokens",
+        "minimum": 22,
+        "maximum": 54,
+        "measure": "Local semantic record estimate."
+      }
+    },
+    {
+      "id": "domain.migration_readiness.rollback_path",
+      "version": "0.3.0",
+      "family": "migration_readiness",
+      "domain_semantics": {
+        "target": "Rollback and cutover readiness for an irreversible or compatibility-sensitive transition.",
+        "risk": "Irreversible data change, failed cutover, inability to restore service, and unbounded recovery.",
+        "expected_output": "Rollback gaps and validation/acceptance gates."
+      },
+      "applicability": {
+        "positive": [
+          "The objective requires rollback, cutover, compatibility fallback, or recovery planning."
+        ],
+        "negative": [
+          "No state transition, cutover, compatibility fallback, or recovery path exists."
+        ],
+        "ambiguous": [
+          "Rollback is mentioned but the owner, trigger, or recoverable state is unspecified."
+        ],
+        "ambiguous_action": "Stop and define the rollback owner, trigger, and recoverable boundary."
+      },
+      "dependencies": [
+        "process.read.required-sources",
+        "domain.migration_readiness.compatibility_sequence"
+      ],
+      "conflicts": [
+        {
+          "id": "conflict.migration_readiness.no_rollback",
+          "when": "A cutover is accepted without a tested or bounded rollback path.",
+          "resolution": "Stop and record the rollback blocker."
+        }
+      ],
+      "required_inputs": [
+        {
+          "name": "rollback_owner",
+          "kind": "named_owner"
+        },
+        {
+          "name": "rollback_trigger",
+          "kind": "observable_failure_condition"
+        },
+        {
+          "name": "recoverable_boundary",
+          "kind": "snapshot_or_compatibility_state"
+        }
+      ],
+      "required_reads": [
+        "skills/tmcp-migration-readiness/SKILL.md",
+        "rollback path, cutover, and validation commands"
+      ],
+      "evidence_obligations": [
+        "Record rollback owner, trigger, path, and limitations.",
+        "Record cutover validation and recovery evidence."
+      ],
+      "verification_obligations": [
+        "Check rollback conditions are observable and bounded.",
+        "Check the acceptance gate covers both cutover and recovery."
+      ],
+      "stop_conditions": [
+        "Rollback owner or trigger is missing.",
+        "The recoverable boundary is not identified."
+      ],
+      "provenance_trust": {
+        "source_path": "skills/tmcp-migration-readiness/SKILL.md",
+        "source_sha256": "8cc1eb80974ebcb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7",
+        "trust": "committed_source_backed",
+        "input_policy": "A stated rollback path is not evidence until its trigger, owner, and boundary are verified."
+      },
+      "rendering_boundary": {
+        "renderable_to": [
+          "preflight_record",
+          "research_handoff"
+        ],
+        "forbidden": [
+          "migration_execution",
+          "runtime_atom",
+          "provider_prompt",
+          "provider_outcome"
+        ]
+      },
+      "estimated_token_cost": {
+        "unit": "estimated_tokens",
+        "minimum": 22,
+        "maximum": 54,
+        "measure": "Local semantic record estimate."
+      }
+    }
+  ],
+  "family_signatures": [
+    {
+      "id": "data_integrity",
+      "label": "Data integrity",
+      "source_skill": "skills/tmcp-data-integrity-audit/SKILL.md",
+      "source_evidence": {
+        "base_commit": "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3",
+        "sha256": "84fa7f2ad5aac85233d96aae31bc70412630a891715578213a91b1c4b93daf77"
+      },
+      "generic_process_shell_ref": "process-shell.evidence-first@0.3.0",
+      "domain_target": "Correctness of schemas, pipelines, imports, backfills, and records.",
+      "domain_risks": [
+        "data loss",
+        "duplication",
+        "divergence",
+        "non-idempotent reprocessing"
+      ],
+      "required_domain_atoms": [
+        "domain.data_integrity.invariants@0.3.0",
+        "domain.data_integrity.reconciliation@0.3.0"
+      ],
+      "required_inputs": [
+        "invariant source",
+        "affected data-flow boundary",
+        "before and after state",
+        "reconciliation rule"
+      ],
+      "required_reads": [
+        "schemas or migrations",
+        "data-flow/import/backfill evidence",
+        "reconciliation checks"
+      ],
+      "domain_evidence_obligations": [
+        "Invariant and schema-risk map",
+        "Migration, backfill, or reconciliation gaps",
+        "Data-loss and duplication risk evidence"
+      ],
+      "domain_outputs": [
+        "invariant and schema-risk map",
+        "reconciliation gap list",
+        "verification-first remediation plan"
+      ],
+      "domain_verification_obligations": [
+        "Observe each invariant validation",
+        "Compare pre/post state",
+        "Repeat idempotency-sensitive checks"
+      ],
+      "applicability": {
+        "positive": [
+          "data correctness or schema/pipeline risk is named"
+        ],
+        "negative": [
+          "only UI display or generic performance is in scope"
+        ],
+        "ambiguous": [
+          "mismatch without invariant owner or reconciliation rule"
+        ],
+        "ambiguous_action": "stop_for_domain_evidence"
+      },
+      "stop_conditions": [
+        "invariant source missing",
+        "reconciliation result missing",
+        "unclassified mismatch"
+      ]
+    },
+    {
+      "id": "security_privacy",
+      "label": "Security and privacy",
+      "source_skill": "skills/tmcp-security-privacy-audit/SKILL.md",
+      "source_evidence": {
+        "base_commit": "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3",
+        "sha256": "18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7"
+      },
+      "generic_process_shell_ref": "process-shell.evidence-first@0.3.0",
+      "domain_target": "Secret-handling, privacy, auth, and sensitive evidence boundaries.",
+      "domain_risks": [
+        "credential exposure",
+        "sensitive-data leakage",
+        "unauthorized access",
+        "false confidence from generic checks"
+      ],
+      "required_domain_atoms": [
+        "domain.security_privacy.redaction@0.3.0",
+        "domain.security_privacy.secret_boundary@0.3.0"
+      ],
+      "required_inputs": [
+        "authorized scope",
+        "evidence owner",
+        "security or privacy boundary",
+        "redaction policy"
+      ],
+      "required_reads": [
+        "security and privacy docs",
+        "CI, auth, payment, or data-flow evidence",
+        "relevant code boundaries"
+      ],
+      "domain_evidence_obligations": [
+        "Redaction summary",
+        "Security and privacy evidence gaps",
+        "Authorized boundary and owner"
+      ],
+      "domain_outputs": [
+        "scored security/privacy finding",
+        "redacted evidence summary",
+        "ordered remediation plan"
+      ],
+      "domain_verification_obligations": [
+        "Verify no sensitive value crosses the output boundary",
+        "Verify security claims against bounded evidence",
+        "Verify scope ownership"
+      ],
+      "applicability": {
+        "positive": [
+          "secret, privacy, auth, or sensitive evidence is explicitly in scope"
+        ],
+        "negative": [
+          "no security or privacy boundary is named"
+        ],
+        "ambiguous": [
+          "possible credential-like values without owner or authorization"
+        ],
+        "ambiguous_action": "stop_before_sensitive_handling"
+      },
+      "stop_conditions": [
+        "authorized scope missing",
+        "redaction not verifiable",
+        "sensitive owner contradictory"
+      ]
+    },
+    {
+      "id": "release_readiness",
+      "label": "Release readiness",
+      "source_skill": "skills/tmcp-release-readiness/SKILL.md",
+      "source_evidence": {
+        "base_commit": "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3",
+        "sha256": "54d435ed0f551048cccd47c3093aa0734aff0fda8a15627ff3fb1d8bc8ca11ff"
+      },
+      "generic_process_shell_ref": "process-shell.evidence-first@0.3.0",
+      "domain_target": "Ship/no-ship readiness, launch blockers, quality ladder, and handoff acceptance.",
+      "domain_risks": [
+        "stale CI evidence",
+        "missing tests or build proof",
+        "unresolved launch blocker",
+        "partial check mistaken for readiness"
+      ],
+      "required_domain_atoms": [
+        "domain.release_readiness.ship_gate@0.3.0",
+        "domain.release_readiness.evidence_ladder@0.3.0"
+      ],
+      "required_inputs": [
+        "release scope and owner",
+        "current CI and test output",
+        "build and package evidence",
+        "release documentation"
+      ],
+      "required_reads": [
+        "project instructions and README",
+        "CI, tests, and build scripts",
+        "package metadata and release docs"
+      ],
+      "domain_evidence_obligations": [
+        "Current quality and release evidence",
+        "Ship blockers, risks, and unknowns",
+        "Freshness and scope of each gate"
+      ],
+      "domain_outputs": [
+        "scored release-readiness rubric",
+        "evidence-backed blockers",
+        "ordered remediation slices"
+      ],
+      "domain_verification_obligations": [
+        "Run or inspect required release checks",
+        "Disposition every required gate",
+        "Verify each remediation slice's acceptance check"
+      ],
+      "applicability": {
+        "positive": [
+          "ship, merge, release, launch, or handoff readiness is requested"
+        ],
+        "negative": [
+          "only isolated debugging is requested"
+        ],
+        "ambiguous": [
+          "handoff requested with partial or stale quality evidence"
+        ],
+        "ambiguous_action": "stop_and_refresh_release_evidence"
+      },
+      "stop_conditions": [
+        "release scope or owner missing",
+        "quality evidence stale",
+        "required gate lacks disposition"
+      ]
+    },
+    {
+      "id": "migration_readiness",
+      "label": "Migration readiness",
+      "source_skill": "skills/tmcp-migration-readiness/SKILL.md",
+      "source_evidence": {
+        "base_commit": "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3",
+        "sha256": "8cc1eb80974ebcb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7"
+      },
+      "generic_process_shell_ref": "process-shell.evidence-first@0.3.0",
+      "domain_target": "Sequenced transition, compatibility, cutover, and rollback readiness.",
+      "domain_risks": [
+        "incompatibility",
+        "unsafe rollout order",
+        "unowned backfill",
+        "irreversible cutover",
+        "unbounded recovery"
+      ],
+      "required_domain_atoms": [
+        "domain.migration_readiness.compatibility_sequence@0.3.0",
+        "domain.migration_readiness.rollback_path@0.3.0"
+      ],
+      "required_inputs": [
+        "current state",
+        "target state",
+        "affected surfaces",
+        "rollout order",
+        "rollback owner and trigger"
+      ],
+      "required_reads": [
+        "compatibility constraints",
+        "affected modules and data/backfill needs",
+        "rollout, rollback, and validation evidence"
+      ],
+      "domain_evidence_obligations": [
+        "Current/target state and compatibility map",
+        "Affected-surface and rollout map",
+        "Rollback owner, trigger, and limitations"
+      ],
+      "domain_outputs": [
+        "affected-surface map",
+        "compatibility and rollback gaps",
+        "ordered migration slices and acceptance gates"
+      ],
+      "domain_verification_obligations": [
+        "Verify each migration slice's acceptance gate",
+        "Verify consumer compatibility",
+        "Verify cutover and recovery conditions"
+      ],
+      "applicability": {
+        "positive": [
+          "migration, upgrade, deprecation, compatibility, or sequenced refactor is requested"
+        ],
+        "negative": [
+          "isolated edit has no transition or rollback concern"
+        ],
+        "ambiguous": [
+          "target state or rollback owner is unspecified"
+        ],
+        "ambiguous_action": "stop_and_identify_transition_boundary"
+      },
+      "stop_conditions": [
+        "current or target state missing",
+        "affected surfaces unowned",
+        "rollback owner or trigger missing"
+      ]
+    }
+  ],
+  "fixture_artifact": {
+    "path": "tests/fixtures/behavioral-atoms-held-out-v0.3.json",
+    "schema": "tmcp-behavioral-atoms-held-out-fixtures-v0.3",
+    "sha256": "172c761fcc5fb8f4814a2e9783b5322ad724b81ebec3ac0c74a1c03e9f9c652f",
+    "split": "held_out",
+    "counts": {
+      "total": 12,
+      "positive": 4,
+      "negative": 4,
+      "ambiguous": 4,
+      "per_family": {
+        "data_integrity": 3,
+        "security_privacy": 3,
+        "release_readiness": 3,
+        "migration_readiness": 3
+      }
+    }
+  },
+  "transplant_arms": {
+    "selection_rule": "Select only domain-logic transplants whose committed source evidence identifies a source atom, a target obligation, and a non-empty semantic delta; reject duplicates, generic-only conditions, and absent variants before any outcome cell.",
+    "valid": [
+      {
+        "id": "arm.valid.migration_receives_data_reconciliation",
+        "status": "valid",
+        "source_family": "data_integrity",
+        "target_family": "migration_readiness",
+        "source_atom_ref": "domain.data_integrity.reconciliation@0.3.0",
+        "target_obligation": "migration.post_transition_reconciliation",
+        "domain_delta_signature": "data_integrity>migration_readiness:reconciliation=>post_transition_reconciliation",
+        "predicted_semantic_delta": "Adds an explicit pre/post state reconciliation obligation to migration cutover and backfill review.",
+        "source_evidence": [
+          "skills/tmcp-data-integrity-audit/SKILL.md",
+          "skills/tmcp-migration-readiness/SKILL.md"
+        ],
+        "eligibility": {
+          "unique_source_target_domain_delta": true,
+          "non_empty_predicted_delta": true,
+          "generic_only": false
+        }
+      },
+      {
+        "id": "arm.valid.data_integrity_receives_migration_rollback",
+        "status": "valid",
+        "source_family": "migration_readiness",
+        "target_family": "data_integrity",
+        "source_atom_ref": "domain.migration_readiness.rollback_path@0.3.0",
+        "target_obligation": "data_integrity.recovery_after_mismatch",
+        "domain_delta_signature": "migration_readiness>data_integrity:rollback_path=>recovery_after_mismatch",
+        "predicted_semantic_delta": "Adds an explicit recovery and rollback obligation when reconciliation exposes a data mismatch.",
+        "source_evidence": [
+          "skills/tmcp-migration-readiness/SKILL.md",
+          "skills/tmcp-data-integrity-audit/SKILL.md"
+        ],
+        "eligibility": {
+          "unique_source_target_domain_delta": true,
+          "non_empty_predicted_delta": true,
+          "generic_only": false
+        }
+      },
+      {
+        "id": "arm.valid.release_receives_security_redaction",
+        "status": "valid",
+        "source_family": "security_privacy",
+        "target_family": "release_readiness",
+        "source_atom_ref": "domain.security_privacy.redaction@0.3.0",
+        "target_obligation": "release.artifact_secret_boundary",
+        "domain_delta_signature": "security_privacy>release_readiness:redaction=>artifact_secret_boundary",
+        "predicted_semantic_delta": "Adds a redaction and secret-boundary check to release evidence and artifact readiness.",
+        "source_evidence": [
+          "skills/tmcp-security-privacy-audit/SKILL.md",
+          "skills/tmcp-release-readiness/SKILL.md"
+        ],
+        "eligibility": {
+          "unique_source_target_domain_delta": true,
+          "non_empty_predicted_delta": true,
+          "generic_only": false
+        }
+      },
+      {
+        "id": "arm.valid.security_privacy_receives_release_gating",
+        "status": "valid",
+        "source_family": "release_readiness",
+        "target_family": "security_privacy",
+        "source_atom_ref": "domain.release_readiness.ship_gate@0.3.0",
+        "target_obligation": "security.review_release_gate",
+        "domain_delta_signature": "release_readiness>security_privacy:ship_gate=>review_release_gate",
+        "predicted_semantic_delta": "Adds an explicit release gate and current quality-evidence requirement to security/privacy review completion.",
+        "source_evidence": [
+          "skills/tmcp-release-readiness/SKILL.md",
+          "skills/tmcp-security-privacy-audit/SKILL.md"
+        ],
+        "eligibility": {
+          "unique_source_target_domain_delta": true,
+          "non_empty_predicted_delta": true,
+          "generic_only": false
+        }
+      }
+    ],
+    "rejected_historical_shapes": [
+      {
+        "id": "arm.invalid.duplicate.test_to_security_local_context",
+        "status": "invalid",
+        "source_family": "test_strategy",
+        "target_family": "security_privacy",
+        "candidate_condition": "local-context-first",
+        "reason_code": "duplicate_generic_condition",
+        "reason": "The same generic condition was repeated as a transplant for a peer family; it has no domain-owned source-to-target semantic delta.",
+        "domain_delta_signature": "",
+        "predicted_semantic_delta": "",
+        "evidence": [
+          "legacy-v0.1/behavioral-atoms-pilot-preflight-v0.1.json",
+          "legacy-v0.1/BEHAVIORAL_ATOMS_PILOT_EXECUTION_V0.1.md"
+        ]
+      },
+      {
+        "id": "arm.invalid.duplicate.test_to_release_ordered_actions",
+        "status": "invalid",
+        "source_family": "test_strategy",
+        "target_family": "release_readiness",
+        "candidate_condition": "ordered-next-actions",
+        "reason_code": "duplicate_generic_condition",
+        "reason": "The same generic condition was repeated as a transplant for a peer family; it has no domain-owned source-to-target semantic delta.",
+        "domain_delta_signature": "",
+        "predicted_semantic_delta": "",
+        "evidence": [
+          "legacy-v0.1/behavioral-atoms-pilot-preflight-v0.1.json",
+          "legacy-v0.1/BEHAVIORAL_ATOMS_PILOT_EXECUTION_V0.1.md"
+        ]
+      },
+      {
+        "id": "arm.invalid.no_variant.security_to_release",
+        "status": "invalid",
+        "source_family": "security_privacy",
+        "target_family": "release_readiness",
+        "candidate_condition": "six-atom-superset",
+        "reason_code": "no_eligible_variant",
+        "reason": "The historical source and target selections were atom-identical six-atom supersets, so no target-only variant existed to transplant.",
+        "domain_delta_signature": "",
+        "predicted_semantic_delta": "",
+        "evidence": [
+          "legacy-v0.1/behavioral-atoms-pilot-preflight-v0.1.json",
+          "legacy-v0.1/BEHAVIORAL_ATOMS_PILOT_EXECUTION_V0.1.md"
+        ]
+      },
+      {
+        "id": "arm.invalid.no_variant.release_to_security",
+        "status": "invalid",
+        "source_family": "release_readiness",
+        "target_family": "security_privacy",
+        "candidate_condition": "six-atom-superset",
+        "reason_code": "no_eligible_variant",
+        "reason": "The historical source and target selections were atom-identical six-atom supersets, so no target-only variant existed to transplant.",
+        "domain_delta_signature": "",
+        "predicted_semantic_delta": "",
+        "evidence": [
+          "legacy-v0.1/behavioral-atoms-pilot-preflight-v0.1.json",
+          "legacy-v0.1/BEHAVIORAL_ATOMS_PILOT_EXECUTION_V0.1.md"
+        ]
+      }
+    ]
+  },
+  "interaction_selection_policy": {
+    "selection_basis": "domain_logic",
+    "lexicographic_enumeration": "forbidden",
+    "exhaustive_pair_generation": false,
+    "selected_count_rule": "Select only a small preregistered set with a named domain mechanism and falsifier; do not enumerate all family or atom pairs."
+  },
+  "interaction_hypotheses": [
+    {
+      "id": "H1.reconciliation_and_rollback",
+      "selection_basis": "domain_logic",
+      "families": [
+        "migration_readiness",
+        "data_integrity"
+      ],
+      "atom_refs": [
+        "domain.migration_readiness.rollback_path@0.3.0",
+        "domain.data_integrity.reconciliation@0.3.0"
+      ],
+      "predicted_direction": "positive: pairing recovery planning with pre/post reconciliation should reduce unresolved transition-mismatch findings.",
+      "mechanism": "Reconciliation exposes mismatches while rollback defines a bounded response when a cutover or backfill fails.",
+      "falsifier": "The paired contract does not change mismatch classification or recovery completeness on fixtures where both transition and reconciliation evidence are present.",
+      "held_out_evaluation_boundary": {
+        "fixture_ids": [
+          "migration_readiness_positive_rollback_cutover",
+          "data_integrity_positive_reconciliation",
+          "data_integrity_ambiguous_unowned_mismatch"
+        ],
+        "tuning_allowed": false,
+        "outcome_data_allowed": false,
+        "owner": "behavioral_atoms_preflight"
+      }
+    },
+    {
+      "id": "H2.redaction_and_ship_gate",
+      "selection_basis": "domain_logic",
+      "families": [
+        "security_privacy",
+        "release_readiness"
+      ],
+      "atom_refs": [
+        "domain.security_privacy.redaction@0.3.0",
+        "domain.release_readiness.ship_gate@0.3.0"
+      ],
+      "predicted_direction": "positive: pairing artifact redaction with a current ship gate should reduce release evidence that is unsafe or incomplete.",
+      "mechanism": "Redaction protects the artifact boundary while the ship gate requires current quality evidence before release acceptance.",
+      "falsifier": "The paired contract leaves sensitive-output handling and release-gate disposition unchanged on a redacted-harvest release review.",
+      "held_out_evaluation_boundary": {
+        "fixture_ids": [
+          "security_privacy_positive_redacted_harvest",
+          "release_readiness_positive_ship_gate",
+          "security_privacy_ambiguous_unowned_log"
+        ],
+        "tuning_allowed": false,
+        "outcome_data_allowed": false,
+        "owner": "behavioral_atoms_preflight"
+      }
+    },
+    {
+      "id": "H3.secret_boundary_and_evidence_ladder",
+      "selection_basis": "domain_logic",
+      "families": [
+        "security_privacy",
+        "release_readiness"
+      ],
+      "atom_refs": [
+        "domain.security_privacy.secret_boundary@0.3.0",
+        "domain.release_readiness.evidence_ladder@0.3.0"
+      ],
+      "predicted_direction": "positive: pairing authorized sensitive-data scope with an explicit quality ladder should improve separation of security blockers from release unknowns.",
+      "mechanism": "The security boundary establishes who may handle evidence while the ladder prevents partial release checks from being treated as complete.",
+      "falsifier": "The paired contract still admits an ambiguous owner or incomplete quality ladder without a stop condition on held-out fixtures.",
+      "held_out_evaluation_boundary": {
+        "fixture_ids": [
+          "security_privacy_ambiguous_unowned_log",
+          "release_readiness_ambiguous_partial_ci",
+          "release_readiness_negative_unit_debug"
+        ],
+        "tuning_allowed": false,
+        "outcome_data_allowed": false,
+        "owner": "behavioral_atoms_preflight"
+      }
+    }
+  ],
+  "compatibility_risk": {
+    "status": "documented_only",
+    "no_public_runtime_schema_change": true,
+    "risks": [
+      {
+        "id": "strict_document_consumers",
+        "description": "A future consumer that scans every versioned JSON artifact may mistake this research contract for an executable runtime schema."
+      },
+      {
+        "id": "future_atom_identity_collision",
+        "description": "A future runtime atom implementation could reuse these names without preserving the typed fields or source authority recorded here."
+      },
+      {
+        "id": "fixture_label_overreach",
+        "description": "Treating sealed fixture labels as provider outcomes or composition evidence would overstate this static preflight."
+      }
+    ],
+    "mitigations": [
+      "Keep the artifact under docs/experiments and the conceptual schema under a new versioned schema ID.",
+      "Keep the rendering boundary and preflight-only status explicit.",
+      "Require a new version and separate review before any runtime registry or public packet projection references these identities."
+    ]
+  },
+  "gate_dispositions": [
+    {
+      "id": "schema_and_fixture_validation",
+      "status": "passed",
+      "disposition": "Focused schema/fixture validator passed all 8 tests.",
+      "command": "python3 -m unittest tests.test_tmcp_behavioral_atoms_preflight"
+    },
+    {
+      "id": "json_syntax",
+      "status": "passed",
+      "disposition": "All four added JSON artifacts parsed successfully with Python json.tool.",
+      "command": "python3 -m json.tool <each-added-json-file>"
+    },
+    {
+      "id": "family_signatures",
+      "status": "passed",
+      "disposition": "Focused gate proved four domain signatures remain structurally distinguishable."
+    },
+    {
+      "id": "generic_process_shell_domain_sufficiency",
+      "status": "passed",
+      "disposition": "Focused gate proved the generic process shell is insufficient for domain obligations alone."
+    },
+    {
+      "id": "applicability_fixtures",
+      "status": "passed",
+      "disposition": "Focused gate proved 12 sealed fixtures have explicit ownership and positive, negative, and ambiguous expected outcomes."
+    },
+    {
+      "id": "transplant_registry",
+      "status": "passed",
+      "disposition": "Focused gate proved four unique valid arms with non-empty semantic deltas and four rejected historical shapes with machine-readable reasons."
+    },
+    {
+      "id": "interaction_hypotheses",
+      "status": "passed",
+      "disposition": "Focused gate proved three domain-logic hypotheses with explicit falsifiers and tuning-disabled held-out boundaries."
+    },
+    {
+      "id": "public_compatibility_risk",
+      "status": "passed",
+      "disposition": "No existing public runtime schema, registry, compiler, evaluator, routing, or receipt surface is changed."
+    },
+    {
+      "id": "runtime_implementation",
+      "status": "not_run",
+      "disposition": "Excluded by scope; runtime registry/compiler/evaluator implementation remains not started."
+    },
+    {
+      "id": "provider_cells",
+      "status": "not_run",
+      "disposition": "Excluded by scope; no provider/model outcome or causal-effect claim is opened."
+    },
+    {
+      "id": "cross_skill_composition",
+      "status": "blocked",
+      "disposition": "Not supported by this preflight; a future experiment may be considered only after independent implementation gates."
+    },
+    {
+      "id": "complete_repository_suite",
+      "status": "passed",
+      "disposition": "Repository-correct discovery passed 454 tests with 3 skips in an isolated TMCP home.",
+      "command": "python3 -m unittest discover -s tests"
+    },
+    {
+      "id": "git_diff_check",
+      "status": "passed",
+      "disposition": "Tracked-tree git diff check passed; each untracked added file also passed git diff --no-index --check with no whitespace findings.",
+      "command": "git diff --check"
+    }
+  ],
+  "validation_gate": {
+    "id": "semantic-preflight-v0.3",
+    "status": "passed",
+    "fail_closed": true,
+    "admission_rule": "Any schema, JSON, fixture, family-distinguishability, transplant, hypothesis, or compatibility failure blocks runtime implementation and provider cells.",
+    "implementation_boundary": {
+      "runtime_registry": "not_started",
+      "compiler": "not_started",
+      "evaluator": "not_started",
+      "provider_cells": "not_run"
+    },
+    "checks": [
+      {
+        "id": "focused_schema_fixture_gate",
+        "status": "passed",
+        "command": "python3 -m unittest tests.test_tmcp_behavioral_atoms_preflight"
+      },
+      {
+        "id": "json_validation",
+        "status": "passed",
+        "command": "python3 -m json.tool <each-added-json-file>"
+      },
+      {
+        "id": "repository_suite",
+        "status": "passed",
+        "command": "python3 -m unittest discover -s tests"
+      },
+      {
+        "id": "whitespace_validation",
+        "status": "passed",
+        "command": "git diff --check"
+      }
+    ]
+  }
+}

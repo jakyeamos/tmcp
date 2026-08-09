@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tmcp.local/schemas/tmcp-behavioral-atoms-runtime-h3-boundary-decision-v0.7.schema.json",
+  "title": "TMCP behavioral atoms H3 boundary decision v0.7",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "iteration",
+    "status",
+    "decision",
+    "compatibility",
+    "acceptance_gates",
+    "stop_conditions"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-behavioral-atoms-runtime-h3-boundary-decision-v0.7"
+    },
+    "iteration": { "const": "runtime-h3-boundary-v0.7" },
+    "status": { "const": "authorized_private_additive_static_slice" },
+    "decision": {
+      "type": "object",
+      "required": ["scope", "admitted_atoms", "hypothesis", "valid_arms", "fixture_path"],
+      "properties": {
+        "scope": { "type": "string", "minLength": 1 },
+        "admitted_atoms": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": ["id", "source_path", "source_sha256", "dependency"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "source_path": { "type": "string", "minLength": 1 },
+              "source_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "dependency": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "hypothesis": { "type": "object" },
+        "valid_arms": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "type": "object" }
+        },
+        "fixture_path": { "type": "string", "minLength": 1 }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "required": [
+        "opt_in_only",
+        "default_registry_unchanged",
+        "provider_execution",
+        "cross_skill_composition",
+        "public_contract_change"
+      ],
+      "properties": {
+        "opt_in_only": { "const": true },
+        "default_registry_unchanged": { "const": true },
+        "provider_execution": { "const": false },
+        "cross_skill_composition": { "const": false },
+        "public_contract_change": { "const": false }
+      }
+    },
+    "acceptance_gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "stop_conditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}
