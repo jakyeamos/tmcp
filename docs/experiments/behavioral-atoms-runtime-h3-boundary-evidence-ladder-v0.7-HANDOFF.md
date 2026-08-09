@@ -9,7 +9,7 @@ Public runtime contract preserved: `0.5.7`
 
 | Path | SHA-256 |
 | --- | --- |
-| `docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7.json` | `c90d0fa21d17a771d40bbf514b82a771adbb68cb680b9d75a53a57a907d17f5b` |
+| `docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7.json` | `763e5543537ba290624b0133785c48dcab489135e860b1bdfb6098a53a4a50a8` |
 | `schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json` | `7a534143a8bc31fada5773885cde5e1d5c3eda305f0e544f6df115aee176fbfc` |
 | `schemas/tmcp-behavioral-atoms-runtime-h3-fixtures-v0.7.schema.json` | `fe0b02a0419b7f9eb21339b54a5f929add5a9a686b2a87401910779ad317b455` |
 | `tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json` | `cbe0c7e2cc95047f5d01eb0f1468e0b9394ca1543b447ce4925f2953d7a4d7f2` |
