@@ -13,6 +13,20 @@ DECISION_PATH = ROOT / "docs/experiments/behavioral-atoms-runtime-h3-boundary-ev
 DECISION_SCHEMA_PATH = ROOT / "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json"
 FIXTURE_SCHEMA_PATH = ROOT / "schemas/tmcp-behavioral-atoms-runtime-h3-fixtures-v0.7.schema.json"
 FIXTURE_PATH = ROOT / "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json"
+EXPECTED_BASELINE_HASHES = {
+    "h1_semantic_preflight": {
+        "sha256": "5bc28d734e9b5903d55b166cb4a1e124c9f740e2a2ac9da8e306d88bfd65857e"
+    },
+    "h1_fixture_schema": {
+        "sha256": "6b8df833b14b44416ce151674e4bac334e798b2e0ffa2645627606c8796a30f9"
+    },
+    "h1_fixtures": {
+        "sha256": "172c761fcc5fb8f4814a2e9783b5322ad724b81ebec3ac0c74a1c03e9f9c652f"
+    },
+    "h2_decision": {
+        "sha256": "8b521e07628628ba84df1816fc5315fdf8cb31b080d23acd40dd8b95d73a988c"
+    },
+}
 
 
 class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
@@ -58,10 +72,7 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
     def test_inherited_baselines_are_hash_pinned_and_unchanged(self) -> None:
         baselines = self.decision["base"]["immutable_baselines"]
         expected = {
-            "h1_semantic_preflight": "5bc28d734e9b5903d55b166cb4a1e124c9f740e2a2ac9da8e306d88bfd65857e",
-            "h1_fixture_schema": "6b8df833b14b44416ce151674e4bac334e798b2e0ffa2645627606c8796a30f9",
-            "h1_fixtures": "172c761fcc5fb8f4814a2e9783b5322ad724b81ebec3ac0c74a1c03e9f9c652f",
-            "h2_decision": "8b521e07628628ba84df1816fc5315fdf8cb31b080d23acd40dd8b95d73a988c",
+            name: item["sha256"] for name, item in EXPECTED_BASELINE_HASHES.items()
         }
         for name, expected_hash in expected.items():
             with self.subTest(name=name):
