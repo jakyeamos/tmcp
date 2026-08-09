@@ -22,6 +22,15 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         is not None
     ):
         return True
+    if (
+        re.search(
+            r"\bexact\s+(?:base|HEAD)\b\s*(?:(?:remains|is)\s*)?[\"'`]?\s*$",
+            prefix,
+            flags=re.IGNORECASE,
+        )
+        is not None
+    ):
+        return True
     if len(value) == 40:
         if (
             re.search(
@@ -111,7 +120,7 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     if (
         current_line_prefix.strip().startswith(("`", "\"", "'"))
         and re.search(
-            r"\b(?:hash|digest|checksum)\b\s+is\s*[\"'`]?\s*$",
+            r"\b(?:sha-?(?:1|224|256|384|512)|hash|digest|checksum)\b\s+is\s*[\"'`]?\s*$",
             previous_line,
             flags=re.IGNORECASE,
         )
@@ -147,7 +156,7 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         return True
     if (
         re.search(
-            r"\b(?:hash|digest|checksum)\b\s+is\s*[\"'`]?\s*$",
+            r"\b(?:sha-?(?:1|224|256|384|512)|hash|digest|checksum)\b\s+is\s*[\"'`]?\s*$",
             prefix,
             flags=re.IGNORECASE,
         )
