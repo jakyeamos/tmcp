@@ -404,6 +404,12 @@ class ReleasePackageTests(unittest.TestCase):
             "README.md", f"- Exact base: '{checksum[:40]}'\n".encode("utf-8")
         )
         self.package.scan_release_content(
+            "README.md",
+            f"Base: current HEAD `{checksum[:40]}`; sealed v0.6 declared base `{checksum[:40]}`\n".encode(
+                "utf-8"
+            ),
+        )
+        self.package.scan_release_content(
             "README.md", f"The handoff hash is\n`{checksum}`\n".encode("utf-8")
         )
         self.package.scan_release_content(
