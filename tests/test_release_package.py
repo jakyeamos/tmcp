@@ -455,6 +455,10 @@ class ReleasePackageTests(unittest.TestCase):
     def test_package_allows_path_shaped_placeholder(self) -> None:
         placeholder = "/absolute/path/to/tmcp/scripts/" + "tmcp_launcher.mjs"
         self.package.scan_release_content("README.md", placeholder.encode("utf-8"))
+        path_assignment = "PATH=/private/tmp/tmcp-skill-fixtures-20260722"
+        self.package.scan_release_content(
+            "README.md", path_assignment.encode("utf-8")
+        )
         relative_path = "workflows/" + "security-privacy-harvest-audit"
         self.package.scan_release_content("README.md", relative_path.encode("utf-8"))
         identifier = "recommended_scoped_packet_" + "seeds"
