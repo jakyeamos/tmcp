@@ -44,6 +44,8 @@ class _ReleaseArchiveModule(Protocol):
 
     def forbidden_path_reason(self, relative_path: PurePosixPath) -> str | None: ...
 
+    def inclusion_reason(self, relative_path: PurePosixPath) -> str | None: ...
+
     def scan_release_content(self, relative_path: str, content: bytes) -> None: ...
 
     def validate_output_path(self, plugin_root: Path, output_path: Path) -> Path: ...
@@ -320,6 +322,16 @@ class ReleasePackageTests(unittest.TestCase):
             "reject Git mode 120000",
         ):
             self.package.validate_tree_entry("linked.md", "120000", "blob")
+
+    def test_package_includes_experiment_evidence_bound_by_shipped_tests(self) -> None:
+        for path in (
+            "docs/experiments/behavioral-atoms-runtime-h2-redaction-ship-gate-v0.6.json",
+            "docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7.json",
+        ):
+            with self.subTest(path=path):
+                self.assertIsNone(
+                    self.package.inclusion_reason(PurePosixPath(path))
+                )
 
     def test_package_rejects_cross_platform_path_collisions(self) -> None:
         with self.assertRaisesRegex(

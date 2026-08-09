@@ -48,6 +48,7 @@ SHIPPED_PREFIXES = (
     ".codex-plugin/",
     "assets/",
     "examples/",
+    "docs/experiments/",
     "schemas/",
     "scripts/",
     "skills/",
