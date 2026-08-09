@@ -73,7 +73,14 @@ separators, and one trailing newline:
 The config-file list is sorted by path and includes existing root-level
 `.ruff.toml`, `pyproject.toml`, and `ruff.toml` files; an empty list records
 Ruff's default profile. The parser resolves the live `ruff --version` and the
-same root-level config inputs before accepting strict custody. Default
+same root-level config inputs before accepting strict custody. In strict mode,
+`custody.receipt.reference` is a safe relative path resolved from the directory
+containing the manifest (the handoff receipt bundle); `--bundle-root` continues
+to control only artifact `artifact_path` resolution. The referenced receipt
+must be a non-symlink regular file, and its bytes must hash exactly to
+`custody.receipt.sha256`. Missing, unreadable, non-file, unsafe, or
+hash-mismatched receipts fail closed; the manifest's own metadata is never a
+substitute for reading the referenced bytes. Default
 verification still reads v0.1 and historical manifests, and reads older v0.2
 metadata without treating it as an integration authorization.
 
