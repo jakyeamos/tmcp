@@ -8,7 +8,7 @@ execution, or cross-skill composition support.
 ## Base and provenance
 
 - Repository: 'jakyeamos/tmcp'
-- Exact base: '3c9b2fe8cc0fe72ed947c447e4ea549094d810c3'
+- Exact base Git commit: '3c9b2fe8cc0fe72ed947c447e4ea549094d810c3'
 - Intake state: detached HEAD at source branch 'main'
 - Machine-readable contract:
   'docs/experiments/behavioral-atoms-semantic-preflight-v0.3.json'
@@ -29,10 +29,10 @@ signatures and atom catalog:
 The coordinator handoff at semantic-preflight v0.2 was read. Its two legacy
 files were hash-verified and are negative experimental evidence only:
 
-- 'BEHAVIORAL_ATOMS_PILOT_EXECUTION_V0.1.md':
-  'b13b9c0c507745db1e685da36c00b5a2374bf5bd9788338232acc4362e11176d'
-- 'behavioral-atoms-pilot-preflight-v0.1.json':
-  '7b11daf555228e4a274e36275c6fe25649900295bad97717120bb23bd1ab0c61'
+- 'BEHAVIORAL_ATOMS_PILOT_EXECUTION_V0.1.md'
+  SHA-256: 'b13b9c0c507745db1e685da36c00b5a2374bf5bd9788338232acc4362e11176d'
+- 'behavioral-atoms-pilot-preflight-v0.1.json'
+  SHA-256: '7b11daf555228e4a274e36275c6fe25649900295bad97717120bb23bd1ab0c61'
 
 No uncommitted v0.1 registry or compiler implementation was copied or
 reconstructed.
