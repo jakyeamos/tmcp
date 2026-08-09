@@ -1,0 +1,183 @@
+{
+  "schema": "tmcp-individual-skill-admission-cases-v0.1",
+  "policy": {
+    "source_bound": true,
+    "invented_inputs": false,
+    "invented_bars": false,
+    "provenance_required": true
+  },
+  "cases": [
+    {
+      "source_path": "/Users/jakyeamos/.agents/skills/last30days/SKILL.md",
+      "case_id": "last30days-nvidia-earnings-reaction",
+      "mode": "conformance",
+      "prompt": "last30days nvidia earnings reaction. Use the deterministic fixture engine at /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/last30days-research-fixture-v0.1/scripts/last30days.py instead of network or setup commands. Run it with the supplied plan file /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/last30days-research-fixture-v0.1/query-plan.json and --emit=compact, then synthesize only from its evidence and pass through its footer. Do not include command transcripts or tooling commentary in the user-facing report; finish with the skill's evidence-grounded invitation containing 2 or 3 follow-up suggestions.",
+      "bar": "For this GENERAL query, the response begins with the deterministic engine's mandatory version/date badge, then one blank line and `What I learned:`; it uses the skill's required narrative shape and its required prose label `KEY PATTERNS from the research:`. It must not append a Sources/References block or use forbidden `##`/`###` body section headers, and it must include the fixture engine footer verbatim followed by an evidence-grounded invitation with 2 or 3 follow-up suggestions. Do not include command transcripts or tooling commentary. Every finding must be supported by the fixture evidence; do not invent research or claim unavailable live sources.",
+      "smells": [
+        "missing or non-first badge",
+        "invented title instead of What I learned",
+        "trailing Sources or References block",
+        "forbidden body section headers",
+        "fabricated research findings"
+      ],
+      "execution_boundary": {
+        "status": "complete",
+        "evidence": "The bounded fixture supplies a deterministic Python engine, a dated plan, source evidence, and a pass-through footer; the task explicitly forbids network/setup commands, so the conformance bar can be judged without live research credentials or mutable state."
+      },
+      "provenance": [
+        {"line": 5, "excerpt": "argument-hint: 'last30days nvidia earnings reaction | last30days AI video tools | last30days what users want in react'"},
+        {"line": 114, "excerpt": "BADGE (MANDATORY, FIRST LINE OF OUTPUT)"},
+        {"line": 125, "excerpt": "GENERAL / NEWS / PROMPTING / RECOMMENDATIONS: badge on line 1, blank line 2, `What I learned:` on line 3"},
+        {"line": 136, "excerpt": "LAW 1 - NO `Sources:` BLOCK AT THE END."},
+        {"line": 150, "excerpt": "LAW 4 - NO `##` or `###` SECTION HEADERS IN BODY"}
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.agents/skills/find-skills/SKILL.md",
+      "case_id": "find-skills-react-performance",
+      "mode": "judgment",
+      "prompt": "how do I make my React app faster? Use the deterministic fixture search command for this case: prefix the source-prescribed command with PATH=/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/find-skills-discovery-fixture-v0.1/bin:$PATH so `pnpm dlx skills find react performance` reads the recorded fixture result. Do not install anything.",
+      "bar": "Identify the React-performance domain and concrete task, show the source-prescribed skills search command or an explicit statement that its deterministic fixture result was used, and present each returned skill with its name, purpose, install command, and skills.sh link. The artifact need not reproduce the entire shim transcript, but every reported result must be supported by that fixture. Offer installation without installing anything unless the user explicitly asks to proceed; do not invent results beyond the fixture output.",
+      "smells": [
+        "no search attempt",
+        "irrelevant or unscoped skill suggestions",
+        "missing install command or discovery link",
+        "silent installation without authorization"
+      ],
+      "execution_boundary": {
+        "status": "complete",
+        "evidence": "The bounded fixture supplies an executable pnpm shim and recorded React-performance search result; the task explicitly prefixes PATH to that shim and forbids installation, so no network, authentication, or external mutation is required."
+      },
+      "provenance": [
+        {"line": 14, "excerpt": "Asks \"how do I do X\" where X might be a common task with an existing skill"},
+        {"line": 46, "excerpt": "Run the find command with a relevant query"},
+        {"line": 54, "excerpt": "User asks \"how do I make my React app faster?\" → `pnpm dlx skills find react performance`"},
+        {"line": 69, "excerpt": "When you find relevant skills, present them to the user with:"},
+        {"line": 71, "excerpt": "The skill name and what it does"},
+        {"line": 72, "excerpt": "The install command they can run"},
+        {"line": 73, "excerpt": "A link to learn more at skills.sh"}
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.agents/skills/nlm-skill/SKILL.md",
+      "case_id": "nlm-list-notebooks-json",
+      "mode": "judgment",
+      "prompt": "List my NotebookLM notebooks as JSON. Use the deterministic fixture CLI by prefixing PATH=/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/nlm-notebook-fixture-v0.1/bin:$PATH. First run `nlm login --check`, then run `nlm notebook list --json`. Return only the parsed JSON listing; do not create or delete notebooks or launch chat.",
+      "bar": "The final artifact must be only valid parsed JSON from the supplied deterministic listing, containing exactly the two fixture notebooks with their ids, titles, and source counts; do not invent records or add prose. The campaign runner trace separately verifies that `nlm login --check` preceded `nlm notebook list --json` and that no interactive or destructive command was executed. If a command fails, report that exact blocker instead of claiming a listing.",
+      "smells": [
+        "operation before authentication or tool detection",
+        "interactive chat REPL launched",
+        "destructive command executed",
+        "listing claimed without output"
+      ],
+      "execution_boundary": {
+        "status": "complete",
+        "evidence": "The bounded fixture supplies an executable `nlm` shim with deterministic authentication and JSON listing responses while rejecting interactive or destructive commands; the runner is read-only."
+      },
+      "provenance": [
+        {"line": 51, "excerpt": "Always authenticate first**: Run `nlm login` before any operations"},
+        {"line": 59, "excerpt": "DO NOT launch REPL**: Never use `nlm chat start`"},
+        {"line": 159, "excerpt": "nlm notebook list --json               # JSON output for parsing"},
+        {"line": 154, "excerpt": "Delete requires `confirm=True`."}
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.agents/skills/firecrawl-build/SKILL.md",
+      "case_id": "firecrawl-build-known-url-routing",
+      "mode": "judgment",
+      "prompt": "We need add one Firecrawl-backed behavior to an existing TypeScript app. Inspect the read-only fixture project at /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/firecrawl-build-routing-fixture-v0.1 before answering. Recommend the narrowest Firecrawl integration route and give a bounded implementation plan. Do not install packages, edit files, read live docs, make network requests, or claim a smoke test ran; credentials are unavailable.",
+      "bar": "Read the supplied fixture project before recommending a route. The artifact must identify the existing TypeScript/pnpm conventions, the known URL extraction behavior, and the missing-credentials/no-network boundary; choose `/scrape` and the source-defined `firecrawl-build-scrape` route, explicitly reject `/search` because no discovery is needed and `/interact` because no browser actions are needed, and scope the plan to one extraction contract. It must not claim files changed, packages installed, live docs read, or a successful smoke test. State that a real smoke test is a follow-up only when credentials are available.",
+      "smells": [
+        "routes known URL through search",
+        "uses interact without browser actions",
+        "skips target-codebase inspection",
+        "claims network or smoke-test evidence without credentials",
+        "scope expands beyond one extraction contract"
+      ],
+      "execution_boundary": {
+        "status": "complete",
+        "evidence": "The bounded fixture supplies a deterministic existing TypeScript project with pnpm conventions, a known extraction URL, and an explicit no-credentials/no-network condition; the runner is read-only."
+      },
+      "provenance": [
+        {"line": 3, "excerpt": "Choose the right Firecrawl API integration path for product code."},
+        {"line": 8, "excerpt": "Read the target codebase first, then route to the narrowest endpoint-specific skill."},
+        {"line": 15, "excerpt": "Product starts from a known URL and needs page extraction | [firecrawl-build-scrape]"},
+        {"line": 22, "excerpt": "Use `/scrape` when a URL is already known."},
+        {"line": 25, "excerpt": "In JavaScript projects, prefer `pnpm` commands."},
+        {"line": 26, "excerpt": "Run a smoke test that proves one real Firecrawl request succeeds when credentials are available."}
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.codex/skills/.system/skill-creator/SKILL.md",
+      "case_id": "skill-creator-rotate-pdf",
+      "mode": "judgment",
+      "prompt": "I want a reusable skill for rotating PDFs. Scope it to rotating a supplied PDF by 90, 180, or 270 degrees, with the user choosing the output path. The target skill directory is /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/skill-creator-authoring-fixture-v0.1/target-skill. Do not create or edit files yet; return the clarified scope, reusable resources to include, and the initialization/validation plan.",
+      "bar": "Establish a concrete, reusable PDF-rotation skill scope before proposing files: resolve the supported rotation behavior and destination, identify a deterministic reusable resource such as a rotation script, and stop at a clear initialization/validation plan without claiming that files were created or validated. Avoid jumping from the example to a generic scaffold, inventing an output location, or claiming completion without a validated target and output.",
+      "smells": [
+        "skips understanding the concrete example",
+        "creates a generic skill without reusable resources",
+        "writes to an unconfirmed location",
+        "claims completion without validation"
+      ],
+      "execution_boundary": {
+        "status": "complete",
+        "evidence": "The fixture supplies a concrete rotation scope, an explicit target-skill directory inside the bounded read-only root, and a plan-only task that requires no PDF mutation or external tool result."
+      },
+      "provenance": [
+        {"line": 244, "excerpt": "Step 1: Understanding the Skill with Concrete Examples"},
+        {"line": 252, "excerpt": "What functionality should the image-editor skill support? Editing, rotating, anything else?"},
+        {"line": 269, "excerpt": "Example: When building a `pdf-editor` skill to handle queries like \"Help me rotate this PDF,\""},
+        {"line": 272, "excerpt": "A `scripts/rotate_pdf.py` script would be helpful to store in the skill"}
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.agents/skills/gsd-reapply-patches/SKILL.md",
+      "case_id": "gsd-reapply-patches-after-update",
+      "mode": "conformance",
+      "prompt": "Reapply local modifications after a GSD update.",
+      "bar": "Use three-way comparison across the pristine baseline, user-modified backup, and newly installed version. Account for every file named by the backup metadata and classify each with the source-defined semantic outcomes: Merged/changed when user content can be carried forward, Conflict/CONFLICT when both sides changed and user review is required, or Incorporated/preserved when the user change is already present upstream. Never report no custom content for a backed-up file, and never silently skip an uncertain file. Under this fixture's read-only execution boundary, report the merge candidates and conflict evidence without claiming that files were written or backups were cleaned up.",
+      "smells": [
+        "two-way overwrite instead of three-way comparison",
+        "backed-up file reported as no custom content",
+        "uncertain file silently skipped",
+        "conflict resolved without user review"
+      ],
+      "execution_boundary": {
+        "status": "complete",
+        "evidence": "The disposable CODEX_HOME contains backup-meta.json plus pristine, backed-up, and newly installed workflow files for merge, conflict, and incorporated classifications; the runner is read-only."
+      },
+      "provenance": [
+        {"line": 3, "excerpt": "description: \"Reapply local modifications after a GSD update\""},
+        {"line": 8, "excerpt": "Uses three-way comparison (pristine baseline, user-modified backup, newly installed version)"},
+        {"line": 10, "excerpt": "Every file in `gsd-local-patches/` was backed up because the installer's hash comparison detected it was modified."},
+        {"line": 10, "excerpt": "When in doubt, classify as CONFLICT requiring user review, not SKIP."}
+      ]
+    },
+    {
+      "source_path": "/Users/jakyeamos/.codex/skills/check-thread-ownership/SKILL.md",
+      "case_id": "check-thread-ownership-read-only-current-repo",
+      "mode": "judgment",
+      "prompt": "Before any mutation, verify ownership of the current repository at /private/tmp/tmcp-skill-fixtures-20260722 from its read-only state and return the compact ownership report.",
+      "bar": "Return the compact ownership report with repository, worktree, branch, snapshot, current HEAD, changed paths, activity evidence, exactly one allowed classification, mutation status, and one safe next action. Scope inspection to the target repository, never mutate it, and classify missing or conflicting activity evidence as unknown rather than assuming ownership.",
+      "smells": [
+        "missing required report field",
+        "broad home-directory scan",
+        "mutation command executed",
+        "ownership inferred from appearance",
+        "unknown activity evidence treated as safe"
+      ],
+      "execution_boundary": {
+        "status": "complete",
+        "evidence": "The target repository exists in the fixture workspace and all required evidence commands are read-only; no external service or attached artifact is required."
+      },
+      "provenance": [
+        {"line": 30, "excerpt": "Capture current repository evidence without changing state:"},
+        {"line": 43, "excerpt": "Scope every command to the affected repository. Do not use a broad home"},
+        {"line": 44, "excerpt": "directory scan."},
+        {"line": 64, "excerpt": "Treat `owned-by-other-or-recent-thread` and `unknown` as hard stops."},
+        {"line": 76, "excerpt": "Until the gate clears, do not edit files or run commands that stage, commit,"},
+        {"line": 87, "excerpt": "Return a compact ownership report with these fields:"}
+      ]
+    }
+  ]
+}
