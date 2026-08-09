@@ -392,16 +392,25 @@ class ReleasePackageTests(unittest.TestCase):
             "README.md", f'{{"sha256": "{checksum}"}}\n'.encode("utf-8")
         )
         self.package.scan_release_content(
+            "README.md", f'{{"source_sha256": "{checksum}"}}\n'.encode("utf-8")
+        )
+        self.package.scan_release_content(
             "README.md", f'"skills/example/SKILL.md": "{checksum}"\n'.encode("utf-8")
         )
         self.package.scan_release_content(
             "README.md", f"- Exact base commit: `{checksum[:40]}`\n".encode("utf-8")
         )
         self.package.scan_release_content(
+            "README.md", f"- Exact base: '{checksum[:40]}'\n".encode("utf-8")
+        )
+        self.package.scan_release_content(
             "README.md", f"The handoff hash is\n`{checksum}`\n".encode("utf-8")
         )
         self.package.scan_release_content(
             "README.md", f"| `docs/example.md` | `{checksum}` |\n".encode("utf-8")
+        )
+        self.package.scan_release_content(
+            "README.md", f"- 'example.md':\n  '{checksum}'\n".encode("utf-8")
         )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,

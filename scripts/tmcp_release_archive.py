@@ -350,10 +350,10 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     return (
         re.search(
             r"(?:"
-            r"[\"']?\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest|hash|commit|manifest)\b[\"']?"
+            r"[\"']?(?:[A-Za-z0-9_]+_)?(?:sha-?(?:1|224|256|384|512)?|checksum|digest|hash|commit|manifest|base)\b[\"']?"
             r"(?:\s+(?:hash|digest))?\s*[:=]\s*[\"'`]?"
             r"|\b(?:hash|digest|checksum)\b\s+is\s*[\"'`]?"
-            r"|[\"'][^\"'\r\n]+/[^\"'\r\n]+[\"']\s*[:=]\s*[\"']?"
+            r"|[\"'][^\"'\r\n]+(?:/[^\"'\r\n]+|\.(?:md|json|py|yaml|yml|toml))[\"']\s*[:=]\s*[\"']?"
             r"|\|\s*`[^`\r\n]+/[^`\r\n]+`\s*\|\s*`?"
             r")$",
             prefix,
