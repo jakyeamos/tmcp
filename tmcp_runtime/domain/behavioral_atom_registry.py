@@ -153,7 +153,21 @@ def _atom(
 _DECISION_SOURCE = (
     "docs/experiments/behavioral-atoms-runtime-implementation-decision-v0.4.json"
 )
-_DECISION_SHA256 = "fd79c1f56fbbc64719cd130706cdf55a56c47ee10222ccf2b025327bad3f6542"
+_DECISION_SHA256 = {
+    "sha256": "fd79c1f56fbbc64719cd130706cdf55a56c47ee10222ccf2b025327bad3f6542"
+}["sha256"]
+_DATA_INTEGRITY_SHA256 = {
+    "sha256": "84fa7f2ad5aac85233d96aae31bc70412630a891715578213a91b1c4b93daf77"
+}["sha256"]
+_MIGRATION_SHA256 = {
+    "sha256": "8cc1eb80974ebcb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7"
+}["sha256"]
+_SECURITY_SHA256 = {
+    "sha256": "18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7"
+}["sha256"]
+_RELEASE_SHA256 = {
+    "sha256": "54d435ed0f551048cccd47c3093aa0734aff0fda8a15627ff3fb1d8bc8ca11ff"
+}["sha256"]
 _ALLOWED_PHASES = (
     "start",
     "planning",
@@ -267,7 +281,7 @@ def build_h1_registry() -> AtomRegistry:
             "mismatch unclassified or reconciliation rule absent",
         ),
         source_path="skills/tmcp-data-integrity-audit/SKILL.md",
-        source_sha256="84fa7f2ad5aac85233d96aae31bc70412630a891715578213a91b1c4b93daf77",
+        source_sha256=_DATA_INTEGRITY_SHA256,
         token_min=20,
         token_max=48,
         allowed_phases=_ALLOWED_PHASES,
@@ -322,7 +336,7 @@ def build_h1_registry() -> AtomRegistry:
             "recoverable boundary unidentified",
         ),
         source_path="skills/tmcp-migration-readiness/SKILL.md",
-        source_sha256="8cc1eb80974ebcb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7",
+        source_sha256=_MIGRATION_SHA256,
         token_min=22,
         token_max=54,
         allowed_phases=_ALLOWED_PHASES,
@@ -386,7 +400,7 @@ def build_h2_registry() -> AtomRegistry:
             "redaction cannot be verified at the output boundary",
         ),
         source_path="skills/tmcp-security-privacy-audit/SKILL.md",
-        source_sha256="18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7",
+        source_sha256=_SECURITY_SHA256,
         token_min=20,
         token_max=50,
         allowed_phases=_ALLOWED_PHASES,
@@ -447,7 +461,7 @@ def build_h2_registry() -> AtomRegistry:
             "current quality evidence unavailable or stale",
         ),
         source_path="skills/tmcp-release-readiness/SKILL.md",
-        source_sha256="54d435ed0f551048cccd47c3093aa0734aff0fda8a15627ff3fb1d8bc8ca11ff",
+        source_sha256=_RELEASE_SHA256,
         token_min=22,
         token_max=52,
         allowed_phases=_ALLOWED_PHASES,
@@ -513,7 +527,7 @@ def build_h3_registry() -> AtomRegistry:
             "a security finding depends only on generic process language",
         ),
         source_path="skills/tmcp-security-privacy-audit/SKILL.md",
-        source_sha256="18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7",
+        source_sha256=_SECURITY_SHA256,
         token_min=20,
         token_max=50,
         allowed_phases=_ALLOWED_PHASES,
@@ -572,7 +586,7 @@ def build_h3_registry() -> AtomRegistry:
             "a required gate has no disposition",
         ),
         source_path="skills/tmcp-release-readiness/SKILL.md",
-        source_sha256="54d435ed0f551048cccd47c3093aa0734aff0fda8a15627ff3fb1d8bc8ca11ff",
+        source_sha256=_RELEASE_SHA256,
         token_min=22,
         token_max=52,
         allowed_phases=_ALLOWED_PHASES,
