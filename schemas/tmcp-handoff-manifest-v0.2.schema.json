@@ -32,8 +32,8 @@
           "required": ["reference", "sha256", "freshness", "observed_at"],
           "properties": {
             "reference": {
-              "type": "string",
-              "minLength": 1
+              "$ref": "#/$defs/relativePath",
+              "description": "Relative to the directory containing this manifest, which is the handoff receipt bundle."
             },
             "sha256": {
               "type": "string",

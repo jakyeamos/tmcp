@@ -15,6 +15,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import tempfile
 from dataclasses import dataclass
@@ -235,11 +236,19 @@ def _manifest_custody(payload: dict[str, Any]) -> dict[str, object]:
     digest = _string(receipt.get("sha256"), "custody.receipt.sha256")
     if _SHA256_RE.fullmatch(digest) is None:
         raise HandoffManifestError("custody.receipt.sha256 must be lowercase SHA-256")
+    try:
+        reference = _safe_relative(
+            receipt.get("reference"), "custody.receipt.reference"
+        ).as_posix()
+    except HandoffManifestError as exc:
+        raise HandoffManifestError(
+            "custody.receipt.reference must be a safe relative path"
+        ) from exc
     custody: dict[str, object] = {
         "stream": _string(raw_custody.get("stream"), "custody.stream"),
         "owner": _string(raw_custody.get("owner"), "custody.owner"),
         "receipt": {
-            "reference": _string(receipt.get("reference"), "custody.receipt.reference"),
+            "reference": reference,
             "sha256": digest,
             "freshness": _enum(
                 receipt.get("freshness"),
@@ -255,6 +264,48 @@ def _manifest_custody(payload: dict[str, Any]) -> dict[str, object]:
     if formatter is not None:
         custody["formatter_fingerprint"] = formatter
     return custody
+
+
+def _verify_receipt_bytes(manifest_path: Path, receipt: dict[str, object]) -> None:
+    reference = receipt.get("reference")
+    if not isinstance(reference, str):
+        raise HandoffManifestError(
+            "--require-custody rejects receipt: malformed reference metadata"
+        )
+    receipt_root = manifest_path.resolve().parent
+    candidate = receipt_root / Path(*PurePosixPath(reference).parts)
+    try:
+        resolved = candidate.resolve(strict=False)
+        resolved.relative_to(receipt_root)
+    except (OSError, ValueError) as exc:
+        raise HandoffManifestError(
+            "--require-custody rejects receipt: reference escapes the handoff bundle"
+        ) from exc
+    try:
+        metadata = candidate.lstat()
+    except FileNotFoundError as exc:
+        raise HandoffManifestError(
+            "--require-custody rejects receipt: referenced receipt is missing"
+        ) from exc
+    except OSError as exc:
+        raise HandoffManifestError(
+            "--require-custody rejects receipt: referenced receipt is unreadable"
+        ) from exc
+    if not stat.S_ISREG(metadata.st_mode):
+        raise HandoffManifestError(
+            "--require-custody rejects receipt: referenced receipt is not a regular file"
+        )
+    try:
+        _, observed = _digest(candidate)
+    except (OSError, PermissionError) as exc:
+        raise HandoffManifestError(
+            "--require-custody rejects receipt: referenced receipt is unreadable"
+        ) from exc
+    expected = receipt.get("sha256")
+    if not isinstance(expected, str) or observed != expected:
+        raise HandoffManifestError(
+            "--require-custody rejects receipt: referenced receipt bytes SHA-256 mismatch"
+        )
 
 
 def _require_formatter_fingerprint(
@@ -476,6 +527,7 @@ def load_manifest(path: Path, *, require_custody: bool = False) -> HandoffManife
             raise HandoffManifestError(
                 "--require-custody requires a current receipt freshness status"
             )
+        _verify_receipt_bytes(path, receipt)
         for entry in manifest.entries:
             if entry.custody is None:
                 raise HandoffManifestError(
