@@ -376,6 +376,9 @@ class ReleasePackageTests(unittest.TestCase):
         self.package.scan_release_content(
             "README.md", f"sha256 digest: {checksum}\n".encode("utf-8")
         )
+        self.package.scan_release_content(
+            "README.md", f'{{"sha256": "{checksum}"}}\n'.encode("utf-8")
+        )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",
@@ -389,6 +392,10 @@ class ReleasePackageTests(unittest.TestCase):
         self.package.scan_release_content("README.md", placeholder.encode("utf-8"))
         relative_path = "workflows/" + "security-privacy-harvest-audit"
         self.package.scan_release_content("README.md", relative_path.encode("utf-8"))
+        versioned_identifier = "tmcp-invocation-admission-overhead-pilot-v0.5"
+        self.package.scan_release_content(
+            "README.md", versioned_identifier.encode("utf-8")
+        )
         identifier = "recommended_scoped_packet_" + "seeds"
         self.package.scan_release_content("README.md", identifier.encode("utf-8"))
         assignment = identifier + "=" + identifier
