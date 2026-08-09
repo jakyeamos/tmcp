@@ -405,6 +405,19 @@ class ReleasePackageTests(unittest.TestCase):
         )
         self.package.scan_release_content(
             "README.md",
+            f'"Exact base remains {checksum[:40]} from main."\n'.encode("utf-8"),
+        )
+        self.package.scan_release_content(
+            "README.md", f'"Exact HEAD {checksum[:40]}"\n'.encode("utf-8")
+        )
+        self.package.scan_release_content(
+            "README.md",
+            f"The handoff SHA-256 is {checksum}; manifest SHA-256 is {checksum}.\n".encode(
+                "utf-8"
+            ),
+        )
+        self.package.scan_release_content(
+            "README.md",
             f"Base: current HEAD `{checksum[:40]}`; sealed v0.6 declared base `{checksum[:40]}`\n".encode(
                 "utf-8"
             ),
