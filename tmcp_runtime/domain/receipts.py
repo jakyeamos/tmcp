@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from tmcp_runtime.domain.coordination import resolve_coordinator_state
+
 
 RUN_RECEIPT_SCHEMA = "tmcp-run-receipt-v0.1"
 RECEIPT_TRUST = "advisory_untrusted"
@@ -25,7 +27,7 @@ def build_run_receipt(
     packet_id = str(arguments.get("packet_id") or "").strip()
     if not packet_id:
         raise ValueError("tmcp_record_receipt requires packet_id.")
-    return {
+    receipt = {
         "schema": RUN_RECEIPT_SCHEMA,
         "created_at": created_at,
         "packet_id": packet_id,
@@ -38,6 +40,15 @@ def build_run_receipt(
         "trust": RECEIPT_TRUST,
         "instruction_override_policy": RECEIPT_INSTRUCTION_OVERRIDE_POLICY,
     }
+    coordinator_state = arguments.get("coordinator_state")
+    if coordinator_state is not None:
+        receipt["coordination"] = resolve_coordinator_state(
+            coordinator_state,
+            explicit_user_stream_selection=(
+                arguments.get("explicit_user_stream_selection") is True
+            ),
+        )
+    return receipt
 
 
 def build_receipt_template(
