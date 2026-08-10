@@ -439,6 +439,9 @@ def is_documented_release_scanner_identifier(
         "h3_negative_no_boundary_or_release_decision",
         "h3_ambiguous_unowned_sensitive_boundary",
         "h3_ambiguous_partial_or_stale_quality_ladder",
+        "h3_security_positive_authorized_secret_boundary",
+        "h3_security_ambiguous_inferred_authority",
+        "h3_combined_positive_secret_boundary_evidence_ladder",
     }
 
 
