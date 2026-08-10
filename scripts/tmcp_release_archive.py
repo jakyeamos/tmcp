@@ -352,12 +352,20 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     line_start = text.rfind("\n", 0, match.start()) + 1
     prefix = text[line_start : match.start()]
     if len(value) == 40:
-        return (
+        if (
             re.search(
                 r"(?i)\b(?:git[_ -])?(?:base[_ -])?commit(?:[_ -](?:sha|id))?"
                 r"\s*[:=]\s*[\"']?\s*$",
                 prefix,
             )
+            is not None
+        ):
+            return True
+        parent_line = text[:line_start].rstrip("\n").rsplit("\n", 1)[-1].strip()
+        return (
+            re.search(r"(?i)^\s*[\"']commit[\"']\s*:\s*[\"']?\s*$", prefix)
+            is not None
+            and re.fullmatch(r"(?i)[\"']base[\"']\s*:\s*\{", parent_line)
             is not None
         )
     if len(value) not in {64, 96, 128}:

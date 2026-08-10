@@ -378,6 +378,13 @@ class ReleasePackageTests(unittest.TestCase):
                 "utf-8"
             ),
         )
+        self.package.scan_release_content(
+            "decision.json",
+            '{\n  "base": {\n    "commit": '
+            '"3c9b2fe8cc0fe72ed947c447e4ea549094d810c3"\n  }\n}\n'.encode(
+                "utf-8"
+            ),
+        )
         checksum = "0123456789abcdef" * 4
         self.package.scan_release_content(
             "README.md", f"sha256 digest: {checksum}\n".encode("utf-8")
