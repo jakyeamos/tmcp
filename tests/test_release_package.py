@@ -443,6 +443,7 @@ class ReleasePackageTests(unittest.TestCase):
             "scripts/run_invocation_admission_overhead_pilot.py",
             b'    if manifest.get("schema") not in {\n'
             b'        "tmcp-invocation-admission-overhead-pilot-v0.5",\n'
+            b'        "tmcp-invocation-admission-overhead-pilot-v0.6",\n'
             b'    }\n',
         )
         with self.assertRaisesRegex(
