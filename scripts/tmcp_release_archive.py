@@ -375,6 +375,15 @@ def is_documented_schema_identifier(text: str, match: re.Match[str]) -> bool:
     )
 
 
+def is_documented_fixture_identifier(text: str, match: re.Match[str]) -> bool:
+    value = match.group(0)
+    if not re.fullmatch(r"h3_[a-z0-9]+(?:_[a-z0-9]+)+", value):
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    prefix = text[line_start : match.start()]
+    return re.search(r'\"combined_fixture_id\"\s*:\s*\"$', prefix) is not None
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -384,6 +393,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_checksum(text, match)
                 or is_documented_schema_path(text, match)
                 or is_documented_schema_identifier(text, match)
+                or is_documented_fixture_identifier(text, match)
             ):
                 continue
             raise ReleasePackageError(
