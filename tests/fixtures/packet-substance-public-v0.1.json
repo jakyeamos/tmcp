@@ -1,0 +1,15 @@
+{
+  "schema": "tmcp-packet-substance-public-fixture-v0.1",
+  "objective": "Use TMCP to audit government compliance readiness.",
+  "source_rich": {
+    "relative_path": "docs/government-readiness.md",
+    "content": "# Government Readiness Playbook\n\nA government compliance review must inspect security controls, tenant permissions, audit logs, legal calculation safety, deployment rollback, UAT evidence, and release blockers. Score each criterion with cited evidence and verify the gate before launch.\n\nFixture-only source marker: PACKET_SUBSTANCE_SOURCE_ONLY_7A1E.\n",
+    "marker": "PACKET_SUBSTANCE_SOURCE_ONLY_7A1E",
+    "expected_level": "source_backed_playbook",
+    "expected_has_domain_playbook": true
+  },
+  "process_only": {
+    "expected_level": "process_only",
+    "expected_has_domain_playbook": false
+  }
+}
