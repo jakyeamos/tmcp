@@ -172,7 +172,7 @@ class BehavioralAtomRuntimeH3V08Tests(unittest.TestCase):
         raw.update(overrides)
         return SemanticContext.from_mapping(raw)
 
-    def test_h3_registry_and_mapping_are_private_and_preregistered(self) -> None:
+    def test_h3_registry_mapping_private(self) -> None:
         h2_ids = build_h2_registry().ids
         h3_ids = build_h3_registry().ids
         self.assertEqual(h3_ids[: len(h2_ids)], h2_ids)
@@ -238,7 +238,7 @@ class BehavioralAtomRuntimeH3V08Tests(unittest.TestCase):
                 self.assertIn(f"{PROCESS_READ_ID}@0.4.0", first.selected_ids)
                 self.assertEqual(first.to_dict(), second.to_dict())
 
-    def test_frozen_v07_boundary_is_consumed_without_provider_or_composition(
+    def test_h3_v07_boundary_no_provider(
         self,
     ) -> None:
         fixtures = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))["fixtures"]
@@ -250,7 +250,7 @@ class BehavioralAtomRuntimeH3V08Tests(unittest.TestCase):
         self.assertEqual(report["cross_skill_composition"], "closed_gate")
         self.assertTrue(all(not case["provider_execution"] for case in report["cases"]))
 
-    def test_h3_aliases_ambiguous_authority_and_generic_process_fail_closed(
+    def test_h3_aliases_fail_closed(
         self,
     ) -> None:
         alias = self._context(
@@ -295,7 +295,7 @@ class BehavioralAtomRuntimeH3V08Tests(unittest.TestCase):
         self.assertEqual(inferred_result.decision, "hold_for_evidence")
         self.assertEqual(inferred_result.domain_selected_ids, ())
 
-    def test_h3_missing_trust_stale_dependency_phase_conflict_and_budget_hold(
+    def test_h3_hold_conditions(
         self,
     ) -> None:
         variants = (
@@ -359,7 +359,7 @@ class BehavioralAtomRuntimeH3V08Tests(unittest.TestCase):
         self.assertEqual(incomplete_result.decision, "hold_for_evidence")
         self.assertEqual(incomplete_result.selected_ids, ())
 
-    def test_h3_is_opt_in_and_private_projection_is_closed(self) -> None:
+    def test_h3_opt_in_private(self) -> None:
         context = self._context("security")
         default_result = compile_behavioral_atoms(context)
         self.assertNotIn(
