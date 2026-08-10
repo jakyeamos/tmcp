@@ -443,14 +443,20 @@ def is_documented_release_scanner_identifier(
 
 
 def is_documented_h3_fixture_id(relative_path: str, match: re.Match[str]) -> bool:
-    if relative_path != "tests/fixtures/behavioral-atoms-h3-held-out-v0.7.json":
-        return False
-    return match.group(0) in {
-        "h3_positive_authorized_complete_ladder",
-        "h3_negative_no_boundary_or_release_decision",
-        "h3_ambiguous_unowned_sensitive_boundary",
-        "h3_ambiguous_partial_or_stale_quality_ladder",
+    allowed_by_path = {
+        "tests/fixtures/behavioral-atoms-h3-held-out-v0.7.json": {
+            "h3_positive_authorized_complete_ladder",
+            "h3_negative_no_boundary_or_release_decision",
+            "h3_ambiguous_unowned_sensitive_boundary",
+            "h3_ambiguous_partial_or_stale_quality_ladder",
+        },
+        "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json": {
+            "h3_security_positive_authorized_secret_boundary",
+            "h3_security_ambiguous_inferred_authority",
+            "h3_combined_positive_secret_boundary_evidence_ladder",
+        },
     }
+    return match.group(0) in allowed_by_path.get(relative_path, set())
 
 
 def is_documented_fixture_identifier(text: str, match: re.Match[str]) -> bool:

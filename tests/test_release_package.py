@@ -419,6 +419,10 @@ class ReleasePackageTests(unittest.TestCase):
             b'{"id": "h3_negative_no_boundary_or_release_decision"}',
         )
         self.package.scan_release_content(
+            "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json",
+            b'{"id": "h3_combined_positive_secret_boundary_evidence_ladder"}',
+        )
+        self.package.scan_release_content(
             "schemas/example.schema.json",
             b'{"const": "tmcp-invocation-admission-overhead-pilot-v0.5"}',
         )
