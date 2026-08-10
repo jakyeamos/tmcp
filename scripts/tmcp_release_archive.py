@@ -408,6 +408,21 @@ def is_documented_overhead_pilot_schema_identifier(
     return text[match.end() :].startswith((".5", ".6"))
 
 
+def is_documented_admission_rollout_schema_identifier(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    if relative_path != "scripts/score_invocation_admission_rollout.py":
+        return False
+    versions = {
+        "tmcp-invocation-admission-attribution-availability-v0": ".11",
+        "tmcp-invocation-admission-attribution-readiness-v0": ".11",
+        "tmcp-invocation-admission-shadow-score-v0": ".7",
+        "tmcp-invocation-admission-canary-score-v0": ".7",
+    }
+    suffix = versions.get(match.group(0))
+    return suffix is not None and text[match.end() :].startswith(suffix)
+
+
 def is_documented_fixture_identifier(text: str, match: re.Match[str]) -> bool:
     value = match.group(0)
     if not re.fullmatch(r"h3_[a-z0-9]+(?:_[a-z0-9]+)+", value):
@@ -447,6 +462,9 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_schema_identifier(text, match)
                 or is_documented_rollout_schema_identifier(relative_path, text, match)
                 or is_documented_overhead_pilot_schema_identifier(
+                    relative_path, text, match
+                )
+                or is_documented_admission_rollout_schema_identifier(
                     relative_path, text, match
                 )
                 or is_documented_fixture_identifier(text, match)
