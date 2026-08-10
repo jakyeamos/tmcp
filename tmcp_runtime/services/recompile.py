@@ -49,6 +49,9 @@ def finalize_recompiled_packet(
     runtime_identity = state.get("task_identity")
     if isinstance(runtime_identity, dict):
         new_packet["task_identity"] = dict(runtime_identity)
+    coordination = state.get("coordination")
+    if isinstance(coordination, dict):
+        new_packet["coordination"] = dict(coordination)
     new_packet = apply_validated_proposals(
         new_packet,
         [
@@ -81,6 +84,8 @@ def finalize_recompiled_packet(
         "task_identity": new_packet.get("task_identity"),
         "task_identity_delta": state.get("task_identity_delta"),
         "warnings": state.get("warnings") or [],
+        "recompile_required": True,
+        "recompile_triggers": state.get("recompile_triggers") or [],
         "safety": {
             "stateless": True,
             "cache_trust": "advisory_untrusted",
@@ -89,6 +94,8 @@ def finalize_recompiled_packet(
             ),
         },
     }
+    if isinstance(coordination, dict):
+        recompiled["coordination"] = dict(coordination)
     new_packet["packet_markdown"] = render_recompiled_packet_markdown(
         recompiled,
         compose_markdown=render_composed_packet_markdown,

@@ -103,7 +103,7 @@ class RuntimeSessionService(Generic[SnapshotT]):
                 )
                 recompiled["session"] = updated.metadata()
             return recompiled
-        return {
+        result = {
             "ok": True,
             "schema": RUNTIME_NEXT_SCHEMA,
             "objective": state["objective"],
@@ -113,6 +113,8 @@ class RuntimeSessionService(Generic[SnapshotT]):
             "previous_packet_id": argument_map.get("previous_packet_id"),
             "task_identity": state["task_identity"],
             "task_identity_delta": state["task_identity_delta"],
+            "recompile_required": state["recompile_required"],
+            "recompile_triggers": state["recompile_triggers"],
             "packet_delta": state["packet_delta"],
             "next_verification_gate": state["next_verification_gate"],
             "warnings": state["warnings"],
@@ -124,3 +126,7 @@ class RuntimeSessionService(Generic[SnapshotT]):
                 ),
             },
         }
+        coordination = state.get("coordination")
+        if isinstance(coordination, dict):
+            result["coordination"] = coordination
+        return result

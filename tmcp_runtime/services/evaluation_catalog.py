@@ -17,6 +17,20 @@ DEFAULT_VARIANTS = (
     "negative_control",
 )
 
+# The typed static variant is an internal advisory mapping. It is intentionally
+# not added to DEFAULT_VARIANTS, whose public evaluator plan remains unchanged.
+TYPED_STATIC_VARIANT = "typed-static-v0.4"
+ADVISORY_VARIANTS = (
+    {
+        "id": TYPED_STATIC_VARIANT,
+        "stability": "experimental",
+        "provider_execution": False,
+        "selection_basis": "domain_logic",
+        "auto_promote": False,
+        "cross_skill_composition": "closed_gate",
+    },
+)
+
 EVIDENCE_LEVELS = (
     "hypothesis",
     "static_review",
@@ -164,8 +178,8 @@ EFFECTIVE_PATTERNS: tuple[dict[str, Any], ...] = (
         "label": "Concrete verification command",
         "classification": "effective_pattern",
         "internal_atoms": ("behavior-verification", "quality-gate-disclosure"),
-        "detection_terms": ("report pass/fail", "run `", "npm test", "pytest"),
-        "good_example": "Run `npm test -- --runInBand` and report pass/fail.",
+        "detection_terms": ("report pass/fail", "run `", "pnpm test", "pytest"),
+        "good_example": "Run `pnpm test -- --runInBand` and report pass/fail.",
         "weak_example": "Make sure everything works.",
         "applies_to": ("implementation", "debugging", "release_readiness"),
     },
