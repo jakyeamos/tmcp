@@ -29,7 +29,7 @@ preflight, and any later composition evidence.
 ## Exact base and intake
 
 - Repository: `jakyeamos/tmcp`
-- Exact base: `3c9b2fe8cc0fe72ed947c447e4ea549094d810c3`
+- Git base commit: 3c9b2fe8cc0fe72ed947c447e4ea549094d810c3
 - Intake state: detached HEAD at source branch `main`
 - Authorized handoff:
   `/Users/jakyeamos/.codex/visualizations/2026/08/04/019fcab1-eb42-7d20-b6da-e6ec032b9cee/handoffs/behavioral-atoms-preflight-v0.3/HANDOFF.md`
@@ -42,12 +42,12 @@ SHA-256 values were compared byte-for-byte before this decision was written:
 
 | Repository-relative path | SHA-256 |
 | --- | --- |
-| `docs/experiments/BEHAVIORAL_ATOMS_SEMANTIC_PREFLIGHT_V0.3.md` | `edd6443bd02e255b002a479bfd2f2a67e59dbb64c52aece467701674ce1d28e5` |
-| `docs/experiments/behavioral-atoms-semantic-preflight-v0.3.json` | `5bc28d734e9b5903d55b166cb4a1e124c9f740e2a2ac9da8e306d88bfd65857e` |
-| `schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json` | `6b8df833b14b44416ce151674e4bac334e798b2e0ffa2645627606c8796a30f9` |
-| `schemas/tmcp-behavioral-atoms-semantic-preflight-v0.3.schema.json` | `abecbd424720733af8028d214b34314f1f0aab280abb5ecd8187103ceac3f86f` |
-| `tests/fixtures/behavioral-atoms-held-out-v0.3.json` | `172c761fcc5fb8f4814a2e9783b5322ad724b81ebec3ac0c74a1c03e9f9c652f` |
-| `tests/test_tmcp_behavioral_atoms_preflight.py` | `66dc471e51c312ee0826284ac248f336eafc3f8ca696fbe79d63c6e043e5c254` |
+| `docs/experiments/BEHAVIORAL_ATOMS_SEMANTIC_PREFLIGHT_V0.3.md` | sha256 digest: edd6443bd02e255b002a479bfd2f2a67e59dbb64c52aece467701674ce1d28e5 |
+| `docs/experiments/behavioral-atoms-semantic-preflight-v0.3.json` | sha256 digest: 5bc28d734e9b5903d55b166cb4a1e124c9f740e2a2ac9da8e306d88bfd65857e |
+| `schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json` | sha256 digest: 6b8df833b14b44416ce151674e4bac334e798b2e0ffa2645627606c8796a30f9 |
+| `schemas/tmcp-behavioral-atoms-semantic-preflight-v0.3.schema.json` | sha256 digest: abecbd424720733af8028d214b34314f1f0aab280abb5ecd8187103ceac3f86f |
+| `tests/fixtures/behavioral-atoms-held-out-v0.3.json` | sha256 digest: 172c761fcc5fb8f4814a2e9783b5322ad724b81ebec3ac0c74a1c03e9f9c652f |
+| `tests/test_tmcp_behavioral_atoms_preflight.py` | sha256 digest: 66dc471e51c312ee0826284ac248f336eafc3f8ca696fbe79d63c6e043e5c254 |
 
 The handoff sha256 digest: 98a1dba6f485f3e624b056a891f3d414fcd820381a27878fc301fa6ff4ba89e0
 The manifest sha256 digest: e7ae355b48b1cf53bd0fceeb77385eb9ec5916e73c960f4209e80649892c18bd.
