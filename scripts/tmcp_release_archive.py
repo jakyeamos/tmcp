@@ -438,6 +438,17 @@ def is_documented_release_scanner_identifier(
     }
 
 
+def is_documented_h3_fixture_id(relative_path: str, match: re.Match[str]) -> bool:
+    if relative_path != "tests/fixtures/behavioral-atoms-h3-held-out-v0.7.json":
+        return False
+    return match.group(0) in {
+        "h3_positive_authorized_complete_ladder",
+        "h3_negative_no_boundary_or_release_decision",
+        "h3_ambiguous_unowned_sensitive_boundary",
+        "h3_ambiguous_partial_or_stale_quality_ladder",
+    }
+
+
 def is_documented_fixture_identifier(text: str, match: re.Match[str]) -> bool:
     value = match.group(0)
     if not re.fullmatch(r"h3_[a-z0-9]+(?:_[a-z0-9]+)+", value):
@@ -483,6 +494,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                     relative_path, text, match
                 )
                 or is_documented_release_scanner_identifier(relative_path, match)
+                or is_documented_h3_fixture_id(relative_path, match)
                 or is_documented_fixture_identifier(text, match)
                 or is_documented_structural_test_path(text, match)
             ):

@@ -415,6 +415,10 @@ class ReleasePackageTests(unittest.TestCase):
             b'"tmcp-invocation-admission-canary-score-v0.7"',
         )
         self.package.scan_release_content(
+            "tests/fixtures/behavioral-atoms-h3-held-out-v0.7.json",
+            b'{"id": "h3_negative_no_boundary_or_release_decision"}',
+        )
+        self.package.scan_release_content(
             "schemas/example.schema.json",
             b'{"const": "tmcp-invocation-admission-overhead-pilot-v0.5"}',
         )
