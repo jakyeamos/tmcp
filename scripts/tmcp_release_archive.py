@@ -435,6 +435,10 @@ def is_documented_release_scanner_identifier(
         "tmcp-invocation-admission-overhead-score-v0",
         "tmcp-invocation-admission-shadow-score-v0",
         "tmcp-invocation-admission-canary-score-v0",
+        "h3_positive_authorized_complete_ladder",
+        "h3_negative_no_boundary_or_release_decision",
+        "h3_ambiguous_unowned_sensitive_boundary",
+        "h3_ambiguous_partial_or_stale_quality_ladder",
     }
 
 
