@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DECISION_PATH = ROOT / "docs/experiments/behavioral-atoms-runtime-h3-secret-boundary-evidence-ladder-v0.7.json"
+DECISION_PATH = ROOT / "docs/experiments/behavioral-atoms-runtime-h3-protected-boundary-evidence-ladder-v0.7.json"
 DECISION_SCHEMA_PATH = ROOT / "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json"
 FIXTURE_SCHEMA_PATH = ROOT / "schemas/tmcp-behavioral-atoms-runtime-h3-fixtures-v0.7.schema.json"
 FIXTURE_PATH = ROOT / "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json"
