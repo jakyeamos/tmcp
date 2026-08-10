@@ -394,6 +394,16 @@ class ReleasePackageTests(unittest.TestCase):
             "docs/CODEX_VALIDATION_PREFLIGHT.md",
             f"See ../{schema_path}.schema.json\n".encode("utf-8"),
         )
+        schema_identifier = "tmcp-invocation-admission-overhead-pilot-v0"
+        self.package.scan_release_content(
+            "examples/workflows/invocation-admission-overhead-pilot-v0.5.json",
+            f'{{"schema": "{schema_identifier}.5"}}\n'.encode("utf-8"),
+        )
+        checksum = "0123456789abcdef" * 4
+        self.package.scan_release_content(
+            "examples/workflows/invocation-admission-overhead-pilot-v0.5.json",
+            f'{{"sha256": "{checksum}"}}\n'.encode("utf-8"),
+        )
         identifier = "recommended_scoped_packet_" + "seeds"
         self.package.scan_release_content("README.md", identifier.encode("utf-8"))
         assignment = identifier + "=" + identifier

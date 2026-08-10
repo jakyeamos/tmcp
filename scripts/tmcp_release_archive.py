@@ -354,8 +354,8 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     prefix = text[line_start : match.start()]
     return (
         re.search(
-            r"\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b"
-            r"(?:\s+(?:hash|digest))?\s*[:=]\s*$",
+            r"[\"']?\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b[\"']?"
+            r"(?:\s+(?:hash|digest))?\s*[:=]\s*[\"']?\s*$",
             prefix,
             flags=re.IGNORECASE,
         )
@@ -372,6 +372,21 @@ def is_documented_repository_path(relative_path: str, match: re.Match[str]) -> b
     return value.startswith(DOCUMENTED_PATH_PREFIXES)
 
 
+def is_documented_schema_identifier(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    """Allow a schema field's stable identifier in structured evidence."""
+
+    if not relative_path.lower().endswith(".json"):
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    prefix = text[line_start : match.start()]
+    return (
+        re.search(r"[\"']schema[\"']\s*:\s*[\"']$", prefix, flags=re.IGNORECASE)
+        is not None
+    )
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -380,6 +395,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 not looks_high_entropy(match.group(0))
                 or is_documented_checksum(text, match)
                 or is_documented_repository_path(relative_path, match)
+                or is_documented_schema_identifier(relative_path, text, match)
             ):
                 continue
             raise ReleasePackageError(
