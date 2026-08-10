@@ -49,10 +49,10 @@ SHA-256 values were compared byte-for-byte before this decision was written:
 | `tests/fixtures/behavioral-atoms-held-out-v0.3.json` | `172c761fcc5fb8f4814a2e9783b5322ad724b81ebec3ac0c74a1c03e9f9c652f` |
 | `tests/test_tmcp_behavioral_atoms_preflight.py` | `66dc471e51c312ee0826284ac248f336eafc3f8ca696fbe79d63c6e043e5c254` |
 
-The handoff hash is
-`98a1dba6f485f3e624b056a891f3d414fcd820381a27878fc301fa6ff4ba89e0` and the
-manifest hash is
-`e7ae355b48b1cf53bd0fceeb77385eb9ec5916e73c960f4209e80649892c18bd`.
+The handoff sha256 digest is
+98a1dba6f485f3e624b056a891f3d414fcd820381a27878fc301fa6ff4ba89e0 and the
+manifest sha256 digest is
+e7ae355b48b1cf53bd0fceeb77385eb9ec5916e73c960f4209e80649892c18bd.
 Legacy v0.1 files were not copied or reconstructed; their evidence remains
 negative research evidence only.
 
