@@ -544,7 +544,7 @@ class CodexRolloutMetricsTests(unittest.TestCase):
         )
         self.assertEqual(result["trace"]["trace_source"], "codex-host")
 
-    def test_accepts_v04_zero_skill_terminal_observation(self) -> None:
+    def test_v04_zero_skill_observation(self) -> None:
         result = extractor.finalize_terminal_turn(
             extractor.extract_turn(self._write_rollout(), "turn-1"),
             self._host_observation(skill_read_calls=0, skill_read_input_tokens=0),
@@ -560,7 +560,7 @@ class CodexRolloutMetricsTests(unittest.TestCase):
             0,
         )
 
-    def test_accepts_v04_exact_skill_terminal_observation(self) -> None:
+    def test_v04_exact_skill_observation(self) -> None:
         result = extractor.finalize_terminal_turn(
             extractor.extract_turn(self._write_rollout(), "turn-1"),
             self._host_observation(skill_read_calls=1, skill_read_input_tokens=25),
