@@ -183,6 +183,7 @@ DOCUMENTED_PATH_PREFIXES = (
     "examples/",
     "tests/",
 )
+DOCUMENTED_SCHEMA_PATH_PATTERN = r"(?:docs|schemas|scripts|skills|examples|tests)/"
 
 
 class ReleasePackageError(RuntimeError):
@@ -395,6 +396,15 @@ def is_documented_schema_identifier(
         r"\s*[\"']\$id[\"']\s*:\s*[\"']https://github\.com/"
         r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/schemas/tmcp-[A-Za-z0-9_.-]+\.json"
         r"[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    if re.fullmatch(
+        r"\s*[\"'][A-Za-z0-9_.-]+[\"']\s*:\s*\{\s*"
+        r"[\"']const[\"']\s*:\s*[\"']"
+        rf"{DOCUMENTED_SCHEMA_PATH_PATTERN}[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*"
+        r"[\"']\s*\}\s*,?\s*",
         line,
         flags=re.IGNORECASE,
     ):
