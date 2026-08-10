@@ -116,7 +116,7 @@ class BehavioralAtomsRuntimeDecisionV04Tests(unittest.TestCase):
         )
         self.assertIn("holds/stops", fail_closed["cost"])
 
-    def test_slice_is_h1_and_excludes_public_surfaces(self) -> None:
+    def test_slice_stays_private(self) -> None:
         slice_plan = self.plan["smallest_implementation_slice"]
         self.assertEqual(
             slice_plan["id"], "runtime-v0.4-h1-typed-compile-and-projection"

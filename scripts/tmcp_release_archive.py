@@ -591,6 +591,60 @@ def is_documented_behavioral_atoms_test_evidence(
     ) is not None
 
 
+def is_documented_runtime_decision_test_evidence(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    """Allow immutable replay evidence in the runtime decision test."""
+
+    if relative_path != "tests/test_tmcp_behavioral_atoms_runtime_decision_v0_4.py":
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+
+    def in_method(method_name: str) -> bool:
+        method_start = text.rfind(f"def {method_name}", 0, match.start())
+        if method_start == -1:
+            return False
+        next_method = text.find("\n    def ", method_start + 1)
+        return next_method == -1 or match.start() < next_method
+
+    if re.fullmatch(
+        r"\s*/\s*[\"']schemas/tmcp-[a-z0-9-]+-v\d+\.\d+\.schema\.json"
+        r"[\"']\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    if in_method("test_version_and_base_are_explicit") and re.fullmatch(
+        r"\s*[\"'](?:tmcp-[a-z0-9-]+-v\d+\.\d+|[0-9a-f]{40})"
+        r"[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    if in_method("test_schema_and_handoff_point_to_the_same_packet") and re.fullmatch(
+        r"\s*[\"'][0-9a-f]{40}[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    if not in_method("test_manifest_has_exact_six_replayed_hashes"):
+        return False
+    block_start = text.rfind("expected = {", 0, match.start())
+    block_end = text.find("\n        }", block_start)
+    if block_start == -1 or block_end == -1 or match.start() > block_end:
+        return False
+    return re.fullmatch(
+        r"\s*[\"'](?:docs|schemas|tests)/[^\"']+[\"']\s*:\s*"
+        r"[\"'][0-9a-f]{64}[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ) is not None
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -604,6 +658,9 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_skill_fixture_path(relative_path, text, match)
                 or is_documented_schema_identifier(relative_path, text, match)
                 or is_documented_behavioral_atoms_test_evidence(
+                    relative_path, text, match
+                )
+                or is_documented_runtime_decision_test_evidence(
                     relative_path, text, match
                 )
             ):
