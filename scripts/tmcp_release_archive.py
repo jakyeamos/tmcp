@@ -363,7 +363,11 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
             return True
         parent_line = text[:line_start].rstrip("\n").rsplit("\n", 1)[-1].strip()
         return (
-            re.search(r"(?i)^\s*[\"']commit[\"']\s*:\s*[\"']?\s*$", prefix)
+            re.search(
+                r"(?i)^\s*[\"'](?:commit|head_commit|declared_h2_base_commit)"
+                r"[\"']\s*:\s*[\"']?\s*$",
+                prefix,
+            )
             is not None
             and re.fullmatch(r"(?i)[\"']base[\"']\s*:\s*\{", parent_line)
             is not None
