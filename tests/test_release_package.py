@@ -392,6 +392,13 @@ class ReleasePackageTests(unittest.TestCase):
                 "utf-8"
             ),
         )
+        self.package.scan_release_content(
+            "decision.json",
+            '{\n  "source_evidence": {\n    "base_commit": '
+            '"3c9b2fe8cc0fe72ed947c447e4ea549094d810c3"\n  }\n}\n'.encode(
+                "utf-8"
+            ),
+        )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",
@@ -399,6 +406,16 @@ class ReleasePackageTests(unittest.TestCase):
             self.package.scan_release_content(
                 "decision.json",
                 '"head_commit": "4098ba504e63dd8d53f2a1f39827df1461fc425f"\n'.encode(
+                    "utf-8"
+                ),
+            )
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "decision.json",
+                '"base_commit": "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3"\n'.encode(
                     "utf-8"
                 ),
             )

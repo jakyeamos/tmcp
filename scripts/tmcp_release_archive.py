@@ -362,7 +362,7 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         ):
             return True
         known_base_field = re.search(
-            r"(?i)^\s*[\"'](?:commit|head_commit|declared_h2_base_commit)"
+            r"(?i)^\s*[\"'](?:commit|head_commit|declared_h2_base_commit|base_commit)"
             r"[\"']\s*:\s*[\"']?\s*$",
             prefix,
         )
@@ -388,6 +388,32 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
                 for candidate in prior_lines[base_index + 1 :]
             )
             if not base_closed:
+                return True
+            break
+        source_evidence_field = re.search(
+            r"(?i)^\s*[\"']base_commit[\"']\s*:\s*[\"']?\s*$",
+            prefix,
+        )
+        if source_evidence_field is None:
+            return False
+        for offset, prior_line in enumerate(reversed(prior_lines)):
+            evidence_match = re.fullmatch(
+                r"(\s*)[\"']source_evidence[\"']\s*:\s*\{\s*",
+                prior_line,
+                flags=re.IGNORECASE,
+            )
+            if evidence_match is None:
+                continue
+            evidence_indent = len(evidence_match.group(1))
+            if evidence_indent >= field_indent:
+                break
+            evidence_index = len(prior_lines) - 1 - offset
+            evidence_closed = any(
+                len(candidate) - len(candidate.lstrip()) <= evidence_indent
+                and re.fullmatch(r"\s*}[,]?\s*", candidate) is not None
+                for candidate in prior_lines[evidence_index + 1 :]
+            )
+            if not evidence_closed:
                 return True
             break
         parent_line = text[:line_start].rstrip("\n").rsplit("\n", 1)[-1].strip()
