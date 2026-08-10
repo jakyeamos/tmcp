@@ -26,6 +26,11 @@ class CompositionDomainTests(unittest.TestCase):
         self.assertFalse(
             composition.is_uiish_text("Build a guide for the API service.")
         )
+        self.assertFalse(
+            composition.is_uiish_text(
+                "Design the agent workflow, define routing, and verify receipts."
+            )
+        )
         self.assertTrue(composition.is_ui_file("app/page.astro"))
         self.assertTrue(composition.is_ui_file("src/styles/site.CSS"))
         self.assertFalse(composition.is_ui_file("src/service.py"))
@@ -190,7 +195,7 @@ class CompositionDomainTests(unittest.TestCase):
             ),
             0.0,
         )
-        self.assertGreater(
+        self.assertEqual(
             composition.score_composition_node(
                 ui_rubric,
                 "Improve release packaging.",
@@ -226,6 +231,48 @@ class CompositionDomainTests(unittest.TestCase):
         )
         self.assertEqual(allowed_score - blocked_score, 6.0)
 
+    def test_review_sources_require_an_explicit_source_specific_request(self) -> None:
+        debug_objective = (
+            "Diagnose the failure, implement the narrow fix, protect it with "
+            "regression coverage, and verify release behavior."
+        )
+        for path in (
+            "skills/release-readiness/SKILL.md",
+            "skills/incident-postmortem/SKILL.md",
+            "skills/security-audit/SKILL.md",
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(
+                    composition.score_composition_node(
+                        {"relative_path": path, "signal": "release failure verification"},
+                        debug_objective,
+                        "implementation",
+                        {},
+                        active_routes=["debugging_regression", "release_readiness"],
+                        node_signal_text=_node_signal_text,
+                    ),
+                    0.0,
+                )
+
+        explicit_cases = (
+            ("Review release readiness.", "skills/release-readiness/SKILL.md"),
+            ("Write the incident postmortem.", "skills/incident-postmortem/SKILL.md"),
+            ("Audit security controls.", "skills/security-audit/SKILL.md"),
+            ("Assess migration readiness.", "skills/migration-readiness/SKILL.md"),
+        )
+        for objective, path in explicit_cases:
+            with self.subTest(objective=objective):
+                self.assertGreater(
+                    composition.score_composition_node(
+                        {"relative_path": path, "signal": objective},
+                        objective,
+                        "start",
+                        {},
+                        node_signal_text=_node_signal_text,
+                    ),
+                    0.0,
+                )
+
     def test_node_selection_orders_ties_caps_results_and_preserves_inputs(self) -> None:
         positive_nodes = [
             {
@@ -255,7 +302,7 @@ class CompositionDomainTests(unittest.TestCase):
 
         self.assertEqual(
             [node["relative_path"] for node in selected],
-            [f"docs/node-{index:02d}.md" for index in range(8)],
+            [f"docs/node-{index:02d}.md" for index in range(6)],
         )
         self.assertEqual(source_nodes, before)
 
