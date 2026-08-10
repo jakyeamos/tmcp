@@ -519,6 +519,14 @@ def is_documented_codex_rollout_test_identifier(
     }
 
 
+def is_documented_public_projection_test_identifier(
+    relative_path: str, match: re.Match[str]
+) -> bool:
+    return relative_path == "tests/test_tmcp_behavioral_atoms_public_projection_v0_4.py" and (
+        match.group(0) == "test_h2_projection_" + "uses_only_existing_public_fields"
+    )
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -541,6 +549,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_structural_test_path(text, match)
                 or is_documented_skill_fixture_path(relative_path, text, match)
                 or is_documented_codex_rollout_test_identifier(relative_path, match)
+                or is_documented_public_projection_test_identifier(relative_path, match)
             ):
                 continue
             raise ReleasePackageError(
