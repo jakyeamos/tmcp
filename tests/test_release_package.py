@@ -475,6 +475,16 @@ class ReleasePackageTests(unittest.TestCase):
                 ),
             )
 
+    def test_package_allows_documented_codex_rollout_test_identifiers(self) -> None:
+        test_path = "tests/test_codex_rollout_metrics.py"
+        identifier = "test_accepts_v04_" + "zero_skill_terminal_observation"
+        self.package.scan_release_content(test_path, (identifier + "\n").encode())
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content("README.md", (identifier + "\n").encode())
+
     def test_manifest_and_archive_are_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "plugin"

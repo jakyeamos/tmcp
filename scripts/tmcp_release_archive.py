@@ -508,6 +508,17 @@ def is_documented_skill_fixture_path(
     return text[match.end() :].startswith(".1/bin:")
 
 
+def is_documented_codex_rollout_test_identifier(
+    relative_path: str, match: re.Match[str]
+) -> bool:
+    if relative_path != "tests/test_codex_rollout_metrics.py":
+        return False
+    return match.group(0) in {
+        "test_accepts_v04_" + "zero_skill_terminal_observation",
+        "test_accepts_v04_" + "exact_skill_terminal_observation",
+    }
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -529,6 +540,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_fixture_identifier(text, match)
                 or is_documented_structural_test_path(text, match)
                 or is_documented_skill_fixture_path(relative_path, text, match)
+                or is_documented_codex_rollout_test_identifier(relative_path, match)
             ):
                 continue
             raise ReleasePackageError(
