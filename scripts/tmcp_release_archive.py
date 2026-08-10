@@ -361,11 +361,39 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
             is not None
         ):
             return True
+        known_base_field = re.search(
+            r"(?i)^\s*[\"'](?:commit|head_commit|declared_h2_base_commit)"
+            r"[\"']\s*:\s*[\"']?\s*$",
+            prefix,
+        )
+        if known_base_field is None:
+            return False
+        prior_lines = text[:line_start].splitlines()
+        field_indent = len(prefix) - len(prefix.lstrip())
+        for offset, prior_line in enumerate(reversed(prior_lines)):
+            base_match = re.fullmatch(
+                r"(\s*)[\"']base[\"']\s*:\s*\{\s*",
+                prior_line,
+                flags=re.IGNORECASE,
+            )
+            if base_match is None:
+                continue
+            base_indent = len(base_match.group(1))
+            if base_indent >= field_indent:
+                break
+            base_index = len(prior_lines) - 1 - offset
+            base_closed = any(
+                len(candidate) - len(candidate.lstrip()) <= base_indent
+                and re.fullmatch(r"\s*}[,]?\s*", candidate) is not None
+                for candidate in prior_lines[base_index + 1 :]
+            )
+            if not base_closed:
+                return True
+            break
         parent_line = text[:line_start].rstrip("\n").rsplit("\n", 1)[-1].strip()
         return (
             re.search(
-                r"(?i)^\s*[\"'](?:commit|head_commit|declared_h2_base_commit)"
-                r"[\"']\s*:\s*[\"']?\s*$",
+                r"(?i)^\s*[\"']commit[\"']\s*:\s*[\"']?\s*$",
                 prefix,
             )
             is not None

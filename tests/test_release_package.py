@@ -392,6 +392,16 @@ class ReleasePackageTests(unittest.TestCase):
                 "utf-8"
             ),
         )
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "decision.json",
+                '"head_commit": "4098ba504e63dd8d53f2a1f39827df1461fc425f"\n'.encode(
+                    "utf-8"
+                ),
+            )
         checksum = "0123456789abcdef" * 4
         self.package.scan_release_content(
             "README.md", f"sha256 digest: {checksum}\n".encode("utf-8")
