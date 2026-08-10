@@ -72,7 +72,7 @@ class BehavioralAtomsRuntimeDecisionV04Tests(unittest.TestCase):
             "schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json": "6b8df833b14b44416ce151674e4bac334e798b2e0ffa2645627606c8796a30f9",
             "schemas/tmcp-behavioral-atoms-semantic-preflight-v0.3.schema.json": "abecbd424720733af8028d214b34314f1f0aab280abb5ecd8187103ceac3f86f",
             "tests/fixtures/behavioral-atoms-held-out-v0.3.json": "172c761fcc5fb8f4814a2e9783b5322ad724b81ebec3ac0c74a1c03e9f9c652f",
-            "tests/test_tmcp_behavioral_atoms_preflight.py": "66dc471e51c312ee0826284ac248f336eafc3f8ca696fbe79d63c6e043e5c254",
+            "tests/test_tmcp_behavioral_atoms_preflight.py": "74e348ba52f79c3020fde5af56a384010f052a0bc6d396ee91becc870c33ad03",
         }
         files = self.plan["intake"]["files"]
         self.assertEqual(len(files), 6)

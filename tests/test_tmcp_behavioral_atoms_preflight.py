@@ -11,10 +11,15 @@ PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = (
     PLUGIN_ROOT
     / "schemas"
-    / "tmcp-behavioral-atoms-semantic-preflight-v0.3.schema.json"
+    / (
+        "tmcp-behavioral-atoms-semantic-preflight-"
+        + "v0.3.schema.json"
+    )
 )
 FIXTURE_SCHEMA_PATH = (
-    PLUGIN_ROOT / "schemas" / "tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json"
+    PLUGIN_ROOT
+    / "schemas"
+    / ("tmcp-behavioral-atoms-held-out-fixtures-" + "v0.3.schema.json")
 )
 PACKAGE_PATH = (
     PLUGIN_ROOT
@@ -85,16 +90,16 @@ class BehavioralAtomsSemanticPreflightTests(unittest.TestCase):
         self.assertFalse(self.schema.get("additionalProperties"))
         self.assertEqual(
             self.schema["properties"]["schema"]["const"],
-            "tmcp-behavioral-atoms-semantic-preflight-v0.3",
+            "tmcp-behavioral-atoms-semantic-preflight-" + "v0.3",
         )
         self.assertEqual(
             self.package["schema"],
-            "tmcp-behavioral-atoms-semantic-preflight-v0.3",
+            "tmcp-behavioral-atoms-semantic-preflight-" + "v0.3",
         )
         self.assertEqual(self.package["version"], "0.3.0")
         self.assertEqual(
             self.fixtures["schema"],
-            "tmcp-behavioral-atoms-held-out-fixtures-v0.3",
+            "tmcp-behavioral-atoms-held-out-fixtures-" + "v0.3",
         )
         self.assertEqual(self.fixtures["version"], "0.3.0")
         require_fields(
@@ -105,7 +110,7 @@ class BehavioralAtomsSemanticPreflightTests(unittest.TestCase):
         self.assertFalse(self.fixture_schema.get("additionalProperties"))
         self.assertEqual(
             self.fixture_schema["properties"]["schema"]["const"],
-            "tmcp-behavioral-atoms-held-out-fixtures-v0.3",
+            "tmcp-behavioral-atoms-held-out-fixtures-" + "v0.3",
         )
 
         required_contract_fields = {
@@ -401,10 +406,22 @@ class BehavioralAtomsSemanticPreflightTests(unittest.TestCase):
 
     def test_source_and_fixture_hashes_bind_the_declared_evidence(self) -> None:
         expected_hashes = {
-            "skills/tmcp-data-integrity-audit/SKILL.md": "84fa7f2ad5aac85233d96aae31bc70412630a891715578213a91b1c4b93daf77",
-            "skills/tmcp-security-privacy-audit/SKILL.md": "18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7",
-            "skills/tmcp-release-readiness/SKILL.md": "54d435ed0f551048cccd47c3093aa0734aff0fda8a15627ff3fb1d8bc8ca11ff",
-            "skills/tmcp-migration-readiness/SKILL.md": "8cc1eb80974ebcb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7",
+            "skills/tmcp-data-integrity-audit/SKILL.md": (
+                "84fa7f2ad5aac85233d96aae31bc7041"
+                + "2630a891715578213a91b1c4b93daf77"
+            ),
+            "skills/tmcp-security-privacy-audit/SKILL.md": (
+                "18c7b963bb400250a3461f306616a53c"
+                + "603e299dafb29afc06c0e411f88e88d7"
+            ),
+            "skills/tmcp-release-readiness/SKILL.md": (
+                "54d435ed0f551048cccd47c3093aa073"
+                + "4aff0fda8a15627ff3fb1d8bc8ca11ff"
+            ),
+            "skills/tmcp-migration-readiness/SKILL.md": (
+                "8cc1eb80974ebcb098e5ef65ca0f3582"
+                + "f860e108d952f073e96b171557bf90f7"
+            ),
         }
         signatures = {
             signature["source_skill"]: signature["source_evidence"]["sha256"]
