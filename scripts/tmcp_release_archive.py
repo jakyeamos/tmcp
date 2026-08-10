@@ -423,6 +423,21 @@ def is_documented_admission_rollout_schema_identifier(
     return suffix is not None and text[match.end() :].startswith(suffix)
 
 
+def is_documented_release_scanner_identifier(
+    relative_path: str, match: re.Match[str]
+) -> bool:
+    if relative_path != "scripts/tmcp_release_archive.py":
+        return False
+    return match.group(0) in {
+        "tmcp-invocation-admission-attribution-availability-v0",
+        "tmcp-invocation-admission-attribution-readiness-v0",
+        "tmcp-invocation-admission-overhead-pilot-v0",
+        "tmcp-invocation-admission-overhead-score-v0",
+        "tmcp-invocation-admission-shadow-score-v0",
+        "tmcp-invocation-admission-canary-score-v0",
+    }
+
+
 def is_documented_fixture_identifier(text: str, match: re.Match[str]) -> bool:
     value = match.group(0)
     if not re.fullmatch(r"h3_[a-z0-9]+(?:_[a-z0-9]+)+", value):
@@ -467,6 +482,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_admission_rollout_schema_identifier(
                     relative_path, text, match
                 )
+                or is_documented_release_scanner_identifier(relative_path, match)
                 or is_documented_fixture_identifier(text, match)
                 or is_documented_structural_test_path(text, match)
             ):
