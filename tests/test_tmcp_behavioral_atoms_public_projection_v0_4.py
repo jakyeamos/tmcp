@@ -239,7 +239,7 @@ class BehavioralAtomPublicProjectionV04Tests(unittest.TestCase):
             ["legacy.atom.from-public-packet"],
         )
 
-    def test_h2_projection_uses_only_existing_public_fields(self) -> None:
+    def test_h2_projection_uses_public_fields(self) -> None:
         baseline = compose_packet_from_source_nodes(
             self._arguments(),
             source_nodes=[],
