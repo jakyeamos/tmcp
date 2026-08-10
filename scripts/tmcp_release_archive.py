@@ -427,8 +427,10 @@ def is_documented_python_schema_constant(
         )
         is not None
         and re.fullmatch(
-            r"\s*[A-Z][A-Z0-9_]*_SCHEMA\s*=\s*\(\s*",
+            r"\s*(?:[A-Z][A-Z0-9_]*_SCHEMA\s*=\s*\(|"
+            r"(?:if\s+)?manifest\.get\([\"']schema[\"']\)\s+not\s+in\s+\{)\s*",
             previous_line,
+            flags=re.IGNORECASE,
         )
         is not None
     )

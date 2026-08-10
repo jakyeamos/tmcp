@@ -439,6 +439,12 @@ class ReleasePackageTests(unittest.TestCase):
             "scripts/prepare_invocation_admission_pilot.py",
             b'        "schema": "tmcp-invocation-admission-runner-input-v0.1",\n',
         )
+        self.package.scan_release_content(
+            "scripts/run_invocation_admission_overhead_pilot.py",
+            b'    if manifest.get("schema") not in {\n'
+            b'        "tmcp-invocation-admission-overhead-pilot-v0.5",\n'
+            b'    }\n',
+        )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",
