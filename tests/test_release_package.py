@@ -399,6 +399,10 @@ class ReleasePackageTests(unittest.TestCase):
             b'{"schema": "tmcp-invocation-admission-overhead-pilot-v0.5"}',
         )
         self.package.scan_release_content(
+            "scripts/extract_codex_rollout_metrics.py",
+            b'ATTRIBUTION_AVAILABILITY_SCHEMA = (\n    "tmcp-invocation-admission-attribution-availability-v0.11"\n)',
+        )
+        self.package.scan_release_content(
             "schemas/example.schema.json",
             b'{"const": "tmcp-invocation-admission-overhead-pilot-v0.5"}',
         )

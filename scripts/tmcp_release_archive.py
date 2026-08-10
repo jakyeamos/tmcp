@@ -375,6 +375,26 @@ def is_documented_schema_identifier(text: str, match: re.Match[str]) -> bool:
     )
 
 
+def is_documented_rollout_schema_identifier(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    if relative_path != "scripts/extract_codex_rollout_metrics.py":
+        return False
+    if match.group(0) != "tmcp-invocation-admission-attribution-availability-v0":
+        return False
+    if not text[match.end() :].startswith(".11"):
+        return False
+    context = text[max(0, match.start() - 120) : match.start()]
+    return (
+        re.search(
+            r"ATTRIBUTION_AVAILABILITY_SCHEMA\s*=\s*\(\s*[\"']$",
+            context,
+            re.DOTALL,
+        )
+        is not None
+    )
+
+
 def is_documented_fixture_identifier(text: str, match: re.Match[str]) -> bool:
     value = match.group(0)
     if not re.fullmatch(r"h3_[a-z0-9]+(?:_[a-z0-9]+)+", value):
@@ -412,6 +432,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_checksum(text, match)
                 or is_documented_schema_path(text, match)
                 or is_documented_schema_identifier(text, match)
+                or is_documented_rollout_schema_identifier(relative_path, text, match)
                 or is_documented_fixture_identifier(text, match)
                 or is_documented_structural_test_path(text, match)
             ):
