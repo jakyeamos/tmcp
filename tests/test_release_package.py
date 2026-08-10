@@ -398,6 +398,10 @@ class ReleasePackageTests(unittest.TestCase):
             "examples/workflows/invocation-admission-overhead-pilot-v0.5.json",
             b'{"schema": "tmcp-invocation-admission-overhead-pilot-v0.5"}',
         )
+        self.package.scan_release_content(
+            "schemas/example.schema.json",
+            b'{"const": "tmcp-invocation-admission-overhead-pilot-v0.5"}',
+        )
 
     def test_package_allows_path_shaped_placeholder(self) -> None:
         placeholder = "/absolute/path/to/tmcp/scripts/" + "tmcp_launcher.mjs"

@@ -370,7 +370,7 @@ def is_documented_schema_identifier(text: str, match: re.Match[str]) -> bool:
     line_start = text.rfind("\n", 0, match.start()) + 1
     prefix = text[line_start : match.start()]
     return (
-        re.search(r'\"schema\"\s*:\s*\"$', prefix) is not None
+        re.search(r'\"(?:schema|const)\"\s*:\s*\"$', prefix) is not None
         and re.match(r"\.\d+", text[match.end() :]) is not None
     )
 
