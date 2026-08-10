@@ -645,6 +645,51 @@ def is_documented_runtime_decision_test_evidence(
     ) is not None
 
 
+def is_documented_runtime_h3_test_evidence(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    """Allow immutable H3 boundary evidence in its structural test."""
+
+    if relative_path != "tests/test_tmcp_behavioral_atoms_runtime_h3_v0_7.py":
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    if re.fullmatch(
+        r"\s*(?:DECISION_SCHEMA_PATH\s*=\s*ROOT\s*/\s*|"
+        r"FIXTURE_SCHEMA_PATH\s*=\s*ROOT\s*/\s*)[\"']schemas/"
+        r"tmcp-[a-z0-9-]+-v\d+\.\d+\.schema\.json[\"']\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    if re.match(r"\s*def [a-z0-9_]+\(", line, flags=re.IGNORECASE) is not None:
+        return True
+    if "item[\"id\"] ==" in line and re.search(
+        r"[\"']h3_[a-z0-9_]+[\"']", line, flags=re.IGNORECASE
+    ):
+        return True
+    if re.fullmatch(
+        r"\s*[\"']tmcp-[a-z0-9-]+-v\d+\.\d+[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    if re.fullmatch(
+        r"\s*[\"']h3_[a-z0-9_]+[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    return re.fullmatch(
+        r"\s*[\"'][a-z0-9_]+[\"']\s*:\s*[\"'][0-9a-f]{64}[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ) is not None
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -661,6 +706,9 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                     relative_path, text, match
                 )
                 or is_documented_runtime_decision_test_evidence(
+                    relative_path, text, match
+                )
+                or is_documented_runtime_h3_test_evidence(
                     relative_path, text, match
                 )
             ):
