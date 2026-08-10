@@ -425,6 +425,11 @@ class ReleasePackageTests(unittest.TestCase):
                 for path in (PLUGIN_ROOT / "tests").iterdir()
                 if path.name.endswith("runtime_decision_v0_4.py")
             ),
+            next(
+                path
+                for path in (PLUGIN_ROOT / "tests").iterdir()
+                if path.name.endswith("runtime_h2_v0_6.py")
+            ),
         ]
         for source_path in source_paths:
             relative_path = source_path.relative_to(PLUGIN_ROOT).as_posix()
