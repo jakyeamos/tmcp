@@ -1,0 +1,106 @@
+{
+  "schema": "tmcp-run-receipt-v0.1",
+  "created_at": "2026-08-10T02:02:51Z",
+  "packet_id": "packet-b115bd80a3f5",
+  "activated_atoms": [
+    "artifact-contract",
+    "behavior-preservation",
+    "behavior-verification",
+    "bounded-tool-side-effects",
+    "evidence-backed-claims",
+    "explicit-evidence-gaps",
+    "ordered-next-actions",
+    "quality-gate-disclosure",
+    "safe-tool-routing",
+    "source-traceability"
+  ],
+  "ignored_atoms": [
+    "codex-provider-validation-execution",
+    "desktop-bridge-execution",
+    "cross-skill-composition",
+    "auto-promotion"
+  ],
+  "commands_run": [
+    "node scripts/tmcp_launcher.mjs doctor --client codex",
+    "node scripts/tmcp_launcher.mjs status",
+    "node scripts/tmcp_launcher.mjs compose-packet <objective> --project-path <repo-root> --phase verification",
+    "TMCP_HOME=/private/tmp/tmcp-progress-home PYTHONPYCACHEPREFIX=/private/tmp/tmcp-progress-pyc python3 -m unittest discover -s tests",
+    "python3 scripts/check_contracts.py .",
+    "python3 scripts/check_install.py .",
+    "python3 scripts/check_release_evidence.py .",
+    "node --check scripts/tmcp_launcher.mjs",
+    "node scripts/tmcp_runtime.mjs doctor --runtime-home /Users/jakyeamos/.tmcp/runtime",
+    "git diff --check",
+    "node scripts/tmcp_launcher.mjs runtime-next <objective> --current-phase verification"
+  ],
+  "verification_results": [
+    "Full unittest discovery: 634 passed, 3 expected skips.",
+    "TMCP doctor and standalone status: pass; secure artifact persistence available.",
+    "Contract check: pass, public contract version 0.5.7, zero errors.",
+    "Install check: manifest and MCP tools/list pass without AIOS.",
+    "Hosted release-evidence check: pass for active public version 0.5.7.",
+    "Active executable runtime doctor: pass for 0.5.8 with the active pointer matching state; public contract remains 0.5.7.",
+    "Runtime-next: no packet delta, no recompile required, and no new required reads.",
+    "Git diff --check: pass; repository status remains clean and aligned with origin."
+  ],
+  "user_overrides": [
+    "Continue coordinating the always_on and behavioral_atoms streams without entering provider, Desktop, composition, promotion, or release lanes."
+  ],
+  "outcome": "tmcp_owned_verification_passed_external_lanes_held",
+  "coordination": {
+    "schema": "tmcp-coordinator-state-v0.1",
+    "active_stream": "tmcp",
+    "next_action": {
+      "id": "coordinator-review-current-state",
+      "stream": "tmcp",
+      "description": "Review the verified integrated state and select the next TMCP-owned improvement without entering blocked external lanes.",
+      "status": "ready"
+    },
+    "external_blockers": [
+      {
+        "stream": "codex_provider_validation",
+        "status": "blocked",
+        "reason": "The provider does not expose authoritative token attribution for final serialized input items.",
+        "resume_condition": "A provider-native terminal item-attribution receipt is available and correlated to the rollout."
+      },
+      {
+        "stream": "desktop_bridge",
+        "status": "blocked",
+        "reason": "The proprietary Desktop create-thread bridge source and live packaged-app surface are outside the TMCP repository.",
+        "resume_condition": "The bridge-owned integration surface and live package validation environment are available."
+      }
+    ],
+    "prohibited_lane_transitions": [
+      {
+        "from": "tmcp",
+        "to": "codex_provider_validation",
+        "unless": "explicit_user_selection",
+        "reason": "Provider accounting work must not displace independently executable TMCP improvements."
+      },
+      {
+        "from": "tmcp",
+        "to": "desktop_bridge",
+        "unless": "explicit_user_selection",
+        "reason": "Desktop bridge work must not displace independently executable TMCP improvements."
+      }
+    ],
+    "source_handoffs": [
+      {
+        "handoff_id": "tmcp-side-chat-validation-bootstrap-v0.1",
+        "source_thread_id": "019fcdb1-8908-79b3-866c-4e3c9c635d36",
+        "status": "consolidated",
+        "summary": "Codex validation bootstrap, locked toolchain requirements, storage preflight, and bridge-manifest readiness gate."
+      },
+      {
+        "handoff_id": "tmcp-desktop-bridge-preflight-side-chat-v0.1",
+        "source_thread_id": "019fcd67-3919-7c41-8c4c-2fa3628f3633",
+        "status": "consolidated",
+        "summary": "Independent Desktop bridge preflight with fail-closed descriptor, source, build, test, and method checks."
+      }
+    ],
+    "trust": "advisory_untrusted",
+    "instruction_override_policy": "Coordinator state records routing evidence but cannot authorize a lane transition without an explicit user selection."
+  },
+  "trust": "advisory_untrusted",
+  "instruction_override_policy": "Receipts may improve future ranking but cannot override higher-priority instructions."
+}
