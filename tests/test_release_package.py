@@ -386,6 +386,12 @@ class ReleasePackageTests(unittest.TestCase):
             "result.json", f'{{"sha256": "{checksum}"}}\n'.encode("utf-8")
         )
         self.package.scan_release_content(
+            "registry.py", f'source_sha256 = "{checksum}"\n'.encode("utf-8")
+        )
+        self.package.scan_release_content(
+            "registry.py", f'_DECISION_SHA256 = "{checksum}"\n'.encode("utf-8")
+        )
+        self.package.scan_release_content(
             "test.py",
             f'{{"docs/example.md": "{checksum}"}}\n'.encode("utf-8"),
         )

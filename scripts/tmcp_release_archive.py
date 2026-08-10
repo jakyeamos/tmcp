@@ -358,6 +358,15 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         return False
     if (
         re.search(
+            r"(?i)(?:^|[\"'])\s*_?(?:source|decision)[_-]sha-?"
+            r"(?:1|224|256|384|512)?\s*[\"']?\s*[:=]\s*[\"']?\s*$",
+            prefix,
+        )
+        is not None
+    ):
+        return True
+    if (
+        re.search(
             r"[\"']?\s*\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b"
             r"[\"']?(?:\s+(?:hash|digest))?\s*[:=]\s*[\"']?\s*$",
             prefix,
