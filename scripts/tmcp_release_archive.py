@@ -412,6 +412,13 @@ def is_documented_python_schema_constant(
     previous_line_end = line_start - 1
     previous_line_start = text.rfind("\n", 0, previous_line_end) + 1
     previous_line = text[previous_line_start:previous_line_end]
+    if re.fullmatch(
+        r"\s*[\"']schema[\"']\s*:\s*[\"']tmcp-[A-Za-z0-9_.-]+"
+        r"[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
     return (
         re.fullmatch(
             r"\s*[\"']tmcp-[A-Za-z0-9_.-]+[\"']\s*,?\s*",
