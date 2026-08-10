@@ -24,6 +24,28 @@ node scripts/tmcp_launcher.mjs harvest skills --limit 5 --no-write-artifacts
 node scripts/tmcp_launcher.mjs recommend skills --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose --no-write-artifacts
 ```
 
+Before editing a Codex checkout or dispatching Codex validation, run the
+read-only [Codex validation preflight](docs/CODEX_VALIDATION_PREFLIGHT.md):
+
+```bash
+node scripts/tmcp_launcher.mjs codex-validation-preflight --path /path/to/codex
+```
+
+When the preflight is ready, bootstrap a locked, task-local toolchain before
+replaying or building the Codex source. The bootstrap checks storage and
+external tools before creating the install directory; it never installs into
+global Cargo state:
+
+```bash
+node scripts/tmcp_launcher.mjs codex-validation-bootstrap \
+  --source-root /path/to/codex \
+  --toolchain /path/to/codex-validation-toolchain.json \
+  --tool-dir /private/tmp/codex-validation-tools
+```
+
+See [the validation bootstrap contract](docs/CODEX_VALIDATION_PREFLIGHT.md)
+for the lock-file shape and the explicit external-tool boundary.
+
 With no arguments, the same launcher starts the MCP stdio server:
 
 ```bash
