@@ -430,6 +430,22 @@ class ReleasePackageTests(unittest.TestCase):
                 b')\n',
             )
         self.package.scan_release_content(
+            "scripts/extract_codex_rollout_metrics.py",
+            b'ATTRIBUTION_AVAILABILITY_SCHEMA = (\n'
+            b'    "tmcp-invocation-admission-attribution-availability-v0.11"\n'
+            b')\n',
+        )
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "scripts/extract_codex_rollout_metrics.py",
+                b'OTHER_VALUE = (\n'
+                b'    "tmcp-invocation-admission-attribution-availability-v0.11"\n'
+                b')\n',
+            )
+        self.package.scan_release_content(
             "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
             b'  "combined_fixture_id": {"const": '
             b'"h3_combined_positive_secret_boundary_evidence_ladder"}\n',

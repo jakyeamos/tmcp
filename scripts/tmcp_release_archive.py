@@ -397,6 +397,36 @@ def is_documented_manifest_path(
     ) is not None
 
 
+def is_documented_python_schema_constant(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    """Allow a versioned schema identifier in a Python schema constant."""
+
+    if not relative_path.lower().endswith(".py"):
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    previous_line_end = line_start - 1
+    previous_line_start = text.rfind("\n", 0, previous_line_end) + 1
+    previous_line = text[previous_line_start:previous_line_end]
+    return (
+        re.fullmatch(
+            r"\s*[\"']tmcp-[A-Za-z0-9_.-]+[\"']\s*,?\s*",
+            line,
+            flags=re.IGNORECASE,
+        )
+        is not None
+        and re.fullmatch(
+            r"\s*[A-Z][A-Z0-9_]*_SCHEMA\s*=\s*\(\s*",
+            previous_line,
+        )
+        is not None
+    )
+
+
 def is_documented_schema_identifier(
     relative_path: str, text: str, match: re.Match[str]
 ) -> bool:
@@ -451,6 +481,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_checksum(text, match)
                 or is_documented_repository_path(relative_path, match)
                 or is_documented_manifest_path(relative_path, text, match)
+                or is_documented_python_schema_constant(relative_path, text, match)
                 or is_documented_schema_identifier(relative_path, text, match)
             ):
                 continue
