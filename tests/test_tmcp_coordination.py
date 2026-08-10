@@ -23,10 +23,11 @@ from tmcp_runtime.domain.runtime_state import derive_runtime_state
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-coordinator-state-v0.1.schema.json"
 RECEIPT_PATH = (
-    PLUGIN_ROOT
-    / "docs"
-    / "experiments"
-    / "tmcp-coordinator-consolidation-receipt-v0.1.json"
+    next(
+        path
+        for path in (PLUGIN_ROOT / "docs" / "experiments").iterdir()
+        if path.name.endswith("consolidation-receipt-v0.1.json")
+    )
 )
 
 
@@ -78,7 +79,7 @@ def _coordinator_state(
                 "summary": "Validation bootstrap and readiness gates.",
             },
             {
-                "handoff_id": "tmcp-desktop-bridge-preflight-side-chat-v0.1",
+                "handoff_id": "tmcp-desktop-bridge-v0.1",
                 "source_thread_id": "019fcd67-3919-7c41-8c4c-2fa3628f3633",
                 "status": "consolidated",
                 "summary": "Desktop bridge preflight and fail-closed checks.",

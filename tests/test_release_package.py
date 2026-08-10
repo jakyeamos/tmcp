@@ -440,6 +440,7 @@ class ReleasePackageTests(unittest.TestCase):
                 for path in (PLUGIN_ROOT / "tests").iterdir()
                 if path.name.endswith("runtime_v0_4.py")
             ),
+            PLUGIN_ROOT / "tests" / "test_tmcp_coordination.py",
         ]
         for source_path in source_paths:
             relative_path = source_path.relative_to(PLUGIN_ROOT).as_posix()
