@@ -414,6 +414,22 @@ class ReleasePackageTests(unittest.TestCase):
             b'"schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json"}\n',
         )
         self.package.scan_release_content(
+            "scripts/check_install.py",
+            b'REQUIRED_FILES = (\n'
+            b'    "schemas/tmcp-codex-validation-preflight-v0.1.schema.json",\n'
+            b')\n',
+        )
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "scripts/check_install.py",
+                b'OTHER_FILES = (\n'
+                b'    "schemas/tmcp-codex-validation-preflight-v0.1.schema.json",\n'
+                b')\n',
+            )
+        self.package.scan_release_content(
             "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
             b'  "combined_fixture_id": {"const": '
             b'"h3_combined_positive_secret_boundary_evidence_ladder"}\n',

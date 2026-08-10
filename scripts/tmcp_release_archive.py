@@ -373,6 +373,30 @@ def is_documented_repository_path(relative_path: str, match: re.Match[str]) -> b
     return value.startswith(DOCUMENTED_PATH_PREFIXES)
 
 
+def is_documented_manifest_path(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    """Allow required-file paths in the install manifest's source tuple."""
+
+    if relative_path != "scripts/check_install.py":
+        return False
+    block_start = text.rfind("REQUIRED_FILES = (", 0, match.start())
+    block_end = text.find("\n)\n", block_start)
+    if block_start == -1 or block_end == -1 or match.start() > block_end:
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    return re.fullmatch(
+        rf"\s*[\"']{DOCUMENTED_SCHEMA_PATH_PATTERN}[A-Za-z0-9_.-]+"
+        rf"(?:/[A-Za-z0-9_.-]+)*[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ) is not None
+
+
 def is_documented_schema_identifier(
     relative_path: str, text: str, match: re.Match[str]
 ) -> bool:
@@ -426,6 +450,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 not looks_high_entropy(match.group(0))
                 or is_documented_checksum(text, match)
                 or is_documented_repository_path(relative_path, match)
+                or is_documented_manifest_path(relative_path, text, match)
                 or is_documented_schema_identifier(relative_path, text, match)
             ):
                 continue
