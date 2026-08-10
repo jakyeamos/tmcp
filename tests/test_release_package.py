@@ -399,6 +399,10 @@ class ReleasePackageTests(unittest.TestCase):
             "examples/workflows/invocation-admission-overhead-pilot-v0.5.json",
             f'{{"schema": "{schema_identifier}.5"}}\n'.encode("utf-8"),
         )
+        self.package.scan_release_content(
+            "schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json",
+            b'  "const": "tmcp-behavioral-atoms-held-out-fixtures-v0.3"\n',
+        )
         checksum = "0123456789abcdef" * 4
         self.package.scan_release_content(
             "examples/workflows/invocation-admission-overhead-pilot-v0.5.json",

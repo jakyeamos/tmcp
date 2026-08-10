@@ -379,10 +379,16 @@ def is_documented_schema_identifier(
 
     if not relative_path.lower().endswith(".json"):
         return False
+    if not match.group(0).startswith("tmcp-"):
+        return False
     line_start = text.rfind("\n", 0, match.start()) + 1
     prefix = text[line_start : match.start()]
     return (
-        re.search(r"[\"']schema[\"']\s*:\s*[\"']$", prefix, flags=re.IGNORECASE)
+        re.search(
+            r"[\"'](?:schema|const)[\"']\s*:\s*[\"']$",
+            prefix,
+            flags=re.IGNORECASE,
+        )
         is not None
     )
 
