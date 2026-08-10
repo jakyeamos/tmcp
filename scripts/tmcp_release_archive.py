@@ -400,8 +400,9 @@ def is_documented_schema_identifier(
     ):
         return True
     return re.fullmatch(
-        r"\s*[\"']combined_fixture_id[\"']\s*:\s*[\"']"
-        r"h3_combined_(?:positive|negative)_[a-z0-9_]+[\"']\s*,?\s*",
+        r"\s*[\"']combined_fixture_id[\"']\s*:\s*\{\s*"
+        r"[\"']const[\"']\s*:\s*[\"']"
+        r"h3_combined_(?:positive|negative)_[a-z0-9_]+[\"']\s*\}\s*,?\s*",
         line,
         flags=re.IGNORECASE,
     ) is not None

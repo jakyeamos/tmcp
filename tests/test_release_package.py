@@ -410,8 +410,8 @@ class ReleasePackageTests(unittest.TestCase):
         )
         self.package.scan_release_content(
             "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
-            b'  "combined_fixture_id": '
-            b'"h3_combined_positive_secret_boundary_evidence_ladder"\n',
+            b'  "combined_fixture_id": {"const": '
+            b'"h3_combined_positive_secret_boundary_evidence_ladder"}\n',
         )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
