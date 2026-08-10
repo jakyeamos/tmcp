@@ -118,6 +118,43 @@ class RuntimeServiceTests(unittest.TestCase):
         )
         self.assertEqual(result["previous_packet_id"], "old-packet")
 
+    def test_no_material_change_reuses_packet_without_composition(self) -> None:
+        compose_calls: list[dict[str, object]] = []
+
+        def compose_packet(arguments: dict[str, object]) -> dict[str, object]:
+            compose_calls.append(arguments)
+            raise AssertionError("composition should not run without a material trigger")
+
+        service = RuntimeService(
+            RuntimeServiceContext(
+                source_exists=lambda path: True,
+                load_source_nodes=lambda arguments: [],
+                load_cache_warnings=lambda cache_policy: [],
+                compose_packet=compose_packet,
+            )
+        )
+        previous_packet = {
+            "packet_id": "stable-packet",
+            "project_path": "/project",
+            "phase": "implementation",
+            "active_atoms": ["bounded_change"],
+            "task_identity": {"primary": "general_implementation"},
+        }
+
+        result = service.recompile(
+            {"previous_packet": previous_packet},
+            {
+                "recompile_required": False,
+                "recompile_triggers": [],
+                "warnings": [],
+            },
+        )
+
+        self.assertEqual(compose_calls, [])
+        self.assertEqual(result["recompile_reason"], "no_material_change")
+        self.assertFalse(result["recompile_required"])
+        self.assertEqual(result["packet"], previous_packet)
+
     def test_runtime_service_has_no_filesystem_or_transport_authority(self) -> None:
         source_path = Path(inspect.getfile(runtime_service))
         tree = ast.parse(source_path.read_text(encoding="utf-8"))

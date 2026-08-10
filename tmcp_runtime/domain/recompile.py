@@ -11,6 +11,7 @@ Packet = dict[str, Any]
 ComposeMarkdown = Callable[[Packet], str]
 
 RECOMPILE_REASON_DETAILS: dict[str, str] = {
+    "no_material_change": "No phase, evidence, failure, redirect, or task-identity change requires recompilation.",
     "user_redirect": "Latest user message redirected the task.",
     "phase_transition": "Family phase transition activated the next skill layer.",
     "implementation_phase_detected": (
@@ -19,8 +20,38 @@ RECOMPILE_REASON_DETAILS: dict[str, str] = {
     "verification_failure": "Runtime failures require debugging and regression focus.",
     "browser_evidence_available": "Browser evidence is available for the next verification step.",
     "task_identity_shift": "Task identity changed materially from the previous packet.",
+    "validated_proposal": "A validated runtime proposal changes the packet routes.",
     "runtime_context_changed": "Runtime evidence changed the next operating packet.",
 }
+
+
+def material_recompile_decision(arguments: Packet, state: Packet) -> dict[str, Any]:
+    """Identify whether runtime evidence justifies paying composition cost again."""
+
+    triggers: list[str] = []
+    latest_user_message = str(arguments.get("latest_user_message") or "").lower()
+    if any(
+        term in latest_user_message
+        for term in ("actually", "instead", "new goal", "different")
+    ):
+        triggers.append("user_redirect")
+    if _string_list(arguments.get("failures")):
+        triggers.append("verification_failure")
+    if _string_list(arguments.get("browser_evidence")):
+        triggers.append("new_evidence")
+    if _string_list(arguments.get("files_changed")):
+        triggers.append("changed_surface")
+    if str(state.get("suggested_phase") or ""):
+        triggers.append("phase_transition")
+    if isinstance(state.get("task_identity_delta"), dict):
+        triggers.append("task_identity_shift")
+    if _json_list(state.get("validated_changes")):
+        triggers.append("validated_proposal")
+    return {
+        "required": bool(triggers),
+        "triggers": _ordered_unique(triggers),
+        "reason": triggers[0] if triggers else "no_material_change",
+    }
 
 
 def _json_list(value: object) -> list[Any]:
@@ -79,6 +110,8 @@ def resolve_recompile_reason(arguments: Packet, state: Packet) -> str:
         return "phase_transition"
     if files_changed:
         return "implementation_phase_detected"
+    if _json_list(state.get("validated_changes")):
+        return "validated_proposal"
     return "runtime_context_changed"
 
 

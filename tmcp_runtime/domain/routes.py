@@ -5,21 +5,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-ROUTE_CATALOG_VERSION = "2026-07-07"
-ROUTE_SCORE_THRESHOLD = 2.0
-MAX_SECONDARY_ROUTES = 6
-
-UI_FILE_SUFFIXES = (
-    ".tsx",
-    ".jsx",
-    ".css",
-    ".scss",
-    ".sass",
-    ".less",
-    ".vue",
-    ".svelte",
-    ".html",
+from .route_catalog import (
+    COMPOSITE_TASK_PROFILES,
+    LEGACY_SEED_MATCH_THRESHOLD,
+    MAX_SECONDARY_ROUTES,
+    ROUTE_CATALOG_VERSION,
+    ROUTE_SCORE_THRESHOLD,
+    ROUTE_SOURCE_SLUG_PATTERNS,
+    SEED_MATCH_THRESHOLD,
+    SEED_MATCH_THRESHOLD_WITH_ROUTE_AFFINITY,
+    UI_FILE_SUFFIXES,
 )
+from .route_resolution import resolve_primary_route
+from .signal_text import affirmed_terms_in_text
 
 
 @dataclass(frozen=True)
@@ -27,11 +25,10 @@ class RouteDefinition:
     route_id: str
     objective_terms: tuple[str, ...]
     context_boost: Callable[[dict[str, Any]], tuple[float, list[str]]] | None = None
-
-
-def _terms_in_text(text: str, terms: tuple[str, ...]) -> list[str]:
-    lower = text.lower()
-    return [term for term in terms if term in lower]
+    negative_terms: tuple[str, ...] = ()
+    domain: str = "general"
+    action: str = "execute"
+    mode: str = "implementation"
 
 
 def _ui_file_boost(context: dict[str, Any]) -> tuple[float, list[str]]:
@@ -62,6 +59,19 @@ def _browser_evidence_boost(context: dict[str, Any]) -> tuple[float, list[str]]:
 
 ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
     RouteDefinition(
+        "explicit_audit",
+        (
+            "audit",
+            "assess readiness",
+            "readiness review",
+            "risk review",
+            "review findings",
+        ),
+        domain="governance",
+        action="audit",
+        mode="review",
+    ),
+    RouteDefinition(
         "ui_ux_redesign",
         (
             "redesign",
@@ -74,21 +84,141 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "make it look",
         ),
         _ui_file_boost,
+        domain="frontend",
+        action="redesign",
     ),
     RouteDefinition(
         "frontend_implementation",
         (
-            "implement",
+            "frontend implementation",
+            "implement component",
+            "build component",
             "component",
             "react",
-            "page",
-            "pages",
-            "build",
+            "web page",
+            "landing page",
             "production-ready",
             "tsx",
             "frontend",
         ),
         _ui_file_boost,
+        negative_terms=(
+            "rest api",
+            "backend",
+            "database",
+            "schema migration",
+            "command line",
+        ),
+        domain="frontend",
+    ),
+    RouteDefinition(
+        "backend_api_implementation",
+        (
+            "backend",
+            "rest api",
+            "graphql api",
+            "api endpoint",
+            "endpoint",
+            "server side",
+            "service layer",
+            "webhook",
+        ),
+        negative_terms=("frontend", "react component", "landing page"),
+        domain="backend",
+    ),
+    RouteDefinition(
+        "data_database_migration",
+        (
+            "database",
+            "schema migration",
+            "data migration",
+            "backfill",
+            "table migration",
+            "column migration",
+            "database index",
+        ),
+        domain="data",
+        action="migrate",
+    ),
+    RouteDefinition(
+        "security_remediation",
+        (
+            "security remediation",
+            "fix vulnerability",
+            "fix a vulnerability",
+            "patch vulnerability",
+            "security fix",
+            "harden authentication",
+            "credential leak",
+        ),
+        domain="security",
+        action="remediate",
+    ),
+    RouteDefinition(
+        "documentation",
+        (
+            "write documentation",
+            "update documentation",
+            "api documentation",
+            "developer guide",
+            "readme update",
+            "document behavior",
+        ),
+        domain="documentation",
+        action="document",
+        mode="writing",
+    ),
+    RouteDefinition(
+        "test_strategy",
+        (
+            "test strategy",
+            "testing strategy",
+            "test plan",
+            "test coverage plan",
+            "quality strategy",
+            "dogfood",
+        ),
+        domain="quality",
+        action="plan",
+        mode="planning",
+    ),
+    RouteDefinition(
+        "architecture_decision",
+        (
+            "architecture decision",
+            "design decision",
+            "adr",
+            "system architecture",
+            "compatibility design",
+        ),
+        domain="architecture",
+        action="decide",
+        mode="planning",
+    ),
+    RouteDefinition(
+        "agent_workflow",
+        (
+            "agent workflow",
+            "agent handoff",
+            "multi agent workflow",
+            "routing policy",
+            "workflow automation",
+        ),
+        domain="agent_operations",
+        action="design",
+        mode="planning",
+    ),
+    RouteDefinition(
+        "general_implementation",
+        (
+            "implement feature",
+            "implement this",
+            "add support",
+            "code change",
+            "build feature",
+            "build a feature",
+        ),
+        domain="software",
     ),
     RouteDefinition(
         "motion_interaction",
@@ -99,6 +229,8 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "micro-interaction",
             "motion-rich",
         ),
+        domain="frontend",
+        action="animate",
     ),
     RouteDefinition(
         "freshness_research",
@@ -109,6 +241,9 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "inspiration",
             "what's modern",
         ),
+        domain="research",
+        action="research",
+        mode="research",
     ),
     RouteDefinition(
         "accessibility_validation",
@@ -120,6 +255,9 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "wcag",
             "screen reader",
         ),
+        domain="accessibility",
+        action="validate",
+        mode="verification",
     ),
     RouteDefinition(
         "performance_validation",
@@ -130,6 +268,9 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "lighthouse",
             "core web vitals",
         ),
+        domain="performance",
+        action="validate",
+        mode="verification",
     ),
     RouteDefinition(
         "debugging_regression",
@@ -142,6 +283,9 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "broken",
         ),
         _failure_boost,
+        domain="debugging",
+        action="diagnose",
+        mode="debugging",
     ),
     RouteDefinition(
         "release_readiness",
@@ -152,75 +296,13 @@ ROUTE_DEFINITIONS: tuple[RouteDefinition, ...] = (
             "changelog",
             "production release",
         ),
+        domain="release",
+        action="validate",
+        mode="verification",
     ),
 )
 
-COMPOSITE_PRIMARY_ROUTES: dict[str, frozenset[str]] = {
-    "frontend_product_redesign": frozenset(
-        {"ui_ux_redesign", "frontend_implementation"}
-    ),
-}
-
 KNOWN_ROUTE_IDS = frozenset(route.route_id for route in ROUTE_DEFINITIONS)
-SEED_MATCH_THRESHOLD = 5.0
-SEED_MATCH_THRESHOLD_WITH_ROUTE_AFFINITY = 3.5
-LEGACY_SEED_MATCH_THRESHOLD = 4.0
-
-ROUTE_SOURCE_SLUG_PATTERNS: dict[str, tuple[str, ...]] = {
-    "ui_ux_redesign": (
-        "ui-ux",
-        "ui-ux-pro-max",
-        "redesign",
-        "frontend-design",
-        "visual-design",
-        "taste",
-        "impeccable",
-    ),
-    "frontend_implementation": (
-        "frontend",
-        "ui-implementation",
-        "react",
-        "component",
-        "nextjs",
-        "next.js",
-    ),
-    "motion_interaction": (
-        "motion",
-        "animation",
-        "interaction",
-        "micro-interaction",
-    ),
-    "freshness_research": (
-        "research",
-        "trend",
-        "inspiration",
-        "last30days",
-    ),
-    "accessibility_validation": (
-        "accessibility",
-        "a11y",
-        "wcag",
-        "contrast",
-    ),
-    "performance_validation": (
-        "performance",
-        "lighthouse",
-        "bundle",
-        "latency",
-    ),
-    "debugging_regression": (
-        "debug",
-        "regression",
-        "diagnose",
-    ),
-    "release_readiness": (
-        "release-readiness",
-        "release_readiness",
-        "release readiness",
-        "ship",
-        "changelog",
-    ),
-}
 
 
 def route_definitions_by_id() -> dict[str, RouteDefinition]:
@@ -367,12 +449,16 @@ def score_routes(
     if latest:
         combined = f"{combined} {latest}".strip()
     scores: list[dict[str, Any]] = []
+    route_order = {
+        route.route_id: index for index, route in enumerate(ROUTE_DEFINITIONS)
+    }
     for route in ROUTE_DEFINITIONS:
-        evidence = [
-            f"objective: {term}"
-            for term in _terms_in_text(combined, route.objective_terms)
-        ]
-        score = float(len(evidence)) * 1.5
+        positive_matches = affirmed_terms_in_text(combined, route.objective_terms)
+        negative_matches = affirmed_terms_in_text(combined, route.negative_terms)
+        evidence = [f"objective: {term}" for term in positive_matches]
+        evidence.extend(f"negative: {term}" for term in negative_matches)
+        score = float(len(positive_matches)) * 2.0
+        score -= float(len(negative_matches)) * 2.5
         if route.context_boost is not None:
             boost, boost_evidence = route.context_boost(context)
             score += boost
@@ -392,16 +478,13 @@ def score_routes(
             if item["route"] in {"ui_ux_redesign", "accessibility_validation"}:
                 item["score"] = round(float(item["score"]) + browser_boost, 2)
                 item["evidence"] = list(item["evidence"]) + browser_evidence
-    scores.sort(key=lambda item: (-float(item["score"]), str(item["route"])))
+    scores.sort(
+        key=lambda item: (
+            -float(item["score"]),
+            route_order.get(str(item["route"]), len(route_order)),
+        )
+    )
     return scores
-
-
-def _resolve_primary_route(active_routes: list[str]) -> str:
-    active = set(active_routes)
-    for primary, required in COMPOSITE_PRIMARY_ROUTES.items():
-        if required.issubset(active):
-            return primary
-    return active_routes[0] if active_routes else "general_task"
 
 
 def derive_task_identity(
@@ -435,19 +518,46 @@ def derive_task_identity(
                 active_routes.append(route)
         if seed_name and not active_routes:
             active_routes.append(seed_id or seed_name)
-    if not active_routes and signals:
-        active_routes = [str(signals[0]["route"])]
-    primary = _resolve_primary_route(active_routes) if active_routes else "general_task"
+    primary = (
+        resolve_primary_route(active_routes, objective)
+        if active_routes
+        else "general_task"
+    )
     secondary = [route for route in active_routes if route != primary][
         :MAX_SECONDARY_ROUTES
     ]
-    top_score = float(signals[0]["score"]) if signals else 0.0
-    confidence = min(0.99, round(0.35 + (top_score / 10.0), 2)) if signals else 0.0
+    active_signal_scores = [
+        float(item["score"])
+        for item in signals
+        if str(item["route"]) in active_routes
+    ]
+    top_score = active_signal_scores[0] if active_signal_scores else 0.0
+    next_score = active_signal_scores[1] if len(active_signal_scores) > 1 else 0.0
+    margin = max(0.0, top_score - next_score)
+    confidence = (
+        min(0.99, round(0.4 + (top_score / 10.0) + (margin / 20.0), 2))
+        if active_routes
+        else 0.0
+    )
+    route_definition = route_definitions_by_id().get(primary)
+    profile = COMPOSITE_TASK_PROFILES.get(primary)
+    if profile is None and route_definition is not None:
+        profile = {
+            "domain": route_definition.domain,
+            "action": route_definition.action,
+            "mode": route_definition.mode,
+        }
+    if profile is None:
+        profile = {"domain": "general", "action": "execute", "mode": "general"}
     return {
         "primary": primary,
         "secondary": secondary,
         "active_routes": active_routes[: MAX_SECONDARY_ROUTES + 1],
         "confidence": confidence,
+        "domain": profile["domain"],
+        "action": profile["action"],
+        "mode": profile["mode"],
+        "ambiguous": bool(len(active_signal_scores) > 1 and margin < 1.0),
         "signals": signals[:10],
         "route_catalog_version": ROUTE_CATALOG_VERSION,
     }

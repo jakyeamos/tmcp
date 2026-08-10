@@ -81,6 +81,8 @@ def finalize_recompiled_packet(
         "task_identity": new_packet.get("task_identity"),
         "task_identity_delta": state.get("task_identity_delta"),
         "warnings": state.get("warnings") or [],
+        "recompile_required": True,
+        "recompile_triggers": state.get("recompile_triggers") or [],
         "safety": {
             "stateless": True,
             "cache_trust": "advisory_untrusted",

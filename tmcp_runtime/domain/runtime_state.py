@@ -19,7 +19,7 @@ from tmcp_runtime.domain.harvest_nodes import (
     ordered_unique,
     string_list,
 )
-from tmcp_runtime.domain.recompile import parse_previous_packet
+from tmcp_runtime.domain.recompile import material_recompile_decision, parse_previous_packet
 from tmcp_runtime.domain.routes import (
     derive_task_identity,
     task_identity_delta,
@@ -154,7 +154,7 @@ def derive_runtime_state(
     ]
     validated_changes, proposal_warnings = validate_proposed_changes(proposed_changes)
     warnings.extend(proposal_warnings)
-    return {
+    state = {
         "objective": objective,
         "combined_objective": combined_objective,
         "project_path": str(arguments.get("project_path") or "."),
@@ -172,3 +172,7 @@ def derive_runtime_state(
         "proposed_changes": proposed_changes,
         "validated_changes": validated_changes,
     }
+    recompile_decision = material_recompile_decision(dict(arguments), state)
+    state["recompile_required"] = recompile_decision["required"]
+    state["recompile_triggers"] = recompile_decision["triggers"]
+    return state
