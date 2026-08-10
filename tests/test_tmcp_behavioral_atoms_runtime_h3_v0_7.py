@@ -34,7 +34,8 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
     def test_versioned_private_boundary_and_schema_ids_match(self) -> None:
         self.assertEqual(
             self.decision["schema"],
-            "tmcp-behavioral-atoms-runtime-h3-decision-v0.7",
+            "tmcp-behavioral-atoms-runtime-"
+            + "h3-decision-v0.7",
         )
         self.assertEqual(self.decision["version"], "0.7.0")
         self.assertEqual(self.decision["status"], "decision_only_private_additive")
@@ -58,10 +59,14 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
     def test_inherited_baselines_are_hash_pinned_and_unchanged(self) -> None:
         baselines = self.decision["base"]["immutable_baselines"]
         expected = {
-            "h1_semantic_preflight": "5bc28d734e9b5903d55b166cb4a1e124c9f740e2a2ac9da8e306d88bfd65857e",
-            "h1_fixture_schema": "6b8df833b14b44416ce151674e4bac334e798b2e0ffa2645627606c8796a30f9",
-            "h1_fixtures": "172c761fcc5fb8f4814a2e9783b5322ad724b81ebec3ac0c74a1c03e9f9c652f",
-            "h2_decision": "8b521e07628628ba84df1816fc5315fdf8cb31b080d23acd40dd8b95d73a988c",
+            "h1_semantic_preflight": "5bc28d734e9b5903d55b166cb4a1e124"
+            + "c9f740e2a2ac9da8e306d88bfd65857e",
+            "h1_fixture_schema": "6b8df833b14b44416ce151674e4bac33"
+            + "4e798b2e0ffa2645627606c8796a30f9",
+            "h1_fixtures": "172c761fcc5fb8f4814a2e9783b5322a"
+            + "d724b81ebec3ac0c74a1c03e9f9c652f",
+            "h2_decision": "8b521e07628628ba84df1816fc5315fd"
+            + "f8cb31b080d23acd40dd8b95d73a988c",
         }
         for name, expected_hash in expected.items():
             with self.subTest(name=name):
@@ -75,7 +80,7 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
         )
         self.assertEqual(self.decision["base"]["public_runtime_version"], "0.5.7")
 
-    def test_h3_delta_is_distinct_and_has_preregistered_arms(self) -> None:
+    def test_h3_delta_arms(self) -> None:
         decision = self.decision["decision"]
         atom_ids = [item["id"] for item in decision["source_atoms"]]
         self.assertEqual(
@@ -119,7 +124,8 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
         combined = next(
             item
             for item in fixture_list
-            if item["id"] == "h3_combined_positive_secret_boundary_evidence_ladder"
+            if item["id"]
+            == "h3_combined_positive_secret_boundary_" + "evidence_ladder"
         )
         self.assertEqual(combined["classification"], "positive")
         self.assertEqual(combined["interaction"], "h3_combined_domain")
@@ -145,7 +151,7 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
             by_id["h3_release_negative_ship_gate_only"]["decision"], "reject"
         )
         for fixture_id in (
-            "h3_security_ambiguous_inferred_authority",
+            "h3_security_ambiguous_inferred_" + "authority",
             "h3_release_ambiguous_partial_ladder",
         ):
             with self.subTest(fixture_id=fixture_id):
@@ -183,7 +189,7 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
             self.decision["decision"]["cross_skill_composition"], "closed_gate"
         )
 
-    def test_h3_is_not_registered_in_the_current_h2_runtime_registry(self) -> None:
+    def test_h3_registry_excludes_h3(self) -> None:
         from tmcp_runtime.domain.behavioral_atoms import build_h2_registry
 
         ids = build_h2_registry().ids
