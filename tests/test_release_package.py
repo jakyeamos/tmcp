@@ -541,6 +541,13 @@ class ReleasePackageTests(unittest.TestCase):
             "test_versioned_decision_is_exactly_" + "h2_and_source_backed"
         )
         self.package.scan_release_content(h2_path, (h2_identifier + "\n").encode())
+        scanner_identifier = (
+            "is_documented_runtime_" + "h2_test_identifier"
+        )
+        self.package.scan_release_content(
+            "scripts/tmcp_release_archive.py",
+            (scanner_identifier + "\n").encode(),
+        )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",
