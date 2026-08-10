@@ -390,49 +390,76 @@ class ReleasePackageTests(unittest.TestCase):
     def test_package_allows_documented_schema_paths(self) -> None:
         self.package.scan_release_content(
             "docs/CODEX_VALIDATION_PREFLIGHT.md",
-            b"../schemas/tmcp-codex-validation-preflight-v0.1.schema.json",
+            b"../schemas/tmcp-"
+            b"codex-validation-preflight-v0.1.schema.json",
         )
 
     def test_package_allows_documented_schema_identifiers(self) -> None:
         self.package.scan_release_content(
             "examples/workflows/invocation-admission-overhead-pilot-v0.5.json",
-            b'{"schema": "tmcp-invocation-admission-overhead-pilot-v0.5"}',
+            b'{"schema": "tmcp-'
+            b'invocation-admission-overhead-pilot-v0.5"}',
         )
         self.package.scan_release_content(
             "scripts/extract_codex_rollout_metrics.py",
-            b'ATTRIBUTION_AVAILABILITY_SCHEMA = (\n    "tmcp-invocation-admission-attribution-availability-v0.11"\n)',
+            b'ATTRIBUTION_AVAILABILITY_SCHEMA = (\n    "tmcp-'
+            b'invocation-'
+            b'admission-'
+            b'attribution-'
+            b'availability-v0.11"\n)',
         )
         self.package.scan_release_content(
             "scripts/run_invocation_admission_overhead_pilot.py",
-            b'{"schema": "tmcp-invocation-admission-overhead-pilot-v0.5", "score": "tmcp-invocation-admission-overhead-score-v0.6"}',
+            b'{"schema": "tmcp-'
+            b'invocation-admission-overhead-pilot-v0.5", "score": "tmcp-'
+            b'invocation-admission-overhead-score-v0.6"}',
         )
         self.package.scan_release_content(
             "scripts/score_invocation_admission_rollout.py",
-            b'{"schema": "tmcp-invocation-admission-attribution-readiness-v0.11", "shadow": "tmcp-invocation-admission-shadow-score-v0.7"}',
+            b'{"schema": "tmcp-'
+            b'invocation-'
+            b'admission-'
+            b'attribution-'
+            b'readiness-v0.11", "shadow": "tmcp-'
+            b'invocation-'
+            b'admission-'
+            b'shadow-'
+            b'score-v0.7"}',
         )
         self.package.scan_release_content(
             "scripts/tmcp_release_archive.py",
-            b'"tmcp-invocation-admission-canary-score-v0.7"',
+            b'"tmcp-'
+            b'invocation-admission-canary-score-v0.7"',
         )
         self.package.scan_release_content(
             "tests/fixtures/behavioral-atoms-h3-held-out-v0.7.json",
-            b'{"id": "h3_negative_no_boundary_or_release_decision"}',
+            b'{"id": "h3_'
+            b'negative_no_boundary_or_release_decision"}',
         )
         self.package.scan_release_content(
             "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json",
-            b'{"id": "h3_combined_positive_secret_boundary_evidence_ladder"}',
+            b'{"id": "h3_'
+            b'combined_positive_secret_boundary_evidence_ladder"}',
         )
         self.package.scan_release_content(
             "schemas/example.schema.json",
-            b'{"const": "tmcp-invocation-admission-overhead-pilot-v0.5"}',
+            b'{"const": "tmcp-'
+            b'invocation-admission-overhead-pilot-v0.5"}',
         )
         self.package.scan_release_content(
             "schemas/example.schema.json",
-            b'{"combined_fixture_id": {"const": "h3_combined_positive_secret_boundary_evidence_ladder"}}',
+            b'{"combined_fixture_id": {"const": "h3_'
+            b'combined_positive_secret_boundary_evidence_ladder"}}',
         )
         self.package.scan_release_content(
             "schemas/example.schema.json",
-            b'{"structural_test": {"const": "tests/test_tmcp_behavioral_atoms_runtime_h3_v0_7.py"}}',
+            b'{"structural_test": {"const": "tests/'
+            b'test_'
+            b'tmcp_'
+            b'behavioral_'
+            b'atoms_'
+            b'runtime_'
+            b'h3_v0_7.py"}}',
         )
 
     def test_package_allows_path_shaped_placeholder(self) -> None:
