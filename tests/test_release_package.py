@@ -414,6 +414,14 @@ class ReleasePackageTests(unittest.TestCase):
             b'"schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json"}\n',
         )
         self.package.scan_release_content(
+            "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json",
+            b'      "path": "schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json",\n',
+        )
+        self.package.scan_release_content(
+            "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json",
+            b'      "id": "h3_security_positive_authorized_secret_boundary",\n',
+        )
+        self.package.scan_release_content(
             "scripts/check_install.py",
             b'REQUIRED_FILES = (\n'
             b'    "schemas/tmcp-codex-validation-preflight-v0.1.schema.json",\n'

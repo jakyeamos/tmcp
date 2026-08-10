@@ -487,10 +487,23 @@ def is_documented_schema_identifier(
     ):
         return True
     if re.fullmatch(
+        rf"\s*[\"']path[\"']\s*:\s*[\"']{DOCUMENTED_SCHEMA_PATH_PATTERN}"
+        rf"[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    if re.fullmatch(
         r"\s*[\"'][A-Za-z0-9_.-]+[\"']\s*:\s*\{\s*"
         r"[\"']const[\"']\s*:\s*[\"']"
         rf"{DOCUMENTED_SCHEMA_PATH_PATTERN}[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*"
         r"[\"']\s*\}\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    if relative_path == "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json" and re.fullmatch(
+        r"\s*[\"']id[\"']\s*:\s*[\"']h3_[a-z0-9_]+[\"']\s*,?\s*",
         line,
         flags=re.IGNORECASE,
     ):
