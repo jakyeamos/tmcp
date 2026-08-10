@@ -394,103 +394,65 @@ class ReleasePackageTests(unittest.TestCase):
             "docs/CODEX_VALIDATION_PREFLIGHT.md",
             f"See ../{schema_path}.schema.json\n".encode("utf-8"),
         )
-        schema_identifier = "tmcp-invocation-admission-overhead-pilot-v0"
+        workflow_path = (
+            PLUGIN_ROOT
+            / "examples/workflows/invocation-admission-overhead-pilot-v0.5.json"
+        )
+        schema_identifier = json.loads(workflow_path.read_text(encoding="utf-8"))[
+            "schema"
+        ]
         self.package.scan_release_content(
-            "examples/workflows/invocation-admission-overhead-pilot-v0.5.json",
+            workflow_path.relative_to(PLUGIN_ROOT).as_posix(),
             f'{{"schema": "{schema_identifier}.5"}}\n'.encode("utf-8"),
         )
-        self.package.scan_release_content(
-            "schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json",
-            b'  "const": "tmcp-behavioral-atoms-held-out-fixtures-v0.3"\n',
-        )
-        self.package.scan_release_content(
-            "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
-            b'  "$id": "https://github.com/jakyeamos/tmcp/schemas/'
-            b'tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json"\n',
-        )
-        self.package.scan_release_content(
-            "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
-            b'  "decision_schema": {"const": '
-            b'"schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json"}\n',
-        )
-        self.package.scan_release_content(
-            "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json",
-            b'      "path": "schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json",\n',
-        )
-        self.package.scan_release_content(
-            "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json",
-            b'      "id": "h3_security_positive_authorized_secret_boundary",\n',
-        )
-        self.package.scan_release_content(
-            "tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
-            b'      "prompt": "Use PATH=/private/tmp/tmcp-skill-fixtures-20260722/'
-            b'tests/fixtures/skill-fixtures/find-skills-discovery-fixture-v0.1/bin:$PATH"\n',
-        )
-        self.package.scan_release_content(
-            "scripts/check_install.py",
-            b'REQUIRED_FILES = (\n'
-            b'    "schemas/tmcp-codex-validation-preflight-v0.1.schema.json",\n'
-            b')\n',
-        )
+        schema_dir = PLUGIN_ROOT / "schemas"
+        fixture_dir = PLUGIN_ROOT / "tests" / "fixtures"
+        decision_schema = next(schema_dir.glob("*runtime-h3-decision*.schema.json"))
+        held_out_schema = next(schema_dir.glob("*held-out-fixtures*.schema.json"))
+        source_paths = [
+            held_out_schema,
+            decision_schema,
+            next(fixture_dir.glob("*runtime-h3-v0*.json")),
+            next((fixture_dir / "skill-fixtures").glob("*skill*admission*.json")),
+            PLUGIN_ROOT / "scripts" / "check_install.py",
+            PLUGIN_ROOT / "scripts" / "extract_codex_rollout_metrics.py",
+            PLUGIN_ROOT / "scripts" / "prepare_invocation_admission_pilot.py",
+            PLUGIN_ROOT / "scripts" / "run_invocation_admission_overhead_pilot.py",
+            PLUGIN_ROOT / "scripts" / "score_invocation_admission_rollout.py",
+        ]
+        for source_path in source_paths:
+            relative_path = source_path.relative_to(PLUGIN_ROOT).as_posix()
+            self.package.scan_release_content(relative_path, source_path.read_bytes())
+
+        decision_payload = json.loads(decision_schema.read_text(encoding="utf-8"))
+        decision_identifier = decision_payload["properties"]["schema"]["const"]
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "README.md",
+                json.dumps({"description": decision_identifier}).encode("utf-8"),
+            )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",
         ):
             self.package.scan_release_content(
                 "scripts/check_install.py",
-                b'OTHER_FILES = (\n'
-                b'    "schemas/tmcp-codex-validation-preflight-v0.1.schema.json",\n'
-                b')\n',
+                f'OTHER_FILES = (\n    "{held_out_schema.relative_to(PLUGIN_ROOT).as_posix()}",\n)\n'.encode(
+                    "utf-8"
+                ),
             )
-        self.package.scan_release_content(
-            "scripts/extract_codex_rollout_metrics.py",
-            b'ATTRIBUTION_AVAILABILITY_SCHEMA = (\n'
-            b'    "tmcp-invocation-admission-attribution-availability-v0.11"\n'
-            b')\n',
-        )
-        self.package.scan_release_content(
-            "scripts/prepare_invocation_admission_pilot.py",
-            b'        "schema": "tmcp-invocation-admission-runner-input-v0.1",\n',
-        )
-        self.package.scan_release_content(
-            "scripts/run_invocation_admission_overhead_pilot.py",
-            b'    if manifest.get("schema") not in {\n'
-            b'        "tmcp-invocation-admission-overhead-pilot-v0.5",\n'
-            b'        "tmcp-invocation-admission-overhead-pilot-v0.6",\n'
-            b'    }\n',
-        )
-        self.package.scan_release_content(
-            "scripts/score_invocation_admission_rollout.py",
-            b'ATTRIBUTION_READINESS_SCHEMA = '
-            b'"tmcp-invocation-admission-attribution-readiness-v0.11"\n',
-        )
-        self.package.scan_release_content(
-            "scripts/score_invocation_admission_rollout.py",
-            b'if shadow_report.get("schema") != '
-            b'"tmcp-invocation-admission-shadow-score-v0.7":\n',
-        )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",
         ):
             self.package.scan_release_content(
                 "scripts/extract_codex_rollout_metrics.py",
-                b'OTHER_VALUE = (\n'
-                b'    "tmcp-invocation-admission-attribution-availability-v0.11"\n'
-                b')\n',
-            )
-        self.package.scan_release_content(
-            "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
-            b'  "combined_fixture_id": {"const": '
-            b'"h3_combined_positive_secret_boundary_evidence_ladder"}\n',
-        )
-        with self.assertRaisesRegex(
-            self.package.ReleasePackageError,
-            "long_high_entropy",
-        ):
-            self.package.scan_release_content(
-                "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
-                b'  "description": "tmcp-behavioral-atoms-runtime-h3-decision-v0.7"\n',
+                f'OTHER_VALUE = (\n    "{decision_identifier}"\n)\n'.encode(
+                    "utf-8"
+                ),
             )
         checksum = "0123456789abcdef" * 4
         self.package.scan_release_content(
