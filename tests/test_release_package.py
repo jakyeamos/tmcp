@@ -406,6 +406,10 @@ class ReleasePackageTests(unittest.TestCase):
             "schemas/example.schema.json",
             b'{"combined_fixture_id": {"const": "h3_combined_positive_secret_boundary_evidence_ladder"}}',
         )
+        self.package.scan_release_content(
+            "schemas/example.schema.json",
+            b'{"structural_test": {"const": "tests/test_tmcp_behavioral_atoms_runtime_h3_v0_7.py"}}',
+        )
 
     def test_package_allows_path_shaped_placeholder(self) -> None:
         placeholder = "/absolute/path/to/tmcp/scripts/" + "tmcp_launcher.mjs"

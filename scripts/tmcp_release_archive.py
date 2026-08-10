@@ -390,6 +390,19 @@ def is_documented_fixture_identifier(text: str, match: re.Match[str]) -> bool:
     )
 
 
+def is_documented_structural_test_path(text: str, match: re.Match[str]) -> bool:
+    value = match.group(0)
+    if not re.fullmatch(r"tests/[A-Za-z0-9._-]+", value):
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    prefix = text[line_start : match.start()]
+    return (
+        re.search(r'\"structural_test\"\s*:\s*\{\s*\"const\"\s*:\s*\"$', prefix)
+        is not None
+        and text[match.end() :].startswith(".py")
+    )
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -400,6 +413,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_schema_path(text, match)
                 or is_documented_schema_identifier(text, match)
                 or is_documented_fixture_identifier(text, match)
+                or is_documented_structural_test_path(text, match)
             ):
                 continue
             raise ReleasePackageError(
