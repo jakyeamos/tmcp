@@ -388,6 +388,19 @@ class ReleasePackageTests(unittest.TestCase):
         self.package.scan_release_content(
             "README.md", f"DECISION_SHA256 = {checksum}\n".encode("utf-8")
         )
+        self.package.scan_release_content(
+            "README.md",
+            f"| Repository-relative path | SHA-256 |\n| --- | --- |\n| `docs/x` | `{checksum}` |\n".encode(
+                "utf-8"
+            ),
+        )
+        commit = "0123456789abcdef" * 2
+        self.package.scan_release_content(
+            "README.md", f"- Exact base: {commit}\n".encode("utf-8")
+        )
+        self.package.scan_release_content(
+            "README.md", f"The handoff hash is\n`{checksum}`\n".encode("utf-8")
+        )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",
@@ -456,6 +469,11 @@ class ReleasePackageTests(unittest.TestCase):
             b'invocation-admission-overhead-pilot-v0.5"}',
         )
         self.package.scan_release_content(
+            "docs/experiments/behavioral-atoms-runtime-h2-redaction-ship-gate-v0.6.json",
+            b'{"h1_handoff_schema": "tmcp-'
+            b'behavioral-atoms-runtime-handoff-v0.5"}',
+        )
+        self.package.scan_release_content(
             "schemas/example.schema.json",
             b'{"combined_fixture_id": {"const": "h3_'
             b'combined_positive_secret_boundary_evidence_ladder"}}',
@@ -469,6 +487,45 @@ class ReleasePackageTests(unittest.TestCase):
             b'atoms_'
             b'runtime_'
             b'h3_v0_7.py"}}',
+        )
+        h3_path = (
+            "docs/experiments/behavioral-atoms-runtime-"
+            "h3-boundary-evidence-ladder-v0.7.json"
+        )
+        h3_head = "4098ba504e63dd8d53f2a1f39827df14" + "61fc425f"
+        self.package.scan_release_content(
+            h3_path,
+            f'{{"head_commit": "{h3_head}"}}'.encode("utf-8"),
+        )
+        self.package.scan_release_content(
+            h3_path,
+            b'{"combined_fixture_id": "h3_'
+            b'combined_positive_secret_boundary_evidence_ladder"}',
+        )
+        self.package.scan_release_content(
+            h3_path,
+            b'{"command": "python3 -m unittest tests.'
+            b'test_tmcp_behavioral_atoms_runtime_h3_v0_7"}',
+        )
+        implementation_path = (
+            "docs/experiments/behavioral-atoms-runtime-"
+            "implementation-decision-v0.4.json"
+        )
+        implementation_base = (
+            "3c9b2fe8cc0fe72ed947c447e4ea5490" + "94d810c3"
+        )
+        self.package.scan_release_content(
+            implementation_path,
+            f'{{"commit": "{implementation_base}"}}'.encode("utf-8"),
+        )
+        self.package.scan_release_content(
+            implementation_path,
+            b'{"tests": ["tests/test_tmcp_behavioral_atoms_runtime_v0_4.py"]}',
+        )
+        self.package.scan_release_content(
+            "docs/experiments/tmcp-coordinator-consolidation-receipt-v0.1.json",
+            b'{"handoff_id": "tmcp-desktop-'
+            b'bridge-preflight-side-chat-v0.1"}',
         )
 
     def test_package_allows_path_shaped_placeholder(self) -> None:

@@ -351,7 +351,7 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         return False
     line_start = text.rfind("\n", 0, match.start()) + 1
     prefix = text[line_start : match.start()]
-    return (
+    if (
         re.search(
             r"\"?(?:\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b|[A-Za-z0-9]+_sha256)\"?"
             r"(?:\s+(?:hash|digest))?\s*[:=]\s*[\"']?$",
@@ -359,7 +359,70 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
             flags=re.IGNORECASE,
         )
         is not None
+    ):
+        return True
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    context = text[max(0, line_start - 2000) : line_start]
+    if "|" in line and re.search(r"\|\s*sha-256\s*\|", context, re.IGNORECASE):
+        return True
+    return (
+        re.search(r"(?:handoff|manifest)\s+hash\s+is\s*$", context, re.IGNORECASE)
+        is not None
     )
+
+
+def is_allowed_experiment_hash(relative_path: str, match: re.Match[str]) -> bool:
+    allowed_by_path = {
+        "docs/experiments/BEHAVIORAL_ATOMS_RUNTIME_IMPLEMENTATION_DECISION_V0.4.md": {
+            "3c9b2fe8cc0fe72ed947c447e4ea5490" + "94d810c3",
+            "edd6443bd02e255b002a479bfd2f2a67" + "e59dbb64c52aece467701674ce1d28e5",
+            "5bc28d734e9b5903d55b166cb4a1e124" + "c9f740e2a2ac9da8e306d88bfd65857e",
+            "6b8df833b14b44416ce151674e4bac33" + "4e798b2e0ffa2645627606c8796a30f9",
+            "abecbd424720733af8028d214b34314f" + "1f0aab280abb5ecd8187103ceac3f86f",
+            "172c761fcc5fb8f4814a2e9783b5322a" + "d724b81ebec3ac0c74a1c03e9f9c652f",
+            "74e348ba52f79c3020fde5af56a38401" + "0f052a0bc6d396ee91becc870c33ad03",
+            "98a1dba6f485f3e624b056a891f3d414" + "fcd820381a27878fc301fa6ff4ba89e0",
+            "e7ae355b48b1cf53bd0fceeb77385eb9" + "ec5916e73c960f4209e80649892c18bd",
+        },
+        "docs/experiments/BEHAVIORAL_ATOMS_SEMANTIC_PREFLIGHT_V0.3.md": {
+            "3c9b2fe8cc0fe72ed947c447e4ea5490" + "94d810c3",
+            "b13b9c0c507745db1e685da36c00b5a2" + "374bf5bd9788338232acc4362e11176d",
+            "7b11daf555228e4a274e36275c6fe256" + "49900295bad97717120bb23bd1ab0c61",
+        },
+        "docs/experiments/behavioral-atoms-semantic-preflight-v0.3.json": {
+            "3c9b2fe8cc0fe72ed947c447e4ea5490" + "94d810c3",
+        },
+        "docs/experiments/behavioral-atoms-runtime-h2-redaction-ship-gate-v0.6.json": {
+            "3c9b2fe8cc0fe72ed947c447e4ea5490" + "94d810c3",
+        },
+        "docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7.json": {
+            "4098ba504e63dd8d53f2a1f39827df14" + "61fc425f",
+            "3c9b2fe8cc0fe72ed947c447e4ea5490" + "94d810c3",
+        },
+        "docs/experiments/behavioral-atoms-runtime-implementation-decision-v0.4.json": {
+            "3c9b2fe8cc0fe72ed947c447e4ea5490" + "94d810c3",
+            "98a1dba6f485f3e624b056a891f3d414" + "fcd820381a27878fc301fa6ff4ba89e0",
+            "e7ae355b48b1cf53bd0fceeb77385eb9" + "ec5916e73c960f4209e80649892c18bd",
+        },
+    }
+    return match.group(0) in allowed_by_path.get(relative_path, set())
+
+
+def is_documented_experiment_test_path(
+    relative_path: str, match: re.Match[str]
+) -> bool:
+    if relative_path not in {
+        "docs/experiments/BEHAVIORAL_ATOMS_RUNTIME_IMPLEMENTATION_DECISION_V0.4.md",
+        "docs/experiments/behavioral-atoms-runtime-implementation-decision-v0.4.json",
+    }:
+        return False
+    return match.group(0) in {
+        "tests/test_tmcp_behavioral_atoms_runtime_v0_4",
+        "tests/test_tmcp_behavioral_atoms_public_projection_v0_4",
+    }
 
 
 def is_documented_schema_path(text: str, match: re.Match[str]) -> bool:
@@ -377,7 +440,11 @@ def is_documented_schema_identifier(text: str, match: re.Match[str]) -> bool:
     line_start = text.rfind("\n", 0, match.start()) + 1
     prefix = text[line_start : match.start()]
     return (
-        re.search(r'\"(?:schema|const)\"\s*:\s*\"$', prefix) is not None
+        re.search(
+            r'\"(?:schema|const|[a-z0-9_]+_schema)\"\s*:\s*\"$',
+            prefix,
+        )
+        is not None
         and re.match(r"\.\d+", text[match.end() :]) is not None
     )
 
@@ -430,6 +497,18 @@ def is_documented_admission_rollout_schema_identifier(
     return suffix is not None and text[match.end() :].startswith(suffix)
 
 
+def is_documented_coordinator_receipt_identifier(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    if relative_path != "docs/experiments/tmcp-coordinator-consolidation-receipt-v0.1.json":
+        return False
+    identifier = "tmcp-desktop-" + "bridge-preflight-side-chat-v0"
+    return (
+        match.group(0) == identifier
+        and text[match.end() :].startswith(".1")
+    )
+
+
 def is_documented_release_scanner_identifier(
     relative_path: str, match: re.Match[str]
 ) -> bool:
@@ -443,6 +522,10 @@ def is_documented_release_scanner_identifier(
         "tmcp-invocation-admission-shadow-score-v0",
         "tmcp-invocation-admission-canary-score-v0",
         "is_documented_runtime_h2_test_identifier",
+        "tests/test_tmcp_behavioral_atoms_runtime_v0_4",
+        "tests/test_tmcp_behavioral_atoms_public_projection_v0_4",
+        "tests/test_tmcp_behavioral_atoms_runtime_h3_v0_7",
+        "test_tmcp_behavioral_atoms_runtime_h3_v0_7",
         "test_positive_h2_applicability_is_semantic_",
         "test_negative_and_ambiguous_h2_applicability_",
         "test_h2_obligation_conflict_phase_trust_",
@@ -452,6 +535,20 @@ def is_documented_release_scanner_identifier(
         "h3_ambiguous_partial_or_stale_quality_ladder",
         "h3_security_positive_authorized_secret_boundary",
         "h3_security_ambiguous_inferred_authority",
+        "h3_combined_positive_secret_boundary_evidence_ladder",
+    }
+
+
+def is_documented_h3_decision_reference(
+    relative_path: str, match: re.Match[str]
+) -> bool:
+    if relative_path != (
+        "docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7.json"
+    ):
+        return False
+    return match.group(0) in {
+        "tests/test_tmcp_behavioral_atoms_runtime_h3_v0_7",
+        "test_tmcp_behavioral_atoms_runtime_h3_v0_7",
         "h3_combined_positive_secret_boundary_evidence_ladder",
     }
 
@@ -585,6 +682,9 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
             if label == "long_high_entropy" and (
                 not looks_high_entropy(match.group(0))
                 or is_documented_checksum(text, match)
+                or is_allowed_experiment_hash(relative_path, match)
+                or is_documented_experiment_test_path(relative_path, match)
+                or is_documented_h3_decision_reference(relative_path, match)
                 or is_documented_schema_path(text, match)
                 or is_documented_schema_identifier(text, match)
                 or is_documented_rollout_schema_identifier(relative_path, text, match)
@@ -592,6 +692,9 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                     relative_path, text, match
                 )
                 or is_documented_admission_rollout_schema_identifier(
+                    relative_path, text, match
+                )
+                or is_documented_coordinator_receipt_identifier(
                     relative_path, text, match
                 )
                 or is_documented_release_scanner_identifier(relative_path, match)
