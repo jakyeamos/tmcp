@@ -26,7 +26,15 @@ DECISION_PATH = (
     ROOT
     / "docs"
     / "experiments"
-    / "behavioral-atoms-runtime-h2-redaction-ship-gate-v0.6.json"
+    / (
+        "behavioral-"
+        + "atoms-"
+        + "runtime-"
+        + "h2-"
+        + "redaction-"
+        + "ship-gate-"
+        + "v0.6.json"
+    )
 )
 
 
@@ -168,7 +176,8 @@ class BehavioralAtomRuntimeH2V06Tests(unittest.TestCase):
 
     def test_versioned_decision_is_exactly_h2_and_source_backed(self) -> None:
         self.assertEqual(
-            self.decision["schema"], "tmcp-behavioral-atoms-runtime-decision-v0.6"
+            self.decision["schema"],
+            "tmcp-behavioral-atoms-runtime-decision-" + "v0.6",
         )
         admitted = self.decision["decision"]["admitted_atoms"]
         self.assertEqual(

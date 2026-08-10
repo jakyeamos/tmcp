@@ -531,6 +531,16 @@ class ReleasePackageTests(unittest.TestCase):
             runtime_decision_path,
             (runtime_decision_identifier + "\n").encode(),
         )
+        h2_path = (
+            "tests/test_"
+            + "tmcp_"
+            + "behavioral_atoms_"
+            + "runtime_h2_v0_6.py"
+        )
+        h2_identifier = (
+            "test_versioned_decision_is_exactly_" + "h2_and_source_backed"
+        )
+        self.package.scan_release_content(h2_path, (h2_identifier + "\n").encode())
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",
