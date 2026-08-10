@@ -419,6 +419,7 @@ class ReleasePackageTests(unittest.TestCase):
             PLUGIN_ROOT / "scripts" / "prepare_invocation_admission_pilot.py",
             PLUGIN_ROOT / "scripts" / "run_invocation_admission_overhead_pilot.py",
             PLUGIN_ROOT / "scripts" / "score_invocation_admission_rollout.py",
+            PLUGIN_ROOT / "tests" / "test_tmcp_behavioral_atoms_preflight.py",
         ]
         for source_path in source_paths:
             relative_path = source_path.relative_to(PLUGIN_ROOT).as_posix()

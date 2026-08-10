@@ -541,6 +541,56 @@ def is_documented_schema_identifier(
     ) is not None
 
 
+def is_documented_behavioral_atoms_test_evidence(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    """Allow immutable schema and evidence assertions in the replay-bound test."""
+
+    if relative_path != "tests/test_tmcp_behavioral_atoms_preflight.py":
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    if re.fullmatch(
+        r"\s*(?:PLUGIN_ROOT\s*/\s*)?(?:[\"']schemas[\"']\s*/\s*)?"
+        r"(?:/\s*)?"
+        r"[\"']tmcp-[a-z0-9-]+-v\d+\.\d+"
+        r"\.schema\.json[\"']\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
+    def in_method(method_name: str) -> bool:
+        method_start = text.rfind(f"def {method_name}", 0, match.start())
+        if method_start == -1:
+            return False
+        next_method = text.find("\n    def ", method_start + 1)
+        return next_method == -1 or match.start() < next_method
+
+    if in_method("test_schema_and_artifacts_have_versioned_contract_identities"):
+        return re.fullmatch(
+            r"\s*[\"']tmcp-[a-z0-9-]+-v\d+\.\d+[\"']\s*,?\s*",
+            line,
+            flags=re.IGNORECASE,
+        ) is not None
+
+    if not in_method("test_source_and_fixture_hashes_bind_the_declared_evidence"):
+        return False
+    block_start = text.rfind("expected_hashes = {", 0, match.start())
+    block_end = text.find("\n        }", block_start)
+    if block_start == -1 or block_end == -1 or match.start() > block_end:
+        return False
+    return re.fullmatch(
+        r"\s*[\"']skills/tmcp-[a-z0-9-]+/SKILL\.md[\"']\s*:\s*"
+        r"[\"'][0-9a-f]{64}[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ) is not None
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -553,6 +603,9 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_python_schema_constant(relative_path, text, match)
                 or is_documented_skill_fixture_path(relative_path, text, match)
                 or is_documented_schema_identifier(relative_path, text, match)
+                or is_documented_behavioral_atoms_test_evidence(
+                    relative_path, text, match
+                )
             ):
                 continue
             raise ReleasePackageError(
