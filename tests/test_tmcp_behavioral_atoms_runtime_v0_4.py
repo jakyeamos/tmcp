@@ -162,7 +162,7 @@ class BehavioralAtomRuntimeV04Tests(unittest.TestCase):
         raw.update(overrides)
         return SemanticContext.from_mapping(raw)
 
-    def test_registry_and_contract_are_complete_and_h1_scoped(self) -> None:
+    def test_registry_contract_h1(self) -> None:
         registry = build_h1_registry()
         self.assertEqual(
             registry.ids,
@@ -217,7 +217,7 @@ class BehavioralAtomRuntimeV04Tests(unittest.TestCase):
         self.assertIn("domain.data_integrity.reconciliation@0.4.0", result.selected_ids)
         self.assertNotIn("reconciliation", context.objective.lower())
 
-    def test_negative_and_ambiguous_applicability_fail_closed_for_both_h1_families(
+    def test_negative_ambiguous_fail_closed(
         self,
     ) -> None:
         for family in ("data_integrity", "migration_readiness"):
@@ -342,7 +342,7 @@ class BehavioralAtomRuntimeV04Tests(unittest.TestCase):
         self.assertEqual(result.selected_ids, ())
         self.assertEqual(result.legacy_projection[0]["original"], original)
 
-    def test_h1_advisory_mapping_and_four_invalid_arms_remain_closed(self) -> None:
+    def test_h1_mapping_invalid_arms(self) -> None:
         mapping = build_h1_advisory_evaluator_mapping()
         self.assertEqual(mapping["provider_cells"], "not_run")
         self.assertEqual(mapping["cross_skill_composition"], "closed_gate")
@@ -381,7 +381,7 @@ class BehavioralAtomRuntimeV04Tests(unittest.TestCase):
             "domain.data_integrity.reconciliation@0.4.0", result.domain_selected_ids
         )
 
-    def test_all_sealed_fixtures_are_consumed_with_h1_and_h2_supported(self) -> None:
+    def test_sealed_fixtures_consumed(self) -> None:
         fixture_path = Path("tests/fixtures/behavioral-atoms-held-out-v0.3.json")
         payload = json.loads(fixture_path.read_text(encoding="utf-8"))
         result = evaluate_sealed_behavioral_fixtures(payload["fixtures"])
