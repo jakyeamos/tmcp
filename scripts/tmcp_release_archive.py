@@ -175,6 +175,14 @@ WINDOWS_RESERVED_NAMES = {
     *(f"LPT{number}" for number in range(1, 10)),
 }
 PACKAGE_SECRET_PATTERNS = SECRET_PATTERNS
+DOCUMENTED_PATH_PREFIXES = (
+    "docs/",
+    "schemas/",
+    "scripts/",
+    "skills/",
+    "examples/",
+    "tests/",
+)
 
 
 class ReleasePackageError(RuntimeError):
@@ -355,6 +363,15 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     )
 
 
+def is_documented_repository_path(relative_path: str, match: re.Match[str]) -> bool:
+    """Allow known repository paths in Markdown without weakening token scans."""
+
+    if not relative_path.lower().endswith((".md", ".markdown")):
+        return False
+    value = match.group(0)
+    return value.startswith(DOCUMENTED_PATH_PREFIXES)
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -362,6 +379,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
             if label == "long_high_entropy" and (
                 not looks_high_entropy(match.group(0))
                 or is_documented_checksum(text, match)
+                or is_documented_repository_path(relative_path, match)
             ):
                 continue
             raise ReleasePackageError(
