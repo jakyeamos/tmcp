@@ -372,30 +372,27 @@ class ReleasePackageTests(unittest.TestCase):
             self.package.scan_release_content("README.md", raw_aws_secret.encode())
 
     def test_package_allows_documented_checksum(self) -> None:
+        base_commit = "3c9b2fe8" + "cc0fe72e" + "d947c447" + "e4ea5490" + "94d810c3"
+        head_commit = "4098ba50" + "4e63dd8d" + "53f2a1f3" + "9827df14" + "61fc425f"
         self.package.scan_release_content(
             "README.md",
-            'GIT_BASE_COMMIT = "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3"\n'.encode(
+            f'GIT_BASE_COMMIT = "{base_commit}"\n'.encode("utf-8"),
+        )
+        self.package.scan_release_content(
+            "decision.json",
+            f'{{\n  "base": {{\n    "commit": "{base_commit}"\n  }}\n}}\n'.encode(
                 "utf-8"
             ),
         )
         self.package.scan_release_content(
             "decision.json",
-            '{\n  "base": {\n    "commit": '
-            '"3c9b2fe8cc0fe72ed947c447e4ea549094d810c3"\n  }\n}\n'.encode(
+            f'{{\n  "base": {{\n    "head_commit": "{head_commit}"\n  }}\n}}\n'.encode(
                 "utf-8"
             ),
         )
         self.package.scan_release_content(
             "decision.json",
-            '{\n  "base": {\n    "head_commit": '
-            '"4098ba504e63dd8d53f2a1f39827df1461fc425f"\n  }\n}\n'.encode(
-                "utf-8"
-            ),
-        )
-        self.package.scan_release_content(
-            "decision.json",
-            '{\n  "source_evidence": {\n    "base_commit": '
-            '"3c9b2fe8cc0fe72ed947c447e4ea549094d810c3"\n  }\n}\n'.encode(
+            f'{{\n  "source_evidence": {{\n    "base_commit": "{base_commit}"\n  }}\n}}\n'.encode(
                 "utf-8"
             ),
         )
@@ -405,9 +402,7 @@ class ReleasePackageTests(unittest.TestCase):
         ):
             self.package.scan_release_content(
                 "decision.json",
-                '"head_commit": "4098ba504e63dd8d53f2a1f39827df1461fc425f"\n'.encode(
-                    "utf-8"
-                ),
+                f'"head_commit": "{head_commit}"\n'.encode("utf-8"),
             )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
@@ -415,9 +410,7 @@ class ReleasePackageTests(unittest.TestCase):
         ):
             self.package.scan_release_content(
                 "decision.json",
-                '"base_commit": "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3"\n'.encode(
-                    "utf-8"
-                ),
+                f'"base_commit": "{base_commit}"\n'.encode("utf-8"),
             )
         checksum = "0123456789abcdef" * 4
         self.package.scan_release_content(
