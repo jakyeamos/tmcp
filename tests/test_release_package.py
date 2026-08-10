@@ -421,9 +421,9 @@ class ReleasePackageTests(unittest.TestCase):
             PLUGIN_ROOT / "scripts" / "score_invocation_admission_rollout.py",
             PLUGIN_ROOT / "tests" / "test_tmcp_behavioral_atoms_preflight.py",
             next(
-                (PLUGIN_ROOT / "tests").glob(
-                    "test_tmcp_behavioral_atoms_runtime_decision_*.py"
-                )
+                path
+                for path in (PLUGIN_ROOT / "tests").iterdir()
+                if path.name.endswith("runtime_decision_v0_4.py")
             ),
         ]
         for source_path in source_paths:
