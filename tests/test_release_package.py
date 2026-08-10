@@ -372,9 +372,70 @@ class ReleasePackageTests(unittest.TestCase):
             self.package.scan_release_content("README.md", raw_aws_secret.encode())
 
     def test_package_allows_documented_checksum(self) -> None:
+        base_commit = "3c9b2fe8" + "cc0fe72e" + "d947c447" + "e4ea5490" + "94d810c3"
+        head_commit = "4098ba50" + "4e63dd8d" + "53f2a1f3" + "9827df14" + "61fc425f"
+        self.package.scan_release_content(
+            "README.md",
+            f'GIT_BASE_COMMIT = "{base_commit}"\n'.encode("utf-8"),
+        )
+        self.package.scan_release_content(
+            "README.md",
+            f"- Exact base: '{base_commit}'\n".encode("utf-8"),
+        )
+        self.package.scan_release_content(
+            "decision.json",
+            f'{{\n  "base": {{\n    "commit": "{base_commit}"\n  }}\n}}\n'.encode(
+                "utf-8"
+            ),
+        )
+        self.package.scan_release_content(
+            "decision.json",
+            f'{{\n  "base": {{\n    "head_commit": "{head_commit}"\n  }}\n}}\n'.encode(
+                "utf-8"
+            ),
+        )
+        self.package.scan_release_content(
+            "decision.json",
+            f'{{\n  "source_evidence": {{\n    "base_commit": "{base_commit}"\n  }}\n}}\n'.encode(
+                "utf-8"
+            ),
+        )
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "decision.json",
+                f'"head_commit": "{head_commit}"\n'.encode("utf-8"),
+            )
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "decision.json",
+                f'"base_commit": "{base_commit}"\n'.encode("utf-8"),
+            )
         checksum = "0123456789abcdef" * 4
         self.package.scan_release_content(
             "README.md", f"sha256 digest: {checksum}\n".encode("utf-8")
+        )
+        self.package.scan_release_content(
+            "result.json", f'{{"sha256": "{checksum}"}}\n'.encode("utf-8")
+        )
+        self.package.scan_release_content(
+            "registry.py", f'source_sha256 = "{checksum}"\n'.encode("utf-8")
+        )
+        self.package.scan_release_content(
+            "registry.py", f'_DECISION_SHA256 = "{checksum}"\n'.encode("utf-8")
+        )
+        self.package.scan_release_content(
+            "test.py",
+            f'{{"docs/example.md": "{checksum}"}}\n'.encode("utf-8"),
+        )
+        self.package.scan_release_content(
+            "README.md",
+            f"- 'source.md':\n  '{checksum}'\n".encode("utf-8"),
         )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
@@ -382,6 +443,13 @@ class ReleasePackageTests(unittest.TestCase):
         ):
             self.package.scan_release_content(
                 "README.md", f"hash note {checksum}\n".encode("utf-8")
+            )
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "README.md", f"- source note:\n  '{checksum}'\n".encode("utf-8")
             )
 
     def test_package_allows_path_shaped_placeholder(self) -> None:

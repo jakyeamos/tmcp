@@ -83,7 +83,6 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
                             "follow_symlinks": follow_symlinks,
                         }
                     )
-
                     self.assertEqual(result["source_count"], 1)
                     self.assertEqual(
                         [node["relative_path"] for node in result["source_nodes"]],
@@ -96,6 +95,25 @@ class TmcpSafetyBoundaryTests(unittest.TestCase):
                             for warning in result["warnings"]
                         )
                     )
+
+    def test_generated_state_directories_are_not_harvested(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs").mkdir()
+            (root / "docs" / "guide.md").write_text("# Guide\n", encoding="utf-8")
+            for directory in (".quality-runner", ".project-compass"):
+                generated = root / directory
+                generated.mkdir()
+                (generated / "generated.md").write_text(
+                    "# Generated state\n", encoding="utf-8"
+                )
+
+            result = self.server._harvest_skills({"source_path": str(root)})
+
+        self.assertEqual(
+            [node["relative_path"] for node in result["source_nodes"]],
+            ["docs/guide.md"],
+        )
 
     def test_reparse_point_metadata_is_treated_like_a_symlink(self) -> None:
         reparse_point = 0x400

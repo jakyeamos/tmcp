@@ -94,6 +94,11 @@ TOOLS: dict[str, dict[str, object]] = {
                 "max_file_bytes": {"type": "integer", "default": 262144},
                 "max_excerpt_chars": {"type": "integer", "default": 1200},
                 "follow_symlinks": {"type": "boolean", "default": False},
+                "include_test_sources": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Explicitly opt test and fixture sources into harvesting.",
+                },
                 "redact_sensitive": {"type": "boolean", "default": True},
                 "write_artifacts": {"type": "boolean", "default": False},
                 "output_dir": {"type": "string"},
@@ -175,6 +180,11 @@ TOOLS: dict[str, dict[str, object]] = {
                 "max_file_bytes": {"type": "integer", "default": 262144},
                 "max_excerpt_chars": {"type": "integer", "default": 1200},
                 "follow_symlinks": {"type": "boolean", "default": False},
+                "include_test_sources": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Explicitly opt test and fixture sources into harvesting.",
+                },
                 "redact_sensitive": {"type": "boolean", "default": True},
                 "candidate_workflows": {
                     "type": "array",
@@ -221,7 +231,21 @@ TOOLS: dict[str, dict[str, object]] = {
                 "max_file_bytes": {"type": "integer", "default": 262144},
                 "max_excerpt_chars": {"type": "integer", "default": 1200},
                 "follow_symlinks": {"type": "boolean", "default": False},
+                "include_test_sources": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Explicitly opt test and fixture sources into composition.",
+                },
                 "redact_sensitive": {"type": "boolean", "default": True},
+                "admission_mode": {
+                    "type": "string",
+                    "enum": ["forced", "automatic", "shadow"],
+                    "default": "forced",
+                    "description": (
+                        "Forced preserves explicit composition. Automatic may bypass low-value "
+                        "tasks. Shadow reports the automatic decision while still compiling."
+                    ),
+                },
                 "session_id": {
                     "type": "string",
                     "minLength": 1,
@@ -306,6 +330,30 @@ TOOLS: dict[str, dict[str, object]] = {
                         "advisory promoted graphs and receipts from TMCP_HOME."
                     ),
                 },
+                "admission_mode": {
+                    "type": "string",
+                    "enum": ["forced", "automatic", "shadow"],
+                    "default": "forced",
+                },
+                "include_test_sources": {
+                    "type": "boolean",
+                    "default": False,
+                },
+                "coordinator_state": {
+                    "type": "object",
+                    "description": (
+                        "Optional tmcp-coordinator-state-v0.1 record. Its next-action "
+                        "stream cannot replace the active stream without explicit user selection."
+                    ),
+                },
+                "explicit_user_stream_selection": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": (
+                        "Authorize a coordinator lane transition only when the user explicitly "
+                        "selected the next-action stream."
+                    ),
+                },
             },
             "required": ["objective"],
             "allOf": [
@@ -335,6 +383,16 @@ TOOLS: dict[str, dict[str, object]] = {
                 "verification_results": {"type": "array", "items": {"type": "string"}},
                 "user_overrides": {"type": "array", "items": {"type": "string"}},
                 "outcome": {"type": "string"},
+                "coordinator_state": {
+                    "type": "object",
+                    "description": (
+                        "Optional tmcp-coordinator-state-v0.1 record to preserve in the receipt."
+                    ),
+                },
+                "explicit_user_stream_selection": {
+                    "type": "boolean",
+                    "default": False,
+                },
             },
             "required": ["packet_id"],
         },
@@ -379,6 +437,11 @@ TOOLS: dict[str, dict[str, object]] = {
                 "max_file_bytes": {"type": "integer", "default": 262144},
                 "max_excerpt_chars": {"type": "integer", "default": 1200},
                 "follow_symlinks": {"type": "boolean", "default": False},
+                "include_test_sources": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Explicitly opt test and fixture sources into harvesting.",
+                },
                 "redact_sensitive": {"type": "boolean", "default": True},
                 "min_confidence": {"type": "number", "default": 0.25},
                 "promotion_name": {"type": "string"},

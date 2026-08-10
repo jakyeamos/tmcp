@@ -25,6 +25,9 @@ SERVER_PATH = Path(__file__).resolve().parents[1] / "scripts" / "tmcp_mcp_server
 PLUGIN_ROOT = SERVER_PATH.parents[1]
 CHECK_INSTALL_PATH = PLUGIN_ROOT / "scripts" / "check_install.py"
 GOLDEN_PACKETS_PATH = PLUGIN_ROOT / "tests" / "fixtures" / "golden_packets.json"
+PACKET_SUBSTANCE_PUBLIC_FIXTURE = (
+    PLUGIN_ROOT / "tests" / "fixtures" / "packet-substance-public-v0.1.json"
+)
 PACKET_SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "tmcp-skill-packet-v0.2.schema.json"
 COMPOSED_PACKET_SCHEMA_PATH = (
     PLUGIN_ROOT / "schemas" / "tmcp-composed-packet-v0.1.schema.json"
@@ -112,6 +115,128 @@ class TmcpMcpServerTests(unittest.TestCase):
             substance["fallback_policy"],
         )
         self.assertTrue(substance["issues"])
+
+    def test_ui_skill_corpus_is_source_backed_with_generic_harvest_objective(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "skills" / "layout").mkdir(parents=True)
+            (root / "skills" / "motion").mkdir(parents=True)
+            (root / "skills" / "layout" / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: layout-hierarchy",
+                        "domain: ui-design",
+                        "skill-type: generative",
+                        "---",
+                        "# Layout Hierarchy",
+                        "Apply layout and spacing rules to group related components.",
+                        "Use responsive hierarchy and verify the resulting states.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (root / "skills" / "motion" / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: motion-design",
+                        "domain: ui-design",
+                        "skill-type: evaluative",
+                        "---",
+                        "# Motion Design",
+                        "Create animation transitions with intentional easing and interaction feedback.",
+                        "Prefer reduced motion and verify the final behavior.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            harvest = self.server._harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Collect the newly installed skills",
+                    "write_artifacts": False,
+                }
+            )
+            packet = standalone_packets.compile_standalone_packet(
+                objective="Collect the newly installed skills",
+                project_path=str(root),
+                harvested_nodes=harvest["source_nodes"],
+            )
+
+        substance = packet["substance_check"]
+        self.assertEqual(packet["task_id"], "agent_workflow")
+        self.assertEqual(packet["domain"], "ui_design")
+        self.assertEqual(substance["level"], "source_backed_playbook")
+        self.assertTrue(substance["has_domain_playbook"])
+        self.assertGreaterEqual(substance["substantive_source_count"], 2)
+        self.assertIn("ui-design", substance["matched_ui_domain_terms"])
+        self.assertTrue(
+            any(
+                node.get("frontmatter", {}).get("domain") == "ui-design"
+                and node.get("guidance_labels")
+                for node in packet["source_skill_nodes"]
+            )
+        )
+
+    def test_generic_skill_corpus_keeps_process_only_classification(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "AGENTS.md").write_text(
+                "# Agent Notes\n\nKeep work organized and communicate clearly.\n",
+                encoding="utf-8",
+            )
+            harvest = self.server._harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Collect the newly installed skills",
+                    "write_artifacts": False,
+                }
+            )
+            packet = standalone_packets.compile_standalone_packet(
+                objective="Collect the newly installed skills",
+                project_path=str(root),
+                harvested_nodes=harvest["source_nodes"],
+            )
+
+        substance = packet["substance_check"]
+        self.assertEqual(packet["domain"], "general")
+        self.assertEqual(substance["level"], "process_only")
+        self.assertFalse(substance["has_domain_playbook"])
+
+    def test_harvest_collection_and_packet_classification_are_separate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "SKILL.md").write_text(
+                "---\nname: ui-layout\ndomain: ui-design\n---\n"
+                "Apply layout rules and verify responsive states.\n",
+                encoding="utf-8",
+            )
+            (root / "notes.md").write_text(
+                "# Generic Note\n\nKeep the task organized.\n",
+                encoding="utf-8",
+            )
+            harvest = self.server._harvest_skills(
+                {
+                    "source_path": str(root),
+                    "objective": "Use a generic objective",
+                    "write_artifacts": False,
+                }
+            )
+            packet = standalone_packets.compile_standalone_packet(
+                objective="Use a generic objective",
+                project_path=str(root),
+                harvested_nodes=harvest["source_nodes"],
+            )
+
+        self.assertEqual(harvest["source_count"], 2)
+        self.assertEqual(packet["substance_check"]["source_node_count"], 2)
+        self.assertEqual(len(packet["source_skill_nodes"]), 2)
+        self.assertEqual(packet["task_id"], "agent_workflow")
+        self.assertEqual(packet["substance_check"]["level"], "thin_domain_signals")
+        self.assertFalse(packet["substance_check"]["has_domain_playbook"])
 
     def test_harvest_is_portable_and_prunes_dependency_dirs(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -279,6 +404,9 @@ class TmcpMcpServerTests(unittest.TestCase):
                 "schemas/tmcp-run-receipt-v0.1.schema.json",
                 "schemas/tmcp-run-session-v0.1.schema.json",
                 "schemas/tmcp-promoted-harvest-graph-v0.1.schema.json",
+                "schemas/tmcp-handoff-manifest-v0.1.schema.json",
+                "schemas/tmcp-handoff-manifest-v0.2.schema.json",
+                "scripts/replay_handoff.py",
                 "scripts/release_package_composition.py",
                 "scripts/release_package_sessions.py",
                 "tmcp_runtime/domain/declared_loads.py",
@@ -613,6 +741,37 @@ class TmcpMcpServerTests(unittest.TestCase):
         self.assertIn("typography", " ".join(gap_slice["scope"]).lower())
         self.assertIn("spacing", " ".join(gap_slice["scope"]).lower())
 
+    def test_profile_coverage_accepts_tuple_terms(self) -> None:
+        requirements = list(
+            review_evidence.PROFILE_COVERAGE_REQUIREMENTS["visual_polish"]
+        )
+        self.assertTrue(all(isinstance(item["terms"], tuple) for item in requirements))
+        coverage_text = " ".join(
+            str(term) for requirement in requirements for term in requirement["terms"]
+        )
+
+        report = review_evidence.build_audit_report(
+            {
+                "profile": "visual_polish",
+                "coverage_requirements": requirements,
+                "dimensions": [
+                    {"id": "visual_product_quality", "name": "Visual product quality"}
+                ],
+            },
+            [
+                {
+                    "dimension_id": "visual_product_quality",
+                    "severity": "observation",
+                    "summary": coverage_text,
+                    "evidence": [coverage_text],
+                    "recommended_fix": "No fix required.",
+                }
+            ],
+            "tuple-coverage",
+        )
+
+        self.assertEqual(report["coverage_gaps"], [])
+
     def test_profile_coverage_is_enforced_for_non_visual_reviews(self) -> None:
         result = self.server._standalone_review_plan(
             {
@@ -722,6 +881,122 @@ class TmcpMcpServerTests(unittest.TestCase):
                 for node in result["expertise_packet"]["source_skill_nodes"]
             )
         )
+
+    def test_public_launcher_and_mcp_expose_packet_substance_without_source_text(
+        self,
+    ) -> None:
+        fixture = json.loads(PACKET_SUBSTANCE_PUBLIC_FIXTURE.read_text())
+        objective = fixture["objective"]
+        source_rich = fixture["source_rich"]
+        process_only = fixture["process_only"]
+
+        with TestWorkspace() as workspace:
+            source_rich_project = workspace.project / "source-rich"
+            process_only_project = workspace.project / "process-only"
+            source_path = source_rich_project / source_rich["relative_path"]
+            source_path.parent.mkdir(parents=True)
+            source_path.write_text(source_rich["content"])
+            process_only_project.mkdir()
+
+            cli_arguments = [
+                "review-plan",
+                objective,
+                "--adapter",
+                "standalone",
+                "--evidence-json",
+                "[]",
+                "--no-write-artifacts",
+                "--compact",
+            ]
+            rich_cli = workspace.run_cli(
+                [*cli_arguments, "--project-path", str(source_rich_project)]
+            )
+            process_cli = workspace.run_cli(
+                [*cli_arguments, "--project-path", str(process_only_project)]
+            )
+            self.assertEqual(rich_cli.returncode, 0, rich_cli.stderr)
+            self.assertEqual(process_cli.returncode, 0, process_cli.stderr)
+            rich_cli_payload = rich_cli.json()
+            process_cli_payload = process_cli.json()
+
+            mcp_responses = workspace.run_mcp(
+                [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "expert_rubric_review_plan",
+                            "arguments": {
+                                "objective": objective,
+                                "project_path": str(source_rich_project),
+                                "evidence_json": "[]",
+                                "write_artifacts": False,
+                            },
+                        },
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "expert_rubric_review_plan",
+                            "arguments": {
+                                "objective": objective,
+                                "project_path": str(process_only_project),
+                                "evidence_json": "[]",
+                                "write_artifacts": False,
+                            },
+                        },
+                    },
+                ]
+            )
+
+        rich_mcp_payload = cast(
+            Mapping[str, object], mcp_responses[0]["result"]["structuredContent"]
+        )
+        process_mcp_payload = cast(
+            Mapping[str, object], mcp_responses[1]["result"]["structuredContent"]
+        )
+
+        def substance(payload: Mapping[str, object]) -> Mapping[str, object]:
+            packet = cast(Mapping[str, object], payload["expertise_packet"])
+            return cast(Mapping[str, object], packet["substance_check"])
+
+        for payload in (rich_cli_payload, rich_mcp_payload):
+            check = substance(payload)
+            self.assertEqual(check["level"], source_rich["expected_level"])
+            self.assertEqual(
+                check["has_domain_playbook"],
+                source_rich["expected_has_domain_playbook"],
+            )
+        for payload in (process_cli_payload, process_mcp_payload):
+            check = substance(payload)
+            self.assertEqual(check["level"], process_only["expected_level"])
+            self.assertEqual(
+                check["has_domain_playbook"],
+                process_only["expected_has_domain_playbook"],
+            )
+
+        rich_packet = cast(Mapping[str, object], rich_cli_payload["expertise_packet"])
+        rich_source_nodes = cast(
+            list[Mapping[str, object]], rich_packet["source_skill_nodes"]
+        )
+        self.assertTrue(rich_source_nodes)
+        self.assertTrue(all("excerpt" not in node for node in rich_source_nodes))
+        self.assertTrue(all("signal_excerpt" not in node for node in rich_source_nodes))
+
+        rendered_responses = json.dumps(
+            {
+                "rich_cli": rich_cli_payload,
+                "process_cli": process_cli_payload,
+                "mcp_responses": mcp_responses,
+                "rich_mcp": rich_mcp_payload,
+                "process_mcp": process_mcp_payload,
+            },
+            sort_keys=True,
+        )
+        self.assertNotIn(source_rich["marker"], rendered_responses)
 
     def test_mcp_protocol_lists_and_calls_tools(self) -> None:
         responses = run_mcp_requests(

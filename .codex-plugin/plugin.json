@@ -1,7 +1,7 @@
 {
   "name": "tmcp",
   "version": "0.5.7+codex.20260716005835",
-  "description": "Expose standalone TMCP skill-packet workflows, adaptive workflow discovery, focused routers, skill harvesting, workflow recommendations, packet substance checks, and expert rubric remediation to Codex.",
+  "description": "Compile small task-specific operating packets for complex implementation, migration, debugging, architecture, documentation, verification, and review work.",
   "author": {
     "name": "Jakye Amos"
   },
@@ -10,9 +10,9 @@
     "tmcp",
     "skills",
     "mcp",
-    "rubric",
-    "audit",
-    "readiness",
+    "compiler",
+    "routing",
+    "implementation",
     "security",
     "privacy",
     "developer-experience",
@@ -31,8 +31,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "TMCP",
-    "shortDescription": "Adapt workflow routing from harvested skills and TMCP packets.",
-    "longDescription": "TMCP exposes task-specific skill packet compilation, focused Codex routing skills, local skill harvesting, adaptive workflow-pack recommendations, and expert rubric remediation workflows for UI quality, release readiness, security/privacy, developer experience, incident postmortems, architecture decisions, migration readiness, handoffs, PR risk, performance, data integrity, and custom workflows. It runs standalone and can use AIOS as an optional acceleration and persistence adapter when available.",
+    "shortDescription": "Compile focused operating packets when task complexity justifies them.",
+    "longDescription": "TMCP is an admission-controlled task compiler. It identifies complex implementation, migration, debugging, architecture, documentation, verification, and explicit review work; selects a small source-backed operating packet; and recompiles only after material runtime changes. Specialized audit and rubric skills remain explicit routes and provenance sources rather than the default product surface.",
     "developerName": "Jakye Amos",
     "category": "Productivity",
     "capabilities": [
@@ -46,17 +46,17 @@
     "logo": "./assets/logo.svg",
     "logoDark": "./assets/logo-dark.svg",
     "defaultPrompt": [
-      "Use the TMCP expert UI rubric on this project.",
-      "Build an adaptive TMCP workflow pack for this repo.",
-      "Review release readiness with TMCP.",
-      "Create an incident postmortem packet with TMCP.",
-      "Use TMCP to review this architecture decision.",
-      "Create an agent handoff packet with TMCP.",
-      "Audit developer onboarding with TMCP.",
-      "Run a TMCP security and privacy process audit.",
-      "Explain the TMCP packet for this task.",
+      "Use TMCP to implement this backend API with verification gates.",
+      "Use TMCP to plan and execute this database migration safely.",
+      "Use TMCP to debug this regression and preserve the passing behavior.",
+      "Use TMCP to make this architecture decision and trace compatibility impacts.",
+      "Use TMCP to update the implementation and its documentation together.",
+      "Use TMCP to prepare this release and identify missing evidence.",
+      "Use TMCP in shadow mode to evaluate whether composition helps this task.",
+      "Use the explicit TMCP audit route to review this system.",
+      "Explain TMCP's admission decision and packet for this task.",
       "Run tmcp_doctor and verify this install.",
-      "Harvest this repo into a TMCP packet.",
+      "Harvest this repo's production guidance into a TMCP packet.",
       "Recommend TMCP workflows from this repo's skill signals."
     ]
   },

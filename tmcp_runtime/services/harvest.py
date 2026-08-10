@@ -67,6 +67,8 @@ DEFAULT_HARVEST_EXCLUDE_DIR_NAMES = {
     ".nvm",
     ".pnpm-store",
     ".pre-cr",
+    ".project-compass",
+    ".quality-runner",
     ".git",
     ".hg",
     ".mypy_cache",
@@ -89,6 +91,11 @@ DEFAULT_HARVEST_EXCLUDE_DIR_NAMES = {
     "private",
     "profiles",
     "target",
+    "test",
+    "tests",
+    "__tests__",
+    "fixture",
+    "fixtures",
     "tokens",
     "vendor",
     "venv",
@@ -109,6 +116,8 @@ DEFAULT_HARVEST_EXCLUDE_GLOBS = (
     "**/.npm/**",
     "**/.pnpm-store/**",
     "**/.pre-cr/**",
+    "**/.project-compass/**",
+    "**/.quality-runner/**",
     "**/.tmcp/**",
     "**/*credential*/**",
     "**/*credentials*/**",
@@ -127,6 +136,11 @@ DEFAULT_HARVEST_EXCLUDE_GLOBS = (
     "**/build/**",
     "**/.next/**",
     "**/coverage/**",
+    "**/test/**",
+    "**/tests/**",
+    "**/__tests__/**",
+    "**/fixture/**",
+    "**/fixtures/**",
     "**/package-lock.json",
     "**/pnpm-lock.yaml",
     "**/yarn.lock",
@@ -174,6 +188,7 @@ def read_only_harvest_arguments(arguments: Mapping[str, Any]) -> dict[str, Any]:
         "max_excerpt_chars": arguments.get("max_excerpt_chars", 1200),
         "follow_symlinks": bool(arguments.get("follow_symlinks", False)),
         "redact_sensitive": bool(arguments.get("redact_sensitive", True)),
+        "include_test_sources": bool(arguments.get("include_test_sources", False)),
         "write_artifacts": False,
     }
 
@@ -261,15 +276,24 @@ def harvest_skills(
         include_globs = normalize_string_list(
             arguments.get("glob"), DEFAULT_HARVEST_INCLUDE_GLOBS
         )
+    include_test_sources = bool(arguments.get("include_test_sources", False))
     exclude_globs = normalize_string_list(
-        arguments.get("exclude_globs"),
-        DEFAULT_HARVEST_EXCLUDE_GLOBS,
+        arguments.get("exclude_globs"), DEFAULT_HARVEST_EXCLUDE_GLOBS
     )
+    excluded_dir_names = set(DEFAULT_HARVEST_EXCLUDE_DIR_NAMES)
+    if include_test_sources:
+        test_names = {"test", "tests", "__tests__", "fixture", "fixtures"}
+        excluded_dir_names.difference_update(test_names)
+        exclude_globs = [
+            pattern
+            for pattern in exclude_globs
+            if not any(f"/{name}/" in pattern for name in test_names)
+        ]
     candidates, traversal_warnings = iter_harvest_candidates(
         source_roots,
         include_globs,
         exclude_globs,
-        DEFAULT_HARVEST_EXCLUDE_DIR_NAMES,
+        excluded_dir_names,
         follow_symlinks=follow_symlinks,
         max_scan_entries=DEFAULT_HARVEST_MAX_SCAN_ENTRIES,
     )

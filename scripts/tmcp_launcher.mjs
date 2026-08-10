@@ -7,6 +7,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const pluginRoot = resolve(scriptDir, "..");
 const defaultServerPath = resolve(scriptDir, "tmcp_mcp_server.py");
+const codexValidationPreflightPath = resolve(
+  scriptDir,
+  "check_codex_validation_preflight.py",
+);
+const codexValidationBootstrapPath = resolve(
+  scriptDir,
+  "bootstrap_codex_validation.py",
+);
 
 export function pythonCandidates(env = process.env, platform = process.platform) {
   const configured = env.TMCP_PYTHON?.trim();
@@ -63,6 +71,10 @@ export function buildServerCommand(
 }
 
 function main() {
+  const argv = process.argv.slice(2);
+  const isCodexValidationPreflight =
+    argv[0] === "codex-validation-preflight";
+  const isCodexValidationBootstrap = argv[0] === "codex-validation-bootstrap";
   let server;
   try {
     server = buildServerCommand();
@@ -71,7 +83,12 @@ function main() {
     process.exit(1);
   }
 
-  const child = spawn(server.command, [...server.args, ...process.argv.slice(2)], {
+  const childArgs = isCodexValidationPreflight
+    ? [...server.args.slice(0, -1), codexValidationPreflightPath, ...argv.slice(1)]
+    : isCodexValidationBootstrap
+      ? [...server.args.slice(0, -1), codexValidationBootstrapPath, ...argv.slice(1)]
+      : [...server.args, ...argv];
+  const child = spawn(server.command, childArgs, {
     cwd: pluginRoot,
     env: process.env,
     stdio: "inherit",
