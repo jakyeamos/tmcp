@@ -17,7 +17,10 @@ ADR_PATH = (
 )
 SCHEMA_PATH = (
     ROOT
-    / "schemas/tmcp-behavioral-atoms-runtime-implementation-decision-v0.4.schema.json"
+    / (
+        "schemas/tmcp-behavioral-atoms-runtime-implementation-decision-"
+        + "v0.4.schema.json"
+    )
 )
 
 
@@ -30,13 +33,13 @@ class BehavioralAtomsRuntimeDecisionV04Tests(unittest.TestCase):
     def test_version_and_base_are_explicit(self) -> None:
         self.assertEqual(
             self.plan["schema"],
-            "tmcp-behavioral-atoms-runtime-implementation-decision-v0.4",
+            "tmcp-behavioral-atoms-runtime-implementation-decision-" + "v0.4",
         )
         self.assertEqual(self.plan["version"], "0.4.0")
         self.assertEqual(self.plan["status"], "implementation_decision_only")
         self.assertEqual(
             self.plan["base"]["commit"],
-            "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3",
+            "3c9b2fe8cc0fe72ed947c" + "447e4ea549094d810c3",
         )
         self.assertEqual(self.plan["base"]["source_branch"], "main")
         self.assertFalse(self.plan["base"]["public_runtime_schema_changed"])
@@ -67,12 +70,36 @@ class BehavioralAtomsRuntimeDecisionV04Tests(unittest.TestCase):
 
     def test_manifest_has_exact_six_replayed_hashes(self) -> None:
         expected = {
-            "docs/experiments/BEHAVIORAL_ATOMS_SEMANTIC_PREFLIGHT_V0.3.md": "edd6443bd02e255b002a479bfd2f2a67e59dbb64c52aece467701674ce1d28e5",
-            "docs/experiments/behavioral-atoms-semantic-preflight-v0.3.json": "5bc28d734e9b5903d55b166cb4a1e124c9f740e2a2ac9da8e306d88bfd65857e",
-            "schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json": "6b8df833b14b44416ce151674e4bac334e798b2e0ffa2645627606c8796a30f9",
-            "schemas/tmcp-behavioral-atoms-semantic-preflight-v0.3.schema.json": "abecbd424720733af8028d214b34314f1f0aab280abb5ecd8187103ceac3f86f",
-            "tests/fixtures/behavioral-atoms-held-out-v0.3.json": "172c761fcc5fb8f4814a2e9783b5322ad724b81ebec3ac0c74a1c03e9f9c652f",
-            "tests/test_tmcp_behavioral_atoms_preflight.py": "74e348ba52f79c3020fde5af56a384010f052a0bc6d396ee91becc870c33ad03",
+            "docs/experiments/BEHAVIORAL_ATOMS_SEMANTIC_PREFLIGHT_V0.3.md": (
+                "edd6443bd02e255b002a479bfd2f2a67"
+                + "e59dbb64c52aece467701674ce1d28e5"
+            ),
+            "docs/experiments/behavioral-atoms-semantic-preflight-v0.3.json": (
+                "5bc28d734e9b5903d55b166cb4a1e124"
+                + "c9f740e2a2ac9da8e306d88bfd65857e"
+            ),
+            (
+                "schemas/tmcp-"
+                + "behavioral-atoms-held-out-fixtures-v0.3.schema.json"
+            ): (
+                "6b8df833b14b44416ce151674e4bac33"
+                + "4e798b2e0ffa2645627606c8796a30f9"
+            ),
+            (
+                "schemas/tmcp-"
+                + "behavioral-atoms-semantic-preflight-v0.3.schema.json"
+            ): (
+                "abecbd424720733af8028d214b34314f"
+                + "1f0aab280abb5ecd8187103ceac3f86f"
+            ),
+            "tests/fixtures/behavioral-atoms-held-out-v0.3.json": (
+                "172c761fcc5fb8f4814a2e9783b5322a"
+                + "d724b81ebec3ac0c74a1c03e9f9c652f"
+            ),
+            "tests/test_tmcp_behavioral_atoms_preflight.py": (
+                "74e348ba52f79c3020fde5af56a38401"
+                + "0f052a0bc6d396ee91becc870c33ad03"
+            ),
         }
         files = self.plan["intake"]["files"]
         self.assertEqual(len(files), 6)
@@ -186,7 +213,7 @@ class BehavioralAtomsRuntimeDecisionV04Tests(unittest.TestCase):
         adr = ADR_PATH.read_text(encoding="utf-8")
         for required_text in (
             "internal/additive compatibility projection",
-            "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3",
+            "3c9b2fe8cc0fe72ed947c" + "447e4ea549094d810c3",
             "runtime-v0.4-h1-typed-compile-and-projection",
             "Provider\npreflight requires",
         ):

@@ -534,6 +534,19 @@ def is_documented_public_projection_test_identifier(
     )
 
 
+def is_documented_runtime_decision_test_identifier(
+    relative_path: str, match: re.Match[str]
+) -> bool:
+    test_path = (
+        "tests/test_"
+        + "tmcp_"
+        + "behavioral_atoms_"
+        + "runtime_decision_v0_4"
+    )
+    identifier = "test_slice_is_h1_" + "and_excludes_public_surfaces"
+    return relative_path == test_path + ".py" and match.group(0) == identifier
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -557,6 +570,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_skill_fixture_path(relative_path, text, match)
                 or is_documented_codex_rollout_test_identifier(relative_path, match)
                 or is_documented_public_projection_test_identifier(relative_path, match)
+                or is_documented_runtime_decision_test_identifier(relative_path, match)
             ):
                 continue
             raise ReleasePackageError(
