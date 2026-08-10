@@ -19,6 +19,7 @@ SCHEMA_PATH = (
     ROOT
     / "schemas/tmcp-behavioral-atoms-runtime-implementation-decision-v0.4.schema.json"
 )
+GIT_BASE_COMMIT = "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3"
 
 
 class BehavioralAtomsRuntimeDecisionV04Tests(unittest.TestCase):
@@ -36,7 +37,7 @@ class BehavioralAtomsRuntimeDecisionV04Tests(unittest.TestCase):
         self.assertEqual(self.plan["status"], "implementation_decision_only")
         self.assertEqual(
             self.plan["base"]["commit"],
-            "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3",
+            GIT_BASE_COMMIT,
         )
         self.assertEqual(self.plan["base"]["source_branch"], "main")
         self.assertFalse(self.plan["base"]["public_runtime_schema_changed"])
@@ -186,7 +187,7 @@ class BehavioralAtomsRuntimeDecisionV04Tests(unittest.TestCase):
         adr = ADR_PATH.read_text(encoding="utf-8")
         for required_text in (
             "internal/additive compatibility projection",
-            "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3",
+            GIT_BASE_COMMIT,
             "runtime-v0.4-h1-typed-compile-and-projection",
             "Provider\npreflight requires",
         ):

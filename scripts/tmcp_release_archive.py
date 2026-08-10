@@ -341,10 +341,21 @@ def read_git_blob(plugin_root: Path, object_id: str) -> bytes:
 
 def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     value = match.group(0)
-    if len(value) not in {40, 64, 96, 128} or not re.fullmatch(r"[A-Fa-f0-9]+", value):
+    if not re.fullmatch(r"[A-Fa-f0-9]+", value):
         return False
     line_start = text.rfind("\n", 0, match.start()) + 1
     prefix = text[line_start : match.start()]
+    if len(value) == 40:
+        return (
+            re.search(
+                r"(?i)\b(?:git[_ -])?(?:base[_ -])?commit(?:[_ -](?:sha|id))?"
+                r"\s*[:=]\s*[\"']?\s*$",
+                prefix,
+            )
+            is not None
+        )
+    if len(value) not in {64, 96, 128}:
+        return False
     if (
         re.search(
             r"[\"']?\s*\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b"

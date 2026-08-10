@@ -372,6 +372,12 @@ class ReleasePackageTests(unittest.TestCase):
             self.package.scan_release_content("README.md", raw_aws_secret.encode())
 
     def test_package_allows_documented_checksum(self) -> None:
+        self.package.scan_release_content(
+            "README.md",
+            'GIT_BASE_COMMIT = "3c9b2fe8cc0fe72ed947c447e4ea549094d810c3"\n'.encode(
+                "utf-8"
+            ),
+        )
         checksum = "0123456789abcdef" * 4
         self.package.scan_release_content(
             "README.md", f"sha256 digest: {checksum}\n".encode("utf-8")
