@@ -345,12 +345,21 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         return False
     line_start = text.rfind("\n", 0, match.start()) + 1
     prefix = text[line_start : match.start()]
-    return (
+    if (
         re.search(
             r"[\"']?\s*\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b"
             r"[\"']?(?:\s+(?:hash|digest))?\s*[:=]\s*[\"']?\s*$",
             prefix,
             flags=re.IGNORECASE,
+        )
+        is not None
+    ):
+        return True
+    return (
+        re.search(
+            r"[\"'][A-Za-z0-9_./-]+\.(?:md|json|py|mjs|ts|tsx|yaml|yml|toml|txt)"
+            r"[\"']\s*:\s*[\"']\s*$",
+            prefix,
         )
         is not None
     )
