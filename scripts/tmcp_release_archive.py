@@ -459,6 +459,30 @@ def is_documented_python_schema_constant(
     )
 
 
+def is_documented_skill_fixture_path(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    """Allow deterministic fixture PATH examples in the published case file."""
+
+    if relative_path != "tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json":
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    return (
+        '"prompt": "' in line
+        and re.fullmatch(
+            r"PATH=/private/tmp/tmcp-skill-fixtures-[0-9]{8}/"
+            r"tests/fixtures/skill-fixtures/[a-z0-9-]+-v0",
+            match.group(0),
+            flags=re.IGNORECASE,
+        )
+        is not None
+    )
+
+
 def is_documented_schema_identifier(
     relative_path: str, text: str, match: re.Match[str]
 ) -> bool:
@@ -527,6 +551,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_repository_path(relative_path, match)
                 or is_documented_manifest_path(relative_path, text, match)
                 or is_documented_python_schema_constant(relative_path, text, match)
+                or is_documented_skill_fixture_path(relative_path, text, match)
                 or is_documented_schema_identifier(relative_path, text, match)
             ):
                 continue

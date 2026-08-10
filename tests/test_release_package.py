@@ -422,6 +422,11 @@ class ReleasePackageTests(unittest.TestCase):
             b'      "id": "h3_security_positive_authorized_secret_boundary",\n',
         )
         self.package.scan_release_content(
+            "tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
+            b'      "prompt": "Use PATH=/private/tmp/tmcp-skill-fixtures-20260722/'
+            b'tests/fixtures/skill-fixtures/find-skills-discovery-fixture-v0.1/bin:$PATH"\n',
+        )
+        self.package.scan_release_content(
             "scripts/check_install.py",
             b'REQUIRED_FILES = (\n'
             b'    "schemas/tmcp-codex-validation-preflight-v0.1.schema.json",\n'
