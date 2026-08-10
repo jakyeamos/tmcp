@@ -420,9 +420,11 @@ class ReleasePackageTests(unittest.TestCase):
             PLUGIN_ROOT / "scripts" / "run_invocation_admission_overhead_pilot.py",
             PLUGIN_ROOT / "scripts" / "score_invocation_admission_rollout.py",
             PLUGIN_ROOT / "tests" / "test_tmcp_behavioral_atoms_preflight.py",
-            PLUGIN_ROOT
-            / "tests"
-            / "test_tmcp_behavioral_atoms_runtime_decision_v0_4.py",
+            next(
+                (PLUGIN_ROOT / "tests").glob(
+                    "test_tmcp_behavioral_atoms_runtime_decision_*.py"
+                )
+            ),
         ]
         for source_path in source_paths:
             relative_path = source_path.relative_to(PLUGIN_ROOT).as_posix()
