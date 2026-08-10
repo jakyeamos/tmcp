@@ -390,6 +390,12 @@ class ReleasePackageTests(unittest.TestCase):
             b"../schemas/tmcp-codex-validation-preflight-v0.1.schema.json",
         )
 
+    def test_package_allows_documented_schema_identifiers(self) -> None:
+        self.package.scan_release_content(
+            "examples/workflows/invocation-admission-overhead-pilot-v0.5.json",
+            b'{"schema": "tmcp-invocation-admission-overhead-pilot-v0.5"}',
+        )
+
     def test_package_allows_path_shaped_placeholder(self) -> None:
         placeholder = "/absolute/path/to/tmcp/scripts/" + "tmcp_launcher.mjs"
         self.package.scan_release_content("README.md", placeholder.encode("utf-8"))

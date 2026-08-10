@@ -363,6 +363,18 @@ def is_documented_schema_path(text: str, match: re.Match[str]) -> bool:
     return re.match(r"\.[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*", suffix) is not None
 
 
+def is_documented_schema_identifier(text: str, match: re.Match[str]) -> bool:
+    value = match.group(0)
+    if not re.fullmatch(r"tmcp-[a-z0-9]+(?:-[a-z0-9]+)+-v\d+", value):
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    prefix = text[line_start : match.start()]
+    return (
+        re.search(r'\"schema\"\s*:\s*\"$', prefix) is not None
+        and re.match(r"\.\d+", text[match.end() :]) is not None
+    )
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -371,6 +383,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 not looks_high_entropy(match.group(0))
                 or is_documented_checksum(text, match)
                 or is_documented_schema_path(text, match)
+                or is_documented_schema_identifier(text, match)
             ):
                 continue
             raise ReleasePackageError(
