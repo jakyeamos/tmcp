@@ -419,6 +419,20 @@ def is_documented_python_schema_constant(
         flags=re.IGNORECASE,
     ):
         return True
+    if re.fullmatch(
+        r"\s*[A-Z][A-Z0-9_]*_SCHEMA\s*=\s*[\"']tmcp-[A-Za-z0-9_.-]+"
+        r"[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    if re.search(
+        r"\.get\([\"']schema[\"']\)\s*(?:==|!=)\s*"
+        r"[\"']tmcp-[A-Za-z0-9_.-]+[\"']",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
     schema_set_start = text.rfind(
         'manifest.get("schema") not in {', 0, match.start()
     )

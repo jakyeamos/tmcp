@@ -446,6 +446,16 @@ class ReleasePackageTests(unittest.TestCase):
             b'        "tmcp-invocation-admission-overhead-pilot-v0.6",\n'
             b'    }\n',
         )
+        self.package.scan_release_content(
+            "scripts/score_invocation_admission_rollout.py",
+            b'ATTRIBUTION_READINESS_SCHEMA = '
+            b'"tmcp-invocation-admission-attribution-readiness-v0.11"\n',
+        )
+        self.package.scan_release_content(
+            "scripts/score_invocation_admission_rollout.py",
+            b'if shadow_report.get("schema") != '
+            b'"tmcp-invocation-admission-shadow-score-v0.7":\n',
+        )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",
