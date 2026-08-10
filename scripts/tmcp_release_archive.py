@@ -355,6 +355,14 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     )
 
 
+def is_documented_schema_path(text: str, match: re.Match[str]) -> bool:
+    value = match.group(0)
+    if not re.fullmatch(r"schemas/tmcp-[A-Za-z0-9_-]+", value):
+        return False
+    suffix = text[match.end() :]
+    return re.match(r"\.[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*", suffix) is not None
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -362,6 +370,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
             if label == "long_high_entropy" and (
                 not looks_high_entropy(match.group(0))
                 or is_documented_checksum(text, match)
+                or is_documented_schema_path(text, match)
             ):
                 continue
             raise ReleasePackageError(

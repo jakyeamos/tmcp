@@ -384,6 +384,12 @@ class ReleasePackageTests(unittest.TestCase):
                 "README.md", f"hash note {checksum}\n".encode("utf-8")
             )
 
+    def test_package_allows_documented_schema_paths(self) -> None:
+        self.package.scan_release_content(
+            "docs/CODEX_VALIDATION_PREFLIGHT.md",
+            b"../schemas/tmcp-codex-validation-preflight-v0.1.schema.json",
+        )
+
     def test_package_allows_path_shaped_placeholder(self) -> None:
         placeholder = "/absolute/path/to/tmcp/scripts/" + "tmcp_launcher.mjs"
         self.package.scan_release_content("README.md", placeholder.encode("utf-8"))
