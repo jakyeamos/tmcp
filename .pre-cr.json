@@ -6,6 +6,12 @@
   ],
   "coverageFormat": "lcov",
   "threshold": 0,
+  "excludePatterns": [
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/test_*.py",
+    "**/__tests__/**"
+  ],
   "surfaces": {
     "covered": [
       "scripts/**",
