@@ -32,10 +32,10 @@ preflight, and any later composition evidence.
 - Git base commit: 3c9b2fe8cc0fe72ed947c447e4ea549094d810c3
 - Intake state: detached HEAD at source branch `main`
 - Authorized handoff:
-  `/Users/jakyeamos/.codex/visualizations/2026/08/04/019fcab1-eb42-7d20-b6da-e6ec032b9cee/handoffs/behavioral-atoms-preflight-v0.3/HANDOFF.md`
+  `evidence/handoffs/behavioral-atoms-preflight-v0.3/HANDOFF.md`
 - Authorized manifest:
-  `/Users/jakyeamos/.codex/visualizations/2026/08/04/019fcab1-eb42-7d20-b6da-e6ec032b9cee/handoffs/behavioral-atoms-preflight-v0.3/manifest.json`
-- Source snapshot: `/Users/jakyeamos/.codex/worktrees/2581/tmcp`
+  `evidence/handoffs/behavioral-atoms-preflight-v0.3/manifest.json`
+- Source snapshot: repository snapshot at the declared Git base commit
 
 Only the six manifest-listed files were replayed. Their source and destination
 SHA-256 values were compared byte-for-byte before this decision was written:
@@ -364,7 +364,7 @@ Conceptual schema:
 
 To replay the research intake, read the authorized manifest's six
 `changed_files[].path` entries, copy only those paths from
-`/Users/jakyeamos/.codex/worktrees/2581/tmcp` to the listed repository-relative
-paths, and compare SHA-256 for every pair before semantic inspection. This
+the repository snapshot to the listed repository-relative paths, and compare
+SHA-256 for every pair before semantic inspection. This
 decision packet is a handoff, not authorization to implement, install, publish,
 merge, or commit.

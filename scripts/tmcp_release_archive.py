@@ -73,6 +73,7 @@ SHIPPED_DOC_PATHS = {
     "docs/SKILL_WRITING_GUIDEBOOK.md",
     "docs/TIER_ONE_RELEASE_RUBRIC.md",
     "docs/TMCP_PACKET_SPEC.md",
+    "docs/experiments/BEHAVIORAL_ATOMS_SEMANTIC_PREFLIGHT_V0.3.md",
     "docs/experiments/BEHAVIORAL_ATOMS_RUNTIME_IMPLEMENTATION_DECISION_V0.4.md",
     "docs/experiments/behavioral-atoms-runtime-h2-redaction-ship-gate-v0.6.json",
     "docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7.json",

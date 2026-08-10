@@ -19,7 +19,7 @@
     "desktop-bridge-execution"
   ],
   "commands_run": [
-    "node scripts/tmcp_launcher.mjs compose-packet <objective> --project-path /Users/jakyeamos/projects/tmcp --phase implementation",
+    "node scripts/tmcp_launcher.mjs compose-packet <objective> --project-path <tmcp-repository> --phase implementation",
     "python3 -m unittest tests.test_tmcp_coordination tests.test_tmcp_receipts_domain tests.test_tmcp_runtime_state_domain tests.test_tmcp_runtime_service tests.test_tmcp_runtime_sessions tests.test_public_contracts tests.test_tmcp_mcp_cli",
     "python3 -m unittest discover -s tests -p test_*.py",
     "ruff format --check <owned coordinator surfaces>",
