@@ -131,6 +131,27 @@ class TmcpRuntimeStateDomainTests(unittest.TestCase):
         self.assertEqual(state["cache_policy"], "none")
         self.assertNotIn("untrusted global cache warning", state["warnings"])
 
+    def test_recompile_gate_requires_material_runtime_change(self) -> None:
+        unchanged = derive_runtime_state(
+            {"objective": "Implement a REST API endpoint", "cache_policy": "none"},
+            source_nodes=[],
+            cache_warnings=[],
+        )
+        changed = derive_runtime_state(
+            {
+                "objective": "Implement a REST API endpoint",
+                "files_changed": ["src/api.py"],
+                "cache_policy": "none",
+            },
+            source_nodes=[],
+            cache_warnings=[],
+        )
+
+        self.assertFalse(unchanged["recompile_required"])
+        self.assertEqual(unchanged["recompile_triggers"], [])
+        self.assertTrue(changed["recompile_required"])
+        self.assertIn("changed_surface", changed["recompile_triggers"])
+
     def test_previous_packet_identity_is_used_when_no_explicit_identity_is_given(
         self,
     ) -> None:

@@ -9,6 +9,7 @@ from tmcp_runtime.domain.composition import (
     contextual_atoms_and_gates,
     normalize_cache_policy,
 )
+from tmcp_runtime.domain.coordination import resolve_coordinator_state
 from tmcp_runtime.domain.families import (
     runtime_family_packet_delta,
     runtime_family_seed_context,
@@ -19,7 +20,10 @@ from tmcp_runtime.domain.harvest_nodes import (
     ordered_unique,
     string_list,
 )
-from tmcp_runtime.domain.recompile import parse_previous_packet
+from tmcp_runtime.domain.recompile import (
+    material_recompile_decision,
+    parse_previous_packet,
+)
 from tmcp_runtime.domain.routes import (
     derive_task_identity,
     task_identity_delta,
@@ -154,7 +158,15 @@ def derive_runtime_state(
     ]
     validated_changes, proposal_warnings = validate_proposed_changes(proposed_changes)
     warnings.extend(proposal_warnings)
-    return {
+    coordination = None
+    if arguments.get("coordinator_state") is not None:
+        coordination = resolve_coordinator_state(
+            arguments.get("coordinator_state"),
+            explicit_user_stream_selection=(
+                arguments.get("explicit_user_stream_selection") is True
+            ),
+        )
+    state = {
         "objective": objective,
         "combined_objective": combined_objective,
         "project_path": str(arguments.get("project_path") or "."),
@@ -171,4 +183,9 @@ def derive_runtime_state(
         "warnings": ordered_unique(warnings),
         "proposed_changes": proposed_changes,
         "validated_changes": validated_changes,
+        "coordination": coordination,
     }
+    recompile_decision = material_recompile_decision(dict(arguments), state)
+    state["recompile_required"] = recompile_decision["required"]
+    state["recompile_triggers"] = recompile_decision["triggers"]
+    return state
