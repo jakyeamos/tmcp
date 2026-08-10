@@ -403,6 +403,24 @@ class ReleasePackageTests(unittest.TestCase):
             "schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json",
             b'  "const": "tmcp-behavioral-atoms-held-out-fixtures-v0.3"\n',
         )
+        self.package.scan_release_content(
+            "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
+            b'  "$id": "https://github.com/jakyeamos/tmcp/schemas/'
+            b'tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json"\n',
+        )
+        self.package.scan_release_content(
+            "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
+            b'  "combined_fixture_id": '
+            b'"h3_combined_positive_secret_boundary_evidence_ladder"\n',
+        )
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
+                b'  "description": "tmcp-behavioral-atoms-runtime-h3-decision-v0.7"\n',
+            )
         checksum = "0123456789abcdef" * 4
         self.package.scan_release_content(
             "examples/workflows/invocation-admission-overhead-pilot-v0.5.json",

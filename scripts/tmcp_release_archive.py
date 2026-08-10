@@ -375,22 +375,36 @@ def is_documented_repository_path(relative_path: str, match: re.Match[str]) -> b
 def is_documented_schema_identifier(
     relative_path: str, text: str, match: re.Match[str]
 ) -> bool:
-    """Allow a schema field's stable identifier in structured evidence."""
+    """Allow stable schema references without weakening token scans."""
 
     if not relative_path.lower().endswith(".json"):
         return False
-    if not match.group(0).startswith("tmcp-"):
-        return False
     line_start = text.rfind("\n", 0, match.start()) + 1
-    prefix = text[line_start : match.start()]
-    return (
-        re.search(
-            r"[\"'](?:schema|const)[\"']\s*:\s*[\"']$",
-            prefix,
-            flags=re.IGNORECASE,
-        )
-        is not None
-    )
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    value = match.group(0)
+    if value.startswith("tmcp-") and re.search(
+        r"[\"'](?:schema|const)[\"']\s*:\s*[\"']$",
+        text[line_start : match.start()],
+        flags=re.IGNORECASE,
+    ):
+        return True
+    if re.fullmatch(
+        r"\s*[\"']\$id[\"']\s*:\s*[\"']https://github\.com/"
+        r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/schemas/tmcp-[A-Za-z0-9_.-]+\.json"
+        r"[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ):
+        return True
+    return re.fullmatch(
+        r"\s*[\"']combined_fixture_id[\"']\s*:\s*[\"']"
+        r"h3_combined_(?:positive|negative)_[a-z0-9_]+[\"']\s*,?\s*",
+        line,
+        flags=re.IGNORECASE,
+    ) is not None
 
 
 def scan_release_content(relative_path: str, content: bytes) -> None:
