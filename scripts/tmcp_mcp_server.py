@@ -33,6 +33,7 @@ from tmcp_runtime.adapters.mcp import (  # noqa: E402
     run_stdio as _runtime_run_mcp_stdio,
 )
 from tmcp_runtime.safety.redaction import merge_redactions  # noqa: E402
+from tmcp_runtime.domain.admission import decide_admission  # noqa: E402
 from tmcp_runtime.domain.composition import (  # noqa: E402
     normalize_cache_policy as _runtime_normalize_cache_policy,
 )
@@ -45,6 +46,7 @@ from tmcp_runtime.domain.harvest_nodes import (  # noqa: E402
     routing_metadata_for as _domain_routing_metadata_for,
     source_node_from_text as _domain_source_node_from_text,
 )
+from tmcp_runtime.domain.routes import derive_task_identity  # noqa: E402
 from tmcp_runtime.domain.workflow_catalog import (  # noqa: E402
     workflow_catalog_by_id,
 )
@@ -191,6 +193,31 @@ def _redact_result(result: dict[str, Any]) -> dict[str, Any]:
     merge_redactions(summary, redactions)
     safe_result["redaction_summary"] = summary
     return safe_result
+
+
+def _project_public_packet(result: dict[str, Any]) -> dict[str, Any]:
+    """Keep packet substance metadata public without returning source excerpts."""
+    public_result = dict(result)
+    for packet_key in ("packet", "expertise_packet"):
+        packet = public_result.get(packet_key)
+        if not isinstance(packet, dict):
+            continue
+        source_nodes = packet.get("source_skill_nodes")
+        if not isinstance(source_nodes, list):
+            continue
+        public_packet = dict(packet)
+        public_packet["source_skill_nodes"] = [
+            {
+                key: value
+                for key, value in node.items()
+                if key not in {"excerpt", "signal_excerpt"}
+            }
+            if isinstance(node, dict)
+            else node
+            for node in source_nodes
+        ]
+        public_result[packet_key] = public_packet
+    return public_result
 
 
 def _write_artifact_bundle(
@@ -367,7 +394,7 @@ def _standalone_review_plan(arguments: dict[str, Any]) -> dict[str, Any]:
             artifact_plan,
             fresh_bundle=not bool(arguments.get("output_dir")),
         )
-    return safe_result
+    return _project_public_packet(safe_result)
 
 
 def _source_project_path(arguments: dict[str, Any]) -> str:
@@ -539,12 +566,28 @@ def _compose_packet(arguments: dict[str, Any]) -> dict[str, Any]:
     if not objective:
         raise ValueError("tmcp_compose_packet requires objective.")
     store = _packet_session_store(arguments)
-    harvest = _harvest_skills(_compose_harvest_arguments(arguments))
-    source_nodes = [
-        item
-        for item in _json_list(harvest.get("source_nodes"))
-        if isinstance(item, dict)
-    ]
+    source_nodes: list[dict[str, Any]] = []
+    admission_mode = str(arguments.get("admission_mode") or "forced")
+    context = arguments.get("runtime_context")
+    if not isinstance(context, dict):
+        context = {}
+    identity_context = dict(context)
+    identity_context["latest_user_message"] = str(
+        arguments.get("latest_user_message") or ""
+    )
+    pre_admission = decide_admission(
+        objective,
+        derive_task_identity(objective, identity_context),
+        mode=admission_mode,
+        context=context,
+    )
+    if pre_admission["action"] != "bypass":
+        harvest = _harvest_skills(_compose_harvest_arguments(arguments))
+        source_nodes = [
+            item
+            for item in _json_list(harvest.get("source_nodes"))
+            if isinstance(item, dict)
+        ]
     packet = _compose_packet_from_source_nodes(arguments, source_nodes=source_nodes)
     if store is not None:
         packet["session"] = store.create(packet).metadata()
@@ -888,11 +931,11 @@ def _tool_explain(arguments: dict[str, Any]) -> dict[str, Any]:
                         "cache_policy": arguments.get("cache_policy") or "none",
                     }
                 )
-            return _redact_result(payload)
+            return _project_public_packet(_redact_result(payload))
     result = ExplainService(
         ExplainServiceContext(compose_packet=_compose_packet)
     ).standalone(arguments)
-    return _redact_result(result)
+    return _project_public_packet(_redact_result(result))
 
 
 def _tool_evaluate_skills(arguments: dict[str, Any]) -> dict[str, Any]:

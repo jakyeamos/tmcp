@@ -86,6 +86,101 @@ class TmcpMcpCliTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("TMCP command surface", completed.stdout)
 
+    def test_launcher_routes_codex_validation_preflight_to_read_only_script(
+        self,
+    ) -> None:
+        completed = subprocess.run(
+            [
+                "node",
+                "scripts/tmcp_launcher.mjs",
+                "codex-validation-preflight",
+                "--help",
+            ],
+            cwd=PLUGIN_ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Read-only Codex validation preflight", completed.stdout)
+
+    def test_launcher_routes_codex_validation_bootstrap_to_bootstrap_script(
+        self,
+    ) -> None:
+        completed = subprocess.run(
+            [
+                "node",
+                "scripts/tmcp_launcher.mjs",
+                "codex-validation-bootstrap",
+                "--help",
+            ],
+            cwd=PLUGIN_ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Bootstrap a locked Codex validation toolchain", completed.stdout)
+
+    def test_launcher_preflight_fails_closed_for_missing_required_tool(self) -> None:
+        completed = subprocess.run(
+            [
+                "node",
+                "scripts/tmcp_launcher.mjs",
+                "codex-validation-preflight",
+                "--tool",
+                "tmcp-test-tool-that-does-not-exist",
+                "--path",
+                ".",
+                "--min-free-gib",
+                "1",
+                "--compact",
+            ],
+            cwd=PLUGIN_ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["status"], "blocked")
+
+    def test_launcher_preflight_fails_closed_when_desktop_bridge_is_required(
+        self,
+    ) -> None:
+        completed = subprocess.run(
+            [
+                "node",
+                "scripts/tmcp_launcher.mjs",
+                "codex-validation-preflight",
+                "--tool",
+                "python3",
+                "--path",
+                ".",
+                "--min-free-gib",
+                "1",
+                "--require-desktop-bridge",
+                "--compact",
+            ],
+            cwd=PLUGIN_ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["checks"]["desktop_bridge"]["status"], "blocked")
+
     def test_launcher_cli_status_calls_tool_directly(self) -> None:
         with TestWorkspace() as workspace:
             completed = workspace.run_cli(["status"])

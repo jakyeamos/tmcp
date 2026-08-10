@@ -60,6 +60,9 @@
     "outcome": {
       "type": "string"
     },
+    "coordination": {
+      "$ref": "tmcp-coordinator-state-v0.1.schema.json"
+    },
     "trust": {
       "const": "advisory_untrusted"
     },

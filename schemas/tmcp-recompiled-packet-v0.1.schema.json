@@ -13,6 +13,8 @@
     "packet_diff",
     "agent_proposals",
     "validated_changes",
+    "recompile_required",
+    "recompile_triggers",
     "warnings",
     "safety"
   ],
@@ -78,6 +80,15 @@
         "additionalProperties": true
       }
     },
+    "recompile_required": {
+      "type": "boolean"
+    },
+    "recompile_triggers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "suggested_phase": {
       "type": "string"
     },
@@ -91,6 +102,9 @@
     },
     "session": {
       "$ref": "tmcp-run-session-v0.1.schema.json#/$defs/session_reference"
+    },
+    "coordination": {
+      "$ref": "tmcp-coordinator-state-v0.1.schema.json"
     },
     "warnings": {
       "type": "array",
