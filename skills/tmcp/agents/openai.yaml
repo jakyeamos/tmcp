@@ -1,0 +1,4 @@
+interface:
+  display_name: "TMCP"
+  short_description: "Compile task-specific TMCP workflow packets"
+  default_prompt: "Use $tmcp to decide whether this task benefits from composition, then compile the smallest useful operating packet."

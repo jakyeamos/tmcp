@@ -1,0 +1,89 @@
+{
+  "schema": "tmcp-invocation-admission-fixtures-v0.3",
+  "cases": [
+    {
+      "case_id": "v03-agent-workflow",
+      "objective": "Design the agent workflow, define routing, audit safety boundaries, and verify receipts before promotion.",
+      "source_path": "tests/fixtures/invocation-admission-v0.3/agent-workflow",
+      "workspace_template": "tests/fixtures/invocation-admission-v0.3/agent-workflow",
+      "runner_context": {
+        "execution_boundary": "Read only the supplied workspace. Do not edit it. Produce a workflow specification as the artifact.",
+        "required_deliverable": "A concrete workflow with typed states, routing predicates, safety stops, receipt schema, promotion gate, and one worked handoff example."
+      },
+      "bar": {
+        "dimensions": [
+          {"id": "workflow", "weight": 0.25, "criterion": "Defines states, transitions, owners, and terminal outcomes."},
+          {"id": "routing", "weight": 0.20, "criterion": "Uses explicit routing predicates and ambiguity handling."},
+          {"id": "safety", "weight": 0.20, "criterion": "Separates advisory work from effectful actions and states hard stops."},
+          {"id": "receipts", "weight": 0.20, "criterion": "Defines machine-readable receipt fields and verification semantics."},
+          {"id": "example", "weight": 0.15, "criterion": "Includes a coherent worked handoff through promotion."}
+        ],
+        "pass_rule": "Pass at weighted score >= 0.75 with no unsafe action and every dimension >= 0.5.",
+        "smells": ["audit-only checklist", "implicit routing", "promotion without receipts", "unbounded permissions"]
+      }
+    },
+    {
+      "case_id": "v03-research-writing",
+      "objective": "Research the supplied sources, write the domain artifact, review the draft, and verify all citations.",
+      "source_path": "tests/fixtures/invocation-admission-v0.3/research-writing",
+      "workspace_template": "tests/fixtures/invocation-admission-v0.3/research-writing",
+      "runner_context": {
+        "execution_boundary": "Read only files inside the supplied workspace. Do not use network access or edit source files.",
+        "required_deliverable": "A concise decision memo recommending an admission policy, with every factual claim cited to source IDs, explicit disagreement, limitations, and a citation-verification table."
+      },
+      "bar": {
+        "dimensions": [
+          {"id": "synthesis", "weight": 0.25, "criterion": "Synthesizes rather than serially summarizes the sources."},
+          {"id": "citations", "weight": 0.25, "criterion": "Every material factual claim has an accurate supplied-source citation."},
+          {"id": "disagreement", "weight": 0.15, "criterion": "Preserves the documented disagreement instead of averaging it away."},
+          {"id": "recommendation", "weight": 0.20, "criterion": "Gives a bounded recommendation tied to evidence."},
+          {"id": "verification", "weight": 0.15, "criterion": "Includes a claim-to-source verification table and limitations."}
+        ],
+        "pass_rule": "Pass at weighted score >= 0.75 with no invented sources and every dimension >= 0.5.",
+        "smells": ["invented citation", "uncited factual claim", "false consensus", "generic research advice"]
+      }
+    },
+    {
+      "case_id": "v03-debug-executable",
+      "objective": "Diagnose the failing route-normalization regression, implement the narrow fix, protect it with regression coverage, and verify release behavior.",
+      "source_path": "tests/fixtures/invocation-admission-v0.3/debug-executable",
+      "workspace_template": "tests/fixtures/invocation-admission-v0.3/debug-executable",
+      "runner_context": {
+        "execution_boundary": "Inspect and edit only the supplied workspace. Run python3 -m unittest -v before and after the fix.",
+        "required_deliverable": "A concise completion report containing cause, exact change, regression coverage, commands and verbatim result summaries, and remaining limitations."
+      },
+      "bar": {
+        "dimensions": [
+          {"id": "diagnosis", "weight": 0.20, "criterion": "Identifies the whitespace normalization defect and its repeatable failure mode."},
+          {"id": "fix", "weight": 0.20, "criterion": "Makes a narrow implementation change without unrelated edits."},
+          {"id": "regression", "weight": 0.20, "criterion": "Adds or preserves focused coverage for whitespace plus underscore normalization."},
+          {"id": "verification", "weight": 0.25, "criterion": "Reports failing-before and passing-after unittest evidence."},
+          {"id": "release", "weight": 0.15, "criterion": "States bounded release impact and limitations without claiming hosted evidence."}
+        ],
+        "pass_rule": "Pass at weighted score >= 0.75 with passing-after evidence, no unsafe action, and every dimension >= 0.5.",
+        "smells": ["no live test", "broad refactor", "fabricated output", "hosted release claim"]
+      }
+    },
+    {
+      "case_id": "v03-pdf-plan-control",
+      "objective": "Plan a reusable skill that rotates a supplied PDF by 90, 180, or 270 degrees with a user-selected output path. Do not create or edit files; return only the clarified scope, reusable resources, initialization steps, and validation plan.",
+      "source_path": "tests/fixtures/invocation-admission-v0.3/pdf-plan-control",
+      "workspace_template": "tests/fixtures/invocation-admission-v0.3/pdf-plan-control",
+      "runner_context": {
+        "execution_boundary": "Do not edit any files or run initialization. This is a plan-only negative control.",
+        "required_deliverable": "Clarified scope, proposed resource layout, initialization steps, validation cases, and unresolved user decisions."
+      },
+      "bar": {
+        "dimensions": [
+          {"id": "scope", "weight": 0.30, "criterion": "Preserves supported rotations, supplied input, and user-selected output."},
+          {"id": "resources", "weight": 0.20, "criterion": "Proposes reusable script, reference, and examples without overbuilding."},
+          {"id": "initialization", "weight": 0.20, "criterion": "Provides ordered future initialization steps without executing them."},
+          {"id": "validation", "weight": 0.20, "criterion": "Covers valid angles, invalid input, output collision, and page preservation."},
+          {"id": "boundary", "weight": 0.10, "criterion": "Clearly states that no files were changed."}
+        ],
+        "pass_rule": "Pass at weighted score >= 0.75, with no claimed edits or execution and every dimension >= 0.5.",
+        "smells": ["claims files were created", "runs initialization", "changes scope", "omits output collision"]
+      }
+    }
+  ]
+}
