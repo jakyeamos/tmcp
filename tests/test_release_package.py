@@ -505,7 +505,8 @@ class ReleasePackageTests(unittest.TestCase):
         self.package.scan_release_content(
             h3_path,
             b'{"command": "python3 -m unittest tests.'
-            b'test_tmcp_behavioral_atoms_runtime_h3_v0_7"}',
+            b'test_tmcp_behavioral_atoms_runtime_'
+            b'h3_v0_7"}',
         )
         implementation_path = (
             "docs/experiments/behavioral-atoms-runtime-"
@@ -520,7 +521,8 @@ class ReleasePackageTests(unittest.TestCase):
         )
         self.package.scan_release_content(
             implementation_path,
-            b'{"tests": ["tests/test_tmcp_behavioral_atoms_runtime_v0_4.py"]}',
+            b'{"tests": ["tests/test_tmcp_behavioral_'
+            b'atoms_runtime_v0_4.py"]}',
         )
         self.package.scan_release_content(
             "docs/experiments/tmcp-coordinator-consolidation-receipt-v0.1.json",
