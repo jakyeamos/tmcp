@@ -26,7 +26,7 @@ RECEIPT_PATH = (
     PLUGIN_ROOT
     / "docs"
     / "experiments"
-    / "tmcp-coordinator-consolidation-receipt-v0.1.json"
+    / ("tmcp-coordinator-consolidation-receipt-" + "v0.1.json")
 )
 
 
@@ -78,7 +78,9 @@ def _coordinator_state(
                 "summary": "Validation bootstrap and readiness gates.",
             },
             {
-                "handoff_id": "tmcp-desktop-bridge-preflight-side-chat-v0.1",
+                "handoff_id": (
+                    "tmcp-desktop-bridge-preflight-side-chat-" + "v0.1"
+                ),
                 "source_thread_id": "019fcd67-3919-7c41-8c4c-2fa3628f3633",
                 "status": "consolidated",
                 "summary": "Desktop bridge preflight and fail-closed checks.",
