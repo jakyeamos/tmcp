@@ -1,0 +1,70 @@
+{
+  "schema": "tmcp-behavioral-atoms-runtime-h3-boundary-decision-v0.7",
+  "iteration": "runtime-h3-boundary-v0.7",
+  "status": "authorized_private_additive_static_slice",
+  "decision": {
+    "scope": "Add the H3 secret-boundary and evidence-ladder atoms only to an explicit private registry and static evaluator boundary; keep the default compiler on H2.",
+    "admitted_atoms": [
+      {
+        "id": "domain.security_privacy.secret_boundary@0.4.0",
+        "source_path": "skills/tmcp-security-privacy-audit/SKILL.md",
+        "source_sha256": "18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7",
+        "dependency": "domain.security_privacy.redaction@0.4.0"
+      },
+      {
+        "id": "domain.release_readiness.evidence_ladder@0.4.0",
+        "source_path": "skills/tmcp-release-readiness/SKILL.md",
+        "source_sha256": "54d435ed0f551048cccd47c3093aa0734aff0fda8a15627ff3fb1d8bc8ca11ff",
+        "dependency": "domain.release_readiness.ship_gate@0.4.0"
+      }
+    ],
+    "hypothesis": {
+      "id": "H3.secret_boundary_and_evidence_ladder",
+      "atom_refs": [
+        "domain.security_privacy.secret_boundary@0.4.0",
+        "domain.release_readiness.evidence_ladder@0.4.0"
+      ],
+      "predicted_direction": "Pairing explicit evidence authority with a complete quality ladder separates security blockers from release unknowns.",
+      "falsifier": "An unowned sensitive boundary or incomplete quality ladder is admitted without a stop.",
+      "provider_outcome": "not_run",
+      "cross_skill_composition": "closed_gate"
+    },
+    "valid_arms": [
+      {
+        "id": "arm.valid.release_receives_security_authority_boundary",
+        "source": "domain.security_privacy.secret_boundary@0.4.0",
+        "target_obligation": "release.sensitive_evidence_authority_gate",
+        "domain_delta_signature": "security_privacy>release_readiness:authorized_boundary=>sensitive_evidence_authority_gate",
+        "predicted_delta": "Release evidence containing sensitive material cannot satisfy the ladder until its owner and handling scope are recorded."
+      },
+      {
+        "id": "arm.valid.security_privacy_receives_release_evidence_ladder",
+        "source": "domain.release_readiness.evidence_ladder@0.4.0",
+        "target_obligation": "security.review_quality_evidence_completeness",
+        "domain_delta_signature": "release_readiness>security_privacy:evidence_ladder=>quality_evidence_completeness",
+        "predicted_delta": "Security readiness distinguishes complete, partial, blocked, and unknown verification instead of treating one green check as sufficient."
+      }
+    ],
+    "fixture_path": "tests/fixtures/behavioral-atoms-h3-held-out-v0.7.json"
+  },
+  "compatibility": {
+    "opt_in_only": true,
+    "default_registry_unchanged": true,
+    "provider_execution": false,
+    "cross_skill_composition": false,
+    "public_contract_change": false
+  },
+  "acceptance_gates": [
+    "H3 activation requires atom-specific semantic signals and cannot be activated by lexical candidates.",
+    "The two H3 atoms preserve their H2 typed dependencies and fail closed when those dependencies are absent.",
+    "Frozen positive, negative, and ambiguous fixtures pass at the private static boundary.",
+    "H3 cannot render to packet or receipt targets.",
+    "The default H2 registry, H1/H2 projections, public contracts, routing, admission, and provider behavior remain unchanged."
+  ],
+  "stop_conditions": [
+    "A family-level signal implicitly activates H3 through the default compiler.",
+    "A secret-boundary finding proceeds without explicit authority and boundary evidence.",
+    "A partial or stale quality ladder is represented as complete.",
+    "H3 reaches a public packet, receipt, provider cell, cross-skill composition, admission, or routing boundary."
+  ]
+}

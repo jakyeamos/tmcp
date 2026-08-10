@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-behavioral-atoms-runtime-implementation-decision-v0.4.schema.json",
+  "title": "TMCP Behavioral Atoms Runtime Implementation Decision v0.4",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema",
+    "version",
+    "created_at",
+    "status",
+    "base",
+    "intake",
+    "decision",
+    "scope",
+    "layer_boundaries",
+    "runtime_owners",
+    "data_flow",
+    "fail_closed_policy",
+    "compatibility",
+    "smallest_implementation_slice",
+    "future_evaluation",
+    "risks",
+    "authorization_gates",
+    "verification",
+    "handoff",
+    "proven",
+    "unproven",
+    "failure_dispositions"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema": {"const": "tmcp-behavioral-atoms-runtime-implementation-decision-v0.4"},
+    "version": {"const": "0.4.0"},
+    "created_at": {"type": "string"},
+    "status": {"const": "implementation_decision_only"},
+    "base": {
+      "type": "object",
+      "required": ["repository", "commit", "source_branch", "branch_state", "public_runtime_schema_changed"],
+      "properties": {
+        "repository": {"type": "string"},
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "source_branch": {"const": "main"},
+        "branch_state": {"type": "string"},
+        "public_runtime_schema_changed": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "intake": {
+      "type": "object",
+      "required": ["handoff", "manifest", "source_snapshot", "replay_rule", "files"],
+      "properties": {
+        "handoff": {"$ref": "#/$defs/artifact_ref"},
+        "manifest": {"$ref": "#/$defs/artifact_ref"},
+        "source_snapshot": {"type": "string"},
+        "replay_rule": {"type": "string"},
+        "files": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"$ref": "#/$defs/file_hash"}}
+      },
+      "additionalProperties": false
+    },
+    "decision": {
+      "type": "object",
+      "required": ["version_strategy", "internal_contract", "public_contract", "rationale"],
+      "properties": {
+        "version_strategy": {"const": "internal_additive_compatibility_projection"},
+        "internal_contract": {
+          "type": "object",
+          "required": ["schema", "version", "identity_rule", "public_projection_rule"],
+          "properties": {
+            "schema": {"const": "tmcp-behavioral-atom-runtime-v0.4"},
+            "version": {"const": "0.4.0"},
+            "identity_rule": {"type": "string"},
+            "public_projection_rule": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        "public_contract": {
+          "type": "object",
+          "required": ["runtime_version", "unchanged", "schemas_unchanged", "tool_surfaces_unchanged"],
+          "properties": {
+            "runtime_version": {"const": "0.5.7"},
+            "unchanged": {"const": true},
+            "schemas_unchanged": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+            "tool_surfaces_unchanged": {"const": true}
+          },
+          "additionalProperties": false
+        },
+        "rationale": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "required": ["mode", "runtime_implementation", "provider_cells", "cross_skill_composition", "excluded"],
+      "properties": {
+        "mode": {"const": "versioned_implementation_decision"},
+        "runtime_implementation": {"const": "not_started"},
+        "provider_cells": {"const": "not_run"},
+        "cross_skill_composition": {"const": "not_claimed"},
+        "excluded": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "layer_boundaries": {"type": "array", "minItems": 4, "items": {"$ref": "#/$defs/layer"}},
+    "runtime_owners": {"type": "array", "minItems": 7, "items": {"$ref": "#/$defs/owner"}},
+    "data_flow": {"type": "array", "minItems": 8, "items": {"$ref": "#/$defs/flow_stage"}},
+    "fail_closed_policy": {
+      "type": "object",
+      "required": ["applicability", "domain_without_trigger_words", "phase", "required_reads", "evidence", "verification", "stop_conditions", "trust", "cost", "unresolved_dependencies", "conflicts"],
+      "properties": {
+        "applicability": {"type": "array", "minItems": 3, "items": {"type": "string"}},
+        "domain_without_trigger_words": {"type": "string"},
+        "phase": {"type": "string"},
+        "required_reads": {"type": "string"},
+        "evidence": {"type": "string"},
+        "verification": {"type": "string"},
+        "stop_conditions": {"type": "string"},
+        "trust": {"type": "string"},
+        "cost": {"type": "string"},
+        "unresolved_dependencies": {"type": "string"},
+        "conflicts": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "compatibility": {
+      "type": "object",
+      "required": ["legacy_string_atoms", "public_packet_schemas", "public_receipt_schema", "public_tool_schemas", "migration_rules", "rollback_rules"],
+      "properties": {
+        "legacy_string_atoms": {"type": "object"},
+        "public_packet_schemas": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "public_receipt_schema": {"const": "tmcp-run-receipt-v0.1"},
+        "public_tool_schemas": {"type": "object"},
+        "migration_rules": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "rollback_rules": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "smallest_implementation_slice": {
+      "type": "object",
+      "required": ["id", "goal", "seed_atoms", "files", "ordered_changes", "tests", "acceptance_gates", "stop_conditions"],
+      "properties": {
+        "id": {"const": "runtime-v0.4-h1-typed-compile-and-projection"},
+        "goal": {"type": "string"},
+        "seed_atoms": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "files": {"type": "object"},
+        "ordered_changes": {"type": "array", "minItems": 5, "items": {"type": "string"}},
+        "tests": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "acceptance_gates": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "stop_conditions": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "future_evaluation": {
+      "type": "object",
+      "required": ["fixture_artifact", "fixture_mapping", "valid_arms", "invalid_arms", "hypotheses", "provider_cells", "cross_skill_composition"],
+      "properties": {
+        "fixture_artifact": {"$ref": "#/$defs/artifact_ref"},
+        "fixture_mapping": {"type": "array", "minItems": 12, "items": {"type": "object"}},
+        "valid_arms": {"type": "array", "minItems": 4, "items": {"type": "object"}},
+        "invalid_arms": {"type": "array", "minItems": 4, "items": {"type": "object"}},
+        "hypotheses": {"type": "array", "minItems": 3, "items": {"type": "object"}},
+        "provider_cells": {"const": "not_run"},
+        "cross_skill_composition": {"const": "closed_gate"}
+      },
+      "additionalProperties": false
+    },
+    "risks": {"type": "array", "minItems": 4, "items": {"type": "object"}},
+    "authorization_gates": {"type": "array", "minItems": 4, "items": {"type": "object"}},
+    "verification": {"type": "object"},
+    "handoff": {"type": "object"},
+    "proven": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "unproven": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "failure_dispositions": {"type": "array", "minItems": 1, "items": {"type": "object"}}
+  },
+  "$defs": {
+    "artifact_ref": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "file_hash": {
+      "type": "object",
+      "required": ["path", "sha256", "source", "replayed_exactly"],
+      "properties": {
+        "path": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "source": {"type": "string"},
+        "replayed_exactly": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "layer": {
+      "type": "object",
+      "required": ["layer", "owns", "may_consume", "must_not"],
+      "properties": {
+        "layer": {"type": "string"},
+        "owns": {"type": "array", "items": {"type": "string"}},
+        "may_consume": {"type": "array", "items": {"type": "string"}},
+        "must_not": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "owner": {
+      "type": "object",
+      "required": ["area", "file", "symbols", "observed_constraint", "slice_disposition"],
+      "properties": {
+        "area": {"type": "string"},
+        "file": {"type": "string"},
+        "symbols": {"type": "array", "items": {"type": "string"}},
+        "observed_constraint": {"type": "string"},
+        "slice_disposition": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "flow_stage": {
+      "type": "object",
+      "required": ["order", "stage", "owner", "input", "output", "rule"],
+      "properties": {
+        "order": {"type": "integer", "minimum": 1},
+        "stage": {"type": "string"},
+        "owner": {"type": "array", "items": {"type": "string"}},
+        "input": {"type": "array", "items": {"type": "string"}},
+        "output": {"type": "array", "items": {"type": "string"}},
+        "rule": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
+  }
+}

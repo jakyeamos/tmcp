@@ -1,0 +1,110 @@
+{
+  "schema": "tmcp-behavioral-atoms-h3-held-out-fixtures-v0.7",
+  "owner": "behavioral_atoms_h3_v0_7",
+  "tuning_allowed": false,
+  "provider_outcomes_allowed": false,
+  "fixtures": [
+    {
+      "id": "h3_positive_authorized_complete_ladder",
+      "context": {
+        "phase": "preflight",
+        "semantic_signals": {
+          "domain.security_privacy.secret_boundary@0.4.0": "positive",
+          "domain.release_readiness.evidence_ladder@0.4.0": "positive"
+        },
+        "requested_atoms": [
+          "domain.security_privacy.secret_boundary@0.4.0",
+          "domain.release_readiness.evidence_ladder@0.4.0"
+        ],
+        "provided_dependencies": [
+          "domain.security_privacy.redaction@0.4.0",
+          "domain.release_readiness.ship_gate@0.4.0"
+        ],
+        "inputs": {
+          "authorized_scope": { "value": "owned-review-scope", "owner": "h3-fixture-owner" },
+          "boundary_evidence": { "value": "owned-auth-data-flow", "owner": "h3-fixture-owner" },
+          "quality_ladder": { "value": "owned-required-gate-inventory", "owner": "h3-fixture-owner" },
+          "verification_freshness": { "value": "captured-current-output", "owner": "h3-fixture-owner" }
+        },
+        "reads": [
+          { "reference": "skills/tmcp-security-privacy-audit/SKILL.md", "status": "available", "trust": "committed_source_backed", "owner": "h3-fixture-owner" },
+          { "reference": "security docs, privacy docs, environment docs, and relevant code boundaries", "status": "available", "trust": "sealed_fixture", "owner": "h3-fixture-owner" },
+          { "reference": "skills/tmcp-release-readiness/SKILL.md", "status": "available", "trust": "committed_source_backed", "owner": "h3-fixture-owner" },
+          { "reference": "CI config, tests, build scripts, package metadata, and release checklist", "status": "available", "trust": "sealed_fixture", "owner": "h3-fixture-owner" }
+        ],
+        "evidence": [
+          { "obligation": "authorized boundary and evidence gaps are recorded", "status": "recorded", "source": "sealed-h3", "owner": "h3-fixture-owner", "trust": "sealed_fixture" },
+          { "obligation": "observed findings are separated from inferred risk", "status": "recorded", "source": "sealed-h3", "owner": "h3-fixture-owner", "trust": "sealed_fixture" },
+          { "obligation": "passed, failed, blocked, not-run, and unknown gates are inventoried", "status": "recorded", "source": "sealed-h3", "owner": "h3-fixture-owner", "trust": "sealed_fixture" },
+          { "obligation": "evidence needed for each remediation slice is recorded", "status": "recorded", "source": "sealed-h3", "owner": "h3-fixture-owner", "trust": "sealed_fixture" }
+        ],
+        "verification": [
+          { "obligation": "scope ownership is checked before sensitive evidence is used", "status": "passed", "source": "sealed-h3", "owner": "h3-fixture-owner", "trust": "sealed_fixture" },
+          { "obligation": "remediation is checked against the recorded boundary", "status": "passed", "source": "sealed-h3", "owner": "h3-fixture-owner", "trust": "sealed_fixture" },
+          { "obligation": "quality ladder completeness is checked for the declared release scope", "status": "passed", "source": "sealed-h3", "owner": "h3-fixture-owner", "trust": "sealed_fixture" },
+          { "obligation": "each remediation slice has an acceptance check", "status": "passed", "source": "sealed-h3", "owner": "h3-fixture-owner", "trust": "sealed_fixture" }
+        ],
+        "token_budget": 512,
+        "lexical_candidates": []
+      },
+      "expected": {
+        "decision": "admit",
+        "required_domain_atoms": [
+          "domain.security_privacy.secret_boundary@0.4.0",
+          "domain.release_readiness.evidence_ladder@0.4.0"
+        ],
+        "required_stops": []
+      }
+    },
+    {
+      "id": "h3_negative_no_boundary_or_release_decision",
+      "context": {
+        "phase": "planning",
+        "semantic_signals": {
+          "domain.security_privacy.secret_boundary@0.4.0": "negative",
+          "domain.release_readiness.evidence_ladder@0.4.0": "negative"
+        },
+        "lexical_candidates": ["secret boundary", "evidence ladder"]
+      },
+      "expected": {
+        "decision": "reject",
+        "required_domain_atoms": [],
+        "required_stops": []
+      }
+    },
+    {
+      "id": "h3_ambiguous_unowned_sensitive_boundary",
+      "context": {
+        "phase": "preflight",
+        "semantic_signals": {
+          "domain.security_privacy.secret_boundary@0.4.0": "ambiguous"
+        },
+        "requested_atoms": ["domain.security_privacy.secret_boundary@0.4.0"],
+        "provided_dependencies": ["domain.security_privacy.redaction@0.4.0"],
+        "declared_missing_evidence": ["authorized scope", "evidence owner"]
+      },
+      "expected": {
+        "decision": "hold_for_evidence",
+        "required_domain_atoms": [],
+        "required_stops": ["authority-boundary-stop"]
+      }
+    },
+    {
+      "id": "h3_ambiguous_partial_or_stale_quality_ladder",
+      "context": {
+        "phase": "preflight",
+        "semantic_signals": {
+          "domain.release_readiness.evidence_ladder@0.4.0": "ambiguous"
+        },
+        "requested_atoms": ["domain.release_readiness.evidence_ladder@0.4.0"],
+        "provided_dependencies": ["domain.release_readiness.ship_gate@0.4.0"],
+        "declared_missing_evidence": ["complete gate inventory", "verification freshness"]
+      },
+      "expected": {
+        "decision": "hold_for_evidence",
+        "required_domain_atoms": [],
+        "required_stops": ["evidence-ladder-stop"]
+      }
+    }
+  ]
+}
