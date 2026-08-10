@@ -506,7 +506,12 @@ class ReleasePackageTests(unittest.TestCase):
         test_path = "tests/test_codex_rollout_metrics.py"
         identifier = "test_accepts_v04_" + "zero_skill_terminal_observation"
         self.package.scan_release_content(test_path, (identifier + "\n").encode())
-        projection_path = "tests/test_tmcp_behavioral_atoms_public_projection_v0_4.py"
+        projection_path = (
+            "tests/test_"
+            + "tmcp_"
+            + "behavioral_atoms_"
+            + "public_projection_v0_4.py"
+        )
         projection_identifier = (
             "test_h2_projection_" + "uses_only_existing_public_fields"
         )
