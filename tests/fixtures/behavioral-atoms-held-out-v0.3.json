@@ -1,0 +1,351 @@
+{
+  "$schema": "https://github.com/jakyeamos/tmcp/schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json",
+  "schema": "tmcp-behavioral-atoms-held-out-fixtures-v0.3",
+  "version": "0.3.0",
+  "split": "held_out",
+  "owner": {
+    "owner_id": "behavioral_atoms_preflight",
+    "authority": "coordinator_owned_research_contract",
+    "scope": "semantic applicability only",
+    "contact_boundary": "No provider, runtime, or external evaluator owns these fixtures."
+  },
+  "non_tuning_boundary": {
+    "tuning_allowed": false,
+    "labels_frozen_before_implementation": true,
+    "expected_outcomes_frozen_before_runtime_or_provider_work": true,
+    "allowed_changes": "Only a versioned contract correction may change fixture text or labels; any correction creates a new fixture artifact version.",
+    "forbidden_uses": [
+      "Do not tune atom semantics or applicability predicates against fixture outcomes.",
+      "Do not use fixture text as provider prompts or provider outcome evidence.",
+      "Do not infer cross-skill composition support from fixture labels."
+    ]
+  },
+  "fixtures": [
+    {
+      "id": "data_integrity_positive_reconciliation",
+      "family": "data_integrity",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Review a schema migration and backfill for invariants, row-count reconciliation, idempotency, and data-loss risk.",
+      "signals": [
+        "schema migration",
+        "backfill",
+        "invariants",
+        "reconciliation",
+        "idempotency"
+      ],
+      "expected_outcome": {
+        "applicability": "positive",
+        "decision": "admit",
+        "required_domain_atoms": [
+          "domain.data_integrity.invariants@0.3.0",
+          "domain.data_integrity.reconciliation@0.3.0"
+        ],
+        "required_obligations": [
+          "Map invariants and schema risks.",
+          "Require pre/post reconciliation evidence."
+        ],
+        "stop": false
+      }
+    },
+    {
+      "id": "data_integrity_negative_ui_display",
+      "family": "data_integrity",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Tune dashboard card colors and spacing; no data correctness, schema, pipeline, or import behavior is changing.",
+      "signals": [
+        "UI display",
+        "no data correctness change"
+      ],
+      "expected_outcome": {
+        "applicability": "negative",
+        "decision": "reject",
+        "required_domain_atoms": [],
+        "required_obligations": [],
+        "stop": false
+      }
+    },
+    {
+      "id": "data_integrity_ambiguous_unowned_mismatch",
+      "family": "data_integrity",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Investigate an import mismatch, but the source schema, invariant owner, and reconciliation rule are not identified.",
+      "signals": [
+        "import mismatch",
+        "missing schema owner",
+        "missing reconciliation rule"
+      ],
+      "expected_outcome": {
+        "applicability": "ambiguous",
+        "decision": "hold_for_evidence",
+        "required_domain_atoms": [],
+        "required_obligations": [
+          "Identify the invariant owner and reconciliation rule before admission."
+        ],
+        "missing_evidence": [
+          "source schema",
+          "invariant owner",
+          "reconciliation rule"
+        ],
+        "stop": true
+      }
+    },
+    {
+      "id": "security_privacy_positive_redacted_harvest",
+      "family": "security_privacy",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Audit secret handling and privacy boundaries across CI configuration, auth/data-flow documents, and a redacted skill harvest.",
+      "signals": [
+        "secret handling",
+        "privacy boundary",
+        "CI configuration",
+        "redacted harvest"
+      ],
+      "expected_outcome": {
+        "applicability": "positive",
+        "decision": "admit",
+        "required_domain_atoms": [
+          "domain.security_privacy.redaction@0.3.0",
+          "domain.security_privacy.secret_boundary@0.3.0"
+        ],
+        "required_obligations": [
+          "Preserve a redaction summary.",
+          "Record evidence gaps at the secret and privacy boundary."
+        ],
+        "stop": false
+      }
+    },
+    {
+      "id": "security_privacy_negative_latency_benchmark",
+      "family": "security_privacy",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Benchmark query latency in a local dataset with no secret, privacy, auth, or data-flow boundary under review.",
+      "signals": [
+        "performance benchmark",
+        "no security boundary"
+      ],
+      "expected_outcome": {
+        "applicability": "negative",
+        "decision": "reject",
+        "required_domain_atoms": [],
+        "required_obligations": [],
+        "stop": false
+      }
+    },
+    {
+      "id": "security_privacy_ambiguous_unowned_log",
+      "family": "security_privacy",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Review an exported log containing possible credential-like values, but ownership and redaction requirements are unclear.",
+      "signals": [
+        "possible credential",
+        "exported log",
+        "unclear ownership",
+        "unclear redaction"
+      ],
+      "expected_outcome": {
+        "applicability": "ambiguous",
+        "decision": "hold_for_evidence",
+        "required_domain_atoms": [],
+        "required_obligations": [
+          "Establish the data owner and redaction boundary before reading or returning content."
+        ],
+        "missing_evidence": [
+          "data owner",
+          "redaction policy",
+          "authorized handling boundary"
+        ],
+        "stop": true
+      }
+    },
+    {
+      "id": "release_readiness_positive_ship_gate",
+      "family": "release_readiness",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Assess whether a branch can ship using CI status, tests, build scripts, package metadata, release docs, and current quality output.",
+      "signals": [
+        "ship or no-ship",
+        "CI status",
+        "tests",
+        "build scripts",
+        "package metadata",
+        "release docs"
+      ],
+      "expected_outcome": {
+        "applicability": "positive",
+        "decision": "admit",
+        "required_domain_atoms": [
+          "domain.release_readiness.ship_gate@0.3.0",
+          "domain.release_readiness.evidence_ladder@0.3.0"
+        ],
+        "required_obligations": [
+          "Separate evidence-backed ship blockers from unknowns.",
+          "Provide ordered remediation slices."
+        ],
+        "stop": false
+      }
+    },
+    {
+      "id": "release_readiness_negative_unit_debug",
+      "family": "release_readiness",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Debug one failing unit test without a ship/no-ship decision, release scope, or launch blocker review.",
+      "signals": [
+        "single test failure",
+        "no release decision"
+      ],
+      "expected_outcome": {
+        "applicability": "negative",
+        "decision": "reject",
+        "required_domain_atoms": [],
+        "required_obligations": [],
+        "stop": false
+      }
+    },
+    {
+      "id": "release_readiness_ambiguous_partial_ci",
+      "family": "release_readiness",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Prepare a feature handoff with partial CI evidence and no current quality output or explicit release owner.",
+      "signals": [
+        "feature handoff",
+        "partial CI",
+        "missing quality output",
+        "missing release owner"
+      ],
+      "expected_outcome": {
+        "applicability": "ambiguous",
+        "decision": "hold_for_evidence",
+        "required_domain_atoms": [],
+        "required_obligations": [
+          "Identify the release owner and refresh current quality evidence."
+        ],
+        "missing_evidence": [
+          "current quality output",
+          "release owner",
+          "complete CI status"
+        ],
+        "stop": true
+      }
+    },
+    {
+      "id": "migration_readiness_positive_rollback_cutover",
+      "family": "migration_readiness",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Plan an upgrade from an old schema to a target state with compatibility constraints, rollout order, data/backfill needs, rollback, and cutover validation.",
+      "signals": [
+        "old and target states",
+        "compatibility constraints",
+        "rollout order",
+        "backfill",
+        "rollback",
+        "cutover"
+      ],
+      "expected_outcome": {
+        "applicability": "positive",
+        "decision": "admit",
+        "required_domain_atoms": [
+          "domain.migration_readiness.compatibility_sequence@0.3.0",
+          "domain.migration_readiness.rollback_path@0.3.0"
+        ],
+        "required_obligations": [
+          "Map affected surfaces and compatibility constraints.",
+          "Define validation and rollback gates."
+        ],
+        "stop": false
+      }
+    },
+    {
+      "id": "migration_readiness_negative_isolated_edit",
+      "family": "migration_readiness",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Change one isolated function with no target-state transition, sequencing, compatibility concern, or rollback path.",
+      "signals": [
+        "isolated edit",
+        "no migration",
+        "no rollback"
+      ],
+      "expected_outcome": {
+        "applicability": "negative",
+        "decision": "reject",
+        "required_domain_atoms": [],
+        "required_obligations": [],
+        "stop": false
+      }
+    },
+    {
+      "id": "migration_readiness_ambiguous_deprecation_owner",
+      "family": "migration_readiness",
+      "ownership": {
+        "owner_id": "behavioral_atoms_preflight",
+        "role": "fixture_owner",
+        "status": "sealed"
+      },
+      "prompt_excerpt": "Remove a deprecated configuration path, but the target state, affected modules, rollout order, and rollback owner are unspecified.",
+      "signals": [
+        "deprecated configuration",
+        "unspecified target",
+        "unspecified affected modules",
+        "missing rollback owner"
+      ],
+      "expected_outcome": {
+        "applicability": "ambiguous",
+        "decision": "hold_for_evidence",
+        "required_domain_atoms": [],
+        "required_obligations": [
+          "Identify target state, affected modules, rollout order, and rollback owner."
+        ],
+        "missing_evidence": [
+          "target state",
+          "affected modules",
+          "rollout order",
+          "rollback owner"
+        ],
+        "stop": true
+      }
+    }
+  ]
+}

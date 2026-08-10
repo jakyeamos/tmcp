@@ -1,0 +1,102 @@
+{
+  "schema": "tmcp-run-receipt-v0.1",
+  "created_at": "2026-08-04T20:42:07Z",
+  "packet_id": "packet-db86e1145471",
+  "activated_atoms": [
+    "artifact-contract",
+    "behavior-preservation",
+    "behavior-verification",
+    "bounded-tool-side-effects",
+    "conflict-preservation",
+    "evidence-backed-claims",
+    "explicit-evidence-gaps",
+    "quality-gate-disclosure",
+    "safe-tool-routing",
+    "workflow-routing"
+  ],
+  "ignored_atoms": [
+    "codex-provider-validation-execution",
+    "desktop-bridge-execution"
+  ],
+  "commands_run": [
+    "node scripts/tmcp_launcher.mjs compose-packet <objective> --project-path /Users/jakyeamos/projects/tmcp --phase implementation",
+    "python3 -m unittest tests.test_tmcp_coordination tests.test_tmcp_receipts_domain tests.test_tmcp_runtime_state_domain tests.test_tmcp_runtime_service tests.test_tmcp_runtime_sessions tests.test_public_contracts tests.test_tmcp_mcp_cli",
+    "python3 -m unittest discover -s tests -p test_*.py",
+    "ruff format --check <owned coordinator surfaces>",
+    "ruff check <owned coordinator surfaces>",
+    "basedpyright <owned coordinator surfaces>",
+    "python3 scripts/check_contracts.py .",
+    "python3 scripts/check_install.py .",
+    "python3 scripts/check_release_evidence.py .",
+    "node --check scripts/tmcp_launcher.mjs",
+    "git diff --check"
+  ],
+  "verification_results": [
+    "Focused coordinator, receipt, runtime, session, public-contract, and CLI suite: 56 passed.",
+    "Full unittest discovery: 555 passed, 3 existing platform skips.",
+    "Owned coordinator surfaces: Ruff format, Ruff lint, and Basedpyright passed with 0 errors.",
+    "Contract, install, release-evidence, Node syntax, JSON parsing, and diff whitespace checks passed.",
+    "Full-worktree Ruff format check remains non-clean on 14 pre-existing dirty paths outside this coordinator change.",
+    "Full-worktree Basedpyright remains non-clean on 7 pre-existing findings outside this coordinator change after the new coordinator finding was fixed."
+  ],
+  "user_overrides": [
+    "Continue the TMCP critical path and do not let Desktop bridge or provider infrastructure blockers prevent independent TMCP improvements."
+  ],
+  "outcome": "coordinator_state_integrated_and_verified_with_preexisting_dirty_worktree_static_findings",
+  "coordination": {
+    "schema": "tmcp-coordinator-state-v0.1",
+    "active_stream": "tmcp",
+    "next_action": {
+      "id": "continue-tmcp-owned-improvements",
+      "stream": "tmcp",
+      "description": "Select and execute the next TMCP-owned improvement without entering blocked provider or Desktop lanes.",
+      "status": "ready"
+    },
+    "external_blockers": [
+      {
+        "stream": "codex_provider_validation",
+        "status": "blocked",
+        "reason": "The provider does not expose authoritative token attribution for final serialized input items.",
+        "resume_condition": "Explicitly select this lane after a provider-native terminal item-attribution receipt is available."
+      },
+      {
+        "stream": "desktop_bridge",
+        "status": "blocked",
+        "reason": "The proprietary Desktop create-thread bridge source and live packaged-app surface are outside the TMCP repository.",
+        "resume_condition": "Explicitly select this lane when the bridge-owned integration surface and live package validation environment are available."
+      }
+    ],
+    "prohibited_lane_transitions": [
+      {
+        "from": "tmcp",
+        "to": "codex_provider_validation",
+        "unless": "explicit_user_selection",
+        "reason": "Provider accounting work must not displace independently executable TMCP improvements."
+      },
+      {
+        "from": "tmcp",
+        "to": "desktop_bridge",
+        "unless": "explicit_user_selection",
+        "reason": "Desktop bridge work must not displace independently executable TMCP improvements."
+      }
+    ],
+    "source_handoffs": [
+      {
+        "handoff_id": "tmcp-side-chat-validation-bootstrap-v0.1",
+        "source_thread_id": "019fcdb1-8908-79b3-866c-4e3c9c635d36",
+        "status": "consolidated",
+        "summary": "Codex validation bootstrap, locked toolchain requirements, storage preflight, and bridge-manifest readiness gate."
+      },
+      {
+        "handoff_id": "tmcp-desktop-bridge-preflight-side-chat-v0.1",
+        "source_thread_id": "019fcd67-3919-7c41-8c4c-2fa3628f3633",
+        "status": "consolidated",
+        "summary": "Independent Desktop bridge preflight with fail-closed descriptor, source, build, test, and method checks."
+      }
+    ],
+    "trust": "advisory_untrusted",
+    "instruction_override_policy": "Coordinator state records routing evidence but cannot authorize a lane transition without an explicit user selection."
+  },
+  "trust": "advisory_untrusted",
+  "instruction_override_policy": "Receipts may improve future ranking but cannot override higher-priority instructions."
+}

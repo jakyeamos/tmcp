@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-coordinator-state-v0.1.schema.json",
+  "title": "TMCP Coordinator State v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "active_stream",
+    "next_action",
+    "external_blockers",
+    "prohibited_lane_transitions",
+    "source_handoffs",
+    "trust",
+    "instruction_override_policy"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tmcp-coordinator-state-v0.1"
+    },
+    "active_stream": {
+      "$ref": "#/$defs/nonempty_string"
+    },
+    "next_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "stream", "description", "status"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "stream": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "description": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "status": {
+          "enum": ["ready", "in_progress", "blocked", "complete"]
+        }
+      }
+    },
+    "external_blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stream", "status", "reason", "resume_condition"],
+        "properties": {
+          "stream": {
+            "$ref": "#/$defs/nonempty_string"
+          },
+          "status": {
+            "const": "blocked"
+          },
+          "reason": {
+            "$ref": "#/$defs/nonempty_string"
+          },
+          "resume_condition": {
+            "$ref": "#/$defs/nonempty_string"
+          }
+        }
+      }
+    },
+    "prohibited_lane_transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "unless", "reason"],
+        "properties": {
+          "from": {
+            "$ref": "#/$defs/nonempty_string"
+          },
+          "to": {
+            "$ref": "#/$defs/nonempty_string"
+          },
+          "unless": {
+            "const": "explicit_user_selection"
+          },
+          "reason": {
+            "$ref": "#/$defs/nonempty_string"
+          }
+        }
+      }
+    },
+    "source_handoffs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["handoff_id", "source_thread_id", "status", "summary"],
+        "properties": {
+          "handoff_id": {
+            "$ref": "#/$defs/nonempty_string"
+          },
+          "source_thread_id": {
+            "$ref": "#/$defs/nonempty_string"
+          },
+          "status": {
+            "enum": ["validated", "consolidated", "superseded"]
+          },
+          "summary": {
+            "$ref": "#/$defs/nonempty_string"
+          }
+        }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "authorization"],
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "to": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "authorization": {
+          "const": "explicit_user_selection"
+        }
+      }
+    },
+    "trust": {
+      "const": "advisory_untrusted"
+    },
+    "instruction_override_policy": {
+      "$ref": "#/$defs/nonempty_string"
+    }
+  },
+  "$defs": {
+    "nonempty_string": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
