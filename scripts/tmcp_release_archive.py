@@ -381,7 +381,13 @@ def is_documented_fixture_identifier(text: str, match: re.Match[str]) -> bool:
         return False
     line_start = text.rfind("\n", 0, match.start()) + 1
     prefix = text[line_start : match.start()]
-    return re.search(r'\"combined_fixture_id\"\s*:\s*\"$', prefix) is not None
+    return (
+        re.search(
+            r'\"combined_fixture_id\"\s*:\s*\{\s*\"const\"\s*:\s*\"$',
+            prefix,
+        )
+        is not None
+    )
 
 
 def scan_release_content(relative_path: str, content: bytes) -> None:

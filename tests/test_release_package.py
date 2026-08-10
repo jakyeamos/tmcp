@@ -404,7 +404,7 @@ class ReleasePackageTests(unittest.TestCase):
         )
         self.package.scan_release_content(
             "schemas/example.schema.json",
-            b'{"combined_fixture_id": "h3_combined_positive_secret_boundary_evidence_ladder"}',
+            b'{"combined_fixture_id": {"const": "h3_combined_positive_secret_boundary_evidence_ladder"}}',
         )
 
     def test_package_allows_path_shaped_placeholder(self) -> None:
