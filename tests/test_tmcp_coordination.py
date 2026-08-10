@@ -28,6 +28,12 @@ RECEIPT_PATH = (
     / "experiments"
     / "tmcp-coordinator-consolidation-receipt-v0.1.json"
 )
+CURRENT_RECEIPT_PATH = (
+    PLUGIN_ROOT
+    / "docs"
+    / "experiments"
+    / "tmcp-coordinator-verification-receipt-v0.2.json"
+)
 
 
 def _coordinator_state(
@@ -209,6 +215,27 @@ class TmcpCoordinationTests(unittest.TestCase):
         self.assertEqual(
             [item["status"] for item in coordination["source_handoffs"]],
             ["consolidated", "consolidated"],
+        )
+
+    def test_current_verification_receipt_carries_fresh_gate_evidence(self) -> None:
+        receipt = json.loads(CURRENT_RECEIPT_PATH.read_text(encoding="utf-8"))
+        coordination = receipt["coordination"]
+
+        self.assertEqual(receipt["schema"], "tmcp-run-receipt-v0.1")
+        self.assertEqual(receipt["packet_id"], "packet-b115bd80a3f5")
+        self.assertEqual(
+            receipt["outcome"], "tmcp_owned_verification_passed_external_lanes_held"
+        )
+        self.assertIn(
+            "Full unittest discovery: 634 passed, 3 expected skips.",
+            receipt["verification_results"],
+        )
+        self.assertEqual(
+            normalize_coordinator_state(coordination),
+            coordination,
+        )
+        self.assertEqual(
+            coordination["next_action"]["id"], "coordinator-review-current-state"
         )
 
     def test_cli_runtime_next_accepts_same_lane_and_rejects_implicit_switch(
