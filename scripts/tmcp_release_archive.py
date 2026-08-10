@@ -362,6 +362,14 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
             is not None
         ):
             return True
+        if (
+            re.search(
+                r"(?i)\bexact\s+base(?:\s+commit)?\s*[:=]\s*[\"']?\s*$",
+                prefix,
+            )
+            is not None
+        ):
+            return True
         known_base_field = re.search(
             r"(?i)^\s*[\"'](?:commit|head_commit|declared_h2_base_commit|base_commit)"
             r"[\"']\s*:\s*[\"']?\s*$",
@@ -448,14 +456,35 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         is not None
     ):
         return True
-    return (
+    if (
         re.search(
             r"[\"'][A-Za-z0-9_./-]+\.(?:md|json|py|mjs|ts|tsx|yaml|yml|toml|txt)"
             r"[\"']\s*:\s*[\"']\s*$",
             prefix,
         )
         is not None
-    )
+    ):
+        return True
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    suffix = text[match.end() : line_end]
+    if not re.fullmatch(r"\s*[\"']\s*", suffix):
+        return False
+    prior_lines = text[:line_start].splitlines()
+    for prior_line in reversed(prior_lines):
+        if not prior_line.strip():
+            continue
+        return (
+            re.fullmatch(
+                r"\s*-\s*[\"'][^\"']+\.(?:md|json|py|mjs|ts|tsx|yaml|yml|toml|txt)"
+                r"[\"']\s*:\s*",
+                prior_line,
+                flags=re.IGNORECASE,
+            )
+            is not None
+        )
+    return False
 
 
 def scan_release_content(relative_path: str, content: bytes) -> None:

@@ -379,6 +379,10 @@ class ReleasePackageTests(unittest.TestCase):
             f'GIT_BASE_COMMIT = "{base_commit}"\n'.encode("utf-8"),
         )
         self.package.scan_release_content(
+            "README.md",
+            f"- Exact base: '{base_commit}'\n".encode("utf-8"),
+        )
+        self.package.scan_release_content(
             "decision.json",
             f'{{\n  "base": {{\n    "commit": "{base_commit}"\n  }}\n}}\n'.encode(
                 "utf-8"
@@ -429,12 +433,23 @@ class ReleasePackageTests(unittest.TestCase):
             "test.py",
             f'{{"docs/example.md": "{checksum}"}}\n'.encode("utf-8"),
         )
+        self.package.scan_release_content(
+            "README.md",
+            f"- 'source.md':\n  '{checksum}'\n".encode("utf-8"),
+        )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",
         ):
             self.package.scan_release_content(
                 "README.md", f"hash note {checksum}\n".encode("utf-8")
+            )
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "README.md", f"- source note:\n  '{checksum}'\n".encode("utf-8")
             )
 
     def test_package_allows_path_shaped_placeholder(self) -> None:
