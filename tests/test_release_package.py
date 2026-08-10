@@ -447,6 +447,34 @@ class ReleasePackageTests(unittest.TestCase):
         constant = "SEED_MATCH_THRESHOLD_WITH_" + "ROUTE_AFFINITY"
         self.package.scan_release_content("README.md", constant.encode("utf-8"))
 
+    def test_package_allows_documented_skill_fixture_paths(self) -> None:
+        fixture_path = (
+            "tests/fixtures/skill-fixtures/"
+            + "individual-skill-admission-cases-v0.1.json"
+        )
+        fixture_root = (
+            "PATH=/private/tmp/"
+            + "tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/"
+        )
+        for fixture_name in (
+            "find-skills-discovery-fixture-v0",
+            "nlm-notebook-fixture-v0",
+        ):
+            self.package.scan_release_content(
+                fixture_path,
+                (fixture_root + fixture_name + ".1/bin:$PATH\n").encode("utf-8"),
+            )
+        with self.assertRaisesRegex(
+            self.package.ReleasePackageError,
+            "long_high_entropy",
+        ):
+            self.package.scan_release_content(
+                "README.md",
+                (fixture_root + "find-skills-discovery-fixture-v0.1/bin:$PATH\n").encode(
+                    "utf-8"
+                ),
+            )
+
     def test_manifest_and_archive_are_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "plugin"

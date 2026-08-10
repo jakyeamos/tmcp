@@ -490,6 +490,24 @@ def is_documented_structural_test_path(text: str, match: re.Match[str]) -> bool:
     )
 
 
+def is_documented_skill_fixture_path(
+    relative_path: str, text: str, match: re.Match[str]
+) -> bool:
+    if relative_path != "tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json":
+        return False
+    value = match.group(0)
+    fixture_root = (
+        "PATH=/private/tmp/"
+        + "tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/"
+    )
+    if value not in {
+        fixture_root + "find-skills-discovery-fixture-v0",
+        fixture_root + "nlm-notebook-fixture-v0",
+    }:
+        return False
+    return text[match.end() :].startswith(".1/bin:")
+
+
 def scan_release_content(relative_path: str, content: bytes) -> None:
     text = content.decode("utf-8", errors="replace")
     for label, pattern in PACKAGE_SECRET_PATTERNS:
@@ -510,6 +528,7 @@ def scan_release_content(relative_path: str, content: bytes) -> None:
                 or is_documented_h3_fixture_id(relative_path, match)
                 or is_documented_fixture_identifier(text, match)
                 or is_documented_structural_test_path(text, match)
+                or is_documented_skill_fixture_path(relative_path, text, match)
             ):
                 continue
             raise ReleasePackageError(
