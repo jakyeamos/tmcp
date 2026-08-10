@@ -9,12 +9,12 @@ Public runtime contract preserved: `0.5.7`
 
 | Path | SHA-256 |
 | --- | --- |
-| `docs/experiments/behavioral-atoms-runtime-h3-secret-boundary-evidence-ladder-v0.7.json` | `c90d0fa21d17a771d40bbf514b82a771adbb68cb680b9d75a53a57a907d17f5b` |
+| `docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7.json` | `c90d0fa21d17a771d40bbf514b82a771adbb68cb680b9d75a53a57a907d17f5b` |
 | `schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json` | `7a534143a8bc31fada5773885cde5e1d5c3eda305f0e544f6df115aee176fbfc` |
 | `schemas/tmcp-behavioral-atoms-runtime-h3-fixtures-v0.7.schema.json` | `fe0b02a0419b7f9eb21339b54a5f929add5a9a686b2a87401910779ad317b455` |
 | `tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json` | `cbe0c7e2cc95047f5d01eb0f1468e0b9394ca1543b447ce4925f2953d7a4d7f2` |
 | `tests/test_tmcp_behavioral_atoms_runtime_h3_v0_7.py` | `1ce94a79da5db2cba5227e08fc7edfd0ad358ffc8747bf8dfdd305d922024f0e` |
-| `docs/experiments/behavioral-atoms-runtime-h3-secret-boundary-evidence-ladder-v0.7-HANDOFF.md` | reported after final write in the coordinator event |
+| `docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7-HANDOFF.md` | reported after final write in the coordinator event |
 
 The v0.3 semantic/fixture baselines and v0.6 decision were not edited. Their verified hashes remain in the decision JSON and the structural test.
 
