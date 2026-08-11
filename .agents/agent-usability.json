@@ -31,7 +31,13 @@
         "tmcp-ui-rubric",
         "tmcp-workflow-recommendation"
       ],
-      "behavior_evidence": []
+      "behavior_evidence": [
+        {
+          "path": "docs/evidence/launcher-contract-smoke.json",
+          "status": "passed",
+          "observed_at": "2026-08-11"
+        }
+      ]
     }
   ],
   "skills": [
