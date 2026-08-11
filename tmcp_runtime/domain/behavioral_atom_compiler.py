@@ -591,7 +591,11 @@ def compile_behavioral_atoms(
         )
         optional_selected: list[TypedAtom] = []
         for atom in optional_candidates:
-            if atom.estimated_token_cost.maximum <= remaining:
+            if _is_h3(atom):
+                # H3 is private and evidence-bound: an optional hint cannot
+                # substitute for its normal semantic applicability gates.
+                deferred.append(atom.full_id)
+            elif atom.estimated_token_cost.maximum <= remaining:
                 optional_selected.append(atom)
                 remaining -= atom.estimated_token_cost.maximum
             else:
