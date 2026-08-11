@@ -12,6 +12,15 @@ AIOS is optional storage and adapter support. TMCP runs standalone from a repo c
 
 See [docs/ADAPTIVE_PACKET_RUNTIME.md](docs/ADAPTIVE_PACKET_RUNTIME.md) for the adaptive packet runtime design.
 
+## Quality evidence checkpoint
+
+Last reviewed: 2026-08-11.
+
+The repository instructions, completion checks, and executable quality commands
+were reviewed on this date. This checkpoint keeps the evidence current; it
+does not claim that every check passes. Re-run the documented checks and the
+fleet audit when these contracts or the target branch changes.
+
 ## Quickstart
 
 From a TMCP checkout or plugin root:
