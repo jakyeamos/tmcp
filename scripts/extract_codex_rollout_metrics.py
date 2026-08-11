@@ -13,11 +13,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from tmcp_runtime.api.registry import PUBLIC_TOOL_NAMES
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tmcp_runtime.api.registry import PUBLIC_TOOL_NAMES  # noqa: E402
 
 
 TOKEN_FIELDS = (
@@ -476,10 +482,22 @@ def merge_host_observation(
         if not isinstance(trace.get(field), bool):
             raise ValueError(f"trace.{field} must be a boolean")
     admission = trace["admission"]
-    if not isinstance(admission, dict):
+    arm = trace.get("arm")
+    baseline_arm = arm == "normal-codex-routing"
+    if admission is None and not baseline_arm:
+        raise ValueError(
+            "host observation trace.admission may be null only for the "
+            "normal-codex-routing arm"
+        )
+    if baseline_arm and admission is not None:
+        raise ValueError(
+            "normal-codex-routing host observation trace.admission must be null"
+        )
+    if admission is not None and not isinstance(admission, dict):
         raise ValueError("host observation trace.admission must be an object")
-    for field in ("mode", "action", "recommended_action", "policy_version"):
-        _non_empty_string(admission.get(field), f"trace.admission.{field}")
+    if isinstance(admission, dict):
+        for field in ("mode", "action", "recommended_action", "policy_version"):
+            _non_empty_string(admission.get(field), f"trace.admission.{field}")
     routing = trace["routing"]
     if not isinstance(routing, dict):
         raise ValueError("host observation trace.routing must be an object")
@@ -488,6 +506,7 @@ def merge_host_observation(
         "normal": False,
         "shadow": False,
         "bypass": False,
+        "normal_after_bypass": False,
         "substitution": True,
     }.get(routing_mode)
     if expected_packet_injected is None:
@@ -509,6 +528,10 @@ def merge_host_observation(
     if routing["supplemental_full_skill_load_count"] != 0:
         raise ValueError(
             "host observation cannot include supplemental full-skill loads"
+        )
+    if baseline_arm and routing_mode != "normal":
+        raise ValueError(
+            "normal-codex-routing host observation must use routing mode normal"
         )
     if routing_mode == "substitution" and routing["normal_full_skill_load_count"] != 0:
         raise ValueError("substitution routing cannot include normal full-skill loads")

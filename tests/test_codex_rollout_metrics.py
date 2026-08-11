@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -20,6 +21,22 @@ SPEC.loader.exec_module(extractor)
 
 
 class CodexRolloutMetricsTests(unittest.TestCase):
+    def test_documented_cli_resolves_repository_runtime(self) -> None:
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "extract_codex_rollout_metrics.py"),
+                "--help",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("--host-observation", completed.stdout)
+
     def _write_rollout(
         self,
         *,
@@ -653,13 +670,22 @@ class CodexRolloutMetricsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "incomplete or unexpected"):
             extractor.merge_host_observation(extracted, observation)
 
-    def test_preserves_normal_and_substitution_routing_validation(self) -> None:
+    def test_preserves_scorer_supported_routing_validation(self) -> None:
         extracted = extractor.extract_turn(self._write_rollout(), "turn-1")
         normal = self._host_observation(
             routing_mode="normal",
             packet_injected=False,
             normal_full_skill_load_count=1,
         )
+        normal["trace"]["arm"] = "normal-codex-routing"
+        normal["trace"]["admission"] = None
+        normal_after_bypass = self._host_observation(
+            routing_mode="normal_after_bypass",
+            packet_injected=False,
+            normal_full_skill_load_count=1,
+        )
+        normal_after_bypass["trace"]["admission"]["action"] = "bypass"
+        normal_after_bypass["trace"]["admission"]["recommended_action"] = "bypass"
         substitution = self._host_observation(
             routing_mode="substitution",
             packet_injected=True,
@@ -670,8 +696,30 @@ class CodexRolloutMetricsTests(unittest.TestCase):
             extractor.merge_host_observation(extracted, normal)["scorer_ready"]
         )
         self.assertTrue(
+            extractor.merge_host_observation(extracted, normal_after_bypass)[
+                "scorer_ready"
+            ]
+        )
+        self.assertTrue(
             extractor.merge_host_observation(extracted, substitution)["scorer_ready"]
         )
+
+    def test_rejects_baseline_admission_or_non_normal_routing(self) -> None:
+        extracted = extractor.extract_turn(self._write_rollout(), "turn-1")
+        baseline = self._host_observation(
+            routing_mode="normal",
+            packet_injected=False,
+            normal_full_skill_load_count=1,
+        )
+        baseline["trace"]["arm"] = "normal-codex-routing"
+
+        with self.assertRaisesRegex(ValueError, "admission must be null"):
+            extractor.merge_host_observation(extracted, baseline)
+
+        baseline["trace"]["admission"] = None
+        baseline["trace"]["routing"]["mode"] = "normal_after_bypass"
+        with self.assertRaisesRegex(ValueError, "must use routing mode normal"):
+            extractor.merge_host_observation(extracted, baseline)
 
     def test_rejects_inconsistent_substitution_routing(self) -> None:
         extracted = extractor.extract_turn(self._write_rollout(), "turn-1")
