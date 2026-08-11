@@ -376,6 +376,11 @@ class ReleasePackageTests(unittest.TestCase):
         self.package.scan_release_content(
             "README.md", f"sha256 digest: {checksum}\n".encode("utf-8")
         )
+        for prefix in ("source_sha256 = ", "_DECISION_SHA256 = "):
+            self.package.scan_release_content(
+                "scripts/checksum.py",
+                f'{prefix}"{checksum}"\n'.encode("utf-8"),
+            )
         with self.assertRaisesRegex(
             self.package.ReleasePackageError,
             "long_high_entropy",

@@ -355,7 +355,8 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     prefix = text[line_start : match.start()]
     return (
         re.search(
-            r"[\"']?\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b[\"']?"
+            r"(?:[\"']?\b(?:sha-?(?:1|224|256|384|512)?|checksum|digest)\b[\"']?"
+            r"|[A-Za-z_][A-Za-z0-9_]*_sha[_-]?(?:1|224|256|384|512))"
             r"(?:\s+(?:hash|digest))?\s*[:=]\s*[\"']?\s*$",
             prefix,
             flags=re.IGNORECASE,
