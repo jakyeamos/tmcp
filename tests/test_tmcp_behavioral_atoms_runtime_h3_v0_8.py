@@ -14,6 +14,7 @@ from tmcp_runtime.domain.behavioral_atoms import (
     build_h2_registry,
     build_h3_registry,
     compile_behavioral_atoms,
+    render_atoms,
 )
 from tmcp_runtime.services.behavioral_atom_runtime import (
     build_h3_advisory_evaluator_mapping,
@@ -358,6 +359,20 @@ class BehavioralAtomRuntimeH3V08Tests(unittest.TestCase):
         )
         self.assertEqual(incomplete_result.decision, "hold_for_evidence")
         self.assertEqual(incomplete_result.selected_ids, ())
+
+    def test_h3_optional_hint_cannot_bypass_semantic_admission(self) -> None:
+        context = self._context(
+            "security",
+            optional_atoms=(RELEASE_EVIDENCE_LADDER_ID,),
+        )
+        result = compile_behavioral_atoms(context, registry=build_h3_registry())
+        h3_optional_id = f"{RELEASE_EVIDENCE_LADDER_ID}@0.4.0"
+
+        self.assertEqual(result.decision, "admit")
+        self.assertNotIn(h3_optional_id, result.domain_selected_ids)
+        self.assertIn(h3_optional_id, result.deferred)
+        rendered = render_atoms(result, target="advisory_trace")
+        self.assertNotIn(h3_optional_id, rendered.selected_ids)
 
     def test_h3_is_opt_in_and_private_projection_is_closed(self) -> None:
         context = self._context("security")
