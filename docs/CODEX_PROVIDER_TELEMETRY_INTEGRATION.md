@@ -140,6 +140,11 @@ The observation must also carry actual admission and routing state, including
 `normal_full_skill_load_count`, `supplemental_full_skill_load_count`, and `packet_injected`, so the
 existing scorer can reject supplementation and shadow injection. Human labels and canary arm metadata
 come from the preregistered experiment coordinator; they are not provider metrics.
+The merger accepts the v0.7 scorer's fail-through mode, `normal_after_bypass`, only with
+`packet_injected: false`; this preserves the extractor-to-scorer path for bypassed experimental runs.
+Baseline `normal-codex-routing` observations use `admission: null` and `routing.mode: "normal"`;
+other arms require a concrete admission record. This keeps baseline observations non-intervening while
+still rejecting a missing admission record on shadow or experimental runs.
 
 The current repository boundary models Codex Core skill-read evidence as the two required scalar host
 counters only. It does not simulate full-skill tokenization or deduplicate host context records.
