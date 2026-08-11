@@ -422,7 +422,7 @@ def check_package(package_path: Path) -> dict[str, Any]:
             package_env,
         )
         tests_ok, tests_output = run(
-            [sys.executable, "-m", "unittest", "discover", "-s", "tests"],
+            [sys.executable, "scripts/run_release_package_tests.py"],
             plugin_root,
             package_env,
         )
