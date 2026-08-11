@@ -1,0 +1,10 @@
+{
+  "schema": "mac-control-task-manifest/v3",
+  "repository_id": "repo-420abd94a78bf8df",
+  "repository_name": "tmcp",
+  "applicability": "not_applicable",
+  "applicability_reason": "TMCP owns a portable compiler, MCP launcher, and skill packages rather than a repository-owned native or browser user interface for Mac Control task measurement.",
+  "app": null,
+  "criteria": {},
+  "tasks": []
+}

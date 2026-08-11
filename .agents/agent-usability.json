@@ -1,0 +1,159 @@
+{
+  "schema": "agent-usability/v1",
+  "reviewed_at": "2026-08-11",
+  "applicability": "applicable",
+  "tools": [
+    {
+      "id": "tmcp",
+      "kind": "agent-packet-cli",
+      "documentation": [
+        ".agents/context/README.md"
+      ],
+      "skills": [
+        "tmcp",
+        "tmcp-adaptive-workflow-pack",
+        "tmcp-agent-handoff",
+        "tmcp-architecture-decision",
+        "tmcp-custom-rubric-generator",
+        "tmcp-data-integrity-audit",
+        "tmcp-dx-audit",
+        "tmcp-incident-postmortem",
+        "tmcp-migration-readiness",
+        "tmcp-performance-readiness",
+        "tmcp-pr-risk-review",
+        "tmcp-release-readiness",
+        "tmcp-repo-behavior-spec-loop",
+        "tmcp-routing-policy-generator",
+        "tmcp-security-privacy-audit",
+        "tmcp-skill-gap-analysis",
+        "tmcp-skill-harvest",
+        "tmcp-test-strategy",
+        "tmcp-ui-rubric",
+        "tmcp-workflow-recommendation"
+      ],
+      "behavior_evidence": []
+    }
+  ],
+  "skills": [
+    {
+      "id": "tmcp",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp/SKILL.md"
+    },
+    {
+      "id": "tmcp-adaptive-workflow-pack",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-adaptive-workflow-pack/SKILL.md"
+    },
+    {
+      "id": "tmcp-agent-handoff",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-agent-handoff/SKILL.md"
+    },
+    {
+      "id": "tmcp-architecture-decision",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-architecture-decision/SKILL.md"
+    },
+    {
+      "id": "tmcp-custom-rubric-generator",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-custom-rubric-generator/SKILL.md"
+    },
+    {
+      "id": "tmcp-data-integrity-audit",
+      "family": "tmcp-assurance",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-data-integrity-audit/SKILL.md"
+    },
+    {
+      "id": "tmcp-dx-audit",
+      "family": "tmcp-assurance",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-dx-audit/SKILL.md"
+    },
+    {
+      "id": "tmcp-incident-postmortem",
+      "family": "tmcp-assurance",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-incident-postmortem/SKILL.md"
+    },
+    {
+      "id": "tmcp-migration-readiness",
+      "family": "tmcp-assurance",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-migration-readiness/SKILL.md"
+    },
+    {
+      "id": "tmcp-performance-readiness",
+      "family": "tmcp-assurance",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-performance-readiness/SKILL.md"
+    },
+    {
+      "id": "tmcp-pr-risk-review",
+      "family": "tmcp-assurance",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-pr-risk-review/SKILL.md"
+    },
+    {
+      "id": "tmcp-release-readiness",
+      "family": "tmcp-assurance",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-release-readiness/SKILL.md"
+    },
+    {
+      "id": "tmcp-repo-behavior-spec-loop",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-repo-behavior-spec-loop/SKILL.md"
+    },
+    {
+      "id": "tmcp-routing-policy-generator",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-routing-policy-generator/SKILL.md"
+    },
+    {
+      "id": "tmcp-security-privacy-audit",
+      "family": "tmcp-assurance",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-security-privacy-audit/SKILL.md"
+    },
+    {
+      "id": "tmcp-skill-gap-analysis",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-skill-gap-analysis/SKILL.md"
+    },
+    {
+      "id": "tmcp-skill-harvest",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-skill-harvest/SKILL.md"
+    },
+    {
+      "id": "tmcp-test-strategy",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-test-strategy/SKILL.md"
+    },
+    {
+      "id": "tmcp-ui-rubric",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-ui-rubric/SKILL.md"
+    },
+    {
+      "id": "tmcp-workflow-recommendation",
+      "family": "tmcp-workflows",
+      "source": "hosted",
+      "contract_path": "skills/tmcp-workflow-recommendation/SKILL.md"
+    }
+  ]
+}
