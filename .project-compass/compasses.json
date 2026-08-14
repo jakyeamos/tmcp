@@ -8,8 +8,46 @@
       "path": "contract.json",
       "parent_id": null,
       "status": "active"
+    },
+    {
+      "id": "packet-runtime",
+      "kind": "subsystem",
+      "path": "packet-runtime.json",
+      "parent_id": "project",
+      "status": "draft"
+    },
+    {
+      "id": "skill-harvest-recommendation",
+      "kind": "subsystem",
+      "path": "skill-harvest-recommendation.json",
+      "parent_id": "project",
+      "status": "draft"
+    },
+    {
+      "id": "release-distribution",
+      "kind": "subsystem",
+      "path": "release-distribution.json",
+      "parent_id": "project",
+      "status": "draft"
     }
   ],
-  "links": [],
-  "updated_at": "2026-08-14T23:11:30.026Z"
+  "links": [
+    {
+      "id": "skill-harvest-recommendation-to-packet-runtime",
+      "from": "skill-harvest-recommendation",
+      "to": "packet-runtime",
+      "kind": "handoff",
+      "summary": "Recommendations may become runtime packet inputs; the promotion and handoff contract remains open.",
+      "status": "unknown"
+    },
+    {
+      "id": "packet-runtime-to-release-distribution",
+      "from": "packet-runtime",
+      "to": "release-distribution",
+      "kind": "handoff",
+      "summary": "Runtime artifacts may be packaged for distribution; artifact custody and proof remain open.",
+      "status": "unknown"
+    }
+  ],
+  "updated_at": "2026-08-14T23:31:00Z"
 }
