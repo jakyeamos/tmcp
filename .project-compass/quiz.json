@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "sessions": [
+    {
+      "id": "tmcp-root-realignment-20260814",
+      "mode": "realignment",
+      "compass_id": "project",
+      "scope_kind": "root",
+      "status": "active",
+      "questions": [
+        {
+          "id": "tmcp-stable-surface-model",
+          "category": "subsystem-model",
+          "prompt": "Should child Compasses follow stable product surfaces such as packet compiler and runtime, skill harvest and recommendation, MCP tool contracts, and distribution or release?"
+        },
+        {
+          "id": "tmcp-experimental-boundary",
+          "category": "lifecycle-boundary",
+          "prompt": "Should experimental workflows and tools be separate child Compasses, or remain under the root with explicit experimental status and links?"
+        },
+        {
+          "id": "tmcp-aios-integration",
+          "category": "integration-boundary",
+          "prompt": "Should the AIOS adapter and storage integration be a child Compass, or remain an optional integration boundary governed by the TMCP root?"
+        }
+      ],
+      "answers": [],
+      "started_at": "2026-08-14T23:24:00Z",
+      "updated_at": "2026-08-14T23:24:00Z"
+    }
+  ],
+  "updated_at": "2026-08-14T23:24:00Z"
+}
