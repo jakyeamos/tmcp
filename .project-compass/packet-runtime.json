@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "project": {
+    "name": "TMCP packet runtime",
+    "identity": "The TMCP runtime that turns a task identity and selected inputs into a compiled packet.",
+    "audience": "Agent workflows and operators that need relevant context with source and selection reasons visible.",
+    "core_loop": "Accept task identity, select governed inputs, compile the packet, and emit receipts or protocol results.",
+    "north_star": "Every compiled packet is relevant enough for the task and reproducible from explicit inputs.",
+    "not_this": [
+      "Owning the complete skill catalog",
+      "Hiding provider-specific behavior in the shared runtime",
+      "Treating hashes as behavior proof"
+    ]
+  },
+  "scope": {
+    "id": "packet-runtime",
+    "kind": "subsystem",
+    "parent_id": "project",
+    "purpose": "Compile task-specific context packets from governed inputs and expose an auditable, reproducible runtime boundary.",
+    "boundary": "Owns the launcher, runtime, MCP framing/server, packet composition, and runtime protocol under scripts; skill catalog policy and release packaging remain outside this child.",
+    "non_goals": [
+      "Owning the complete skill catalog",
+      "Hiding provider-specific behavior in the shared runtime",
+      "Treating hashes as behavior proof"
+    ],
+    "parent_outcomes": [
+      "relevant-packet",
+      "recompilable-audit-trail"
+    ],
+    "paths": [
+      "scripts/tmcp_launcher.mjs",
+      "scripts/tmcp_runtime.mjs",
+      "scripts/tmcp_mcp_framing.py",
+      "scripts/tmcp_mcp_server.py"
+    ]
+  },
+  "targets": {
+    "mvp": {
+      "definition": "The scoped boundary is explicitly ratified, its parent outcome is clear, and its smallest local proof is repeatable."
+    },
+    "complete_product": {
+      "definition": "The scoped boundary remains aligned through changes, interfaces, and user-visible or consumer-facing verification."
+    }
+  },
+  "pillars": [
+    {
+      "id": "packet-runtime-purpose",
+      "name": "Draft scoped purpose",
+      "outcomes": [
+        {
+          "id": "packet-runtime-aligned-boundary",
+          "name": "The TMCP packet runtime boundary advances its parent outcome without silently taking on sibling responsibilities.",
+          "targets": [
+            "mvp",
+            "complete_product"
+          ],
+          "maturity": 25,
+          "confidence": "low",
+          "layers": {
+            "intended": "Drafted from explicit repository documentation; pending owner quiz and ratification.",
+            "planned": "Local proof and sibling contracts are pending the boundary decision.",
+            "implemented": "Observed implementation paths: scripts/tmcp_launcher.mjs, scripts/tmcp_runtime.mjs, scripts/tmcp_mcp_framing.py, scripts/tmcp_mcp_server.py.",
+            "verified": "No independently scoped end-to-end proof has been accepted yet."
+          },
+          "evidence": [
+            {
+              "ref": "README.md",
+              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
+              "observed_at": "2026-08-14T23:31:00Z"
+            },
+            {
+              "ref": ".agents/context/README.md",
+              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
+              "observed_at": "2026-08-14T23:31:00Z"
+            },
+            {
+              "ref": "docs/CENTRAL_RUNTIME.md",
+              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
+              "observed_at": "2026-08-14T23:31:00Z"
+            },
+            {
+              "ref": "docs/DISTRIBUTION.md",
+              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
+              "observed_at": "2026-08-14T23:31:00Z"
+            }
+          ],
+          "blockers": [
+            {
+              "kind": "product-decision",
+              "summary": "Owner must ratify, split, merge, or retire this draft child Compass through the realignment quiz before it becomes active truth."
+            },
+            {
+              "kind": "verification",
+              "summary": "An independently scoped local proof and its neighboring handoffs are not yet established."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "source_layers": {
+    "intended": [
+      {
+        "ref": "README.md",
+        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": ".agents/context/README.md",
+        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "docs/CENTRAL_RUNTIME.md",
+        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "docs/DISTRIBUTION.md",
+        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      }
+    ],
+    "planned": [],
+    "implemented": [
+      {
+        "ref": "scripts/tmcp_launcher.mjs",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "scripts/tmcp_runtime.mjs",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "scripts/tmcp_mcp_framing.py",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "scripts/tmcp_mcp_server.py",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      }
+    ],
+    "verified": []
+  },
+  "drift": [
+    {
+      "kind": "verification-gap",
+      "summary": "This child boundary is a draft derived from repository documentation and has not yet been ratified or independently verified.",
+      "status": "open",
+      "observed_at": "2026-08-14T23:31:00Z",
+      "evidence": [
+        {
+          "ref": "README.md",
+          "note": "Draft boundary needs explicit owner confirmation and local proof.",
+          "observed_at": "2026-08-14T23:31:00Z"
+        }
+      ]
+    }
+  ],
+  "updated_at": "2026-08-14T23:31:00Z"
+}
