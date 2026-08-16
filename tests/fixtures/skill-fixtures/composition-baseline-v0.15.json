@@ -1,0 +1,32 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.15",
+  "case_id": "concrete-verification",
+  "source_baseline": "tests/fixtures/skill-fixtures/seed-cases-v0.1.json",
+  "validator_spec": "tests/fixtures/skill-fixtures/structural-validator-spec-concrete-verification-v0.1.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "scope": "available r2/r3 artifacts only; the earlier last-message artifacts use a separate schema",
+  "runs": [
+    {"artifact": "concrete-original-r2.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "concrete-original-r3.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "concrete-candidate-r2.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "concrete-candidate-r3.json", "structural_pass": true, "judge_pass": true, "failed_observables": []}
+  ],
+  "aggregate": {
+    "structural_pass_count": 4,
+    "judge_pass_count": 4,
+    "total": 4,
+    "structural_judge_count_agreement": 4,
+    "structural_judge_count_disagreement": 0
+  },
+  "interpretation": {
+    "finding": "The explicit legacy profile validates boolean observable fields and structured final responses, matching the independent judge on all four available concrete-verification runs.",
+    "decision": "Support legacy profiles only through an explicit spec; do not relax the canonical artifact schema implicitly.",
+    "confidence_boundary": "Two repeats per version are limited evidence, and the earlier last-message artifacts require a separate schema profile."
+  }
+}

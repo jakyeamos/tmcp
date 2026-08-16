@@ -1,0 +1,7 @@
+{
+  "topic": "nvidia earnings reaction",
+  "query_type": "GENERAL",
+  "date_range": "2026-06-25 through 2026-07-25",
+  "sources": ["Reddit", "Web"],
+  "searches": ["NVIDIA earnings reaction July 2026", "NVDA results community reaction"]
+}

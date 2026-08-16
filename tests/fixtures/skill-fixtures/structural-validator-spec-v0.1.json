@@ -1,0 +1,22 @@
+{
+  "schema": "tmcp-skill-fixture-structural-spec-v0.1",
+  "case_id": "trigger-required-read-composition",
+  "exact_value": "valid",
+  "required_final_labels": [
+    "Sources inspected",
+    "Skipped sources and why",
+    "Verification results",
+    "Next actions"
+  ],
+  "required_disclosure_terms": [
+    "AGENTS.md",
+    "required",
+    "unavailable"
+  ],
+  "forbidden_action_markers": [
+    "release check",
+    "release verification",
+    "check_release",
+    "check_release_package"
+  ]
+}

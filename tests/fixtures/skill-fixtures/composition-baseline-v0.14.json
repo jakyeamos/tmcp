@@ -1,0 +1,23 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.14",
+  "case_id": "host-portability-inspection",
+  "source_baseline": "tests/fixtures/skill-fixtures/composition-baseline-v0.13.json",
+  "validator_spec": "tests/fixtures/skill-fixtures/structural-validator-spec-host-portability-v0.1.json",
+  "repair": {
+    "change": "Replace exact activity marker portable file inspection with reviewed regex portable\\s+(?:file|shell).",
+    "reason": "Equivalent portable evidence was accepted by the judge but the exact marker produced false negatives on portable shell commands and portable file search."
+  },
+  "aggregate": {
+    "provisional_v0.13_structural_pass_count": 3,
+    "corrected_structural_pass_count": 6,
+    "judge_pass_count": 6,
+    "total": 6,
+    "corrected_structural_judge_count_agreement": 6,
+    "corrected_structural_judge_count_disagreement": 0
+  },
+  "interpretation": {
+    "finding": "Reviewed activity patterns remove a wording false negative without broadening the evidence to final-response claims; corrected structural validation matches the judge on all six runs.",
+    "decision": "Treat exact markers as provisional and require reviewed alternatives or regexes when the behavior contract permits equivalent evidence.",
+    "confidence_boundary": "The pattern is calibrated only on this six-run host-portability set; adversarial activity text remains required before broad promotion."
+  }
+}

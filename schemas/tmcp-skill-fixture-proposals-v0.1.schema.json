@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tmcp.dev/schemas/tmcp-skill-fixture-proposals-v0.1.schema.json",
+  "title": "TMCP reviewed skill fixture proposals",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "skill_id", "source_sha256", "proposals"],
+  "properties": {
+    "schema": {"const": "tmcp-skill-fixture-proposals-v0.1"},
+    "skill_id": {"type": "string", "minLength": 1},
+    "source_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "proposals": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/proposal"}
+    }
+  },
+  "$defs": {
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proposal_id",
+        "status",
+        "target",
+        "reason",
+        "before_sha256",
+        "after_sha256",
+        "replacement"
+      ],
+      "properties": {
+        "proposal_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["proposed", "approved", "rejected"]},
+        "target": {"const": "SKILL.md"},
+        "reason": {"type": "string", "minLength": 1},
+        "before_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "after_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "replacement": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

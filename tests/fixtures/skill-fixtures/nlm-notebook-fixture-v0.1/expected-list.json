@@ -1,0 +1,14 @@
+{
+  "notebooks": [
+    {
+      "id": "nb-fixture-001",
+      "title": "TMCP Research",
+      "source_count": 2
+    },
+    {
+      "id": "nb-fixture-002",
+      "title": "Skill Evaluation",
+      "source_count": 1
+    }
+  ]
+}

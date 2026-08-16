@@ -1,0 +1,49 @@
+{
+  "schema": "tmcp-skill-full-corpus-baseline-v0.1",
+  "manifest": "tests/fixtures/skill-fixtures/full-corpus-v0.1.json",
+  "validator": "tmcp-skill-fixture-corpus-validation-v0.1",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "independent_judge": true
+  },
+  "aggregate": {
+    "family_count": 8,
+    "artifact_count": 42,
+    "structural_pass_count": 31,
+    "judge_pass_count": 31,
+    "judge_agreement_count": 42,
+    "judge_disagreement_count": 0,
+    "gate_pass": true
+  },
+  "families": [
+    {"id": "approval-before-edit-ambiguous", "artifact_count": 4, "structural_pass_count": 0, "judge_pass_count": 0},
+    {"id": "approval-before-edit-explicit", "artifact_count": 4, "structural_pass_count": 2, "judge_pass_count": 2},
+    {"id": "concrete-verification", "artifact_count": 4, "structural_pass_count": 4, "judge_pass_count": 4},
+    {"id": "required-read-disclosure", "artifact_count": 6, "structural_pass_count": 3, "judge_pass_count": 3},
+    {"id": "trigger-boundary", "artifact_count": 6, "structural_pass_count": 6, "judge_pass_count": 6},
+    {"id": "output-contract-typed", "artifact_count": 6, "structural_pass_count": 5, "judge_pass_count": 5},
+    {"id": "precedence-boundary", "artifact_count": 6, "structural_pass_count": 5, "judge_pass_count": 5},
+    {"id": "host-portability", "artifact_count": 6, "structural_pass_count": 6, "judge_pass_count": 6}
+  ],
+  "judge_artifact_sha256": {
+    "judge-approval-candidate.json": "c39e435e6fa7f2575804bbedbb4c49dc6bf6a7ac9603ecb3779a5bf9e9abc990",
+    "judge-approval-explicit-candidate.json": "0ffd35e732eb3cf773b319e0cf753ea5cdc5b3cbb3e8631b16bdc88b426db3cc",
+    "judge-approval-explicit-original.json": "8e832dbb7e3a69850953af8fb564d954f2f8a53c9f117aebd99bbae8311d7fd4",
+    "judge-approval-original.json": "a95ef82b16b13e9ade28f92fcc65d652bb548499bd804f8ff19e733b55fe9c46",
+    "judge-concrete-candidate.json": "08f8683195be29a10d7ca822c2258be78c8af154549c7530a8b31e13ddf0bd51",
+    "judge-concrete-original.json": "c93ac8d12e4c9a08cafff2f53f845bdd8dee9a99f0c339e8901dec1c748b6dea",
+    "judge-host-portability-candidate.json": "8dfa93daca4c983984e9b64b965a2ea4d2a3d1f32ca13366ebb5337cb0b2168b",
+    "judge-host-portability-original.json": "87e8efdc25e1a82331f628a1b9fff81fd786380e01cb471fb7c729da9121c962",
+    "judge-output-contract-candidate.json": "1874a26ab058d9a7ccf4f91c3ced81e61e4916cfdc7f72daeb956eca61b57ff9",
+    "judge-output-contract-original.json": "f56f6bc5f52e5b3cbfffdabbc0ff480b36049df360aeb5bedc46f3d5cfa1ff79",
+    "judge-precedence-boundary-candidate.json": "fe98ec676969715162ba2de8249e04f41050b2a23abfe1a1ba197c06db093e55",
+    "judge-precedence-boundary-original.json": "9d48aa076782e65d2bfbfa363fbe3f9f5bb6690354c5fc1eb4b0fd703ce952cb",
+    "judge-required-read-candidate.json": "944a3cc8b8d5f4346ed02aee044e06165a6fce465af79ae49a94bbc2c7a600c1",
+    "judge-required-read-original.json": "b0410a5b13c1ada52b27fdd177ce27987c07012aa72489e94869ac3c46f5f7ff",
+    "judge-trigger-candidate.json": "3cd9f2473edd975aad17cb65de19c3b530542270a0921bf2c0c7ec9a1d2e8eb1",
+    "judge-trigger-original.json": "7bc40b59d768e4bc768802b2a08a1f7862b63adf406d58074023bd82ba0bd033"
+  },
+  "confidence_boundary": "The gate proves deterministic structural checks agree with these independently recorded judge records for this available corpus at one model/effort setting. It does not prove causal lift, cross-model invariance, or permission to rewrite the installed skill corpus automatically."
+}

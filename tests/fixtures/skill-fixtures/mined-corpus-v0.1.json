@@ -1,0 +1,55 @@
+{
+  "schema": "tmcp-mined-skill-corpus-v0.1",
+  "status": "provenance_bound_behavior_baseline_recorded",
+  "mining_source": {
+    "campaign_root": "/private/tmp/tmcp-full-campaign-20260721",
+    "campaign_manifest": "/private/tmp/tmcp-full-campaign-20260721/manifest.json",
+    "campaign_manifest_sha256": "203e0db37096c6959b5ee1976875fde558f9e37f34269457e0c34c5859c0f0fb",
+    "campaign_id": "composition-lift-campaign-01696e55d67fa8ecb6e5",
+    "expected_cells": 540,
+    "completed_cells": 540,
+    "judge_manifest": "/private/tmp/tmcp-full-campaign-20260721/judges/manifest.json",
+    "rejudge_manifest": "/private/tmp/tmcp-full-campaign-20260721/rejudge/manifest.json",
+    "source_constraint": "Objectives and bars are derived from completed runner artifacts and independent judge handoffs; no expected output is supplied to fixture runners.",
+    "behavior_baseline": "tests/fixtures/skill-fixtures/mined-corpus-baseline-v0.1.json",
+    "behavior_campaign_report": "/private/tmp/tmcp-skill-fixtures-mined-campaign-20260725-escalated/campaign-report.json"
+  },
+  "cases": [
+    {
+      "case_id": "tmcp-migration-readiness-campaign-mined",
+      "skill_source": "/Users/jakyeamos/.codex/plugins/cache/personal/tmcp/0.5.7+codex.20260716005835/skills/tmcp-migration-readiness/SKILL.md",
+      "campaign_fixture_id": "behavior-migration-data",
+      "campaign_objective": "Assess migration readiness, verify data integrity, prove rollback, and execute the regression strategy.",
+      "campaign_runner_artifact": "/private/tmp/tmcp-full-campaign-20260721/artifacts/composition-lift-runner-11126422bae94e903ea0.md",
+      "campaign_judge_handoff": "/private/tmp/tmcp-full-campaign-20260721/judges/handoffs/artifact-slot-11126422bae94e903ea0.json",
+      "campaign_rubric_id": "tmcp-migration-data-quality-v0.1"
+    },
+    {
+      "case_id": "tmcp-data-integrity-audit-campaign-mined",
+      "skill_source": "/Users/jakyeamos/.codex/plugins/cache/personal/tmcp/0.5.7+codex.20260716005835/skills/tmcp-data-integrity-audit/SKILL.md",
+      "campaign_fixture_id": "behavior-migration-data",
+      "campaign_objective": "Assess migration readiness, verify data integrity, prove rollback, and execute the regression strategy.",
+      "campaign_runner_artifact": "/private/tmp/tmcp-full-campaign-20260721/artifacts/composition-lift-runner-3f0c93f78bbade08c6dc.md",
+      "campaign_judge_handoff": "/private/tmp/tmcp-full-campaign-20260721/judges/handoffs/artifact-slot-3f0c93f78bbade08c6dc.json",
+      "campaign_rubric_id": "tmcp-migration-data-quality-v0.1"
+    },
+    {
+      "case_id": "tmcp-security-privacy-audit-campaign-mined",
+      "skill_source": "/Users/jakyeamos/.codex/plugins/cache/personal/tmcp/0.5.7+codex.20260716005835/skills/tmcp-security-privacy-audit/SKILL.md",
+      "campaign_fixture_id": "behavior-agent-workflow",
+      "campaign_objective": "Design the agent workflow, define routing, audit safety boundaries, and verify receipts before promotion.",
+      "campaign_runner_artifact": "/private/tmp/tmcp-full-campaign-20260721/artifacts/composition-lift-runner-160bc7afda4f3acde741.md",
+      "campaign_judge_handoff": "/private/tmp/tmcp-full-campaign-20260721/judges/handoffs/artifact-slot-160bc7afda4f3acde741.json",
+      "campaign_rubric_id": "tmcp-agent-workflow-quality-v0.1"
+    },
+    {
+      "case_id": "tmcp-test-strategy-campaign-mined",
+      "skill_source": "/Users/jakyeamos/.codex/plugins/cache/personal/tmcp/0.5.7+codex.20260716005835/skills/tmcp-test-strategy/SKILL.md",
+      "campaign_fixture_id": "behavior-migration-data",
+      "campaign_objective": "Assess migration readiness, verify data integrity, prove rollback, and execute the regression strategy.",
+      "campaign_runner_artifact": "/private/tmp/tmcp-full-campaign-20260721/artifacts/composition-lift-runner-0fc1afdba529c3533391.md",
+      "campaign_judge_handoff": "/private/tmp/tmcp-full-campaign-20260721/judges/handoffs/artifact-slot-0fc1afdba529c3533391.json",
+      "campaign_rubric_id": "tmcp-migration-data-quality-v0.1"
+    }
+  ]
+}

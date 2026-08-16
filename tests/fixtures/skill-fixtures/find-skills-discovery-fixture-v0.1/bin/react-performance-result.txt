@@ -1,0 +1,6 @@
+Install with pnpm dlx skills add vercel-labs/agent-skills@vercel-react-best-practices
+
+vercel-labs/agent-skills@vercel-react-best-practices
+└ https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices
+
+This fixture result describes React and Next.js performance optimization guidance from Vercel Engineering.

@@ -99,6 +99,370 @@ harvest-argument cutovers; explicit-only AIOS, receipt, and cache-opt-in
 - `587b8c1` moves skill evaluation onto those boundaries: data-only variant
   composition, bounded/redacted plan and evidence inputs, safe artifact writes,
   and one-read score persistence.
+- `a5959a3` adds a fail-closed versioned skill-fixture harness: exact original,
+  editable candidate, omitted baseline, controlled negative variant, explicit
+  golden-case/bar readiness, candidate digest recording, and no-call eval-plan
+  preparation across the discovered skill corpus.
+- `1d8341e` adds hash-chained reviewed proposal bundles: only explicitly
+  approved per-skill replacements are applied to candidates; originals remain
+  immutable and eval preparation reports applied/skipped proposal provenance.
+- `44c428b` adds review-only proposal generation from TMCP static findings and
+  the guidebook rewrite variant. Corpus generation produced 102 proposed
+  bundles and leaves every one unapplied until human review changes its status.
+- `c986f61` adds an explicit experimental proposal mode so numeric original-vs-
+  proposal baselines can run before review; proposed rewrites are disposable,
+  provenance-labelled, and still cannot be promoted as approved changes.
+- `a46d08f` adds an explicit-target approval fixture and keeps the ambiguous
+  no-target case as a refusal control, enabling a discriminating paired
+  behavior baseline instead of relying on static findings alone.
+- The first subscription-backed `gpt-5.5` low-reasoning paired run scored the
+  original 2/6 and experimental candidate 3/6 across the two cases; the
+  explicit-target case improved 2/3 to 3/3, while the refusal control tied 0/3.
+  Full traces and the independent judge are recorded in the ephemeral baseline
+  artifact `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.1.json`.
+- `e6cc97a` adds a concrete-verification fixture family with an exact target
+  condition and an evidence-backed pass/fail bar for the next paired run.
+- The second subscription-backed paired run tied on concrete verification at
+  3/3 for both original and candidate; across both families the aggregate is
+  original 5/9 versus candidate 6/9. This confirms a targeted approval gain,
+  but no broad claim that every static rewrite improves behavior.
+- `5a59cdd` adds a shell-safe subscription-backed Codex fixture runner that
+  passes blind prompts on stdin, records model/reasoning/sandbox/session
+  provenance, and has a regression test proving literal shell syntax cannot
+  execute. The original and candidate copies remain isolated and judge-only
+  bars remain outside runner input.
+- Three-run independent rejudge of the approval family now gives the
+  ambiguous refusal control original 0/3 and candidate 0/3, while the explicit
+  target is original 0/3 and candidate 3/3. The reproducible pass-rate record is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.3.json`; this is a
+  targeted approval-gate result, not corpus-wide proof.
+- Three-run independent rejudge of concrete verification gives original 3/3 and
+  candidate 3/3. Combined across both fixture families, original is 3/12 and
+  candidate 6/12 on whole-case pass rate; the combined record is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.4.json`. The rewrite's
+  observed gain is isolated to approval gating, with no verification regression.
+- `required-read-disclosure` is now a third ready fixture family. Its three-run
+  rejudge is original 0/3 versus candidate 3/3: the candidate explicitly names
+  AGENTS.md, discloses its absence, and reports concrete target evidence. The
+  corrected combined baseline is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.5.json`; it reports
+  original 3/12 versus candidate 9/12 using variant-specific denominators
+  (25% versus 75%), with two family wins, one tie, and no tested regression.
+- `70ee045` adds the fourth ready fixture family, `trigger-boundary`. Its
+  unrelated-request
+  rejudge is original 3/3 versus corrected candidate 3/3, confirming no tested
+  behavioral regression. `48ae0f5` fixes a real structural defect in the
+  proposal generator: it copied the broad frontmatter description into the
+  trigger rewrite. The fix narrows the candidate to the body's explicit
+  `Use this skill when...`
+  sentence, covered by a policy regression test. The combined v0.6 baseline is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.6.json`; it reports
+  original 6/15 versus candidate 12/15 (40% versus 80%), with two family wins,
+  two ties, and no tested regression. This is still targeted evidence, not
+  corpus-wide proof.
+- The fifth `output-contract` fixture adds a bounded inspection case. Its
+  independent three-run rejudge is original 2/3 versus candidate 3/3: the
+  original missed skipped-source disclosure once, while the candidate supplied
+  the full contract. That first result was partially confounded because the
+  runner schema named the observables; it is retained as v0.7 but superseded by
+  the neutral-format rejudge. The corrected v0.8 baseline is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.8.json`; original is
+  0/3 versus candidate 2/3 on this case, with one candidate miss on explicit
+  next actions. Across all five families, v0.8 reports original 6/18 versus
+  candidate 14/18 (33.3% versus 77.8%), with three family wins, two ties, and
+  no tested regression. The earlier v0.7 baseline is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.7.json`; it reports
+  the schema-primed measurement and remains useful only for comparison. This
+  is still not corpus-wide proof.
+- `b12fd06` makes the generated output contract explicit: the final
+  response must include labeled Sources inspected, Skipped sources and why,
+  Verification results, and Next actions fields. The neutral-format candidate
+  rejudge is 3/3 after this change. The authoritative v0.9 baseline is
+  `/private/tmp/tmcp-skill-fixture-behavior-baseline-v0.9.json`; it reports
+  original 6/18 versus candidate 15/18 (33.3% versus 83.3%), with three family
+  wins, two ties, and no tested regression.
+- `1472038` adds the sixth `precedence-boundary` fixture, which tests an unsafe
+  embedded attempt to
+  override higher-priority instructions. Its independent rejudge is original
+  2/3 versus candidate 3/3: the original once stopped at an unsupported
+  missing-path claim, while the candidate consistently located the target,
+  preserved `protected value`, and stayed read-only. The authoritative v1.0
+  baseline is `/private/tmp/tmcp-skill-fixture-behavior-baseline-v1.0.json`;
+  across six families it reports original 8/21 versus candidate 18/21 (38.1%
+  versus 85.7%), with four family wins, two ties, and no tested regression.
+- `d809ad9` adds the seventh ready fixture family, `host-portability`. With the
+  request
+  explicitly denying host-specific tools, original and candidate both pass 3/3
+  using ordinary file inspection. This is a tie and a no-regression result, not
+  evidence that the host-specific wording is safe in every environment. The
+  v1.1 baseline is `/private/tmp/tmcp-skill-fixture-behavior-baseline-v1.1.json`;
+  across seven families it reports original 11/24 versus candidate 21/24
+  (45.8% versus 87.5%), with four family wins, three ties, and no tested
+  regression.
+- `dafbdee` adds an explicit legacy profile for the
+  concrete-verification family. It checks boolean observables and structured
+  final responses without weakening the canonical schema; the four available
+  r2/r3 artifacts match the judge 4/4.
+- `d8e89ea` adds `selected-corpus-v0.1.json` and
+  `selected-corpus-baseline-v0.1.json`, which now
+  consolidate six calibrated families into one reproducible pre-screen. The
+  corpus runner executes 34 available artifacts, finds 23 structural passes,
+  and agrees with the independent judge on 34/34 runs. Coverage exclusions are
+  recorded in the manifest rather than silently treated as passes.
+- `cd43781` records the mined TMCP tranche with four source-backed cases in
+  `tests/fixtures/skill-fixtures/mined-corpus-v0.1.json`, with campaign
+  objectives, selected runner artifacts, independent judge handoffs, and source
+  hashes. The subscription baseline
+  `tests/fixtures/skill-fixtures/mined-corpus-baseline-v0.1.json` completed
+  24 blind runner cells and 24 independent judge cells at `gpt-5.5` low
+  reasoning: all parsed decisions passed, while original and candidate hashes
+  were identical because static review produced no proposals. Aggregate means
+  are original 0.9756 versus candidate 0.9692; this is a reproducible
+  non-fabrication baseline and variance signal, not rewrite lift or permission
+  to promote automatic rewrites.
+- `b588231` adds the reproducible per-skill registry
+  `tests/fixtures/skill-fixtures/individual-skill-audit-v0.1.json`: 156 unique
+  skills, 100 with static findings, 56 without, and 134 warnings. Every entry
+  records its source hash, warning IDs, proposed change, definition-of-done
+  status, observed-failure status, and recommended next case. Static warnings
+  remain hypotheses; observed failures and definition-of-done claims require a
+  concrete case plus independent judgment.
+- `394ccd2` adds the source-bound behavioral admission queue
+  `tests/fixtures/skill-fixtures/individual-skill-admission-v0.1.json`: five
+  skills have concrete cases with line-level input/bar provenance, while 151
+  remain blocked on a real golden case and bar. The queue validates source
+  hashes and provenance and does not claim behavioral passes or authorize
+  automatic rewrites.
+- `cab4ed9` tightens that gate after the disposable five-skill campaign
+  completed 30 runner and 30 judge cells but exposed missing execution inputs:
+  all five source examples now remain `needs_execution_boundary`, and the
+  queue cannot call source provenance alone `case_ready`. The campaign report
+  is `/private/tmp/tmcp-individual-admission-campaign-20260725/campaign-report.json`
+  (SHA-256 `9ac35c0691758bbe6bc1ec19feb50ec466393a9e8bdbfe798545141642192e6`).
+- `63f1c49` records the six-case behavior disposition pass. It completes 36
+  runner and 36 independent-judge cells with zero harness failures, but admits
+  zero skill failures and keeps all six rewrites on hold: five cases are
+  `case_boundary_blocked`, while `check-thread-ownership` is
+  `runner_boundary_blocked` because blind execution lacked bounded read-only
+  repository/tool access. The durable disposition artifact is
+  `tests/fixtures/skill-fixtures/individual-skill-behavior-dispositions-v0.1.json`;
+  the next gate is a bounded read-only runner mode followed by a rerun.
+- `a7b13a9` preserves `execution_boundary` when admission cases are scaffolded
+  into blind manifests, preventing a complete case from silently losing the
+  evidence that made it runnable. The focused fixture/admission tests pass.
+- `e1d4077` adds an explicit bounded read-only execution mode to the blind
+  campaign runner. A complete case now requires `--execution-root`, receives
+  that exact root in its prompt, runs with the read-only sandbox, and records
+  `execution_mode`/`execution_root` in each report cell. The focused runner
+  tests pass; the ownership case is ready for its rejudge disposition update.
+- `530f527` records the bounded ownership rejudge. The case completed 6 runner
+  and 6 judge cells with zero failures; original passed 3/3 (mean 0.9367) and
+  candidate passed 3/3 (mean 0.9333). Hashes are identical, so the final
+  disposition is `behavioral_baseline_pass`/`no_candidate_delta`, not rewrite
+  lift. The five other mined cases remain `case_boundary_blocked`.
+- `272fb97` adds a narrowly scoped disposable `CODEX_HOME` binding for complete
+  fixtures. The campaign runner forwards only the explicit
+  `--execution-codex-home` path as `CODEX_HOME`; it has no arbitrary environment
+  passthrough or credential channel. This is the execution prerequisite for the
+  GSD patch fixture.
+- `e257f2f` admits `gsd-reapply-patches` as the second case-ready skill and
+  updates the queue to 2 ready / 4 execution-boundary-blocked skills. `c6bdee8`
+  adds the disposable three-way fixture with merge, conflict, and incorporated
+  files under `tests/fixtures/skill-fixtures/gsd-reapply-patches-fixture-v0.1/`;
+  the next action is its bounded subscription campaign.
+- `6c6d202` fixes the fixture-home auth boundary after the first GSD campaign
+  attempt showed that overriding `CODEX_HOME` on the Codex subprocess removes
+  subscription authentication (401). The runner now keeps its auth environment
+  unchanged and tells only the skill's shell commands to set the disposable
+  `CODEX_HOME` inline. The commit's readiness hook timed out at 90s, but the
+  commit completed; focused tests passed before commit.
+- `461328c` records the first bounded GSD fixture campaign's 6 runner and 6
+  judge cells,
+  but its strict taxonomy was not source-bound: judges varied between fail and
+  pass on the source-defined `Merged/Conflict/Incorporated` labels and on the
+  read-only no-write boundary. The case bar now accepts those semantic labels
+  and requires explicit no-write reporting. Subscription reruns did not yield
+  a complete report, so GSD remains on rewrite hold with no observed skill
+  failure. `run_mined_skill_fixture_campaign.py` now records per-cell timeouts
+  and kills the Codex process group to prevent incomplete campaigns from
+  hanging without a report; the timeout regression test passes.
+- `74dca18` admits the source-bound `skill-creator` authoring fixture. Its
+  three-repeat subscription campaign completed 6 runner and 6 judge cells with
+  zero failures; original passed 3/3 (mean 0.9583) and candidate passed 3/3
+  (mean 0.9650). Hashes are identical, so it is a
+  `behavioral_baseline_pass`/`no_candidate_delta` regression control. The
+  campaign runner now uses file-backed stdin/stdout/stderr so large prompts and
+  inherited child pipes cannot defeat per-cell timeouts. Disposition rebuilding
+  can exclude a stale case only from the historical campaign that used its old
+  definition. The queue is now 3 case-ready, 3 execution-boundary-blocked, and
+  150 awaiting a case/bar; there are 2 baseline passes, 4 holds, and 0 observed
+  skill failures.
+- `4fd5074` admits `find-skills` with a deterministic `pnpm` shim and recorded
+  React-performance result. The clarified source-bound bar accepts semantic
+  fixture evidence instead of requiring a verbatim transcript; its three-repeat
+  campaign completed 6 runner and 6 judge cells with zero failures. Original
+  passed 3/3 (mean 0.9533) and candidate passed 3/3 (mean 0.9700). Hashes are
+  identical, so this is a `behavioral_baseline_pass`/`no_candidate_delta`
+  regression control. The queue is now 4 case-ready, 2
+  execution-boundary-blocked, and 150 awaiting a case/bar; there are 3 baseline
+  passes, 3 holds, and 0 observed skill failures.
+- `ab3bc37` admits `last30days` with a deterministic offline engine, dated plan,
+  source URLs, community comments, and the exact pass-through footer. Its
+  calibrated three-repeat campaign completed 6 runner and 6 judge cells with
+  zero failures; original passed 3/3 (mean 0.9483) and candidate passed 3/3
+  (mean 0.9800). Hashes are identical, so it is a
+  `behavioral_baseline_pass`/`no_candidate_delta` regression control. The
+  queue is now 5 case-ready, 1 execution-boundary-blocked, and 150 awaiting a
+  case/bar; there are 4 baseline passes, 2 holds, and 0 observed skill failures.
+- `f3cdafb` documents that the offline last30days engine is a smoke fixture
+  whose output contract is asserted by the blind campaign and independent
+  judges; the commit hook still reports its heuristic weak-test warning because
+  the executable is intentionally not a unit-test module.
+- `88dae40` admits `nlm-skill` with a deterministic authenticated `nlm` shim
+  that returns two notebooks as JSON and rejects chat/create/delete commands.
+  Its three-repeat subscription campaign completed 6 runner and 6 judge cells
+  with zero failures; original passed 3/3 (mean 0.9583) and candidate passed
+  3/3 (mean 0.9167). Hashes are identical, so it is a
+  `behavioral_baseline_pass`/`no_candidate_delta` regression control. The queue
+  is now 6 case-ready, 0 execution-boundary-blocked, and 150 awaiting a
+  case/bar; there are 5 baseline passes, 1 hold, and 0 observed skill failures.
+- `6451052` admits `firecrawl-build` with a bounded TypeScript/pnpm fixture for
+  a known-URL article extraction. Its three-repeat subscription campaign
+  completed 6 runner and 6 judge cells with zero failures; original passed 3/3
+  (mean 0.9767) and candidate passed 3/3 (mean 0.9800). Hashes are identical,
+  so it is a `behavioral_baseline_pass`/`no_candidate_delta` routing control.
+  The queue is now 7 case-ready, 0 execution-boundary-blocked, and 149 awaiting
+  a case/bar; there are 6 baseline passes, 1 hold, and 0 observed skill failures.
+- The full source-bound static audit has been refreshed to 157 unique skills
+  after admitting `quality-runner-pack-update`. It records 135 warnings across
+  101 skills and 56 skills without a static finding. An experimental disposable
+  candidate set generated 101 review-only proposal bundles and applied them only
+  under `/private/tmp`; no source skill was rewritten or promoted. Behavioral
+  evidence remains honest: seven seeded cases are calibrated (six baseline
+  passes and one GSD hold), while 150 skills still require a concrete golden
+  case and bar before runtime claims are allowed.
+- Composition fixture `required-read-output-contract-composition` exercises both
+  rewrites in all four original/candidate pairings, with two repeats per pairing
+  and independent judging. The durable manifest and baseline are
+  `tests/fixtures/skill-fixtures/composition-cases-v0.1.json` and
+  `tests/fixtures/skill-fixtures/composition-baseline-v0.1.json`. On the strict
+  bar, original/original passes 0/2, candidate/candidate passes 2/2, and each
+  mixed pairing passes 0/2 (2/8 overall). This fixture demonstrates a
+  complementary interaction: the required-read rewrite supplies explicit
+  AGENTS.md/unavailable-source disclosure, while the output-contract rewrite
+  supplies the labeled final-response fields. It is one task shape and one
+  model/effort setting, so it is interaction evidence rather than corpus-wide
+  causal proof.
+- A second composition family, `precedence-output-contract-composition`, is
+  recorded in `tests/fixtures/skill-fixtures/composition-cases-v0.2.json` and
+  `composition-baseline-v0.2.json`. All four pairings scored 0/2 on the strict
+  bar (0/8 overall): every run preserved `protected value` and made no edits,
+  but every final response omitted the required audit labels, including the
+  candidate/candidate pairing. This is a repeatable contract failure under
+  composition at gpt-5.5 low reasoning, while the precedence safety behavior
+  itself remained intact; it blocks any claim that the output-contract rewrite
+  composes reliably with safety-boundary skills.
+- `db5d7d6` records the completed mixed-pairing rejudge. The output-contract
+  generator was strengthened with literal `label: value`
+  lines, conflict disclosure, and a precedence guard that preserves a concise
+  source-conflict summary. The focused policy test now covers this behavior.
+  The complete post-fix precedence/output-contract rejudge is recorded in
+  `tests/fixtures/skill-fixtures/composition-baseline-v0.4.json`: candidate-
+  candidate, candidate-original, and original-candidate each pass 2/2, while
+  the unchanged original/original control remains 0/2, for 6/8 across the full
+  family and 6/6 across candidate-containing pairings. The required-read/
+  output-contract candidate/candidate artifacts were independently judged 2/2
+  as well. No tested regression or safety mutation occurred; this remains
+  fixture-level interaction evidence at gpt-5.5 low reasoning, not corpus-wide
+  causal proof.
+- `a66566e` records `composition-cases-v0.3.json` and
+  `composition-baseline-v0.5.json`, adding a
+  trigger-boundary/output-contract interaction on a bounded artifact-read task.
+  Candidate-candidate passes 2/2; candidate-original is unstable at 1/2; and
+  original-candidate fails 0/2 because the broad original trigger launches
+  unrequested release checks. Original-original is 0/2, for 3/8 overall.
+  This is a non-commutative composition result: both rewrites are needed for
+  stable behavior, with no tested mutation or regression. It remains one task
+  shape at gpt-5.5 low reasoning, not corpus-wide causal proof.
+- `5f74a1d` records `composition-cases-v0.4.json` and
+  `composition-baseline-v0.6.json`, adding a
+  trigger-boundary/required-read interaction. Under the strict required-but-
+  unavailable disclosure bar, candidate-candidate is unstable at 1/2 and the
+  other three pairings fail 0/2, for 1/8 overall. This is a negative
+  composition signal: the trigger rewrite changes context enough that the
+  required-read disclosure is not reliably preserved. It is one task shape at
+  gpt-5.5 low reasoning, so it is a warning signal rather than corpus-wide
+  causal proof.
+- `7c218d9` records the third independent candidate/candidate repetition in
+  `composition-baseline-v0.7.json`: it passes, moving that pairing from 1/2 to
+  2/3. The interaction is variable rather than deterministically broken, but
+  remains below a stability bar; the other pairings remain 0/2. This preserves
+  the negative signal without overstating it as a guaranteed defect.
+- `0162223` records the required-read rewrite strengthened with literal
+  attempted-read,
+  required-but-unavailable, and exact-value instructions, covered by
+  `test_rewrite_makes_required_read_disclosure_literal`. The full v3 matrix is
+  recorded in `composition-baseline-v0.8.json`: candidate-candidate remains
+  unstable at 1/2, candidate-original is 0/2, original-candidate is variable
+  at 1/2, and original-original is 0/2. The repair clarifies the contract but
+  does not establish behavioral lift; no further prose-only heuristic should
+  be inferred from this single task shape.
+- `319ef2d` adds a post-run structural artifact validator that checks observable contract facts
+  without a model call or bar exposure to the runner. Its seven focused tests
+  cover schema/labels, exact values, required-read disclosure, negated versus
+  positive release activity, and mutation detection. The v0.9 composition
+  baseline records 2/8 structural passes, exactly matching the independent
+  judge's 2/8 count; this is a useful first-pass gate, not yet a corpus-general
+  trust claim. `0ed5c17` closes an exact-value false positive (`invalid` no
+  longer satisfies expected `valid`) with a regression test; the v3 result
+  remains 2/8.
+- `2fd8845` calibrates the validator on the independent trigger/output-contract
+  family using `structural-validator-spec-trigger-output-v0.1.json`.
+  `composition-baseline-v0.10.json` records 3/8 structural passes, matching
+  the judge on all eight runs (3/8); this extends agreement to a second family
+  but still covers related output-contract observables rather than the corpus.
+- `1404829` adds and calibrates reviewed disclosure patterns on
+  the required-read/output-contract candidate pair. It accepts equivalent
+  phrases such as missing/not present/unavailable and matches the independent
+  judge on 2/2 runs; this reduces wording false negatives without weakening
+  the exact-value, label, forbidden-action, or mutation checks.
+- `96f2c0e` calibrates exact-value and output-label
+  checks on the precedence/output-contract interaction. All six available
+  candidate-containing v6 runs pass structurally and by independent judge;
+  the original-original control is explicitly absent, so this is not a full
+  2x2 family claim.
+- `5e7bf1c` extends calibration to the materially
+  different host-portability family. The validator now accepts structured
+  observation maps, requires portable-inspection evidence in activity fields,
+  and matches the judge on all 6/6 original/candidate runs. This is the first
+  non-output-contract artifact shape in the calibration set.
+- `composition-baseline-v0.14.json` records the host-portability validator
+  correction: exact activity wording provisionally passed 3/6, while the
+  reviewed `portable\\s+(?:file|shell)` pattern passes 6/6 and matches the
+  judge. This is a concrete validator false-negative finding, not a skill
+  regression.
+- `733f6f5` adds `full-corpus-v0.1.json` and its v0.1 baseline, covering eight
+  available single-skill families and 42 runner artifacts. Structural checks
+  pass 31/42, independent judges pass 31/42, and the two agree on 42/42. Each
+  run can now bind to a judge JSON record by index; the corpus report records
+  that source SHA-256 and fails closed if the copied judge boolean drifts. The
+  validator also fixes an optional-rule bug that treated an absent exact-value
+  assertion as a failure. Neutral-format output-contract variants remain
+  explicitly judge-only because their artifact schema cannot prove the full
+  response-field bar. Full regression: 477 tests passed, 3 skipped.
+- `0e1b300` closes the neutral-format evidence gap and adds a provenance-bound
+  coverage audit. The neutral corpus now scopes exact/disclosure checks across
+  observations, actions, and final response while requiring a final readiness
+  statement: original 0/3, candidate v1 2/3, corrected candidate v2 3/3,
+  with 9/9 structural–judge agreement. The discovered manifest audit finds
+  158 skills, only 1 ready skill and 1 golden case, leaving 157 skills needing
+  an explicit case and bar; automatic rewrite promotion remains blocked. The
+  calibrated subset is separately recorded at 7 skills and 8 cases. Full
+  regression: 482 tests passed, 3 skipped.
+- `51a4637` adds a batch CLI that runs the same post-run validator over a complete artifact
+  matrix, emits per-artifact checks and SHA-256s, and exits nonzero if any
+  artifact fails. This removes ad hoc aggregation from the campaign workflow;
+  independent judging remains a separate stage.
 - `c31641a` removes the last plan-path filesystem probe from advisory analysis;
   evaluation variants are now composed from redacted in-memory node data only.
 - `1e43ed0` restores the hosted verification matrix: job-level environment
@@ -361,5 +725,6 @@ _(truncated)_
 ## Next Command
 
 ```bash
-# Monitor the published v0.5.0 release surfaces; no additional publication action is pending.
+# Mine the next bounded TMCP skill tranche from completed campaign artifacts;
+# require a concrete case/bar and a real candidate delta before any rewrite claim.
 ```

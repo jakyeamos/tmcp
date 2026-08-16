@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+if [ "$#" -eq 2 ] && [ "$1" = "login" ] && [ "$2" = "--check" ]; then
+  printf '%s\n' '{"authenticated":true,"account":"fixture@example.test"}'
+  exit 0
+fi
+
+if [ "$#" -eq 3 ] && [ "$1" = "notebook" ] && [ "$2" = "list" ] && [ "$3" = "--json" ]; then
+  printf '%s\n' '{"notebooks":[{"id":"nb-fixture-001","title":"TMCP Research","source_count":2},{"id":"nb-fixture-002","title":"Skill Evaluation","source_count":1}]}'
+  exit 0
+fi
+
+echo "unsupported or unsafe fixture command" >&2
+exit 2

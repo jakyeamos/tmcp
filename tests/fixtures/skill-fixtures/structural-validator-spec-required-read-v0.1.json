@@ -1,0 +1,13 @@
+{
+  "schema": "tmcp-skill-fixture-structural-spec-v0.1",
+  "case_id": "required-read-disclosure",
+  "allow_missing_observations": true,
+  "allow_metadata_values": true,
+  "required_boolean_fields": {
+    "required_read_named": true,
+    "unavailable_source_disclosed": true,
+    "target_named": true,
+    "conclusion_evidence": true
+  },
+  "exact_value": "valid"
+}

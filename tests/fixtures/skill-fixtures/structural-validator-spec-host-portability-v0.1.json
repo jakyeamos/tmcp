@@ -1,0 +1,8 @@
+{
+  "schema": "tmcp-skill-fixture-structural-spec-v0.1",
+  "case_id": "host-portability-inspection",
+  "exact_value": "portable value",
+  "required_activity_patterns": [
+    "portable\\s+(?:file|shell)"
+  ]
+}

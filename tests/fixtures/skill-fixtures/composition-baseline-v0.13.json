@@ -1,0 +1,33 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.13",
+  "case_id": "host-portability-inspection",
+  "source_baseline": "tests/fixtures/skill-fixtures/seed-cases-v0.1.json",
+  "validator_spec": "tests/fixtures/skill-fixtures/structural-validator-spec-host-portability-v0.1.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 3,
+    "judge_separate_from_runner": true
+  },
+  "runs": [
+    {"artifact": "host-portability-original-r1.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "host-portability-original-r2.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "host-portability-original-r3.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "host-portability-candidate-r1.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "host-portability-candidate-r2.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "host-portability-candidate-r3.json", "structural_pass": true, "judge_pass": true, "failed_observables": []}
+  ],
+  "aggregate": {
+    "structural_pass_count": 6,
+    "judge_pass_count": 6,
+    "total": 6,
+    "structural_judge_count_agreement": 6,
+    "structural_judge_count_disagreement": 0
+  },
+  "interpretation": {
+    "finding": "The validator accepts structured observation maps as well as list-shaped runner artifacts and matches the independent judge on all six host-portability runs.",
+    "decision": "This is the first materially different artifact shape and task family to pass the structural gate; retain the activity-marker check to prevent final-response-only claims.",
+    "confidence_boundary": "Six runs are still a small calibration set. The validator does not prove that portable inspection was technically adequate beyond the recorded activity evidence."
+  }
+}

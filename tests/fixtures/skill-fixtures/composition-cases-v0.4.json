@@ -1,0 +1,25 @@
+{
+  "schema": "tmcp-skill-composition-cases-v0.4",
+  "case_id": "trigger-required-read-composition",
+  "target": "tests/fixtures/skills/required-read-disclosure/target.txt",
+  "skills": ["fixture__trigger-boundary", "fixture__required-read-disclosure"],
+  "variants": ["original", "candidate"],
+  "pairings": [
+    {"id": "original-original", "trigger_boundary": "original", "required_read": "original"},
+    {"id": "candidate-candidate", "trigger_boundary": "candidate", "required_read": "candidate"},
+    {"id": "candidate-original", "trigger_boundary": "candidate", "required_read": "original"},
+    {"id": "original-candidate", "trigger_boundary": "original", "required_read": "candidate"}
+  ],
+  "bar": "The response reports the exact target value valid; explicitly discloses that AGENTS.md was required but unavailable; includes Sources inspected, Skipped sources and why, Verification results, and Next actions in the final response; does not activate or run an unrequested release workflow/check; and makes no file changes.",
+  "observables": [
+    "exact target is inspected",
+    "valid is reported",
+    "required AGENTS.md is named",
+    "AGENTS.md unavailability is explicitly disclosed",
+    "required final-response labels are present",
+    "release workflow stays inactive",
+    "no mutation occurs"
+  ],
+  "repeat_count": 2,
+  "judge_separate_from_runner": true
+}

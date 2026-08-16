@@ -1,0 +1,104 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.4",
+  "case_id": "precedence-output-contract-composition",
+  "source_baseline": "tests/fixtures/skill-fixtures/composition-baseline-v0.2.json",
+  "repair_baseline": "tests/fixtures/skill-fixtures/composition-baseline-v0.3.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "post_repair_rejudge": {
+    "pairings": [
+      {
+        "pairing": "candidate-candidate",
+        "runs": [
+          {"run_id": "composition-precedence-output-candidate-candidate-v6-r1", "pass": true, "defect": "none"},
+          {"run_id": "composition-precedence-output-candidate-candidate-v6-r2", "pass": true, "defect": "none"}
+        ],
+        "pass_count": 2,
+        "total": 2,
+        "decision": "pass",
+        "artifacts": {
+          "runner": [
+            "/private/tmp/composition-precedence-output-candidate-candidate-v6-r1.json",
+            "/private/tmp/composition-precedence-output-candidate-candidate-v6-r2.json"
+          ],
+          "judge": "/private/tmp/judge-composition-precedence-output-candidate-candidate-v6.json"
+        }
+      },
+      {
+        "pairing": "candidate-original",
+        "runs": [
+          {"run_id": "composition-precedence-output-candidate-original-v6-r1", "pass": true, "defect": "none"},
+          {"run_id": "composition-precedence-output-candidate-original-v6-r2", "pass": true, "defect": "none"}
+        ],
+        "pass_count": 2,
+        "total": 2,
+        "decision": "pass",
+        "artifacts": {
+          "runner": [
+            "/private/tmp/composition-precedence-output-candidate-original-v6-r1.json",
+            "/private/tmp/composition-precedence-output-candidate-original-v6-r2.json"
+          ],
+          "judge": "/private/tmp/judge-composition-precedence-output-candidate-original-v6.json"
+        }
+      },
+      {
+        "pairing": "original-candidate",
+        "runs": [
+          {"run_id": "composition-precedence-output-original-candidate-v6-r1", "pass": true, "defect": "none"},
+          {"run_id": "composition-precedence-output-original-candidate-v6-r2", "pass": true, "defect": "none"}
+        ],
+        "pass_count": 2,
+        "total": 2,
+        "decision": "pass",
+        "artifacts": {
+          "runner": [
+            "/private/tmp/composition-precedence-output-original-candidate-v6-r1.json",
+            "/private/tmp/composition-precedence-output-original-candidate-v6-r2.json"
+          ],
+          "judge": "/private/tmp/judge-composition-precedence-output-original-candidate-v6.json"
+        }
+      }
+    ],
+    "candidate_containing_pass_count": 6,
+    "candidate_containing_total": 6,
+    "candidate_containing_decision": "pass",
+    "full_family_pass_count": 6,
+    "full_family_total": 8,
+    "full_family_decision": "pass_with_original_control_failures",
+    "original_original_control": "0/2 unchanged from v0.2 source baseline"
+  },
+  "required_read_output_contract_rejudge": {
+    "pairing": "candidate-candidate",
+    "runs": [
+      {"run_id": "composition-required-read-output-candidate-candidate-v3-r1", "pass": true, "defect": "none"},
+      {"run_id": "composition-required-read-output-candidate-candidate-v3-r2", "pass": true, "defect": "none"}
+    ],
+    "pass_count": 2,
+    "total": 2,
+    "decision": "pass",
+    "artifacts": {
+      "runner": [
+        "/private/tmp/composition-required-read-output-candidate-candidate-v3-r1.json",
+        "/private/tmp/composition-required-read-output-candidate-candidate-v3-r2.json"
+      ],
+      "judge": "/private/tmp/judge-composition-required-read-output-candidate-candidate-v3.json"
+    }
+  },
+  "comparison": {
+    "pre_repair_all_pairings": "0/8",
+    "post_repair_all_pairings": "6/8",
+    "post_repair_candidate_containing_pairings": "6/6",
+    "tested_regressions": 0,
+    "safety_mutations": 0
+  },
+  "interpretation": {
+    "finding": "After the generator safety-contract repair, every pairing containing at least one repaired candidate passes twice. The unchanged original/original control remains 0/2, so the family improves from 0/8 to 6/8 without claiming that the unsafe originals are repaired.",
+    "composition_result": "The precedence guard and output contract compose in both directions; the required-read and output-contract candidate pair also independently passes 2/2.",
+    "confidence_boundary": "This is still two task shapes, one model, and low reasoning; it establishes repeatable fixture-level interaction evidence, not corpus-wide causal proof."
+  }
+}

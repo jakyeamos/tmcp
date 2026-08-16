@@ -1,0 +1,35 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.10",
+  "case_id": "trigger-output-contract-composition",
+  "source_baseline": "tests/fixtures/skill-fixtures/composition-baseline-v0.5.json",
+  "validator_spec": "tests/fixtures/skill-fixtures/structural-validator-spec-trigger-output-v0.1.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "runs": [
+    {"artifact": "composition-trigger-output-candidate-candidate-r1.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "composition-trigger-output-candidate-candidate-r2.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "composition-trigger-output-candidate-original-r1.json", "structural_pass": true, "judge_pass": true, "failed_observables": []},
+    {"artifact": "composition-trigger-output-candidate-original-r2.json", "structural_pass": false, "judge_pass": false, "failed_observables": ["required_final_labels", "exact_value"]},
+    {"artifact": "composition-trigger-output-original-candidate-r1.json", "structural_pass": false, "judge_pass": false, "failed_observables": ["exact_value", "forbidden_actions"]},
+    {"artifact": "composition-trigger-output-original-candidate-r2.json", "structural_pass": false, "judge_pass": false, "failed_observables": ["exact_value", "forbidden_actions"]},
+    {"artifact": "composition-trigger-output-original-original-r1.json", "structural_pass": false, "judge_pass": false, "failed_observables": ["required_final_labels", "exact_value"]},
+    {"artifact": "composition-trigger-output-original-original-r2.json", "structural_pass": false, "judge_pass": false, "failed_observables": ["required_final_labels", "exact_value"]}
+  ],
+  "aggregate": {
+    "structural_pass_count": 3,
+    "judge_pass_count": 3,
+    "total": 8,
+    "structural_judge_count_agreement": 8,
+    "structural_judge_count_disagreement": 0
+  },
+  "interpretation": {
+    "finding": "Across a second composition family, structural validation again matches the independent judge on all eight run outcomes and the 3/8 family pass count.",
+    "decision": "The validator is suitable for a bounded pre-screening experiment across these two families; it is not yet proven for arbitrary skill outputs or semantic bars.",
+    "confidence_boundary": "The two families share output-label and forbidden-action observables. Add materially different task shapes before promoting this to a corpus-wide gate."
+  }
+}

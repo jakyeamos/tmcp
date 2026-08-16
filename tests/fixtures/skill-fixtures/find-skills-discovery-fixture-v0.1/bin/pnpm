@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+if [ "$#" -eq 5 ] && [ "$1" = "dlx" ] && [ "$2" = "skills" ] && [ "$3" = "find" ] && [ "$4" = "react" ] && [ "$5" = "performance" ]; then
+  cat "$(dirname "$0")/react-performance-result.txt"
+  exit 0
+fi
+
+echo "unsupported fixture command" >&2
+exit 2

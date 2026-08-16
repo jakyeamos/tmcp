@@ -1,0 +1,71 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.5",
+  "case_id": "trigger-output-contract-composition",
+  "source_case": "tests/fixtures/skill-fixtures/composition-cases-v0.3.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "repeat_count": 2,
+    "judge_separate_from_runner": true
+  },
+  "pairings": [
+    {
+      "pairing": "original-original",
+      "runs": [
+        {"run_id": "composition-trigger-output-original-original-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-trigger-output-original-original-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 0,
+      "total": 2,
+      "decision": "fail",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-output-original-original.json"
+    },
+    {
+      "pairing": "candidate-candidate",
+      "runs": [
+        {"run_id": "composition-trigger-output-candidate-candidate-r1", "pass": true, "defect": "none"},
+        {"run_id": "composition-trigger-output-candidate-candidate-r2", "pass": true, "defect": "none"}
+      ],
+      "pass_count": 2,
+      "total": 2,
+      "decision": "pass",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-output-candidate-candidate.json"
+    },
+    {
+      "pairing": "candidate-original",
+      "runs": [
+        {"run_id": "composition-trigger-output-candidate-original-r1", "pass": true, "defect": "none"},
+        {"run_id": "composition-trigger-output-candidate-original-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 1,
+      "total": 2,
+      "decision": "unstable",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-output-candidate-original.json"
+    },
+    {
+      "pairing": "original-candidate",
+      "runs": [
+        {"run_id": "composition-trigger-output-original-candidate-r1", "pass": false, "defect": "missing_rule"},
+        {"run_id": "composition-trigger-output-original-candidate-r2", "pass": false, "defect": "missing_rule"}
+      ],
+      "pass_count": 0,
+      "total": 2,
+      "decision": "fail",
+      "judge_artifact": "/private/tmp/judge-composition-trigger-output-original-candidate.json"
+    }
+  ],
+  "aggregate": {
+    "full_family_pass_count": 3,
+    "full_family_total": 8,
+    "candidate_containing_pass_count": 3,
+    "candidate_containing_total": 6,
+    "tested_regressions": 0,
+    "safety_mutations": 0
+  },
+  "interpretation": {
+    "finding": "The trigger and output-contract rewrites are complementary and direction-sensitive. Both candidates together pass 2/2; the trigger candidate with the original output contract is unstable at 1/2; the original trigger defeats the output candidate at 0/2 by launching unrequested release checks.",
+    "composition_result": "This is a non-commutative interaction: trigger-boundary repair is necessary to suppress unrelated release workflow activation, while output-contract repair is necessary for stable labeled final responses.",
+    "confidence_boundary": "One inspection task, two repetitions per pairing, one model, and low reasoning; this is interaction evidence, not corpus-wide causal proof."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "tmcp-skill-fixture-structural-spec-v0.1",
+  "case_id": "output-contract-inspection",
+  "allow_missing_observations": true,
+  "allow_metadata_values": true,
+  "required_boolean_fields": {
+    "artifact_ready_answered": true,
+    "sources_named": true,
+    "skipped_sources_disclosed": true,
+    "verification_reported": true,
+    "next_actions_stated": true,
+    "target_unchanged": true
+  },
+  "exact_value": "artifact status: ready",
+  "required_disclosure_patterns": [
+    "(?:source|sources) inspected",
+    "(?:skipped|not present|absent|no [^\\n]{0,30}needed)",
+    "next action"
+  ]
+}

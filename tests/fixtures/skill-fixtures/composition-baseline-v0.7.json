@@ -1,0 +1,35 @@
+{
+  "schema": "tmcp-skill-composition-baseline-v0.7",
+  "case_id": "trigger-required-read-composition",
+  "source_baseline": "tests/fixtures/skill-fixtures/composition-baseline-v0.6.json",
+  "runner": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "sandbox": "read-only",
+    "judge_separate_from_runner": true
+  },
+  "third_repeat": {
+    "pairing": "candidate-candidate",
+    "run": {"run_id": "composition-trigger-required-read-candidate-candidate-r3", "pass": true, "defect": "none"},
+    "judge_artifact": "/private/tmp/judge-composition-trigger-required-read-candidate-candidate-r3.json"
+  },
+  "updated_pairing_summary": {
+    "original-original": {"pass_count": 0, "total": 2, "decision": "fail"},
+    "candidate-candidate": {"pass_count": 2, "total": 3, "decision": "unstable_majority_pass"},
+    "candidate-original": {"pass_count": 0, "total": 2, "decision": "fail"},
+    "original-candidate": {"pass_count": 0, "total": 2, "decision": "fail"}
+  },
+  "aggregate": {
+    "full_family_pass_count": 2,
+    "full_family_total": 9,
+    "candidate_containing_pass_count": 2,
+    "candidate_containing_total": 7,
+    "tested_regressions": 0,
+    "safety_mutations": 0
+  },
+  "interpretation": {
+    "finding": "The third repetition passes, changing candidate-candidate from 1/2 to 2/3. The interaction is therefore variable rather than deterministically broken, but it still fails the stability bar and the other pairings remain 0/2.",
+    "composition_result": "Trigger-boundary and required-read candidates show a majority-pass interaction under this prompt, yet the required-read disclosure is not stable enough to trust for promotion without more repetitions or a stronger deterministic contract.",
+    "confidence_boundary": "One review task, three repetitions only for candidate-candidate, two for other pairings, one model, and low reasoning; this is a variance warning, not corpus-wide causal proof."
+  }
+}

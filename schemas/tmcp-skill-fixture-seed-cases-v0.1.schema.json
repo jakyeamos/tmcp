@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tmcp.dev/schemas/tmcp-skill-fixture-seed-cases-v0.1.schema.json",
+  "title": "TMCP seeded skill fixture cases",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "cases"],
+  "properties": {
+    "schema": {"const": "tmcp-skill-fixture-seed-cases-v0.1"},
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_path", "case_id", "mode", "prompt", "bar", "smells"],
+        "properties": {
+          "source_path": {"type": "string", "minLength": 1},
+          "case_id": {"type": "string", "minLength": 1},
+          "mode": {"enum": ["judgment", "conformance"]},
+          "prompt": {"type": "string", "minLength": 1},
+          "bar": {"type": "string", "minLength": 1},
+          "smells": {"type": "array", "items": {"type": "string"}},
+          "observables": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}
