@@ -123,7 +123,9 @@ class RuntimeServiceTests(unittest.TestCase):
 
         def compose_packet(arguments: dict[str, object]) -> dict[str, object]:
             compose_calls.append(arguments)
-            raise AssertionError("composition should not run without a material trigger")
+            raise AssertionError(
+                "composition should not run without a material trigger"
+            )
 
         service = RuntimeService(
             RuntimeServiceContext(

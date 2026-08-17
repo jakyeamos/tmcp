@@ -1,6 +1,6 @@
 import unittest
 
-from routes import normalize_route
+from routes import normalize_route  # pyright: ignore[reportImplicitRelativeImport]
 
 
 class NormalizeRouteTests(unittest.TestCase):

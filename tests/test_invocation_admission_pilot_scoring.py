@@ -69,9 +69,7 @@ class InvocationAdmissionPilotScoringTests(unittest.TestCase):
                         "packet_injected": policy == "always-on",
                         "packet_markdown_chars": 100 if policy == "always-on" else 0,
                         "review_source_count": 0,
-                        "runner_wall_time_ms": (
-                            100 if policy == "always-on" else 50
-                        ),
+                        "runner_wall_time_ms": (100 if policy == "always-on" else 50),
                         "selected_source_count": 0,
                     },
                 }
@@ -112,9 +110,7 @@ class InvocationAdmissionPilotScoringTests(unittest.TestCase):
         self.assertTrue(
             all(item["passed"] for item in report["acceptance_gates"].values())
         )
-        overhead = report["acceptance_gates"][
-            "median_overhead_reduction_vs_always_on"
-        ]
+        overhead = report["acceptance_gates"]["median_overhead_reduction_vs_always_on"]
         self.assertEqual(overhead["scope"], "negative_controls")
         self.assertEqual(overhead["admission_rows"], 1)
         self.assertEqual(overhead["always_on_rows"], 1)

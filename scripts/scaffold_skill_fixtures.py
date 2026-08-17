@@ -33,7 +33,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed-cases", type=Path)
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--force", action="store_true", help="replace an existing generated output directory")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="replace an existing generated output directory",
+    )
     return parser.parse_args()
 
 
@@ -48,7 +52,9 @@ def source_id(path: Path, roots: list[Path], extras: set[Path]) -> str:
     raise ValueError(f"skill is outside configured roots: {path}")
 
 
-def load_seed_cases(path: Path | None, project_root: Path) -> dict[str, list[dict[str, Any]]]:
+def load_seed_cases(
+    path: Path | None, project_root: Path
+) -> dict[str, list[dict[str, Any]]]:
     if path is None:
         return {}
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -60,7 +66,9 @@ def load_seed_cases(path: Path | None, project_root: Path) -> dict[str, list[dic
     result: dict[str, list[dict[str, Any]]] = {}
     for case in payload.get("cases", []):
         source = str((project_root / str(case["source_path"])).resolve())
-        clean = {key: case[key] for key in ("case_id", "mode", "prompt", "bar", "smells")}
+        clean = {
+            key: case[key] for key in ("case_id", "mode", "prompt", "bar", "smells")
+        }
         if "observables" in case:
             clean["observables"] = case["observables"]
         if "provenance" in case:
@@ -73,7 +81,9 @@ def load_seed_cases(path: Path | None, project_root: Path) -> dict[str, list[dic
     return result
 
 
-def write_variant(root: Path, variant: str, source: Path, digest: str) -> dict[str, str]:
+def write_variant(
+    root: Path, variant: str, source: Path, digest: str
+) -> dict[str, str]:
     variant_root = root / "versions" / variant
     variant_root.mkdir(parents=True, exist_ok=True)
     if variant in {"original", "candidate"}:
@@ -83,11 +93,15 @@ def write_variant(root: Path, variant: str, source: Path, digest: str) -> dict[s
     else:
         target = variant_root / "variant.json"
         target.write_text(
-            json.dumps({
-                "variant_id": variant,
-                "selection": "omitted" if variant == "baseline" else "replaced",
-                "reason": "controlled fixture variant; no target skill body is supplied",
-            }, indent=2) + "\n",
+            json.dumps(
+                {
+                    "variant_id": variant,
+                    "selection": "omitted" if variant == "baseline" else "replaced",
+                    "reason": "controlled fixture variant; no target skill body is supplied",
+                },
+                indent=2,
+            )
+            + "\n",
             encoding="utf-8",
         )
         selection = "omitted" if variant == "baseline" else "replaced"
@@ -106,7 +120,12 @@ def main() -> None:
     roots = [root.resolve() for root in args.root]
     extras = {path.resolve() for path in args.extra_skill}
     skills = sorted(
-        {path.resolve() for root in roots for path in root.rglob("SKILL.md") if path.is_file()}
+        {
+            path.resolve()
+            for root in roots
+            for path in root.rglob("SKILL.md")
+            if path.is_file()
+        }
         | {path for path in extras if path.is_file()},
         key=str,
     )
@@ -128,17 +147,22 @@ def main() -> None:
         seen_ids.add(skill_id)
         digest = sha256(source)
         skill_root = output / "skills" / skill_id
-        versions = {variant: write_variant(skill_root, variant, source, digest) for variant in VARIANTS}
+        versions = {
+            variant: write_variant(skill_root, variant, source, digest)
+            for variant in VARIANTS
+        }
         cases = seed_cases.get(str(source), [])
         readiness = "ready" if cases else "needs_golden_case_and_bar"
-        records.append({
-            "skill_id": skill_id,
-            "source_path": str(source),
-            "source_sha256": digest,
-            "versions": versions,
-            "cases": cases,
-            "readiness": readiness,
-        })
+        records.append(
+            {
+                "skill_id": skill_id,
+                "source_path": str(source),
+                "source_sha256": digest,
+                "versions": versions,
+                "cases": cases,
+                "readiness": readiness,
+            }
+        )
     manifest = {
         "schema": SCHEMA,
         "fixture_set_id": f"skill-corpus-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
@@ -151,13 +175,22 @@ def main() -> None:
         },
         "skills": records,
     }
-    (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({
-        "manifest": str(output / "manifest.json"),
-        "skill_count": len(records),
-        "ready_count": sum(item["readiness"] == "ready" for item in records),
-        "needs_case_or_bar_count": sum(item["readiness"] != "ready" for item in records),
-    }, indent=2))
+    (output / "manifest.json").write_text(
+        json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+    )
+    print(
+        json.dumps(
+            {
+                "manifest": str(output / "manifest.json"),
+                "skill_count": len(records),
+                "ready_count": sum(item["readiness"] == "ready" for item in records),
+                "needs_case_or_bar_count": sum(
+                    item["readiness"] != "ready" for item in records
+                ),
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

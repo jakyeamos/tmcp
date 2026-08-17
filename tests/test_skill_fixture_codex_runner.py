@@ -19,10 +19,10 @@ class SkillFixtureCodexRunnerTests(unittest.TestCase):
             fake_codex.write_text(
                 "#!/bin/sh\n"
                 "while [ $# -gt 0 ]; do\n"
-                "  if [ \"$1\" = \"-o\" ]; then shift; output=\"$1\"; fi\n"
+                '  if [ "$1" = "-o" ]; then shift; output="$1"; fi\n'
                 "  shift\n"
                 "done\n"
-                "cat > \"$output\"\n"
+                'cat > "$output"\n'
                 "echo 'session id: fake-session'\n",
                 encoding="utf-8",
             )

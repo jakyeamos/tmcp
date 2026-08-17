@@ -244,7 +244,10 @@ class CompositionDomainTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertEqual(
                     composition.score_composition_node(
-                        {"relative_path": path, "signal": "release failure verification"},
+                        {
+                            "relative_path": path,
+                            "signal": "release failure verification",
+                        },
                         debug_objective,
                         "implementation",
                         {},

@@ -5,7 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from tmcp_runtime.domain.behavioral_atoms import build_h3_registry, compile_behavioral_atoms
+from tmcp_runtime.domain.behavioral_atoms import (
+    build_h3_registry,
+    compile_behavioral_atoms,
+)
 from tmcp_runtime.services.behavioral_atom_evaluation import (
     _H3_INVALID_ARMS,
     _H3_VALID_ARMS,
@@ -55,6 +58,8 @@ def build_h3_advisory_evaluator_mapping() -> dict[str, Any]:
         "cross_skill_composition": "closed_gate",
         "promotion_policy": {"auto_promote": False},
     }
+
+
 def evaluate_h3_boundary_fixtures(
     fixtures: Sequence[Mapping[str, Any]],
 ) -> dict[str, Any]:

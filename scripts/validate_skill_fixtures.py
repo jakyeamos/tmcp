@@ -56,7 +56,6 @@ def main() -> None:
         if not isinstance(versions, dict) or set(versions) != VARIANTS:
             issues.append(f"{prefix} must contain exactly {sorted(VARIANTS)} versions")
             versions = {}
-        skill_root = manifest_path.parent / "skills" / str(skill_id)
         for variant in VARIANTS:
             item = versions.get(variant) or {}
             if item.get("kind") != variant or item.get("parent_sha256") != source_hash:
@@ -68,26 +67,51 @@ def main() -> None:
                 issues.append(f"{prefix}.{variant} target is missing: {target}")
             if target.is_file() and digest(target) != item.get("content_sha256"):
                 issues.append(f"{prefix}.{variant} content digest is wrong")
-            if variant == "original" and target.is_file() and digest(target) != source_hash:
+            if (
+                variant == "original"
+                and target.is_file()
+                and digest(target) != source_hash
+            ):
                 issues.append(f"{prefix}.original does not match source digest")
             if variant == "baseline" and item.get("selection") != "omitted":
                 issues.append(f"{prefix}.baseline must be omitted")
             if variant == "candidate" and item.get("proposal_bundle_sha256"):
-                proposal_path = (manifest_path.parent / str(item.get("proposal_path", ""))).resolve()
-                if manifest_path.parent not in proposal_path.parents or not proposal_path.is_file():
-                    issues.append(f"{prefix}.candidate proposal bundle is missing or escapes fixture root")
+                proposal_path = (
+                    manifest_path.parent / str(item.get("proposal_path", ""))
+                ).resolve()
+                if (
+                    manifest_path.parent not in proposal_path.parents
+                    or not proposal_path.is_file()
+                ):
+                    issues.append(
+                        f"{prefix}.candidate proposal bundle is missing or escapes fixture root"
+                    )
                 elif digest(proposal_path) != item.get("proposal_bundle_sha256"):
                     issues.append(f"{prefix}.candidate proposal bundle digest is wrong")
-                if not isinstance(item.get("applied_proposal_ids"), list) or not isinstance(item.get("skipped_proposal_ids"), list):
-                    issues.append(f"{prefix}.candidate proposal application lists are invalid")
-                if item.get("proposal_application_mode") not in {"approved", "experimental"}:
-                    issues.append(f"{prefix}.candidate proposal application mode is invalid")
+                if not isinstance(
+                    item.get("applied_proposal_ids"), list
+                ) or not isinstance(item.get("skipped_proposal_ids"), list):
+                    issues.append(
+                        f"{prefix}.candidate proposal application lists are invalid"
+                    )
+                if item.get("proposal_application_mode") not in {
+                    "approved",
+                    "experimental",
+                }:
+                    issues.append(
+                        f"{prefix}.candidate proposal application mode is invalid"
+                    )
         cases = skill.get("cases") or []
         if cases:
             ready += 1
             for case in cases:
-                if not all(isinstance(case.get(field), str) and case[field].strip() for field in ("case_id", "prompt", "bar")):
-                    issues.append(f"{prefix} has a case missing case_id, prompt, or bar")
+                if not all(
+                    isinstance(case.get(field), str) and case[field].strip()
+                    for field in ("case_id", "prompt", "bar")
+                ):
+                    issues.append(
+                        f"{prefix} has a case missing case_id, prompt, or bar"
+                    )
         elif skill.get("readiness") != "needs_golden_case_and_bar":
             issues.append(f"{prefix} without cases must require a golden case and bar")
     if args.ready_only and ready == 0:

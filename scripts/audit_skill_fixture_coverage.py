@@ -14,7 +14,9 @@ from typing import Any, Mapping, Sequence
 SCHEMA = "tmcp-skill-fixture-coverage-audit-v0.1"
 
 
-def audit_manifest(manifest: Mapping[str, object], *, manifest_bytes: bytes | None = None) -> dict[str, Any]:
+def audit_manifest(
+    manifest: Mapping[str, object], *, manifest_bytes: bytes | None = None
+) -> dict[str, Any]:
     skills = manifest.get("skills")
     errors: list[str] = []
     if not isinstance(skills, list):
@@ -57,7 +59,9 @@ def audit_manifest(manifest: Mapping[str, object], *, manifest_bytes: bytes | No
                 continue
             case_ids.append(case["case_id"])
 
-    duplicate_case_ids = sorted(case_id for case_id, count in Counter(case_ids).items() if count > 1)
+    duplicate_case_ids = sorted(
+        case_id for case_id, count in Counter(case_ids).items() if count > 1
+    )
     if duplicate_case_ids:
         errors.append(f"duplicate case_id values: {', '.join(duplicate_case_ids)}")
     unready_count = sum(
@@ -78,9 +82,13 @@ def audit_manifest(manifest: Mapping[str, object], *, manifest_bytes: bytes | No
         "needs_case_or_bar_count": unready_count,
         "coverage_rate": (len(skills_with_cases) / len(skills)) if skills else 0.0,
         "manifest_integrity_pass": not errors,
-        "corpus_promotion_ready": not errors and not ready_without_cases and unready_count == 0,
+        "corpus_promotion_ready": not errors
+        and not ready_without_cases
+        and unready_count == 0,
         "errors": errors,
-        "manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest() if manifest_bytes is not None else None,
+        "manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest()
+        if manifest_bytes is not None
+        else None,
     }
 
 

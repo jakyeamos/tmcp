@@ -34,7 +34,9 @@ SPEC = {
 }
 
 
-def _artifact(final_response: str, *, actions: list[str] | None = None) -> dict[str, object]:
+def _artifact(
+    final_response: str, *, actions: list[str] | None = None
+) -> dict[str, object]:
     return {
         "observations": ["The inspected target's exact value is valid."],
         "actions": actions or ["Read the target."],
@@ -160,14 +162,19 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
         )
         self.assertTrue(result["passed"])
 
-    def test_fails_when_required_activity_is_only_claimed_in_final_response(self) -> None:
+    def test_fails_when_required_activity_is_only_claimed_in_final_response(
+        self,
+    ) -> None:
         result = validate_fixture_artifact(
             {
                 "observations": ["The target was read."],
                 "actions": ["Read the target."],
                 "final_response": "portable value; used portable file inspection",
             },
-            {"exact_value": "portable value", "required_activity_markers": ["portable file inspection"]},
+            {
+                "exact_value": "portable value",
+                "required_activity_markers": ["portable file inspection"],
+            },
         )
         self.assertFalse(result["passed"])
         self.assertIn("required_activity", result["failed_observables"])
@@ -176,7 +183,9 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
         result = validate_fixture_artifact(
             {
                 "observations": ["The target was located."],
-                "actions": ["Inspected the file with ordinary portable shell commands."],
+                "actions": [
+                    "Inspected the file with ordinary portable shell commands."
+                ],
                 "final_response": "portable value",
             },
             {
@@ -232,17 +241,25 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
             artifact = root / "artifact.json"
             spec.write_text(json.dumps({"exact_value": "ready"}), encoding="utf-8")
             artifact.write_text(
-                json.dumps({"observations": ["read target"], "actions": [], "final_response": "ready"}),
+                json.dumps(
+                    {
+                        "observations": ["read target"],
+                        "actions": [],
+                        "final_response": "ready",
+                    }
+                ),
                 encoding="utf-8",
             )
             report = validate_corpus(
                 {
                     "schema": "tmcp-skill-selected-corpus-v0.1",
-                    "families": [{
-                        "id": "synthetic",
-                        "spec": "spec.json",
-                        "runs": [{"artifact": "artifact.json", "judge_pass": True}],
-                    }],
+                    "families": [
+                        {
+                            "id": "synthetic",
+                            "spec": "spec.json",
+                            "runs": [{"artifact": "artifact.json", "judge_pass": True}],
+                        }
+                    ],
                 },
                 project_root=root,
                 artifact_root=root,
@@ -258,23 +275,35 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
             judge = root / "judge.json"
             spec.write_text(json.dumps({"exact_value": "ready"}), encoding="utf-8")
             artifact.write_text(
-                json.dumps({"observations": ["read target"], "actions": [], "final_response": "ready"}),
+                json.dumps(
+                    {
+                        "observations": ["read target"],
+                        "actions": [],
+                        "final_response": "ready",
+                    }
+                ),
                 encoding="utf-8",
             )
-            judge.write_text(json.dumps([{"run_id": "synthetic-r1", "pass": True}]), encoding="utf-8")
+            judge.write_text(
+                json.dumps([{"run_id": "synthetic-r1", "pass": True}]), encoding="utf-8"
+            )
             report = validate_corpus(
                 {
                     "schema": "tmcp-skill-selected-corpus-v0.1",
-                    "families": [{
-                        "id": "synthetic",
-                        "spec": "spec.json",
-                        "runs": [{
-                            "artifact": "artifact.json",
-                            "judge_pass": True,
-                            "judge_artifact": "judge.json",
-                            "judge_record_index": 0,
-                        }],
-                    }],
+                    "families": [
+                        {
+                            "id": "synthetic",
+                            "spec": "spec.json",
+                            "runs": [
+                                {
+                                    "artifact": "artifact.json",
+                                    "judge_pass": True,
+                                    "judge_artifact": "judge.json",
+                                    "judge_record_index": 0,
+                                }
+                            ],
+                        }
+                    ],
                 },
                 project_root=root,
                 artifact_root=root,
@@ -288,31 +317,44 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
     def test_corpus_gate_rejects_judge_artifact_disagreement(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / "spec.json").write_text(json.dumps({"exact_value": "ready"}), encoding="utf-8")
+            (root / "spec.json").write_text(
+                json.dumps({"exact_value": "ready"}), encoding="utf-8"
+            )
             (root / "artifact.json").write_text(
-                json.dumps({"observations": [], "actions": [], "final_response": "ready"}),
+                json.dumps(
+                    {"observations": [], "actions": [], "final_response": "ready"}
+                ),
                 encoding="utf-8",
             )
-            (root / "judge.json").write_text(json.dumps([{"run_id": "synthetic-r1", "pass": False}]), encoding="utf-8")
+            (root / "judge.json").write_text(
+                json.dumps([{"run_id": "synthetic-r1", "pass": False}]),
+                encoding="utf-8",
+            )
             report = validate_corpus(
                 {
                     "schema": "tmcp-skill-selected-corpus-v0.1",
-                    "families": [{
-                        "id": "synthetic",
-                        "spec": "spec.json",
-                        "runs": [{
-                            "artifact": "artifact.json",
-                            "judge_pass": True,
-                            "judge_artifact": "judge.json",
-                            "judge_record_index": 0,
-                        }],
-                    }],
+                    "families": [
+                        {
+                            "id": "synthetic",
+                            "spec": "spec.json",
+                            "runs": [
+                                {
+                                    "artifact": "artifact.json",
+                                    "judge_pass": True,
+                                    "judge_artifact": "judge.json",
+                                    "judge_record_index": 0,
+                                }
+                            ],
+                        }
+                    ],
                 },
                 project_root=root,
                 artifact_root=root,
             )
             self.assertFalse(report["gate_pass"])
-            self.assertTrue(any("judge_pass disagrees" in error for error in report["errors"]))
+            self.assertTrue(
+                any("judge_pass disagrees" in error for error in report["errors"])
+            )
 
     def test_rejects_positive_file_mutation_action(self) -> None:
         result = validate_fixture_artifact(
@@ -376,7 +418,9 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
         self.assertTrue(result["passed"])
         self.assertEqual(result["checks"]["exact_value"]["scope"], "artifact")
 
-    def test_neutral_artifact_fails_when_cross_field_contract_is_incomplete(self) -> None:
+    def test_neutral_artifact_fails_when_cross_field_contract_is_incomplete(
+        self,
+    ) -> None:
         result = validate_fixture_artifact(
             {
                 "observations": ["Sources inspected: target.txt"],
@@ -403,7 +447,9 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
             root = Path(tmp)
             artifact = root / "artifact.json"
             spec = root / "spec.json"
-            artifact.write_text(json.dumps(_artifact("not compliant")), encoding="utf-8")
+            artifact.write_text(
+                json.dumps(_artifact("not compliant")), encoding="utf-8"
+            )
             spec.write_text(json.dumps(SPEC), encoding="utf-8")
             completed = subprocess.run(
                 [sys.executable, str(VALIDATOR), str(artifact), "--spec", str(spec)],
@@ -422,18 +468,27 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
             failing = root / "failing.json"
             spec = root / "spec.json"
             passing.write_text(
-                json.dumps(_artifact(
-                    "Sources inspected: target.txt\n"
-                    "Skipped sources and why: AGENTS.md was required but unavailable.\n"
-                    "Verification results: exact target value is valid.\n"
-                    "Next actions: None."
-                )),
+                json.dumps(
+                    _artifact(
+                        "Sources inspected: target.txt\n"
+                        "Skipped sources and why: AGENTS.md was required but unavailable.\n"
+                        "Verification results: exact target value is valid.\n"
+                        "Next actions: None."
+                    )
+                ),
                 encoding="utf-8",
             )
             failing.write_text(json.dumps(_artifact("not compliant")), encoding="utf-8")
             spec.write_text(json.dumps(SPEC), encoding="utf-8")
             completed = subprocess.run(
-                [sys.executable, str(BATCH_VALIDATOR), str(passing), str(failing), "--spec", str(spec)],
+                [
+                    sys.executable,
+                    str(BATCH_VALIDATOR),
+                    str(passing),
+                    str(failing),
+                    "--spec",
+                    str(spec),
+                ],
                 cwd=ROOT,
                 capture_output=True,
                 text=True,
@@ -443,7 +498,9 @@ class SkillFixtureArtifactValidatorTests(unittest.TestCase):
             self.assertEqual(completed.returncode, 1)
             self.assertEqual(report["artifact_count"], 2)
             self.assertEqual(report["passed_count"], 1)
-            self.assertEqual([item["passed"] for item in report["results"]], [True, False])
+            self.assertEqual(
+                [item["passed"] for item in report["results"]], [True, False]
+            )
 
 
 if __name__ == "__main__":

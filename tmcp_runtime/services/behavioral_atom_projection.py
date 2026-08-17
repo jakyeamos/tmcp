@@ -77,6 +77,7 @@ def _atom_evidence_citation(atom: TypedAtom) -> dict[str, Any]:
         "projection": "internal_typed_atom_compatibility",
     }
 
+
 def _merge_citations(
     packet: dict[str, Any], atoms: Sequence[TypedAtom]
 ) -> tuple[list[dict[str, Any]], list[str]]:

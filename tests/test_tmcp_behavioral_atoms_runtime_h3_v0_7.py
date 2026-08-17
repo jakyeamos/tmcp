@@ -9,9 +9,16 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DECISION_PATH = ROOT / "docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7.json"
-DECISION_SCHEMA_PATH = ROOT / "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json"
-FIXTURE_SCHEMA_PATH = ROOT / "schemas/tmcp-behavioral-atoms-runtime-h3-fixtures-v0.7.schema.json"
+DECISION_PATH = (
+    ROOT
+    / "docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7.json"
+)
+DECISION_SCHEMA_PATH = (
+    ROOT / "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json"
+)
+FIXTURE_SCHEMA_PATH = (
+    ROOT / "schemas/tmcp-behavioral-atoms-runtime-h3-fixtures-v0.7.schema.json"
+)
 FIXTURE_PATH = ROOT / "tests/fixtures/behavioral-atoms-runtime-h3-v0.7.json"
 
 
@@ -22,9 +29,7 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
         cls.decision_schema = json.loads(
             DECISION_SCHEMA_PATH.read_text(encoding="utf-8")
         )
-        cls.fixture_schema = json.loads(
-            FIXTURE_SCHEMA_PATH.read_text(encoding="utf-8")
-        )
+        cls.fixture_schema = json.loads(FIXTURE_SCHEMA_PATH.read_text(encoding="utf-8"))
         cls.fixtures = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
 
     @staticmethod
@@ -108,7 +113,10 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
         )
         self.assertEqual(len(decision["invalid_arms"]), 4)
         self.assertTrue(
-            all(item["status"] == "rejected_before_cell" for item in decision["invalid_arms"])
+            all(
+                item["status"] == "rejected_before_cell"
+                for item in decision["invalid_arms"]
+            )
         )
         proof = self.decision["delta"]["non_duplicate_proof"]
         self.assertTrue(any("redaction" in item for item in proof))
@@ -146,7 +154,9 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
         )
 
     def test_negative_and_ambiguous_cases_fail_closed(self) -> None:
-        by_id = {item["id"]: item["expected_outcome"] for item in self.fixtures["fixtures"]}
+        by_id = {
+            item["id"]: item["expected_outcome"] for item in self.fixtures["fixtures"]
+        }
         self.assertEqual(
             by_id["h3_security_negative_redaction_only"]["decision"], "reject"
         )
@@ -187,7 +197,9 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
         )
         self.assertTrue(self.decision["compatibility"]["provider_off"])
         self.assertTrue(self.decision["compatibility"]["cross_skill_off"])
-        self.assertEqual(self.decision["compatibility"]["admission_routing"], "unchanged")
+        self.assertEqual(
+            self.decision["compatibility"]["admission_routing"], "unchanged"
+        )
         self.assertEqual(
             self.decision["decision"]["cross_skill_composition"], "closed_gate"
         )
@@ -198,7 +210,9 @@ class BehavioralAtomsRuntimeH3V07Tests(unittest.TestCase):
         ids = build_h2_registry().ids
         self.assertNotIn("domain.security_privacy.secret_boundary@0.4.0", ids)
         self.assertNotIn("domain.release_readiness.evidence_ladder@0.4.0", ids)
-        self.assertEqual(self.decision["decision"]["runtime_implementation"], "not_started")
+        self.assertEqual(
+            self.decision["decision"]["runtime_implementation"], "not_started"
+        )
 
 
 if __name__ == "__main__":

@@ -21,8 +21,16 @@ class SkillFixtureCoverageTests(unittest.TestCase):
                 "schema": "tmcp-skill-fixture-manifest-v0.1",
                 "fixture_set_id": "synthetic",
                 "skills": [
-                    {"skill_id": "ready", "readiness": "ready", "cases": [{"case_id": "case-1"}]},
-                    {"skill_id": "unready", "readiness": "needs_golden_case_and_bar", "cases": []},
+                    {
+                        "skill_id": "ready",
+                        "readiness": "ready",
+                        "cases": [{"case_id": "case-1"}],
+                    },
+                    {
+                        "skill_id": "unready",
+                        "readiness": "needs_golden_case_and_bar",
+                        "cases": [],
+                    },
                 ],
             },
             manifest_bytes=b"synthetic",
@@ -39,8 +47,16 @@ class SkillFixtureCoverageTests(unittest.TestCase):
         report = audit_manifest(
             {
                 "skills": [
-                    {"skill_id": "one", "readiness": "ready", "cases": [{"case_id": "duplicate"}]},
-                    {"skill_id": "two", "readiness": "ready", "cases": [{"case_id": "duplicate"}]},
+                    {
+                        "skill_id": "one",
+                        "readiness": "ready",
+                        "cases": [{"case_id": "duplicate"}],
+                    },
+                    {
+                        "skill_id": "two",
+                        "readiness": "ready",
+                        "cases": [{"case_id": "duplicate"}],
+                    },
                 ]
             }
         )

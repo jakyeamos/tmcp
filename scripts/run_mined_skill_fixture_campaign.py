@@ -29,7 +29,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--model", default="gpt-5.5")
-    parser.add_argument("--reasoning-effort", choices=("low", "medium", "high", "max"), default="low")
+    parser.add_argument(
+        "--reasoning-effort", choices=("low", "medium", "high", "max"), default="low"
+    )
     parser.add_argument("--max-workers", type=int, default=4)
     parser.add_argument(
         "--timeout-seconds",
@@ -123,7 +125,9 @@ def run_codex(
                 "prompt_sha256": sha256_bytes(prompt_bytes),
                 "prompt_bytes": len(prompt_bytes),
                 "output_sha256": sha256(output_file) if output_file.exists() else None,
-                "output_bytes": output_file.stat().st_size if output_file.exists() else 0,
+                "output_bytes": output_file.stat().st_size
+                if output_file.exists()
+                else 0,
                 "stdout_tail": read_tail(stdout_log),
                 "stderr_tail": read_tail(stderr_log),
             }
@@ -196,9 +200,7 @@ def judge_prompt(skill_name: str, prompt: str, bar: str, artifact: str) -> str:
         f"skill: {skill_name}\n"
         f"task: {prompt}\n"
         f"bar: {bar}\n\n"
-        "=== ARTIFACT TO JUDGE ===\n"
-        + artifact
-        + "\n=== END ARTIFACT ===\n"
+        "=== ARTIFACT TO JUDGE ===\n" + artifact + "\n=== END ARTIFACT ===\n"
     )
 
 
@@ -242,7 +244,9 @@ def main() -> None:
         skill_source = Path(str(skill["source_path"]))
         for case in skill["cases"]:
             for variant in ("original", "candidate"):
-                variant_path = (manifest_path.parent / str(skill["versions"][variant]["path"])).resolve()
+                variant_path = (
+                    manifest_path.parent / str(skill["versions"][variant]["path"])
+                ).resolve()
                 skill_text = variant_path.read_text(encoding="utf-8")
                 for repeat in range(1, args.repeats + 1):
                     run_id = f"{skill_id}--{case['case_id']}--{variant}--r{repeat}"
@@ -250,43 +254,63 @@ def main() -> None:
                     artifact_file = output / "artifacts" / f"{run_id}.md"
                     workspace = output / "workspaces" / run_id
                     workspace.mkdir(parents=True, exist_ok=True)
-                    execution_ready = case.get("execution_boundary", {}).get("status") == "complete"
+                    execution_ready = (
+                        case.get("execution_boundary", {}).get("status") == "complete"
+                    )
                     if execution_ready and args.execution_root is None:
                         raise SystemExit(
                             f"case {case['case_id']} is execution-ready; pass --execution-root"
                         )
-                    execution_root = args.execution_root.resolve() if execution_ready else None
+                    execution_root = (
+                        args.execution_root.resolve() if execution_ready else None
+                    )
                     if execution_root is not None and not execution_root.is_dir():
-                        raise SystemExit(f"execution root is not a directory: {execution_root}")
+                        raise SystemExit(
+                            f"execution root is not a directory: {execution_root}"
+                        )
                     codex_home = (
                         args.execution_codex_home.resolve()
                         if execution_ready and args.execution_codex_home is not None
                         else None
                     )
                     if codex_home is not None and not codex_home.is_dir():
-                        raise SystemExit(f"execution CODEX_HOME is not a directory: {codex_home}")
+                        raise SystemExit(
+                            f"execution CODEX_HOME is not a directory: {codex_home}"
+                        )
                     prompt_file.write_text(
-                        runner_prompt(skill_text, str(case["prompt"]), execution_root, codex_home),
+                        runner_prompt(
+                            skill_text, str(case["prompt"]), execution_root, codex_home
+                        ),
                         encoding="utf-8",
                     )
-                    jobs.append({
-                        "run_id": run_id,
-                        "skill_id": skill_id,
-                        "skill_title": skill_source.stem,
-                        "case_id": str(case["case_id"]),
-                        "variant": variant,
-                        "repeat": repeat,
-                        "prompt_file": str(prompt_file),
-                        "artifact_file": str(artifact_file),
-                        "workspace": str(workspace),
-                        "skill_sha256": str(skill["versions"][variant]["content_sha256"]),
-                        "source_sha256": str(skill["source_sha256"]),
-                        "prompt": str(case["prompt"]),
-                        "bar": str(case["bar"]),
-                        "execution_mode": "bounded_read_only" if execution_root else "prompt_only",
-                        "execution_root": str(execution_root) if execution_root else None,
-                        "execution_codex_home": str(codex_home) if codex_home else None,
-                    })
+                    jobs.append(
+                        {
+                            "run_id": run_id,
+                            "skill_id": skill_id,
+                            "skill_title": skill_source.stem,
+                            "case_id": str(case["case_id"]),
+                            "variant": variant,
+                            "repeat": repeat,
+                            "prompt_file": str(prompt_file),
+                            "artifact_file": str(artifact_file),
+                            "workspace": str(workspace),
+                            "skill_sha256": str(
+                                skill["versions"][variant]["content_sha256"]
+                            ),
+                            "source_sha256": str(skill["source_sha256"]),
+                            "prompt": str(case["prompt"]),
+                            "bar": str(case["bar"]),
+                            "execution_mode": "bounded_read_only"
+                            if execution_root
+                            else "prompt_only",
+                            "execution_root": str(execution_root)
+                            if execution_root
+                            else None,
+                            "execution_codex_home": str(codex_home)
+                            if codex_home
+                            else None,
+                        }
+                    )
 
     def run_job(job: dict[str, Any]) -> dict[str, Any]:
         result = run_codex(
@@ -305,7 +329,9 @@ def main() -> None:
 
     def judge_job(job: dict[str, Any]) -> dict[str, Any]:
         artifact_path = Path(job["artifact_file"])
-        artifact = artifact_path.read_text(encoding="utf-8") if artifact_path.exists() else ""
+        artifact = (
+            artifact_path.read_text(encoding="utf-8") if artifact_path.exists() else ""
+        )
         judge_prompt_path = output / "prompts" / f"{job['run_id']}--judge.txt"
         judge_output_path = output / "judges" / f"{job['run_id']}.json"
         judge_prompt_path.write_text(
@@ -345,17 +371,32 @@ def main() -> None:
         "judge_count": len(judged_results),
         "results": judged_results,
     }
-    (output / "campaign-report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({
-        "schema": report["schema"],
-        "output": str(output),
-        "runner_count": len(runner_results),
-        "judge_count": len(judged_results),
-        "runner_failures": sum(item["runner"]["exit_code"] != 0 for item in runner_results),
-        "runner_timeouts": sum(item["runner"].get("timed_out", False) for item in runner_results),
-        "judge_failures": sum(item["judge"]["exit_code"] != 0 for item in judged_results),
-        "unparsed_judges": sum(item["parsed_judge"] is None for item in judged_results),
-    }, indent=2))
+    (output / "campaign-report.json").write_text(
+        json.dumps(report, indent=2) + "\n", encoding="utf-8"
+    )
+    print(
+        json.dumps(
+            {
+                "schema": report["schema"],
+                "output": str(output),
+                "runner_count": len(runner_results),
+                "judge_count": len(judged_results),
+                "runner_failures": sum(
+                    item["runner"]["exit_code"] != 0 for item in runner_results
+                ),
+                "runner_timeouts": sum(
+                    item["runner"].get("timed_out", False) for item in runner_results
+                ),
+                "judge_failures": sum(
+                    item["judge"]["exit_code"] != 0 for item in judged_results
+                ),
+                "unparsed_judges": sum(
+                    item["parsed_judge"] is None for item in judged_results
+                ),
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

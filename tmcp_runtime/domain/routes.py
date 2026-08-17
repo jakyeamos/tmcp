@@ -527,9 +527,7 @@ def derive_task_identity(
         :MAX_SECONDARY_ROUTES
     ]
     active_signal_scores = [
-        float(item["score"])
-        for item in signals
-        if str(item["route"]) in active_routes
+        float(item["score"]) for item in signals if str(item["route"]) in active_routes
     ]
     top_score = active_signal_scores[0] if active_signal_scores else 0.0
     next_score = active_signal_scores[1] if len(active_signal_scores) > 1 else 0.0

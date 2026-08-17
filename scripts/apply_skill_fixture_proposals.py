@@ -22,7 +22,9 @@ def digest(path: Path) -> str:
     return digest_bytes(path.read_bytes())
 
 
-def load_bundle(path: Path, skill_id: str, source_sha256: str) -> tuple[dict[str, Any], str]:
+def load_bundle(
+    path: Path, skill_id: str, source_sha256: str
+) -> tuple[dict[str, Any], str]:
     raw = path.read_bytes()
     payload = json.loads(raw.decode("utf-8"))
     if payload.get("schema") != SCHEMA:
@@ -46,9 +48,13 @@ def load_bundle(path: Path, skill_id: str, source_sha256: str) -> tuple[dict[str
             raise SystemExit(f"{path}/{proposal_id}: invalid review status")
         replacement = proposal.get("replacement")
         if not isinstance(replacement, str) or not replacement:
-            raise SystemExit(f"{path}/{proposal_id}: replacement must be non-empty text")
+            raise SystemExit(
+                f"{path}/{proposal_id}: replacement must be non-empty text"
+            )
         if digest_bytes(replacement.encode("utf-8")) != proposal.get("after_sha256"):
-            raise SystemExit(f"{path}/{proposal_id}: replacement hash does not match after_sha256")
+            raise SystemExit(
+                f"{path}/{proposal_id}: replacement hash does not match after_sha256"
+            )
     return payload, digest_bytes(raw)
 
 
@@ -64,7 +70,10 @@ def apply_bundle(
     versions = skill["versions"]
     original = (manifest_path.parent / str(versions["original"]["path"])).resolve()
     candidate = (manifest_path.parent / str(versions["candidate"]["path"])).resolve()
-    if manifest_path.parent not in original.parents or manifest_path.parent not in candidate.parents:
+    if (
+        manifest_path.parent not in original.parents
+        or manifest_path.parent not in candidate.parents
+    ):
         raise SystemExit(f"{skill_id}: fixture version escapes output root")
     if not original.is_file() or not candidate.is_file():
         raise SystemExit(f"{skill_id}: original or candidate fixture is missing")
@@ -81,7 +90,9 @@ def apply_bundle(
             "bundle_sha256": bundle_sha256,
             "applied_proposal_ids": candidate_info.get("applied_proposal_ids", []),
             "skipped_proposal_ids": candidate_info.get("skipped_proposal_ids", []),
-            "application_mode": candidate_info.get("proposal_application_mode", "approved"),
+            "application_mode": candidate_info.get(
+                "proposal_application_mode", "approved"
+            ),
             "changed": False,
         }
     if candidate_digest != source_sha256 and not replace_candidate:
@@ -116,10 +127,14 @@ def apply_bundle(
         shutil.copy2(bundle_path, proposal_copy)
     candidate_info["content_sha256"] = current_sha256
     candidate_info["proposal_bundle_sha256"] = bundle_sha256
-    candidate_info["proposal_path"] = str(proposal_copy.relative_to(manifest_path.parent))
+    candidate_info["proposal_path"] = str(
+        proposal_copy.relative_to(manifest_path.parent)
+    )
     candidate_info["applied_proposal_ids"] = applied
     candidate_info["skipped_proposal_ids"] = skipped
-    candidate_info["proposal_application_mode"] = "experimental" if include_proposed else "approved"
+    candidate_info["proposal_application_mode"] = (
+        "experimental" if include_proposed else "approved"
+    )
     return {
         "skill_id": skill_id,
         "bundle_sha256": bundle_sha256,
@@ -135,7 +150,9 @@ def main() -> None:
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--proposals-dir", required=True, type=Path)
     parser.add_argument("--skill-id", action="append", default=[])
-    parser.add_argument("--all", action="store_true", help="apply every proposal bundle found")
+    parser.add_argument(
+        "--all", action="store_true", help="apply every proposal bundle found"
+    )
     parser.add_argument("--replace-candidate", action="store_true")
     parser.add_argument(
         "--include-proposed",
@@ -170,11 +187,16 @@ def main() -> None:
             )
         )
     manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({
-        "schema": "tmcp-skill-fixture-proposal-application-v0.1",
-        "manifest": str(manifest_path),
-        "results": results,
-    }, indent=2))
+    print(
+        json.dumps(
+            {
+                "schema": "tmcp-skill-fixture-proposal-application-v0.1",
+                "manifest": str(manifest_path),
+                "results": results,
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

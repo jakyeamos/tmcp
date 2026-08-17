@@ -12,7 +12,9 @@ from typing import Any, Mapping, Sequence
 try:
     from scripts.validate_skill_fixture_artifact import validate_fixture_artifact
 except ModuleNotFoundError:  # Direct execution places scripts/ before the project root.
-    from validate_skill_fixture_artifact import validate_fixture_artifact
+    from validate_skill_fixture_artifact import (  # pyright: ignore[reportImplicitRelativeImport]
+        validate_fixture_artifact,
+    )
 
 
 SCHEMA = "tmcp-skill-fixture-corpus-validation-v0.1"
@@ -59,20 +61,30 @@ def validate_corpus(
             try:
                 artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError) as exc:
-                errors.append(f"{family_id}/{artifact_path.name}: unable to load artifact: {exc}")
+                errors.append(
+                    f"{family_id}/{artifact_path.name}: unable to load artifact: {exc}"
+                )
                 continue
             if not isinstance(artifact, dict):
-                errors.append(f"{family_id}/{artifact_path.name}: artifact is not a JSON object")
+                errors.append(
+                    f"{family_id}/{artifact_path.name}: artifact is not a JSON object"
+                )
                 continue
             structural = validate_fixture_artifact(artifact, spec)
             expected_judge = run.get("judge_pass")
-            agreement = expected_judge == structural["passed"] if isinstance(expected_judge, bool) else None
+            agreement = (
+                expected_judge == structural["passed"]
+                if isinstance(expected_judge, bool)
+                else None
+            )
             judge_provenance: dict[str, Any] | None = None
             judge_artifact = run.get("judge_artifact")
             judge_record_index = run.get("judge_record_index")
             if judge_artifact is not None:
                 if not isinstance(judge_artifact, str):
-                    errors.append(f"{family_id}/{artifact_path.name}: judge_artifact must be a string")
+                    errors.append(
+                        f"{family_id}/{artifact_path.name}: judge_artifact must be a string"
+                    )
                 elif not isinstance(judge_record_index, int) or judge_record_index < 0:
                     errors.append(
                         f"{family_id}/{artifact_path.name}: judge_record_index must be a non-negative integer"
@@ -89,11 +101,20 @@ def validate_corpus(
                         elif judge_record_index == 0:
                             judge_record = judge_payload
                         else:
-                            raise IndexError("record index is greater than zero for an object judge artifact")
-                        if not isinstance(judge_record, dict) or not isinstance(judge_record.get("pass"), bool):
-                            raise ValueError("judge record must be an object with a boolean pass field")
+                            raise IndexError(
+                                "record index is greater than zero for an object judge artifact"
+                            )
+                        if not isinstance(judge_record, dict) or not isinstance(
+                            judge_record.get("pass"), bool
+                        ):
+                            raise ValueError(
+                                "judge record must be an object with a boolean pass field"
+                            )
                         record_pass = judge_record["pass"]
-                        if isinstance(expected_judge, bool) and record_pass is not expected_judge:
+                        if (
+                            isinstance(expected_judge, bool)
+                            and record_pass is not expected_judge
+                        ):
                             errors.append(
                                 f"{family_id}/{artifact_path.name}: recorded judge_pass disagrees with "
                                 f"judge artifact record {judge_artifact}[{judge_record_index}]"
@@ -105,7 +126,13 @@ def validate_corpus(
                             "record_pass": record_pass,
                             "run_id": judge_record.get("run_id"),
                         }
-                    except (OSError, json.JSONDecodeError, IndexError, TypeError, ValueError) as exc:
+                    except (
+                        OSError,
+                        json.JSONDecodeError,
+                        IndexError,
+                        TypeError,
+                        ValueError,
+                    ) as exc:
                         errors.append(
                             f"{family_id}/{artifact_path.name}: unable to load judge artifact "
                             f"{judge_artifact}[{judge_record_index}]: {exc}"
@@ -127,10 +154,16 @@ def validate_corpus(
                 "id": family_id,
                 "coverage": family.get("coverage"),
                 "artifact_count": len(rows),
-                "structural_pass_count": sum(bool(row["structural_pass"]) for row in rows),
+                "structural_pass_count": sum(
+                    bool(row["structural_pass"]) for row in rows
+                ),
                 "judge_pass_count": sum(row["judge_pass"] is True for row in rows),
-                "judge_agreement_count": sum(row["judge_agreement"] is True for row in rows),
-                "judge_disagreement_count": sum(row["judge_agreement"] is False for row in rows),
+                "judge_agreement_count": sum(
+                    row["judge_agreement"] is True for row in rows
+                ),
+                "judge_disagreement_count": sum(
+                    row["judge_agreement"] is False for row in rows
+                ),
                 "rows": rows,
             }
         )
@@ -143,7 +176,9 @@ def validate_corpus(
         "artifact_count": len(all_rows),
         "structural_pass_count": sum(bool(row["structural_pass"]) for row in all_rows),
         "judge_pass_count": sum(row["judge_pass"] is True for row in all_rows),
-        "judge_agreement_count": sum(row["judge_agreement"] is True for row in all_rows),
+        "judge_agreement_count": sum(
+            row["judge_agreement"] is True for row in all_rows
+        ),
         "judge_disagreement_count": len(disagreements),
         "errors": errors,
         "gate_pass": not errors and not disagreements,

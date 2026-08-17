@@ -87,7 +87,9 @@ def build_record(skill: dict[str, Any]) -> dict[str, Any]:
             else "This audit does not infer that a definition of done exists or is absent; admit a behavior case before making that claim."
         ),
         "recommended_next_case": next_case(warning_ids),
-        "proposal_status": "reviewable_static_proposal" if warning_ids else "no_static_proposal",
+        "proposal_status": "reviewable_static_proposal"
+        if warning_ids
+        else "no_static_proposal",
         "promotion_status": "blocked_until_behavioral_evidence",
     }
 
@@ -112,8 +114,12 @@ def main() -> None:
         "source_audit_sha256": sha256(source),
         "source_scope": payload.get("scope", []),
         "skill_count": len(records),
-        "skills_with_static_findings": sum(record["warning_count"] > 0 for record in records),
-        "skills_without_static_findings": sum(record["warning_count"] == 0 for record in records),
+        "skills_with_static_findings": sum(
+            record["warning_count"] > 0 for record in records
+        ),
+        "skills_without_static_findings": sum(
+            record["warning_count"] == 0 for record in records
+        ),
         "warning_count": sum(record["warning_count"] for record in records),
         "warning_skill_counts": dict(sorted(counts.items())),
         "policy": {
@@ -126,14 +132,21 @@ def main() -> None:
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({
-        "schema": SCHEMA,
-        "output": str(args.output.resolve()),
-        "skill_count": len(records),
-        "warning_count": output["warning_count"],
-        "skills_with_static_findings": output["skills_with_static_findings"],
-        "skills_without_static_findings": output["skills_without_static_findings"],
-    }, indent=2))
+    print(
+        json.dumps(
+            {
+                "schema": SCHEMA,
+                "output": str(args.output.resolve()),
+                "skill_count": len(records),
+                "warning_count": output["warning_count"],
+                "skills_with_static_findings": output["skills_with_static_findings"],
+                "skills_without_static_findings": output[
+                    "skills_without_static_findings"
+                ],
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

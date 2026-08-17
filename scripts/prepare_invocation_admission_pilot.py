@@ -227,7 +227,9 @@ def prepare(manifest_path: Path, output_dir: Path) -> dict[str, Any]:
             packet = result["packet"]
             compose_ms = result["elapsed_ms"]
         inject_packet = bool(packet and packet["admission"]["action"] != "bypass")
-        operating_packet = packet["packet_markdown"] if inject_packet else None
+        operating_packet = (
+            packet["packet_markdown"] if packet is not None and inject_packet else None
+        )
         workspace_path: Path | None = None
         workspace_template = task["case"].get("workspace_template")
         if workspace_template:

@@ -77,7 +77,9 @@ def _is_trivial(objective: str, context: Mapping[str, Any]) -> bool:
         context.get("files_changed")
     ):
         return False
-    return len(words) <= 12 and any(re.search(pattern, lower) for pattern in TRIVIAL_PATTERNS)
+    return len(words) <= 12 and any(
+        re.search(pattern, lower) for pattern in TRIVIAL_PATTERNS
+    )
 
 
 def complexity_score(
@@ -113,7 +115,9 @@ def complexity_score(
     phase_actions = [
         marker
         for marker in MULTI_PHASE_ACTION_MARKERS
-        if re.search(rf"(?<![a-z0-9]){re.escape(marker)}(?:s|ed|ing)?(?![a-z0-9])", lower)
+        if re.search(
+            rf"(?<![a-z0-9]){re.escape(marker)}(?:s|ed|ing)?(?![a-z0-9])", lower
+        )
     ]
     if len(phase_actions) >= 3 and "multi_phase_or_verification" not in reasons:
         score += 1
@@ -134,9 +138,7 @@ def decide_admission(
     normalized_mode = normalize_admission_mode(mode)
     confidence = float(task_identity.get("confidence") or 0.0)
     primary = str(task_identity.get("primary") or "general_task")
-    complexity, complexity_reasons = complexity_score(
-        objective, task_identity, context
-    )
+    complexity, complexity_reasons = complexity_score(objective, task_identity, context)
     trivial = _is_trivial(objective, context)
     eligible = (
         not trivial
@@ -204,7 +206,10 @@ def apply_packet_utility_gate(
     decision["expected_value"] = "low"
     decision["reasons"] = list(
         dict.fromkeys(
-            [*list(decision.get("reasons") or []), "no_task_specific_packet_contribution"]
+            [
+                *list(decision.get("reasons") or []),
+                "no_task_specific_packet_contribution",
+            ]
         )
     )
     if decision.get("mode") == "automatic":

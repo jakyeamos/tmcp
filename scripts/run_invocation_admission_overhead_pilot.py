@@ -35,7 +35,9 @@ def _read_object(path: Path) -> dict[str, Any]:
 
 
 def _write_json(path: Path, value: object) -> None:
-    path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def _sha256(path: Path) -> str:
@@ -66,7 +68,9 @@ def _validate_manifest(manifest: dict[str, Any]) -> None:
             raise ValueError(f"{task.get('id')}: automatic action must be bypass")
     benchmark = manifest.get("benchmark") or {}
     if int(benchmark.get("measured_pairs_per_task", 0)) < 3:
-        raise ValueError("overhead pilot requires at least three measured pairs per task")
+        raise ValueError(
+            "overhead pilot requires at least three measured pairs per task"
+        )
     policies = benchmark.get("pair_policies")
     if not isinstance(policies, list) or {item.get("id") for item in policies} != {
         "always-on",
@@ -152,7 +156,9 @@ def _in_process_composer() -> Callable[[str, str, Path], dict[str, Any]]:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
-    def compose(objective: str, admission_mode: str, source_path: Path) -> dict[str, Any]:
+    def compose(
+        objective: str, admission_mode: str, source_path: Path
+    ) -> dict[str, Any]:
         started_ns = time.monotonic_ns()
         packet = module._compose_packet(
             {
@@ -218,7 +224,9 @@ def _run_schedule(
         task = item["task"]
         policy = item["policy"]
         source_path = (ROOT / str(task["source_path"])).resolve()
-        result = compose(str(task["objective"]), str(policy["admission_mode"]), source_path)
+        result = compose(
+            str(task["objective"]), str(policy["admission_mode"]), source_path
+        )
         if result.get("admission_action") != policy["expected_action"]:
             raise ValueError(
                 f"{task['id']} {policy['id']}: expected action "
@@ -236,7 +244,9 @@ def _run_schedule(
     return observations
 
 
-def score(manifest: dict[str, Any], observations: list[dict[str, Any]]) -> dict[str, Any]:
+def score(
+    manifest: dict[str, Any], observations: list[dict[str, Any]]
+) -> dict[str, Any]:
     repetitions = int(manifest["benchmark"]["measured_pairs_per_task"])
     expected_count = len(manifest["tasks"]) * repetitions * 2
     if len(observations) != expected_count:
@@ -295,9 +305,7 @@ def score(manifest: dict[str, Any], observations: list[dict[str, Any]]) -> dict[
 
     observed = _median(paired_reductions)
     minimum = float(
-        manifest["acceptance"][
-            "minimum_median_paired_overhead_reduction_vs_always_on"
-        ]
+        manifest["acceptance"]["minimum_median_paired_overhead_reduction_vs_always_on"]
     )
     per_task_minimum = float(
         manifest["acceptance"]["minimum_per_task_median_paired_reduction"]
@@ -389,7 +397,9 @@ def run(
     evidence_path, behavioral_report = _load_behavioral_evidence(manifest)
     if compose is None:
         transport = manifest["benchmark"].get("transport", "cli_subprocess")
-        compose = _in_process_composer() if transport == "in_process_server" else _compose
+        compose = (
+            _in_process_composer() if transport == "in_process_server" else _compose
+        )
     output_dir.mkdir(parents=True)
     _run_schedule(manifest, warmup=True, compose=compose)
     observations = _run_schedule(manifest, warmup=False, compose=compose)

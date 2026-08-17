@@ -13,15 +13,20 @@ FIXTURES = ROOT / "tests" / "fixtures" / "skill-fixtures"
 
 class IndividualSkillAdmissionTests(unittest.TestCase):
     def test_record_is_source_bound_and_keeps_unadmitted_skills_blocked(self) -> None:
-        record = json.loads((FIXTURES / "individual-skill-admission-v0.1.json").read_text())
+        record = json.loads(
+            (FIXTURES / "individual-skill-admission-v0.1.json").read_text()
+        )
         self.assertEqual(record["schema"], "tmcp-individual-skill-admission-v0.1")
-        self.assertEqual(record["summary"], {
-            "skill_count": 157,
-            "case_ready_skill_count": 7,
-            "needs_execution_boundary_skill_count": 0,
-            "needs_case_or_bar_count": 150,
-            "case_count": 7,
-        })
+        self.assertEqual(
+            record["summary"],
+            {
+                "skill_count": 157,
+                "case_ready_skill_count": 7,
+                "needs_execution_boundary_skill_count": 0,
+                "needs_case_or_bar_count": 150,
+                "case_count": 7,
+            },
+        )
         self.assertTrue(record["policy"]["source_bound_cases_only"])
         self.assertTrue(record["policy"]["provenance_checked"])
         self.assertFalse(record["policy"]["automatic_rewrite"])
@@ -29,20 +34,27 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
             sum(item["admission_status"] == "case_ready" for item in record["skills"]),
             7,
         )
-        self.assertTrue(all(
-            item["admission_status"] == "case_ready" and item["cases"]
-            or item["admission_status"] == "needs_execution_boundary" and item["cases"]
-            or item["admission_status"] == "needs_golden_case_and_bar" and not item["cases"]
-            for item in record["skills"]
-        ))
-        self.assertTrue(all(
-            case["admission_status"] in {"needs_execution_boundary", "case_ready"}
-            and case["bar_status"] == "source_bound"
-            and case["execution_boundary"]["status"] in {"incomplete", "complete"}
-            and case["provenance"]
-            for item in record["skills"]
-            for case in item["cases"]
-        ))
+        self.assertTrue(
+            all(
+                item["admission_status"] == "case_ready"
+                and item["cases"]
+                or item["admission_status"] == "needs_execution_boundary"
+                and item["cases"]
+                or item["admission_status"] == "needs_golden_case_and_bar"
+                and not item["cases"]
+                for item in record["skills"]
+            )
+        )
+        self.assertTrue(
+            all(
+                case["admission_status"] in {"needs_execution_boundary", "case_ready"}
+                and case["bar_status"] == "source_bound"
+                and case["execution_boundary"]["status"] in {"incomplete", "complete"}
+                and case["provenance"]
+                for item in record["skills"]
+                for case in item["cases"]
+            )
+        )
 
     def test_case_validation_rejects_unprovenanceable_excerpt(self) -> None:
         source = "/Users/jakyeamos/.agents/skills/find-skills/SKILL.md"
@@ -55,35 +67,50 @@ class IndividualSkillAdmissionTests(unittest.TestCase):
                     "prompt": "find a skill",
                     "bar": "show a relevant result",
                     "smells": [],
-                    "execution_boundary": {"status": "incomplete", "evidence": "fixture lacks source"},
+                    "execution_boundary": {
+                        "status": "incomplete",
+                        "evidence": "fixture lacks source",
+                    },
                     "provenance": [{"line": 1, "excerpt": "not in source"}],
                 },
                 {source: {"source_sha256": sha256(Path(source))}},
             )
 
-    def test_behavior_dispositions_keep_campaign_failures_separate_from_skill_failures(self) -> None:
+    def test_behavior_dispositions_keep_campaign_failures_separate_from_skill_failures(
+        self,
+    ) -> None:
         record = json.loads(
             (FIXTURES / "individual-skill-behavior-dispositions-v0.1.json").read_text()
         )
-        self.assertEqual(record["schema"], "tmcp-individual-skill-behavior-dispositions-v0.1")
-        self.assertEqual(record["summary"], {
-            "case_count": 7,
-            "campaign_ready_case_count": 7,
-            "observed_skill_failure_count": 0,
-            "rewrite_hold_count": 1,
-            "no_candidate_delta_count": 6,
-            "behaviorally_passed_case_count": 6,
-            "case_or_runner_boundary_count": 1,
-        })
+        self.assertEqual(
+            record["schema"], "tmcp-individual-skill-behavior-dispositions-v0.1"
+        )
+        self.assertEqual(
+            record["summary"],
+            {
+                "case_count": 7,
+                "campaign_ready_case_count": 7,
+                "observed_skill_failure_count": 0,
+                "rewrite_hold_count": 1,
+                "no_candidate_delta_count": 6,
+                "behaviorally_passed_case_count": 6,
+                "case_or_runner_boundary_count": 1,
+            },
+        )
         self.assertFalse(record["policy"]["automatic_rewrite"])
-        self.assertTrue(record["policy"]["case_quality_and_runner_boundaries_are_separate"])
-        self.assertTrue(all(case["observed_skill_failure"] is False for case in record["cases"]))
+        self.assertTrue(
+            record["policy"]["case_quality_and_runner_boundaries_are_separate"]
+        )
+        self.assertTrue(
+            all(case["observed_skill_failure"] is False for case in record["cases"])
+        )
         self.assertEqual(
             sum(case["rewrite_status"] == "hold" for case in record["cases"]),
             1,
         )
         ownership = next(
-            case for case in record["cases"]
+            case
+            for case in record["cases"]
             if case["case_id"] == "check-thread-ownership-read-only-current-repo"
         )
         self.assertEqual(ownership["disposition"], "behavioral_baseline_pass")

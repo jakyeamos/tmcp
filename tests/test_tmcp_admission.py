@@ -63,11 +63,11 @@ class TmcpAdmissionTests(unittest.TestCase):
         self.assertEqual(decision["action"], "compose")
         self.assertGreaterEqual(decision["complexity_score"], 2)
 
-    def test_admission_routing_corpus_covers_positive_negative_and_ambiguous_prompts(self) -> None:
+    def test_admission_routing_corpus_covers_positive_negative_and_ambiguous_prompts(
+        self,
+    ) -> None:
         fixture_path = (
-            Path(__file__).parent
-            / "fixtures"
-            / "admission-routing-matrix-v0.1.json"
+            Path(__file__).parent / "fixtures" / "admission-routing-matrix-v0.1.json"
         )
         fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
         self.assertEqual(fixture["schema"], "tmcp-admission-routing-matrix-v0.1")
@@ -93,9 +93,7 @@ class TmcpAdmissionTests(unittest.TestCase):
         ):
             with self.subTest(objective=objective):
                 identity = derive_task_identity(objective)
-                self.assertNotIn(
-                    "frontend_implementation", identity["active_routes"]
-                )
+                self.assertNotIn("frontend_implementation", identity["active_routes"])
 
     def test_scope_exclusions_do_not_create_release_routes_or_complexity(self) -> None:
         observed_objective = (
@@ -212,7 +210,9 @@ class TmcpAdmissionTests(unittest.TestCase):
             fixture = root / "tests" / "fixtures" / "audit" / "SKILL.md"
             production.parent.mkdir(parents=True)
             fixture.parent.mkdir(parents=True)
-            production.write_text("# Backend\nImplement API endpoints.\n", encoding="utf-8")
+            production.write_text(
+                "# Backend\nImplement API endpoints.\n", encoding="utf-8"
+            )
             fixture.write_text("# Fixture Audit\nStop for audit.\n", encoding="utf-8")
 
             default = self.server._harvest_skills({"source_path": str(root)})
@@ -228,18 +228,9 @@ class TmcpAdmissionTests(unittest.TestCase):
 
     def test_invocation_policy_pilot_is_balanced_and_blinded(self) -> None:
         root = Path(__file__).parents[1]
-        pilot_path = (
-            root
-            / "examples"
-            / "workflows"
-            / "invocation-admission-pilot.json"
-        )
+        pilot_path = root / "examples" / "workflows" / "invocation-admission-pilot.json"
         pilot = json.loads(pilot_path.read_text(encoding="utf-8"))
-        rows = (
-            len(pilot["tasks"])
-            * len(pilot["policies"])
-            * pilot["repeats_per_cell"]
-        )
+        rows = len(pilot["tasks"]) * len(pilot["policies"]) * pilot["repeats_per_cell"]
 
         self.assertEqual(pilot["schema"], "tmcp-invocation-admission-pilot-v0.2")
         self.assertEqual(rows, pilot["matrix_rows"])
@@ -257,8 +248,12 @@ class TmcpAdmissionTests(unittest.TestCase):
         self.assertIn("evidence_boundary", pilot)
 
         composition_fixture = json.loads(
-            (root / "tests" / "fixtures" / "composition_behavioral_fixtures_v0_6.json")
-            .read_text(encoding="utf-8")
+            (
+                root
+                / "tests"
+                / "fixtures"
+                / "composition_behavioral_fixtures_v0_6.json"
+            ).read_text(encoding="utf-8")
         )
         individual_fixture = json.loads(
             (

@@ -440,6 +440,7 @@ def build_h1_advisory_evaluator_mapping() -> dict[str, Any]:
         "promotion_policy": {"auto_promote": False},
     }
 
+
 def build_h2_advisory_evaluator_mapping() -> dict[str, Any]:
     """Return the preregistered H2 static map without composing skills."""
 
@@ -481,6 +482,7 @@ def build_h2_advisory_evaluator_mapping() -> dict[str, Any]:
         "cross_skill_composition": "closed_gate",
         "promotion_policy": {"auto_promote": False},
     }
+
 
 def evaluate_transplant_arm(arm: Mapping[str, Any]) -> dict[str, Any]:
     """Advisory structural gate for registered arms, before any provider cell."""

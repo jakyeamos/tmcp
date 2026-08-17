@@ -347,8 +347,11 @@ def build_composed_packet(
         "objective": objective,
         "project_path": project_path,
         "phase": phase,
-        "status": "bypassed" if (admission or {}).get("action") == "bypass" else "composed",
-        "admission": admission or {
+        "status": "bypassed"
+        if (admission or {}).get("action") == "bypass"
+        else "composed",
+        "admission": admission
+        or {
             "mode": "forced",
             "action": "forced",
             "recommended_action": "compose",
@@ -418,7 +421,10 @@ def build_composed_packet(
             for path in source_paths
         ),
         "test_fixture_source_count": sum(
-            any(part in path.split("/") for part in ("test", "tests", "fixture", "fixtures"))
+            any(
+                part in path.split("/")
+                for part in ("test", "tests", "fixture", "fixtures")
+            )
             for path in source_paths
         ),
         "packet_markdown_chars": len(packet["packet_markdown"]),

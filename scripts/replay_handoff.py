@@ -401,7 +401,11 @@ def load_manifest(path: Path, *, require_custody: bool = False) -> HandoffManife
     payload = _read_object(path)
     schema = payload.get("schema")
     schema_name = schema if isinstance(schema, str) else None
-    owner_aware = SUPPORTED_CANONICAL_SCHEMAS.get(schema_name, False)
+    owner_aware = (
+        SUPPORTED_CANONICAL_SCHEMAS.get(schema_name, False)
+        if schema_name is not None
+        else False
+    )
     custody: dict[str, object] | None = None
     if schema_name in SUPPORTED_CANONICAL_SCHEMAS:
         if not isinstance(payload.get("exact_base"), str) or not payload["exact_base"]:

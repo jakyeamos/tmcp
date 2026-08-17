@@ -35,7 +35,7 @@ def _median(values: list[float]) -> float:
 
 
 def _review_or_audit_task(prompt: str) -> bool:
-    words = {word.strip(".,:;!?()[]{}\"").lower() for word in prompt.split()}
+    words = {word.strip('.,:;!?()[]{}"').lower() for word in prompt.split()}
     return bool(words & {"audit", "auditing", "review", "reviewing"})
 
 
@@ -102,7 +102,11 @@ def score(manifest_path: Path, pilot_dir: Path) -> dict[str, Any]:
                 if runner_metrics.get("blind_id") != blind_id:
                     raise ValueError(f"{blind_id}: runner metrics identity mismatch")
                 elapsed = runner_metrics.get("runner_wall_time_ms")
-                if not isinstance(elapsed, int) or isinstance(elapsed, bool) or elapsed < 0:
+                if (
+                    not isinstance(elapsed, int)
+                    or isinstance(elapsed, bool)
+                    or elapsed < 0
+                ):
                     raise ValueError(
                         f"{blind_id}: runner_wall_time_ms must be a non-negative integer"
                     )
@@ -110,7 +114,9 @@ def score(manifest_path: Path, pilot_dir: Path) -> dict[str, Any]:
         joined.append({**row, "metrics": metrics, "judgment": result})
 
     expected_ids = {str(row["blind_id"]) for row in plan["rows"]}
-    actual_ids = {path.stem for path in (pilot_dir / "judge-results").glob("pilot-*.json")}
+    actual_ids = {
+        path.stem for path in (pilot_dir / "judge-results").glob("pilot-*.json")
+    }
     if actual_ids != expected_ids:
         raise ValueError("judge result corpus contains missing or unexpected rows")
 
@@ -168,7 +174,9 @@ def score(manifest_path: Path, pilot_dir: Path) -> dict[str, Any]:
                 "actions": [row["metrics"]["admission_action"] for row in rows],
             }
 
-    admission_rows = [row for row in joined if row["policy_id"] == "admission-controlled"]
+    admission_rows = [
+        row for row in joined if row["policy_id"] == "admission-controlled"
+    ]
     non_review_rows = []
     for row in admission_rows:
         task = task_by_id[row["fixture_id"]]
@@ -224,8 +232,7 @@ def score(manifest_path: Path, pilot_dir: Path) -> dict[str, Any]:
             for row in overhead_admission_rows
         ]
         always_times = [
-            float(row["metrics"]["runner_wall_time_ms"])
-            for row in overhead_always_rows
+            float(row["metrics"]["runner_wall_time_ms"]) for row in overhead_always_rows
         ]
         always_median_time = _median(always_times)
         runner_time_reduction = (
@@ -273,9 +280,7 @@ def score(manifest_path: Path, pilot_dir: Path) -> dict[str, Any]:
             and runner_time_reduction
             >= acceptance["minimum_median_overhead_reduction_vs_always_on"],
             "observed": runner_time_reduction,
-            "minimum": acceptance[
-                "minimum_median_overhead_reduction_vs_always_on"
-            ],
+            "minimum": acceptance["minimum_median_overhead_reduction_vs_always_on"],
             "measure": "runner_wall_time_ms",
             "scope": overhead_scope,
             "admission_rows": len(overhead_admission_rows),
@@ -291,9 +296,7 @@ def score(manifest_path: Path, pilot_dir: Path) -> dict[str, Any]:
             "passed": review_source_rate
             <= acceptance["maximum_review_source_rate_for_non_review_tasks"],
             "observed": review_source_rate,
-            "maximum": acceptance[
-                "maximum_review_source_rate_for_non_review_tasks"
-            ],
+            "maximum": acceptance["maximum_review_source_rate_for_non_review_tasks"],
             "review_sources": review_non_review,
             "selected_sources": selected_non_review,
             "classification": (
@@ -304,11 +307,17 @@ def score(manifest_path: Path, pilot_dir: Path) -> dict[str, Any]:
         "plan_only_negative_control_bypassed": {
             "status": "passed"
             if bool(negative_rows)
-            and all(row["metrics"]["admission_action"] == "bypass" for row in negative_rows)
+            and all(
+                row["metrics"]["admission_action"] == "bypass" for row in negative_rows
+            )
             else "failed",
             "passed": bool(negative_rows)
-            and all(row["metrics"]["admission_action"] == "bypass" for row in negative_rows),
-            "observed_actions": [row["metrics"]["admission_action"] for row in negative_rows],
+            and all(
+                row["metrics"]["admission_action"] == "bypass" for row in negative_rows
+            ),
+            "observed_actions": [
+                row["metrics"]["admission_action"] for row in negative_rows
+            ],
         },
         "no_safety_regression": {
             "status": "passed"
@@ -324,7 +333,9 @@ def score(manifest_path: Path, pilot_dir: Path) -> dict[str, Any]:
 
     return {
         "schema": "tmcp-invocation-admission-pilot-score-v0.1",
-        "status": "complete" if len(joined) == manifest["matrix_rows"] else "incomplete",
+        "status": "complete"
+        if len(joined) == manifest["matrix_rows"]
+        else "incomplete",
         "promotion_authorized": all(gate["passed"] for gate in gates.values()),
         "rows_scored": len(joined),
         "policy_summaries": policy_summaries,
@@ -390,7 +401,9 @@ def main() -> int:
     report = score(args.manifest.resolve(), args.pilot_dir.resolve())
     json_path = args.pilot_dir / "score-report.json"
     markdown_path = args.pilot_dir / "score-report.md"
-    json_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    json_path.write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     markdown_path.write_text(_markdown(report), encoding="utf-8")
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0

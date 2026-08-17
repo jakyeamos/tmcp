@@ -238,10 +238,9 @@ def score_composition_node(
     source_type = str(node.get("source_type") or "")
     rel_path = str(node.get("relative_path") or "").lower()
 
-    if (
-        any(term in rel_path for term in REVIEW_SOURCE_PATH_TERMS)
-        and not objective_explicitly_requests_review_source(objective, rel_path)
-    ):
+    if any(
+        term in rel_path for term in REVIEW_SOURCE_PATH_TERMS
+    ) and not objective_explicitly_requests_review_source(objective, rel_path):
         return 0.0
 
     if "repo-behavior" in rel_path and not objective_has_phrase(
@@ -392,12 +391,15 @@ def node_has_task_specific_contribution(
         if phrase.lower() not in COMPOSITION_GENERIC_TERMS
     ):
         return True
-    return composition_route_boost(
-        active_routes,
-        relative_path=str(node.get("relative_path") or ""),
-        source_type=str(node.get("source_type") or ""),
-        text=text,
-    ) > 0
+    return (
+        composition_route_boost(
+            active_routes,
+            relative_path=str(node.get("relative_path") or ""),
+            source_type=str(node.get("source_type") or ""),
+            text=text,
+        )
+        > 0
+    )
 
 
 def contextual_atoms_and_gates(

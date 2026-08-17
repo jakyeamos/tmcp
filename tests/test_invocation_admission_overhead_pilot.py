@@ -95,15 +95,15 @@ class InvocationAdmissionOverheadPilotTests(unittest.TestCase):
 
         self.assertTrue(report["promotion_authorized"])
         self.assertAlmostEqual(
-            report["acceptance_gates"][
-                "median_paired_overhead_reduction_vs_always_on"
-            ]["observed"],
+            report["acceptance_gates"]["median_paired_overhead_reduction_vs_always_on"][
+                "observed"
+            ],
             0.3,
         )
         self.assertEqual(
-            report["acceptance_gates"][
-                "median_paired_overhead_reduction_vs_always_on"
-            ]["measure"],
+            report["acceptance_gates"]["median_paired_overhead_reduction_vs_always_on"][
+                "measure"
+            ],
             "test monotonic timing",
         )
         self.assertTrue(

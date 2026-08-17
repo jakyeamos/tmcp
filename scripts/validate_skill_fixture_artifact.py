@@ -72,7 +72,9 @@ def _text_container_is_valid(
 
 def _has_final_label(response: str, label: str) -> bool:
     prefix = f"{label}:".casefold()
-    return any(line.strip().casefold().startswith(prefix) for line in response.splitlines())
+    return any(
+        line.strip().casefold().startswith(prefix) for line in response.splitlines()
+    )
 
 
 def _contains_exact_value(response: str, expected: object) -> bool:
@@ -102,7 +104,11 @@ def _forbidden_matches(text: str, markers: Sequence[str]) -> list[str]:
             if marker_position < 0:
                 continue
             before = lowered[max(0, marker_position - 70) : marker_position]
-            after = lowered[marker_position + len(marker_lower) : marker_position + len(marker_lower) + 70]
+            after = lowered[
+                marker_position + len(marker_lower) : marker_position
+                + len(marker_lower)
+                + 70
+            ]
             negated_before = re.search(
                 r"\b(?:did\s+not|not|never|no)\s+(?:run|perform|attempt|execute|activate|conduct|do)\b",
                 before,
@@ -129,9 +135,15 @@ def validate_fixture_artifact(
     """
 
     configured_required_fields = _text_fragments(spec.get("required_artifact_fields"))
-    required_fields = configured_required_fields or ["observations", "actions", "final_response"]
+    required_fields = configured_required_fields or [
+        "observations",
+        "actions",
+        "final_response",
+    ]
     if spec.get("allow_missing_observations") is True:
-        required_fields = [field for field in required_fields if field != "observations"]
+        required_fields = [
+            field for field in required_fields if field != "observations"
+        ]
     missing_fields = [field for field in required_fields if field not in artifact]
     observations = _text_fragments(artifact.get("observations"))
     actions = _text_fragments(artifact.get("actions"))
@@ -143,43 +155,65 @@ def validate_fixture_artifact(
         and (
             "observations" not in artifact
             or _text_container_is_valid(
-                artifact.get("observations"), allow_scalar=True, allow_metadata=allow_metadata
+                artifact.get("observations"),
+                allow_scalar=True,
+                allow_metadata=allow_metadata,
             )
         )
         and (
             "actions" not in artifact
             or _text_container_is_valid(
-                artifact.get("actions"), allow_scalar=True, allow_metadata=allow_metadata
+                artifact.get("actions"),
+                allow_scalar=True,
+                allow_metadata=allow_metadata,
             )
         )
         and (
             "final_response" not in artifact
             or _text_container_is_valid(
-                artifact.get("final_response"), allow_scalar=True, allow_metadata=allow_metadata
+                artifact.get("final_response"),
+                allow_scalar=True,
+                allow_metadata=allow_metadata,
             )
         )
     )
 
     labels = _text_fragments(spec.get("required_final_labels"))
-    missing_labels = [label for label in labels if not _has_final_label(final_response_text, label)]
+    missing_labels = [
+        label for label in labels if not _has_final_label(final_response_text, label)
+    ]
 
     exact_value_configured = "exact_value" in spec
     exact_value = spec.get("exact_value")
     artifact_text = "\n".join(_text_fragments(artifact))
-    exact_value_text = artifact_text if spec.get("exact_value_scope") == "artifact" else final_response_text
+    exact_value_text = (
+        artifact_text
+        if spec.get("exact_value_scope") == "artifact"
+        else final_response_text
+    )
     exact_value_passed = (
-        _contains_exact_value(exact_value_text, exact_value) if exact_value_configured else True
+        _contains_exact_value(exact_value_text, exact_value)
+        if exact_value_configured
+        else True
     )
 
     disclosure_terms = _text_fragments(spec.get("required_disclosure_terms"))
-    disclosure_text = artifact_text if spec.get("disclosure_scope") == "artifact" else final_response_text
+    disclosure_text = (
+        artifact_text
+        if spec.get("disclosure_scope") == "artifact"
+        else final_response_text
+    )
     disclosure_lower = disclosure_text.casefold()
-    missing_disclosure_terms = [term for term in disclosure_terms if term.casefold() not in disclosure_lower]
+    missing_disclosure_terms = [
+        term for term in disclosure_terms if term.casefold() not in disclosure_lower
+    ]
     disclosure_patterns = _text_fragments(spec.get("required_disclosure_patterns"))
     missing_disclosure_patterns: list[str] = []
     for pattern in disclosure_patterns:
         try:
-            matched = re.search(pattern, disclosure_text, flags=re.IGNORECASE) is not None
+            matched = (
+                re.search(pattern, disclosure_text, flags=re.IGNORECASE) is not None
+            )
         except re.error:
             matched = False
         if not matched:
@@ -189,7 +223,9 @@ def validate_fixture_artifact(
     missing_final_patterns: list[str] = []
     for pattern in final_patterns:
         try:
-            matched = re.search(pattern, final_response_text, flags=re.IGNORECASE) is not None
+            matched = (
+                re.search(pattern, final_response_text, flags=re.IGNORECASE) is not None
+            )
         except re.error:
             matched = False
         if not matched:
@@ -198,7 +234,9 @@ def validate_fixture_artifact(
     activity_text = "\n".join((*observations, *actions))
     required_activity_markers = _text_fragments(spec.get("required_activity_markers"))
     missing_activity_markers = [
-        marker for marker in required_activity_markers if marker.casefold() not in activity_text.casefold()
+        marker
+        for marker in required_activity_markers
+        if marker.casefold() not in activity_text.casefold()
     ]
     required_activity_patterns = _text_fragments(spec.get("required_activity_patterns"))
     missing_activity_patterns: list[str] = []
@@ -221,7 +259,11 @@ def validate_fixture_artifact(
     boolean_failures: dict[str, object] = {}
     for field, expected in boolean_expectations.items():
         actual = artifact.get(field)
-        if not isinstance(expected, bool) or not isinstance(actual, bool) or actual is not expected:
+        if (
+            not isinstance(expected, bool)
+            or not isinstance(actual, bool)
+            or actual is not expected
+        ):
             boolean_failures[field] = {"expected": expected, "actual": actual}
 
     checks: dict[str, Any] = {
@@ -276,7 +318,9 @@ def validate_fixture_artifact(
         "schema": SCHEMA,
         "case_id": spec.get("case_id"),
         "passed": passed,
-        "failed_observables": [name for name, check in checks.items() if not check["passed"]],
+        "failed_observables": [
+            name for name, check in checks.items() if not check["passed"]
+        ],
         "checks": checks,
     }
 

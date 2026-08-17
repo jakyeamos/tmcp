@@ -14,7 +14,9 @@ HARVEST_INCLUDE_GLOBS = ["**/skills/**/SKILL.md", "**/docs/*.md"]
 OBJECTIVE = "Use obsidian-markdown with obsidian-cli"
 
 
-def _run_read_only(server: Any) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+def _run_read_only(
+    server: Any,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     common = {
         "source_path": str(FIXTURE_ROOT),
         "project_path": str(FIXTURE_ROOT),
@@ -181,13 +183,19 @@ class TmcpKepanoStabilityTests(unittest.TestCase):
         first_harvest, first_packet, first_recompiled = _run_read_only(self.server)
         second_harvest, second_packet, second_recompiled = _run_read_only(self.server)
 
-        self.assertEqual(_harvest_projection(first_harvest), _harvest_projection(second_harvest))
-        self.assertEqual(_packet_projection(first_packet), _packet_projection(second_packet))
+        self.assertEqual(
+            _harvest_projection(first_harvest), _harvest_projection(second_harvest)
+        )
+        self.assertEqual(
+            _packet_projection(first_packet), _packet_projection(second_packet)
+        )
         self.assertEqual(
             _packet_projection(first_recompiled["packet"]),
             _packet_projection(second_recompiled["packet"]),
         )
-        self.assertEqual(first_recompiled["packet_diff"], second_recompiled["packet_diff"])
+        self.assertEqual(
+            first_recompiled["packet_diff"], second_recompiled["packet_diff"]
+        )
 
         first_trace = _existing_provenance_projection(first_harvest, first_packet)
         second_trace = _existing_provenance_projection(second_harvest, second_packet)
@@ -204,9 +212,7 @@ class TmcpKepanoStabilityTests(unittest.TestCase):
         decisions = {entry["decision"] for entry in first_trace}
         self.assertEqual(decisions, {"selected", "deferred", "ignored"})
         selected_sources = {
-            entry["source"]
-            for entry in first_trace
-            if entry["decision"] == "selected"
+            entry["source"] for entry in first_trace if entry["decision"] == "selected"
         }
         self.assertEqual(
             selected_sources,
@@ -216,9 +222,7 @@ class TmcpKepanoStabilityTests(unittest.TestCase):
             },
         )
         ignored_sources = {
-            entry["source"]
-            for entry in first_trace
-            if entry["decision"] == "ignored"
+            entry["source"] for entry in first_trace if entry["decision"] == "ignored"
         }
         self.assertEqual(
             ignored_sources,

@@ -42,7 +42,9 @@ class SkillFixtureHarnessTests(unittest.TestCase):
 
     def test_runner_prompt_exposes_only_explicit_bounded_execution_root(self) -> None:
         prompt_only = runner_prompt("# Skill", "Inspect the task.")
-        bounded = runner_prompt("# Skill", "Inspect the task.", Path("/tmp/fixture-repo"))
+        bounded = runner_prompt(
+            "# Skill", "Inspect the task.", Path("/tmp/fixture-repo")
+        )
         codex_home = runner_prompt(
             "# Skill",
             "Inspect the task.",
@@ -65,22 +67,26 @@ class SkillFixtureHarnessTests(unittest.TestCase):
             source.write_text("# Alpha\nReturn a checked result.\n", encoding="utf-8")
             seed = root / "admission.json"
             seed.write_text(
-                json.dumps({
-                    "schema": "tmcp-individual-skill-admission-cases-v0.1",
-                    "cases": [{
-                        "source_path": "skills/alpha/SKILL.md",
-                        "case_id": "alpha-admission",
-                        "mode": "judgment",
-                        "prompt": "Review this input.",
-                        "bar": "The result cites concrete evidence.",
-                        "smells": ["unsupported claim"],
-                        "execution_boundary": {
-                            "status": "complete",
-                            "evidence": "The fixture contains the complete read-only input.",
-                        },
-                        "provenance": [{"line": 1, "excerpt": "# Alpha"}],
-                    }],
-                }),
+                json.dumps(
+                    {
+                        "schema": "tmcp-individual-skill-admission-cases-v0.1",
+                        "cases": [
+                            {
+                                "source_path": "skills/alpha/SKILL.md",
+                                "case_id": "alpha-admission",
+                                "mode": "judgment",
+                                "prompt": "Review this input.",
+                                "bar": "The result cites concrete evidence.",
+                                "smells": ["unsupported claim"],
+                                "execution_boundary": {
+                                    "status": "complete",
+                                    "evidence": "The fixture contains the complete read-only input.",
+                                },
+                                "provenance": [{"line": 1, "excerpt": "# Alpha"}],
+                            }
+                        ],
+                    }
+                ),
                 encoding="utf-8",
             )
             output = root / "fixtures"
@@ -100,9 +106,13 @@ class SkillFixtureHarnessTests(unittest.TestCase):
                 check=True,
                 cwd=ROOT,
             )
-            manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+            manifest = json.loads(
+                (output / "manifest.json").read_text(encoding="utf-8")
+            )
             self.assertEqual(manifest["skills"][0]["readiness"], "ready")
-            self.assertEqual(manifest["skills"][0]["cases"][0]["provenance"][0]["line"], 1)
+            self.assertEqual(
+                manifest["skills"][0]["cases"][0]["provenance"][0]["line"], 1
+            )
             self.assertEqual(
                 manifest["skills"][0]["cases"][0]["execution_boundary"]["status"],
                 "complete",
@@ -120,18 +130,22 @@ class SkillFixtureHarnessTests(unittest.TestCase):
             skill_b.write_text("# Beta\nDo the work.\n", encoding="utf-8")
             seed = root / "seed.json"
             seed.write_text(
-                json.dumps({
-                    "schema": "tmcp-skill-fixture-seed-cases-v0.1",
-                    "cases": [{
-                        "source_path": "skills/alpha/SKILL.md",
-                        "case_id": "alpha-case",
-                        "mode": "judgment",
-                        "prompt": "Review this input.",
-                        "bar": "The result is defensible and cites concrete evidence.",
-                        "smells": ["unsupported claim"],
-                        "observables": ["evidence is cited"],
-                    }],
-                }),
+                json.dumps(
+                    {
+                        "schema": "tmcp-skill-fixture-seed-cases-v0.1",
+                        "cases": [
+                            {
+                                "source_path": "skills/alpha/SKILL.md",
+                                "case_id": "alpha-case",
+                                "mode": "judgment",
+                                "prompt": "Review this input.",
+                                "bar": "The result is defensible and cites concrete evidence.",
+                                "smells": ["unsupported claim"],
+                                "observables": ["evidence is cited"],
+                            }
+                        ],
+                    }
+                ),
                 encoding="utf-8",
             )
             output = root / "fixtures"
@@ -154,18 +168,41 @@ class SkillFixtureHarnessTests(unittest.TestCase):
             manifest_path = output / "manifest.json"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             self.assertEqual(len(manifest["skills"]), 2)
-            self.assertEqual(sum(item["readiness"] == "ready" for item in manifest["skills"]), 1)
-            subprocess.run([sys.executable, str(VALIDATE), str(manifest_path)], check=True, cwd=ROOT)
-            alpha = next(item for item in manifest["skills"] if item["skill_id"].endswith("alpha"))
-            candidate = output / alpha["versions"]["candidate"]["path"]
-            candidate.write_text(candidate.read_text(encoding="utf-8") + "\n# Candidate revision\n", encoding="utf-8")
-            record = ROOT / "scripts" / "record_skill_fixture_candidate.py"
+            self.assertEqual(
+                sum(item["readiness"] == "ready" for item in manifest["skills"]), 1
+            )
             subprocess.run(
-                [sys.executable, str(record), str(manifest_path), "--skill-id", alpha["skill_id"]],
+                [sys.executable, str(VALIDATE), str(manifest_path)],
                 check=True,
                 cwd=ROOT,
             )
-            subprocess.run([sys.executable, str(VALIDATE), str(manifest_path)], check=True, cwd=ROOT)
+            alpha = next(
+                item
+                for item in manifest["skills"]
+                if item["skill_id"].endswith("alpha")
+            )
+            candidate = output / alpha["versions"]["candidate"]["path"]
+            candidate.write_text(
+                candidate.read_text(encoding="utf-8") + "\n# Candidate revision\n",
+                encoding="utf-8",
+            )
+            record = ROOT / "scripts" / "record_skill_fixture_candidate.py"
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(record),
+                    str(manifest_path),
+                    "--skill-id",
+                    alpha["skill_id"],
+                ],
+                check=True,
+                cwd=ROOT,
+            )
+            subprocess.run(
+                [sys.executable, str(VALIDATE), str(manifest_path)],
+                check=True,
+                cwd=ROOT,
+            )
             plans = root / "plans"
             subprocess.run(
                 [
@@ -191,21 +228,28 @@ class SkillFixtureHarnessTests(unittest.TestCase):
             source = source_root / "alpha" / "SKILL.md"
             source.parent.mkdir(parents=True)
             original = "# Alpha\nReturn a checked result.\n"
-            replacement = original + "\n## Verification\nRun the targeted check and report pass/fail.\n"
+            replacement = (
+                original
+                + "\n## Verification\nRun the targeted check and report pass/fail.\n"
+            )
             source.write_text(original, encoding="utf-8")
             seed = root / "seed.json"
             seed.write_text(
-                json.dumps({
-                    "schema": "tmcp-skill-fixture-seed-cases-v0.1",
-                    "cases": [{
-                        "source_path": "skills/alpha/SKILL.md",
-                        "case_id": "alpha-case",
-                        "mode": "judgment",
-                        "prompt": "Review this input.",
-                        "bar": "The result is defensible and cites concrete evidence.",
-                        "smells": ["unsupported claim"],
-                    }],
-                }),
+                json.dumps(
+                    {
+                        "schema": "tmcp-skill-fixture-seed-cases-v0.1",
+                        "cases": [
+                            {
+                                "source_path": "skills/alpha/SKILL.md",
+                                "case_id": "alpha-case",
+                                "mode": "judgment",
+                                "prompt": "Review this input.",
+                                "bar": "The result is defensible and cites concrete evidence.",
+                                "smells": ["unsupported claim"],
+                            }
+                        ],
+                    }
+                ),
                 encoding="utf-8",
             )
             output = root / "fixtures"
@@ -231,33 +275,37 @@ class SkillFixtureHarnessTests(unittest.TestCase):
             proposals = root / "proposals"
             proposals.mkdir()
             source_hash = __import__("hashlib").sha256(original.encode()).hexdigest()
-            replacement_hash = __import__("hashlib").sha256(replacement.encode()).hexdigest()
+            replacement_hash = (
+                __import__("hashlib").sha256(replacement.encode()).hexdigest()
+            )
             (proposals / f"{skill_id}.json").write_text(
-                json.dumps({
-                    "schema": "tmcp-skill-fixture-proposals-v0.1",
-                    "skill_id": skill_id,
-                    "source_sha256": source_hash,
-                    "proposals": [
-                        {
-                            "proposal_id": "add-verification-gate",
-                            "status": "approved",
-                            "target": "SKILL.md",
-                            "reason": "Replace vague quality language with an observable check.",
-                            "before_sha256": source_hash,
-                            "after_sha256": replacement_hash,
-                            "replacement": replacement,
-                        },
-                        {
-                            "proposal_id": "unreviewed-follow-up",
-                            "status": "proposed",
-                            "target": "SKILL.md",
-                            "reason": "Not yet reviewed.",
-                            "before_sha256": replacement_hash,
-                            "after_sha256": source_hash,
-                            "replacement": original,
-                        },
-                    ],
-                }),
+                json.dumps(
+                    {
+                        "schema": "tmcp-skill-fixture-proposals-v0.1",
+                        "skill_id": skill_id,
+                        "source_sha256": source_hash,
+                        "proposals": [
+                            {
+                                "proposal_id": "add-verification-gate",
+                                "status": "approved",
+                                "target": "SKILL.md",
+                                "reason": "Replace vague quality language with an observable check.",
+                                "before_sha256": source_hash,
+                                "after_sha256": replacement_hash,
+                                "replacement": replacement,
+                            },
+                            {
+                                "proposal_id": "unreviewed-follow-up",
+                                "status": "proposed",
+                                "target": "SKILL.md",
+                                "reason": "Not yet reviewed.",
+                                "before_sha256": replacement_hash,
+                                "after_sha256": source_hash,
+                                "replacement": original,
+                            },
+                        ],
+                    }
+                ),
                 encoding="utf-8",
             )
             result = subprocess.run(
@@ -276,11 +324,19 @@ class SkillFixtureHarnessTests(unittest.TestCase):
                 text=True,
             )
             report = json.loads(result.stdout)
-            self.assertEqual(report["results"][0]["applied_proposal_ids"], ["add-verification-gate"])
-            self.assertEqual(report["results"][0]["skipped_proposal_ids"], ["unreviewed-follow-up"])
+            self.assertEqual(
+                report["results"][0]["applied_proposal_ids"], ["add-verification-gate"]
+            )
+            self.assertEqual(
+                report["results"][0]["skipped_proposal_ids"], ["unreviewed-follow-up"]
+            )
             candidate = output / manifest["skills"][0]["versions"]["candidate"]["path"]
             self.assertEqual(candidate.read_text(encoding="utf-8"), replacement)
-            subprocess.run([sys.executable, str(VALIDATE), str(manifest_path)], check=True, cwd=ROOT)
+            subprocess.run(
+                [sys.executable, str(VALIDATE), str(manifest_path)],
+                check=True,
+                cwd=ROOT,
+            )
             prepared = subprocess.run(
                 [
                     sys.executable,
@@ -298,7 +354,10 @@ class SkillFixtureHarnessTests(unittest.TestCase):
                 text=True,
             )
             prepared_report = json.loads(prepared.stdout)
-            self.assertEqual(prepared_report["candidate_proposals"]["applied_proposal_ids"], ["add-verification-gate"])
+            self.assertEqual(
+                prepared_report["candidate_proposals"]["applied_proposal_ids"],
+                ["add-verification-gate"],
+            )
 
     def test_generated_proposals_are_review_only(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -341,10 +400,17 @@ class SkillFixtureHarnessTests(unittest.TestCase):
             )
             report = json.loads(generated.stdout)
             self.assertEqual(report["skills_with_proposals"], 1)
-            bundle = json.loads((proposals_dir / f"{manifest['skills'][0]['skill_id']}.json").read_text(encoding="utf-8"))
+            bundle = json.loads(
+                (proposals_dir / f"{manifest['skills'][0]['skill_id']}.json").read_text(
+                    encoding="utf-8"
+                )
+            )
             self.assertEqual(bundle["proposals"][0]["status"], "proposed")
             candidate = output / manifest["skills"][0]["versions"]["candidate"]["path"]
-            self.assertEqual(candidate.read_text(encoding="utf-8"), source.read_text(encoding="utf-8"))
+            self.assertEqual(
+                candidate.read_text(encoding="utf-8"),
+                source.read_text(encoding="utf-8"),
+            )
             experimental = subprocess.run(
                 [
                     sys.executable,
@@ -361,9 +427,18 @@ class SkillFixtureHarnessTests(unittest.TestCase):
                 text=True,
             )
             experiment_report = json.loads(experimental.stdout)
-            self.assertEqual(experiment_report["results"][0]["application_mode"], "experimental")
-            self.assertNotEqual(candidate.read_text(encoding="utf-8"), source.read_text(encoding="utf-8"))
-            subprocess.run([sys.executable, str(VALIDATE), str(manifest_path)], check=True, cwd=ROOT)
+            self.assertEqual(
+                experiment_report["results"][0]["application_mode"], "experimental"
+            )
+            self.assertNotEqual(
+                candidate.read_text(encoding="utf-8"),
+                source.read_text(encoding="utf-8"),
+            )
+            subprocess.run(
+                [sys.executable, str(VALIDATE), str(manifest_path)],
+                check=True,
+                cwd=ROOT,
+            )
 
 
 if __name__ == "__main__":

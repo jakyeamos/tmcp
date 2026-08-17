@@ -12,7 +12,9 @@ from typing import Sequence
 try:
     from scripts.validate_skill_fixture_artifact import validate_fixture_artifact
 except ModuleNotFoundError:  # Direct execution places scripts/ before the project root.
-    from validate_skill_fixture_artifact import validate_fixture_artifact
+    from validate_skill_fixture_artifact import (  # pyright: ignore[reportImplicitRelativeImport]
+        validate_fixture_artifact,
+    )
 
 
 SCHEMA = "tmcp-skill-fixture-artifact-batch-validation-v0.1"
