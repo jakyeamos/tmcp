@@ -1,0 +1,47 @@
+{
+  "schema": "tmcp-invocation-admission-overhead-pilot-v0.6",
+  "purpose": "Confirm the overhead effect of bypassing irrelevant TMCP packets at the persistent MCP server invocation boundary, excluding one-time launcher and interpreter startup.",
+  "behavioral_evidence": {
+    "path": ".tmcp/invocation-admission-pilot-v0.4-20260802/score-report.json",
+    "sha256": "683a59decf4a7b7aae0f4c209022c075a6f3ad15407c5873fe4ad31f592864f3",
+    "required_passed_gates": [
+      "quality_noninferiority",
+      "review_source_rate_for_non_review_tasks",
+      "plan_only_negative_control_bypassed",
+      "no_safety_regression"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "pdf-plan-control",
+      "objective": "Plan a reusable skill that rotates a supplied PDF by 90, 180, or 270 degrees with a user-selected output path. Do not create or edit files; return only the clarified scope, reusable resources, initialization steps, and validation plan.",
+      "source_path": "tests/fixtures/invocation-admission-v0.3/pdf-plan-control",
+      "expected_automatic_action": "bypass",
+      "negative_control": true
+    },
+    {
+      "id": "translation-control",
+      "objective": "Translate the supplied note into French. Preserve the product name TMCP, version 0.5.7, command text `tmcp doctor`, and both bullet points. Do not add commentary.",
+      "source_path": "tests/fixtures/invocation-admission-v0.4/translation-control",
+      "expected_automatic_action": "bypass",
+      "negative_control": true
+    }
+  ],
+  "benchmark": {
+    "transport": "in_process_server",
+    "randomization_seed": 2026080206,
+    "warmups_per_cell": 5,
+    "measured_pairs_per_task": 51,
+    "pair_policies": [
+      {"id": "always-on", "admission_mode": "forced", "expected_action": "forced"},
+      {"id": "admission-controlled", "admission_mode": "automatic", "expected_action": "bypass"}
+    ],
+    "measurement": "monotonic nanoseconds around _compose_packet in one persistent loaded server process",
+    "outlier_policy": "retain every successful measured pair; fail closed on any missing or unsuccessful observation"
+  },
+  "acceptance": {
+    "minimum_median_paired_overhead_reduction_vs_always_on": 0.15,
+    "minimum_per_task_median_paired_reduction": 0.0
+  },
+  "evidence_boundary": "Confirmatory local persistent-server benchmark. It reuses digest-bound v0.4 blinded behavioral evidence, makes no model calls, excludes one-time process startup, and does not measure provider token usage or end-to-end agent latency."
+}

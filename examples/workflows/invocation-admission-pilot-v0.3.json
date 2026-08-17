@@ -1,0 +1,65 @@
+{
+  "schema": "tmcp-invocation-admission-pilot-v0.3",
+  "purpose": "Blinded screening of automatic TMCP admission after source-selection and routing fixes, using isolated task-specific workspaces.",
+  "policies": [
+    {"id": "explicit-only", "description": "No automatically injected packet."},
+    {"id": "always-on", "description": "Force and inject a TMCP packet."},
+    {"id": "admission-controlled", "description": "Inject only when the admission and packet-utility gates compose."}
+  ],
+  "tasks": [
+    {
+      "id": "agent-workflow",
+      "fixture_id": "v03-agent-workflow",
+      "prompt": "Design the agent workflow, define routing, audit safety boundaries, and verify receipts before promotion.",
+      "expected_automatic_action": "compose",
+      "review_or_audit_task": true,
+      "negative_control": false
+    },
+    {
+      "id": "research-writing",
+      "fixture_id": "v03-research-writing",
+      "prompt": "Research the supplied sources, write the domain artifact, review the draft, and verify all citations.",
+      "expected_automatic_action": "compose",
+      "review_or_audit_task": true,
+      "negative_control": false
+    },
+    {
+      "id": "debug-executable",
+      "fixture_id": "v03-debug-executable",
+      "prompt": "Diagnose the failing route-normalization regression, implement the narrow fix, protect it with regression coverage, and verify release behavior.",
+      "expected_automatic_action": "compose",
+      "review_or_audit_task": false,
+      "negative_control": false
+    },
+    {
+      "id": "pdf-plan-control",
+      "fixture_id": "v03-pdf-plan-control",
+      "prompt": "Plan a reusable skill that rotates a supplied PDF by 90, 180, or 270 degrees with a user-selected output path. Do not create or edit files; return only the clarified scope, reusable resources, initialization steps, and validation plan.",
+      "expected_automatic_action": "bypass",
+      "review_or_audit_task": false,
+      "negative_control": true
+    }
+  ],
+  "repeats_per_cell": 2,
+  "matrix_rows": 24,
+  "assignment": {
+    "randomized": true,
+    "judge_blinded_to_policy": true,
+    "runner_receives_bar": false,
+    "judge_receives_policy_label": false,
+    "fresh_runner_per_row": true,
+    "fresh_judge_per_artifact": true,
+    "tool_use_bounded_to_isolated_workspace": true
+  },
+  "preregistration": {
+    "randomization_seed": 2026080203,
+    "source_fixtures": ["tests/fixtures/invocation-admission-pilot-v0.3.json"],
+    "freeze_before_model_calls": true
+  },
+  "acceptance": {
+    "quality_noninferiority_margin": 0.05,
+    "minimum_median_overhead_reduction_vs_always_on": 0.15,
+    "maximum_review_source_rate_for_non_review_tasks": 0.05
+  },
+  "evidence_boundary": "Screening pilot. Each row uses a fresh isolated runner and judge. Runner wall time is self-recorded; model token counts remain unavailable."
+}

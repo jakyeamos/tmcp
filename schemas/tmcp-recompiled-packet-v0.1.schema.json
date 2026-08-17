@@ -13,6 +13,8 @@
     "packet_diff",
     "agent_proposals",
     "validated_changes",
+    "recompile_required",
+    "recompile_triggers",
     "warnings",
     "safety"
   ],
@@ -76,6 +78,15 @@
       "items": {
         "type": "object",
         "additionalProperties": true
+      }
+    },
+    "recompile_required": {
+      "type": "boolean"
+    },
+    "recompile_triggers": {
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     },
     "suggested_phase": {

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tmcp.local/schemas/tmcp-handoff-manifest-v0.1.schema.json",
+  "title": "TMCP handoff manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "exact_base", "files"],
+  "properties": {
+    "schema": {
+      "const": "tmcp-handoff-manifest-v0.1"
+    },
+    "exact_base": {
+      "type": "string",
+      "minLength": 1
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "artifact_path", "bytes", "sha256"],
+        "properties": {
+          "path": {
+            "$ref": "#/$defs/relativePath"
+          },
+          "artifact_path": {
+            "$ref": "#/$defs/relativePath"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.?($|/))[^\\u0000]+$"
+    }
+  }
+}

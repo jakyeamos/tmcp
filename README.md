@@ -4,7 +4,7 @@
   <p><strong>Slash commands are manual imports. TMCP is the compiler.</strong></p>
 </div>
 
-TMCP turns scattered agent instructions into task-specific operating packets. The user describes the work in natural language. TMCP infers task identity, compiles the strongest current packet from skills/rules/evidence, recompiles as the work changes, and leaves an audit trail.
+TMCP turns scattered agent instructions into task-specific operating packets when composition is likely to improve the work. The user describes the work in natural language. TMCP infers typed task identity, can bypass low-value requests, compiles the smallest useful packet from production skills/rules/evidence, recompiles only after material changes, and leaves an advisory receipt trail.
 
 Skill names are provenance, not the user interface. Power users can still force a route; the default is natural prompting.
 
@@ -19,7 +19,7 @@ From a TMCP checkout or plugin root:
 ```bash
 node scripts/tmcp_launcher.mjs doctor
 node scripts/tmcp_launcher.mjs status
-node scripts/tmcp_launcher.mjs compose-packet "Improve this agent run" --project-path . --phase start
+node scripts/tmcp_launcher.mjs compose-packet "Implement this API and verify its failure behavior" --project-path . --phase start --admission-mode shadow
 node scripts/tmcp_launcher.mjs harvest skills --limit 5 --no-write-artifacts
 node scripts/tmcp_launcher.mjs recommend skills --candidate-workflows release_readiness --candidate-workflows developer_experience --min-confidence 0.1 --compose --no-write-artifacts
 ```
@@ -52,6 +52,8 @@ Experimental templates and tools remain shipped and callable. They are labeled e
 
 Experimental workflows include UI rubric, security/privacy, test strategy, adaptive workflow pack, custom rubric generation, routing policy, skill gap analysis, incident postmortem, architecture decision, migration readiness, agent handoff, PR risk, performance readiness, data integrity, public-sector readiness, and repo behavior spec loop.
 
+The checked-in [invocation admission pilot](examples/workflows/invocation-admission-pilot.json) defines a randomized, blind 36-row comparison of explicit-only, always-on, and admission-controlled TMCP policies. It deliberately separates deterministic routing proof from causal evidence that an invocation policy improves agent outcomes.
+
 ## Tools
 
 | Tool | Purpose |
@@ -59,7 +61,7 @@ Experimental workflows include UI rubric, security/privacy, test strategy, adapt
 | `tmcp_doctor` | Check first-run readiness and supported install layouts. |
 | `tmcp_status` | Report standalone capability and optional AIOS adapter status. |
 | `tmcp_explain` | Compile a task-specific TMCP packet. |
-| `tmcp_compose_packet` | Compile a task/phase operating packet with `task_identity`, `packet_markdown`, and provenance. |
+| `tmcp_compose_packet` | Decide admission and compile a bounded task/phase packet with typed `task_identity`, `packet_markdown`, and provenance. |
 | `tmcp_runtime_next` | Return packet deltas or a full recompiled packet (`output_mode: full`) after runtime evidence changes. |
 | `tmcp_record_receipt` | Write an advisory run receipt after verification or outcome on a secure-persistence host. |
 | `tmcp_harvest_skills` | Harvest local skills, instructions, rules, docs, and workflows into source nodes. |
@@ -70,7 +72,7 @@ Experimental workflows include UI rubric, security/privacy, test strategy, adapt
 
 ## Safety
 
-Harvest redacts sensitive-looking values and secret-like provenance paths by default and treats harvested instructions as untrusted text. Default harvest behavior excludes `.env*`, credentials, tokens, browser profiles, private caches, dependency trees, build outputs, VCS data, and generated TMCP/AIOS artifacts. It does not follow source symlinks unless `follow_symlinks` is explicitly enabled; enabled links must still resolve inside the selected source root.
+Harvest redacts sensitive-looking values and secret-like provenance paths by default and treats harvested instructions as untrusted text. Default harvest behavior excludes `.env*`, credentials, tokens, browser profiles, private caches, dependency trees, build outputs, VCS data, generated TMCP/AIOS artifacts, tests, and fixtures. Tests and fixtures require the explicit `include_test_sources` opt-in. Harvest does not follow source symlinks unless `follow_symlinks` is explicitly enabled; enabled links must still resolve inside the selected source root.
 
 On hosts with secure descriptor-relative filesystem operations, harvest artifacts
 are written as one staged, atomic bundle through a symlink-safe destination.
