@@ -6,6 +6,19 @@ The canonical portable launcher is:
 node scripts/tmcp_launcher.mjs doctor
 ```
 
+Before editing a Codex checkout or dispatching Codex validation, run the
+read-only [Codex validation preflight](CODEX_VALIDATION_PREFLIGHT.md):
+
+```bash
+node scripts/tmcp_launcher.mjs codex-validation-preflight --path /path/to/codex
+node scripts/tmcp_launcher.mjs codex-validation-preflight \
+  --path /path/to/codex \
+  --desktop-bridge-manifest /path/to/desktop-bridge-build.json \
+  --desktop-bridge-source /path/to/desktop-bridge \
+  --require-desktop-bridge
+node scripts/tmcp_launcher.mjs codex-validation-bootstrap --source-root /path/to/codex --toolchain /path/to/toolchain.json --tool-dir /private/tmp/codex-validation-tools
+```
+
 Use the Node launcher everywhere so Python discovery remains cross-platform. With no arguments, it starts the MCP stdio server. With arguments, it invokes the same implementations exposed through MCP tools and prints JSON. Launcher portability is separate from durable artifact persistence; see [Compatibility](COMPATIBILITY.md#secure-artifact-persistence).
 
 ## Commands
@@ -17,6 +30,7 @@ artifact.
 ```bash
 node scripts/tmcp_launcher.mjs list-tools
 node scripts/tmcp_launcher.mjs doctor
+node scripts/tmcp_launcher.mjs codex-validation-preflight --path /path/to/codex
 node scripts/tmcp_launcher.mjs status
 node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --adapter standalone
 node scripts/tmcp_launcher.mjs explain "Review developer onboarding commands" --project-path . --compose

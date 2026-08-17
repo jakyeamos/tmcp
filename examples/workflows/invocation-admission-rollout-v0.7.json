@@ -1,0 +1,74 @@
+{
+  "schema": "tmcp-invocation-admission-rollout-v0.7",
+  "purpose": "Gate always-on host-side admission with a shadow phase followed by a randomized paired Codex canary where admitted TMCP packets replace normal full-skill routing instead of supplementing it.",
+  "preregistration": {
+    "freeze_before_provider_runs": true,
+    "human_expected_action_labeled_before_decision_reveal": true,
+    "judge_blinded_to_arm": true,
+    "fresh_context_per_run": true,
+    "task_mix": [
+      "positive",
+      "negative",
+      "ambiguous"
+    ],
+    "atom_variant_excluded": true
+  },
+  "shadow": {
+    "policy": "Run automatic admission for every sampled substantive task, expose no packet to the model, and record only redacted task identity plus routing telemetry.",
+    "minimum_tasks_total": 60,
+    "minimum_tasks_per_stratum": 15,
+    "acceptance": {
+      "maximum_false_positive_rate": 0.05,
+      "maximum_false_negative_rate": 0.05,
+      "maximum_review_source_rate_for_non_review_tasks": 0.05,
+      "maximum_model_visible_tmcp_round_trips": 0
+    }
+  },
+  "canary": {
+    "requires_passed_shadow": true,
+    "arms": [
+      {
+        "id": "normal-codex-routing",
+        "description": "Normal Codex skill routing with no TMCP admission or packet."
+      },
+      {
+        "id": "tmcp-admitted-substitution",
+        "description": "Host-side TMCP admission; accepted packets replace normal full-skill loading, while bypasses fall through to normal routing."
+      }
+    ],
+    "assignment": {
+      "randomized_within_task_pairs": true,
+      "pair_order_counterbalanced": true,
+      "fresh_context_per_run": true,
+      "judge_blinded_to_arm": true
+    },
+    "minimum_pairs_total": 60,
+    "minimum_pairs_per_stratum": 15,
+    "acceptance": {
+      "quality_noninferiority_margin": 0.05,
+      "maximum_false_positive_rate": 0.05,
+      "maximum_false_negative_rate": 0.05,
+      "maximum_review_source_rate_for_non_review_tasks": 0.05,
+      "maximum_irrelevant_constraint_mean_increase": 0.0,
+      "maximum_unsafe_action_increase": 0,
+      "maximum_median_paired_wall_time_ratio": 1.0,
+      "maximum_median_paired_total_token_ratio": 1.0,
+      "maximum_median_paired_model_round_trip_delta": 0.0,
+      "maximum_median_paired_tool_round_trip_delta": 0.0,
+      "maximum_median_paired_skill_read_call_delta": 0.0,
+      "maximum_median_paired_skill_read_token_delta": 0.0,
+      "maximum_model_visible_tmcp_round_trips": 0
+    }
+  },
+  "required_provider_metrics": [
+    "wall_time_ms",
+    "input_tokens",
+    "output_tokens",
+    "model_round_trips",
+    "tool_round_trips",
+    "skill_read_calls",
+    "skill_read_input_tokens",
+    "tmcp_model_visible_round_trips"
+  ],
+  "evidence_boundary": "This contract scores provider-native traces supplied by the Codex host. It does not infer token usage from packet characters, infer tool calls from text, or authorize universal packet injection. Atom-level composition remains a separately validated future canary variant."
+}

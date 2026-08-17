@@ -8,7 +8,7 @@ status: stable
 
 Use this skill whenever the user asks for TMCP, a TMCP packet, TMCP traversal, TMCP skill harvest, TMCP workflow recommendation, TMCP expert workflow, TMCP expert rubric, expert rubric workflow, or asks to judge/audit/review something "using TMCP".
 
-TMCP turns scattered agent instructions into task-specific packets. AIOS is optional storage and adapter support, not the concept.
+TMCP turns scattered agent instructions into task-specific packets when the expected task value exceeds the routing and context cost. AIOS is optional storage and adapter support, not the concept.
 
 **Slash commands are manual imports. TMCP is the compiler.** The user describes work in natural language. TMCP compiles the operating packet, recompiles when evidence changes, and records receipts. Skill names are provenance, not the user interface.
 
@@ -58,11 +58,13 @@ checks, and tests as the source-of-truth set for package behavior.
 Default adaptive packet runtime for implementation work:
 
 1. `tmcp_doctor` and `tmcp_status` when TMCP availability is unclear.
-2. `tmcp_compose_packet` at intake with the user's natural-language objective and current phase.
+2. For host-initiated routing, call `tmcp_compose_packet` with `admission_mode: "shadow"` first. Promote to `automatic` injection only after the local task class passes causal evaluation. Explicit user requests use `admission_mode: "forced"`.
 3. Execute under the returned `packet_markdown` contract. Surface `task_identity`, selected sources, excluded sources, and verification gates in the handoff.
 4. `tmcp_runtime_next` when runtime evidence changes the next step. Prefer `output_mode: "full"` with `previous_packet` (CLI: `recompile-packet`) when the operating contract itself should change, not just the next reads/gates. Use a shared explicit `session_id` only when the run needs protected project-local latest-packet persistence.
 5. `tmcp_record_receipt` after meaningful verification or outcome.
 6. Use harvest/recommend/promote only when building or updating durable routing knowledge, not on every ordinary task.
+
+Admission decisions are `bypass`, `shadow`, `compose`, or `forced`. Bypass trivial work and unresolved or low-confidence task identities. Automatic composition requires both a confident typed route and enough multi-surface, multi-phase, runtime-failure, or verification complexity to repay packet overhead. A shadow decision records the recommendation but does not authorize the host to inject the packet. Test and fixture sources are excluded unless `include_test_sources: true` is explicitly supplied.
 
 Supporting tools:
 

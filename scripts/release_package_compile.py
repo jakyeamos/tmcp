@@ -7,6 +7,8 @@ import sys
 
 COMPILE_PATHS: tuple[str, ...] = (
     "scripts/tmcp_mcp_server.py",
+    "scripts/check_codex_validation_preflight.py",
+    "scripts/bootstrap_codex_validation.py",
     "scripts/check_contracts.py",
     "scripts/check_install.py",
     "scripts/check_release_package.py",
@@ -26,6 +28,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/adapters/framing.py",
     "tmcp_runtime/adapters/mcp.py",
     "tmcp_runtime/domain/__init__.py",
+    "tmcp_runtime/domain/admission.py",
     "tmcp_runtime/domain/declared_loads.py",
     "tmcp_runtime/domain/composition.py",
     "tmcp_runtime/domain/families.py",
@@ -39,6 +42,7 @@ COMPILE_PATHS: tuple[str, ...] = (
     "tmcp_runtime/domain/review_results.py",
     "tmcp_runtime/domain/runtime_state.py",
     "tmcp_runtime/domain/routes.py",
+    "tmcp_runtime/domain/route_catalog.py",
     "tmcp_runtime/domain/standalone_packets.py",
     "tmcp_runtime/domain/workflow_activation.py",
     "tmcp_runtime/domain/workflow_adaptive.py",

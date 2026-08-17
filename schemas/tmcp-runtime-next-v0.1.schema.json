@@ -12,6 +12,8 @@
     "previous_packet_id",
     "packet_delta",
     "next_verification_gate",
+    "recompile_required",
+    "recompile_triggers",
     "warnings",
     "safety"
   ],
@@ -81,11 +83,23 @@
         "type": "string"
       }
     },
+    "recompile_required": {
+      "type": "boolean"
+    },
+    "recompile_triggers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "warnings": {
       "type": "array",
       "items": {
         "type": "string"
       }
+    },
+    "coordination": {
+      "$ref": "tmcp-coordinator-state-v0.1.schema.json"
     },
     "safety": {
       "type": "object",

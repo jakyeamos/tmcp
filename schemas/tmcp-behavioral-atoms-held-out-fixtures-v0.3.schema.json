@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jakyeamos/tmcp/schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json",
+  "title": "TMCP Behavioral Atoms Held-out Fixtures v0.3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema",
+    "version",
+    "split",
+    "owner",
+    "non_tuning_boundary",
+    "fixtures"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema": {
+      "const": "tmcp-behavioral-atoms-held-out-fixtures-v0.3"
+    },
+    "version": {
+      "const": "0.3.0"
+    },
+    "split": {
+      "const": "held_out"
+    },
+    "owner": {
+      "type": "object",
+      "required": [
+        "owner_id",
+        "authority",
+        "scope",
+        "contact_boundary"
+      ],
+      "properties": {
+        "owner_id": {
+          "const": "behavioral_atoms_preflight"
+        },
+        "authority": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contact_boundary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "non_tuning_boundary": {
+      "type": "object",
+      "required": [
+        "tuning_allowed",
+        "labels_frozen_before_implementation",
+        "expected_outcomes_frozen_before_runtime_or_provider_work",
+        "allowed_changes",
+        "forbidden_uses"
+      ],
+      "properties": {
+        "tuning_allowed": {
+          "const": false
+        },
+        "labels_frozen_before_implementation": {
+          "const": true
+        },
+        "expected_outcomes_frozen_before_runtime_or_provider_work": {
+          "const": true
+        },
+        "allowed_changes": {
+          "type": "string",
+          "minLength": 1
+        },
+        "forbidden_uses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "family",
+          "ownership",
+          "prompt_excerpt",
+          "signals",
+          "expected_outcome"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "family": {
+            "enum": [
+              "data_integrity",
+              "security_privacy",
+              "release_readiness",
+              "migration_readiness"
+            ]
+          },
+          "ownership": {
+            "type": "object",
+            "required": [
+              "owner_id",
+              "role",
+              "status"
+            ],
+            "properties": {
+              "owner_id": {
+                "const": "behavioral_atoms_preflight"
+              },
+              "role": {
+                "const": "fixture_owner"
+              },
+              "status": {
+                "const": "sealed"
+              }
+            }
+          },
+          "prompt_excerpt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "signals": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "expected_outcome": {
+            "type": "object",
+            "required": [
+              "applicability",
+              "decision",
+              "required_domain_atoms",
+              "required_obligations",
+              "stop"
+            ],
+            "properties": {
+              "applicability": {
+                "enum": [
+                  "positive",
+                  "negative",
+                  "ambiguous"
+                ]
+              },
+              "decision": {
+                "enum": [
+                  "admit",
+                  "reject",
+                  "hold_for_evidence"
+                ]
+              },
+              "required_domain_atoms": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "required_obligations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "missing_evidence": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "stop": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "project": {
+    "name": "tmcp",
+    "identity": "A task-specific context packet compiler that turns skills, rules, and evidence into compiled, auditable workflow packets.",
+    "audience": "Operators and agent workflows that need the smallest relevant context packet for a task rather than a manual import of every available instruction.",
+    "core_loop": "Select task-relevant skills, rules, and evidence, compile a bounded packet, recompile when inputs change, retain an audit trail, and hand the packet to the authorized workflow consumer.",
+    "north_star": "Task-specific context becomes smaller, more relevant, and more auditable because compilation is explicit instead of relying on manual imports.",
+    "not_this": ["A generic skill catalog without task routing", "An autonomous task executor", "A claim that compiled context is correct merely because it has a hash"]
+  },
+  "targets": {
+    "mvp": {"definition": "A task can compile a bounded packet from selected skills, rules, and evidence with a readable manifest and audit trail."},
+    "complete_product": {"definition": "TMCP reliably routes, compiles, recompiles, and audits task-specific packets across its stable supported surfaces while keeping experimental behavior explicitly separate."}
+  },
+  "pillars": [
+    {"id": "task-specific-compilation", "name": "Task-specific compilation", "outcomes": [{"id": "relevant-packet", "name": "A workflow receives only the relevant context inputs for its task, with source and selection reasons visible.", "targets": ["mvp", "complete_product"], "maturity": 75, "confidence": "medium", "layers": {"intended": "Operators spend less context budget on irrelevant manual imports and can inspect what was selected.", "planned": "The repository defines TMCP as a compiler for skills, rules, and evidence.", "implemented": "Stable compilation and experimental surfaces exist in the current repository.", "verified": "README establishes the compiler model and current status; full consumer and recompilation parity was not run here."}, "evidence": [{"ref": "README.md", "note": "States that manual imports are not TMCP and defines the compiler loop.", "observed_at": "2026-08-02T13:25:04Z"}], "blockers": [{"kind": "verification", "summary": "Consumer-specific packet relevance and recompilation behavior require broader execution evidence."}]}]},
+    {"id": "auditable-context", "name": "Auditable context", "outcomes": [{"id": "recompilable-audit-trail", "name": "A compiled packet can be traced to its inputs and regenerated when those inputs change, without treating identity hashes as behavior proof.", "targets": ["complete_product"], "maturity": 50, "confidence": "medium", "layers": {"intended": "Context changes remain understandable and recoverable across task runs.", "planned": "Audit trail and recompilation are explicit product concepts.", "implemented": "The repository contains stable and experimental compilation/audit surfaces.", "verified": "No full input-change, recompile, or downstream behavior matrix was executed here."}, "evidence": [{"ref": "README.md", "note": "Defines compilation, recompilation, and audit trail scope.", "observed_at": "2026-08-02T13:25:04Z"}], "blockers": [{"kind": "technical", "summary": "Artifact persistence, consumer parity, and behavior verification remain open for the experimental surfaces."}]}]}
+  ],
+  "source_layers": {"intended": [{"ref": "README.md", "note": "Product identity and compiler model.", "observed_at": "2026-08-02T13:25:04Z"}], "planned": [{"ref": "README.md", "note": "Stable and experimental surface direction.", "observed_at": "2026-08-02T13:25:04Z"}], "implemented": [{"ref": "README.md", "note": "Current packet compiler and audit surfaces.", "observed_at": "2026-08-02T13:25:04Z"}], "verified": [{"ref": "README.md", "note": "Documented claims only; no consumer matrix was run here.", "observed_at": "2026-08-02T13:25:04Z"}]},
+  "drift": [{"kind": "verification-gap", "summary": "TMCP's compiler identity is clear, but consumer relevance, recompilation, artifact persistence, and experimental-surface parity remain incomplete verification areas.", "status": "open", "observed_at": "2026-08-02T13:25:04Z", "evidence": [{"ref": "README.md", "note": "Separates stable and experimental surfaces without full consumer proof.", "observed_at": "2026-08-02T13:25:04Z"}]}],
+  "updated_at": "2026-08-02T13:25:04Z"
+}

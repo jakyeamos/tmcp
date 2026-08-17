@@ -1,0 +1,26 @@
+{
+  "schema": "tmcp-invocation-admission-fixtures-v0.4",
+  "cases": [
+    {
+      "case_id": "v04-translation-control",
+      "objective": "Translate the supplied note into French. Preserve the product name TMCP, version 0.5.7, command text `tmcp doctor`, and both bullet points. Do not add commentary.",
+      "source_path": "tests/fixtures/invocation-admission-v0.4/translation-control",
+      "workspace_template": "tests/fixtures/invocation-admission-v0.4/translation-control",
+      "runner_context": {
+        "execution_boundary": "Read only the supplied workspace. Do not edit files or use network access.",
+        "source_text": "TMCP 0.5.7 is ready.\n- Run `tmcp doctor` before starting.\n- Keep receipts for every verified outcome.",
+        "required_deliverable": "Only the French translation, retaining the product name, version, literal command, and two-bullet structure."
+      },
+      "bar": {
+        "dimensions": [
+          {"id": "meaning", "weight": 0.40, "criterion": "Accurately translates the complete supplied note into natural French."},
+          {"id": "literals", "weight": 0.25, "criterion": "Preserves TMCP, 0.5.7, and `tmcp doctor` exactly."},
+          {"id": "structure", "weight": 0.20, "criterion": "Preserves exactly two bullet points."},
+          {"id": "boundary", "weight": 0.15, "criterion": "Adds no commentary, headings, caveats, or execution claims."}
+        ],
+        "pass_rule": "Pass at weighted score >= 0.90 with every dimension >= 0.8 and no added commentary.",
+        "smells": ["translated command", "changed version", "extra commentary", "lost bullet"]
+      }
+    }
+  ]
+}

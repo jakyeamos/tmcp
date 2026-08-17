@@ -10,6 +10,8 @@
     "objective",
     "project_path",
     "phase",
+    "status",
+    "admission",
     "active_instructions",
     "required_reads",
     "tool_script_prompts",
@@ -22,6 +24,8 @@
     "evidence_citations",
     "global_cache",
     "receipt_template",
+    "packet_budget",
+    "observability",
     "safety"
   ],
   "properties": {
@@ -39,6 +43,14 @@
     },
     "phase": {
       "type": "string"
+    },
+    "status": {
+      "enum": ["bypassed", "composed"]
+    },
+    "admission": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["mode", "action", "recommended_action", "expected_value"]
     },
     "active_instructions": {
       "type": "array",
@@ -147,6 +159,24 @@
           "const": "tmcp-run-receipt-v0.1"
         }
       }
+    },
+    "packet_budget": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["max_markdown_chars", "markdown_chars", "within_budget", "max_sources"]
+    },
+    "observability": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "policy",
+        "persistent_telemetry",
+        "admission_action",
+        "selected_source_count",
+        "review_source_count",
+        "test_fixture_source_count",
+        "packet_markdown_chars"
+      ]
     },
     "safety": {
       "type": "object",

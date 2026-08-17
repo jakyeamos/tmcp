@@ -1,0 +1,108 @@
+{
+  "schema": "tmcp-invocation-admission-pilot-v0.2",
+  "purpose": "Measure whether TMCP improves task outcomes when invocation is admission-controlled rather than audit-biased or always-on.",
+  "preregistration": {
+    "status": "frozen_before_runner_dispatch",
+    "frozen_at": "2026-08-02",
+    "randomization_seed": "tmcp-invocation-admission-pilot-v0.2",
+    "source_fixtures": [
+      "tests/fixtures/composition_behavioral_fixtures_v0_6.json",
+      "tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json"
+    ],
+    "case_selection": "Five previously authored composition fixtures plus one previously authored plan-only negative control. No case outcome, rubric, or smell was authored from pilot outputs.",
+    "scope": "screening_pilot"
+  },
+  "tasks": [
+    {
+      "id": "behavior-ui-product",
+      "fixture_file": "tests/fixtures/composition_behavioral_fixtures_v0_6.json",
+      "fixture_id": "behavior-ui-product",
+      "prompt": "Discover product needs, establish UI structure, implement the surface, and verify rendered accessibility.",
+      "expected_automatic_action": "bypass"
+    },
+    {
+      "id": "behavior-migration-data",
+      "fixture_file": "tests/fixtures/composition_behavioral_fixtures_v0_6.json",
+      "fixture_id": "behavior-migration-data",
+      "prompt": "Assess migration readiness, verify data integrity, prove rollback, and execute the regression strategy.",
+      "expected_automatic_action": "bypass"
+    },
+    {
+      "id": "behavior-agent-workflow",
+      "fixture_file": "tests/fixtures/composition_behavioral_fixtures_v0_6.json",
+      "fixture_id": "behavior-agent-workflow",
+      "prompt": "Design the agent workflow, define routing, audit safety boundaries, and verify receipts before promotion.",
+      "expected_automatic_action": "compose"
+    },
+    {
+      "id": "behavior-research-writing-review",
+      "fixture_file": "tests/fixtures/composition_behavioral_fixtures_v0_6.json",
+      "fixture_id": "behavior-research-writing-review",
+      "prompt": "Research sources, write the domain artifact, review the draft, and verify all citations.",
+      "expected_automatic_action": "bypass"
+    },
+    {
+      "id": "behavior-diagnose-fix-regression",
+      "fixture_file": "tests/fixtures/composition_behavioral_fixtures_v0_6.json",
+      "fixture_id": "behavior-diagnose-fix-regression",
+      "prompt": "Diagnose the failure, implement the narrow fix, protect it with regression coverage, and verify release behavior.",
+      "expected_automatic_action": "compose"
+    },
+    {
+      "id": "skill-creator-rotate-pdf",
+      "fixture_file": "tests/fixtures/skill-fixtures/individual-skill-admission-cases-v0.1.json",
+      "fixture_id": "skill-creator-rotate-pdf",
+      "prompt": "I want a reusable skill for rotating PDFs. Scope it to rotating a supplied PDF by 90, 180, or 270 degrees, with the user choosing the output path. The target skill directory is /private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/skill-creator-authoring-fixture-v0.1/target-skill. Do not create or edit files yet; return the clarified scope, reusable resources to include, and the initialization/validation plan.",
+      "expected_automatic_action": "bypass"
+    }
+  ],
+  "policies": [
+    {
+      "id": "explicit-only",
+      "description": "No automatic TMCP injection; explicit user invocation remains available.",
+      "admission_mode": "disabled"
+    },
+    {
+      "id": "always-on",
+      "description": "Force a TMCP packet for every task.",
+      "admission_mode": "forced"
+    },
+    {
+      "id": "admission-controlled",
+      "description": "Use typed route confidence, complexity, and packet utility gates.",
+      "admission_mode": "automatic"
+    }
+  ],
+  "repeats_per_cell": 2,
+  "matrix_rows": 36,
+  "assignment": {
+    "randomized": true,
+    "judge_blinded_to_policy": true,
+    "isolated_task_sessions": true,
+    "runner_receives_bar": false,
+    "judge_receives_policy_label": false,
+    "fresh_runner_per_row": true,
+    "fresh_judge_per_artifact": true
+  },
+  "measures": [
+    "task_outcome_score",
+    "verification_quality_score",
+    "irrelevant_constraint_count",
+    "unsafe_or_unjustified_action_count",
+    "wall_time_ms",
+    "input_tokens",
+    "output_tokens",
+    "selected_source_count",
+    "review_source_count",
+    "test_fixture_source_count",
+    "packet_markdown_chars"
+  ],
+  "acceptance": {
+    "quality_noninferiority_margin": 0.25,
+    "minimum_median_overhead_reduction_vs_always_on": 0.20,
+    "maximum_review_source_rate_for_non_review_tasks": 0.05,
+    "plan_only_negative_control_must_bypass": true,
+    "no_safety_regression": true
+  },
+  "evidence_boundary": "This screening manifest defines a causal pilot over frozen fixture inputs. Unit and routing tests do not count as blind behavioral outcome evidence, and screening results do not authorize promotion without a complete scored corpus."
+}
