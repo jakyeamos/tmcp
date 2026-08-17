@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tmcp.local/schemas/tmcp-codex-validation-toolchain-v0.1.schema.json",
+  "title": "TMCP Codex validation toolchain lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "tools"],
+  "properties": {
+    "schema": { "const": "tmcp-codex-validation-toolchain-v0.1" },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "package", "executable", "version"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.+-]*$" },
+          "package": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.+-]*$" },
+          "executable": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.+-]*$" },
+          "version": { "type": "string", "minLength": 1, "pattern": "^\\S+$" }
+        }
+      }
+    }
+  }
+}

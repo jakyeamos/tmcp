@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tmcp.local/schemas/tmcp-codex-validation-bootstrap-v0.1.schema.json",
+  "title": "TMCP Codex validation bootstrap report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "ok",
+    "status",
+    "source_root",
+    "toolchain_path",
+    "tool_dir",
+    "checks",
+    "commands",
+    "remediation"
+  ],
+  "properties": {
+    "schema": { "const": "tmcp-codex-validation-bootstrap-v0.1" },
+    "ok": { "type": "boolean" },
+    "status": { "enum": ["ready", "blocked"] },
+    "source_root": { "type": "string", "minLength": 1 },
+    "toolchain_path": { "type": "string", "minLength": 1 },
+    "tool_dir": { "type": "string", "minLength": 1 },
+    "path_prefix": { "type": "string", "minLength": 1 },
+    "checks": { "type": "object" },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 }
+      }
+    },
+    "remediation": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

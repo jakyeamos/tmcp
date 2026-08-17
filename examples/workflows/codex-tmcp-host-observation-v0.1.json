@@ -1,0 +1,36 @@
+{
+  "schema": "codex-tmcp-host-observation-v0.1",
+  "session_id": "replace-with-codex-session-id",
+  "turn_id": "replace-with-codex-turn-id",
+  "host_metrics": {
+    "skill_read_calls": 0,
+    "skill_read_input_tokens": 0,
+    "tmcp_model_visible_round_trips": 0
+  },
+  "trace": {
+    "run_id": "replace-with-randomized-run-id",
+    "pair_id": "replace-with-paired-task-id-for-canary",
+    "pair_order": 1,
+    "task_id": "replace-with-held-out-task-id",
+    "fresh_context": true,
+    "stratum": "positive",
+    "human_expected_action": "compose",
+    "human_label_blinded": true,
+    "review_or_audit_task": false,
+    "arm": "tmcp-admitted-substitution",
+    "admission": {
+      "mode": "automatic",
+      "action": "compose",
+      "recommended_action": "compose",
+      "policy_version": "replace-with-admission-policy-version"
+    },
+    "routing": {
+      "mode": "substitution",
+      "packet_injected": true,
+      "selected_source_count": 1,
+      "review_source_count": 0,
+      "normal_full_skill_load_count": 0,
+      "supplemental_full_skill_load_count": 0
+    }
+  }
+}
