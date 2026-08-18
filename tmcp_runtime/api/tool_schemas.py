@@ -28,13 +28,14 @@ TOOLS: dict[str, dict[str, object]] = {
         },
     },
     "tmcp_status": {
-        "description": "Report standalone TMCP capability and optional AIOS adapter availability.",
+        "description": "Report standalone TMCP capability and deprecated AIOS adapter state.",
         "inputSchema": {"type": "object", "properties": {}},
     },
     "tmcp_explain": {
         "description": (
             "Compile and explain a task-specific TMCP skill packet. Uses the standalone compiler "
-            "by default; AIOS runs only when adapter=aios is explicitly requested."
+            "by default. The deprecated AIOS adapter also requires an explicit "
+            "compatibility environment gate."
         ),
         "inputSchema": {
             "type": "object",

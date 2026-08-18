@@ -137,8 +137,13 @@ from tmcp_runtime.services.artifact_persistence import (  # noqa: E402
     ArtifactPersistenceService,
 )
 
+AIOS_ADAPTER_COMPATIBILITY_ENABLED = (
+    os.environ.get("TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER") == "1"
+)
 AIOS_ROOT = (
-    Path(os.environ["AIOS_ROOT"]).expanduser() if os.environ.get("AIOS_ROOT") else None
+    Path(os.environ["AIOS_ROOT"]).expanduser()
+    if AIOS_ADAPTER_COMPATIBILITY_ENABLED and os.environ.get("AIOS_ROOT")
+    else None
 )
 TMCP_HOME = Path(os.environ.get("TMCP_HOME", "~/.tmcp")).expanduser()
 UTC = timezone.utc

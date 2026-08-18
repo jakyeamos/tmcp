@@ -50,6 +50,7 @@ def _server_environment() -> dict[str, str]:
     environment["HOME"] = str(home)
     environment["TMCP_HOME"] = str(tmcp_home)
     environment["AIOS_ROOT"] = str(root / "missing-aios")
+    environment.pop("TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER", None)
     return environment
 
 

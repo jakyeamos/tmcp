@@ -1,5 +1,5 @@
 {
-  "mcp_tools_sha256": "sha256:15a6dfc11ca1367b05fbf46130f8607a9f27897176dca186718c44094d1ad9f7",
+  "mcp_tools_sha256": "sha256:ba309df5e7d998ef4b48d8b13ac3fd0c7e88acad09e1ed94b5295402836f823b",
   "pseudo_commands": {
     "help": ["help", "-h", "--help"],
     "list_tools": ["list-tools", "tools", "tools-list"],
@@ -26,7 +26,7 @@
       "canonical_cli_command": "status",
       "cli_aliases": ["status", "tmcp-status", "tmcp_status"],
       "cli_defaults": {},
-      "description_sha256": "sha256:74c6345953d30a8047f902a69934b0c2fb40866f4cdfcfea1b071c1a8dad7b95",
+      "description_sha256": "sha256:c43653c236a5f766b21ef5c3e394a0aa76b13dd212c1204e85ed209744d32cca",
       "input_schema_sha256": "sha256:efddc7bd8bbcef73a14eb1ace1ffdaec81e518ef1e13c1e9271d0b8acb694a49",
       "name": "tmcp_status",
       "output_schema_ids": ["tmcp-status-v0.1"],
@@ -37,7 +37,7 @@
       "canonical_cli_command": "explain",
       "cli_aliases": ["explain", "tmcp-explain", "tmcp_explain"],
       "cli_defaults": {},
-      "description_sha256": "sha256:30acd799025c55b2b2996bbcc3d0fb68a1733f7e9c664d3395c69cc1afab334f",
+      "description_sha256": "sha256:60ef5193587f08f0a0d363400463ed531a1e85a339414ab275f1652819d29158",
       "input_schema_sha256": "sha256:41fd9e870143adbfb0ca8ad01fd9147ac912a61cd7144e59cd0786a1a3f6e543",
       "name": "tmcp_explain",
       "output_schema_ids": ["tmcp-skill-packet-v0.2", "tmcp-composed-packet-v0.1"],

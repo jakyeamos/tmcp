@@ -115,7 +115,7 @@ for the live MCP schema surface.
 1. Exposed MCP tools.
 2. Local `node scripts/tmcp_launcher.mjs ...` CLI. Use this when `tool_search` returns no TMCP tools even though TMCP skills are installed.
 3. Repo or plugin launcher script discovered relative to the installed skill/plugin root.
-4. Explicit AIOS adapter only when `AIOS_ROOT` is configured and requested.
+4. Deprecated AIOS compatibility only when both environment gates are configured and `adapter=aios` is requested.
 5. Manual packet synthesis using the same output contract.
 
 For Codex discovery issues, run:
@@ -141,6 +141,6 @@ Workflow outputs should include or cite:
 - recommendation or remediation plan
 - verification expectations
 
-AIOS remains optional. `--adapter auto` and `--adapter standalone` keep execution inside this package; use `--adapter aios` only when the caller explicitly opts into the local AIOS adapter. Expert review keeps `adapter=auto` standalone so evidence is not forwarded implicitly. An explicit AIOS review is read-only (`--no-write-artifacts`); durable review artifacts always use the standalone protected store.
+The AIOS adapter is deprecated and disabled by default. `AIOS_ROOT` alone is ignored. Temporary legacy compatibility requires both `TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1` and `AIOS_ROOT`, plus an explicit `--adapter aios` request. `--adapter auto` and `--adapter standalone` keep execution inside this package. New callers should use standalone TMCP.
 
 Until AIOS supports protected request input, TMCP rejects known sensitive values before an AIOS command can receive them through process arguments. Use the standalone adapter for those requests.

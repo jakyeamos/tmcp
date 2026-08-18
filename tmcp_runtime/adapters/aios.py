@@ -1,4 +1,4 @@
-"""Explicit, redaction-aware subprocess adapter for optional AIOS execution."""
+"""Explicit, redaction-aware subprocess adapter for deprecated AIOS compatibility."""
 
 from __future__ import annotations
 
@@ -61,11 +61,15 @@ def run(
         return {
             "ok": False,
             "adapter": "aios",
-            "error": "AIOS adapter requested but AIOS_ROOT/bin/aios.py was not found.",
+            "error": (
+                "Deprecated AIOS adapter requested but its compatibility gate is "
+                "disabled or AIOS_ROOT/bin/aios.py was not found."
+            ),
             "aios_root": redact_path(root) if root is not None else None,
             "remediation": (
-                "Continue with --adapter standalone, or set AIOS_ROOT to an AIOS "
-                "checkout if you explicitly want the optional adapter."
+                "Continue with --adapter standalone. Temporary legacy compatibility "
+                "requires both TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1 and AIOS_ROOT "
+                "pointing to an AIOS checkout."
             ),
         }
     redactions = command_redactions(args)

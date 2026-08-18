@@ -69,9 +69,9 @@ Claude Desktop users install TMCP by adding a local stdio MCP server entry to `c
 
 Skill-only installs copy `skills/tmcp` and its `references/` directory. They provide routing and manual packet synthesis. They do not expose MCP tools unless the host also has access to the launcher.
 
-## AIOS-Backed Install
+## Deprecated AIOS Compatibility
 
-Set `AIOS_ROOT` only when optional AIOS storage/adapter behavior is wanted. AIOS is not required for standalone TMCP.
+`AIOS_ROOT` alone no longer activates the adapter. Temporary legacy compatibility requires both `TMCP_ENABLE_DEPRECATED_AIOS_ADAPTER=1` and `AIOS_ROOT`. AIOS is not required for standalone TMCP, and new installations should not enable the deprecated path.
 
 ## MCP Registry Submission
 
