@@ -1,0 +1,29 @@
+{
+  "schema_version": "change-surface-matrix/v1",
+  "subject": {"kind": "repository", "id": "tmcp"},
+  "owner": "repository-owner",
+  "last_reviewed": "2026-08-11",
+  "surfaces": [
+    {
+      "id": "tmcp-runtime",
+      "scope": "local",
+      "path": "scripts/, skills/, tests/",
+      "owner": "repository-owner",
+      "condition": "packet composition, routing, harvest, receipt, or runtime behavior changes",
+      "operations": ["add", "change", "remove"],
+      "validation": ["node --check scripts/tmcp_launcher.mjs", "python3 -m unittest discover -s tests", "python3 scripts/check_contracts.py ."],
+      "status": "applicable"
+    },
+    {
+      "id": "host-integrations",
+      "scope": "external",
+      "path": "Codex plugin cache, Claude plugin package, MCP hosts, and optional AIOS adapter",
+      "owner": "integration-owner",
+      "condition": "launcher path, plugin metadata, MCP tool contract, or adapter behavior changes",
+      "operations": ["add", "change", "remove"],
+      "validation": ["python3 scripts/check_install.py .", "python3 scripts/check_release_package.py . --verify-reproducible", "pre-cr run --json --workspace ."],
+      "status": "applicable"
+    }
+  ],
+  "unresolved_surfaces": []
+}
