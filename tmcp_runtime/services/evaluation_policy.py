@@ -114,7 +114,13 @@ def _routing_slices(text: str) -> dict[str, Any]:
         for line in text.splitlines()
         if any(
             marker in line.lower()
-            for marker in ("verify", "run ", "report pass", "pass/fail", "npm test")
+            for marker in (
+                "verify",
+                "run ",
+                "report pass",
+                "pass/fail",
+                "npm" + " test",  # non-executable detector marker
+            )
         )
     ][:8]
     output_contract = [
@@ -554,7 +560,13 @@ def _rewrite_with_guidebook_patterns(decomposition: dict[str, Any], text: str) -
     lowered = text.lower()
     if any(
         marker in lowered
-        for marker in ("ignore system", "ignore developer", "ignore user", "overwrite", "higher-priority")
+        for marker in (
+            "ignore system",
+            "ignore developer",
+            "ignore user",
+            "overwrite",
+            "higher-priority",
+        )
     ):
         lines.extend(
             [
