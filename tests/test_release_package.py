@@ -329,9 +329,7 @@ class ReleasePackageTests(unittest.TestCase):
             "docs/experiments/behavioral-atoms-runtime-h3-boundary-evidence-ladder-v0.7.json",
         ):
             with self.subTest(path=path):
-                self.assertIsNone(
-                    self.package.inclusion_reason(PurePosixPath(path))
-                )
+                self.assertIsNone(self.package.inclusion_reason(PurePosixPath(path)))
 
     def test_package_rejects_cross_platform_path_collisions(self) -> None:
         with self.assertRaisesRegex(
@@ -387,9 +385,7 @@ class ReleasePackageTests(unittest.TestCase):
         placeholder = "/absolute/path/to/tmcp/scripts/" + "tmcp_launcher.mjs"
         self.package.scan_release_content("README.md", placeholder.encode("utf-8"))
         path_assignment = "PATH=/private/tmp/tmcp-skill-fixtures-20260722"
-        self.package.scan_release_content(
-            "README.md", path_assignment.encode("utf-8")
-        )
+        self.package.scan_release_content("README.md", path_assignment.encode("utf-8"))
         relative_path = "workflows/" + "security-privacy-harvest-audit"
         self.package.scan_release_content("README.md", relative_path.encode("utf-8"))
         identifier = "recommended_scoped_packet_" + "seeds"

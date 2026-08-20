@@ -746,7 +746,9 @@ class TmcpMcpServerTests(unittest.TestCase):
         )
         self.assertTrue(all(isinstance(item["terms"], tuple) for item in requirements))
         coverage_text = " ".join(
-            str(term) for requirement in requirements for term in requirement["terms"]
+            str(term)
+            for requirement in requirements
+            for term in cast(tuple[object, ...], requirement["terms"])
         )
 
         report = review_evidence.build_audit_report(
@@ -890,8 +892,9 @@ class TmcpMcpServerTests(unittest.TestCase):
         process_only = fixture["process_only"]
 
         with TestWorkspace() as workspace:
-            source_rich_project = workspace.project / "source-rich"
-            process_only_project = workspace.project / "process-only"
+            project = cast(Path, workspace.project)
+            source_rich_project = project / "source-rich"
+            process_only_project = project / "process-only"
             source_path = source_rich_project / source_rich["relative_path"]
             source_path.parent.mkdir(parents=True)
             source_path.write_text(source_rich["content"])
@@ -951,12 +954,12 @@ class TmcpMcpServerTests(unittest.TestCase):
                 ]
             )
 
-        rich_mcp_payload = cast(
-            Mapping[str, object], mcp_responses[0]["result"]["structuredContent"]
-        )
-        process_mcp_payload = cast(
-            Mapping[str, object], mcp_responses[1]["result"]["structuredContent"]
-        )
+        def structured_content(response: Mapping[str, object]) -> Mapping[str, object]:
+            result = cast(Mapping[str, object], response["result"])
+            return cast(Mapping[str, object], result["structuredContent"])
+
+        rich_mcp_payload = structured_content(mcp_responses[0])
+        process_mcp_payload = structured_content(mcp_responses[1])
 
         def substance(payload: Mapping[str, object]) -> Mapping[str, object]:
             packet = cast(Mapping[str, object], payload["expertise_packet"])

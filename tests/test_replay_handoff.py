@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import cast
 from unittest.mock import patch
 
 from scripts import replay_handoff
@@ -133,6 +134,10 @@ class HandoffReplayTests(unittest.TestCase):
             code = main(arguments)
         return code, json.loads(output.getvalue())
 
+    @staticmethod
+    def error_text(result: dict[str, object]) -> str:
+        return cast(str, result["error"])
+
     def test_owner_aware_manifest_reports_custody(self) -> None:
         manifest = self.owner_aware_manifest()
         output = io.StringIO()
@@ -222,8 +227,9 @@ class HandoffReplayTests(unittest.TestCase):
             ["verify", str(manifest), "--require-custody"]
         )
         self.assertEqual(code, 2)
-        self.assertIn("referenced receipt is missing", result["error"])
-        self.assertNotIn(str(self.root), result["error"])
+        error = self.error_text(result)
+        self.assertIn("referenced receipt is missing", error)
+        self.assertNotIn(str(self.root), error)
 
     def test_require_custody_rejects_mismatched_referenced_receipt_hash(self) -> None:
         manifest = self.owner_aware_manifest()
@@ -234,8 +240,9 @@ class HandoffReplayTests(unittest.TestCase):
             ["verify", str(manifest), "--require-custody"]
         )
         self.assertEqual(code, 2)
-        self.assertIn("receipt bytes SHA-256 mismatch", result["error"])
-        self.assertNotIn(str(self.root), result["error"])
+        error = self.error_text(result)
+        self.assertIn("receipt bytes SHA-256 mismatch", error)
+        self.assertNotIn(str(self.root), error)
 
     def test_require_custody_rejects_non_file_referenced_receipt(self) -> None:
         manifest = self.owner_aware_manifest()
@@ -245,7 +252,7 @@ class HandoffReplayTests(unittest.TestCase):
             ["verify", str(manifest), "--require-custody"]
         )
         self.assertEqual(code, 2)
-        self.assertIn("not a regular file", result["error"])
+        self.assertIn("not a regular file", self.error_text(result))
 
     def test_require_custody_rejects_unreadable_referenced_receipt(self) -> None:
         manifest = self.owner_aware_manifest()
@@ -258,8 +265,9 @@ class HandoffReplayTests(unittest.TestCase):
                 ["verify", str(manifest), "--require-custody"]
             )
         self.assertEqual(code, 2)
-        self.assertIn("referenced receipt is unreadable", result["error"])
-        self.assertNotIn(str(self.root), result["error"])
+        error = self.error_text(result)
+        self.assertIn("referenced receipt is unreadable", error)
+        self.assertNotIn(str(self.root), error)
 
     def test_require_custody_rejects_malformed_receipt_reference(self) -> None:
         manifest = self.owner_aware_manifest()
@@ -270,8 +278,9 @@ class HandoffReplayTests(unittest.TestCase):
             ["verify", str(manifest), "--require-custody"]
         )
         self.assertEqual(code, 2)
-        self.assertIn("safe relative path", result["error"])
-        self.assertNotIn(str(self.root), result["error"])
+        error = self.error_text(result)
+        self.assertIn("safe relative path", error)
+        self.assertNotIn(str(self.root), error)
 
     def test_require_custody_rejects_missing_formatter_fingerprint(self) -> None:
         manifest = self.owner_aware_manifest()

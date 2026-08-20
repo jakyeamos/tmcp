@@ -118,7 +118,7 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
     current_line_prefix = text[line_start : match.start()]
     previous_line = text[:line_start].rstrip("\n").rsplit("\n", 1)[-1]
     if (
-        current_line_prefix.strip().startswith(("`", "\"", "'"))
+        current_line_prefix.strip().startswith(("`", '"', "'"))
         and re.search(
             r"\b(?:sha-?(?:1|224|256|384|512)|hash|digest|checksum)\b\s+is\s*[\"'`]?\s*$",
             previous_line,
