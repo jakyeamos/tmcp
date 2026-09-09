@@ -115,6 +115,10 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         )
     if len(value) not in {64, 96, 128}:
         return False
+    if len(value) == 64 and re.search(
+        r'["\']source_manifest_sha256["\']\s*:\s*["\']$', prefix
+    ):
+        return True
     current_line_prefix = text[line_start : match.start()]
     previous_line = text[:line_start].rstrip("\n").rsplit("\n", 1)[-1]
     if (

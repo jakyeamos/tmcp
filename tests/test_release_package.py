@@ -426,6 +426,21 @@ class ReleasePackageTests(unittest.TestCase):
         ):
             self.package.scan_release_content("README.md", raw_aws_secret.encode())
 
+    def test_package_recognizes_manifest_digest_but_not_secret_fields(self) -> None:
+        import hashlib
+
+        digest = hashlib.sha256(b"public manifest fixture").hexdigest()
+        self.package.scan_release_content(
+            "fixture.json", json.dumps({"source_manifest_sha256": digest}).encode()
+        )
+        for field in ("credential_sha256", "api_key", "source_manifest_sha256_extra"):
+            with self.subTest(field=field), self.assertRaisesRegex(
+                self.package.ReleasePackageError, "long_high_entropy"
+            ):
+                self.package.scan_release_content(
+                    "fixture.json", json.dumps({field: digest}).encode()
+                )
+
     def test_package_allows_path_shaped_placeholder(self) -> None:
         placeholder = "/absolute/path/to/tmcp/scripts/" + "tmcp_launcher.mjs"
         self.package.scan_release_content("README.md", placeholder.encode("utf-8"))

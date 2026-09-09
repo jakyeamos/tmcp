@@ -97,3 +97,7 @@ the stricter payload allowlist and secret scan.
 This distinction lets repository intent and agent documentation coexist with a
 portable release without distributing operator context. Re-run the clean-Git
 reproducible package check after any policy or intent metadata change.
+
+The package content scanner recognizes a 64-character hexadecimal value in the
+exact `source_manifest_sha256` field as manifest provenance. Credential fields,
+unrecognized suffixes, and non-hexadecimal values retain secret scanning.
