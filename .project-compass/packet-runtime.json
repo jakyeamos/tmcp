@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": 1,
+  "revision": 2,
   "project": {
     "name": "TMCP packet runtime",
     "identity": "The TMCP runtime that turns a task identity and selected inputs into a compiled packet.",
@@ -17,7 +17,7 @@
     "id": "packet-runtime",
     "kind": "subsystem",
     "parent_id": "project",
-    "purpose": "Compile task-specific context packets from governed inputs and expose an auditable, reproducible runtime boundary.",
+    "purpose": "Compile and recompile bounded advisory task packets with explicit source selection and safe optional persistence.",
     "boundary": "Owns the launcher, runtime, MCP framing/server, packet composition, and runtime protocol under scripts; skill catalog policy and release packaging remain outside this child.",
     "non_goals": [
       "Owning the complete skill catalog",
@@ -29,10 +29,39 @@
       "recompilable-audit-trail"
     ],
     "paths": [
+      "schemas/tmcp-composed-packet-v0.1.schema.json",
+      "schemas/tmcp-skill-packet-v0.2.schema.json",
       "scripts/tmcp_launcher.mjs",
-      "scripts/tmcp_runtime.mjs",
       "scripts/tmcp_mcp_framing.py",
-      "scripts/tmcp_mcp_server.py"
+      "scripts/tmcp_mcp_server.py",
+      "tmcp_runtime/adapters/__init__.py",
+      "tmcp_runtime/adapters/aios.py",
+      "tmcp_runtime/adapters/cli.py",
+      "tmcp_runtime/adapters/dispatch.py",
+      "tmcp_runtime/adapters/framing.py",
+      "tmcp_runtime/adapters/mcp.py",
+      "tmcp_runtime/api/registry.py",
+      "tmcp_runtime/api/tool_schemas.py",
+      "tmcp_runtime/domain/admission.py",
+      "tmcp_runtime/domain/composition.py",
+      "tmcp_runtime/domain/recompile.py",
+      "tmcp_runtime/domain/routes.py",
+      "tmcp_runtime/domain/runtime_state.py",
+      "tmcp_runtime/safety/__init__.py",
+      "tmcp_runtime/safety/files.py",
+      "tmcp_runtime/safety/fixed_files.py",
+      "tmcp_runtime/safety/reader.py",
+      "tmcp_runtime/safety/redaction.py",
+      "tmcp_runtime/services/compose.py",
+      "tmcp_runtime/services/recompile.py",
+      "tmcp_runtime/services/runtime.py",
+      "tmcp_runtime/services/sessions.py",
+      "tmcp_runtime/storage/__init__.py",
+      "tmcp_runtime/storage/artifacts.py",
+      "tmcp_runtime/storage/cache_policy.py",
+      "tmcp_runtime/storage/global_cache.py",
+      "tmcp_runtime/storage/migrations.py",
+      "tmcp_runtime/storage/sessions.py"
     ]
   },
   "targets": {
@@ -58,41 +87,36 @@
           "maturity": 25,
           "confidence": "low",
           "layers": {
-            "intended": "Drafted from explicit repository documentation; pending owner quiz and ratification.",
-            "planned": "Local proof and sibling contracts are pending the boundary decision.",
-            "implemented": "Observed implementation paths: scripts/tmcp_launcher.mjs, scripts/tmcp_runtime.mjs, scripts/tmcp_mcp_framing.py, scripts/tmcp_mcp_server.py.",
-            "verified": "No independently scoped end-to-end proof has been accepted yet."
+            "intended": "Compile and recompile bounded advisory task packets with explicit source selection and safe optional persistence. The proposed boundary does not supersede the linked canonical decisions.",
+            "planned": "No implementation or admission is authorized by this bootstrap.",
+            "implemented": "Source and existing regression tests are inventoried at 59f06d48a9ef98712f319badfaaee035e2c781be. See development.json for exact paths.",
+            "verified": "No current subsystem behavior receipt is claimed. Legacy regression tests and desired-outcome acceptance remain distinct."
           },
           "evidence": [
             {
-              "ref": "README.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
+              "ref": "docs/TMCP_PACKET_SPEC.md",
+              "observed_at": "2026-09-08T21:07:16.177750+00:00",
+              "note": "Documented constraint source; new subsystem ownership remains proposed."
             },
             {
-              "ref": ".agents/context/README.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
+              "ref": "docs/PACKET_STABILITY.md",
+              "observed_at": "2026-09-08T21:07:16.177750+00:00",
+              "note": "Documented constraint source; new subsystem ownership remains proposed."
             },
             {
-              "ref": "docs/CENTRAL_RUNTIME.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
-            },
-            {
-              "ref": "docs/DISTRIBUTION.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
+              "ref": "docs/ADAPTIVE_PACKET_RUNTIME.md",
+              "observed_at": "2026-09-08T21:07:16.177750+00:00",
+              "note": "Documented constraint source; new subsystem ownership remains proposed."
             }
           ],
           "blockers": [
             {
               "kind": "product-decision",
-              "summary": "Owner must ratify, split, merge, or retire this draft child Compass through the realignment quiz before it becomes active truth."
+              "summary": "Confirm or correct the proposed ownership and unresolved handoffs through the focused bootstrap quiz."
             },
             {
               "kind": "verification",
-              "summary": "An independently scoped local proof and its neighboring handoffs are not yet established."
+              "summary": "Run reviewed source-bound proof for an actual task; satisfy separately documented admission and live-consumer requirements."
             }
           ]
         }
@@ -102,47 +126,47 @@
   "source_layers": {
     "intended": [
       {
-        "ref": "README.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "docs/TMCP_PACKET_SPEC.md",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Documented constraint source; new subsystem ownership remains proposed."
       },
       {
-        "ref": ".agents/context/README.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "docs/PACKET_STABILITY.md",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Documented constraint source; new subsystem ownership remains proposed."
       },
       {
-        "ref": "docs/CENTRAL_RUNTIME.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
-      },
-      {
-        "ref": "docs/DISTRIBUTION.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "docs/ADAPTIVE_PACKET_RUNTIME.md",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Documented constraint source; new subsystem ownership remains proposed."
       }
     ],
     "planned": [],
     "implemented": [
       {
-        "ref": "scripts/tmcp_launcher.mjs",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "schemas/tmcp-composed-packet-v0.1.schema.json",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
-        "ref": "scripts/tmcp_runtime.mjs",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "schemas/tmcp-skill-packet-v0.2.schema.json",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
+      },
+      {
+        "ref": "scripts/tmcp_launcher.mjs",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
         "ref": "scripts/tmcp_mcp_framing.py",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
         "ref": "scripts/tmcp_mcp_server.py",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       }
     ],
     "verified": []
@@ -162,5 +186,5 @@
       ]
     }
   ],
-  "updated_at": "2026-08-14T23:31:00Z"
+  "updated_at": "2026-09-08T21:07:16.177750+00:00"
 }

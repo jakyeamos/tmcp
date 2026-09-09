@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "project": {
+    "name": "TMCP release and distribution",
+    "identity": "The TMCP release boundary for standalone, plugin, and MCP-host distribution.",
+    "audience": "Operators and consumers installing or validating TMCP releases.",
+    "core_loop": "Compose a release, validate its evidence and compatibility, archive the result, and expose the supported distribution surface.",
+    "north_star": "A released TMCP surface is identifiable, compatible, and backed by evidence that matches the shipped artifact.",
+    "not_this": [
+      "Changing packet relevance policy",
+      "Promoting experimental workflows by implication",
+      "Claiming hosted or installed parity from source alone"
+    ]
+  },
+  "scope": {
+    "id": "release-distribution",
+    "kind": "subsystem",
+    "parent_id": "project",
+    "purpose": "Package, archive, and publish TMCP capabilities with release evidence that preserves compatibility and provenance.",
+    "boundary": "Owns release composition, archive, distribution, and compatibility-facing documentation; runtime product semantics and skill recommendation remain outside this child.",
+    "non_goals": [
+      "Changing packet relevance policy",
+      "Promoting experimental workflows by implication",
+      "Claiming hosted or installed parity from source alone"
+    ],
+    "parent_outcomes": [
+      "recompilable-audit-trail"
+    ],
+    "paths": [
+      "docs/DISTRIBUTION.md",
+      "docs/COMPATIBILITY.md",
+      "docs/RELEASE_CHECKLIST.md",
+      "scripts/tmcp_release_archive.py",
+      "scripts/release_package_compile.py",
+      "scripts/release_package_composition.py",
+      "scripts/release_package_sessions.py"
+    ]
+  },
+  "targets": {
+    "mvp": {
+      "definition": "The scoped boundary is explicitly ratified, its parent outcome is clear, and its smallest local proof is repeatable."
+    },
+    "complete_product": {
+      "definition": "The scoped boundary remains aligned through changes, interfaces, and user-visible or consumer-facing verification."
+    }
+  },
+  "pillars": [
+    {
+      "id": "release-distribution-purpose",
+      "name": "Draft scoped purpose",
+      "outcomes": [
+        {
+          "id": "release-distribution-aligned-boundary",
+          "name": "The TMCP release and distribution boundary advances its parent outcome without silently taking on sibling responsibilities.",
+          "targets": [
+            "mvp",
+            "complete_product"
+          ],
+          "maturity": 25,
+          "confidence": "low",
+          "layers": {
+            "intended": "Drafted from explicit repository documentation; pending owner quiz and ratification.",
+            "planned": "Local proof and sibling contracts are pending the boundary decision.",
+            "implemented": "Observed implementation paths: docs/DISTRIBUTION.md, docs/COMPATIBILITY.md, docs/RELEASE_CHECKLIST.md, scripts/tmcp_release_archive.py, scripts/release_package_compile.py, scripts/release_package_composition.py, scripts/release_package_sessions.py.",
+            "verified": "No independently scoped end-to-end proof has been accepted yet."
+          },
+          "evidence": [
+            {
+              "ref": "README.md",
+              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
+              "observed_at": "2026-08-14T23:31:00Z"
+            },
+            {
+              "ref": ".agents/context/README.md",
+              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
+              "observed_at": "2026-08-14T23:31:00Z"
+            },
+            {
+              "ref": "docs/CENTRAL_RUNTIME.md",
+              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
+              "observed_at": "2026-08-14T23:31:00Z"
+            },
+            {
+              "ref": "docs/DISTRIBUTION.md",
+              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
+              "observed_at": "2026-08-14T23:31:00Z"
+            }
+          ],
+          "blockers": [
+            {
+              "kind": "product-decision",
+              "summary": "Owner must ratify, split, merge, or retire this draft child Compass through the realignment quiz before it becomes active truth."
+            },
+            {
+              "kind": "verification",
+              "summary": "An independently scoped local proof and its neighboring handoffs are not yet established."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "source_layers": {
+    "intended": [
+      {
+        "ref": "README.md",
+        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": ".agents/context/README.md",
+        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "docs/CENTRAL_RUNTIME.md",
+        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "docs/DISTRIBUTION.md",
+        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      }
+    ],
+    "planned": [],
+    "implemented": [
+      {
+        "ref": "docs/DISTRIBUTION.md",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "docs/COMPATIBILITY.md",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "docs/RELEASE_CHECKLIST.md",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "scripts/tmcp_release_archive.py",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "scripts/release_package_compile.py",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "scripts/release_package_composition.py",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      },
+      {
+        "ref": "scripts/release_package_sessions.py",
+        "note": "Observed implementation or contract path used as evidence only.",
+        "observed_at": "2026-08-14T23:31:00Z"
+      }
+    ],
+    "verified": []
+  },
+  "drift": [
+    {
+      "kind": "verification-gap",
+      "summary": "This child boundary is a draft derived from repository documentation and has not yet been ratified or independently verified.",
+      "status": "open",
+      "observed_at": "2026-08-14T23:31:00Z",
+      "evidence": [
+        {
+          "ref": "README.md",
+          "note": "Draft boundary needs explicit owner confirmation and local proof.",
+          "observed_at": "2026-08-14T23:31:00Z"
+        }
+      ]
+    }
+  ],
+  "updated_at": "2026-08-14T23:31:00Z"
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": 1,
+  "revision": 2,
   "project": {
     "name": "TMCP release and distribution",
     "identity": "The TMCP release boundary for standalone, plugin, and MCP-host distribution.",
@@ -17,7 +17,7 @@
     "id": "release-distribution",
     "kind": "subsystem",
     "parent_id": "project",
-    "purpose": "Package, archive, and publish TMCP capabilities with release evidence that preserves compatibility and provenance.",
+    "purpose": "Distribute identifiable portable TMCP artifacts with conservative compatibility and offline rollback.",
     "boundary": "Owns release composition, archive, distribution, and compatibility-facing documentation; runtime product semantics and skill recommendation remain outside this child.",
     "non_goals": [
       "Changing packet relevance policy",
@@ -28,13 +28,18 @@
       "recompilable-audit-trail"
     ],
     "paths": [
-      "docs/DISTRIBUTION.md",
-      "docs/COMPATIBILITY.md",
-      "docs/RELEASE_CHECKLIST.md",
-      "scripts/tmcp_release_archive.py",
+      ".claude-plugin/marketplace.json",
+      ".claude-plugin/mcp.json",
+      ".claude-plugin/plugin.json",
+      ".codex-plugin/plugin.json",
+      ".mcp.json",
+      "scripts/check_install.py",
+      "scripts/check_release_package.py",
       "scripts/release_package_compile.py",
       "scripts/release_package_composition.py",
-      "scripts/release_package_sessions.py"
+      "scripts/release_package_sessions.py",
+      "scripts/tmcp_release_archive.py",
+      "scripts/tmcp_runtime.mjs"
     ]
   },
   "targets": {
@@ -60,41 +65,36 @@
           "maturity": 25,
           "confidence": "low",
           "layers": {
-            "intended": "Drafted from explicit repository documentation; pending owner quiz and ratification.",
-            "planned": "Local proof and sibling contracts are pending the boundary decision.",
-            "implemented": "Observed implementation paths: docs/DISTRIBUTION.md, docs/COMPATIBILITY.md, docs/RELEASE_CHECKLIST.md, scripts/tmcp_release_archive.py, scripts/release_package_compile.py, scripts/release_package_composition.py, scripts/release_package_sessions.py.",
-            "verified": "No independently scoped end-to-end proof has been accepted yet."
+            "intended": "Distribute identifiable portable TMCP artifacts with conservative compatibility and offline rollback. The proposed boundary does not supersede the linked canonical decisions.",
+            "planned": "No implementation or admission is authorized by this bootstrap.",
+            "implemented": "Source and existing regression tests are inventoried at 59f06d48a9ef98712f319badfaaee035e2c781be. See development.json for exact paths.",
+            "verified": "No current subsystem behavior receipt is claimed. Legacy regression tests and desired-outcome acceptance remain distinct."
           },
           "evidence": [
             {
-              "ref": "README.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
-            },
-            {
-              "ref": ".agents/context/README.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
+              "ref": "docs/DISTRIBUTION.md",
+              "observed_at": "2026-09-08T21:07:16.177750+00:00",
+              "note": "Documented constraint source; new subsystem ownership remains proposed."
             },
             {
               "ref": "docs/CENTRAL_RUNTIME.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
+              "observed_at": "2026-09-08T21:07:16.177750+00:00",
+              "note": "Documented constraint source; new subsystem ownership remains proposed."
             },
             {
-              "ref": "docs/DISTRIBUTION.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
+              "ref": "docs/COMPATIBILITY.md",
+              "observed_at": "2026-09-08T21:07:16.177750+00:00",
+              "note": "Documented constraint source; new subsystem ownership remains proposed."
             }
           ],
           "blockers": [
             {
               "kind": "product-decision",
-              "summary": "Owner must ratify, split, merge, or retire this draft child Compass through the realignment quiz before it becomes active truth."
+              "summary": "Confirm or correct the proposed ownership and unresolved handoffs through the focused bootstrap quiz."
             },
             {
               "kind": "verification",
-              "summary": "An independently scoped local proof and its neighboring handoffs are not yet established."
+              "summary": "Run reviewed source-bound proof for an actual task; satisfy separately documented admission and live-consumer requirements."
             }
           ]
         }
@@ -104,62 +104,47 @@
   "source_layers": {
     "intended": [
       {
-        "ref": "README.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
-      },
-      {
-        "ref": ".agents/context/README.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "docs/DISTRIBUTION.md",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Documented constraint source; new subsystem ownership remains proposed."
       },
       {
         "ref": "docs/CENTRAL_RUNTIME.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Documented constraint source; new subsystem ownership remains proposed."
       },
       {
-        "ref": "docs/DISTRIBUTION.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "docs/COMPATIBILITY.md",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Documented constraint source; new subsystem ownership remains proposed."
       }
     ],
     "planned": [],
     "implemented": [
       {
-        "ref": "docs/DISTRIBUTION.md",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": ".claude-plugin/marketplace.json",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
-        "ref": "docs/COMPATIBILITY.md",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": ".claude-plugin/mcp.json",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
-        "ref": "docs/RELEASE_CHECKLIST.md",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": ".claude-plugin/plugin.json",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
-        "ref": "scripts/tmcp_release_archive.py",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": ".codex-plugin/plugin.json",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
-        "ref": "scripts/release_package_compile.py",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
-      },
-      {
-        "ref": "scripts/release_package_composition.py",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
-      },
-      {
-        "ref": "scripts/release_package_sessions.py",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": ".mcp.json",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       }
     ],
     "verified": []
@@ -179,5 +164,5 @@
       ]
     }
   ],
-  "updated_at": "2026-08-14T23:31:00Z"
+  "updated_at": "2026-09-08T21:07:16.177750+00:00"
 }

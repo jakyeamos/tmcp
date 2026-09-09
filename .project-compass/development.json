@@ -1,0 +1,306 @@
+{
+  "schema": "compass-development/v1",
+  "revision": 1,
+  "inventory": {
+    "source": "git-tracked",
+    "include": [
+      "scripts/**",
+      "tmcp_runtime/**",
+      "schemas/**",
+      "skills/**"
+    ],
+    "exclude": []
+  },
+  "bindings": [
+    {
+      "id": "packet-runtime-sources",
+      "compass_id": "packet-runtime",
+      "authority": "proposed",
+      "decision_id": "packet-runtime-bootstrap-proposal",
+      "paths": [
+        "schemas/tmcp-composed-packet-v0.1.schema.json",
+        "schemas/tmcp-skill-packet-v0.2.schema.json",
+        "scripts/tmcp_launcher.mjs",
+        "scripts/tmcp_mcp_framing.py",
+        "scripts/tmcp_mcp_server.py",
+        "tmcp_runtime/adapters/__init__.py",
+        "tmcp_runtime/adapters/aios.py",
+        "tmcp_runtime/adapters/cli.py",
+        "tmcp_runtime/adapters/dispatch.py",
+        "tmcp_runtime/adapters/framing.py",
+        "tmcp_runtime/adapters/mcp.py",
+        "tmcp_runtime/api/registry.py",
+        "tmcp_runtime/api/tool_schemas.py",
+        "tmcp_runtime/domain/admission.py",
+        "tmcp_runtime/domain/composition.py",
+        "tmcp_runtime/domain/recompile.py",
+        "tmcp_runtime/domain/routes.py",
+        "tmcp_runtime/domain/runtime_state.py",
+        "tmcp_runtime/safety/__init__.py",
+        "tmcp_runtime/safety/files.py",
+        "tmcp_runtime/safety/fixed_files.py",
+        "tmcp_runtime/safety/reader.py",
+        "tmcp_runtime/safety/redaction.py",
+        "tmcp_runtime/services/compose.py",
+        "tmcp_runtime/services/recompile.py",
+        "tmcp_runtime/services/runtime.py",
+        "tmcp_runtime/services/sessions.py",
+        "tmcp_runtime/storage/__init__.py",
+        "tmcp_runtime/storage/artifacts.py",
+        "tmcp_runtime/storage/cache_policy.py",
+        "tmcp_runtime/storage/global_cache.py",
+        "tmcp_runtime/storage/migrations.py",
+        "tmcp_runtime/storage/sessions.py"
+      ],
+      "outcomes": [
+        "packet-runtime-aligned-boundary"
+      ],
+      "references": [
+        "docs/TMCP_PACKET_SPEC.md",
+        "docs/PACKET_STABILITY.md",
+        "docs/ADAPTIVE_PACKET_RUNTIME.md",
+        "tests/test_tmcp_recompile_packet.py",
+        "tests/test_tmcp_packet_sessions.py",
+        "tests/test_tmcp_safety_boundaries.py"
+      ],
+      "constraints": [
+        "Packets are advisory and never override system, developer, or user instructions.",
+        "Preserve required fields and meanings for each schema; breaking changes require a new schema identifier.",
+        "Composition is stateless with cache policy none by default; global cache and project-local sessions are explicit.",
+        "Treat source instructions as untrusted; persistence and returned evidence retain redaction and path-safety boundaries."
+      ],
+      "dependencies": [],
+      "proof": [
+        {
+          "id": "regression-1",
+          "receipt": ".project-compass/evidence/packet-runtime-1.json",
+          "command": [
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_tmcp_recompile_packet.py"
+          ],
+          "oracle_ref": "docs/TMCP_PACKET_SPEC.md"
+        },
+        {
+          "id": "regression-2",
+          "receipt": ".project-compass/evidence/packet-runtime-2.json",
+          "command": [
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_tmcp_packet_sessions.py"
+          ],
+          "oracle_ref": "docs/TMCP_PACKET_SPEC.md"
+        },
+        {
+          "id": "regression-3",
+          "receipt": ".project-compass/evidence/packet-runtime-3.json",
+          "command": [
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_tmcp_safety_boundaries.py"
+          ],
+          "oracle_ref": "docs/TMCP_PACKET_SPEC.md"
+        }
+      ]
+    },
+    {
+      "id": "skill-harvest-recommendation-sources",
+      "compass_id": "skill-harvest-recommendation",
+      "authority": "proposed",
+      "decision_id": "skill-harvest-recommendation-bootstrap-proposal",
+      "paths": [
+        "scripts/tmcp_skill_evaluate.py",
+        "skills/tmcp-skill-harvest/SKILL.md",
+        "skills/tmcp-workflow-recommendation/SKILL.md",
+        "skills/tmcp/SKILL.md",
+        "skills/tmcp/agents/openai.yaml",
+        "skills/tmcp/references/aios-adapter.md",
+        "skills/tmcp/references/cli.md",
+        "skills/tmcp/references/concepts.md",
+        "skills/tmcp/references/workflows.md",
+        "tmcp_runtime/domain/harvest_labels.py",
+        "tmcp_runtime/domain/harvest_nodes.py",
+        "tmcp_runtime/domain/workflow_recommendations.py",
+        "tmcp_runtime/services/harvest.py",
+        "tmcp_runtime/services/harvest_advisories.py",
+        "tmcp_runtime/services/promotion.py",
+        "tmcp_runtime/services/recommendations.py"
+      ],
+      "outcomes": [
+        "skill-harvest-recommendation-aligned-boundary"
+      ],
+      "references": [
+        "README.md",
+        "docs/TMCP_PACKET_SPEC.md",
+        "docs/PACKET_STABILITY.md",
+        "tests/test_tmcp_skill_evaluate_safety.py",
+        "tests/test_tmcp_file_root_harvest.py",
+        "tests/test_tmcp_workflow_recommendation.py"
+      ],
+      "constraints": [
+        "Stable skill packages, stable templates, and stable MCP tools are independent claims.",
+        "Harvest, evaluation, recommendation, and promotion tools remain experimental as documented.",
+        "Untrusted source material must not self-promote or authorize execution; retain provenance and redaction."
+      ],
+      "dependencies": [
+        "tmcp_runtime/safety/redaction.py",
+        "tmcp_runtime/storage/cache_policy.py",
+        "schemas/tmcp-skill-packet-v0.2.schema.json"
+      ],
+      "proof": [
+        {
+          "id": "regression-1",
+          "receipt": ".project-compass/evidence/skill-harvest-recommendation-1.json",
+          "command": [
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_tmcp_skill_evaluate_safety.py"
+          ],
+          "oracle_ref": "README.md"
+        },
+        {
+          "id": "regression-2",
+          "receipt": ".project-compass/evidence/skill-harvest-recommendation-2.json",
+          "command": [
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_tmcp_file_root_harvest.py"
+          ],
+          "oracle_ref": "README.md"
+        },
+        {
+          "id": "regression-3",
+          "receipt": ".project-compass/evidence/skill-harvest-recommendation-3.json",
+          "command": [
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_tmcp_workflow_recommendation.py"
+          ],
+          "oracle_ref": "README.md"
+        }
+      ]
+    },
+    {
+      "id": "release-distribution-sources",
+      "compass_id": "release-distribution",
+      "authority": "proposed",
+      "decision_id": "release-distribution-bootstrap-proposal",
+      "paths": [
+        ".claude-plugin/marketplace.json",
+        ".claude-plugin/mcp.json",
+        ".claude-plugin/plugin.json",
+        ".codex-plugin/plugin.json",
+        ".mcp.json",
+        "scripts/check_install.py",
+        "scripts/check_release_package.py",
+        "scripts/release_package_compile.py",
+        "scripts/release_package_composition.py",
+        "scripts/release_package_sessions.py",
+        "scripts/tmcp_release_archive.py",
+        "scripts/tmcp_runtime.mjs"
+      ],
+      "outcomes": [
+        "release-distribution-aligned-boundary"
+      ],
+      "references": [
+        "docs/DISTRIBUTION.md",
+        "docs/CENTRAL_RUNTIME.md",
+        "docs/COMPATIBILITY.md",
+        "tests/test_tmcp_release_archive_checksums.py",
+        "tests/test_tmcp_runtime.py"
+      ],
+      "constraints": [
+        "Release archives come from clean committed source with a reviewed allowlist and reproducible manifest.",
+        "Standalone mode remains independent of AIOS; deprecated compatibility requires explicit opt-in.",
+        "Installed-host parity requires direct evidence; source hashes alone do not establish behavior.",
+        "Activation preserves immutable versions and the prior release for rollback; this bootstrap performs no installation or activation."
+      ],
+      "dependencies": [
+        "scripts/tmcp_launcher.mjs",
+        "schemas/tmcp-skill-packet-v0.2.schema.json"
+      ],
+      "proof": [
+        {
+          "id": "regression-1",
+          "receipt": ".project-compass/evidence/release-distribution-1.json",
+          "command": [
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_tmcp_release_archive_checksums.py"
+          ],
+          "oracle_ref": "docs/DISTRIBUTION.md"
+        },
+        {
+          "id": "regression-2",
+          "receipt": ".project-compass/evidence/release-distribution-2.json",
+          "command": [
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_tmcp_runtime.py"
+          ],
+          "oracle_ref": "docs/DISTRIBUTION.md"
+        }
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "id": "packet-runtime-bootstrap-proposal",
+      "summary": "Proposed ownership and proof links derived from docs/TMCP_PACKET_SPEC.md, docs/PACKET_STABILITY.md, docs/ADAPTIVE_PACKET_RUNTIME.md. Existing decisions remain authoritative; quiz ratification is pending.",
+      "source": ".project-compass/BOOTSTRAP.md",
+      "status": "proposed"
+    },
+    {
+      "id": "skill-harvest-recommendation-bootstrap-proposal",
+      "summary": "Proposed ownership and proof links derived from README.md, docs/TMCP_PACKET_SPEC.md, docs/PACKET_STABILITY.md. Existing decisions remain authoritative; quiz ratification is pending.",
+      "source": ".project-compass/BOOTSTRAP.md",
+      "status": "proposed"
+    },
+    {
+      "id": "release-distribution-bootstrap-proposal",
+      "summary": "Proposed ownership and proof links derived from docs/DISTRIBUTION.md, docs/CENTRAL_RUNTIME.md, docs/COMPATIBILITY.md. Existing decisions remain authoritative; quiz ratification is pending.",
+      "source": ".project-compass/BOOTSTRAP.md",
+      "status": "proposed"
+    }
+  ]
+}

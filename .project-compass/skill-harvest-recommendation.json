@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": 1,
+  "revision": 2,
   "project": {
     "name": "TMCP skill harvest and recommendation",
     "identity": "The TMCP skill catalog and harvest surface that turns reusable material into governed recommendations.",
@@ -17,7 +17,7 @@
     "id": "skill-harvest-recommendation",
     "kind": "subsystem",
     "parent_id": "project",
-    "purpose": "Discover, evaluate, and recommend reusable skill or workflow material while preserving safety and provenance boundaries.",
+    "purpose": "Evaluate reusable material and recommend task-relevant inputs with provenance, safety, and explicit promotion boundaries.",
     "boundary": "Owns the skill packages, harvest and evaluation guidance, and recommendation-facing scripts; packet runtime and distribution release mechanics remain outside this child.",
     "non_goals": [
       "Auto-promoting unreviewed skills",
@@ -29,8 +29,22 @@
       "recompilable-audit-trail"
     ],
     "paths": [
-      "skills",
-      "scripts/tmcp_skill_evaluate.py"
+      "scripts/tmcp_skill_evaluate.py",
+      "skills/tmcp-skill-harvest/SKILL.md",
+      "skills/tmcp-workflow-recommendation/SKILL.md",
+      "skills/tmcp/SKILL.md",
+      "skills/tmcp/agents/openai.yaml",
+      "skills/tmcp/references/aios-adapter.md",
+      "skills/tmcp/references/cli.md",
+      "skills/tmcp/references/concepts.md",
+      "skills/tmcp/references/workflows.md",
+      "tmcp_runtime/domain/harvest_labels.py",
+      "tmcp_runtime/domain/harvest_nodes.py",
+      "tmcp_runtime/domain/workflow_recommendations.py",
+      "tmcp_runtime/services/harvest.py",
+      "tmcp_runtime/services/harvest_advisories.py",
+      "tmcp_runtime/services/promotion.py",
+      "tmcp_runtime/services/recommendations.py"
     ]
   },
   "targets": {
@@ -56,41 +70,36 @@
           "maturity": 25,
           "confidence": "low",
           "layers": {
-            "intended": "Drafted from explicit repository documentation; pending owner quiz and ratification.",
-            "planned": "Local proof and sibling contracts are pending the boundary decision.",
-            "implemented": "Observed implementation paths: skills, scripts/tmcp_skill_evaluate.py.",
-            "verified": "No independently scoped end-to-end proof has been accepted yet."
+            "intended": "Evaluate reusable material and recommend task-relevant inputs with provenance, safety, and explicit promotion boundaries. The proposed boundary does not supersede the linked canonical decisions.",
+            "planned": "No implementation or admission is authorized by this bootstrap.",
+            "implemented": "Source and existing regression tests are inventoried at 59f06d48a9ef98712f319badfaaee035e2c781be. See development.json for exact paths.",
+            "verified": "No current subsystem behavior receipt is claimed. Legacy regression tests and desired-outcome acceptance remain distinct."
           },
           "evidence": [
             {
               "ref": "README.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
+              "observed_at": "2026-09-08T21:07:16.177750+00:00",
+              "note": "Documented constraint source; new subsystem ownership remains proposed."
             },
             {
-              "ref": ".agents/context/README.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
+              "ref": "docs/TMCP_PACKET_SPEC.md",
+              "observed_at": "2026-09-08T21:07:16.177750+00:00",
+              "note": "Documented constraint source; new subsystem ownership remains proposed."
             },
             {
-              "ref": "docs/CENTRAL_RUNTIME.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
-            },
-            {
-              "ref": "docs/DISTRIBUTION.md",
-              "note": "Repository documentation used to draft this child boundary; not treated as user intent until quiz review.",
-              "observed_at": "2026-08-14T23:31:00Z"
+              "ref": "docs/PACKET_STABILITY.md",
+              "observed_at": "2026-09-08T21:07:16.177750+00:00",
+              "note": "Documented constraint source; new subsystem ownership remains proposed."
             }
           ],
           "blockers": [
             {
               "kind": "product-decision",
-              "summary": "Owner must ratify, split, merge, or retire this draft child Compass through the realignment quiz before it becomes active truth."
+              "summary": "Confirm or correct the proposed ownership and unresolved handoffs through the focused bootstrap quiz."
             },
             {
               "kind": "verification",
-              "summary": "An independently scoped local proof and its neighboring handoffs are not yet established."
+              "summary": "Run reviewed source-bound proof for an actual task; satisfy separately documented admission and live-consumer requirements."
             }
           ]
         }
@@ -101,36 +110,46 @@
     "intended": [
       {
         "ref": "README.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Documented constraint source; new subsystem ownership remains proposed."
       },
       {
-        "ref": ".agents/context/README.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "docs/TMCP_PACKET_SPEC.md",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Documented constraint source; new subsystem ownership remains proposed."
       },
       {
-        "ref": "docs/CENTRAL_RUNTIME.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
-      },
-      {
-        "ref": "docs/DISTRIBUTION.md",
-        "note": "Explicit repository documentation is the current basis for this draft; owner quiz remains open.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "docs/PACKET_STABILITY.md",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Documented constraint source; new subsystem ownership remains proposed."
       }
     ],
     "planned": [],
     "implemented": [
       {
-        "ref": "skills",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "scripts/tmcp_skill_evaluate.py",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
-        "ref": "scripts/tmcp_skill_evaluate.py",
-        "note": "Observed implementation or contract path used as evidence only.",
-        "observed_at": "2026-08-14T23:31:00Z"
+        "ref": "skills/tmcp-skill-harvest/SKILL.md",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
+      },
+      {
+        "ref": "skills/tmcp-workflow-recommendation/SKILL.md",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
+      },
+      {
+        "ref": "skills/tmcp/SKILL.md",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
+      },
+      {
+        "ref": "skills/tmcp/agents/openai.yaml",
+        "observed_at": "2026-09-08T21:07:16.177750+00:00",
+        "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       }
     ],
     "verified": []
@@ -150,5 +169,5 @@
       ]
     }
   ],
-  "updated_at": "2026-08-14T23:31:00Z"
+  "updated_at": "2026-09-08T21:07:16.177750+00:00"
 }
