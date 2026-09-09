@@ -29,7 +29,7 @@
     "python3 scripts/check_install.py .",
     "python3 scripts/check_release_evidence.py .",
     "node --check scripts/tmcp_launcher.mjs",
-    "node scripts/tmcp_runtime.mjs doctor --runtime-home /Users/jakyeamos/.tmcp/runtime",
+    "node scripts/tmcp_runtime.mjs doctor --runtime-home <redacted-runtime-home>",
     "git diff --check",
     "node scripts/tmcp_launcher.mjs runtime-next <objective> --current-phase verification"
   ],

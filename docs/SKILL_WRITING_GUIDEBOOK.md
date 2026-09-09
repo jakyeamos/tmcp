@@ -76,7 +76,7 @@ python3 scripts/audit_skill_fixture_coverage.py \
   /path/to/fixture-set/manifest.json
 ```
 
-The recorded [coverage baseline](/private/tmp/tmcp-skill-fixtures-20260722/tests/fixtures/skill-fixtures/corpus-coverage-baseline-v0.1.json)
+The recorded [coverage baseline](../tests/fixtures/skill-fixtures/corpus-coverage-baseline-v0.1.json)
 finds 158 discovered skills but only 1 ready skill and 1 golden case in the
 full discovery manifest; 157 still need a case and bar. The later calibrated
 subset contains 7 skills and 8 cases. That gap is an explicit promotion stop,

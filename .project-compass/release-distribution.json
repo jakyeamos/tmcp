@@ -33,6 +33,8 @@
       ".claude-plugin/plugin.json",
       ".codex-plugin/plugin.json",
       ".mcp.json",
+      "docs/SKILL_WRITING_GUIDEBOOK.md",
+      "docs/experiments/tmcp-coordinator-verification-receipt-v0.2.json",
       "scripts/check_install.py",
       "scripts/check_release_package.py",
       "scripts/release_package_compile.py",

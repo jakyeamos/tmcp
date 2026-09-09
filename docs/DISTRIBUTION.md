@@ -106,3 +106,8 @@ The mined-corpus baseline migration-readiness digest was corrected on 2026-09-09
 from the referenced 0.5.7 cached skill bytes: the transcribed value omitted two
 hexadecimal characters. This repairs source identity only; historical behavioral
 results were not rerun or upgraded. Malformed digests remain rejected.
+
+Public experiment receipts redact local home-directory arguments. The coordinator
+v0.2 receipt retains its historical command and result with the runtime-home
+argument replaced by `<redacted-runtime-home>`; this is a publication redaction,
+not a fresh run. Guidebook evidence links resolve inside the shipped tree.
