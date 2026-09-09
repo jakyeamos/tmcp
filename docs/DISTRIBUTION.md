@@ -82,3 +82,18 @@ mcp-publisher validate mcp-registry/draft-server.json
 ```
 
 Submit only after release validation passes from a clean checkout and extracted package.
+
+## Operator metadata and release payloads
+
+Package policy v0.3 records committed root `.agents/` and `.project-compass/`
+metadata as explicit non-payload exclusions. The source tree and exclusion
+manifest may name these reviewed operator paths; neither directory may appear
+in an archive payload. The `.agents` exception applies only at the source root.
+Credential-like descendants, environment files, unsafe Git modes, traversal,
+and path collisions still fail closed. Exclusions do not execute or read local
+configuration. Archive consumers validate exclusions independently and retain
+the stricter payload allowlist and secret scan.
+
+This distinction lets repository intent and agent documentation coexist with a
+portable release without distributing operator context. Re-run the clean-Git
+reproducible package check after any policy or intent metadata change.

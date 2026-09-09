@@ -5,7 +5,7 @@
     "id": "tmcp"
   },
   "owner": "repository-owner",
-  "last_reviewed": "2026-09-08",
+  "last_reviewed": "2026-09-09",
   "surfaces": [
     {
       "id": "tmcp-runtime",
@@ -39,7 +39,8 @@
       "validation": [
         "python3 scripts/check_install.py .",
         "python3 scripts/check_release_package.py . --verify-reproducible",
-        "pre-cr run --json --workspace ."
+        "pre-cr run --json --workspace .",
+        "Package policy v0.3: committed root operator metadata excluded with verified manifest; credential descendants, nested private directories, symlinks and forged payloads rejected."
       ],
       "status": "applicable"
     },

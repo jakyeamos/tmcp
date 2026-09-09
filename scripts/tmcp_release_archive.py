@@ -28,7 +28,7 @@ from scripts.tmcp_release_archive_checksums import (  # noqa: E402
 PACKAGE_ROOT = "tmcp"
 PACKAGE_MANIFEST_NAME = "RELEASE_MANIFEST.json"
 PACKAGE_MANIFEST_SCHEMA = "tmcp-release-manifest-v0.1"
-PACKAGE_POLICY_VERSION = "tmcp-release-package-policy-v0.2"
+PACKAGE_POLICY_VERSION = "tmcp-release-package-policy-v0.3"
 ALLOWED_GIT_MODES = {"100644", "100755"}
 SHIPPED_ROOT_FILES = {
     ".gitignore",
@@ -99,6 +99,8 @@ INTENTIONALLY_EXCLUDED_PATHS = {
     "docs/VERIFICATION.md",
 }
 INTENTIONALLY_EXCLUDED_PREFIXES = (
+    ".agents/",
+    ".project-compass/",
     ".aios/",
     ".codex/",
     ".github/",
@@ -270,6 +272,13 @@ def forbidden_path_reason(relative_path: PurePosixPath) -> str | None:
     return None
 
 
+def forbidden_source_path_reason(relative_path: PurePosixPath) -> str | None:
+    """Allow root operator exclusions; retain descendant and strict payload checks."""
+    if relative_path.parts[0] == ".agents" and len(relative_path.parts) > 1:
+        return forbidden_path_reason(PurePosixPath(*relative_path.parts[1:]))
+    return forbidden_path_reason(relative_path)
+
+
 def inclusion_reason(relative_path: PurePosixPath) -> str | None:
     path_text = relative_path.as_posix()
     if path_text in INTENTIONALLY_EXCLUDED_PATHS:
@@ -399,7 +408,7 @@ def release_package_plan(
             raise ReleasePackageError("malformed Git tree entry") from exc
         relative_path = _validate_relative_path(path_text)
         register_archive_path(seen_paths, path_text)
-        forbidden_reason = forbidden_path_reason(relative_path)
+        forbidden_reason = forbidden_source_path_reason(relative_path)
         if forbidden_reason is not None:
             raise ReleasePackageError(f"{path_text}: {forbidden_reason}")
         validate_tree_entry(path_text, git_mode, object_type)
@@ -656,7 +665,7 @@ def check_archive_manifest(package_path: Path) -> tuple[bool, str]:
                 if not isinstance(path, str) or not isinstance(reason, str):
                     return False, "release manifest exclusion fields must be strings"
                 relative_path = _validate_relative_path(path)
-                if forbidden_path_reason(relative_path) is not None:
+                if forbidden_source_path_reason(relative_path) is not None:
                     return False, f"release manifest exclusion is unsafe: {path}"
                 if inclusion_reason(relative_path) != reason:
                     return False, f"release manifest exclusion is invalid: {path}"
