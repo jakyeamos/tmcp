@@ -39,6 +39,7 @@
       "scripts/release_package_composition.py",
       "scripts/release_package_sessions.py",
       "scripts/tmcp_release_archive.py",
+      "scripts/tmcp_release_archive_checksums.py",
       "scripts/tmcp_runtime.mjs",
       "tests/test_release_package.py"
     ]
