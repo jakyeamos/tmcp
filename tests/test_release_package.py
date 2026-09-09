@@ -430,8 +430,12 @@ class ReleasePackageTests(unittest.TestCase):
         import hashlib
 
         digest = hashlib.sha256(b"public manifest fixture").hexdigest()
+        for field in ("source_manifest_sha256", "report_sha256", "candidate_sha256"):
+            self.package.scan_release_content(
+                "fixture.json", json.dumps({field: digest}).encode()
+            )
         self.package.scan_release_content(
-            "fixture.json", json.dumps({"source_manifest_sha256": digest}).encode()
+            "fixture.json", json.dumps({"skill_sha256": [digest]}, indent=2).encode()
         )
         for field in ("credential_sha256", "api_key", "source_manifest_sha256_extra"):
             with self.subTest(field=field), self.assertRaisesRegex(

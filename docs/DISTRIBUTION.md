@@ -99,5 +99,10 @@ portable release without distributing operator context. Re-run the clean-Git
 reproducible package check after any policy or intent metadata change.
 
 The package content scanner recognizes a 64-character hexadecimal value in the
-exact `source_manifest_sha256` field as manifest provenance. Credential fields,
+explicit evidence fields enumerated in `tmcp_release_archive_checksums.py` as manifest provenance. Credential fields,
 unrecognized suffixes, and non-hexadecimal values retain secret scanning.
+
+The mined-corpus baseline migration-readiness digest was corrected on 2026-09-09
+from the referenced 0.5.7 cached skill bytes: the transcribed value omitted two
+hexadecimal characters. This repairs source identity only; historical behavioral
+results were not rerun or upgraded. Malformed digests remain rejected.

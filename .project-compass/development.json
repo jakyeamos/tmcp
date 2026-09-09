@@ -229,6 +229,7 @@
         "scripts/tmcp_release_archive.py",
         "scripts/tmcp_release_archive_checksums.py",
         "scripts/tmcp_runtime.mjs",
+        "tests/fixtures/skill-fixtures/mined-corpus-baseline-v0.1.json",
         "tests/test_release_package.py"
       ],
       "outcomes": [
