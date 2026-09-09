@@ -33,7 +33,7 @@
       "mode": "brownfield",
       "compass_id": "project",
       "scope_kind": "root",
-      "status": "complete",
+      "status": "active",
       "questions": [
         {
           "id": "boundary",
@@ -46,33 +46,10 @@
           "prompt": "README distinguishes stable packet tools from experimental harvest and promotion tools. Should the next usefulness check focus on packet relevance/recompilation, with experimental promotion remaining deferred unless separately selected?"
         }
       ],
-      "answers": [
-        {
-          "question_id": "boundary",
-          "value": "Packet runtime includes storage and safety. Harvest/recommendation and release/distribution are neighboring subsystems. Experimental promotion remains deferred.",
-          "status": "explicit",
-          "source": {
-            "ref": ".project-compass/decisions/subsystem-ratification-20260909.md",
-            "observed_at": "2026-09-09T17:41:29.704939+00:00",
-            "note": "Owner accepted the bounded reconciliation question."
-          },
-          "answered_at": "2026-09-09T17:41:29.704939+00:00"
-        },
-        {
-          "question_id": "admission",
-          "value": "Packet runtime includes storage and safety. Harvest/recommendation and release/distribution are neighboring subsystems. Experimental promotion remains deferred.",
-          "status": "explicit",
-          "source": {
-            "ref": ".project-compass/decisions/subsystem-ratification-20260909.md",
-            "observed_at": "2026-09-09T17:41:29.704939+00:00",
-            "note": "Owner accepted the bounded reconciliation question."
-          },
-          "answered_at": "2026-09-09T17:41:29.704939+00:00"
-        }
-      ],
+      "answers": [],
       "started_at": "2026-09-08T21:07:16.177750+00:00",
-      "updated_at": "2026-09-09T17:41:29.704939+00:00"
+      "updated_at": "2026-09-08T21:07:16.177750+00:00"
     }
   ],
-  "updated_at": "2026-09-09T17:41:29.704939+00:00"
+  "updated_at": "2026-09-08T21:07:16.177750+00:00"
 }

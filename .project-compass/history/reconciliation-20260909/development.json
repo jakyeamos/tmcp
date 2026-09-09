@@ -1,6 +1,6 @@
 {
   "schema": "compass-development/v1",
-  "revision": 2,
+  "revision": 1,
   "inventory": {
     "source": "git-tracked",
     "include": [
@@ -15,8 +15,8 @@
     {
       "id": "packet-runtime-sources",
       "compass_id": "packet-runtime",
-      "authority": "accepted",
-      "decision_id": "packet-runtime-ratified-20260909",
+      "authority": "proposed",
+      "decision_id": "packet-runtime-bootstrap-proposal",
       "paths": [
         "schemas/tmcp-composed-packet-v0.1.schema.json",
         "schemas/tmcp-skill-packet-v0.2.schema.json",
@@ -121,8 +121,8 @@
     {
       "id": "skill-harvest-recommendation-sources",
       "compass_id": "skill-harvest-recommendation",
-      "authority": "accepted",
-      "decision_id": "skill-harvest-recommendation-ratified-20260909",
+      "authority": "proposed",
+      "decision_id": "skill-harvest-recommendation-bootstrap-proposal",
       "paths": [
         "scripts/tmcp_skill_evaluate.py",
         "skills/tmcp-skill-harvest/SKILL.md",
@@ -213,8 +213,8 @@
     {
       "id": "release-distribution-sources",
       "compass_id": "release-distribution",
-      "authority": "accepted",
-      "decision_id": "release-distribution-ratified-20260909",
+      "authority": "proposed",
+      "decision_id": "release-distribution-bootstrap-proposal",
       "paths": [
         ".claude-plugin/marketplace.json",
         ".claude-plugin/mcp.json",
@@ -227,8 +227,7 @@
         "scripts/release_package_composition.py",
         "scripts/release_package_sessions.py",
         "scripts/tmcp_release_archive.py",
-        "scripts/tmcp_runtime.mjs",
-        "tests/test_release_package.py"
+        "scripts/tmcp_runtime.mjs"
       ],
       "outcomes": [
         "release-distribution-aligned-boundary"
@@ -280,66 +279,6 @@
             "test_tmcp_runtime.py"
           ],
           "oracle_ref": "docs/DISTRIBUTION.md"
-        },
-        {
-          "id": "package-policy",
-          "receipt": ".project-compass/evidence/package-policy.json",
-          "command": [
-            "python3",
-            "-m",
-            "unittest",
-            "tests.test_release_package"
-          ],
-          "oracle_ref": "docs/DISTRIBUTION.md"
-        }
-      ]
-    },
-    {
-      "id": "foundation-maintenance",
-      "compass_id": "project",
-      "authority": "accepted",
-      "decision_id": "foundation-preservation-20260909",
-      "paths": [
-        ".agents/change-surface-matrix.json",
-        ".agents/context/README.md",
-        ".project-compass/.gitignore",
-        ".project-compass/BOOTSTRAP.md",
-        ".project-compass/compasses.json",
-        ".project-compass/decisions/subsystem-ratification-20260909.md",
-        ".project-compass/development.json",
-        ".project-compass/history/reconciliation-20260909/BOOTSTRAP.md",
-        ".project-compass/history/reconciliation-20260909/compasses.json",
-        ".project-compass/history/reconciliation-20260909/development.json",
-        ".project-compass/history/reconciliation-20260909/packet-runtime.json",
-        ".project-compass/history/reconciliation-20260909/quiz.json",
-        ".project-compass/history/reconciliation-20260909/release-distribution.json",
-        ".project-compass/history/reconciliation-20260909/skill-harvest-recommendation.json",
-        ".project-compass/packet-runtime.json",
-        ".project-compass/quiz.json",
-        ".project-compass/release-distribution.json",
-        ".project-compass/skill-harvest-recommendation.json",
-        "docs/DISTRIBUTION.md"
-      ],
-      "outcomes": [],
-      "constraints": [
-        "Preserve canonical root intent and prior decision history.",
-        "Metadata and environment checks do not establish application acceptance or deployment readiness."
-      ],
-      "references": [
-        ".project-compass/contract.json",
-        ".project-compass/decisions/subsystem-ratification-20260909.md"
-      ],
-      "dependencies": [],
-      "proof": [
-        {
-          "id": "repository-contract",
-          "receipt": ".project-compass/evidence/foundation-maintenance.json",
-          "command": [
-            "python3",
-            "scripts/check_contracts.py",
-            "."
-          ],
-          "oracle_ref": ".project-compass/decisions/subsystem-ratification-20260909.md"
         }
       ]
     }
@@ -349,46 +288,19 @@
       "id": "packet-runtime-bootstrap-proposal",
       "summary": "Proposed ownership and proof links derived from docs/TMCP_PACKET_SPEC.md, docs/PACKET_STABILITY.md, docs/ADAPTIVE_PACKET_RUNTIME.md. Existing decisions remain authoritative; quiz ratification is pending.",
       "source": ".project-compass/BOOTSTRAP.md",
-      "status": "superseded"
+      "status": "proposed"
     },
     {
       "id": "skill-harvest-recommendation-bootstrap-proposal",
       "summary": "Proposed ownership and proof links derived from README.md, docs/TMCP_PACKET_SPEC.md, docs/PACKET_STABILITY.md. Existing decisions remain authoritative; quiz ratification is pending.",
       "source": ".project-compass/BOOTSTRAP.md",
-      "status": "superseded"
+      "status": "proposed"
     },
     {
       "id": "release-distribution-bootstrap-proposal",
       "summary": "Proposed ownership and proof links derived from docs/DISTRIBUTION.md, docs/CENTRAL_RUNTIME.md, docs/COMPATIBILITY.md. Existing decisions remain authoritative; quiz ratification is pending.",
       "source": ".project-compass/BOOTSTRAP.md",
-      "status": "superseded"
-    },
-    {
-      "id": "packet-runtime-ratified-20260909",
-      "summary": "Packet runtime includes storage and safety. Harvest/recommendation and release/distribution are neighboring subsystems. Experimental promotion remains deferred.",
-      "source": ".project-compass/decisions/subsystem-ratification-20260909.md",
-      "status": "accepted",
-      "supersedes": "packet-runtime-bootstrap-proposal"
-    },
-    {
-      "id": "skill-harvest-recommendation-ratified-20260909",
-      "summary": "Packet runtime includes storage and safety. Harvest/recommendation and release/distribution are neighboring subsystems. Experimental promotion remains deferred.",
-      "source": ".project-compass/decisions/subsystem-ratification-20260909.md",
-      "status": "accepted",
-      "supersedes": "skill-harvest-recommendation-bootstrap-proposal"
-    },
-    {
-      "id": "release-distribution-ratified-20260909",
-      "summary": "Packet runtime includes storage and safety. Harvest/recommendation and release/distribution are neighboring subsystems. Experimental promotion remains deferred.",
-      "source": ".project-compass/decisions/subsystem-ratification-20260909.md",
-      "status": "accepted",
-      "supersedes": "release-distribution-bootstrap-proposal"
-    },
-    {
-      "id": "foundation-preservation-20260909",
-      "summary": "Maintain the accepted subsystem map and existing root intent while repairing the explicitly selected verification blockers. No root product purpose, activation, admission, or release change.",
-      "source": ".project-compass/decisions/subsystem-ratification-20260909.md",
-      "status": "accepted"
+      "status": "proposed"
     }
   ]
 }

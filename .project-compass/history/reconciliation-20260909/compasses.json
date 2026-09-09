@@ -14,21 +14,21 @@
       "kind": "subsystem",
       "path": "packet-runtime.json",
       "parent_id": "project",
-      "status": "active"
+      "status": "draft"
     },
     {
       "id": "skill-harvest-recommendation",
       "kind": "subsystem",
       "path": "skill-harvest-recommendation.json",
       "parent_id": "project",
-      "status": "active"
+      "status": "draft"
     },
     {
       "id": "release-distribution",
       "kind": "subsystem",
       "path": "release-distribution.json",
       "parent_id": "project",
-      "status": "active"
+      "status": "draft"
     }
   ],
   "links": [
@@ -37,17 +37,17 @@
       "from": "skill-harvest-recommendation",
       "to": "packet-runtime",
       "kind": "handoff",
-      "summary": "Recommendations may become runtime packet inputs; the promotion and handoff contract remains open. Intent ownership accepted on 2026-09-09; this is not end-to-end implementation proof.",
-      "status": "aligned"
+      "summary": "Recommendations may become runtime packet inputs; the promotion and handoff contract remains open.",
+      "status": "unknown"
     },
     {
       "id": "packet-runtime-to-release-distribution",
       "from": "packet-runtime",
       "to": "release-distribution",
       "kind": "handoff",
-      "summary": "Runtime artifacts may be packaged for distribution; artifact custody and proof remain open. Intent ownership accepted on 2026-09-09; this is not end-to-end implementation proof.",
-      "status": "aligned"
+      "summary": "Runtime artifacts may be packaged for distribution; artifact custody and proof remain open.",
+      "status": "unknown"
     }
   ],
-  "updated_at": "2026-09-09T17:41:29.704939+00:00"
+  "updated_at": "2026-09-08T21:07:16.177750+00:00"
 }
