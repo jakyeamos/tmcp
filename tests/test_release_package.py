@@ -272,6 +272,51 @@ class ReleasePackageTests(unittest.TestCase):
         self.assertNotIn("tmcp/.agents/private.md", names)
         self.assertNotIn("tmcp/notes.md", names)
 
+    def test_committed_operator_metadata_is_excluded_and_manifest_verifies(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "plugin"
+            root.mkdir()
+            (root / "README.md").write_text("# Plugin\n", encoding="utf-8")
+            for name in (".agents/context/README.md", ".project-compass/contract.json"):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("{}", encoding="utf-8")
+            commit_fixture(root, force_paths=(".agents", ".project-compass"))
+            output = Path(tmp) / "release.tar.gz"
+            self.package.create_package(root, output)
+            valid, reason = self.package.check_archive_manifest(output)
+            self.assertTrue(valid, reason)
+            with tarfile.open(output, "r:gz") as archive:
+                self.assertNotIn("tmcp/.agents/context/README.md", archive.getnames())
+                self.assertNotIn("tmcp/.project-compass/contract.json", archive.getnames())
+                stream = archive.extractfile("tmcp/RELEASE_MANIFEST.json")
+                assert stream is not None
+                exclusions = json.loads(stream.read())["excluded"]
+                self.assertEqual(len(exclusions), 2)
+
+    def test_operator_exclusions_do_not_admit_sensitive_paths(self) -> None:
+        for name in (".agents/keys/key.json", ".agents/.env", ".agents/context/secret.md",
+                     "scripts/.agents/context.md", ".project-compass/credentials.json"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp) / "plugin"
+                root.mkdir()
+                (root / "README.md").write_text("# Plugin\n", encoding="utf-8")
+                path = root / name
+                path.parent.mkdir(parents=True)
+                path.write_text("{}", encoding="utf-8")
+                commit_fixture(root, force_paths=(name,))
+                with self.assertRaises(self.package.ReleasePackageError):
+                    self.package.create_package(root, Path(tmp) / "release.tar.gz")
+
+    def test_operator_exclusion_is_not_archive_payload_authority(self) -> None:
+        for name in (".agents/context/README.md", ".project-compass/contract.json"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                output = Path(tmp) / "forged.tar.gz"
+                write_test_archive(self.package, output, [(name, b"{}", 0o644)],
+                                   [manifest_entry(name, b"{}")])
+                valid, _ = self.package.check_archive_manifest(output)
+                self.assertFalse(valid)
+
     def test_package_rejects_dirty_tracked_tree(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "plugin"
@@ -380,6 +425,25 @@ class ReleasePackageTests(unittest.TestCase):
             "long_high_entropy",
         ):
             self.package.scan_release_content("README.md", raw_aws_secret.encode())
+
+    def test_package_recognizes_manifest_digest_but_not_secret_fields(self) -> None:
+        import hashlib
+
+        digest = hashlib.sha256(b"public manifest fixture").hexdigest()
+        for field in ("source_manifest_sha256", "report_sha256", "candidate_sha256"):
+            self.package.scan_release_content(
+                "fixture.json", json.dumps({field: digest}).encode()
+            )
+        self.package.scan_release_content(
+            "fixture.json", json.dumps({"skill_sha256": [digest]}, indent=2).encode()
+        )
+        for field in ("credential_sha256", "api_key", "source_manifest_sha256_extra"):
+            with self.subTest(field=field), self.assertRaisesRegex(
+                self.package.ReleasePackageError, "long_high_entropy"
+            ):
+                self.package.scan_release_content(
+                    "fixture.json", json.dumps({field: digest}).encode()
+                )
 
     def test_package_allows_path_shaped_placeholder(self) -> None:
         placeholder = "/absolute/path/to/tmcp/scripts/" + "tmcp_launcher.mjs"

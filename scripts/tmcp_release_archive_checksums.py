@@ -115,6 +115,18 @@ def is_documented_checksum(text: str, match: re.Match[str]) -> bool:
         )
     if len(value) not in {64, 96, 128}:
         return False
+    if len(value) == 64:
+        evidence_fields = (
+            "source_manifest|source_audit|case_source|admission_registry|"
+            "disposition_input|report|campaign_report|original|candidate|campaign_manifest"
+        )
+        if re.search(
+            rf'["\'](?:{evidence_fields})_sha256["\']\s*:\s*["\']$', prefix
+        ):
+            return True
+        previous = text[:line_start].rstrip().rsplit("\n", 1)[-1]
+        if re.fullmatch(r"\s*['\"]skill_sha256['\"]\s*:\s*\[", previous):
+            return re.fullmatch(r"\s*['\"]", prefix) is not None
     current_line_prefix = text[line_start : match.start()]
     previous_line = text[:line_start].rstrip("\n").rsplit("\n", 1)[-1]
     if (

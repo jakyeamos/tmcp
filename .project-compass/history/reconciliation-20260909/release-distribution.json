@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": 3,
+  "revision": 2,
   "project": {
     "name": "TMCP release and distribution",
     "identity": "The TMCP release boundary for standalone, plugin, and MCP-host distribution.",
@@ -33,18 +33,13 @@
       ".claude-plugin/plugin.json",
       ".codex-plugin/plugin.json",
       ".mcp.json",
-      "docs/SKILL_WRITING_GUIDEBOOK.md",
-      "docs/experiments/tmcp-coordinator-verification-receipt-v0.2.json",
       "scripts/check_install.py",
       "scripts/check_release_package.py",
       "scripts/release_package_compile.py",
       "scripts/release_package_composition.py",
       "scripts/release_package_sessions.py",
       "scripts/tmcp_release_archive.py",
-      "scripts/tmcp_release_archive_checksums.py",
-      "scripts/tmcp_runtime.mjs",
-      "tests/fixtures/skill-fixtures/mined-corpus-baseline-v0.1.json",
-      "tests/test_release_package.py"
+      "scripts/tmcp_runtime.mjs"
     ]
   },
   "targets": {
@@ -58,7 +53,7 @@
   "pillars": [
     {
       "id": "release-distribution-purpose",
-      "name": "Accepted scoped purpose",
+      "name": "Draft scoped purpose",
       "outcomes": [
         {
           "id": "release-distribution-aligned-boundary",
@@ -70,8 +65,8 @@
           "maturity": 25,
           "confidence": "low",
           "layers": {
-            "intended": "Distribute identifiable portable TMCP artifacts with conservative compatibility and offline rollback. The accepted boundary does not supersede the linked canonical decisions.",
-            "planned": "Complete the explicitly authorized verification repairs within this accepted boundary. Feature admission and release remain separately governed.",
+            "intended": "Distribute identifiable portable TMCP artifacts with conservative compatibility and offline rollback. The proposed boundary does not supersede the linked canonical decisions.",
+            "planned": "No implementation or admission is authorized by this bootstrap.",
             "implemented": "Source and existing regression tests are inventoried at 59f06d48a9ef98712f319badfaaee035e2c781be. See development.json for exact paths.",
             "verified": "No current subsystem behavior receipt is claimed. Legacy regression tests and desired-outcome acceptance remain distinct."
           },
@@ -90,14 +85,13 @@
               "ref": "docs/COMPATIBILITY.md",
               "observed_at": "2026-09-08T21:07:16.177750+00:00",
               "note": "Documented constraint source; new subsystem ownership remains proposed."
-            },
-            {
-              "ref": ".project-compass/decisions/subsystem-ratification-20260909.md",
-              "observed_at": "2026-09-09T17:41:29.704939+00:00",
-              "note": "Owner accepted subsystem ownership and preservation constraints; not behavior verification."
             }
           ],
           "blockers": [
+            {
+              "kind": "product-decision",
+              "summary": "Confirm or correct the proposed ownership and unresolved handoffs through the focused bootstrap quiz."
+            },
             {
               "kind": "verification",
               "summary": "Run reviewed source-bound proof for an actual task; satisfy separately documented admission and live-consumer requirements."
@@ -123,11 +117,6 @@
         "ref": "docs/COMPATIBILITY.md",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Documented constraint source; new subsystem ownership remains proposed."
-      },
-      {
-        "ref": ".project-compass/decisions/subsystem-ratification-20260909.md",
-        "observed_at": "2026-09-09T17:41:29.704939+00:00",
-        "note": "Explicit owner acceptance on 2026-09-09."
       }
     ],
     "planned": [],
@@ -163,7 +152,7 @@
   "drift": [
     {
       "kind": "verification-gap",
-      "summary": "Ownership ratified on 2026-09-09. Current source-bound proof and independently required admission/consumer checks remain obligations.",
+      "summary": "This child boundary is a draft derived from repository documentation and has not yet been ratified or independently verified.",
       "status": "open",
       "observed_at": "2026-08-14T23:31:00Z",
       "evidence": [
@@ -175,5 +164,5 @@
       ]
     }
   ],
-  "updated_at": "2026-09-09T17:41:29.704939+00:00"
+  "updated_at": "2026-09-08T21:07:16.177750+00:00"
 }

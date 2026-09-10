@@ -30,8 +30,8 @@
       "delta": 0.00125,
       "original_decisions": ["pass", "pass", "pass"],
       "candidate_decisions": ["pass", "pass", "pass"],
-      "original_sha256": "8cc1eb80974eb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7",
-      "candidate_sha256": "8cc1eb80974eb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7"
+      "original_sha256": "8cc1eb80974ebcb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7",
+      "candidate_sha256": "8cc1eb80974ebcb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7"
     },
     {
       "skill_id": "fixture__tmcp-security-privacy-audit",

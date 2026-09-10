@@ -1,0 +1,46 @@
+{
+  "schema": "compass-behavior-inventory/v1",
+  "scope": "Selected ratified pilot boundaries; unmapped implementation remains visible. Entries link canonical specifications and do not replace them.",
+  "behaviors": [
+    {
+      "id": "packet-recompilation",
+      "spec_ref": "docs/TMCP_PACKET_SPEC.md"
+    },
+    {
+      "id": "explicit-packet-sessions",
+      "spec_ref": "docs/ADAPTIVE_PACKET_RUNTIME.md"
+    },
+    {
+      "id": "safe-source-and-artifact-boundaries",
+      "spec_ref": "docs/TMCP_PACKET_SPEC.md"
+    },
+    {
+      "id": "untrusted-skill-evaluation",
+      "spec_ref": "docs/PACKET_STABILITY.md"
+    },
+    {
+      "id": "bounded-file-harvest",
+      "spec_ref": "docs/TMCP_PACKET_SPEC.md"
+    },
+    {
+      "id": "advisory-workflow-recommendation",
+      "spec_ref": "docs/TMCP_PACKET_SPEC.md"
+    },
+    {
+      "id": "archive-manifest-integrity",
+      "spec_ref": "docs/DISTRIBUTION.md"
+    },
+    {
+      "id": "standalone-runtime-compatibility",
+      "spec_ref": "docs/CENTRAL_RUNTIME.md"
+    },
+    {
+      "id": "reproducible-allowlisted-package",
+      "spec_ref": "docs/DISTRIBUTION.md"
+    },
+    {
+      "id": "canonical-transport-ownership",
+      "spec_ref": "docs/TMCP_PACKET_SPEC.md"
+    }
+  ]
+}

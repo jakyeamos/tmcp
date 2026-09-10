@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": 3,
+  "revision": 2,
   "project": {
     "name": "TMCP packet runtime",
     "identity": "The TMCP runtime that turns a task identity and selected inputs into a compiled packet.",
@@ -75,7 +75,7 @@
   "pillars": [
     {
       "id": "packet-runtime-purpose",
-      "name": "Accepted scoped purpose",
+      "name": "Draft scoped purpose",
       "outcomes": [
         {
           "id": "packet-runtime-aligned-boundary",
@@ -87,8 +87,8 @@
           "maturity": 25,
           "confidence": "low",
           "layers": {
-            "intended": "Compile and recompile bounded advisory task packets with explicit source selection and safe optional persistence. The accepted boundary does not supersede the linked canonical decisions.",
-            "planned": "Complete the explicitly authorized verification repairs within this accepted boundary. Feature admission and release remain separately governed.",
+            "intended": "Compile and recompile bounded advisory task packets with explicit source selection and safe optional persistence. The proposed boundary does not supersede the linked canonical decisions.",
+            "planned": "No implementation or admission is authorized by this bootstrap.",
             "implemented": "Source and existing regression tests are inventoried at 59f06d48a9ef98712f319badfaaee035e2c781be. See development.json for exact paths.",
             "verified": "No current subsystem behavior receipt is claimed. Legacy regression tests and desired-outcome acceptance remain distinct."
           },
@@ -107,14 +107,13 @@
               "ref": "docs/ADAPTIVE_PACKET_RUNTIME.md",
               "observed_at": "2026-09-08T21:07:16.177750+00:00",
               "note": "Documented constraint source; new subsystem ownership remains proposed."
-            },
-            {
-              "ref": ".project-compass/decisions/subsystem-ratification-20260909.md",
-              "observed_at": "2026-09-09T17:41:29.704939+00:00",
-              "note": "Owner accepted subsystem ownership and preservation constraints; not behavior verification."
             }
           ],
           "blockers": [
+            {
+              "kind": "product-decision",
+              "summary": "Confirm or correct the proposed ownership and unresolved handoffs through the focused bootstrap quiz."
+            },
             {
               "kind": "verification",
               "summary": "Run reviewed source-bound proof for an actual task; satisfy separately documented admission and live-consumer requirements."
@@ -140,11 +139,6 @@
         "ref": "docs/ADAPTIVE_PACKET_RUNTIME.md",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Documented constraint source; new subsystem ownership remains proposed."
-      },
-      {
-        "ref": ".project-compass/decisions/subsystem-ratification-20260909.md",
-        "observed_at": "2026-09-09T17:41:29.704939+00:00",
-        "note": "Explicit owner acceptance on 2026-09-09."
       }
     ],
     "planned": [],
@@ -180,7 +174,7 @@
   "drift": [
     {
       "kind": "verification-gap",
-      "summary": "Ownership ratified on 2026-09-09. Current source-bound proof and independently required admission/consumer checks remain obligations.",
+      "summary": "This child boundary is a draft derived from repository documentation and has not yet been ratified or independently verified.",
       "status": "open",
       "observed_at": "2026-08-14T23:31:00Z",
       "evidence": [
@@ -192,5 +186,5 @@
       ]
     }
   ],
-  "updated_at": "2026-09-09T17:41:29.704939+00:00"
+  "updated_at": "2026-09-08T21:07:16.177750+00:00"
 }
