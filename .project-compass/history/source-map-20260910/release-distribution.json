@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": 4,
+  "revision": 3,
   "project": {
     "name": "TMCP release and distribution",
     "identity": "The TMCP release boundary for standalone, plugin, and MCP-host distribution.",
@@ -35,18 +35,8 @@
       ".mcp.json",
       "docs/SKILL_WRITING_GUIDEBOOK.md",
       "docs/experiments/tmcp-coordinator-verification-receipt-v0.2.json",
-      "schemas/tmcp-codex-desktop-bridge-build-v0.1.schema.json",
-      "schemas/tmcp-codex-validation-bootstrap-v0.1.schema.json",
-      "schemas/tmcp-codex-validation-preflight-v0.1.schema.json",
-      "schemas/tmcp-codex-validation-toolchain-v0.1.schema.json",
-      "scripts/__init__.py",
-      "scripts/bootstrap_codex_validation.py",
-      "scripts/check_codex_validation_preflight.py",
-      "scripts/check_contracts.py",
       "scripts/check_install.py",
-      "scripts/check_release_evidence.py",
       "scripts/check_release_package.py",
-      "scripts/pre_cr_coverage.py",
       "scripts/release_package_compile.py",
       "scripts/release_package_composition.py",
       "scripts/release_package_sessions.py",
@@ -166,11 +156,6 @@
         "ref": ".mcp.json",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
-      },
-      {
-        "ref": ".project-compass/decisions/source-map-20260910.md",
-        "observed_at": "2026-09-10T22:30:27.184763+00:00",
-        "note": "Exact source map reviewed; no new runtime, package stability or acceptance claim."
       }
     ],
     "verified": []
@@ -190,5 +175,5 @@
       ]
     }
   ],
-  "updated_at": "2026-09-10T22:30:27.184763+00:00"
+  "updated_at": "2026-09-09T17:41:29.704939+00:00"
 }

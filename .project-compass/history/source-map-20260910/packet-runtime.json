@@ -1,60 +1,67 @@
 {
   "schema_version": 1,
-  "revision": 4,
+  "revision": 3,
   "project": {
-    "name": "TMCP release and distribution",
-    "identity": "The TMCP release boundary for standalone, plugin, and MCP-host distribution.",
-    "audience": "Operators and consumers installing or validating TMCP releases.",
-    "core_loop": "Compose a release, validate its evidence and compatibility, archive the result, and expose the supported distribution surface.",
-    "north_star": "A released TMCP surface is identifiable, compatible, and backed by evidence that matches the shipped artifact.",
+    "name": "TMCP packet runtime",
+    "identity": "The TMCP runtime that turns a task identity and selected inputs into a compiled packet.",
+    "audience": "Agent workflows and operators that need relevant context with source and selection reasons visible.",
+    "core_loop": "Accept task identity, select governed inputs, compile the packet, and emit receipts or protocol results.",
+    "north_star": "Every compiled packet is relevant enough for the task and reproducible from explicit inputs.",
     "not_this": [
-      "Changing packet relevance policy",
-      "Promoting experimental workflows by implication",
-      "Claiming hosted or installed parity from source alone"
+      "Owning the complete skill catalog",
+      "Hiding provider-specific behavior in the shared runtime",
+      "Treating hashes as behavior proof"
     ]
   },
   "scope": {
-    "id": "release-distribution",
+    "id": "packet-runtime",
     "kind": "subsystem",
     "parent_id": "project",
-    "purpose": "Distribute identifiable portable TMCP artifacts with conservative compatibility and offline rollback.",
-    "boundary": "Owns release composition, archive, distribution, and compatibility-facing documentation; runtime product semantics and skill recommendation remain outside this child.",
+    "purpose": "Compile and recompile bounded advisory task packets with explicit source selection and safe optional persistence.",
+    "boundary": "Owns the launcher, runtime, MCP framing/server, packet composition, and runtime protocol under scripts; skill catalog policy and release packaging remain outside this child.",
     "non_goals": [
-      "Changing packet relevance policy",
-      "Promoting experimental workflows by implication",
-      "Claiming hosted or installed parity from source alone"
+      "Owning the complete skill catalog",
+      "Hiding provider-specific behavior in the shared runtime",
+      "Treating hashes as behavior proof"
     ],
     "parent_outcomes": [
+      "relevant-packet",
       "recompilable-audit-trail"
     ],
     "paths": [
-      ".claude-plugin/marketplace.json",
-      ".claude-plugin/mcp.json",
-      ".claude-plugin/plugin.json",
-      ".codex-plugin/plugin.json",
-      ".mcp.json",
-      "docs/SKILL_WRITING_GUIDEBOOK.md",
-      "docs/experiments/tmcp-coordinator-verification-receipt-v0.2.json",
-      "schemas/tmcp-codex-desktop-bridge-build-v0.1.schema.json",
-      "schemas/tmcp-codex-validation-bootstrap-v0.1.schema.json",
-      "schemas/tmcp-codex-validation-preflight-v0.1.schema.json",
-      "schemas/tmcp-codex-validation-toolchain-v0.1.schema.json",
-      "scripts/__init__.py",
-      "scripts/bootstrap_codex_validation.py",
-      "scripts/check_codex_validation_preflight.py",
-      "scripts/check_contracts.py",
-      "scripts/check_install.py",
-      "scripts/check_release_evidence.py",
-      "scripts/check_release_package.py",
-      "scripts/pre_cr_coverage.py",
-      "scripts/release_package_compile.py",
-      "scripts/release_package_composition.py",
-      "scripts/release_package_sessions.py",
-      "scripts/tmcp_release_archive.py",
-      "scripts/tmcp_release_archive_checksums.py",
-      "scripts/tmcp_runtime.mjs",
-      "tests/fixtures/skill-fixtures/mined-corpus-baseline-v0.1.json",
-      "tests/test_release_package.py"
+      "schemas/tmcp-composed-packet-v0.1.schema.json",
+      "schemas/tmcp-skill-packet-v0.2.schema.json",
+      "scripts/tmcp_launcher.mjs",
+      "scripts/tmcp_mcp_framing.py",
+      "scripts/tmcp_mcp_server.py",
+      "tmcp_runtime/adapters/__init__.py",
+      "tmcp_runtime/adapters/aios.py",
+      "tmcp_runtime/adapters/cli.py",
+      "tmcp_runtime/adapters/dispatch.py",
+      "tmcp_runtime/adapters/framing.py",
+      "tmcp_runtime/adapters/mcp.py",
+      "tmcp_runtime/api/registry.py",
+      "tmcp_runtime/api/tool_schemas.py",
+      "tmcp_runtime/domain/admission.py",
+      "tmcp_runtime/domain/composition.py",
+      "tmcp_runtime/domain/recompile.py",
+      "tmcp_runtime/domain/routes.py",
+      "tmcp_runtime/domain/runtime_state.py",
+      "tmcp_runtime/safety/__init__.py",
+      "tmcp_runtime/safety/files.py",
+      "tmcp_runtime/safety/fixed_files.py",
+      "tmcp_runtime/safety/reader.py",
+      "tmcp_runtime/safety/redaction.py",
+      "tmcp_runtime/services/compose.py",
+      "tmcp_runtime/services/recompile.py",
+      "tmcp_runtime/services/runtime.py",
+      "tmcp_runtime/services/sessions.py",
+      "tmcp_runtime/storage/__init__.py",
+      "tmcp_runtime/storage/artifacts.py",
+      "tmcp_runtime/storage/cache_policy.py",
+      "tmcp_runtime/storage/global_cache.py",
+      "tmcp_runtime/storage/migrations.py",
+      "tmcp_runtime/storage/sessions.py"
     ]
   },
   "targets": {
@@ -67,12 +74,12 @@
   },
   "pillars": [
     {
-      "id": "release-distribution-purpose",
+      "id": "packet-runtime-purpose",
       "name": "Accepted scoped purpose",
       "outcomes": [
         {
-          "id": "release-distribution-aligned-boundary",
-          "name": "The TMCP release and distribution boundary advances its parent outcome without silently taking on sibling responsibilities.",
+          "id": "packet-runtime-aligned-boundary",
+          "name": "The TMCP packet runtime boundary advances its parent outcome without silently taking on sibling responsibilities.",
           "targets": [
             "mvp",
             "complete_product"
@@ -80,24 +87,24 @@
           "maturity": 25,
           "confidence": "low",
           "layers": {
-            "intended": "Distribute identifiable portable TMCP artifacts with conservative compatibility and offline rollback. The accepted boundary does not supersede the linked canonical decisions.",
+            "intended": "Compile and recompile bounded advisory task packets with explicit source selection and safe optional persistence. The accepted boundary does not supersede the linked canonical decisions.",
             "planned": "Complete the explicitly authorized verification repairs within this accepted boundary. Feature admission and release remain separately governed.",
             "implemented": "Source and existing regression tests are inventoried at 59f06d48a9ef98712f319badfaaee035e2c781be. See development.json for exact paths.",
             "verified": "No current subsystem behavior receipt is claimed. Legacy regression tests and desired-outcome acceptance remain distinct."
           },
           "evidence": [
             {
-              "ref": "docs/DISTRIBUTION.md",
+              "ref": "docs/TMCP_PACKET_SPEC.md",
               "observed_at": "2026-09-08T21:07:16.177750+00:00",
               "note": "Documented constraint source; new subsystem ownership remains proposed."
             },
             {
-              "ref": "docs/CENTRAL_RUNTIME.md",
+              "ref": "docs/PACKET_STABILITY.md",
               "observed_at": "2026-09-08T21:07:16.177750+00:00",
               "note": "Documented constraint source; new subsystem ownership remains proposed."
             },
             {
-              "ref": "docs/COMPATIBILITY.md",
+              "ref": "docs/ADAPTIVE_PACKET_RUNTIME.md",
               "observed_at": "2026-09-08T21:07:16.177750+00:00",
               "note": "Documented constraint source; new subsystem ownership remains proposed."
             },
@@ -120,17 +127,17 @@
   "source_layers": {
     "intended": [
       {
-        "ref": "docs/DISTRIBUTION.md",
+        "ref": "docs/TMCP_PACKET_SPEC.md",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Documented constraint source; new subsystem ownership remains proposed."
       },
       {
-        "ref": "docs/CENTRAL_RUNTIME.md",
+        "ref": "docs/PACKET_STABILITY.md",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Documented constraint source; new subsystem ownership remains proposed."
       },
       {
-        "ref": "docs/COMPATIBILITY.md",
+        "ref": "docs/ADAPTIVE_PACKET_RUNTIME.md",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Documented constraint source; new subsystem ownership remains proposed."
       },
@@ -143,34 +150,29 @@
     "planned": [],
     "implemented": [
       {
-        "ref": ".claude-plugin/marketplace.json",
+        "ref": "schemas/tmcp-composed-packet-v0.1.schema.json",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
-        "ref": ".claude-plugin/mcp.json",
+        "ref": "schemas/tmcp-skill-packet-v0.2.schema.json",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
-        "ref": ".claude-plugin/plugin.json",
+        "ref": "scripts/tmcp_launcher.mjs",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
-        "ref": ".codex-plugin/plugin.json",
+        "ref": "scripts/tmcp_mcp_framing.py",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
       },
       {
-        "ref": ".mcp.json",
+        "ref": "scripts/tmcp_mcp_server.py",
         "observed_at": "2026-09-08T21:07:16.177750+00:00",
         "note": "Observed on the committed bootstrap baseline; not proof of desired behavior."
-      },
-      {
-        "ref": ".project-compass/decisions/source-map-20260910.md",
-        "observed_at": "2026-09-10T22:30:27.184763+00:00",
-        "note": "Exact source map reviewed; no new runtime, package stability or acceptance claim."
       }
     ],
     "verified": []
@@ -190,5 +192,5 @@
       ]
     }
   ],
-  "updated_at": "2026-09-10T22:30:27.184763+00:00"
+  "updated_at": "2026-09-09T17:41:29.704939+00:00"
 }

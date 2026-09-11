@@ -1,0 +1,980 @@
+{
+  "schema": "compass-source-map-review/v1",
+  "source_revision": "61bab4dc74563cc03f161bfd10a8b343f9669545",
+  "reviewed_at": "2026-09-10T22:30:27.184763+00:00",
+  "method": "Canonical boundary reconciliation plus Python module responsibilities, schema purposes, curated skill roles and resolved imports. This is intent traceability, not exhaustive behavior acceptance.",
+  "assignments": [
+    {
+      "path": "schemas/tmcp-adaptive-workflow-pack-v0.1.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "158e2ad06820281dd8945abd6572702b47a37b6de03f1b784a7ce195ec91ea5f",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-behavioral-atoms-held-out-fixtures-v0.3.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "6b8df833b14b44416ce151674e4bac334e798b2e0ffa2645627606c8796a30f9",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-behavioral-atoms-runtime-h3-boundary-decision-v0.7.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "00a0f0ab1881beb585cface8ca769d85acffeeeb3a7d107043c0ee4c9cc60735",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-behavioral-atoms-runtime-h3-decision-v0.7.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "b6a708d1dfab662fbdb3528191f394667eb0cfe17e9094a42ef097a60eab7880",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-behavioral-atoms-runtime-h3-fixtures-v0.7.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "fe0b02a0419b7f9eb21339b54a5f929add5a9a686b2a87401910779ad317b455",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-behavioral-atoms-runtime-implementation-decision-v0.4.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "ccb859eefb69e67382381cfeb12821898dab67df3903220d1c58e1dd32a1f3af",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-behavioral-atoms-semantic-preflight-v0.3.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "abecbd424720733af8028d214b34314f1f0aab280abb5ecd8187103ceac3f86f",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-codex-desktop-bridge-build-v0.1.schema.json",
+      "compass_id": "release-distribution",
+      "sha256": "b2cf764bce58c6b5740bfd7ff86276d5a22ce51d638ca41b40f827c6306585d8",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-codex-validation-bootstrap-v0.1.schema.json",
+      "compass_id": "release-distribution",
+      "sha256": "867d4f525ca2132cda24c88eb46212eec4bcf4df05f53bfbd9161bd3c5c96430",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-codex-validation-preflight-v0.1.schema.json",
+      "compass_id": "release-distribution",
+      "sha256": "2e91cea3224b7ae3fe801dd73e91bd1da27cd71138b1cd60b7e54b9d289b2967",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-codex-validation-toolchain-v0.1.schema.json",
+      "compass_id": "release-distribution",
+      "sha256": "86944676831dccc4632199068907a26161e2167230d7dcb5fb6f4a4a919807c0",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-coordinator-state-v0.1.schema.json",
+      "compass_id": "packet-runtime",
+      "sha256": "4c0724ef4416f2edf30fb1ac11b4f73de13985ba1398e17b600e72cd9ce15a3e",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-handoff-manifest-v0.1.schema.json",
+      "compass_id": "packet-runtime",
+      "sha256": "4078b9a638f582cfabe8d1e6d186b83ffe3d561c9c1f9449c7619165c5c61e7e",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-handoff-manifest-v0.2.schema.json",
+      "compass_id": "packet-runtime",
+      "sha256": "7e6cded7a86006aa20c430995272cf455d5500e5a0682ae7200bd83dd1fb3c2d",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-promoted-harvest-graph-v0.1.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "08dc2acd6e9d4c3647ac838a528b80f01a6a73044db0c3db30e50c6ac3c0a411",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-recompiled-packet-v0.1.schema.json",
+      "compass_id": "packet-runtime",
+      "sha256": "b486d6cc3c84ef2869b4925478dea7f6a96ff54fee5850bac3809550b31812fa",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-run-receipt-v0.1.schema.json",
+      "compass_id": "packet-runtime",
+      "sha256": "138f895248c8a3ab786fba9c786029f0cc9a81ab20bce4097f831d669699aadf",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-run-session-v0.1.schema.json",
+      "compass_id": "packet-runtime",
+      "sha256": "82912d958c02113de302c6a4e66add592c5afd4ba9ce4e2a0c52c7bcae12bcb2",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-runtime-next-v0.1.schema.json",
+      "compass_id": "packet-runtime",
+      "sha256": "db0b7e8aee9bb0b64ad5b2f4ec3be78497c0c4bc1512a50e8f25e744bab14474",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-skill-eval-trace-v0.1.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "c769d8b85145f8d10dbb69ca75eab9e8ba79e647461b5ed51d8d14c6b0c38c87",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-skill-evaluation-plan-v0.1.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "f92ae5934cb2abe33cb0c88bf96400ec70598e2b2a28a54d7c24847de27ee779",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-skill-evaluation-report-v0.1.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "735f4bb7e9e37511f6c662dcf7f34e64328e83df2a5b075a29f9c3e366c50e8d",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-skill-fixture-manifest-v0.1.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "a1dff973754a7a4ce0482a679ee9b3ad9effdd4462ab1a969757bc549ada87f1",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-skill-fixture-proposals-v0.1.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "2e5f97689d72c761d11e73441eac69ff9ee6afc6a79be5dd702c324b0de43206",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "schemas/tmcp-skill-fixture-seed-cases-v0.1.schema.json",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "3308aa2ed726f53ebc867ba64a66fb278a45db2c7a91ce656eea92e4b70e6dc8",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/__init__.py",
+      "compass_id": "release-distribution",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/apply_skill_fixture_proposals.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "3a3b7443cf400f576de254324620aa095354201276bdcab913e03a6ff3fac95d",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/audit_skill_fixture_coverage.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "d04e2b8d1fe2463ef84837b61071fabbc70419d855207df440231ba6fe7d0f3a",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/bootstrap_codex_validation.py",
+      "compass_id": "release-distribution",
+      "sha256": "ff2742d879abf4cc75b3042cd8dad428a6d367efe6cfb5fbc5880f4b8aab607f",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/build_individual_skill_admission.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "8f4032801f8c6ea2cf743d21551a3687023881acab7f9eb96182cb06db560f6c",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/build_individual_skill_audit.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "4c55514ef7ec5860760b538ff5d35d8b2d48d42fef8e4e985cf07f174a39f7ac",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/build_skill_behavior_dispositions.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "4bd6f9a5c9dcf510515fb263e513ef6d56a9b65fde3da8daa4af2a2a1d1f48ed",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/check_codex_validation_preflight.py",
+      "compass_id": "release-distribution",
+      "sha256": "28bf2e1c8072357ac97e738762bef3ad736d23475864c30bc69d98221e43c0ed",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/check_contracts.py",
+      "compass_id": "release-distribution",
+      "sha256": "6b17a9926e4b32f89906ba0cdccb6533fbb9b4dc81f9709c0987d87c4df9eb02",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/check_release_evidence.py",
+      "compass_id": "release-distribution",
+      "sha256": "bf1ac981d6038acce0e72fc8eb839ef376ab9d919fbd36e2c2448f73b2d34115",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/extract_codex_rollout_metrics.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "e05f435dbca2d34604afc0990015a933a09c3f53a394fdddd25f70c342885cea",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/generate_skill_fixture_proposals.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "0b7a4ad7c596865d84b905141df084ead45a4eaba1de0384daf9023e1fff0968",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/pre_cr_coverage.py",
+      "compass_id": "release-distribution",
+      "sha256": "977d41fc366b1930c5cccd0caabef09a52507f52d5454596efe45b405d824b40",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/prepare_invocation_admission_pilot.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "16bc00dc9389b9d9cc388b1c52ae05232ba3a03b0b1244779479ea7d01b3b8f1",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/prepare_skill_fixture_eval.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "3bd5b9e80ad6f0af74e7fe35ab1aa4de7be1125cb1abae8aca5ed3f014f88b03",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/record_skill_fixture_candidate.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "574870400b3ccb41775b60898820656ea5a1874a60e59c8eb59c6719325b971b",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/replay_handoff.py",
+      "compass_id": "packet-runtime",
+      "sha256": "5d82c5d47bc6b9891c4010b23f4eb5a5ae6f227875dddc6d871cb1a98e341293",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/run_invocation_admission_overhead_pilot.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "eb9d3bc04b8e3490de21cdf195e9c8a52668f0733d25ed34cbd416f94c1b091a",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/run_mined_skill_fixture_campaign.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "0952fe20dbb33ac9864caa6a65d5550705b6363e143cfa9854637748b7a940af",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/run_skill_fixture_codex.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "17cba341aaccfcab84ae54a6460131e99018211bdcfda78f29afcbe3d39c0157",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/scaffold_skill_fixtures.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "5a0bc643ae3ec25f7ef97ded2fbc404ce8e3198f0640fe48d1bdf7c4b1f282e6",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/score_invocation_admission_pilot.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "95249b770a6f92f0ec8ec4fd6f02c226c6ae17b52073ea16c8525ade65762c95",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/score_invocation_admission_rollout.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "820b61a56e63719117e83fea816849796b282c1dbe79da208a3e8c2753ab95db",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/tmcp_redaction.py",
+      "compass_id": "packet-runtime",
+      "sha256": "0a2e08a0df831721d5128f1af78cd6aef84b2d90f1f2ea878984e71f8149060a",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/validate_skill_fixture_artifact.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "fd7c3f99a9bb11e55495f6bab1f840f266e40175c6be75e9d25d17e29d7c5a72",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/validate_skill_fixture_batch.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "5f53b7cfa16a52592e5fac2cd14a551908c62a3d35b812a8808465db4fcdd1b0",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/validate_skill_fixture_corpus.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "ee1a3bd1a8812b6ea7c5e7f949db2b1dac195fd259dac4327e06b3c86a36cbe3",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "scripts/validate_skill_fixtures.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "7e556982d66a4ebbe19f6437a2c301a05169fd1666ad92cfe490c0ac43efaea3",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-adaptive-workflow-pack/SKILL.md",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "ea69497dfe333f420c1119bde382cc161585349eee76ff4d2e4f860fcec40f1f",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-agent-handoff/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "4aec3332175025149fcd34f4e7b05e8328668da1220980282ef9e540dba72699",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-architecture-decision/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "1caca3204917e690c0446ad320a4298d4d8c82a087531487c481ef8e47e014a2",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-custom-rubric-generator/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "0ba485aeeda52875627c39d4cebc7f1fd53c909d3c349b970610ef02c33da6d4",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-data-integrity-audit/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "84fa7f2ad5aac85233d96aae31bc70412630a891715578213a91b1c4b93daf77",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-dx-audit/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "85774f52da1ea5609280b04daa388f6c95c5da53954b51bdf52fb2b31d79ce14",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-incident-postmortem/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "cfcd38d85f2823f5ee4436e844a371e9c7d9327152da5bcb3a12d38df7268f54",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-migration-readiness/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "8cc1eb80974ebcb098e5ef65ca0f3582f860e108d952f073e96b171557bf90f7",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-performance-readiness/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "ed86e4db2bd4ce625744bf55ade7d71fb5ea2cbacebc3cb87a69aa4b09ea9a5b",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-pr-risk-review/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "1e22e1d819fa77380a4aca073905c4f1c3aee2dad8496838fe2bb34abf49edab",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-release-readiness/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "54d435ed0f551048cccd47c3093aa0734aff0fda8a15627ff3fb1d8bc8ca11ff",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-repo-behavior-spec-loop/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "30540b5d971a515b2b3a839cb648ba871b4767d317a8d8d223dee2c93f09a9d7",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-routing-policy-generator/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "5140209a436120d5b8ffb1b1c60080c310ed20ea7a92225eda3772eee3b926a2",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-security-privacy-audit/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "18c7b963bb400250a3461f306616a53c603e299dafb29afc06c0e411f88e88d7",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-skill-gap-analysis/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "e3685ef3b63c43ea482f098fed90b140afa58c7a5ba81a5733b2ed6c8c8e776f",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-test-strategy/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "0e25ff48438ad100b32db04f6bb36c61692011c56ecf4eaf625deaa5d440be29",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "skills/tmcp-ui-rubric/SKILL.md",
+      "compass_id": "packet-runtime",
+      "sha256": "6b7e6f381b1d071e37ecf71af7d2d5eb30646fddd093d5b74800589c3d7d46e4",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/__init__.py",
+      "compass_id": "packet-runtime",
+      "sha256": "86b40236d4b104bc779a6f9eefe8e476cb75a1eb2fd403d3f5591611f0fa0c9c",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/api/__init__.py",
+      "compass_id": "packet-runtime",
+      "sha256": "b3ecbe4b156e31b8afb02730c247a861af26ff1443aab6c0ea500b4d201c3683",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/api/cli.py",
+      "compass_id": "packet-runtime",
+      "sha256": "7c12e9b63a19c0ef68937c796cd9a3f546b64dd0f4362767453a1b603c50bb49",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/api/evaluation.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "067857576b3e3bcc7b815e4d9f3cf7e2b19d8e04d75ea79244745834a347debd",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/__init__.py",
+      "compass_id": "packet-runtime",
+      "sha256": "265faa9b4ee1c3856eb2d2f5684964713380dd7788f0e3e6f2ad6fece37e25f8",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/behavioral_atom_compiler.py",
+      "compass_id": "packet-runtime",
+      "sha256": "0511972bc3a93b31cea41c672477af92825c651c4c56bc3a3821c423dd9ce1ce",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/behavioral_atom_registry.py",
+      "compass_id": "packet-runtime",
+      "sha256": "4c6d1c05fbce0f8adad6a96fa67e55abb5aed52d40e7cf3c49145101654f7309",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/behavioral_atom_renderer.py",
+      "compass_id": "packet-runtime",
+      "sha256": "0ed73cd2178524662e2a0ee71de9f6c8edfd0b08d71beb202b9eb0577529b3d4",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/behavioral_atom_types.py",
+      "compass_id": "packet-runtime",
+      "sha256": "e7f4f92338f74aaa1820078b6651c2d03853281365df858bcc6b58928a07c8c8",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/behavioral_atoms.py",
+      "compass_id": "packet-runtime",
+      "sha256": "6d99d400c0920bfc3af7c55da98a32ad44799f3f02e57aa406b57bb3f06fce34",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/coordination.py",
+      "compass_id": "packet-runtime",
+      "sha256": "4c5723009b227e5310e1fcb09bb6e7ca01a63804019703943c78a590bf7de87e",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/declared_loads.py",
+      "compass_id": "packet-runtime",
+      "sha256": "4a3da110de2dd880cf1cdeea55b6000551c404f1190a81b3b09674cc2dcafd41",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/families.py",
+      "compass_id": "packet-runtime",
+      "sha256": "5adc9cc9df834af4d43bfe924cfcdc92e4933b2e8b0069f2f156df91a6c2e490",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/packet_substance.py",
+      "compass_id": "packet-runtime",
+      "sha256": "e72d7bddabe9e42c24500ae493dbf51637acf4ca354d988f2f98f1194798f321",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/packets.py",
+      "compass_id": "packet-runtime",
+      "sha256": "3374aed80d48cc75165c1094a7d523f7db27e8c35a9a51d29b058d5b4a70727a",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/receipts.py",
+      "compass_id": "packet-runtime",
+      "sha256": "31cd3a6681729b2eae5a2e4553551b6b94c22352b5b73689bfb3b6825dd97b16",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/review_evidence.py",
+      "compass_id": "packet-runtime",
+      "sha256": "db3f631ab9ab38ae0c1ed568da7453d43882841eda13da619914791a95580142",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/review_profiles.py",
+      "compass_id": "packet-runtime",
+      "sha256": "1d5bea35cd152b9ca37ab49f9480aa6cf9bf1172adc004edb7170a86a95095bd",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/review_results.py",
+      "compass_id": "packet-runtime",
+      "sha256": "bcade132a597486de3360727f537383e52147257f9a11c82d63cc6bde31af474",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/route_catalog.py",
+      "compass_id": "packet-runtime",
+      "sha256": "6938c397bd775e50680de3f4d1e36b1909b7793c4461dc8709ecc700fdd5b9bd",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/route_resolution.py",
+      "compass_id": "packet-runtime",
+      "sha256": "813eb57f894f908d57994e7b2ef76e40649e7b9a739b5221b24639f506a44592",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/signal_text.py",
+      "compass_id": "packet-runtime",
+      "sha256": "90ba82e8805b2d0c2f579ec66bb050fb269dff0d377587c6fa4ee33025ca257a",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/standalone_packets.py",
+      "compass_id": "packet-runtime",
+      "sha256": "2dccdb6d27eaeb931e56afdf27ea17ce46e2ffe2af87c3287eecbc4ea648a22d",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/workflow_activation.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "c95e6e138d47076067acbc37262938bf49f00185a7b90b813e90afa9a38a7183",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/workflow_adaptive.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "f097d94ad61b57c0807b48940980efbec20b34d953ec24464a8402c49d9948ed",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/workflow_catalog.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "2d7202e291538078384b0fc04fb192eface068541dbddf835ecb4037d4a82399",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/domain/workflow_promotion.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "38b91ff21e68475fdae8516cadd262a54072ebc1af46609051eeaa968309489d",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/__init__.py",
+      "compass_id": "packet-runtime",
+      "sha256": "1b956786011e48beaa86e80d5b9646744df8973cb732e3b3a8887b2460a522e6",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/artifact_persistence.py",
+      "compass_id": "packet-runtime",
+      "sha256": "b130270cd3f62b515564a5f8b80cd09d60910b4027122a7173b9c6cb0044a19c",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/artifact_plans.py",
+      "compass_id": "packet-runtime",
+      "sha256": "bad437577879038bb17677a7cfdae457efb4b5b8676fc9810d8a0582d130f083",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/behavioral_atom_evaluation.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "60153f1be3e6969a067bbc315bd2674ab3284352939049a62d3931c2217e51cc",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/behavioral_atom_h3.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "212ef3418b75e61b917b1738223f1d46d34faccbcf965c3e4a5b7b886da72381",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/behavioral_atom_projection.py",
+      "compass_id": "packet-runtime",
+      "sha256": "a9e87ecbb3d2a41d77ddb70ea397d14e2a5e071f5403b4da10608acb30524ea2",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/behavioral_atom_runtime.py",
+      "compass_id": "packet-runtime",
+      "sha256": "cb437487f11c8351cd174f1bb267eb0978e61d175bc683740d3a3ed0fd2177cd",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/diagnostics.py",
+      "compass_id": "packet-runtime",
+      "sha256": "73a23571fe4f19f06bfd18f96a754b6a43cab8fc0b6b1fe08b761ba84354af56",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/evaluation_catalog.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "bf7313331a86a756b5b6b647bbf7d55d271da5d5727e82c94fb5c5dee0d97d1f",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/evaluation_orchestration.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "9964b9acb0a8e512f2cbf136d98285ab20d1500862f2f11b6d0c20d6896ceb82",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/evaluation_packets.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "04e1060f7f95921f5fb515f187e83a1cde8cd21f1677e58540f2b1cb33fced5e",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/evaluation_plan.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "2bd1aed4a6e08daa5c2cf455729bbd2a101914fcc38949dd9828a3cfcdad7e81",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/evaluation_policy.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "2be094eab946763e58afd7e4f961911ebd4968256d04914933812aad6e895c5a",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/evaluation_rendering.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "58ff512bae8eb54e3bec97a5d132ea63c65f256633d511e213bd4da8e6fcedc6",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/evaluation_scoring.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "fc0da71fa6feb701c4d1b2e106f93b34d5f82249c37ae1a6c151a2034864edaf",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/explain.py",
+      "compass_id": "packet-runtime",
+      "sha256": "9015734e7398f827bbc9027c62a187135501f8cd950c8cd3250dce1651eeba51",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/global_promotion.py",
+      "compass_id": "skill-harvest-recommendation",
+      "sha256": "c7aa08951b6eb08ff70fd8961cd1e4cda8ca4a5c3111fbad8ed446d83abf745a",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/receipts.py",
+      "compass_id": "packet-runtime",
+      "sha256": "e7189b9533029aa6ad529f39dbf96179d6a9c5e737db575f2280c437118fbe6f",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    },
+    {
+      "path": "tmcp_runtime/services/review.py",
+      "compass_id": "packet-runtime",
+      "sha256": "3480932b769f4154e750d5f445aaa61e036bbf3b9f40af822f15ef2b7d36a191",
+      "basis": "Reviewed module responsibility and canonical subsystem boundary; package stability and behavior admission are unchanged."
+    }
+  ],
+  "cross_compass_imports": [
+    {
+      "consumer": "scripts/tmcp_mcp_server.py",
+      "dependency": "tmcp_runtime/domain/harvest_nodes.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "scripts/tmcp_mcp_server.py",
+      "dependency": "tmcp_runtime/domain/workflow_catalog.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "scripts/tmcp_mcp_server.py",
+      "dependency": "tmcp_runtime/api/evaluation.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "scripts/tmcp_mcp_server.py",
+      "dependency": "tmcp_runtime/services/harvest.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "scripts/tmcp_mcp_server.py",
+      "dependency": "tmcp_runtime/services/evaluation_rendering.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "scripts/tmcp_mcp_server.py",
+      "dependency": "tmcp_runtime/services/harvest_advisories.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "scripts/tmcp_mcp_server.py",
+      "dependency": "tmcp_runtime/services/global_promotion.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "scripts/tmcp_mcp_server.py",
+      "dependency": "tmcp_runtime/services/evaluation_catalog.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "scripts/tmcp_mcp_server.py",
+      "dependency": "tmcp_runtime/services/recommendations.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "scripts/tmcp_mcp_server.py",
+      "dependency": "tmcp_runtime/services/promotion.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/domain/runtime_state.py",
+      "dependency": "tmcp_runtime/domain/harvest_nodes.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/compose.py",
+      "dependency": "tmcp_runtime/domain/harvest_nodes.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/compose.py",
+      "dependency": "tmcp_runtime/domain/workflow_activation.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/recompile.py",
+      "dependency": "tmcp_runtime/domain/harvest_nodes.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/domain/packet_substance.py",
+      "dependency": "tmcp_runtime/domain/harvest_labels.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/__init__.py",
+      "dependency": "tmcp_runtime/services/harvest.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/__init__.py",
+      "dependency": "tmcp_runtime/services/global_promotion.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/__init__.py",
+      "dependency": "tmcp_runtime/services/recommendations.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/__init__.py",
+      "dependency": "tmcp_runtime/services/promotion.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/artifact_plans.py",
+      "dependency": "tmcp_runtime/domain/workflow_adaptive.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/artifact_plans.py",
+      "dependency": "tmcp_runtime/domain/workflow_promotion.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/behavioral_atom_runtime.py",
+      "dependency": "tmcp_runtime/services/behavioral_atom_evaluation.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/behavioral_atom_runtime.py",
+      "dependency": "tmcp_runtime/services/behavioral_atom_h3.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/services/review.py",
+      "dependency": "tmcp_runtime/domain/harvest_nodes.py",
+      "consumer_compass": "packet-runtime",
+      "producer_compass": "skill-harvest-recommendation"
+    },
+    {
+      "consumer": "tmcp_runtime/domain/harvest_nodes.py",
+      "dependency": "tmcp_runtime/domain/declared_loads.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/domain/harvest_nodes.py",
+      "dependency": "tmcp_runtime/domain/standalone_packets.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/domain/workflow_recommendations.py",
+      "dependency": "tmcp_runtime/domain/review_profiles.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/services/harvest.py",
+      "dependency": "tmcp_runtime/domain/standalone_packets.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/services/harvest.py",
+      "dependency": "tmcp_runtime/safety/__init__.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "scripts/extract_codex_rollout_metrics.py",
+      "dependency": "tmcp_runtime/api/registry.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/api/evaluation.py",
+      "dependency": "tmcp_runtime/safety/__init__.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/domain/workflow_activation.py",
+      "dependency": "tmcp_runtime/domain/composition.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/services/behavioral_atom_evaluation.py",
+      "dependency": "tmcp_runtime/domain/behavioral_atoms.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/services/behavioral_atom_evaluation.py",
+      "dependency": "tmcp_runtime/services/behavioral_atom_projection.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/services/behavioral_atom_h3.py",
+      "dependency": "tmcp_runtime/domain/behavioral_atoms.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/services/behavioral_atom_h3.py",
+      "dependency": "tmcp_runtime/services/behavioral_atom_projection.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "tmcp_runtime/services/global_promotion.py",
+      "dependency": "tmcp_runtime/services/artifact_plans.py",
+      "consumer_compass": "skill-harvest-recommendation",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "scripts/check_install.py",
+      "dependency": "scripts/tmcp_mcp_framing.py",
+      "consumer_compass": "release-distribution",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "scripts/check_install.py",
+      "dependency": "tmcp_runtime/api/registry.py",
+      "consumer_compass": "release-distribution",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "scripts/release_package_composition.py",
+      "dependency": "tmcp_runtime/storage/__init__.py",
+      "consumer_compass": "release-distribution",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "scripts/release_package_sessions.py",
+      "dependency": "tmcp_runtime/storage/__init__.py",
+      "consumer_compass": "release-distribution",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "scripts/tmcp_release_archive.py",
+      "dependency": "scripts/tmcp_redaction.py",
+      "consumer_compass": "release-distribution",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "scripts/check_contracts.py",
+      "dependency": "scripts/tmcp_mcp_framing.py",
+      "consumer_compass": "release-distribution",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "scripts/check_contracts.py",
+      "dependency": "tmcp_runtime/api/registry.py",
+      "consumer_compass": "release-distribution",
+      "producer_compass": "packet-runtime"
+    },
+    {
+      "consumer": "scripts/check_release_evidence.py",
+      "dependency": "tmcp_runtime/api/registry.py",
+      "consumer_compass": "release-distribution",
+      "producer_compass": "packet-runtime"
+    }
+  ],
+  "unknowns": [
+    "Dynamic imports, generated references and host-installed consumer behavior require task-specific review.",
+    "Existing regression proof does not cover every behavior in the expanded implementation inventory."
+  ]
+}
